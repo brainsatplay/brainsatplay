@@ -211,6 +211,9 @@ class deviceStream {
 			else if(device === "muse") {
 
 			}
+			else if(device === "hegduino") {
+				
+			}
 		}
 	}
 }
