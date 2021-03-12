@@ -414,43 +414,43 @@ class dataAtlas {
 			this.data.eeg[i].count++;
 			this.data.eeg[i].times.push(lastPostTime);
 			this.data.eeg[i].ffts.push(data[channel]);
-			if(this.data.shared.bandFreqs.scp[1].length > 0){
-			var scp = data[channel].slice( this.data.shared.bandFreqs.scp[1][0], this.data.shared.bandFreqs.scp[1][this.data.shared.bandFreqs.scp[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+			var scp = data[channel].slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 			this.data.eeg[i].data.slices.scp.push(scp);
 			this.data.eeg[i].data.means.scp.push(eegmath.mean(scp));
 			}
-			if(this.data.shared.bandFreqs.scp[1].length > 0){
-			var delta = data[channel].slice( this.data.shared.bandFreqs.delta[1][0], this.data.shared.bandFreqs.delta[1][this.data.shared.bandFreqs.delta[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+			var delta = data[channel].slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 			this.data.eeg[i].slices.delta.push(delta);
 			this.data.eeg[i].means.delta.push(eegmath.mean(delta));
 			}
-			if(this.data.shared.bandFreqs.theta[1].length > 0){
-			var theta = data[channel].slice( this.data.shared.bandFreqs.theta[1][0], this.data.shared.bandFreqs.theta[1][this.data.shared.bandFreqs.theta[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.theta[1].length > 0){
+			var theta = data[channel].slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 			this.data.eeg[i].slices.theta.push(theta);
 			this.data.eeg[i].means.theta.push(eegmath.mean(theta));
 			}
-			if(this.data.shared.bandFreqs.alpha1[1].length > 0){
-			var alpha1 = data[channel].slice( this.data.shared.bandFreqs.alpha1[1][0], this.data.shared.bandFreqs.alpha1[1][this.data.shared.bandFreqs.alpha1[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
+			var alpha1 = data[channel].slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 			this.data.eeg[i].slices.alpha1.push(alpha1);
 			this.data.eeg[i].means.alpha1.push(eegmath.mean(alpha1));
 			}
-			if(this.data.shared.bandFreqs.alpha2[1].length > 0){
-			var alpha2 = data[channel].slice( this.data.shared.bandFreqs.alpha2[1][0], this.data.shared.bandFreqs.alpha2[1][this.data.shared.bandFreqs.alpha2[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
+			var alpha2 = data[channel].slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 			this.data.eeg[i].slices.alpha2.push(alpha2);
 			this.data.eeg[i].means.alpha2.push(eegmath.mean(alpha2));
 			}
-			if(this.data.shared.bandFreqs.beta[1].length > 0){
-			var beta  = data[channel].slice( this.data.shared.bandFreqs.beta[1][0],  this.data.shared.bandFreqs.beta[1][this.data.shared.bandFreqs.beta[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.beta[1].length > 0){
+			var beta  = data[channel].slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 			this.data.eeg[i].slices.beta.push(beta);
 			this.data.eeg[i].means.beta.push(eegmath.mean(beta));
 			}
-			if(this.data.shared.bandFreqs.lowgamma[1].length > 0){
-			var lowgamma = data[channel].slice( this.data.shared.bandFreqs.lowgamma[1][0], this.data.shared.bandFreqs.lowgamma[1][this.data.shared.bandFreqs.lowgamma[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
+			var lowgamma = data[channel].slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 			this.data.eeg[i].slices.lowgamma.push(lowgamma);
 			this.data.eeg[i].means.lowgamma.push(eegmath.mean(lowgamma));
 			}
-			if(this.data.shared.bandFreqs.highgamma[1].length > 0){
-			var highgamma = data[channel].slice( this.data.shared.bandFreqs.highgamma[1][0], this.data.shared.bandFreqs.highgamma[1][this.data.shared.bandFreqs.highgamma[1].length-1]+1);
+			if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
+			var highgamma = data[channel].slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 			this.data.eeg[i].slices.highgamma.push(highgamma);
 			this.data.eeg[i].means.highgamma.push(eegmath.mean(highgamma));
 			}
@@ -466,43 +466,43 @@ class dataAtlas {
 		  this.data.coherence[i].amplitudes.push(row);
 		  this.data.coherence[i].times.push(lastPostTime);
 
-		if(this.data.shared.bandFreqs.scp[1].length > 0){
-		  var scp = row.slice( this.data.shared.bandFreqs.scp[1][0], this.data.shared.bandFreqs.scp[1][this.data.shared.bandFreqs.scp[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+		  var scp = row.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 		  this.data.coherence[i].slices.scp.push(scp);
 		  this.data.coherence[i].means.scp.push(eegmath.mean(scp));
 		}
-		if(this.data.shared.bandFreqs.delta[1].length > 0){
-		  var delta = row.slice( this.data.shared.bandFreqs.delta[1][0], this.data.shared.bandFreqs.delta[1][this.data.shared.bandFreqs.delta[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.delta[1].length > 0){
+		  var delta = row.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 		  this.data.coherence[i].slices.delta.push(delta);
 		  this.data.coherence[i].means.delta.push(eegmath.mean(delta));
 		}
-		if(this.data.shared.bandFreqs.theta[1].length > 0){
-		  var theta = row.slice( this.shared.bandFreqs.theta[1][0], this.data.shared.bandFreqs.theta[1][this.data.shared.bandFreqs.theta[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.theta[1].length > 0){
+		  var theta = row.slice( this.shared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 		  this.data.coherence[i].slices.theta.push(theta);
 		  this.data.coherence[i].means.theta.push(eegmath.mean(theta));
 		}
-		if(this.data.shared.bandFreqs.alpha1[1].length > 0){
-		  var alpha1 = row.slice( this.shared.bandFreqs.alpha1[1][0], this.data.shared.bandFreqs.alpha1[1][this.data.shared.bandFreqs.alpha1[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
+		  var alpha1 = row.slice( this.shared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha1.push(alpha1);
 		  this.data.coherence[i].means.alpha1.push(eegmath.mean(alpha1));
 		}
-		if(this.data.shared.bandFreqs.alpha2[1].length > 0){
-		  var alpha2 = row.slice( this.data.shared.bandFreqs.alpha2[1][0], this.data.shared.bandFreqs.alpha2[1][this.data.shared.bandFreqs.alpha2[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
+		  var alpha2 = row.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha2.push(alpha2);
 		  this.data.coherence[i].means.alpha2.push(eegmath.mean(alpha2));
 		}
-		if(this.data.shared.bandFreqs.beta[1].length > 0){
-		  var beta  = row.slice( this.data.shared.bandFreqs.beta[1][0],  this.data.shared.bandFreqs.beta[1][this.data.shared.bandFreqs.beta[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.beta[1].length > 0){
+		  var beta  = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 		  this.data.coherence[i].slices.beta.push(beta);
 		  this.data.coherence[i].means.beta.push(eegmath.mean(beta));
 		}
-		if(this.data.shared.bandFreqs.lowgamma[1].length > 0){
-		  var lowgamma = row.slice( this.data.shared.bandFreqs.lowgamma[1][0], this.data.shared.bandFreqs.lowgamma[1][this.data.shared.bandFreqs.lowgamma[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
+		  var lowgamma = row.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.lowgamma.push(lowgamma);
 		  this.data.coherence[i].means.lowgamma.push(eegmath.mean(lowgamma));
 		}
-		if(this.data.shared.bandFreqs.highgamma[1].length > 0){
-		  var highgamma = row.slice( this.data.shared.bandFreqs.highgamma[1][0], this.data.shared.bandFreqs.highgamma[1][this.data.shared.bandFreqs.highgamma[1].length-1]+1);
+		if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
+		  var highgamma = row.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.highgamma.push(highgamma);
 		  this.data.coherence[i].means.highgamma.push(eegmath.mean(highgamma));
 		}
