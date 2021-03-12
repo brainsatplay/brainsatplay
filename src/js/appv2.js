@@ -137,17 +137,36 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(device="FreeEEG32_2",location="local",useFilters="true",pipeTo=null,auth={}) {
-		this.deviceObj = null;
+	constructor(device="FreeEEG32_2",location="local",useFilters="true",pipeToAtlas=true,auth={}) {
+		this.device = null;
+		this.sps = null;
+		this.atlas = null;
+		if(pipeToAtlas === true) {
+			if(device === "FreeEEG32_2") {
+				let defaultTags = [
+					{ch: 4, tag: "Fp2", viewing: true},
+					{ch: 24, tag: "Fp1", viewing: true},
+					{ch: 8, tag: "other", viewing: true}
+				];
+				this.atlas = new dataAtlas(defaultTags,location+":"+device,true,true)
+			}
+			else if (device === "FreeEEG32_19") {
+
+			}
+			else if (device === "muse") {
+
+			}
+		}
 		this.filters = [];
 		if(device === "FreeEEG32_2") {
+			this.sps = 512;
 			let defaultTags = [
 				{ch: 4, tag: "Fp2", viewing: true},
 				{ch: 24, tag: "Fp1", viewing: true},
 				{ch: 8, tag: "other", viewing: true}
 			];
 			
-			this.deviceObj = new eeg32(
+			this.device = new eeg32(
 				(newLinesint) => {
 
 				},
@@ -157,16 +176,26 @@ class deviceStream {
 			if(useFilters === true) {
 				defaultTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.deviceObj.sps,true));
+						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.sps,true));
 					}
 					else { 
 						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.deviceObj.sps,false)); 
 					}
 				});
 			}
-			
 		}
 		else if(device === "FreeEEG32_19") {
+
+			if(useFilters === true) {
+				defaultTags.forEach((row,i) => {
+					if(row.tag !== 'other') {
+						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.sps,true));
+					}
+					else { 
+						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.deviceObj.sps,false)); 
+					}
+				});
+			}
 
 		}
 		else if(device === "muse") {
