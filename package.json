@@ -17,6 +17,7 @@
   "dependencies": {
     "@giveback007/util-lib": "^0.16.4",
     "@neurosity/notion": "^5.1.1",
+    "brainsatplay": "0.0.4",
     "browserfs": "^1.4.3",
     "d3-axis": "^2.0.0",
     "d3-color": "^2.0.0",
