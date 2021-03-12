@@ -172,43 +172,45 @@ class deviceStream {
 		} else if (pipeToAtlas !== false) {
 			this.atlas = pipeToAtlas;
 		}
-		s
-		if(device === "FreeEEG32_2" || this.device === "FreeEEG32_19") {
-			this.sps = 512;
-			let channelTags = [];
-			if(device === "FreeEEG32_2") { 
-				channelTags = [
-				{ch: 4, tag: "Fp2", viewing: true},
-				{ch: 24, tag: "Fp1", viewing: true},
-				{ch: 8, tag: "other", viewing: true}
-			];
-			}
-			else {
-				channelTags = [
+		
+		if(location === "local") {
+			if(device === "FreeEEG32_2" || this.device === "FreeEEG32_19") {
+				this.sps = 512;
+				let channelTags = [];
+				if(device === "FreeEEG32_2") { 
+					channelTags = [
 					{ch: 4, tag: "Fp2", viewing: true},
 					{ch: 24, tag: "Fp1", viewing: true},
 					{ch: 8, tag: "other", viewing: true}
-				]
+				];
+				}
+				else {
+					channelTags = [
+						{ch: 4, tag: "Fp2", viewing: true},
+						{ch: 24, tag: "Fp1", viewing: true},
+						{ch: 8, tag: "other", viewing: true}
+					]
+				}
+				this.device = new eeg32(
+					(newLinesint) => {
+					},
+					()=>{},
+					()=>{}
+				);
+				if(useFilters === true) {
+					defaultTags.forEach((row,i) => {
+						if(row.tag !== 'other') {
+							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
+						}
+						else { 
+							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
+						}
+					});
+				}
 			}
-			this.device = new eeg32(
-				(newLinesint) => {
-				},
-				()=>{},
-				()=>{}
-			);
-			if(useFilters === true) {
-				defaultTags.forEach((row,i) => {
-					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
-					}
-					else { 
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
-					}
-				});
-			}
-		}
-		else if(device === "muse") {
+			else if(device === "muse") {
 
+			}
 		}
 	}
 }
