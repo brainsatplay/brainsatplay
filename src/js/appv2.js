@@ -37,7 +37,7 @@ import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/s
 
 
 class biquadChannelFilterer {
-    constructor(channel="A0",sps=512, scalingFactor=1, filtering=true) {
+    constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
         this.channel=channel; this.idx = 0; this.sps = sps;
         this.filtering=filtering;
         this.bplower = 3; this.bpupper = 45;
@@ -142,18 +142,25 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(device="FreeEEG32_2",location="local",useFilters="true",pipeToAtlas=true,auth={}) {
+	constructor(device="FreeEEG32_2",location="local",useFilters=true,pipeToAtlas=true,auth={}) {
+		this.deviceName = device;
+		this.location = location;
+		this.useFilters = useFilters;
+		this.useAtlas = pipeToAtlas;
+
 		this.device = null;
 		this.sps = null;
+		this.filters = [];
 		this.atlas = null;
+
 		if(pipeToAtlas === true) {
+			let channelTags = [];
 			if(device === "FreeEEG32_2") {
-				let defaultTags = [
+				channelTags = [
 					{ch: 4, tag: "Fp2", viewing: true},
 					{ch: 24, tag: "Fp1", viewing: true},
 					{ch: 8, tag: "other", viewing: true}
 				];
-				this.atlas = new dataAtlas(defaultTags,location+":"+device,true,true)
 			}
 			else if (device === "FreeEEG32_19") {
 
@@ -161,19 +168,30 @@ class deviceStream {
 			else if (device === "muse") {
 
 			}
+			this.atlas = new dataAtlas(defaultTags,location+":"+device,true,true)
+		} else if (pipeToAtlas !== false) {
+			this.atlas = pipeToAtlas;
 		}
-		this.filters = [];
-		if(device === "FreeEEG32_2") {
+		s
+		if(device === "FreeEEG32_2" || this.device === "FreeEEG32_19") {
 			this.sps = 512;
-			let defaultTags = [
+			let channelTags = [];
+			if(device === "FreeEEG32_2") { 
+				channelTags = [
 				{ch: 4, tag: "Fp2", viewing: true},
 				{ch: 24, tag: "Fp1", viewing: true},
 				{ch: 8, tag: "other", viewing: true}
 			];
-			
+			}
+			else {
+				channelTags = [
+					{ch: 4, tag: "Fp2", viewing: true},
+					{ch: 24, tag: "Fp1", viewing: true},
+					{ch: 8, tag: "other", viewing: true}
+				]
+			}
 			this.device = new eeg32(
 				(newLinesint) => {
-
 				},
 				()=>{},
 				()=>{}
@@ -181,27 +199,13 @@ class deviceStream {
 			if(useFilters === true) {
 				defaultTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.sps,true));
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
 					}
 					else { 
-						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.deviceObj.sps,false)); 
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
-		}
-		else if(device === "FreeEEG32_19") {
-
-			if(useFilters === true) {
-				defaultTags.forEach((row,i) => {
-					if(row.tag !== 'other') {
-						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.sps,true));
-					}
-					else { 
-						State.data.filterers.push(new biquadChannelFilterer("A"+row.ch,this.deviceObj.sps,false)); 
-					}
-				});
-			}
-
 		}
 		else if(device === "muse") {
 
