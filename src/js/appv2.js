@@ -198,7 +198,7 @@ class deviceStream {
 					()=>{}
 				);
 				if(useFilters === true) {
-					defaultTags.forEach((row,i) => {
+					channelTags.forEach((row,i) => {
 						if(row.tag !== 'other') {
 							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
 						}
