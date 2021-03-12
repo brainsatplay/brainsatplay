@@ -37,12 +37,16 @@ import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/s
 
 
 class biquadChannelFilterer {
-    constructor(channel="A0",sps=512, filtering=true) {
+    constructor(channel="A0",sps=512, scalingFactor=1, filtering=true) {
         this.channel=channel; this.idx = 0; this.sps = sps;
         this.filtering=filtering;
         this.bplower = 3; this.bpupper = 45;
+		this.scalingFactor = scalingFactor;
 
-        State.data.filtered[this.channel] = [];//Add placeholder to state
+		this.useSMA4 = false; this.last4=[];
+		this.useNotch50 = true; this.useNotch60 = true;
+		this.useLp1 = false; this.useBp1 = false;
+		this.useDCB = true; this.useScaling = false;
 
         this.notch50 = [
                     makeNotchFilter(50,sps,1)
@@ -80,7 +84,7 @@ class biquadChannelFilterer {
         this.dcb = new DCBlocker(0.995);
     }
 
-    setBandpass(bplower=this.bplower,bpupper=this.bpupper) {
+    setBandpass(bplower=this.bplower,bpupper=this.bpupper,sps=this.sps) {
         this.bplower=bplower; this.bpupper = bpupper;
         this.bp1 = [
             makeBandpassFilter(bplower,bpupper,sps),
@@ -90,43 +94,44 @@ class biquadChannelFilterer {
         ];
     }
 
-    apply(idx=this.lastidx+1) {
-        let out=EEG.data[this.channel][idx]; 
+    apply(idx=this.lastidx+1, latestData=0) {
+        let out=latestData; 
         if(this.filtering === true) {
-            if(State.data.sma4 === true) {
-                if(State.data.counter >= 4) { //Apply a 4-sample moving average
-                    out = (State.data.filtered[this.channel][State.data.filtered[this.channel].length-3] + State.data.filtered[this.channel][State.data.filtered[this.channel].length-2] + State.data.filtered[this.channel][State.data.filtered[this.channel].length-1] + out)*.25;
-                }
-                else if(EEG.data.counter >= 4){
-                    //console.log(State.data.counter, State.data.filtered[this.channel].length)
-                    out = (EEG.data[this.channel][EEG.data.counter-4] + EEG.data[this.channel][EEG.data.counter-3] + EEG.data[this.channel][EEG.data.counter-2] + out)*.25;
-                }
+            if(this.useSMA4 === true) {
+                if(idx < 4) {
+					this.last4.push(out);
+				}
+				else {
+					out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
+					this.last4.shift();
+					this.last4.push(out);
+				}
             }
-            if(State.data.dcblocker === true) { //Apply a DC blocking filter
+            if(this.useDCB === true) { //Apply a DC blocking filter
                 out = this.dcb.applyFilter(out);
             }
-            if(State.data.notch50 === true) { //Apply a 50hz notch filter
+            if(this.useNotch50 === true) { //Apply a 50hz notch filter
                 this.notch50.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
             }
-            if(State.data.notch60 === true) { //Apply a 60hz notch filter
+            if(this.useNotch60 === true) { //Apply a 60hz notch filter
                 this.notch60.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
             } 
-            if(State.data.lowpass50 === true) { //Apply 4 50Hz lowpass filters
+            if(this.useLp1 === true) { //Apply 4 50Hz lowpass filters
                 this.lp1.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
             }
-            if(State.data.bandpass === true) { //Apply 4 Bandpass filters
+            if(this.useBp1 === true) { //Apply 4 Bandpass filters
                 this.bp1.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
             }
-            if(State.data.uVScaling === true){
-                out = out*EEG.uVperStep;
+            if(this.useScaling === true){
+                out = out*this.scalingFactor;
             }
         }
         this.lastidx=idx;
