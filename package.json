@@ -1,0 +1,43 @@
+{
+  "name": "pwa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moothyknight/eegpwa"
+  },
+  "scripts": {
+    "start": "node --max-old-space-size=4096 info && parcel ./src/index.html",
+    "build": "parcel build ./src/index.html",
+    "postbuild": "workbox generateSW"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@giveback007/util-lib": "^0.16.4",
+    "@neurosity/notion": "^5.1.1",
+    "browserfs": "^1.4.3",
+    "d3-axis": "^2.0.0",
+    "d3-color": "^2.0.0",
+    "d3-scale": "^3.2.3",
+    "d3-selection": "^2.0.0",
+    "gpu.js": "^2.10.5",
+    "kbm-robot": "0.0.4",
+    "lit-html": "^1.3.0",
+    "muse-js": "^3.2.0",
+    "normalize.css": "^8.0.1",
+    "postprocessing": "^6.17.4",
+    "smoothie": "^1.35.0",
+    "three": "^0.121.1",
+    "tslib": "^2.0.3",
+    "uplot": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/web-bluetooth": "0.0.9",
+    "parcel-bundler": "^1.12.4",
+    "sass": "^1.27.0",
+    "typescript": "^4.0.3",
+    "workbox-cli": "^5.1.4"
+  }
+}

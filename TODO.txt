@@ -1,0 +1,62 @@
+DONE:
+- Atlas based data system and tagging channels with named atlas coordinates - makes it easy to create different configurations for different channel counts/placements. Feeds into the interface automatically.
+- GPU FFTs + bandpass, handles an arbitrary number of FFTs in <20ms-30ms on average depending on size (<3ms for single channel, <20ms for 128 channels, it beats jsfft by a long shot). Tested up to 128 channels of simulated data on RTX 2060. 
+- Coherence per channel (coherence networks)
+- uPlot for live time series charts for any number of channels. 
+    -- FFT plots, raw data plot, stacked raw data plot (was a pain in the ass but looks good), coherence plot
+- Smoothie charts for streaming simple time series (I thought it looked like this one muse charting applet I used)
+- heatmapjs + canvas for a brain atlas + heat map. 
+   -- The canvas creates points based off the given MNI atlas coordinates with tags e.g. Fp1, Fp2, Fz, etc.
+   -- Points assigned to channels are highlighted with the channel index listed
+   -- Visualize coherence networks automatically
+- Color coded bar chart for EEG data, mirrored chart mode (e.g. Mind Mirror)
+- Spectrogram with auto interpolation to fit arrays to canvas
+- Web workers for multithreading and smooth UI
+- Nodejs pwa implementation for better worker functionality and web-hostability. This can bleed into a desktop or even mobile application
+- Responsive layouts, modular EVERYTHING and state system with object listeners for easy development.
+- IIR filters, DC blocker filter, SMA filter.
+
+
+TODO:
+
+Data:
+- CSV saving and replaying, make it sensible!
+- More charting options e.g. bandpower timeseries heatmap (can do in uPlot), visualize a full session from accumulated data
+- Post processing e.g. for full session data rather than just the last second of realtime data. E.g. ERP analysis (https://academic.oup.com/schizophreniabulletin/article/34/5/907/1886959)
+- Check out bci.js for applicability, mainly the fast bandpower extraction
+- More signal analysis math as needed, I have to learn it all from scratch usually due to deficiencies in other libraries
+
+
+
+Visuals: 
+- Tune the Brain Map with real data
+- Fix Timecharts (stacked chart replacement), bar charts
+- new uplot legend: more compact
+
+Performance:
+- I could definitely optimize most of the math but if it ain't broke don't fix it.. yet.. 
+- Optimize correlograms function, do a bulk gpu dispatch for getting all correlograms to make 19channels+ viable in realtime
+- DFTs -> FFTS for the gpu multi dft
+
+Use cases:
+- Finish Alpha Coherence
+- Theta-Gamma 2 Octave by Dmitry
+- Slow cortical potentials (0.1-1Hz)
+- Generalized bandpower training (e.g. training a single bandpower or multiple and set to train in either direction, make selectable)
+
+Compatibility:
+- Test Mac OS
+
+Benchmarking:
+- 19 channel coherence performance benchmark after improving eegmath.correlograms or if the gpujs conversion fares better
+
+Hardware:
+- Any others I should add?
+- Finish porting HEG features
+
+
+Known bugs:
+- Sometimes gets stuck when connecting to EEG, probably has to do with there being a large buffer of backed up data being chomped through.
+- Can crash if left as a background process depending on what you are doing
+- For some reason the gpu kernel does not delete the output texture correctly when downsizing the number of FFTs being processed (e.g 128 dfts to 5 dfts), simple workaround to not grab the excess arrays dumped out but it's not perfectly clean.
+

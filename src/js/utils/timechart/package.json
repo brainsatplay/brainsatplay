@@ -1,0 +1,81 @@
+{
+  "_from": "timechart",
+  "_id": "timechart@0.5.1",
+  "_inBundle": false,
+  "_integrity": "sha512-AkF4L/h5e75165/xUe+835R3GVZNL06gMdyVLjfhhGxERGq6Dj54HcjPANdjKHDNczEK5GPxKcaCypTUVo/iTw==",
+  "_location": "/timechart",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "timechart",
+    "name": "timechart",
+    "escapedName": "timechart",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/timechart/-/timechart-0.5.1.tgz",
+  "_shasum": "9ccca95622444d07bc354f4601aee7d2101392ef",
+  "_spec": "timechart",
+  "_where": "C:\\Users\\PC\\Documents\\GitHub\\eegpwa",
+  "author": {
+    "name": "huww98",
+    "email": "huww98@outlook.com"
+  },
+  "bugs": {
+    "url": "https://github.com/huww98/TimeChart/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "d3-axis": "^2.0.0",
+    "d3-color": "^2.0.0",
+    "d3-scale": "^3.2.3",
+    "d3-selection": "^2.0.0",
+    "gl-matrix": "^3.3.0",
+    "tslib": "^2.0.3"
+  },
+  "deprecated": false,
+  "description": "An chart library specialized for large-scale time-series data, built on WebGL.",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-typescript": "^6.0.0",
+    "@types/d3-axis": "^2.0.0",
+    "@types/d3-color": "^2.0.0",
+    "@types/d3-scale": "^3.2.0",
+    "@types/d3-selection": "^2.0.0",
+    "@types/jest": "^26.0.15",
+    "http-server": "^0.12.3",
+    "jest": "^26.6.1",
+    "rollup": "^2.32.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "ts-jest": "^26.4.2",
+    "typescript": "^4.0.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/huww98/TimeChart#readme",
+  "license": "MIT",
+  "main": "dist/timechart.umd.js",
+  "module": "dist/lib/index.js",
+  "name": "timechart",
+  "repository": {
+    "url": "git+https://github.com/huww98/TimeChart.git",
+    "type": "git"
+  },
+  "scripts": {
+    "build": "tsc --outDir dist/lib --declarationDir dist/types --declaration true && rollup -c",
+    "demo": "http-server -c1 -o /demo/index.html",
+    "prepare": "npm run build",
+    "start": "rollup -c -w",
+    "test": "jest"
+  },
+  "types": "dist/types/index.d.ts",
+  "version": "0.5.1"
+}

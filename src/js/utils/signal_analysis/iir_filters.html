@@ -1,0 +1,295 @@
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"></script>
+</head>
+<body>
+    F12 to open console and see results
+    <h3 id="string1"></h3>
+    Sine wave in, 20Hz with 60Hz interference, each at amplitude = 1:
+    <div id="sinechart"></div>
+    <h3 id="string2"></h3>
+    60Hz IIR Notch Filtered: 
+    <div id="zchart"></div>
+    30Hz IIR Triple Low Pass Filtered: 
+    <div id="zchart2"></div>
+    1Hz IIR High Pass Filtered (broken): 
+    <div id="zchart3"></div>
+    <script>
+
+      //https://github.com/mariusrubo/Unity-IIR-Realtime-Filtering/blob/master/FilterData.cs
+      class IIRNotchFilter {
+        constructor(sps,frequency, bandwidth=0.5) {
+          this.sps = sps; this.frequency = frequency; 
+          let TWO_PI = 2*Math.PI
+          let f0 = frequency/sps;
+          let wc = TWO_PI*f0;
+
+          let BW = bandwidth/sps;
+          let R = 1-3*BW;
+
+          let K = (1-2*R*Math.cos(wc) + R*R) / (2 - 2*Math.cos(wc))
+        
+          this.a0=K, this.a1 = -2*K*Math.cos(wc), this.a2 = K;
+          this.b1 = 2*R*Math.cos(wc), this.b2 = -R*R;
+
+          this.x1=this.x2=this.y1=this.y2=0;
+        }
+      }
+
+      //Butterworth
+      class IIRLowPassFilter { 
+        constructor (sps, frequency) {
+          this.sps = sps; this.frequency = frequency; 
+          let TWO_PI = 2*Math.PI
+
+          let wc = Math.tan(frequency*Math.PI/sps);
+          let k1 = 1.414213562*wc;
+          let k2 = wc*wc;
+
+          this.a0 = k2/(1+k1+k2);
+          this.a1 = 2*this.a0;
+          this.a2 = this.a0;
+
+          let k3 = this.a1/k2;
+
+          this.b1 = -2 * this.a0 + k3;
+          this.b2 = 1-(2*this.a0) - k3;
+
+          this.x1=this.x2=this.y1=this.y2=0;
+
+        }
+      }
+
+      class IIRHighPassFilter { // https://github.com/ruohoruotsi/Butterworth-Filter-Design/
+        constructor (sps, frequency) {
+          this.sps = sps; this.frequency = frequency; this.TWO_PI = 2*Math.PI; 
+          let w0 = Math.PI*2*frequency/sps;
+          let Q = 1/2;
+          let α = Math.sin(w0)/(2*Q);
+
+          let A0 = 1+α
+          let A1 = -2*Math.cos(w0);
+          let A2 = 1-α;
+          let B0 = (1+Math.cos(w0))*.5;
+          let B1 = -(1+Math.cos(w0))*.5;
+          let B2 = (1+Math.cos(w0))*.5;
+
+          this.b1 = (-A1)/A0;
+          this.b2 = (-A2)/A0;
+          this.a0 = B0/A0;
+          this.a1 = B1/A0;
+          this.a2 = B2/A0;
+          console.log(this.a0, this.a1, this.b0, this.b1, this.b2)
+
+          this.x1=this.x2=this.y1=this.y2=0;
+        }
+      }//More biquad filters https://github.com/ruohoruotsi/Butterworth-Filter-Design/blob/master/MATLAB/biquad_coeff_tests.m
+
+
+      //Apply the filter for each time step as they are cumulative
+      const applyFilter = (signal_step, filter) => {
+        let y = filter.a0*signal_step +
+          filter.a1*filter.x1 +
+          filter.a2*filter.x2 +
+          filter.b1*filter.y1 +
+          filter.b2*filter.y2;
+
+        filter.x2 = filter.x1;
+        filter.x1 = signal_step;
+        filter.y2 = filter.y1;
+        filter.y1 = y;
+
+        return y; //Output filtered time step
+      }
+
+
+//DC blocker: https://www.dsprelated.com/freebooks/filters/DC_Blocker.html
+      
+
+      class IIRFilter {
+        constructor(sps=512) {
+          this.filters = [];
+          this.sps = sps;
+
+          this.latestIn = 0;
+          this.latestOut = 0;
+          this.prevFiltered = [];
+          this.currFiltered = [];
+        }
+
+        addNotch(freq=60,sps=this.sps,bandwidth=0.5) {
+          this.filters.push(new IIRNotchFilter(sps,freq,bandwidth));
+          this.prevFiltered.push(0);
+          this.currFiltered.push(0);
+        }
+
+        addLowPass(freq=1,sps=this.sps) {
+          this.filters.push(new IIRButtersworthLowPassFilter(sps, freq));
+          this.prevFiltered.push(0);
+          this.currFiltered.push(0);
+        }
+
+        addHighPass(freq=128, sps=this.sps) {
+          //this.filters.push(new IIRHighPassFilter(sps, frequency));
+          //this.prevFiltered.push(0);
+          //this.currFiltered.push(0);
+        }
+
+        applyFilter = (latestSignalStep, iir, filterIdx) => {
+          let y = iir.a0*latestSignalStep +
+          iir.a1*iir.x1 +
+          iir.a2*iir.x2 +
+          iir.b1*iir.y1 +
+          iir.b2*iir.y2;
+
+          iir.x2 = iir.x1;
+          iir.x1 = latestSignalStep;
+          iir.y2 = iir.y1;
+          iir.y1 = y;
+
+          this.currFiltered[filterIdx] = y;
+          this.prevFiltered[filterIdx] = iir.y2;
+          return y; //Output filtered time step
+        }
+
+        filter = (signal_in) => {
+          let signal_out = 0;
+          if(typeof signal_in === "object") { //Array of samples
+            signal_out = [];
+            signal_in.forEach((step,i) => { //Roll through each sample
+              let y = step;
+              this.filters.forEach((iir,j) => { //Roll through each filter
+                y = this.applyFilter(y, iir, j);
+              });
+              signal_out.push(y);
+            });
+            return signal_out;
+          }
+          else if (typeof signal_out === "number"){ //Single sample
+            let y = step;
+            this.filters.forEach((iir,j) => { //Roll through each filter
+              y = this.applyFilter(y, iir, j);
+            });
+            signal_out = y;
+            return signal_out;
+          }
+          else {
+            return false;
+          }
+        }
+
+      }
+
+
+
+
+
+
+
+
+
+
+    function genSineWave(freq=20,peakAmp=1,nSec=1,fs=512,freq2=0,peakAmp2=1){
+        var sineWave = [];
+        var t = [];
+        var increment = 1/fs; //x-axis time increment based on sample rate
+        for (var ti = 0; ti < nSec; ti+=increment){
+            var amplitude = Math.sin(2*Math.PI*freq*ti)*peakAmp;
+            amplitude += Math.sin(2*Math.PI*freq2*ti)*peakAmp2; //Add interference
+            sineWave.push(amplitude);
+            t.push(ti);
+        }
+        return [t,sineWave]; // [[times],[amplitudes]]
+    }
+  
+    let freq_in = 20;
+    let freq_intf = 60;
+    let nSec = 2;
+    let fs = 512;
+
+    let wave = genSineWave(freq_in,1,nSec,fs,freq_intf);
+    let wave_amps = wave[1];
+    let wave_t = wave[0];
+    console.log("amplitudes in", wave_amps)
+
+    let iir = new IIRFilter(fs);
+    iir.addNotch(60);
+
+    let wave_filtered = iir.filter(wave_amps);
+    console.log("60Hz notch filtered: ",wave_filtered)
+
+    let iirlp = new IIRLowPassFilter(fs,30);
+    
+    let iirlp2 = new IIRLowPassFilter(fs,30);
+    
+    let iirlp3 = new IIRLowPassFilter(fs,30);
+    let wave_lowp = [];
+  
+    let iirhp = new IIRHighPassFilter(fs,1);
+
+
+    let wave_hp = [];
+    wave_amps.forEach((amp,i) => {
+      wave_lowp.push(applyFilter(applyFilter(applyFilter(amp,iirlp),iirlp2),iirlp3));
+      wave_hp.push(applyFilter(amp,iirhp));
+    });
+    console.log("low pass", wave_lowp)
+    console.log("high pass", wave_hp)
+
+    let data = [
+            [{
+              x: wave_t,
+              y: wave_amps,
+              type: 'line',
+              marker: {
+                color: "rgba(255,100,100, 1)"
+              },
+              name: "Sine",
+              //xbins: {  size: 0.01  }
+              }]
+            ,[{
+              x: wave_t,
+              y: wave_filtered,
+              type: 'line',
+              marker: {
+                color: "rgba(100,255,100, 1)"
+              },
+              name: "Filtered",
+              //xbins: {  size: 0.01  }
+              }]
+            ,[{
+              x: wave_t,
+              y: wave_lowp,
+              type: 'line',
+              marker: {
+                color: "rgba(100,255,100, 1)"
+              },
+              name: "Filtered2",
+              //xbins: {  size: 0.01  }
+            }],[{
+              x: wave_t,
+              y: wave_hp,
+              type: 'line',
+              marker: {
+                color: "rgba(100,255,100, 1)"
+              },
+              name: "Filtered3",
+              //xbins: {  size: 0.01  }
+            }]
+          ];
+
+    let config = { 
+        scrollZoom: true, 
+        responsive: true, 
+    }
+    
+    Plotly.newPlot("sinechart",data[0],undefined,config);
+    Plotly.newPlot("zchart",data[1],undefined,config);
+    Plotly.newPlot("zchart2",data[2],undefined,config);
+    Plotly.newPlot("zchart3",data[3],undefined,config);
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WebBCI for FreeEEG32</title>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="/public/favicon.ico" />
+  <link rel="apple-touch-icon" href="/public/logo192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Montserrat">
+  <link href="./styles/css/menu.css" rel="stylesheet">
+  <link href="./styles/index.sass" rel="stylesheet">
+
+
+  <style>
+  </style>
+
+</head>
+<body>
+ 
+<script src="./index.ts"></script>
+
+<script>
+  // https://developers.google.com/web/tools/workbox/modules/workbox-cli
+  // it is needed because parcel will not recognize this as a file and not precess in its manner
+  const sw = "./service-worker.js";
+
+  navigator.serviceWorker
+    .register(sw)
+    .then(registration => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) {
+          return;
+        }
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === "installed") {
+            if (navigator.serviceWorker.controller) {
+              alert("New content is available and will be used when all " +
+                  "tabs for this page are closed. See https://bit.ly/CRA-PWA.")
+              console.log(
+                "New content is available and will be used when all " +
+                  "tabs for this page are closed. See https://bit.ly/CRA-PWA."
+              );
+            } else {
+              console.log("Content is cached for offline use.");
+            }
+          }
+        };
+      };
+    })
+    .catch(error => {
+      console.error("Error during service worker registration:", error);
+    });
+
+    
+</script>
+
+<script>
+
+
+//window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
+//console.log(window.workers);
+
+window.threads = 2; //Make multiple workers for big tasks
+window.threadrot = 0;
+  //WebWorker only works when hosted (e.g. with node)
+  
+  try {
+    window.workers = [];
+    for(var i = 0; i < window.threads; i++){
+      window.workers.push(new Worker('./js/utils/eegworker.js'));
+      workers[i].onmessage = (e) => {
+        var msg = e.data;
+        //console.log(msg)
+        receivedMsg(msg);
+      };
+    }
+    console.log("worker threads: ", threads)
+    
+  }
+  catch (err) {
+    window.workers = undefined;
+    //console.log(err);
+  }
+
+  
+  //foo options: "xcor, autocor, cov1d, cov2d, sma, dft, multidft, multibandpassdft"
+  window.postToWorker = (input,workeridx = null) => {
+    if(workeridx === null) {
+      window.workers[window.threadrot].postMessage(input);
+      if(window.threads > 1){
+        window.threadrot++;
+        if(window.threadrot >= window.threads){
+          window.threadrot = 0;
+        }
+      }
+    }
+    else{
+     window.workers[workeridx].postMessage(input);
+    }
+  }
+</script>
+
+</body>
+</html>
