@@ -212,7 +212,7 @@ class deviceStream {
 
 			}
 			else if(device === "hegduino") {
-				
+
 			}
 		}
 	}
@@ -223,7 +223,12 @@ class dataAtlas {
     constructor(channelTags=[{ch: 0, tag: null},{ch: 1, tag: null}],name="atlas",use10_20=true,useCoherence=true) {
         this.name = name;
         this.tags = channelTags;
-        this.data = {shared:{},eeg:[],coherence:[],heg:[]};
+        this.data = {
+			eegshared:{bandpassWindow:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
+			eeg:[],
+			coherence:[],
+			heg:[]
+		};
         if(use10_20 === true) {
             this.data.eeg = this.gen10_20Atlas();
         }
