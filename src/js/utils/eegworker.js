@@ -46,8 +46,8 @@ onmessage = (e) => {
       output = gpu.MultiChannelDFT_Bandpass(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],scalar);
       break;
     case "gpucoh":
-      const coherenceResults = gpu.gpuCoherence(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],e.data.input[4]);
-      output = coherenceReults;
+      const coher = gpu.gpuCoherence(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],e.data.input[4]);
+      output = coher;
       break;
     case "coherence": // Input 2D array, number of seconds, beginning frequency, ending frequency. Outputs an array of products of each FFT with each associated correlogram to create a network map of all available channels, ordered by channel
       const correlograms = eegmath.correlograms(e.data.input[0]);
