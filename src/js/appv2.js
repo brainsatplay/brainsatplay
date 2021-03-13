@@ -52,11 +52,11 @@ class brainsatplay {
 	}
 
 	connect(
-		location="local",
+		location="local", //"server"
 		device="FreeEEG32_2",
 		useFilters=true,
 		pipeToAtlas=true,
-		auth={
+		auth={ //For server connections only
 			url: new URL("https://brainsatplay.azurewebsites.net/"), 
 			username:this.info.username, 
 			password:"", 
