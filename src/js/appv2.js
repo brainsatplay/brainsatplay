@@ -345,7 +345,7 @@ class deviceStream {
 								coord.raw.push(latest);
 							}
 						});
-						this.onMessage();
+						this.onMessage(newLinesInt);
 					},
 					()=>{	
 					},
