@@ -73,6 +73,7 @@ class brainsatplay {
 
 	async login(dict={}, baseURL=this.info.remoteHostURL) {
 
+		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict);
 
         let resDict = await fetch(baseURL + 'login',
@@ -101,7 +102,7 @@ class brainsatplay {
 	} 
 
 	async signup(dict={}, baseURL=this.info.remoteHostURL) {
-
+		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict)
         let resDict = await fetch(baseURL.toString() + 'signup',
             {
@@ -126,10 +127,10 @@ class brainsatplay {
         return resDict
 	}
 
-	async request(body,method="POST", baseURL=this.info.remoteHostURL){
+	async request(body,method="POST",pathname='',baseURL=this.info.remoteHostURL){
 		if (pathname !== ''){
-            baseURL = this.checkURL(baseURL)
-            pathname = this.checkPathname(pathname)
+            baseURL = this.checkURL(baseURL);
+            pathname = this.checkPathname(pathname);
             let dict = {
                 method: method,
                 mode: 'cors',
@@ -156,6 +157,22 @@ class brainsatplay {
             return
         }
 	}
+
+	checkURL(url) {
+        if (url.slice(-1) !== '/') {
+            url += '/'
+        }
+        return url
+    }
+
+	checkPathname(pathname) {
+        if (pathname.slice(0) === '/') {
+            pathname.splice(0,1)
+        }
+        return pathname
+    }
+
+	
 }
 
 class biquadChannelFilterer {
