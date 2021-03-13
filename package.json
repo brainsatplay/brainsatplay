@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node --max-old-space-size=4096 info && parcel ./src/index.html",
     "build": "parcel build ./src/index.html",
-    "postbuild": "workbox generateSW"
+    "postbuild": "workbox generateSW",
+    "compile": "webpack --mode production"
   },
   "author": "",
   "license": "ISC",
@@ -32,7 +33,9 @@
     "smoothie": "^1.35.0",
     "three": "^0.121.1",
     "tslib": "^2.0.3",
-    "uplot": "^1.4.0"
+    "uplot": "^1.4.0",
+    "webpack": "^5.25.0",
+    "webpack-cli": "^4.5.0"
   },
   "devDependencies": {
     "@types/web-bluetooth": "0.0.9",
