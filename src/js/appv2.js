@@ -161,14 +161,15 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={}) {
+	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:""}) {
 		this.deviceName = device;
 		this.location = location;
-		this.useFilters = useFilters;
-		this.useAtlas = false;
+		this.auth = auth;
 
 		this.device = null; //Class for handling device
 		this.sps = null;
+		this.useFilters = useFilters;
+		this.useAtlas = false;
 		this.filters = [];
 		this.eegTags = [];
 		this.atlas = null;
@@ -265,9 +266,33 @@ class deviceStream {
 			this.atlas = new dataAtlas(location+":"+device,this.eegTags,true,true)
 			this.useAtlas = true;
 		} else if (pipeToAtlas !== false) {
-			this.atlas = pipeToAtlas;
+			this.atlas = pipeToAtlas; //External atlas reference
 			this.useAtlas = true;
 		}
+	}
+
+	setupWebSocket(type="bidirectional") {
+
+		let mode=type;
+		let cookies = "";
+
+		if(mode === "bidirectional"){
+			let channelNames = [];
+			this.eegTags.forEach((name,i) => {channelNames.push(name)});
+			cookies = [this.auth.username,type,this.auth.appname,this.auth.access,channelNames];
+		}
+		else if (mode === "interfaces"){
+			cookies = [this.auth.username,type,this.auth.appname];
+		}
+
+		if (this.auth.url.protocol === 'http:') {
+            this.device = new WebSocket(`ws://` + this.auth.url.hostname, cookies);
+        } else if (this.auth.url.protocol === 'https:') {
+            this.device = new WebSocket(`wss://` + this.auth.url.hostname, cookies);
+        } else {
+            console.log('invalid protocol')
+            return
+        }
 	}
 
 	async stream() {
@@ -296,12 +321,18 @@ class deviceStream {
 		}
 		else if (this.location === "server") {
 			//subscribe to websocket updates
+			let cookies = [this.auth.username,"interfaces",this.auth.appname];
+			if(this.auth.url.protocol === "https") { this.device = new WebSocket(`wss://`+this.auth.url.hostname, cookies); }
+			else{ this.device = new WebSocket(`ws://`+this.auth.url.hostname, cookies); }
 			//this.onConnect();
 		}
 		this.onConnect();
 	}
 
 	async disconnect() {
+		if(this.location === "server") {
+			this.device.close();
+		}
 		if(this.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
