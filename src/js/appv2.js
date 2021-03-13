@@ -291,7 +291,7 @@ class deviceStream {
 				});
 			}
 			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
-				//connect boards and begin streaming
+				//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
 			}
 		}
 		else if (this.location === "server") {
