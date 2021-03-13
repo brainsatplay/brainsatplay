@@ -290,7 +290,8 @@ class deviceStream {
 		this.location = location;
 		this.auth = auth;
 
-		this.device = null; //Class for handling device
+		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
+		this.socket = null; //Store bidirectional sockets
 		this.sps = null;
 		this.useFilters = useFilters;
 		this.useAtlas = false;
@@ -397,6 +398,7 @@ class deviceStream {
 
 	setupWebSocket(type="bidirectional") {
 
+		let socket = null;
 		let mode=type;
 		let cookies = "";
 
@@ -410,32 +412,33 @@ class deviceStream {
 		}
 
 		if (this.auth.url.protocol === 'http:') {
-            this.device = new WebSocket(`ws://` + this.auth.url.hostname, cookies);
+            socket = new WebSocket(`ws://` + this.auth.url.hostname, cookies);
         } else if (this.auth.url.protocol === 'https:') {
-            this.device = new WebSocket(`wss://` + this.auth.url.hostname, cookies);
+            socket = new WebSocket(`wss://` + this.auth.url.hostname, cookies);
         } else {
             console.log('invalid protocol')
             return
         }
 
-		this.device.onmessage((e) => {
+		socket.onmessage((e) => {
 			this.onMessage(e.data);
 		});
-		this.device.onopen((e) => {
+		socket.onopen((e) => {
 			this.onConnect(e.data);
 		});
-		this.device.onclose((e) => {
+		socket.onclose((e) => {
 			this.onDisconnect(e.data);
 		});
-		this.device.onerror((e) => {
+		socket.onerror((e) => {
 			console.error(e.data);
 		});
+		return socket;
 	}
 
-	sendWSCommand(command='',dict={}){
-		if(this.device.status){
+	sendWSCommand(socket=this.device, command='',dict={}){
+		if(socket.status){
 			if(command === 'initializeBrains') {
-				this.device.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
 			}
 			else if (command === 'bci') {
 				dict.destination = 'bci';
@@ -457,7 +460,7 @@ class deviceStream {
 					dict.time = [];
 				}
 				dict = JSON.stringify(dict);
-				this.device.send(dict);
+				socket.send(dict);
 			}
 		}
 	}
@@ -489,7 +492,7 @@ class deviceStream {
 		}
 		else if (this.location === "server") {
 			//subscribe to websocket updates
-			this.setupWebSocket("interfaces");
+			this.device = this.setupWebSocket("interfaces");
 		}
 	}
 
@@ -499,6 +502,9 @@ class deviceStream {
 		}
 		if(this.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
+		}
+		if(this.socket !== null) {
+			this.socket.close();
 		}
 		this.onDisconnect();
 	}
