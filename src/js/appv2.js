@@ -47,7 +47,7 @@ class brainsatplay {
 		}
 	}
 
-	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url:"https://brainsatplay.azurewebsites.net/",username:"guest",password:""}){
+	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:""}){
 		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
 		this.devices[this.devices.length].stream();
 		this.info.nDevices++;
