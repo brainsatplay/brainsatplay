@@ -86,10 +86,10 @@ class brainsatplay {
                 }),
                 body: json
             }).then((res) => {
-            return res.json().then((message) => message)
+            return res.json().then((message) => message);
         })
             .then((message) => {
-                return message
+                return message;
             })
             .catch(function (err) {
                 console.error(`\n`+err.message);
@@ -103,7 +103,7 @@ class brainsatplay {
 
 	async signup(dict={}, baseURL=this.info.remoteHostURL) {
 		baseURL = this.checkURL(baseURL);
-        let json = JSON.stringify(dict)
+        let json = JSON.stringify(dict);
         let response = await fetch(baseURL.toString() + 'signup',
             {
                 method: 'POST',
@@ -402,7 +402,7 @@ class deviceStream {
 
 		if(mode === "bidirectional"){
 			let channelNames = [];
-			this.eegTags.forEach((name,i) => {channelNames.push(name)});
+			this.eegTags.forEach((name,i) => {channelNames.push(name);});
 			cookies = [this.auth.username,type,this.auth.appname,this.auth.access,channelNames];
 		}
 		else if (mode === "interfaces"){
