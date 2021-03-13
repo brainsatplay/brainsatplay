@@ -507,7 +507,7 @@ class deviceStream {
 		}
 	}
 
-	async disconnect() {
+	disconnect() {
 		if(this.location === "server") {
 			this.device.close();
 		}
