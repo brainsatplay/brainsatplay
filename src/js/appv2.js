@@ -380,7 +380,7 @@ class deviceStream {
 					{ch: 1, tag: "AF7"},
 					{ch: 2, tag: "AF8"},
 					{ch: 3, tag: "T10"},
-					{ch: 4, tag: "other"}
+					{ch: 4, tag: "AUX"}
 				];
 				this.device = new MuseClient();
 			}
