@@ -241,6 +241,7 @@ class biquadChannelFilterer {
                 this.bp1.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
+				out = out*this.bp1.length;
             }
             if(this.useScaling === true){
                 out = out*this.scalingFactor;
