@@ -424,6 +424,23 @@ class deviceStream {
 				dict.destination = 'bci';
 				dict.id = this.auth.username;
 				dict.consent = this.auth.consent;
+				if(this.auth.consent.game === true) {
+					//let reserved = ['voltage','time','electrode','consent'];
+					//let me = this.brains[this.info.access].get(this.me.username);
+					//if (me !== undefined){
+					//	Object.keys(me.data).forEach((key) => {
+					//		if (!reserved.includes(key)){
+					//			dict[key] = me.data[key];
+					//		}
+					//	});
+					//}
+				}
+				if(this.auth.consent.raw === false) {
+					dict.signal = [];
+					dict.time = [];
+				}
+				dict = JSON.stringify(dict);
+				this.device.send(dict);
 			}
 		}
 	}
