@@ -58,11 +58,11 @@ class brainsatplay {
 		if(this.location==="server") {this.nRemoteDevices++;}
 	}
 
-	async login(dict={}, url=new URL(remoteHostURL)) {
+	async login(dict={}, baseURL=this.info.remoteHostURL) {
 
-        let json = JSON.stringify(dict)
+        let json = JSON.stringify(dict);
 
-        let resDict = await fetch(url.toString() + 'login',
+        let resDict = await fetch(baseURL + 'login',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -87,10 +87,10 @@ class brainsatplay {
         return resDict
 	} 
 
-	async signup(dict={}, url=new URL(remoteHostURL)) {
+	async signup(dict={}, baseURL=this.info.remoteHostURL) {
 
         let json = JSON.stringify(dict)
-        let resDict = await fetch(url.toString() + 'signup',
+        let resDict = await fetch(baseURL.toString() + 'signup',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -113,7 +113,7 @@ class brainsatplay {
         return resDict
 	}
 
-	async request(body,method="POST", baseURL=remoteHostURL){
+	async request(body,method="POST", baseURL=this.info.remoteHostURL){
 		if (pathname !== ''){
             baseURL = this.checkURL(baseURL)
             pathname = this.checkPathname(pathname)
