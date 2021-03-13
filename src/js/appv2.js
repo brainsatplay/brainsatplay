@@ -285,11 +285,11 @@ class biquadChannelFilterer {
 
 class deviceStream {
 	constructor(
-		location="local",
+		location="local", //"server"
 		device="FreeEEG32_2",
 		useFilters=true,
 		pipeToAtlas=true,
-		auth={
+		auth={ //For server connections only
 			url: new URL("https://brainsatplay.azurewebsites.net/"),
 			username:"guest",
 			password:"",
@@ -302,7 +302,7 @@ class deviceStream {
 		this.auth = auth;
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
-		this.socket = null; //Store bidirectional sockets
+		this.socket = null; //Store bidirectional sockets here for use
 		this.sps = null;
 		this.useFilters = useFilters;
 		this.useAtlas = false;
