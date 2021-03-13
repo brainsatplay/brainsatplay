@@ -71,12 +71,12 @@ class brainsatplay {
 				if(this.devices[this.devices.length-1].location==="server") {this.nRemoteDevices++;}
 	}
 
-	async login(dict={}, baseURL=this.info.remoteHostURL) {
+	async login(dict={'guestaccess':true}, baseURL=this.info.remoteHostURL) {
 
 		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict);
 
-        let resDict = await fetch(baseURL + 'login',
+        let response = await fetch(baseURL + 'login',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -92,19 +92,19 @@ class brainsatplay {
                 return message
             })
             .catch(function (err) {
-                console.log(`\n`+err.message);
+                console.error(`\n`+err.message);
             });
 
-        if (resDict.result === 'OK') {
-            this.info.username = resDict.msg;
+        if (response.result === 'OK') {
+            this.info.username = response.msg;
         }
-        return resDict
+        return response;
 	} 
 
 	async signup(dict={}, baseURL=this.info.remoteHostURL) {
 		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict)
-        let resDict = await fetch(baseURL.toString() + 'signup',
+        let response = await fetch(baseURL.toString() + 'signup',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -121,10 +121,10 @@ class brainsatplay {
                 return message;
             })
             .catch(function (err) {
-                console.log(`\n`+err.message);
+                console.error(`\n`+err.message);
             });
 
-        return resDict
+        return response;
 	}
 
 	async request(body,method="POST",pathname='',baseURL=this.info.remoteHostURL){
@@ -150,11 +150,11 @@ class brainsatplay {
             })
         })
             .catch(function (err) {
-                console.log(`\n`+err.message);
+                console.error(`\n`+err.message);
             });
         } else {
-            console.log(`You must provide a valid pathname to request resources from ` + baseURL);
-            return
+            console.error(`You must provide a valid pathname to request resources from ` + baseURL);
+            return;
         }
 	}
 
