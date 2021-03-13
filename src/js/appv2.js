@@ -170,7 +170,7 @@ class deviceStream {
 		this.device = null; //Class for handling device
 		this.sps = null;
 		this.filters = [];
-		this.channelTags = [];
+		this.eegTags = [];
 		this.atlas = null;
 
 		this.init(device,location,useFilters,pipeToAtlas,auth);
@@ -181,16 +181,15 @@ class deviceStream {
 		if(location === "local") {
 			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
 				this.sps = 512;
-				let channelTags = [];
 				if(device === "FreeEEG32_2") { 
-					this.channelTags = [
+					this.eegTags = [
 						{ch: 4, tag: "Fp2"},
 						{ch: 24, tag: "Fp1"},
 						{ch: 8, tag: "other"}
 					];
 				}
 				else {
-					this.channelTags = [
+					this.eegTags = [
 						{ch: 4, tag: "Fp2"},
 						{ch: 24, tag: "Fp1"},
 						{ch: 8, tag: "other"}
@@ -198,7 +197,7 @@ class deviceStream {
 				}
 				this.device = new eeg32(
 					(newLinesInt) => {
-						this.channelTags.forEach((o,i) => {
+						this.eegTags.forEach((o,i) => {
 							let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
 							let latestFiltered = new Array(latest.length).fill(0);
 							if(o.tag !== "other" && this.useFilters === true) { 
@@ -228,7 +227,7 @@ class deviceStream {
 					}
 				);
 				if(useFilters === true) {
-					channelTags.forEach((row,i) => {
+					this.eegTags.forEach((row,i) => {
 						if(row.tag !== 'other') {
 							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
 						}
@@ -239,7 +238,7 @@ class deviceStream {
 				}
 			}
 			else if(device === "muse") {
-				this.channelTags = [
+				this.eegTags = [
 					{ch: 0, tag: "T9"},
 					{ch: 1, tag: "AF7"},
 					{ch: 2, tag: "AF8"},
@@ -263,7 +262,7 @@ class deviceStream {
 		}
 
 		if(pipeToAtlas === true) {
-			this.atlas = new dataAtlas(this.channelTags,location+":"+device,true,true)
+			this.atlas = new dataAtlas(location+":"+device,this.eegTags,true,true)
 			this.useAtlas = true;
 		} else if (pipeToAtlas !== false) {
 			this.atlas = pipeToAtlas;
