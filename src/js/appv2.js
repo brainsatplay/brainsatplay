@@ -36,6 +36,25 @@ import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/signal_analysis/BiquadFilters'
 
 
+class brainsatplay {
+	constructor() {
+		this.devices = [];
+
+		this.info = {
+			nDevices: 0,
+			nRemoteDevices: 0,
+			access: 'public'
+		}
+	}
+
+	connect(device="FreeEEG32_2",location="local",useFilters=true,pipeToAtlas=true,auth={url:"https://brainsatplay.azurewebsites.net/",username:"guest",password:""}){
+		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
+		this.devices[this.devices.length].stream();
+		this.info.nDevices++;
+		if(this.location==="server") {this.nRemoteDevices++;}
+	}
+}
+
 class biquadChannelFilterer {
     constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
         this.channel=channel; this.idx = 0; this.sps = sps;
@@ -94,10 +113,13 @@ class biquadChannelFilterer {
         ];
     }
 
-    apply(idx=this.lastidx+1, latestData=0) {
+    apply(latestData=0, idx=this.lastidx+1) {
         let out=latestData; 
         if(this.filtering === true) {
-            if(this.useSMA4 === true) {
+			if(this.useDCB === true) { //Apply a DC blocking filter
+                out = this.dcb.applyFilter(out);
+            }
+            if(this.useSMA4 === true) { // 4 sample simple moving average (i.e. low pass)
                 if(idx < 4) {
 					this.last4.push(out);
 				}
@@ -106,9 +128,6 @@ class biquadChannelFilterer {
 					this.last4.shift();
 					this.last4.push(out);
 				}
-            }
-            if(this.useDCB === true) { //Apply a DC blocking filter
-                out = this.dcb.applyFilter(out);
             }
             if(this.useNotch50 === true) { //Apply a 50hz notch filter
                 this.notch50.forEach((f,i) => {
@@ -146,56 +165,69 @@ class deviceStream {
 		this.deviceName = device;
 		this.location = location;
 		this.useFilters = useFilters;
-		this.useAtlas = pipeToAtlas;
+		this.useAtlas = false;
 
-		this.device = null;
+		this.device = null; //Class for handling device
 		this.sps = null;
 		this.filters = [];
+		this.channelTags = [];
 		this.atlas = null;
 
-		if(pipeToAtlas === true) {
-			let channelTags = [];
-			if(device === "FreeEEG32_2") {
-				channelTags = [
-					{ch: 4, tag: "Fp2", viewing: true},
-					{ch: 24, tag: "Fp1", viewing: true},
-					{ch: 8, tag: "other", viewing: true}
-				];
-			}
-			else if (device === "FreeEEG32_19") {
+		this.init(device,location,useFilters,pipeToAtlas,auth);
+	}
 
-			}
-			else if (device === "muse") {
-
-			}
-			this.atlas = new dataAtlas(defaultTags,location+":"+device,true,true)
-		} else if (pipeToAtlas !== false) {
-			this.atlas = pipeToAtlas;
-		}
+	init = (device,location,useFilters,pipeToAtlas,auth) => {
 		
 		if(location === "local") {
-			if(device === "FreeEEG32_2" || this.device === "FreeEEG32_19") {
+			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
 				this.sps = 512;
 				let channelTags = [];
 				if(device === "FreeEEG32_2") { 
-					channelTags = [
-					{ch: 4, tag: "Fp2", viewing: true},
-					{ch: 24, tag: "Fp1", viewing: true},
-					{ch: 8, tag: "other", viewing: true}
-				];
+					this.channelTags = [
+						{ch: 4, tag: "Fp2"},
+						{ch: 24, tag: "Fp1"},
+						{ch: 8, tag: "other"}
+					];
 				}
 				else {
-					channelTags = [
-						{ch: 4, tag: "Fp2", viewing: true},
-						{ch: 24, tag: "Fp1", viewing: true},
-						{ch: 8, tag: "other", viewing: true}
-					]
+					this.channelTags = [
+						{ch: 4, tag: "Fp2"},
+						{ch: 24, tag: "Fp1"},
+						{ch: 8, tag: "other"}
+					];
 				}
 				this.device = new eeg32(
-					(newLinesint) => {
+					(newLinesInt) => {
+						this.channelTags.forEach((o,i) => {
+							let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
+							let latestFiltered = new Array(latest.length).fill(0);
+							if(o.tag !== "other" && this.useFilters === true) { 
+								this.filters.forEach((f,j) => {
+									if(f.channel === "A"+o.ch) {
+										latest.forEach((sample,k) => { 
+											latestFiltered[k] = f.apply(sample); 
+										});
+									}
+								});
+								if(this.useAtlas === true) {
+									let coord = this.atlas.getEEGDataByTag(o.tag);								
+									coord.filtered.push(latestFiltered);
+									coord.raw.push(latest);
+								}
+							}
+							else {
+								let coord = this.atlas.getEEGDataByTag(o.tag);								
+								coord.raw.push(latest);
+							}
+						});
+						this.onMessage();
 					},
-					()=>{},
-					()=>{}
+					()=>{
+						this.onConnect();
+					},
+					()=>{
+						this.onDisconnect();
+					}
 				);
 				if(useFilters === true) {
 					channelTags.forEach((row,i) => {
@@ -209,13 +241,60 @@ class deviceStream {
 				}
 			}
 			else if(device === "muse") {
+				this.channelTags = [
+					{ch: 0, tag: "T9"},
+					{ch: 1, tag: "AF7"},
+					{ch: 2, tag: "AF8"},
+					{ch: 3, tag: "T10"},
+					{ch: 4, tag: "other"}
+				];
+			}
+			else if(device === "cyton") {
+
+			}
+			else if(device === "ganglion") {
 
 			}
 			else if(device === "hegduino") {
 
 			}
 		}
+		else if (location === "server") {
+
+		}
+
+		if(pipeToAtlas === true) {
+			this.atlas = new dataAtlas(this.channelTags,location+":"+device,true,true)
+			this.useAtlas = true;
+		} else if (pipeToAtlas !== false) {
+			this.atlas = pipeToAtlas;
+			this.useAtlas = true;
+		}
 	}
+
+	stream() {
+		if(this.location === "local") {
+			if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
+				this.device.setupSerialAsync();
+			}
+			else if (this.deviceName === "muse") {
+				//connect muse and begin streaming
+			}
+			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
+				//connect boards and begin streaming
+			}
+		}
+		else if (this.location === "server") {
+			//subscribe to websocket updates
+		}
+	}
+
+	//Generic handlers to be called by all devices, set up processing and UI/State handling here
+	onMessage(msg="") {}
+
+	onConnect(msg="") {}
+
+	onDisconnect(msg="") {}
 }
 
 
@@ -313,8 +392,19 @@ class dataAtlas {
 		return cmap;
 	}
 
+	getEEGDataByChannel(ch=0) {
+		let found = false;
+		let search = this.channelTags.find((o,i) => {
+			if(o.ch === ch) {
+				found = this.getEEGDataByTag(o.tag);
+				return true;
+			}
+		});
+		return found;
+	}
+
     //Return the object corresponding to the atlas tag
-	getDataByTag(tag="Fp1"){
+	getEEGDataByTag(tag="Fp1"){
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){

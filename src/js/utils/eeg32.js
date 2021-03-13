@@ -86,6 +86,19 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
     }
 
+	getLatestData(channel="A0",count=1) { //Return slice of specified size of the latest data from the specified channel
+		let ct = count;
+		if(ct <= 1) {
+			return this.data[channel][this.data.counter-1];
+		}
+		else {
+			if(ct > this.data.counter) {
+				ct = this.data.counter;
+			}
+			return this.data[channel].slice(this.data.counter-ct,this.data.counter);
+		}
+	}
+
     bytesToInt16(x0,x1){
 		return x0 * 256 + x1;
     }
