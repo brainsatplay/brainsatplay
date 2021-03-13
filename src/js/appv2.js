@@ -46,16 +46,29 @@ class brainsatplay {
 			nRemoteDevices: 0,
 			access: 'public',
 			username: 'guest',
+			consent:{raw:false,game:false},
 			remoteHostURL: 'https://brainsatplay.azurewebsites.net/',
 			localHostURL: 'http://127.0.0.1:8000'
 		}
 	}
 
-	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"), username:this.info.username, password:"", access:"public", appname:""}){
-		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
-		this.devices[this.devices.length-1].stream();
-		this.info.nDevices++;
-		if(this.devices[this.devices.length-1].location==="server") {this.nRemoteDevices++;}
+	connect(
+		location="local",
+		device="FreeEEG32_2",
+		useFilters=true,
+		pipeToAtlas=true,
+		auth={
+			url: new URL("https://brainsatplay.azurewebsites.net/"), 
+			username:this.info.username, 
+			password:"", 
+			access:"public", 
+			appname:"",
+			consent:this.info.consent
+		}) {
+				this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
+				this.devices[this.devices.length-1].stream();
+				this.info.nDevices++;
+				if(this.devices[this.devices.length-1].location==="server") {this.nRemoteDevices++;}
 	}
 
 	async login(dict={}, baseURL=this.info.remoteHostURL) {
@@ -244,7 +257,7 @@ class biquadChannelFilterer {
 				out *= this.bp1.length;
             }
             if(this.useScaling === true){
-                out = out*this.scalingFactor;
+                out *= this.scalingFactor;
             }
         }
         this.lastidx=idx;
@@ -255,7 +268,7 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:""}) {
+	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:"",consent:{raw:false,game:false}}) {
 		this.deviceName = device;
 		this.location = location;
 		this.auth = auth;
@@ -400,6 +413,19 @@ class deviceStream {
 		this.device.onerror((e) => {
 			console.error(e.data);
 		});
+	}
+
+	sendWSCommand(command='',dict={}){
+		if(this.device.status){
+			if(command === 'initializeBrains') {
+				this.device.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+			}
+			else if (command === 'bci') {
+				dict.destination = 'bci';
+				dict.id = this.auth.username;
+				dict.consent = this.auth.consent;
+			}
+		}
 	}
 
 	async stream() {
