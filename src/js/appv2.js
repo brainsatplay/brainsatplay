@@ -286,8 +286,8 @@ class dataAtlas {
 		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
 			if(taggedOnly === false || taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other'))) {
-				var coord0 = this.getAtlasCoordByTag(channelTags[k].tag);
-				var coord1 = this.getAtlasCoordByTag(channelTags[k+l].tag);
+				var coord0 = this.getDataByTag(channelTags[k].tag);
+				var coord1 = this.getDataByTag(channelTags[k+l].tag);
 
 				cmap.push({
 					tag: channelTags[k].tag+":"+channelTags[l+k].tag,
