@@ -160,16 +160,16 @@ class brainsatplay {
 
 	checkURL(url) {
         if (url.slice(-1) !== '/') {
-            url += '/'
+            url += '/';
         }
-        return url
+        return url;
     }
 
 	checkPathname(pathname) {
         if (pathname.slice(0) === '/') {
-            pathname.splice(0,1)
+            pathname.splice(0,1);
         }
-        return pathname
+        return pathname;
     }
 
 	
@@ -285,9 +285,21 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:"",consent:{raw:false,game:false}}) {
+	constructor(
+		location="local",
+		device="FreeEEG32_2",
+		useFilters=true,
+		pipeToAtlas=true,
+		auth={
+			url: new URL("https://brainsatplay.azurewebsites.net/"),
+			username:"guest",
+			password:"",
+			access:"public",
+			appname:"",
+			consent:{raw:false,game:false}
+	}) {
 		this.deviceName = device;
-		this.location = location;
+		this.location = location;	
 		this.auth = auth;
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
