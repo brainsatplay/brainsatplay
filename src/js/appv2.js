@@ -309,7 +309,7 @@ class deviceStream {
 		this.onDisconnect();
 	}
 
-	//Generic handlers to be called by all devices, set up processing and UI/State handling here
+	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
 	onMessage(msg="") {}
 
 	onConnect(msg="") {}
@@ -319,9 +319,9 @@ class deviceStream {
 
 
 class dataAtlas {
-    constructor(channelTags=[{ch: 0, tag: null},{ch: 1, tag: null}],name="atlas",use10_20=true,useCoherence=true) {
+    constructor(name="atlas",eegTags=[{ch: 0, tag: null},{ch: 1, tag: null}],useEEG10_20=true,useCoherence=true) {
         this.name = name;
-        this.tags = channelTags;
+        this.eegTags = eegTags;
         this.data = {
 			eegshared:{bandpassWindow:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
 			eeg:[],
@@ -335,7 +335,7 @@ class dataAtlas {
 			ecg:[],
 			eyetracker:[]
 		};
-        if(use10_20 === true) {
+        if(useEEG10_20 === true) {
             this.data.eeg = this.gen10_20Atlas();
         }
         if(useCoherence === true) {
@@ -385,7 +385,7 @@ class dataAtlas {
         return eegmap;
     }
 
-    genCoherenceMap(channelTags = this.channelTags, taggedOnly = true) {
+    genCoherenceMap(channelTags = this.eegTags, taggedOnly = true) {
 		var cmap = [];
 		var l = 1, k = 0;
 		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
