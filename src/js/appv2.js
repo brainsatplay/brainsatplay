@@ -293,6 +293,19 @@ class deviceStream {
             console.log('invalid protocol')
             return
         }
+
+		this.device.onmessage((e) => {
+			this.onMessage(e.data);
+		});
+		this.device.onopen((e) => {
+			this.onConnect(e.data);
+		});
+		this.device.onclose((e) => {
+			this.onDisconnect(e.data);
+		});
+		this.device.onerror((e) => {
+			console.error(e.data);
+		});
 	}
 
 	async stream() {
@@ -318,15 +331,12 @@ class deviceStream {
 			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
 				//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
 			}
+			this.onConnect();
 		}
 		else if (this.location === "server") {
 			//subscribe to websocket updates
-			let cookies = [this.auth.username,"interfaces",this.auth.appname];
-			if(this.auth.url.protocol === "https") { this.device = new WebSocket(`wss://`+this.auth.url.hostname, cookies); }
-			else{ this.device = new WebSocket(`ws://`+this.auth.url.hostname, cookies); }
-			//this.onConnect();
+			this.setupWebSocket("interfaces");
 		}
-		this.onConnect();
 	}
 
 	async disconnect() {
