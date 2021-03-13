@@ -33,7 +33,7 @@ Frontend Execution
 */
 
 import {eeg32, eegmath} from './utils/eeg32'
-import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/signal_analysis/BiquadFilters'
+import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
 
 class brainsatplay {
@@ -47,7 +47,7 @@ class brainsatplay {
 		}
 	}
 
-	connect(device="FreeEEG32_2",location="local",useFilters=true,pipeToAtlas=true,auth={url:"https://brainsatplay.azurewebsites.net/",username:"guest",password:""}){
+	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url:"https://brainsatplay.azurewebsites.net/",username:"guest",password:""}){
 		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
 		this.devices[this.devices.length].stream();
 		this.info.nDevices++;
@@ -161,7 +161,7 @@ class biquadChannelFilterer {
 
 
 class deviceStream {
-	constructor(device="FreeEEG32_2",location="local",useFilters=true,pipeToAtlas=true,auth={}) {
+	constructor(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={}) {
 		this.deviceName = device;
 		this.location = location;
 		this.useFilters = useFilters;
