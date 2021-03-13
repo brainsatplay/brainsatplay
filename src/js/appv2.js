@@ -62,7 +62,7 @@ class brainsatplay {
 
         let json = JSON.stringify(dict)
 
-        let resDict = await fetch(url + 'login',
+        let resDict = await fetch(url.toString() + 'login',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -90,7 +90,7 @@ class brainsatplay {
 	async signup(dict={}, url=new URL(remoteHostURL)) {
 
         let json = JSON.stringify(dict)
-        let resDict = await fetch(url + 'signup',
+        let resDict = await fetch(url.toString() + 'signup',
             {
                 method: 'POST',
                 mode: 'cors',
@@ -112,7 +112,8 @@ class brainsatplay {
 
         return resDict
 	}
-	async request(body,method="POST",baseURL=remoteHostURL){
+
+	async request(body,method="POST", baseURL=remoteHostURL){
 		if (pathname !== ''){
             baseURL = this.checkURL(baseURL)
             pathname = this.checkPathname(pathname)
