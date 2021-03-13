@@ -44,7 +44,6 @@ class brainsatplay {
 		this.info = {
 			nDevices: 0,
 			nRemoteDevices: 0,
-			access: 'public',
 			username: 'guest',
 			consent:{raw:false,game:false},
 			remoteHostURL: 'https://brainsatplay.azurewebsites.net/',
