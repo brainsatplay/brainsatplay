@@ -219,9 +219,10 @@ class biquadChannelFilterer {
                 this.bp1.forEach((f,i) => {
                     out = f.applyFilter(out);
                 });
+                out *= this.bp1.length;
             }
             if(State.data.uVScaling === true){
-                out = out*EEG.uVperStep;
+                out *= EEG.uVperStep;
             }
         }
         this.lastidx=idx;
