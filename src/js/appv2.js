@@ -34,7 +34,7 @@ Frontend Execution
 
 import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/signal_analysis/BiquadFilters'
-
+import {MuseClient} from 'muse-js'
 
 class brainsatplay {
 	constructor() {
@@ -222,11 +222,9 @@ class deviceStream {
 						});
 						this.onMessage();
 					},
-					()=>{
-						this.onConnect();
+					()=>{	
 					},
 					()=>{
-						this.onDisconnect();
 					}
 				);
 				if(useFilters === true) {
@@ -248,6 +246,7 @@ class deviceStream {
 					{ch: 3, tag: "T10"},
 					{ch: 4, tag: "other"}
 				];
+				this.device = new MuseClient();
 			}
 			else if(device === "cyton") {
 
@@ -272,13 +271,25 @@ class deviceStream {
 		}
 	}
 
-	stream() {
+	async stream() {
 		if(this.location === "local") {
 			if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
-				this.device.setupSerialAsync();
+				await this.device.setupSerialAsync();
 			}
 			else if (this.deviceName === "muse") {
-				//connect muse and begin streaming
+				//connect muse and begin streaming		
+				//this.onConnect();
+				await this.device.connect();
+				await this.device.start();
+				this.device.eegReadings.subscribe(reading => {
+
+				});
+				this.device.telemetryData.subscribe(telemetry => {
+
+				});
+				this.device.accelerometerData.subscribe(accel => {
+
+				});
 			}
 			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
 				//connect boards and begin streaming
@@ -286,7 +297,16 @@ class deviceStream {
 		}
 		else if (this.location === "server") {
 			//subscribe to websocket updates
+			//this.onConnect();
 		}
+		this.onConnect();
+	}
+
+	async disconnect() {
+		if(this.deviceName.indexOf("FreeEEG") > -1) {
+			this.device.disconnect();
+		}
+		this.onDisconnect();
 	}
 
 	//Generic handlers to be called by all devices, set up processing and UI/State handling here
@@ -306,13 +326,20 @@ class dataAtlas {
 			eegshared:{bandpassWindow:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
 			eeg:[],
 			coherence:[],
-			heg:[]
+			heg:[],
+			fnirs:[],
+			accelerometer:[],
+			hrv:[],
+			spo2:[],
+			emg:[],
+			ecg:[],
+			eyetracker:[]
 		};
         if(use10_20 === true) {
             this.data.eeg = this.gen10_20Atlas();
         }
         if(useCoherence === true) {
-            this.data.coherence = genCoherenceMap();
+            this.data.coherence = this.genCoherenceMap();
         }
     }
 
@@ -332,8 +359,8 @@ class dataAtlas {
         return struct;
     }
     
-    addToAtlas(tag,x,y,z){
-		this.data.eeg.push(genEEGCoordinateStruct(tag,x,y,z));
+    addEEGCoord(tag,x,y,z){
+		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
 	}
 
     gen10_20Atlas() {
@@ -391,6 +418,40 @@ class dataAtlas {
 		}
 		return cmap;
 	}
+
+	genHEGStruct(tag,x,y,z) {
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[]}
+	}
+
+	addHEGCoord(tag="heg1",x,y,z) {
+		this.data.heg.push(this.genHEGStruct(tag,x,y,z));
+	}
+
+	genFNIRSStruct(tag,x,y,z) {
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ir2:[],ambient:[]}
+	}
+
+	addFNIRSCoord(tag="banana1",x,y,z) {
+		this.data.fnirs.push(this.genHEGStruct(tag,x,y,z));
+	}
+
+	genAccelerometerStruct(tag,x,y,z) {
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[]};
+	}
+
+	addAccelerometerCoord(tag="accel1",x,y,z){
+		this.data.accelerometer.push(this.genAccelerometerStruct(tag,x,y,z));
+	}
+
+	genHRVStruct(tag){
+		return {tag:tag, times:[], bpm:[], hrv:[]}
+	}
+
+	addHRV(tag="hrv1") {
+		this.data.hrv.push(genHRVStruct(tag));
+	}
+
+	//ecg,emg,eyetracker
 
 	getEEGDataByChannel(ch=0) {
 		let found = false;
