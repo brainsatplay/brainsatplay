@@ -309,6 +309,7 @@ class deviceStream {
 		this.filters = [];
 		this.eegTags = [];
 		this.atlas = null;
+		this.simulating = false;
 
 		this.init(device,location,useFilters,pipeToAtlas);
 	}
@@ -504,6 +505,17 @@ class deviceStream {
 		else if (this.location === "server") {
 			//subscribe to websocket updates
 			this.device = this.setupWebSocket("interfaces");
+		}
+	}
+
+	simulateData() {
+		let delay = 100;
+		if(this.simulating === true) {
+			let nSamplesToSim = Math.floor(this.sps*delay/1000);
+			for(let i = 0; i<nSamplesToSim; i++) {
+				//For each tagged channel generate fake data
+			}
+			setTimeout(requestAnimationFrame(this.simulateData),delay);
 		}
 	}
 
