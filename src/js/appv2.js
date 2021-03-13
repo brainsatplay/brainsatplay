@@ -500,7 +500,7 @@ class dataAtlas {
         this.name = name;
         this.eegTags = eegTags;
         this.data = {
-			eegshared:{bandpassWindow:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
+			eegshared:{frequencies:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
 			eeg:[],
 			coherence:[],
 			heg:[],
@@ -705,9 +705,9 @@ class dataAtlas {
 		];
 	}
 
-    getBandFreqs(bandpassWindow) {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
+    getBandFreqs(frequencies) {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
 		var scpFreqs = [[],[]], deltaFreqs = [[],[]], thetaFreqs = [[],[]], alpha1Freqs = [[],[]], alpha2Freqs = [[],[]], betaFreqs = [[],[]], lowgammaFreqs = [[],[]], highgammaFreqs = [[],[]]; //x axis values and indices for named EEG frequency bands
-		bandpassWindow.forEach((item,idx) => {
+		frequencies.forEach((item,idx) => {
 			if((item >= 0.1) && (item <= 1)){
 				scpFreqs[0].push(item); scpFreqs[1].push(idx);
 			}
