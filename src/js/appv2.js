@@ -31,6 +31,7 @@ Frontend Execution
 - Game/App State(s)
 
 */
+import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/signal_analysis/BiquadFilters'
@@ -43,15 +44,103 @@ class brainsatplay {
 		this.info = {
 			nDevices: 0,
 			nRemoteDevices: 0,
-			access: 'public'
+			access: 'public',
+			username: 'guest',
+			remoteHostURL: 'https://brainsatplay.azurewebsites.net/',
+			localHostURL: 'http://127.0.0.1:8000'
 		}
 	}
 
-	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:"guest",password:"",access:"public",appname:""}){
+	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:this.info.username,password:"",access:"public",appname:""}){
 		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
 		this.devices[this.devices.length].stream();
 		this.info.nDevices++;
 		if(this.location==="server") {this.nRemoteDevices++;}
+	}
+
+	async login(dict={}, url=new URL(remoteHostURL)) {
+
+        let json = JSON.stringify(dict)
+
+        let resDict = await fetch(url + 'login',
+            {
+                method: 'POST',
+                mode: 'cors',
+                headers: new Headers({
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }),
+                body: json
+            }).then((res) => {
+            return res.json().then((message) => message)
+        })
+            .then((message) => {
+                return message
+            })
+            .catch(function (err) {
+                console.log(`\n`+err.message);
+            });
+
+        if (resDict.result === 'OK') {
+            this.info.username = resDict.msg;
+        }
+        return resDict
+	} 
+
+	async signup(dict={}, url=new URL(remoteHostURL)) {
+
+        let json = JSON.stringify(dict)
+        let resDict = await fetch(url + 'signup',
+            {
+                method: 'POST',
+                mode: 'cors',
+                headers: new Headers({
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }),
+                body: json
+            }).then((res) => {
+            return res.json().then((message) => message);
+        })
+            .then((message) => {
+                console.log(`\n`+message);
+                return message;
+            })
+            .catch(function (err) {
+                console.log(`\n`+err.message);
+            });
+
+        return resDict
+	}
+	async request(body,method="POST",baseURL=remoteHostURL){
+		if (pathname !== ''){
+            baseURL = this.checkURL(baseURL)
+            pathname = this.checkPathname(pathname)
+            let dict = {
+                method: method,
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            };
+            
+            if (method === 'POST'){
+                dict.body = JSON.stringify(body);
+            }
+
+            return await fetch(baseURL + pathname, dict).then((res) => {
+            return res.json().then((dict) => {                 
+                return dict.message;
+            })
+        })
+            .catch(function (err) {
+                console.log(`\n`+err.message);
+            });
+        } else {
+            console.log(`You must provide a valid pathname to request resources from ` + baseURL);
+            return
+        }
 	}
 }
 
@@ -174,10 +263,10 @@ class deviceStream {
 		this.eegTags = [];
 		this.atlas = null;
 
-		this.init(device,location,useFilters,pipeToAtlas,auth);
+		this.init(device,location,useFilters,pipeToAtlas);
 	}
 
-	init = (device,location,useFilters,pipeToAtlas,auth) => {
+	init = (device,location,useFilters,pipeToAtlas) => {
 		
 		if(location === "local") {
 			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
