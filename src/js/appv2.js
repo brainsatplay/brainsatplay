@@ -51,11 +51,11 @@ class brainsatplay {
 		}
 	}
 
-	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"),username:this.info.username,password:"",access:"public",appname:""}){
+	connect(location="local",device="FreeEEG32_2",useFilters=true,pipeToAtlas=true,auth={url: new URL("https://brainsatplay.azurewebsites.net/"), username:this.info.username, password:"", access:"public", appname:""}){
 		this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
-		this.devices[this.devices.length].stream();
+		this.devices[this.devices.length-1].stream();
 		this.info.nDevices++;
-		if(this.location==="server") {this.nRemoteDevices++;}
+		if(this.devices[this.devices.length-1].location==="server") {this.nRemoteDevices++;}
 	}
 
 	async login(dict={}, baseURL=this.info.remoteHostURL) {
