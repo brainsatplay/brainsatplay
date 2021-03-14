@@ -156,7 +156,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                         username:source.username
                     };
                     sub.propnames.forEach((prop,j) => {
-                        dataToSend[prop] = source.prop;
+                        dataToSend[prop] = source[prop];
                     });
                     listener.socket.send(JSON.stringify(dataToSend));
                     sub.newData = false;
@@ -180,7 +180,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     }
                     let listener = this.getUser(user);
                     sub.propnames.forEach((prop,k) => {
-                        userObj.prop = listener.prop;
+                        userObj[prop] = listener[prop];
                     });
                     updateObj.userData.push(userObj);
                 });
