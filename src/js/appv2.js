@@ -74,14 +74,13 @@ class brainsatplay {
 		) {
 			if(this.devices[this.devices.length-1].location==="server") {
 				//Connect to websocket
-				this.socket = this.setupWebSocket('interfaces');
+				this.socket = this.setupWebSocket();
 				this.subscribed=true;
 			}
 			this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,this.socket,this.info.auth));
 			this.devices[this.devices.length-1].stream();
 			this.info.nDevices++;
-			
-
+		
 		}
 
 	async login(dict={'guestaccess':true}, baseURL=this.info.auth.url.toString()) {
@@ -171,11 +170,11 @@ class brainsatplay {
         }
 	}
 
-	setupWebSocket(type="interfaces",channelNames=[]) {
+	setupWebSocket(auth) {
 
 		let socket = null;
 		let cookies = [];
-		cookies = [this.info.auth.username,this.info.auth.appname];
+		cookies = [this.info.auth.username,this.info.auth.password,this.info.auth.appname];
 
 		if (this.info.auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + this.info.auth.url.hostname, cookies);
