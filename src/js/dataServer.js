@@ -26,12 +26,12 @@ class dataServer { //Just some working concepts for handling data sockets server
         //remove user, remove user streams, remove user from game instances
     }
 
-    removeUserToUserStream(listener,source,propnames=null) {
+    removeUserToUserStream(listener,source,propnames=null) { //delete stream or just particular props
 
     }
 
     removeGameStream(appname='') {
-        
+
     }
 
 	getUser(username=''){
