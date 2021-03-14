@@ -609,9 +609,10 @@ class dataAtlas {
 		useEEG10_20=true,
 		useCoherence=true,
 		runAnalyzer=false,
-		analysis='fft,coherence' //'bcijs_bandpowers','heg_pulse'
+		analysis=['fft'] //'fft','coherence','bcijs_bandpowers','heg_pulse'
 	) {
         this.name = name;
+
         this.data = {
 			eegshared:{eegChannelTags:initialData.eegshared.eegChannelTags, sps:initialData.eegshared.sps, frequencies:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
 			eeg:[],
@@ -625,6 +626,10 @@ class dataAtlas {
 			ecg:[],
 			eyetracker:[]
 		};
+
+		this.maxBufferSize = 30000; //Max samples in buffer before rollover kicks in
+		this.rolloverSize = 3000; //Number of samples to splice off on the front of the data buffers
+
         if(useEEG10_20 === true) {
             this.data.eeg = this.gen10_20Atlas();
         }
@@ -634,9 +639,12 @@ class dataAtlas {
 
 		this.analyzing = runAnalyzer;
 		this.analysis = analysis;
+		this.analyzerOpts = ['fft','coherence']; //'bcijs_bandpower','bcijs_pca','heg_pulse'
+		this.analyzerFuncs = [];
 		this.workerWaiting = false;
 		this.workerIdx = 0;
 		if(runAnalyzer === true){
+			this.addDefaultAnalyzerFuncs();
 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
 			window.workerResponses.push()
@@ -1000,30 +1008,39 @@ class dataAtlas {
 		}
 	}
 
+	addDefaultAnalyzerFuncs() {
+		let fftFunc = () => {
+			if(this.workerWaiting === false){
+				let buf = this.bufferEEGSignals(1);
+				window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				this.workerWaiting = true;
+			}
+		}
+		let coherenceFunc = () => {
+			if(this.workerWaiting === false){
+				let buf = this.bufferEEGSignals(1);
+				window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				this.workerWaiting = true;
+			}
+		}	
+
+		this.analyzerFuncs.push(fftFunc,coherenceFunc);
+		//'bcijs_bandpowers','bcijs_pca','heg_pulse'
+	}
+
 	analyzer = () => {
 		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
+
+		this.analysis.forEach((run,i) => {
+			this.analyzerOpts.forEach((opt,j) => {
+				if(opt === run) {
+					this.analyzerFuncs[j]();
+				}
+			});
+		});
 			
-		if (this.analyzer.indexOf('coherence') > -1) {
-			let buf = this.bufferEEGSignals();
-			window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-			//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-			this.workerWaiting = true;
-		}
-		else if(this.analyzer.indexOf('fft') > -1) {
-			let buf = this.bufferEEGSignals();
-			window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-			this.workerWaiting = true;
-		}	
-		else if (this.analyzer.indexOf('bcijs_bandpowers')) {
-
-		}
-		if (this.analyzer.indexOf('bcijs_pca')) {
-
-		}
-		if (this.analyzer.indexOf('heg_pulse')) {
-
-		}
-
+		
 		setTimeout(()=>{requestAnimationFrame(this.analyzer)},20);
 	}
 }
