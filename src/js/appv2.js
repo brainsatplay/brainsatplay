@@ -1024,6 +1024,7 @@ class dataAtlas {
 				this.workerWaiting = true;
 			}
 		}	
+		//add other worker functions (see eegworker.js)
 
 		this.analyzerFuncs.push(fftFunc,coherenceFunc);
 		//'bcijs_bandpowers','bcijs_pca','heg_pulse'
@@ -1040,7 +1041,6 @@ class dataAtlas {
 			});
 		});
 			
-		
 		setTimeout(()=>{requestAnimationFrame(this.analyzer)},20);
 	}
 }
