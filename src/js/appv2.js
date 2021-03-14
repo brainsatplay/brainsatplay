@@ -293,6 +293,8 @@ class brainsatplay {
 	
 }
 
+
+
 class biquadChannelFilterer {
     constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
         this.channel=channel; this.idx = 0; this.sps = sps;
