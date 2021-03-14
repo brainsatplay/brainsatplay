@@ -174,18 +174,8 @@ class brainsatplay {
 	setupWebSocket(type="interfaces",channelNames=[]) {
 
 		let socket = null;
-		let mode=type;
 		let cookies = [];
-
-		if(mode === "bidirectional"){
-			cookies = [this.info.auth.username,type,this.info.auth.appname,this.info.auth.access,channelNames];
-		}
-		else if (mode === "interfaces"){
-			cookies = [this.info.auth.username,type,this.info.auth.appname];
-		}
-		else if (mode === "brains"){
-			cookies = [];
-		}
+		cookies = [this.info.auth.username,this.info.auth.appname];
 
 		if (this.info.auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + this.info.auth.url.hostname, cookies);
