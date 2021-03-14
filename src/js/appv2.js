@@ -967,9 +967,8 @@ class dataAtlas {
 		return fftwindow;
 	}
 
-	bufferEEGSignals = () => { //Buffers tagged eeg signals (except for signals tagged 'other')
-		var buffer = [];
-		var dat;
+	bufferEEGSignals = () => { //Buffers tagged eeg signals
+		let buffer = [];
 		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
 			if(this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
