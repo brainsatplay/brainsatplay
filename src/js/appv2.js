@@ -290,7 +290,6 @@ class brainsatplay {
         return pathname;
     }
 
-	
 }
 
 
@@ -427,7 +426,7 @@ class deviceStream {
 		this.useFilters = useFilters;
 		this.useAtlas = false;
 		this.filters = [];
-		this.eegTags = [];
+		this.eegChannelTags = [];
 		this.atlas = null;
 		this.simulating = false;
 
@@ -440,14 +439,14 @@ class deviceStream {
 			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
 				this.sps = 512;
 				if(device === "FreeEEG32_2") { 
-					this.eegTags = [
+					this.eegChannelTags = [
 						{ch: 4, tag: "Fp2"},
 						{ch: 24, tag: "Fp1"},
 						{ch: 8, tag: "other"}
 					];
 				}
 				else {
-					this.eegTags = [
+					this.eegChannelTags = [
 						{ch: 4, tag: "Fp2"},
 						{ch: 24, tag: "Fp1"},
 						{ch: 8, tag: "other"}
@@ -455,7 +454,7 @@ class deviceStream {
 				}
 				this.device = new eeg32(
 					(newLinesInt) => {
-						this.eegTags.forEach((o,i) => {
+						this.eegChannelTags.forEach((o,i) => {
 							let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
 							let latestFiltered = new Array(latest.length).fill(0);
 							if(o.tag !== "other" && this.useFilters === true) { 
@@ -485,7 +484,7 @@ class deviceStream {
 					}
 				);
 				if(useFilters === true) {
-					this.eegTags.forEach((row,i) => {
+					this.eegChannelTags.forEach((row,i) => {
 						if(row.tag !== 'other') {
 							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
 						}
@@ -497,7 +496,7 @@ class deviceStream {
 			}
 			else if(device === "muse") {
 				this.sps = 256;
-				this.eegTags = [
+				this.eegChannelTags = [
 					{ch: 0, tag: "T9"},
 					{ch: 1, tag: "AF7"},
 					{ch: 2, tag: "AF8"},
@@ -521,7 +520,7 @@ class deviceStream {
 		}
 
 		if(pipeToAtlas === true) {
-			this.atlas = new dataAtlas(location+":"+device,this.eegTags,true,true)
+			this.atlas = new dataAtlas(location+":"+device,{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},true,true)
 			this.useAtlas = true;
 		} else if (pipeToAtlas !== false) {
 			this.atlas = pipeToAtlas; //External atlas reference
@@ -603,11 +602,17 @@ class deviceStream {
 
 
 class dataAtlas {
-    constructor(name="atlas",eegTags=[{ch: 0, tag: null},{ch: 1, tag: null}],useEEG10_20=true,useCoherence=true) {
+    constructor(
+		name="atlas",
+		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
+		useEEG10_20=true,
+		useCoherence=true,
+		runAnalyzer=false,
+		analysis=['fft','coherence'] //'bcijs_bandpowers','heg_pulse'
+	) {
         this.name = name;
-        this.eegTags = eegTags;
         this.data = {
-			eegshared:{frequencies:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
+			eegshared:{eegChannelTags:initialData.eegshared.eegChannelTags, sps:initialData.eegshared.sps, frequencies:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
 			eeg:[],
 			coherence:[],
 			heg:[],
@@ -625,6 +630,12 @@ class dataAtlas {
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap();
         }
+
+		this.analyzing = runAnalyzer;
+		this.analysis = analysis;
+		if(runAnalyzer === true){
+			this.analyzer();
+		}
     }
 
     genEEGCoordinateStruct(tag,x,y,z){
@@ -669,7 +680,7 @@ class dataAtlas {
         return eegmap;
     }
 
-    genCoherenceMap(channelTags = this.eegTags, taggedOnly = true) {
+    genCoherenceMap(channelTags = this.data.eegshared.eegChannelTags, taggedOnly = true) {
 		var cmap = [];
 		var l = 1, k = 0;
 		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
@@ -784,7 +795,7 @@ class dataAtlas {
     //Get the latest data pushed to tagged channels
 	getLatestData() {
 		var dat = [];
-		this.channelTags.forEach((r, i) => {
+		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			var row = this.getDataByTag(r.tag);
 			var lastIndex = row.count - 1;
 			dat.push({
@@ -953,6 +964,41 @@ class dataAtlas {
 			  fftwindow.push(freqStart + (freqEnd_nyquist-freqStart)*i/(nSteps));
 		  }
 		return fftwindow;
+	}
+
+	bufferEEGSignals = () => {
+		var buffer = [];
+		var dat;
+		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
+			if(this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
+				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
+				//console.log(dat);
+				if(dat.filtered.length > 0)				
+				buffer.push(dat.filtered.slice(dat.filtered.length0));
+			}
+		}
+		return buffer;
+	} 
+
+	analyzer = () => {
+		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
+		if((this.analyzer.indexOf('fft') > -1) && (this.analyzer.indexOf('coherence') < 0)) {
+
+		}	
+		if (this.analyzer.indexOf('coherence') > -1) {
+
+		}
+		if (this.analyzer.indexOf('bcijs_bandpowers')) {
+
+		}
+		if (this.analyzer.indexOf('bcijs_pca')) {
+
+		}
+		if (this.analyzer.indexOf('heg_pulse')) {
+
+		}
+
+		requestAnimationFrame(this.analyzer);
 	}
 }
 
