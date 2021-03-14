@@ -197,13 +197,10 @@ class brainsatplay {
         }
 
 		socket.onmessage((e) => {
-			this.onMessage(e.data);
 		});
 		socket.onopen((e) => {
-			this.onConnect(e.data);
 		});
 		socket.onclose((e) => {
-			this.onDisconnect(e.data);
 		});
 		socket.onerror((e) => {
 			console.error(e.data);
@@ -241,7 +238,7 @@ class brainsatplay {
 		}
 	}
 
-	getBrains(dict={
+	getUsers(dict={ //
 		destination:'initializeBrains',
 		appname:'',
 		msg:'',
