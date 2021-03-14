@@ -36,7 +36,6 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
-import { TimeSeries } from 'smoothie';
 
 class brainsatplay {
 	constructor(
@@ -980,7 +979,7 @@ class dataAtlas {
 		return fftwindow;
 	}
 
-	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of tagged eeg signals
+	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of tagged eeg signals. Data buffered in order of objects in the eeg array
 		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
 		let buffer = [];
 		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
@@ -999,7 +998,7 @@ class dataAtlas {
 	workerOnMessage(msg) {
 		if(msg.origin === this.name) {
 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
-
+				//parse data into atlas
 			}
 			else if(msg.foo === "coherence"){ 
 
