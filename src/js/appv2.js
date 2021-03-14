@@ -170,7 +170,7 @@ class brainsatplay {
         }
 	}
 
-	setupWebSocket(auth) {
+	setupWebSocket() {
 
 		let socket = null;
 		let cookies = [];
