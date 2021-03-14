@@ -43,9 +43,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 		return u;
 	}
 
-    processUserCommand(username='',command='[]') { //Commands should be an array of arguments
+    processUserCommand(username='',command=[]) { //Commands should be an array of arguments
         let u = this.getUser(username); 
-        let command = JSON.parse(command);
         if(command[0] === 'getUsers' > -1) {
             let users = [];
             this.userData.forEach((o,i) => {
