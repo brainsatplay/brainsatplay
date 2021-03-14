@@ -22,6 +22,18 @@ class dataServer { //Just some working concepts for handling data sockets server
 		});
 	}
 
+    removeUser(username='username') {
+        //remove user, remove user streams, remove user from game instances
+    }
+
+    removeUserToUserStream(listener,source,propnames=null) {
+
+    }
+
+    removeGameStream(appname='') {
+        
+    }
+
 	getUser(username=''){
 		let u = this.userData.find((o,i) => {
 			if(o.username === username) {
