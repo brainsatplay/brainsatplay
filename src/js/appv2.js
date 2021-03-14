@@ -38,39 +38,53 @@ import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/si
 import {MuseClient} from 'muse-js'
 
 class brainsatplay {
-	constructor() {
+	constructor(
+		username='guest',
+		password='',
+		access='public',
+		appname='',
+		remoteHostURL='https://brainsatplay.azurewebsites.net/',
+		localHostURL='http://127.0.0.1:8000'
+	) {
 		this.devices = [];
 
 		this.info = {
 			nDevices: 0,
-			nRemoteDevices: 0,
-			username: 'guest',
-			consent:{raw:false,game:false},
-			remoteHostURL: 'https://brainsatplay.azurewebsites.net/',
-			localHostURL: 'http://127.0.0.1:8000'
+			auth:{
+				url: new URL(remoteHostURL), 
+				username:username, 
+				password:password, 
+				access:access, 
+				appname:appname,
+				consent:{raw:false, brains:false}
+			},
+			subscribed: false,
+			connections: [],
+			localHostURL: localHostURL
 		}
+
+		this.socket = null;
 	}
 
 	connect(
 		location="local", //"server"
 		device="FreeEEG32_2",
 		useFilters=true,
-		pipeToAtlas=true,
-		auth={ //For server connections only
-			url: new URL("https://brainsatplay.azurewebsites.net/"), 
-			username:this.info.username, 
-			password:"", 
-			access:"public", 
-			appname:"",
-			consent:this.info.consent
-		}) {
-				this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,auth));
-				this.devices[this.devices.length-1].stream();
-				this.info.nDevices++;
-				if(this.devices[this.devices.length-1].location==="server") {this.nRemoteDevices++;}
-	}
+		pipeToAtlas=true
+		) {
+			if(this.devices[this.devices.length-1].location==="server") {
+				//Connect to websocket
+				this.socket = this.setupWebSocket('interfaces');
+				this.subscribed=true;
+			}
+			this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,this.socket,this.info.auth));
+			this.devices[this.devices.length-1].stream();
+			this.info.nDevices++;
+			
 
-	async login(dict={'guestaccess':true}, baseURL=this.info.remoteHostURL) {
+		}
+
+	async login(dict={'guestaccess':true}, baseURL=this.info.auth.url.toString()) {
 
 		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict);
@@ -100,7 +114,7 @@ class brainsatplay {
         return response;
 	} 
 
-	async signup(dict={}, baseURL=this.info.remoteHostURL) {
+	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
 		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict);
         let response = await fetch(baseURL.toString() + 'signup',
@@ -126,7 +140,7 @@ class brainsatplay {
         return response;
 	}
 
-	async request(body,method="POST",pathname='',baseURL=this.info.remoteHostURL){
+	async request(body,method="POST",pathname='',baseURL=this.info.auth.url.toString()){
 		if (pathname !== ''){
             baseURL = this.checkURL(baseURL);
             pathname = this.checkPathname(pathname);
@@ -155,6 +169,114 @@ class brainsatplay {
             console.error(`You must provide a valid pathname to request resources from ` + baseURL);
             return;
         }
+	}
+
+	setupWebSocket(type="interfaces",channelNames=[]) {
+
+		let socket = null;
+		let mode=type;
+		let cookies = [];
+
+		if(mode === "bidirectional"){
+			cookies = [this.info.auth.username,type,this.info.auth.appname,this.info.auth.access,channelNames];
+		}
+		else if (mode === "interfaces"){
+			cookies = [this.info.auth.username,type,this.info.auth.appname];
+		}
+		else if (mode === "brains"){
+			cookies = [];
+		}
+
+		if (this.info.auth.url.protocol === 'http:') {
+            socket = new WebSocket(`ws://` + this.info.auth.url.hostname, cookies);
+        } else if (this.auth.url.protocol === 'https:') {
+            socket = new WebSocket(`wss://` + this.info.auth.url.hostname, cookies);
+        } else {
+            console.log('invalid protocol')
+            return;
+        }
+
+		socket.onmessage((e) => {
+			this.onMessage(e.data);
+		});
+		socket.onopen((e) => {
+			this.onConnect(e.data);
+		});
+		socket.onclose((e) => {
+			this.onDisconnect(e.data);
+		});
+		socket.onerror((e) => {
+			console.error(e.data);
+		});
+		return socket;
+	}
+
+	sendWSCommand(socket=this.socket, command='',dict={}){
+		if(socket.status){
+			if(command === 'initializeBrains') {
+				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+			}
+			else if (command === 'bci') {
+				dict.destination = 'bci';
+				dict.id = this.info.auth.username;
+				dict.consent = this.info.auth.consent;
+				if(this.info.auth.consent.game === true) {
+					//let reserved = ['voltage','time','electrode','consent'];
+					//let me = this.brains[this.info.access].get(this.me.username);
+					//if (me !== undefined){
+					//	Object.keys(me.data).forEach((key) => {
+					//		if (!reserved.includes(key)){
+					//			dict[key] = me.data[key];
+					//		}
+					//	});
+					//}
+				}
+				if(this.info.auth.consent.raw === false) {
+					dict.signal = [];
+					dict.time = [];
+				}
+				dict = JSON.stringify(dict);
+				socket.send(dict);
+			}
+		}
+	}
+
+	getBrains(dict={
+		destination:'initializeBrains',
+		appname:'',
+		msg:'',
+		nBrains:0,
+		privateBrains:0,
+		privateInfo:'',
+		ninterfaces:0,
+		ids:[],
+		channelNames:[]
+	}) {
+		this.socket.send(JSON.stringify(dict));
+	}
+
+	onNewConnection(response){ //If a user is added to the server
+		this.info.connections.push({
+			username:response.id,
+			access:response.access,
+			channelNames:response.channelNames,
+			destination:response.destination
+		});
+		this.info.nDevices++;
+	}
+
+	onConnectionLost(response){ //If a user is removed from the server
+		let found = false; let idx = 0;
+		let c = this.info.connections.find((o,i) => {
+			if(o.username === response.username) {
+				found = true;
+				return true;
+			}
+		});
+		if (found === true) {
+			this.info.connections.splice(idx,1);
+			this.info.nDevices--;
+		}
 	}
 
 	checkURL(url) {
@@ -289,20 +411,19 @@ class deviceStream {
 		device="FreeEEG32_2",
 		useFilters=true,
 		pipeToAtlas=true,
-		auth={ //For server connections only
-			url: new URL("https://brainsatplay.azurewebsites.net/"),
-			username:"guest",
-			password:"",
-			access:"public",
-			appname:"",
-			consent:{raw:false,game:false}
-	}) {
+		socket=null,
+		auth={
+			username:'guest', 
+			consent:{raw:false, brains:false}
+		}
+	) {
+
+		this.location = location;
 		this.deviceName = device;
-		this.location = location;	
-		this.auth = auth;
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
-		this.socket = null; //Store bidirectional sockets here for use
+		this.socket = socket; //Store bidirectional sockets here for use
+		this.auth = auth;
 		this.sps = null;
 		this.useFilters = useFilters;
 		this.useAtlas = false;
@@ -376,6 +497,7 @@ class deviceStream {
 				}
 			}
 			else if(device === "muse") {
+				this.sps = 256;
 				this.eegTags = [
 					{ch: 0, tag: "T9"},
 					{ch: 1, tag: "AF7"},
@@ -408,75 +530,6 @@ class deviceStream {
 		}
 	}
 
-	setupWebSocket(type="bidirectional") {
-
-		let socket = null;
-		let mode=type;
-		let cookies = "";
-
-		if(mode === "bidirectional"){
-			let channelNames = [];
-			this.eegTags.forEach((name,i) => {channelNames.push(name);});
-			cookies = [this.auth.username,type,this.auth.appname,this.auth.access,channelNames];
-		}
-		else if (mode === "interfaces"){
-			cookies = [this.auth.username,type,this.auth.appname];
-		}
-
-		if (this.auth.url.protocol === 'http:') {
-            socket = new WebSocket(`ws://` + this.auth.url.hostname, cookies);
-        } else if (this.auth.url.protocol === 'https:') {
-            socket = new WebSocket(`wss://` + this.auth.url.hostname, cookies);
-        } else {
-            console.log('invalid protocol')
-            return
-        }
-
-		socket.onmessage((e) => {
-			this.onMessage(e.data);
-		});
-		socket.onopen((e) => {
-			this.onConnect(e.data);
-		});
-		socket.onclose((e) => {
-			this.onDisconnect(e.data);
-		});
-		socket.onerror((e) => {
-			console.error(e.data);
-		});
-		return socket;
-	}
-
-	sendWSCommand(socket=this.device, command='',dict={}){
-		if(socket.status){
-			if(command === 'initializeBrains') {
-				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
-			}
-			else if (command === 'bci') {
-				dict.destination = 'bci';
-				dict.id = this.auth.username;
-				dict.consent = this.auth.consent;
-				if(this.auth.consent.game === true) {
-					//let reserved = ['voltage','time','electrode','consent'];
-					//let me = this.brains[this.info.access].get(this.me.username);
-					//if (me !== undefined){
-					//	Object.keys(me.data).forEach((key) => {
-					//		if (!reserved.includes(key)){
-					//			dict[key] = me.data[key];
-					//		}
-					//	});
-					//}
-				}
-				if(this.auth.consent.raw === false) {
-					dict.signal = [];
-					dict.time = [];
-				}
-				dict = JSON.stringify(dict);
-				socket.send(dict);
-			}
-		}
-	}
-
 	async stream() {
 		if(this.location === "local") {
 			if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
@@ -504,8 +557,20 @@ class deviceStream {
 		}
 		else if (this.location === "server") {
 			//subscribe to websocket updates
-			this.device = this.setupWebSocket("interfaces");
+			
 		}
+	}
+
+	sendDataToServer(times=[],signals=[],electrodes='',fields='') {
+		this.socket.send(JSON.stringify({
+			destination:'bci',
+			id:this.auth.username,
+			consent:this.auth.consent,
+			time:times,
+			signal:signals,
+			electrode:electrodes,
+			field:fields
+		}));
 	}
 
 	simulateData() {
@@ -521,13 +586,10 @@ class deviceStream {
 
 	disconnect() {
 		if(this.location === "server") {
-			this.device.close();
+			this.socket.close();
 		}
 		if(this.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
-		}
-		if(this.socket !== null) {
-			this.socket.close();
 		}
 		this.onDisconnect();
 	}
