@@ -12,7 +12,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 			username:username,
 			appname:appname,
 			socket:socket,
-            lastUpdate:performance.now(),
+            lastUpdate:Date.now(),
+            lastTransmit:0,
             latency:0
 		});
 		let idx = this.userData.length-1;s
@@ -78,7 +79,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     }
                     let now = performance.now();
                     o.latency = now-o.lastUpdate;
-                    o.lastUpdate = now;
+                    o.lastUpdate = Date.now();
                     return true;
                 }
             });
@@ -108,7 +109,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.gameSubscriptions.push({
 			usernames:[],
 			appname:appname,
-			propnames:propnames
+			propnames:propnames,
+            lastTransmit:Date.now()
 		});
 	}
 
@@ -139,50 +141,58 @@ class dataServer { //Just some working concepts for handling data sockets server
 	}
 
 	subscriptionLoop = () => {
-
+        let time = Date.now();
+        //Should have delay interval checks for each subscription update for rate limiting
 		this.userSubscriptions.forEach((sub,i) => {
-			let listener = this.getUser(sub.listener);
-			let source = this.getUser(sub.source);
 
-			if(sub.newData === true){
-				let dataToSend = {
-					msg:'update',
-					destination:'',
-					username:source.username
-				};
-				sub.propnames.forEach((prop,j) => {
-					dataToSend[prop] = source.prop;
-				});
-				listener.socket.send(JSON.stringify(dataToSend));
-				sub.newData = false;
-			}
+            if(sub.lastTransmit - time > 100){
+                let listener = this.getUser(sub.listener);
+                let source = this.getUser(sub.source);
+
+                if(sub.newData === true){
+                    let dataToSend = {
+                        msg:'update',
+                        destination:'',
+                        username:source.username
+                    };
+                    sub.propnames.forEach((prop,j) => {
+                        dataToSend[prop] = source.prop;
+                    });
+                    listener.socket.send(JSON.stringify(dataToSend));
+                    sub.newData = false;
+                    sub.lastTransmit = time;
+                }
+            }
 		});
 
 		this.gameSubscriptions.forEach((sub,i) => {
-			let updateObj = {
-				msg:'update',
-				destination:'',
-				appname:sub.appname,
-				userData:[]
-			};
-			
-			sub.usernames.forEach((user,j) => {
-				let userObj = {
-					username:user
-				}
-				let listener = this.getUser(user);
-				sub.propnames.forEach((prop,k) => {
-					userObj.prop = listener.prop;
-				});
-				updateObj.userData.push(userObj);
-			});
+            if(sub.lastTransmit - time > 100){
+                let updateObj = {
+                    msg:'update',
+                    destination:'',
+                    appname:sub.appname,
+                    userData:[]
+                };
+                
+                sub.usernames.forEach((user,j) => {
+                    let userObj = {
+                        username:user
+                    }
+                    let listener = this.getUser(user);
+                    sub.propnames.forEach((prop,k) => {
+                        userObj.prop = listener.prop;
+                    });
+                    updateObj.userData.push(userObj);
+                });
 
-			sub.userNames.forEach((user,j) => {
-				user.socket.send(JSON.stringify(updateObj));
-			});
+                sub.userNames.forEach((user,j) => {
+                    user.socket.send(JSON.stringify(updateObj));
+                });
+            }
+            sub.lastTransmit = time;
 		});
 
-		requestAnimationFrame(this.subsciptionLoop)
+		requestAnimationFrame(this.subscriptionLoop)
 	}
 
 }
