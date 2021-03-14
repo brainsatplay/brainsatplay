@@ -63,6 +63,7 @@
 
 //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
 //console.log(window.workers);
+window.workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
 
 window.threads = 2; //Make multiple workers for big tasks
 window.threadrot = 0;
@@ -75,7 +76,10 @@ window.threadrot = 0;
       workers[i].onmessage = (e) => {
         var msg = e.data;
         //console.log(msg)
-        receivedMsg(msg);
+        window.receivedMsg(msg);
+        window.workerResponses.forEach((foo,i) => {
+          foo(msg);
+        })
       };
     }
     console.log("worker threads: ", threads)
@@ -84,6 +88,25 @@ window.threadrot = 0;
   catch (err) {
     window.workers = undefined;
     //console.log(err);
+  }
+
+  window.addWorker = () => {
+    try {
+      window.workers.push(new Worker('./js/utils/eegworker.js'));
+        workers[i].onmessage = (e) => {
+          var msg = e.data;
+          //console.log(msg)
+          window.receivedMsg(msg);
+          window.workerResponses.forEach((foo,i) => {
+            foo(msg);
+          })
+        };
+      console.log("worker threads: ", threads)
+      return threads-1; //index
+    } catch (err) {
+      window.workers = undefined;
+    //console.log(err);
+    }
   }
 
   //input = {foo:'',data:[],origin:''}

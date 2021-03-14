@@ -192,7 +192,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             sub.lastTransmit = time;
 		});
 
-		requestAnimationFrame(this.subscriptionLoop)
+		requestAnimationFrame(this.subscriptionLoop);
 	}
 
 }

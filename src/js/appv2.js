@@ -609,7 +609,7 @@ class dataAtlas {
 		useEEG10_20=true,
 		useCoherence=true,
 		runAnalyzer=false,
-		analysis=['fft','coherence'] //'bcijs_bandpowers','heg_pulse'
+		analysis='fft,coherence' //'bcijs_bandpowers','heg_pulse'
 	) {
         this.name = name;
         this.data = {
@@ -634,7 +634,12 @@ class dataAtlas {
 
 		this.analyzing = runAnalyzer;
 		this.analysis = analysis;
+		this.workerWaiting = false;
+		this.workerIdx = 0;
 		if(runAnalyzer === true){
+			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
+			window.workerResponses.push()
 			this.analyzer();
 		}
     }
@@ -967,30 +972,49 @@ class dataAtlas {
 		return fftwindow;
 	}
 
-	bufferEEGSignals = () => { //Buffers tagged eeg signals
+	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of tagged eeg signals
+		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
 		let buffer = [];
 		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
 			if(this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
 				if(dat !== undefined) {
 					//console.log(dat);
-					if(dat.filtered.length > 0) buffer.push(dat.filtered.slice(dat.filtered.count-this.data.eegshared.sps,dat.filtered.length));
-					else if (dat.raw.length > 0) buffer.push(dat.raw.slice(dat.raw.length-this.data.eegshared.sps,dat.raw.length));
+					if(dat.filtered.length > 0) buffer.push(dat.filtered.slice(dat.filtered.count-nSamples,dat.filtered.length));
+					else if (dat.raw.length > 0) buffer.push(dat.raw.slice(dat.raw.length-nSamples,dat.raw.length));
 				}
 			}
 		}
 		return buffer;
 	} 
 
+	workerOnMessage(msg) {
+		if(msg.origin === this.name) {
+			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
+
+			}
+			else if(msg.foo === "coherence"){ 
+
+			}
+			this.workerWaiting = false;
+		}
+	}
+
 	analyzer = () => {
 		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
-		if((this.analyzer.indexOf('fft') > -1) && (this.analyzer.indexOf('coherence') < 0)) {
-
-		}	
+			
 		if (this.analyzer.indexOf('coherence') > -1) {
-
+			let buf = this.bufferEEGSignals();
+			window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+			//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+			this.workerWaiting = true;
 		}
-		if (this.analyzer.indexOf('bcijs_bandpowers')) {
+		else if(this.analyzer.indexOf('fft') > -1) {
+			let buf = this.bufferEEGSignals();
+			window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+			this.workerWaiting = true;
+		}	
+		else if (this.analyzer.indexOf('bcijs_bandpowers')) {
 
 		}
 		if (this.analyzer.indexOf('bcijs_pca')) {
@@ -1000,7 +1024,7 @@ class dataAtlas {
 
 		}
 
-		requestAnimationFrame(this.analyzer);
+		setTimeout(()=>{requestAnimationFrame(this.analyzer)},20);
 	}
 }
 
