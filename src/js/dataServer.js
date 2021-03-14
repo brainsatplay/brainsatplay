@@ -11,7 +11,9 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.userData.push({
 			username:username,
 			appname:appname,
-			socket:socket
+			socket:socket,
+            lastUpdate:performance.now(),
+            latency:0
 		});
 		let idx = this.userData.length-1;s
 		availableProps.forEach((prop,i) => {
@@ -28,26 +30,69 @@ class dataServer { //Just some working concepts for handling data sockets server
 		return u;
 	}
 
-	//Received a message from a socket, now parse into system
-	updateUserData(msg=`{username:'',prop1:[],prop2:[]}`){ 
+    processUserCommand(username='',command='[]') { //Commands should be an array of arguments
+        let u = this.getUser(username); 
+        let command = JSON.parse(command);
+        if(command[0] === 'getUsers' > -1) {
+            let users = [];
+            this.userData.forEach((o,i) => {
+                if(command[1] !== undefined) {
+                    if(o.appname === command[1]) {
+                        users.push(o);
+                    }
+                }
+                else if(o.appname === u.appname) {
+                    users.push(o);
+                }
+            });
+            u.socket.send(JSON.stringify({msg:'getUsers result', userData:users}))
+        }
+        else if(command[0] === 'subscribeToUser' > -1) {
+            this.streamBetweenUsers(username,command[1],command[2]);
+        }
+        else if(command[0] === 'subscribeToGame' > -1) {
+            this.subscribeUserToGame(username,command[1]);
+        }
+
+    }
+
+	//Received a message from a user socket, now parse it into system
+	updateUserData(data=`{msg:'',username:'',prop1:[],prop2:[]}`){ 
 
 		//Send previous data off to storage
 
-		let obj = JSON.parse(msg);
-		let u = this.userData.find((o,i) => {
-			if(o.username === obj.username) {
-				for(const prop in obj) {
-					o[prop] = obj[prop];
-				}
-				return true;
-			}
-		});
+		let obj = JSON.parse(data);
 
-		this.userSubscriptions.forEach((o,i) => {
-			if(o.source === obj.username) {
-				o.newData = true;
-			}
-		})
+        let hasData = false;
+        for(const prop in obj) {
+            if(prop !== 'username' && prop !== 'msg'){
+                hasData = true;
+                break;
+            }
+        }
+        if(hasData) {
+            let u = this.userData.find((o,i) => {
+                if(o.username === obj.username) {
+                    for(const prop in obj) {
+                        o[prop] = obj[prop];
+                    }
+                    let now = performance.now();
+                    o.latency = now-o.lastUpdate;
+                    o.lastUpdate = now;
+                    return true;
+                }
+            });
+
+            this.userSubscriptions.forEach((o,i) => {
+                if(o.source === obj.username) {
+                    o.newData = true;
+                }
+            });
+        }
+        else {
+            this.processUserCommand(obj.username,obj.msg);
+        }
+
 	}
 
 	streamBetweenUsers(listenerUser,sourceUser,propnames=[]) {
