@@ -79,12 +79,14 @@ export default class dataServer { //Just some working concepts for handling data
 		let obj = JSON.parse(data);
 
         let hasData = false;
-        for(const prop in obj) {
-            if(prop !== 'username' && prop !== 'msg'){
-                hasData = true;
-                break;
+        if(data.msg === '' || data.msg === 'data') {
+            for(const prop in obj) {
+                if(prop !== 'msg' && prop !== 'username') {
+                    hasData = true;
+                }
             }
-        }
+        } 
+        
         if(hasData) {
             let o = this.userData.get(obj.username)
             for(const prop in obj) {

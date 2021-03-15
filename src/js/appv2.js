@@ -710,7 +710,7 @@ class deviceStream {
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
 	sendDataToSocket(params=[['prop','tag','count']],dataObj={}) {
 		let streamObj = {
-			msg:'',
+			msg:'data',
 			username:this.auth.username
 		};
 		Object.assign(streamObj,dataObj); //Append any extra data not defined by parameters from the stream table
