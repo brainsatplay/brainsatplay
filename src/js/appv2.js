@@ -466,7 +466,7 @@ class deviceStream {
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, etc.
 		this.streaming = streaming;
-		this.streamParams = streamParams; //[['EEG_Ch','FP1']]
+		this.streamParams = streamParams; //[['EEG_Ch','FP1','all'],['EEG_FFT','AF7','all']]
 		this.socket = socket; //Store sockets here for use
 
 		this.streamTable=[];
@@ -594,6 +594,8 @@ class deviceStream {
 			this.useAtlas = true;
 			this.configureDefaultStreamTable();
 		}
+
+		if(this.streaming === true) this.streamLoop();
 	}
 
 	async connect() {
@@ -696,7 +698,7 @@ class deviceStream {
 		}
 	} 
 
-	configurestreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
+	configureStreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
 		props.forEach((prop,i) => {
 			propsToSend.push(this.deviceName+"_"+prop[0]+"_"+prop[1]);
@@ -749,10 +751,9 @@ class deviceStream {
 				}
 			});
 		});
-		this.sendDataToServer(params);
+		if(params.length > 0) { this.sendDataToServer(params); }
 
-		let prev = {};
-		setTimeout(() => {this.streamLoop(prev);}, this.streamLoopTiming);
+		setTimeout(() => {this.streamLoop();}, this.streamLoopTiming);
 	}
 
 	simulateData() {
