@@ -283,7 +283,7 @@ class brainsatplay {
 		this.socket.close();
 	}
 
-	getUsers(dict={ //
+	getUsersOld(dict={ //
 		destination:'initializeBrains',
 		appname:'',
 		msg:'',
@@ -297,7 +297,7 @@ class brainsatplay {
 		this.socket.send(JSON.stringify(dict));
 	}
 
-	onNewConnection(response){ //If a user is added to the server
+	onNewConnectionOld(response){ //If a user is added to the server
 		this.info.connections.push({
 			username:response.id,
 			access:response.access,
@@ -668,7 +668,7 @@ class deviceStream {
 		}
 	} 
 
-	configureStreamProps(props=['prop_tag']) { //Simply defines expected data parameters from the user server-side
+	configureStreamProps(props=['prop_tag']) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
 		props.forEach((prop,i) => {
 			propsToSend.push(this.deviceName+"_"+prop);
