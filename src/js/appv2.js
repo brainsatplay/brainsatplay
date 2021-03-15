@@ -77,7 +77,8 @@ class brainsatplay {
 				password:password, 
 				access:access, 
 				appname:appname,
-				consent:{raw:false, brains:false}
+				consent:{raw:false, brains:false},
+				authenticated:false
 			},
 			subscribed: false,
 			connections: [],
@@ -97,13 +98,13 @@ class brainsatplay {
 	connect(
 		device="FreeEEG32_2", //"FreeEEG32","FreeEEG32_19","muse"
 		streaming=false,
-		streamProps=[], //Device properties to stream, e.g. "A0,A1,A2" or "Fp1,Fz" or "Fp1_FFT" or "Fp1_alpha"
+		streamProps=[['EEG_Ch_FP1']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
 		pipeToAtlas=true
 		) {
 			if(streaming === true) {
 				if(this.socket === null) {
-					console.error('Server connection not found');
+					console.error('Server connection not found, please run login() first');
 					return false;
 				}
 			}
@@ -111,43 +112,49 @@ class brainsatplay {
 				new deviceStream(device,streaming,useFilters,pipeToAtlas,this.socket,streamProps,this.info.auth)
 				);
 			
-			this.devices[this.devices.length-1].stream();
+			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
 		}
 
 	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
+		if(this.info.authenticated === false) {
+			baseURL = this.checkURL(baseURL);
+			let json = JSON.stringify(dict);
 
-		baseURL = this.checkURL(baseURL);
-        let json = JSON.stringify(dict);
+			let response = await fetch(baseURL + 'login',
+				{
+					method: 'POST',
+					mode: 'cors',
+					headers: new Headers({
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}),
+					body: json
+				}).then((res) => {
+				return res.json().then((message) => message);
+			})
+				.then((message) => {
+					return message;
+				})
+				.catch(function (err) {
+					console.error(`\n`+err.message);
+				});
 
-        let response = await fetch(baseURL + 'login',
-            {
-                method: 'POST',
-                mode: 'cors',
-                headers: new Headers({
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }),
-                body: json
-            }).then((res) => {
-            return res.json().then((message) => message);
-        })
-            .then((message) => {
-                return message;
-            })
-            .catch(function (err) {
-                console.error(`\n`+err.message);
-            });
+			if (response.result === 'OK') {
+				this.info.auth.username = response.msg;
+				this.info.auth.authenticated = true;
 
-        if (response.result === 'OK') {
-            this.info.auth.username = response.msg;
-
-			//Connect to websocket
+				//Connect to websocket
+				this.socket = this.setupWebSocket();
+				this.info.subscribed=true;
+			}
+			return response;
+		}
+		else {
 			this.socket = this.setupWebSocket();
-			this.subscribed=true;
-        }
-        return response;
+		}
+		
 	} 
 
 	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
@@ -223,13 +230,17 @@ class brainsatplay {
         }
 
 		socket.onmessage((e) => {
+			//console.log(e.data);
 		});
 		socket.onopen((e) => {
+			console.log("Logged in and ready to stream!");
 		});
 		socket.onclose((e) => {
+			console.log("Connection lost")
 		});
 		socket.onerror((e) => {
 			console.error(e.data);
+			alert("Connection to server could not be made: ", e.data);
 		});
 		return socket;
 	}
@@ -262,6 +273,14 @@ class brainsatplay {
 				socket.send(dict);
 			}
 		}
+	}
+
+	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
+		this.devices[deviceIdx].disconnect();
+	}
+
+	closeSocket() {
+		this.socket.close();
 	}
 
 	getUsers(dict={ //
@@ -436,7 +455,7 @@ class deviceStream {
 		useFilters=true,
 		pipeToAtlas=true,
 		socket=null,
-		streamProps={},
+		streamProps=[],
 		auth={
 			username:'guest', 
 			consent:{raw:false, brains:false}
@@ -445,10 +464,13 @@ class deviceStream {
 
 		this.deviceName = device;
 
-		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
+		this.device = null; //Device object, can be instance of eeg32, MuseClient, etc.
 		this.streaming = streaming;
-		this.streamProps = streamProps;
-		this.socket = socket; //Store bidirectional sockets here for use
+		this.streamProps = streamProps; //[['EEG_Ch','FP1']]
+		this.socket = socket; //Store sockets here for use
+
+		this.streamTable=[];
+
 		this.auth = auth;
 		this.sps = null;
 		this.useFilters = useFilters;
@@ -458,138 +480,223 @@ class deviceStream {
 		this.atlas = null;
 		this.simulating = false;
 
-		this.init(device,location,useFilters,pipeToAtlas);
+		this.init(device,useFilters,pipeToAtlas);
 	}
 
-	init = (device,location,useFilters,pipeToAtlas) => {
+	init = (device,useFilters,pipeToAtlas) => {
 		
-		if(location === "local") {
-			if(device.indexOF("FreeEEG32") > -1) {
-				this.sps = 512;
-				if(device === "FreeEEG32_2") { 
-					this.eegChannelTags = [
-						{ch: 4, tag: "Fp2"},
-						{ch: 24, tag: "Fp1"},
-						{ch: 8, tag: "other"}
-					];
-				}
-				else {
-					this.eegChannelTags = [
-						{ch: 4, tag: "Fp2"},
-						{ch: 24, tag: "Fp1"},
-						{ch: 8, tag: "other"}
-					];
-				}
-				this.device = new eeg32(
-					(newLinesInt) => {
-						this.eegChannelTags.forEach((o,i) => {
-							let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
-							let latestFiltered = new Array(latest.length).fill(0);
-							if(o.tag !== "other" && this.useFilters === true) { 
-								this.filters.forEach((f,j) => {
-									if(f.channel === "A"+o.ch) {
-										latest.forEach((sample,k) => { 
-											latestFiltered[k] = f.apply(sample); 
-										});
-									}
-								});
-								if(this.useAtlas === true) {
-									let coord = this.atlas.getEEGDataByTag(o.tag);								
-									coord.filtered.push(latestFiltered);
-									coord.raw.push(latest);
+		if(device.indexOF("FreeEEG32") > -1) {
+			this.sps = 512;
+			if(device === "FreeEEG32_2") { 
+				this.eegChannelTags = [
+					{ch: 4, tag: "FP2"},
+					{ch: 24, tag: "FP1"},
+					{ch: 8, tag: "other"}
+				];
+			}
+			else if (device === 'FreeEEG32_19') {
+				this.eegChannelTags = [
+					{ch: 4, tag: "FP2"},
+					{ch: 24, tag: "FP1"},
+					{ch: 8, tag: "other"}
+				];
+			}
+			else {
+				this.eegChannelTags = [
+					{ch: 4, tag: "FP2"},
+					{ch: 24, tag: "FP1"},
+					{ch: 8, tag: "other"}
+				];
+			}
+			this.device = new eeg32(
+				(newLinesInt) => {
+					this.eegChannelTags.forEach((o,i) => {
+						let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
+						let latestFiltered = new Array(latest.length).fill(0);
+						if(o.tag !== "other" && this.useFilters === true) { 
+							this.filters.forEach((f,j) => {
+								if(f.channel === "A"+o.ch) {
+									latest.forEach((sample,k) => { 
+										latestFiltered[k] = f.apply(sample); 
+									});
 								}
+							});
+							if(this.useAtlas === true) {
+								let coord = this.atlas.getEEGDataByTag(o.tag);								
+								coord.filtered.push(latestFiltered);
+								coord.raw.push(latest);
 							}
-							else {
-								if(this.useAtlas === true) {
-									let coord = this.atlas.getEEGDataByTag(o.tag);								
-									coord.raw.push(latest);
-								}
-							}
-						});
-						this.onMessage(newLinesInt);
-					},
-					()=>{	
-					},
-					()=>{
-					}
-				);
-				if(useFilters === true) {
-					this.eegChannelTags.forEach((row,i) => {
-						if(row.tag !== 'other') {
-							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
 						}
-						else { 
-							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
+						else {
+							if(this.useAtlas === true) {
+								let coord = this.atlas.getEEGDataByTag(o.tag);								
+								coord.raw.push(latest);
+							}
 						}
 					});
+					this.onMessage(newLinesInt);
+				},
+				()=>{	
+				},
+				()=>{
 				}
-			}
-			else if(device === "muse") {
-				this.sps = 256;
-				this.eegChannelTags = [
-					{ch: 0, tag: "T9"},
-					{ch: 1, tag: "AF7"},
-					{ch: 2, tag: "AF8"},
-					{ch: 3, tag: "T10"},
-					{ch: 4, tag: "other"}
-				];
-				this.device = new MuseClient();
-			}
-			else if(device === "cyton") {
-
-			}
-			else if(device === "ganglion") {
-
-			}
-			else if(device === "hegduino") {
-
+			);
+			if(useFilters === true) {
+				this.eegChannelTags.forEach((row,i) => {
+					if(row.tag !== 'other') {
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
+					}
+					else { 
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
+					}
+				});
 			}
 		}
-		else if (location === "server") {
+		else if(device === "muse") {
+			this.sps = 256;
+			this.eegChannelTags = [
+				{ch: 0, tag: "T9"},
+				{ch: 1, tag: "AF7"},
+				{ch: 2, tag: "AF8"},
+				{ch: 3, tag: "T10"},
+				{ch: 4, tag: "other"}
+			];
+			this.device = new MuseClient();
+		}
+		else if(device === "cyton") {
 
 		}
+		else if(device === "ganglion") {
+
+		}
+		else if(device === "hegduino") {
+
+		}
+
 
 		if(pipeToAtlas === true) {
-			this.atlas = new dataAtlas(location+":"+device,{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},true,true)
+			let eegConfig;
+			if(device === 'muse') { eegConfig = 'muse'; }
+			else if(device.indexOf('FreeEEG32') > -1) {	eegConfig = '10_20'; }
+			this.atlas = new dataAtlas(location+":"+device,{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},eegConfig,true,true,['fft']);
 			this.useAtlas = true;
+			this.configureStreamTable();
 		} else if (pipeToAtlas !== false) {
 			this.atlas = pipeToAtlas; //External atlas reference
-			this.useAtlas = true;
-		}
-	}
-
-	async stream() {
-		if(this.location === "local") {
-			if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
-				await this.device.setupSerialAsync();
-			}
-			else if (this.deviceName === "muse") {
-				//connect muse and begin streaming		
-				//this.onConnect();
-				await this.device.connect();
-				await this.device.start();
-				this.device.eegReadings.subscribe(reading => {
-
-				});
-				this.device.telemetryData.subscribe(telemetry => {
-
-				});
-				this.device.accelerometerData.subscribe(accel => {
-
-				});
-			}
-			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
-				//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
-			}
-			this.onConnect();
-		}
-		else if (this.location === "server") {
-			//subscribe to websocket updates
+			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
+			else if(device.indexOf('FreeEEG32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
 			
+			this.useAtlas = true;
+			this.configureStreamTable();
 		}
 	}
 
-	sendDataToServer(times=[],signals=[],electrodes='',fields='') {
+	async connect() {
+	
+		if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
+			await this.device.setupSerialAsync();
+		}
+		else if (this.deviceName === "muse") {
+			//connect muse and begin streaming
+			await this.device.connect();
+			await this.device.start();
+			this.device.eegReadings.subscribe(reading => {
+
+			});
+			this.device.telemetryData.subscribe(telemetry => {
+
+			});
+			this.device.accelerometerData.subscribe(accel => {
+
+			});
+		}
+		else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
+			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
+		}
+		this.onConnect();
+		
+	}
+
+	configureStreamTable(params=[]) {
+		//Stream table default parameter callbacks to extract desired data from the data atlas
+		let getEEGChData = (channel,nSamples=1) => {
+			if(this.useAtlas === true) {
+				let coord = this.atlas.getEEGDataByChannel(channel);
+				if(coord.filtered.length > 0) {
+					let times = coord.times.slice(coord.times.length-nSamples,coord.times.length);
+					let samples = coord.filtered.slice(coord.filtered.length-nSamples,coord.filtered.length);
+					return {times:times, samples:samples}
+				}
+			}
+		}
+
+		let getEEGFFTData = (channel,nArrays=1) => {
+			if(this.useAtlas === true) {
+				let coord = false;
+				if(typeof channel === 'number') {
+					coord = this.atlas.getEEGDataByChannel(channel);
+				}
+				else {
+					coord = this.atlas.getEEGDataByTag(channel);
+				}
+				if(coord !== false) {
+					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - nArrays, coord.fftTimes.length);
+					let ffts = coord.ffts.slice(coord.ffts.length-nArrays,coord.ffts.length);
+					return {fftTimes:fftTimes, ffts:ffts};
+				}
+			}
+		}
+
+		let getCoherenceData = (tag, nArrays=1) => {
+			if(this.useAtlas === true) {
+				let coord = this.atlas.getCoherenceByTag(tag);
+				if(coord !== false) {
+					let cohTimes = coord.times.slice(coord.fftTimes.length - nArrays, coord.fftTimes.length);
+					let ffts = coord.ffts.slice(coord.ffts.length-nArrays,coord.ffts.length);
+					return {cohTimes:cohTimes, ffts:ffts};
+				}
+			}
+		}
+
+		this.streamTable = [
+			{prop:'EEG_Ch',  callback:getEEGChData},
+			{prop:'EEG_FFT', callback:getEEGFFTData},
+			{prop:'EEG_Coh', callback:getCoherenceData}
+		];
+		if(params.length > 0) {
+			this.streamTable.push(...params);
+		}
+	} 
+
+	configureStreamProps(props=['prop_tag']) { //Simply defines expected data parameters from the user server-side
+		let propsToSend = [];
+		props.forEach((prop,i) => {
+			propsToSend.push(this.deviceName+"_"+prop);
+		});
+		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.auth.username}));
+	}
+
+	//pass array of arrays defining which datasets you want to pull from according to the available
+	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
+	sendDataToServer(params=[['prop','tag','count']]) {
+		let streamObj = {
+			msg:'',
+			username:this.auth.username
+		};
+		params.forEach((param,i) => {
+			this.streamTable.find((option,i) => {
+				if(param[0].indexOf(option.prop) > -1) {
+					let args = [...param].shift();
+					streamObj[this.deviceName+"_"+param.prop+"_"+tag] = option.callback(...args);
+					return true;
+				}
+			});
+		});
+		this.socket.send(JSON.stringify(streamObj));
+	}
+
+	//old method
+	sendDataToServerOld(times=[],signals=[],electrodes='',fields='') {
 		this.socket.send(JSON.stringify({
 			destination:'bci',
 			id:this.auth.username,
@@ -607,15 +714,13 @@ class deviceStream {
 			let nSamplesToSim = Math.floor(this.sps*delay/1000);
 			for(let i = 0; i<nSamplesToSim; i++) {
 				//For each tagged channel generate fake data
+				//let sample = Math.sin(i*Math.PI/180);
 			}
 			setTimeout(requestAnimationFrame(this.simulateData),delay);
 		}
 	}
 
 	disconnect() {
-		if(this.location === "server") {
-			this.socket.close();
-		}
 		if(this.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
@@ -635,7 +740,7 @@ class dataAtlas {
     constructor(
 		name="atlas",
 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
-		useEEG10_20=true,
+		eegConfig='10_20', //'muse'
 		useCoherence=true,
 		runAnalyzer=false,
 		analysis=['fft'] //'fft','coherence','bcijs_bandpowers','heg_pulse'
@@ -659,16 +764,19 @@ class dataAtlas {
 		this.maxBufferSize = 30000; //Max samples in buffer before rollover kicks in
 		this.rolloverSize = 3000; //Number of samples to splice off on the front of the data buffers
 
-        if(useEEG10_20 === true) {
+        if(eegConfig === '10_20') {
             this.data.eeg = this.gen10_20Atlas();
         }
+		else if (eegConfig === 'muse') {
+			this.data.eeg = this.genMuseAtlas();
+		}
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap();
         }
 
 		this.analyzing = runAnalyzer;
 		this.analysis = analysis;
-		this.analyzerOpts = ['fft','coherence']; //'bcijs_bandpower','bcijs_pca','heg_pulse'
+		this.analyzerOpts = []; //'eegfft','eegcoherence','bcijs_bandpower','bcijs_pca','heg_pulse'
 		this.analyzerFuncs = [];
 		this.workerPostTime = 0;
 		this.workerWaiting = false;
@@ -703,10 +811,41 @@ class dataAtlas {
 		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
 	}
 
-    gen10_20Atlas() {
+	genMuseAtlas() { //Muse coordinates (estimated)
+
+		let eegmap = [];
+
+		let c = [[-21.5,70.2,-0.1],[28.4,69.1,-0.4],[-54.8,33.9,-3.5],
+		[56.6,30.8,-4.1]]; //FP1, FP2, F7, F8
+
+		function mid(arr1,arr2) { //midpoint
+			midpoint = [];
+			arr1.forEach((el,i) => {
+				midpoint.push(0.5*(el*arr2[i]));
+			})
+			return midpoint;
+		}
+
+		let tags = ['FPZ','AF7','AF8','TP9','TP10'];
+		let coords = [
+			[0.6,40.9,53.9],
+			[mid(c[0],c[2])], //estimated
+			[mid(c[1],c[3])], //estimated
+			[-80.2,-31.3,-10.7], //estimated
+			[81.9,-34.2,-8.2] //estimated
+		];
+
+		tags.forEach((tag,i) => {
+            eegmap.push(this.genEEGCoordinateStruct(tag,coords[i][0],coords[i][1],coords[i][2]));
+        });
+
+        return eegmap;
+	}
+
+    gen10_20Atlas() { //19 channel EEG
         let eegmap = [];
-        let tags = ["Fp1","Fp2","Fz","F3","F4","F7","F8",
-                    "Cz","C3","C4","T3","T4","T5","T6","Pz","P3","P4","O1","O2"];
+        let tags = ["FP1","FP2","FPZ","F3","F4","F7","F8",
+                    "CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
         let coords=[[-21.5,70.2,-0.1],[28.4,69.1,-0.4], //MNI coordinates
                     [0.6,40.9,53.9],[-35.5,49.4,32.4],
                     [40.2,47.6,32.1],[-54.8,33.9,-3.5],
@@ -731,12 +870,12 @@ class dataAtlas {
 		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
 		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
-			if(taggedOnly === false || taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other'))) {
+			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')))) {
 				var coord0 = this.getDataByTag(channelTags[k].tag);
 				var coord1 = this.getDataByTag(channelTags[k+l].tag);
 
 				cmap.push({
-					tag: channelTags[k].tag+":"+channelTags[l+k].tag,
+					tag: channelTags[k].tag+"_"+channelTags[l+k].tag,
                     x0: coord0?.position.x,
                     y0: coord0?.position.y,
                     z0: coord0?.position.z,
@@ -805,7 +944,7 @@ class dataAtlas {
 	}
 
     //Return the object corresponding to the atlas tag
-	getEEGDataByTag(tag="Fp1"){
+	getEEGDataByTag(tag="FP1"){
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
@@ -816,8 +955,9 @@ class dataAtlas {
 		return found;
 	}
 
+
     //Return the object corresponding to the atlas tag
-	getCoherenceByTag(tag="Fp1:Fpz"){
+	getCoherenceByTag(tag="FP1_FZ"){
 		var found = undefined;
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
@@ -1011,7 +1151,7 @@ class dataAtlas {
 		return fftwindow;
 	}
 
-	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of tagged eeg signals. Data buffered in order of objects in the eeg array
+	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of all tagged eeg signals (unless null or 'other'). Data buffered in order of objects in the eeg array
 		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
 		let buffer = [];
 		let syncTime = null;
@@ -1059,6 +1199,7 @@ class dataAtlas {
 	}
 
 	addDefaultAnalyzerFuncs() {
+		this.analyzerOpts.push('eegfft','eegcoherence');
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
@@ -1090,6 +1231,17 @@ class dataAtlas {
 		if(n === undefined) {
 			this.analyzerOpts.push(name);
 			this.analyzerFuncs.push(foo);
+		}
+	}
+
+	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		let found = this.analysis.find((str,i) => {
+			if(name === str) {
+				return true;
+			}
+		});
+		if(found === undefined) {
+			this.analysis.push(name);
 		}
 	}
 

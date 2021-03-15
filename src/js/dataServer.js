@@ -12,6 +12,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 			username:username,
 			appname:appname,
 			socket:socket,
+            props:{},
             public:false,
             lastUpdate:Date.now(),
             lastTransmit:0,
@@ -19,7 +20,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		});
 		let idx = this.userData.length-1;s
 		availableProps.forEach((prop,i) => {
-			this.userData[idx][prop] = '';
+			this.userData[idx].props[prop] = '';
 		});
 	}
 
@@ -60,6 +61,13 @@ class dataServer { //Just some working concepts for handling data sockets server
             });
             u.socket.send(JSON.stringify({msg:'getUsers result', userData:users}))
         }
+        else if(command[0] === 'addProps') {
+            if(typeof command[1] === 'object') {
+                command[1].forEach((prop,i) => {
+                    u.props[prop] = '';
+                })
+            }
+        }
         else if(command[0] === 'subscribeToUser' > -1) {
             this.streamBetweenUsers(username,command[1],command[2]);
         }
@@ -87,7 +95,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             let u = this.userData.find((o,i) => {
                 if(o.username === obj.username) {
                     for(const prop in obj) {
-                        o[prop] = obj[prop];
+                        if(prop !== 'msg' && prop !== 'username') o.props[prop] = obj[prop];
                     }
                     let now = performance.now();
                     o.latency = now-o.lastUpdate;
@@ -144,7 +152,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 			g.usernames.push(username);
 			let u = this.getUser(username);
 			g.propnames.forEach((prop,j) => {
-				u[prop] = '';
+                if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
 			u.socket.send(JSON.stringify({msg:'OK',appname:appname,propnames:g.propnames}));
@@ -170,7 +178,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                         username:source.username
                     };
                     sub.propnames.forEach((prop,j) => {
-                        dataToSend[prop] = source[prop];
+                        dataToSend[prop] = source.props[prop];
                     });
                     listener.socket.send(JSON.stringify(dataToSend));
                     sub.newData = false;
@@ -194,7 +202,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     }
                     let listener = this.getUser(user);
                     sub.propnames.forEach((prop,k) => {
-                        userObj[prop] = listener[prop];
+                        userObj[prop] = listener.props[prop];
                     });
                     updateObj.userData.push(userObj);
                 });
