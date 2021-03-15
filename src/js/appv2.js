@@ -245,7 +245,7 @@ class brainsatplay {
 		return socket;
 	}
 
-	sendWSCommand(socket=this.socket, command='',dict={}){
+	sendWSCommandOld(socket=this.socket, command='',dict={}){
 		if(socket.status){
 			if(command === 'initializeBrains') {
 				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
