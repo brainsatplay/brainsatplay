@@ -686,11 +686,12 @@ class deviceStream {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	sendDataToServer(params=[['prop','tag','count']]) {
+	sendDataToServer(params=[['prop','tag','count']],data={}) {
 		let streamObj = {
 			msg:'',
 			username:this.auth.username
 		};
+		Object.assign(streamObj(data)); //Append any extra data not defined by parameters from the stream table
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
