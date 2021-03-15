@@ -742,6 +742,7 @@ class deviceStream {
 
 	streamLoop(prev={}) {
 		let params = [];
+		if(this.streamParams.length === 0) { console.error('No stream parameters set'); return false;}
 		this.streamParams.forEach(([param],i) => {
 			let c = this.streamTable.find((o,i) => {
 				let newParam = [...param];
