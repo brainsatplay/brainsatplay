@@ -824,7 +824,7 @@ class dataAtlas {
 			this.data.eeg = this.genMuseAtlas();
 		}
         if(useCoherence === true) {
-            this.data.coherence = this.genCoherenceMap();
+            this.data.coherence = this.genCoherenceMap(this.eegshared.eegChannelTags);
         }
 
 		this.analyzing = runAnalyzer;
