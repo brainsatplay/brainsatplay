@@ -641,7 +641,7 @@ class deviceStream {
 					if (coord.filtered.length > 0) {
 						let times = coord.times.slice(coord.times.length - get,coord.times.length);
 						let samples = coord.filtered.slice(coord.filtered.length - get,coord.filtered.length);
-						return {times:times, samples:samples}
+						return {times:times, samples:samples};
 					}
 				}
 			}
@@ -693,7 +693,7 @@ class deviceStream {
 		}
 	} 
 
-	configurestreamParams(props=[['prop','tag','arg']]) { //Simply defines expected data parameters from the user for server-side reference
+	configurestreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
 		props.forEach((prop,i) => {
 			propsToSend.push(this.deviceName+"_"+prop[0]+"_"+prop[1]);
