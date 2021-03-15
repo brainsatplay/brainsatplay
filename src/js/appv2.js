@@ -48,7 +48,7 @@ let bcisession = new brainsatplay('guest','');
 let ui = new DOMFragment(connectHTML,document.body,undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			bcisession.connect('FreeEEG32_2');
+			bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login();
@@ -98,7 +98,7 @@ class brainsatplay {
 	connect(
 		device="FreeEEG32_2", //"FreeEEG32","FreeEEG32_19","muse"
 		streaming=false,
-		streamProps=[['EEG_Ch_FP1']], //Device properties to stream
+		streamParams=[['EEG_Ch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
 		pipeToAtlas=true
 		) {
@@ -109,8 +109,8 @@ class brainsatplay {
 				}
 			}
 			this.devices.push(
-				new deviceStream(device,streaming,useFilters,pipeToAtlas,this.socket,streamProps,this.info.auth)
-				);
+				new deviceStream(device,streaming,useFilters,pipeToAtlas,this.socket,streamParams,this.info.auth)
+			);
 			
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
@@ -455,7 +455,7 @@ class deviceStream {
 		useFilters=true,
 		pipeToAtlas=true,
 		socket=null,
-		streamProps=[],
+		streamParams=[],
 		auth={
 			username:'guest', 
 			consent:{raw:false, brains:false}
@@ -466,10 +466,11 @@ class deviceStream {
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, etc.
 		this.streaming = streaming;
-		this.streamProps = streamProps; //[['EEG_Ch','FP1']]
+		this.streamParams = streamParams; //[['EEG_Ch','FP1']]
 		this.socket = socket; //Store sockets here for use
 
 		this.streamTable=[];
+		this.streamLoopTiming = 100; //ms between update checks
 
 		this.auth = auth;
 		this.sps = null;
@@ -522,19 +523,23 @@ class deviceStream {
 								}
 							});
 							if(this.useAtlas === true) {
-								let coord = this.atlas.getEEGDataByTag(o.tag);								
+								let coord;
+								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag);								
+								} else { coord = this.atlas.getEEGDataByChannel(o.ch); }
 								coord.filtered.push(latestFiltered);
 								coord.raw.push(latest);
 							}
 						}
 						else {
 							if(this.useAtlas === true) {
-								let coord = this.atlas.getEEGDataByTag(o.tag);								
+								let coord;
+								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag);								
+								} else { coord = this.atlas.getEEGDataByChannel(o.ch); }								
 								coord.raw.push(latest);
 							}
 						}
 					});
-					this.onMessage(newLinesInt);
+					//this.onMessage(newLinesInt);
 				},
 				()=>{	
 				},
@@ -620,6 +625,7 @@ class deviceStream {
 	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (channel,nSamples=1) => {
+			let get = nSamples;
 			if(this.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
@@ -629,9 +635,12 @@ class deviceStream {
 					coord = this.atlas.getEEGDataByTag(channel);
 				}
 				if(coord !== false) { 
+					if(get === 'all') {
+						get = coord.count-coord.lastRead;
+					}
 					if (coord.filtered.length > 0) {
-						let times = coord.times.slice(coord.times.length-nSamples,coord.times.length);
-						let samples = coord.filtered.slice(coord.filtered.length-nSamples,coord.filtered.length);
+						let times = coord.times.slice(coord.times.length - get,coord.times.length);
+						let samples = coord.filtered.slice(coord.filtered.length - get,coord.filtered.length);
 						return {times:times, samples:samples}
 					}
 				}
@@ -639,6 +648,7 @@ class deviceStream {
 		}
 
 		let getEEGFFTData = (channel,nArrays=1) => {
+			let get = nArrays;
 			if(this.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
@@ -648,19 +658,26 @@ class deviceStream {
 					coord = this.atlas.getEEGDataByTag(channel);
 				}
 				if(coord !== false) {
-					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - nArrays, coord.fftTimes.length);
-					let ffts = coord.ffts.slice(coord.ffts.length-nArrays,coord.ffts.length);
+					if(get === 'all') {
+						get = coord.count-coord.lastRead;
+					}
+					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
+					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
 					return {fftTimes:fftTimes, ffts:ffts};
 				}
 			}
 		}
 
 		let getCoherenceData = (tag, nArrays=1) => {
+			let get = nArrays;
 			if(this.useAtlas === true) {
 				let coord = this.atlas.getCoherenceByTag(tag);
+				if(get === 'all') {
+					get = coord.count-coord.lastRead;
+				}
 				if(coord !== false) {
-					let cohTimes = coord.times.slice(coord.fftTimes.length - nArrays, coord.fftTimes.length);
-					let ffts = coord.ffts.slice(coord.ffts.length-nArrays,coord.ffts.length);
+					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
+					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
 					return {cohTimes:cohTimes, ffts:ffts};
 				}
 			}
@@ -676,10 +693,10 @@ class deviceStream {
 		}
 	} 
 
-	configureStreamProps(props=['prop_tag']) { //Simply defines expected data parameters from the user for server-side reference
+	configurestreamParams(props=[['prop','tag','arg']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
 		props.forEach((prop,i) => {
-			propsToSend.push(this.deviceName+"_"+prop);
+			propsToSend.push(this.deviceName+"_"+prop[0]+"_"+prop[1]);
 		});
 		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.auth.username}));
 	}
@@ -717,6 +734,23 @@ class deviceStream {
 		}));
 	}
 
+	streamLoop(prev={}) {
+		let params = [];
+		this.streamParams.forEach(([param],i) => {
+			let c = this.streamTable.find((o,i) => {
+				let newParam = [...param];
+				if(o.prop === param[0]) {
+					params.push(newParam);
+					return true;
+				}
+			});
+		});
+		this.sendDataToServer(params);
+
+		let prev = {};
+		setTimeout(() => {this.streamLoop(prev);}, this.streamLoopTiming);
+	}
+
 	simulateData() {
 		let delay = 100;
 		if(this.simulating === true) {
@@ -737,7 +771,8 @@ class deviceStream {
 	}
 
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
-	onMessage(msg="") {}
+	onMessage(msg="") {
+	}
 
 	onConnect(msg="") {}
 
@@ -812,7 +847,8 @@ class dataAtlas {
 			fftTimes:[], //Separate timing for ffts on workers
             ffts:[], 
             slices:JSON.parse(JSON.stringify(bands)), 
-            means:JSON.parse(JSON.stringify(bands))
+            means:JSON.parse(JSON.stringify(bands)),
+			lastRead:0 // counter value when this struct was last read from (using get functions)
         };
         return struct;
     }
@@ -896,7 +932,8 @@ class dataAtlas {
                     times:[],
                     ffts:[],
                     slices: JSON.parse(JSON.stringify(freqBins)),
-                    means: JSON.parse(JSON.stringify(freqBins))
+                    means: JSON.parse(JSON.stringify(freqBins)),
+					lastRead:0 // counter value when this struct was last read from (using get functions)
 				});
 			}
 			l++;
@@ -909,7 +946,7 @@ class dataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[]}
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],lastRead:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -917,7 +954,7 @@ class dataAtlas {
 	}
 
 	genFNIRSStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ir2:[],ambient:[]}
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ir2:[],ambient:[],lastRead:0}
 	}
 
 	addFNIRSCoord(tag="banana1",x,y,z) {
@@ -925,7 +962,7 @@ class dataAtlas {
 	}
 
 	genAccelerometerStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[]};
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[],lastRead:0};
 	}
 
 	addAccelerometerCoord(tag="accel1",x,y,z){
@@ -933,7 +970,7 @@ class dataAtlas {
 	}
 
 	genHRVStruct(tag){
-		return {tag:tag, times:[], bpm:[], hrv:[]}
+		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0}
 	}
 
 	addHRV(tag="hrv1") {
@@ -947,6 +984,7 @@ class dataAtlas {
 		let search = this.channelTags.find((o,i) => {
 			if(o.ch === ch) {
 				found = this.getEEGDataByTag(o.tag);
+				found.lastRead = found.count;
 				return true;
 			}
 		});
@@ -959,6 +997,7 @@ class dataAtlas {
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
 				found = o;
+				found.lastRead = found.count;
 				return true;
 			}
 		});
@@ -972,6 +1011,7 @@ class dataAtlas {
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
 				found = o;
+				found.lastRead = found.count;
 				return true;
 			}
 		});
