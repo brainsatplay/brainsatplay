@@ -1421,19 +1421,14 @@ class dataAtlas {
 							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
-										if(row[p][pz].length > this.rolloverLimit) {
-											row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);
-										}
+										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
 									}
 								}
 							}
 							else if(Array.isArray(row[p])) {
-								if(row[p].length > this.rolloverLimit) {
-									row[p].splice(0,this.row[p].length-this.rolloverLimit); 
-								}
+								if(row[p].length > this.rolloverLimit) {row[p].splice(0,this.row[p].length-this.rolloverLimit);}
 							}
 						}
-						
 					});
 				}
 			}
@@ -1445,16 +1440,12 @@ class dataAtlas {
 						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
-									if(row[p][pz].length > this.rolloverLimit) {
-										row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);
-									}
+									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
 								}
 							}
 						}
 						else if(Array.isArray(row[p])) { //arrays
-							if(row[p].length > this.rolloverLimit) {
-								row[p].splice(0,this.row[p].length-this.rolloverLimit); 
-							}
+							if(row[p].length > this.rolloverLimit) {row[p].splice(0,this.row[p].length-this.rolloverLimit);}
 						}
 					}
 				});
