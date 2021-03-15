@@ -919,31 +919,120 @@ class dataAtlas {
         return eegmap;
     }
 
+	genBigAtlas() {
+
+		const eegCoordinates = {
+
+			FP1: [-21.2, 66.9, 12.1],
+			FPZ: [1.4, 65.1, 11.3],
+			FP2: [24.3, 66.3, 12.5],
+			AF7: [-41.7, 52.8, 11.3],
+			AF3: [-32.7, 48.4, 32.8],
+			AFZ: [1.8, 54.8, 37.9],
+			AF4: [35.1, 50.1, 31.1],
+			AF8: [43.9, 52.7, 9.3],
+			F5: [-51.4, 26.7, 24.7],
+			F3: [-39.7, 25.3, 44.7],
+			F1: [-22.1, 26.8, 54.9],
+			FZ: [0.0, 26.8, 60.6],
+			F2: [23.6, 28.2, 55.6],
+			F4: [41.9, 27.5, 43.9],
+			F6: [52.9, 28.7, 25.2],
+			F7: [-52.1, 28.6, 3.8],
+			F8: [53.2, 28.4, 3.1],
+			FC5: [-59.1, 3.0, 26.1],
+			FC3: [-45.5, 2.4, 51.3],
+			FC1: [-24.7, 0.3, 66.4],
+			FCZ: [1.0, 1.0, 72.8],
+			FC2: [26.1, 3.2, 66.0],
+			FC4: [47.5, 4.6, 49.7,],
+			FC6: [60.5, 4.9, 25.5],
+			FT9: [-53.8, -2.1, -29.1],
+			FT7: [-59.2, 3.4, -2.1],
+			FT8: [60.2, 4.7, -2.8],
+			FT10: [55.0, -3.6, -31.0],
+			T7: [-65.8, -17.8, -2.9],
+			T5: [-61.5, -65.3, 1.1],
+			T3: [-70.2, -21.3, -10.7],
+			T4: [71.9,-25.2,-8.2],
+			T6: [59.3, -67.6,  3.8],
+			T8: [67.4, -18.5, -3.4],
+			C5: [-63.6, -18.9, 25.8],
+			C3: [-49.1, -20.7, 53.2],
+			C1: [-25.1, -22.5, 70.1],
+			CZ: [0.8, -21.9, 77.4],
+			C2: [26.7, -20.9, 69.5],
+			C4: [50.3, -18.8, 53.0],
+			C6: [65.2, -18.0, 26.4],
+			CP5: [-61.8, -46.2, 22.5],
+			CP3: [-46.9, -47.7, 49.7],
+			CP1: [-24.0, -49.1, 66.1],
+			CPZ: [0.7, -47.9, 72.6],
+			CP2: [25.8, -47.1, 66.0],
+			CP4: [49.5, -45.5, 50.7],
+			CP6: [62.9, -44.6, 24.4],
+			TP9: [-73.6, -46.7, -4.0], // estimated
+			TP7: [-63.6, -44.7, -4.0],
+			TP8: [64.6, -45.4, -3.7],		
+			TP10: [74.6, -47.4, -3.7], // estimated
+			P9: [-50.8, -51.3, -37.7],
+			P7: [-55.9, -64.8, 0.0],
+			P5: [-52.7, -67.1, 19.9],
+			P3: [-41.4, -67.8, 42.4],
+			P1: [-21.6, -71.3, 52.6],
+			PZ: [0.7, -69.3, 56.9],
+			P2: [24.4, -69.9, 53.5],
+			P4: [44.2, -65.8, 42.7],
+			P6: [54.4, -65.3, 20.2],
+			P8: [56.4, -64.4, 0.1],
+			P10: [51.0, -53.9, -36.5],
+			PO7: [-44.0, -81.7, 1.6],
+			PO3: [-33.3, -84.3, 26.5],
+			POZ: [0.0, -87.9, 33.5],
+			PO4: [35.2, -82.6, 26.1],
+			PO8: [43.3, -82.0, 0.7],
+			O1: [-25.8, -93.3, 7.7],
+			Oz: [0.3, -97.1, 8.7],
+			O2: [25.0, -95.2, 6.2],
+		}
+
+		let eegmap = [];
+		for(const prop in eegCoordinates) {
+			eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
+		}
+	}
+
+	genCoherenceStruct(tag0,tag1,coord0,coord1) {
+		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
+		
+		return {
+			tag: tag0+"_"+tag1,
+			x0: coord0?.x,
+			y0: coord0?.y,
+			z0: coord0?.z,
+			x1: coord1?.x,
+			y1: coord1?.y,
+			z1: coord1?.z,
+			count: 0,
+			times:[],
+			ffts:[],
+			slices: JSON.parse(JSON.stringify(freqBins)),
+			means: JSON.parse(JSON.stringify(freqBins)),
+			lastRead:0 // counter value when this struct was last read from (using get functions)
+			
+		}
+	}
+
     genCoherenceMap(channelTags = this.data.eegshared.eegChannelTags, taggedOnly = true) {
 		var cmap = [];
 		var l = 1, k = 0;
-		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
 		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')))) {
 				var coord0 = this.getDataByTag(channelTags[k].tag);
 				var coord1 = this.getDataByTag(channelTags[k+l].tag);
 
-				cmap.push({
-					tag: channelTags[k].tag+"_"+channelTags[l+k].tag,
-                    x0: coord0?.position.x,
-                    y0: coord0?.position.y,
-                    z0: coord0?.position.z,
-                    x1: coord1?.position.x,
-                    y1: coord1?.position.y,
-                    z1: coord1?.position.z,
-                    count: 0,
-                    times:[],
-                    ffts:[],
-                    slices: JSON.parse(JSON.stringify(freqBins)),
-                    means: JSON.parse(JSON.stringify(freqBins)),
-					lastRead:0 // counter value when this struct was last read from (using get functions)
-				});
+				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;
 			if (l + k === channelTags.length) {
