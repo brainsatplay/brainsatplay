@@ -637,6 +637,7 @@ class deviceStream {
 				if(coord !== false) { 
 					if(get === 'all') {
 						get = coord.count-coord.lastRead;
+						if(get === 0) return undefined;
 					}
 					if (coord.filtered.length > 0) {
 						let times = coord.times.slice(coord.times.length - get,coord.times.length);
@@ -660,6 +661,7 @@ class deviceStream {
 				if(coord !== false) {
 					if(get === 'all') {
 						get = coord.count-coord.lastRead;
+						if(get === 0) return undefined;
 					}
 					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
