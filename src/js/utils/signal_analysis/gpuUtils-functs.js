@@ -318,6 +318,8 @@ function listdft2DKern(signals, scalar) {
     return mag(result[0],result[1])*scalar; //mag(real,imag)
 }
 
+// [[signals1][signals2]]
+
 // More like a vertex buffer list to chunk through lists of signals
 function listdft1DKern(signals,len, scalar) {
     var result = [0, 0];
@@ -329,7 +331,7 @@ function listdft1DKern(signals,len, scalar) {
     }
 
     return mag(result[0],result[1])*scalar;
-}
+} // [signals1,signasl2]
 
 function dft_windowedKern(signal, sampleRate, freqStart, freqEnd, scalar) {
     var result = [0,0];
@@ -337,7 +339,7 @@ function dft_windowedKern(signal, sampleRate, freqStart, freqEnd, scalar) {
     result = DFT(signal,sampleRate,freq);
 
     return mag(result[0],result[1])*scalar;
-}
+} 
 
 function fft_windowedKern(signal, sampleRate, freqStart, freqEnd, scalar) {
     var result = [0,0];

@@ -36,6 +36,27 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
+import {DOMFragment} from './frontend/DOMFragment'
+
+let connectHTML = `
+	<button id='connect'>connectDevice</button>
+	<button id='server'>connectServer</button>
+`;
+
+let bcisession = new brainsatplay('guest','');
+
+let ui = new DOMFragment(connectHTML,document.body,undefined,
+	() => {
+		document.getElementById('connect').onclick = () => {
+			bcisession.connect('FreeEEG32_2');
+		}
+		document.getElementById('server').onclick = () => {
+			bcisession.login();
+		}
+	},
+	undefined,
+	'NEVER');
+
 
 class brainsatplay {
 	constructor(
@@ -66,23 +87,35 @@ class brainsatplay {
 		this.socket = null;
 	}
 
+	setLoginInfo(username='',password='',access='public',appname='') {
+		this.info.auth.username = username;
+		this.info.auth.password = password;
+		this.info.auth.access = access;
+		this.info.auth.appname = appname;
+	}
+
 	connect(
-		location="local", //"server"
-		device="FreeEEG32_2",
-		useFilters=true,
+		device="FreeEEG32_2", //"FreeEEG32","FreeEEG32_19","muse"
+		streaming=false,
+		streamProps=[], //Device properties to stream, e.g. "A0,A1,A2" or "Fp1,Fz" or "Fp1_FFT" or "Fp1_alpha"
+		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
 		pipeToAtlas=true
 		) {
-			if(this.devices[this.devices.length-1].location==="server") {
-				//Connect to websocket
-				this.socket = this.setupWebSocket();
-				this.subscribed=true;
+			if(streaming === true) {
+				if(this.socket === null) {
+					console.error('Server connection not found');
+					return false;
+				}
 			}
-			this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,this.socket,this.info.auth));
+			this.devices.push(
+				new deviceStream(device,streaming,useFilters,pipeToAtlas,this.socket,streamProps,this.info.auth)
+				);
+			
 			this.devices[this.devices.length-1].stream();
 			this.info.nDevices++;
-		
 		}
 
+	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 
 		baseURL = this.checkURL(baseURL);
@@ -109,6 +142,10 @@ class brainsatplay {
 
         if (response.result === 'OK') {
             this.info.auth.username = response.msg;
+
+			//Connect to websocket
+			this.socket = this.setupWebSocket();
+			this.subscribed=true;
         }
         return response;
 	} 
@@ -394,21 +431,23 @@ class biquadChannelFilterer {
 
 class deviceStream {
 	constructor(
-		location="local", //"server"
 		device="FreeEEG32_2",
+		streaming=true,
 		useFilters=true,
 		pipeToAtlas=true,
 		socket=null,
+		streamProps={},
 		auth={
 			username:'guest', 
 			consent:{raw:false, brains:false}
 		}
 	) {
 
-		this.location = location;
 		this.deviceName = device;
 
 		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
+		this.streaming = streaming;
+		this.streamProps = streamProps;
 		this.socket = socket; //Store bidirectional sockets here for use
 		this.auth = auth;
 		this.sps = null;
@@ -425,7 +464,7 @@ class deviceStream {
 	init = (device,location,useFilters,pipeToAtlas) => {
 		
 		if(location === "local") {
-			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
+			if(device.indexOF("FreeEEG32") > -1) {
 				this.sps = 512;
 				if(device === "FreeEEG32_2") { 
 					this.eegChannelTags = [
@@ -461,8 +500,10 @@ class deviceStream {
 								}
 							}
 							else {
-								let coord = this.atlas.getEEGDataByTag(o.tag);								
-								coord.raw.push(latest);
+								if(this.useAtlas === true) {
+									let coord = this.atlas.getEEGDataByTag(o.tag);								
+									coord.raw.push(latest);
+								}
 							}
 						});
 						this.onMessage(newLinesInt);
@@ -1037,6 +1078,19 @@ class dataAtlas {
 
 		this.analyzerFuncs.push(fftFunc,coherenceFunc);
 		//'bcijs_bandpowers','bcijs_pca','heg_pulse'
+	}
+
+	addAnalyzerFunc(name='',foo=()=>{}) {
+		let n = this.analyzerOpts.find((name,i) => {
+			if(name === name) {
+				this.analyzerFuncs[i] = foo;
+				return true;
+			}
+		});
+		if(n === undefined) {
+			this.analyzerOpts.push(name);
+			this.analyzerFuncs.push(foo);
+		}
 	}
 
 	analyzer = () => {

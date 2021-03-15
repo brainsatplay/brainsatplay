@@ -36,7 +36,14 @@ export class DOMFragment {
             onchange: onchange,
             props: props
         }
-        this.templateString = templateStringGen(props);
+        this.templateString = ``;
+        if(typeof templateStringGen === 'function') {
+            this.templateString = templateStringGen(props);
+        }
+        else {
+            this.templateString = templateStringGen;
+        }
+        
         var interval = propUpdateInterval;
         if(this.renderSettings.props === {}) {interval = "NEVER";}
         this.node = null;
@@ -106,7 +113,12 @@ export class DOMFragment {
 
     updateNode(parentNode=this.parentNode, node=this.node, props=this.props){
         parentNode.removeChild(node);
-        this.templateString = this.renderSettings.templateStringGen(this.props);
+        if(typeof this.renderSettings.templateStringGen === 'function') {
+            this.templateString = this.renderSettings.templateStringGen(this.props);
+        }
+        else {
+            this.templateString = this.renderSettings.templateStringGen;
+        }
         this.renderNode(parentNode, props);
     }
 

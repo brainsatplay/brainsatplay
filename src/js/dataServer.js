@@ -12,6 +12,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 			username:username,
 			appname:appname,
 			socket:socket,
+            public:false,
             lastUpdate:Date.now(),
             lastTransmit:0,
             latency:0
@@ -70,7 +71,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 
 	//Received a message from a user socket, now parse it into system
 	updateUserData(data=`{msg:'',username:'',prop1:[],prop2:[]}`){ 
-
+        //
 		//Send previous data off to storage
 
 		let obj = JSON.parse(data);
@@ -108,12 +109,14 @@ class dataServer { //Just some working concepts for handling data sockets server
 	}
 
 	streamBetweenUsers(listenerUser,sourceUser,propnames=[]) {
-		this.userSubscriptions.push({
-			listener:listenerUser,
-			source:sourceUser,
-			propnames:propnames,
-			newData:false
-		});
+        if(this.getUser(sourceUser).public === true){
+            this.userSubscriptions.push({
+                listener:listenerUser,
+                source:sourceUser,
+                propnames:propnames,
+                newData:false
+            });
+        }
 	}
 
 	createGameSubscription(appname='',propnames=[]) {
