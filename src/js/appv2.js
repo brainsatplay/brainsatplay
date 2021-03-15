@@ -108,7 +108,7 @@ class brainsatplay {
             });
 
         if (response.result === 'OK') {
-            this.info.username = response.msg;
+            this.info.auth.username = response.msg;
         }
         return response;
 	} 
