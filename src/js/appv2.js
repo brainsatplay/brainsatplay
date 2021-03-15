@@ -39,7 +39,7 @@ import {MuseClient} from 'muse-js'
 
 class brainsatplay {
 	constructor(
-		username='guest',
+		username='',
 		password='',
 		access='public',
 		appname='',
@@ -83,7 +83,7 @@ class brainsatplay {
 		
 		}
 
-	async login(dict={'guestaccess':true}, baseURL=this.info.auth.url.toString()) {
+	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 
 		baseURL = this.checkURL(baseURL);
         let json = JSON.stringify(dict);
