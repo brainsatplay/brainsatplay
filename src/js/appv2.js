@@ -626,7 +626,7 @@ class deviceStream {
 
 	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
-		let getEEGChData = (channel,nSamples=1) => {
+		let getEEGChData = (channel,nSamples='all') => {
 			let get = nSamples;
 			if(this.useAtlas === true) {
 				let coord = false;
@@ -650,7 +650,7 @@ class deviceStream {
 			}
 		}
 
-		let getEEGFFTData = (channel,nArrays=1) => {
+		let getEEGFFTData = (channel,nArrays='all') => {
 			let get = nArrays;
 			if(this.useAtlas === true) {
 				let coord = false;
@@ -672,7 +672,7 @@ class deviceStream {
 			}
 		}
 
-		let getCoherenceData = (tag, nArrays=1) => {
+		let getCoherenceData = (tag, nArrays='all') => {
 			let get = nArrays;
 			if(this.useAtlas === true) {
 				let coord = this.atlas.getCoherenceByTag(tag);
