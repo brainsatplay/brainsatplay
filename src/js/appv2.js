@@ -674,6 +674,7 @@ class deviceStream {
 				let coord = this.atlas.getCoherenceByTag(tag);
 				if(get === 'all') {
 					get = coord.count-coord.lastRead;
+					if(get === 0) return undefined;
 				}
 				if(coord !== false) {
 					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
@@ -713,7 +714,8 @@ class deviceStream {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
 					let args = [...param].shift();
-					streamObj[this.deviceName+"_"+param.prop+"_"+tag] = option.callback(...args);
+					let result = option.callback(...args);
+					if(result !== undefined) streamObj[this.deviceName+"_"+param.prop+"_"+tag] = result;
 					return true;
 				}
 			});
