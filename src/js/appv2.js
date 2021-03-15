@@ -621,11 +621,19 @@ class deviceStream {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (channel,nSamples=1) => {
 			if(this.useAtlas === true) {
-				let coord = this.atlas.getEEGDataByChannel(channel);
-				if(coord.filtered.length > 0) {
-					let times = coord.times.slice(coord.times.length-nSamples,coord.times.length);
-					let samples = coord.filtered.slice(coord.filtered.length-nSamples,coord.filtered.length);
-					return {times:times, samples:samples}
+				let coord = false;
+				if(typeof channel === 'number') {
+					coord = this.atlas.getEEGDataByChannel(channel);
+				}
+				else {
+					coord = this.atlas.getEEGDataByTag(channel);
+				}
+				if(coord !== false) { 
+					if (coord.filtered.length > 0) {
+						let times = coord.times.slice(coord.times.length-nSamples,coord.times.length);
+						let samples = coord.filtered.slice(coord.filtered.length-nSamples,coord.filtered.length);
+						return {times:times, samples:samples}
+					}
 				}
 			}
 		}
