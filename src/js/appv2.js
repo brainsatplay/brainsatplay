@@ -793,7 +793,7 @@ class dataAtlas {
     constructor(
 		name="atlas",
 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
-		eegConfig='10_20', //'muse'
+		eegConfig='10_20', //'muse','big'
 		useCoherence=true,
 		runAnalyzer=false,
 		analysis=['fft'] //'fft','coherence','bcijs_bandpowers','heg_pulse'
@@ -822,6 +822,9 @@ class dataAtlas {
         }
 		else if (eegConfig === 'muse') {
 			this.data.eeg = this.genMuseAtlas();
+		}
+		else if (eegConfig === 'big') {
+			this.data.eeg = this.genBigAtlas();
 		}
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap(this.eegshared.eegChannelTags);
