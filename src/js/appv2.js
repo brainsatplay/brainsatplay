@@ -1327,7 +1327,7 @@ class dataAtlas {
 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
 				if(dat !== undefined) {
 					//console.log(dat);
-					if(dat.filtered.length > 0) {buffer.push(dat.filtered.slice(dat.filtered.count-nSamples,dat.filtered.length));}
+					if(dat.filtered.length > 0) {buffer.push(dat.filtered.slice(dat.filtered.length-nSamples,dat.filtered.length));}
 					else if (dat.raw.length > 0) {buffer.push(dat.raw.slice(dat.raw.length-nSamples,dat.raw.length));}
 					if(syncTime === null) {
 						syncTime = dat.times[dat.times.length-1];
