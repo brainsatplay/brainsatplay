@@ -639,6 +639,7 @@ class deviceStream {
 				if(coord !== false) { 
 					if(get === 'all') {
 						get = coord.count-coord.lastRead;
+						coord.lastRead = coord.count; //tracks count of last reading for keeping up to date
 						if(get === 0) return undefined;
 					}
 					if (coord.filtered.length > 0) {
@@ -655,14 +656,15 @@ class deviceStream {
 			if(this.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
-					coord = this.atlas.getEEGDataByChannel(channel);
+					coord = this.atlas.getEEGFFTData(channel);
 				}
 				else {
 					coord = this.atlas.getEEGDataByTag(channel);
 				}
 				if(coord !== false) {
 					if(get === 'all') {
-						get = coord.count-coord.lastRead;
+						get = coord.fftCount-coord.lastReadFFT;
+						coord.lastReadFFT = coord.fftCount;
 						if(get === 0) return undefined;
 					}
 					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
@@ -677,7 +679,8 @@ class deviceStream {
 			if(this.useAtlas === true) {
 				let coord = this.atlas.getCoherenceByTag(tag);
 				if(get === 'all') {
-					get = coord.count-coord.lastRead;
+					get = coord.fftCount-coord.lastRead;
+					coord.lastRead = coord.fftCount;
 					if(get === 0) return undefined;
 				}
 				if(coord !== false) {
@@ -814,8 +817,7 @@ class dataAtlas {
 			eyetracker:[]
 		};
 
-		this.maxBufferSize = 30000; //Max samples in buffer before rollover kicks in
-		this.rolloverSize = 3000; //Number of samples to splice off on the front of the data buffers
+		this.rolloverLimit = 30000; //Max samples allowed in arrays before rollover kicks in
 
         if(eegConfig === '10_20') {
             this.data.eeg = this.gen10_20Atlas();
@@ -856,12 +858,14 @@ class dataAtlas {
             times:[], 
             raw:[], 
             filtered:[], 
+			fftCount:0,
 			fftTimes:[], //Separate timing for ffts on workers
             ffts:[], 
             slices:JSON.parse(JSON.stringify(bands)), 
             means:JSON.parse(JSON.stringify(bands)),
-			lastRead:0 // counter value when this struct was last read from (using get functions)
-        };
+			lastReadFFT:0, // counter value when this struct was last read from (using get functions)
+			lastRead:0
+		};
         return struct;
     }
     
@@ -1016,13 +1020,12 @@ class dataAtlas {
 			x1: coord1?.x,
 			y1: coord1?.y,
 			z1: coord1?.z,
-			count: 0,
-			times:[],
+			fftCount: 0,
+			fftTimes:[],
 			ffts:[],
 			slices: JSON.parse(JSON.stringify(freqBins)),
-			means: JSON.parse(JSON.stringify(freqBins)),
-			lastRead:0 // counter value when this struct was last read from (using get functions)
-			
+			means: JSON.parse(JSON.stringify(freqBins)),  // counter value when this struct was last read from (for using get functions)
+			lastRead:0
 		}
 	}
 
@@ -1085,7 +1088,6 @@ class dataAtlas {
 		let search = this.channelTags.find((o,i) => {
 			if(o.ch === ch) {
 				found = this.getEEGDataByTag(o.tag);
-				found.lastRead = found.count;
 				return true;
 			}
 		});
@@ -1098,7 +1100,6 @@ class dataAtlas {
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
 				found = o;
-				found.lastRead = found.count;
 				return true;
 			}
 		});
@@ -1112,7 +1113,6 @@ class dataAtlas {
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
 				found = o;
-				found.lastRead = found.count;
 				return true;
 			}
 		});
@@ -1133,31 +1133,30 @@ class dataAtlas {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			let row = this.getDataByTag(r.tag);
-			let lastIndex = row.count - 1;
+			let lastIndex = row.fftCount - 1;
 			dat.push({
                 tag:row.tag,
-				count:row.count,
+				fftCount:row.fftCount,
 				time: row.fftTimes[lastIndex],
 				fft: row.ffts[lastIndex],
 				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
 				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
-                });
-            });
+			});
+		});
 		return dat;
 	}
 
 	getLatestCoherenceData() {
 		let dat = [];
 		this.data.coherence.forEach((row,i) => {
-			let lastIndex = row.count - 1;
+			let lastIndex = row.fftCount - 1;
 			dat.push({
 				tag:row.tag,
-				count:row.count,
+				fftCount:row.fftCount,
 				time: row.times[lastIndex],
 				fft: row.ffts[lastIndex],
 				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
 				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
-               
 			});
 		});
 		return dat;
@@ -1210,8 +1209,8 @@ class dataAtlas {
     mapFFTData = (fft, lastPostTime, tag) => {
 		let atlasCoord = this.data.eeg.find((o, i) => {
 		if(o.tag === tag){
-			this.data.eeg[i].count++;
-			this.data.eeg[i].times.push(lastPostTime);
+			this.data.eeg[i].fftCount++;
+			this.data.eeg[i].fftTimes.push(lastPostTime);
 			this.data.eeg[i].ffts.push(fft);
 			if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 			var scp = fft.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
@@ -1261,9 +1260,9 @@ class dataAtlas {
 
     mapCoherenceData = (data, lastPostTime) => { //Expects data in correct order
 		data.forEach((row,i) => {
-		  this.data.coherence[i].count++;
+		  this.data.coherence[i].fftCount++;
 		  this.data.coherence[i].amplitudes.push(row);
-		  this.data.coherence[i].times.push(lastPostTime);
+		  this.data.coherence[i].fftTimes.push(lastPostTime);
 
 		if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 		  var scp = row.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
@@ -1410,6 +1409,56 @@ class dataAtlas {
 		});
 		if(found === undefined) {
 			this.analysis.push(name);
+		}
+	}
+
+	checkRollover(dataArr=null) { //'eeg','heg', etc
+		if(dataArr === null) {
+			for(const prop in this.data) {
+				if(Array.isArray(this.data[prop])) {
+					this.data[prop].forEach((row,i) => {
+						for(const p in row) {
+							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
+								for(const pz in row[p]) {
+									if(Array.isArray(row[p][pz])) {
+										if(row[p][pz].length > this.rolloverLimit) {
+											row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);
+										}
+									}
+								}
+							}
+							else if(Array.isArray(row[p])) {
+								if(row[p].length > this.rolloverLimit) {
+									row[p].splice(0,this.row[p].length-this.rolloverLimit); 
+								}
+							}
+						}
+						
+					});
+				}
+			}
+		}
+		else { //spaghetti
+			if(Array.isArray(this.data[dataArr])) {
+				this.data[dataArr].forEach((row,i) => {
+					for(const p in row) {
+						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
+							for(const pz in row[p]) {
+								if(Array.isArray(row[p][pz])) {
+									if(row[p][pz].length > this.rolloverLimit) {
+										row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);
+									}
+								}
+							}
+						}
+						else if(Array.isArray(row[p])) { //arrays
+							if(row[p].length > this.rolloverLimit) {
+								row[p].splice(0,this.row[p].length-this.rolloverLimit); 
+							}
+						}
+					}
+				});
+			}
 		}
 	}
 
