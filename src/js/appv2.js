@@ -790,6 +790,7 @@ class dataAtlas {
 		this.workerPostTime = 0;
 		this.workerWaiting = false;
 		this.workerIdx = 0;
+
 		if(runAnalyzer === true){
 			this.addDefaultAnalyzerFuncs();
 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
@@ -987,20 +988,37 @@ class dataAtlas {
 	}
 
     //Get the latest data pushed to tagged channels
-	getLatestData() {
-		var dat = [];
+	getLatestFFTData() {
+		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
-			var row = this.getDataByTag(r.tag);
-			var lastIndex = row.count - 1;
+			let row = this.getDataByTag(r.tag);
+			let lastIndex = row.count - 1;
 			dat.push({
                 tag:row.tag,
 				count:row.count,
-				time: row.times[lastIndex],
+				time: row.fftTimes[lastIndex],
 				fft: row.ffts[lastIndex],
 				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
 				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
                 });
             });
+		return dat;
+	}
+
+	getLatestCoherenceData() {
+		let dat = [];
+		this.data.coherence.forEach((row,i) => {
+			let lastIndex = row.count - 1;
+			dat.push({
+				tag:row.tag,
+				count:row.count,
+				time: row.times[lastIndex],
+				fft: row.ffts[lastIndex],
+				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
+				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
+               
+			});
+		});
 		return dat;
 	}
 
