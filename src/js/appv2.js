@@ -773,6 +773,9 @@ class deviceStream {
 		if(this.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
+		else if (this.deviceName.indexOf("muse") > -1) {
+			this.device.disconnect(); 
+		}
 		this.onDisconnect();
 	}
 
