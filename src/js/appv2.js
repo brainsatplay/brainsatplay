@@ -708,7 +708,7 @@ class deviceStream {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	sendDataToServer(params=[['prop','tag','count']],dataObj={}) {
+	sendDataToSocket(params=[['prop','tag','count']],dataObj={}) {
 		let streamObj = {
 			msg:'',
 			username:this.auth.username
@@ -752,7 +752,7 @@ class deviceStream {
 				}
 			});
 		});
-		if(params.length > 0) { this.sendDataToServer(params); }
+		if(params.length > 0) { this.sendDataToSocket(params); }
 
 		setTimeout(() => {this.streamLoop();}, this.streamLoopTiming);
 	}
