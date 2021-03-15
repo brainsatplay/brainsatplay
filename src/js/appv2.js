@@ -580,14 +580,14 @@ class deviceStream {
 			else if(device.indexOf('FreeEEG32') > -1) {	eegConfig = '10_20'; }
 			this.atlas = new dataAtlas(location+":"+device,{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},eegConfig,true,true,['fft']);
 			this.useAtlas = true;
-			this.configureStreamTable();
+			this.configureDefaultStreamTable();
 		} else if (pipeToAtlas !== false) {
 			this.atlas = pipeToAtlas; //External atlas reference
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
 			else if(device.indexOf('FreeEEG32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
 			
 			this.useAtlas = true;
-			this.configureStreamTable();
+			this.configureDefaultStreamTable();
 		}
 	}
 
@@ -617,7 +617,7 @@ class deviceStream {
 		
 	}
 
-	configureStreamTable(params=[]) {
+	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (channel,nSamples=1) => {
 			if(this.useAtlas === true) {
