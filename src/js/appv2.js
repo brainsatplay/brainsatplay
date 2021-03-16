@@ -40,7 +40,7 @@ import {MuseClient} from 'muse-js'
 
 class brainsatplay {
 	constructor(
-		username='',
+		username='guest',
 		password='',
 		access='public',
 		appname='',
