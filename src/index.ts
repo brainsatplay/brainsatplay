@@ -6,6 +6,7 @@ import 'regenerator-runtime/runtime'
 // import './js/utils/gpuUtils.js'
 // import './js/eegworker.js'
 import './js/appv2.js'
+import './js/appservertest.js'
 
 if (process.env.NODE_ENV === 'development') {
     console.log('DEV MODE');

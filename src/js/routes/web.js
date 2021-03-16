@@ -6,7 +6,7 @@ const path = require("path");
 let routes = app => {
 
 router.get("/", (req, res, next) => {
-  return res.sendFile(path.join(`${__dirname}/../public/index.html`));
+  return res.sendFile(path.join(`${__dirname}/index.html`));
 });
 
 router.post("/login", async (req,res,next) => {
