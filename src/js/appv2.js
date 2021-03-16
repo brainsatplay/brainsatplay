@@ -338,7 +338,6 @@ class brainsatplay {
 }
 
 
-
 class biquadChannelFilterer {
     constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
         this.channel=channel; this.idx = 0; this.sps = sps;
@@ -1010,7 +1009,7 @@ class dataAtlas {
 	}
 
 	genCoherenceStruct(tag0,tag1,coord0,coord1) {
-		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
+		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []};
 		
 		return {
 			tag: tag0+"_"+tag1,
@@ -1290,7 +1289,7 @@ class dataAtlas {
 		  this.data.coherence[i].means.alpha2.push(eegmath.mean(alpha2));
 		}
 		if(this.data.eegshared.bandFreqs.beta[1].length > 0){
-		  var beta  = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
+		  var beta = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 		  this.data.coherence[i].slices.beta.push(beta);
 		  this.data.coherence[i].means.beta.push(eegmath.mean(beta));
 		}
