@@ -202,7 +202,7 @@ class brainsatplay {
 
 		if (this.info.auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + this.info.auth.url.hostname, cookies);
-        } else if (this.auth.url.protocol === 'https:') {
+        } else if (this.info.auth.url.protocol === 'https:') {
             socket = new WebSocket(`wss://` + this.info.auth.url.hostname, cookies);
         } else {
             console.log('invalid protocol')
@@ -808,7 +808,7 @@ class dataAtlas {
 			this.data.eeg = this.genBigAtlas();
 		}
         if(useCoherence === true) {
-            this.data.coherence = this.genCoherenceMap(this.eegshared.eegChannelTags);
+            this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
         }
 
 		this.analyzing = runAnalyzer;
@@ -1014,8 +1014,8 @@ class dataAtlas {
 		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')))) {
-				var coord0 = this.getDataByTag(channelTags[k].tag);
-				var coord1 = this.getDataByTag(channelTags[k+l].tag);
+				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
+				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
 
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
@@ -1349,15 +1349,15 @@ class dataAtlas {
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-				//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
 				this.workerWaiting = true;
 			}
 		}
 		let coherenceFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+				window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
 				this.workerWaiting = true;
 			}
 		}	
@@ -1460,7 +1460,8 @@ let bcisession = new brainsatplay('guest','');
 let ui = new DOMFragment(connectHTML,document.body,undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
+			if(bcisession.info.authenticated) bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
+			else bcisession.connect('FreeEEG32_2',false,['EEG_Ch','FP1','all'],true,true);
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login();
