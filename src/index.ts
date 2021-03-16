@@ -5,7 +5,7 @@ import 'regenerator-runtime/runtime'
 // import './js/eegvisuals.js'
 // import './js/utils/gpuUtils.js'
 // import './js/eegworker.js'
-import './js/app.js'
+import './js/appv2.js'
 
 
 if (process.env.NODE_ENV === 'development') {

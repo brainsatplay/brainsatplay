@@ -36,26 +36,6 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './utils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
-import {DOMFragment} from './frontend/DOMFragment'
-
-let connectHTML = `
-	<button id='connect'>connectDevice</button>
-	<button id='server'>connectServer</button>
-`;
-
-let bcisession = new brainsatplay('guest','');
-
-let ui = new DOMFragment(connectHTML,document.body,undefined,
-	() => {
-		document.getElementById('connect').onclick = () => {
-			bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
-		}
-		document.getElementById('server').onclick = () => {
-			bcisession.login();
-		}
-	},
-	undefined,
-	'NEVER');
 
 
 class brainsatplay {
@@ -485,7 +465,7 @@ class deviceStream {
 
 	init = (device,useFilters,pipeToAtlas) => {
 		
-		if(device.indexOF("FreeEEG32") > -1) {
+		if(device.indexOf("FreeEEG32") > -1) {
 			this.sps = 512;
 			if(device === "FreeEEG32_2") { 
 				this.eegChannelTags = [
@@ -1468,3 +1448,23 @@ class dataAtlas {
 }
 
 
+import {DOMFragment} from './frontend/DOMFragment'
+
+let connectHTML = `
+	<button id='connect'>connectDevice</button>
+	<button id='server'>connectServer</button>
+`;
+
+let bcisession = new brainsatplay('guest','');
+
+let ui = new DOMFragment(connectHTML,document.body,undefined,
+	() => {
+		document.getElementById('connect').onclick = () => {
+			bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
+		}
+		document.getElementById('server').onclick = () => {
+			bcisession.login();
+		}
+	},
+	undefined,
+	'NEVER');
