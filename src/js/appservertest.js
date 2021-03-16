@@ -1,4 +1,4 @@
-
+/*
 const Bundler = require('parcel-bundler')
 import express from 'express';
 import debugLib from 'debug';
@@ -165,7 +165,7 @@ console.log(`Server is running on ${protocol}://${url}:${port}`)
 /**
  * Normalize a port into a number, string, or false.
  */
-
+/*
 function normalizePort(val) {
   var port = parseInt(val, 10);
 
@@ -185,7 +185,7 @@ function normalizePort(val) {
 /**
  * Event listener for HTTP server "error" event.
  */
-
+/*
 function onError(error) {
   if (error.syscall !== 'listen') {
     throw error;
@@ -213,7 +213,7 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
+/*
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
@@ -225,9 +225,9 @@ function onListening() {
 
 
 
+*/
 
-
-
+import{brainsatplay} from './appv2'
 import {DOMFragment} from './frontend/DOMFragment'
 
 let connectHTML = `

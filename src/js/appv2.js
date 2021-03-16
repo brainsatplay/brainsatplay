@@ -38,7 +38,7 @@ import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './utils/si
 import {MuseClient} from 'muse-js'
 
 
-class brainsatplay {
+export class brainsatplay {
 	constructor(
 		username='guest',
 		password='',
