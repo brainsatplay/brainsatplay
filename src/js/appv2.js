@@ -176,26 +176,26 @@ export class brainsatplay {
         } else if (auth.url.protocol === 'https:') {
             socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
         } else {
-            console.log('invalid protocol')
+            console.log('invalid protocol');
             return;
 		}
 
         socket.onerror = () => {
-            console.log('error')
+            console.log('error');
         };
 
         socket.onopen = () => {
-            console.log('ping')
-            socket.send(JSON.stringify({msg:'ping'}))
+            console.log('ping');
+            socket.send(JSON.stringify({msg:['ping']}));
         };
 
         socket.onmessage = (msg) => {
             let obj = JSON.parse(msg.data);
-            console.log(obj.msg)
+            console.log(obj.msg);
         }
 
         socket.onclose = (msg) => {
-            console.log('close')
+            console.log('close');
         }
 
 		return socket;
@@ -204,12 +204,12 @@ export class brainsatplay {
 	sendWSCommand(command='',dict={}){
 		if(this.socket != null  && this.socket.readyState === 1){
 			if(command === 'initializeBrains') {
-				this.socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+				this.socket.send(JSON.stringify({'destination':'initializeBrains','public':this.info.auth.access === 'public'}))
 			}
 			else if (command === 'bci') {
 				dict.destination = 'bci';
-				dict.id = auth.username;
-				dict.consent = auth.consent;
+				dict.id = this.info.auth.username;
+				dict.consent = this.info.auth.consent;
 				if(auth.consent.game === true) {
 					//let reserved = ['voltage','time','electrode','consent'];
 					//let me = this.brains[this.info.access].get(this.me.username);

@@ -39,9 +39,9 @@ class dataServer { //Just some working concepts for handling data sockets server
     }
 
     
-    processUserCommand(username='',command='') { //Commands should be an array of arguments
+    processUserCommand(username='',command=[]) { //Commands should be an array of arguments
         let u = this.userData.get(username);
-        if(command === 'getUsers' > -1) {
+        if(command[0] === 'getUsers') {
             let users = [];
             this.userData.forEach((name,o) => {
                 if(command[1] !== undefined) {
@@ -55,12 +55,12 @@ class dataServer { //Just some working concepts for handling data sockets server
             });
             u.socket.send(JSON.stringify({msg:'getUsers result', userData:users}))
         }
-        else if(command === 'subscribeToUser' > -1) {
+        else if(command[0] === 'subscribeToUser') {
             this.streamBetweenUsers(username,command[1],command[2]);
         }
-        else if(command === 'subscribeToGame' > -1) {
+        else if(command[0] === 'subscribeToGame') {
             this.subscribeUserToGame(username,command[1]);
-        } else if( command === 'ping') {
+        } else if( command[0] === 'ping' || command === 'ping') {
             u.socket.send(JSON.stringify({msg:'pong'}))
         }
 

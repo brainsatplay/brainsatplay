@@ -1,11 +1,5 @@
 import 'regenerator-runtime/runtime'
 
-// import './js/utils/webgl-heatmap'
-// import './js/eeg32.js'
-// import './js/eegvisuals.js'
-// import './js/utils/gpuUtils.js'
-// import './js/eegworker.js'
-
 
 import './app.js'
 

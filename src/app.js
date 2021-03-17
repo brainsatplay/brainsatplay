@@ -20,7 +20,7 @@ let ui = new DOMFragment(connectHTML,document.body,undefined,
 			bcisession.login();
     }
     document.getElementById('send').onclick = () => {
-			bcisession.sendWSCommand('ping')
+			bcisession.sendWSCommand(["ping"]); //send array of arguments
 		}
 	},
 	undefined,
