@@ -27,12 +27,12 @@ let snowServer;
 const {startServer,loadConfiguration} = require('snowpack');
 (async () => {
   const config = await loadConfiguration({},'snowpack.config.js')
-  snowServ = await startServer({config});
+  snowServer = await startServer({config});
 })()
 
 app.use(async (req, res, next) => {
   try {
-    const buildResult = await snowServ.loadUrl(req.url);
+    const buildResult = await snowServer.loadUrl(req.url);
     res.send(buildResult.contents);
   } catch (err) {
     next(err);
