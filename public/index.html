@@ -3,15 +3,16 @@
 <head>
   <title>WebBCI for FreeEEG32</title>
   <meta charset="UTF-8">
-  <link rel="shortcut icon" href="/public/favicon.ico" />
-  <link rel="apple-touch-icon" href="/public/logo192.png" />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/logo192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#000000" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Montserrat">
-  <link href="./styles/css/menu.css" rel="stylesheet">
-  <link href="./styles/index.sass" rel="stylesheet">
+  <!-- <link href="./styles/css/menu.css" rel="stylesheet">
+  <link href="./styles/index.sass" rel="stylesheet"> -->
 
 
   <style>
@@ -19,13 +20,42 @@
 
 </head>
 <body>
- 
-<script src="./index.ts"></script>
 
-<script>
+  <script type="module" src="/_dist_/index.js"></script>
+
+<script type="module">
+import {brainsatplay} from '/_dist_/js/appv2.js'
+import {DOMFragment} from './_dist_/js/frontend/DOMFragment.js'
+import * as eegWorker from './_dist_/js/utils/eegworker'
+
+let connectHTML = `
+	<button id='connect'>Connect Device</button>
+  <button id='server'>Connect to Server</button>
+  <button id='send'>Send Ping</button>
+`;
+
+let bcisession = new brainsatplay('guest','');
+
+let ui = new DOMFragment(connectHTML,document.body,undefined,
+	() => {
+		document.getElementById('connect').onclick = () => {
+			if(bcisession.info.authenticated) bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
+			else bcisession.connect('FreeEEG32_2',false,['EEG_Ch','FP1','all'],true,true);
+		}
+		document.getElementById('server').onclick = () => {
+			bcisession.login();
+    }
+    document.getElementById('send').onclick = () => {
+			bcisession.sendWSCommand('ping')
+		}
+	},
+	undefined,
+	'NEVER');
+
+
   // https://developers.google.com/web/tools/workbox/modules/workbox-cli
   // it is needed because parcel will not recognize this as a file and not precess in its manner
-  const sw = "./service-worker.js";
+  const sw = "/service-worker.js";
 
   navigator.serviceWorker
     .register(sw)
@@ -55,12 +85,6 @@
       console.error("Error during service worker registration:", error);
     });
 
-    
-</script>
-
-<script>
-
-
 //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
 //console.log(window.workers);
 window.workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
@@ -72,7 +96,7 @@ window.threadrot = 0;
   try {
     window.workers = [];
     for(var i = 0; i < window.threads; i++){
-      window.workers.push(new Worker('./js/utils/eegworker.js'));
+      window.workers.push(new Worker(eegWorker));
       workers[i].onmessage = (e) => {
         var msg = e.data;
         //console.log(msg)
@@ -92,7 +116,7 @@ window.threadrot = 0;
 
   window.addWorker = () => {
     try {
-      window.workers.push(new Worker('./js/utils/eegworker.js'));
+      window.workers.push(new Worker(eegWorker));
         workers[i].onmessage = (e) => {
           var msg = e.data;
           //console.log(msg)

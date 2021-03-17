@@ -11,7 +11,7 @@ const gpu = new gpuUtils();
 onmessage = (e) => {
   // define gpu instance
   //console.log("worker executing...")
-  console.time("worker");
+  // console.time("worker");
   let output = "function not defined";
 
   switch (e.data.foo) {
@@ -115,7 +115,7 @@ onmessage = (e) => {
   }
 
   // output some results!
-  console.timeEnd("worker");
+  // console.timeEnd("worker");
   
   postMessage({output: output, foo: e.data.foo, origin: e.data.origin});
 };

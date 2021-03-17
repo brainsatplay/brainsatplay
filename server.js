@@ -1,50 +1,38 @@
-import Bundler from 'parcel-bundler'
-import express from 'express';
-import debugLib from 'debug';
-const debug = debugLib('myexpressapp:server')
-import path from 'path';
-import favicon from 'serve-favicon';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import cors from "cors"
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
-import WebSocket from 'ws';
-import dotenv from 'dotenv';
-import mongodb from 'mongodb'
-dotenv.config();
+const express = require('express');
+const debug = require('debug')('myexpressapp:server');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require("cors")
+const WebSocket = require('ws');
+// const mongodb = require('mongodb'
+require('dotenv').config();
 
 // New Server Code
-import dataServer from './js/dataServer.mjs'; 
-import auth from './js/auth.js'; 
+const dataServer = require('./src/js/dataServer.js'); 
+const auth = require('./src/js/auth.js'); 
 let dataServ = new dataServer('test');
 
 // Settings
 let protocol = 'http';
 const url = 'localhost'
-var port = normalizePort(process.env.PORT || '1234');
+var port = normalizePort(process.env.PORT || '8000');
 
 //
 // App
 //
-const bundler = new Bundler(file, options);
 const app = express();
 
-// // Parcel
-// const file = 'dist/index.html'; // Pass an absolute path to the entrypoint here
-// const options = {production: process.env.NODE_ENV === 'production' };
-// const bundler = new Bundler(file, options);
-// app.use(bundler.middleware())
-
 // Snowpack
-import {startServer,createConfiguration} from 'snowpack';
-const config = createConfiguration({});
-const snowServer = await startServer(config);
+let snowServer;
+const {startServer,loadConfiguration} = require('snowpack');
+(async () => {
+  const config = await loadConfiguration({},'snowpack.config.js')
+  snowServ = await startServer({config});
+})()
 
 app.use(async (req, res, next) => {
   try {
-    const buildResult = await snowServer.loadUrl(req.url);
+    const buildResult = await snowServ.loadUrl(req.url);
     res.send(buildResult.contents);
   } catch (err) {
     next(err);
@@ -57,12 +45,12 @@ app.use(cookieParser())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Database Setup
-mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
-  .then(client => {
-    app.set('mongodb', client);
-    console.log('Connected to Database')
-  })
+// // Database Setup
+// mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
+//   .then(client => {
+//     app.set('mongodb', client);
+//     console.log('Connected to Database')
+//   })
 
 //Listen to Port for HTTP Requests
 app.use(function(req, res, next) {
@@ -87,7 +75,7 @@ app.use(function(req, res, next) {
 });
 
 // Set Routes
-import initRoutes from "./js/routes/web.js";
+const initRoutes = require("./src/js/routes/web.js");
 initRoutes(app);
 
 // development error handler
@@ -103,13 +91,14 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   console.log('error')
 });
+
 // Setting the port
 app.set('port', port);
 
 //
 // Server
 //
-import http from 'http'; 
+const http = require('http'); 
 let server = http.createServer(app);  
 
 // Websocket
@@ -124,6 +113,7 @@ function getCookie(req,name) {
 
 //Authentication
 server.on('upgrade', async (request, socket, head) => {
+
     let username = getCookie(request, 'username') || request.headers['sec-websocket-protocol'].split('username')[1].split(',')[0]
     let password = getCookie(request, 'password') || request.headers['sec-websocket-protocol'].split('password')[1].split(',')[0]
     let appname = getCookie(request, 'appname') | request.headers['sec-websocket-protocol'].split('appname')[1].split(',')[0]
@@ -146,17 +136,18 @@ wss.on('connection', function (ws, msg, request) {
   let username = msg.username
   let appname = msg.appname
 
-    dataServ.addUser(username,appname,ws)
+  // specify websocket behavior
+  ws.on('message', function (s) {
+    let o = JSON.parse(s);
+    dataServ.processUserCommand(username,o.msg)
+  });
 
-    // Manage specific messages from clients
-    ws.on('message', function (s) {
-      let o = JSON.parse(s);
-      dataServ.processUserCommand(username,o.msg)
-    });
-
-    ws.on('close', function () {
-      console.log('closing')
-    });
+  ws.on('close', function () {
+    dataServ.removeUser(username)
+  });
+  
+  // add user
+  dataServ.addUser(username,appname,ws)
 });
 
 // error handlers

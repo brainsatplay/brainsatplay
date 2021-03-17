@@ -1,4 +1,4 @@
-export default class dataServer { //Just some working concepts for handling data sockets serverside
+class dataServer { //Just some working concepts for handling data sockets serverside
 	constructor(appnames=[]) {
 		this.userData=new Map();
 		this.serverInstances=appnames;
@@ -7,11 +7,12 @@ export default class dataServer { //Just some working concepts for handling data
 	}
 
 	addUser(username='',appname='',socket=null,availableProps=[]) {
+        
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
                 appname:appname,
-                sockets: new Map(),
+                socket: socket,
                 props: {},
                 lastUpdate:Date.now(),
                 lastTransmit:0,
@@ -21,13 +22,12 @@ export default class dataServer { //Just some working concepts for handling data
                 this.userData.get(username).props[prop] = '';
             });
         }
-        if (socket != null){
-            this.userData.sockets.set('user'.size,socket);
-        }
+
+
 	}
 
     removeUser(username='username') {
-        //remove user, remove user streams, remove user from game instances
+        this.userData.delete(username)
     }
 
     removeUserToUserStream(listener,source,propnames=null) { //delete stream or just particular props
@@ -39,11 +39,11 @@ export default class dataServer { //Just some working concepts for handling data
     }
 
     
-    processUserCommand(username='',command=[]) { //Commands should be an array of arguments
-        let u = this.getUser(username); 
-        if(command[0] === 'getUsers' > -1) {
+    processUserCommand(username='',command='') { //Commands should be an array of arguments
+        let u = this.userData.get(username);
+        if(command === 'getUsers' > -1) {
             let users = [];
-            this.userData.forEach((o,i) => {
+            this.userData.forEach((name,o) => {
                 if(command[1] !== undefined) {
                     if(o.appname === command[1]) {
                         users.push(o);
@@ -53,20 +53,15 @@ export default class dataServer { //Just some working concepts for handling data
                     users.push(o);
                 }
             });
-            u.sockets.get('user').send(JSON.stringify({msg:'getUsers result', userData:users}))
+            u.socket.send(JSON.stringify({msg:'getUsers result', userData:users}))
         }
-        else if(command[0] === 'addProps') {
-            if(typeof command[1] === 'object') {
-                command[1].forEach((prop,i) => {
-                    u.props[prop] = '';
-                })
-            }
-        }
-        else if(command[0] === 'subscribeToUser' > -1) {
+        else if(command === 'subscribeToUser' > -1) {
             this.streamBetweenUsers(username,command[1],command[2]);
         }
-        else if(command[0] === 'subscribeToGame' > -1) {
+        else if(command === 'subscribeToGame' > -1) {
             this.subscribeUserToGame(username,command[1]);
+        } else if( command === 'ping') {
+            u.socket.send(JSON.stringify({msg:'pong'}))
         }
 
     }
@@ -208,3 +203,5 @@ export default class dataServer { //Just some working concepts for handling data
 	}
 
 }
+
+module.exports = dataServer

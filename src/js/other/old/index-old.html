@@ -73,7 +73,7 @@
 <script>
   // https://developers.google.com/web/tools/workbox/modules/workbox-cli
   // it is needed because parcel will not recognize this as a file and not precess in its manner
-  const sw = "./service-worker.js";
+  const sw = "/service-worker.js";
 
   navigator.serviceWorker
     .register(sw)
@@ -113,7 +113,7 @@ window.threadrot = 0;
   try {
     window.workers = [];
     for(var i = 0; i < window.threads; i++){
-      window.workers.push(new Worker('./js/eegworker.js'));
+      window.workers.push(new Worker('./js/eegworker.mjs'));
       workers[i].onmessage = (e) => {
         var msg = e.data;
         //console.log(msg)

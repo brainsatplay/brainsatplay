@@ -44,7 +44,7 @@ export class brainsatplay {
 		password='',
 		access='public',
 		appname='',
-		remoteHostURL='http://localhost:8080',//https://brainsatplay.azurewebsites.net/',
+		remoteHostURL='http://localhost:8000',//https://brainsatplay.azurewebsites.net/',
 		localHostURL='http://127.0.0.1:8000'
 	) {
 		this.devices = [];
@@ -83,7 +83,8 @@ export class brainsatplay {
 		pipeToAtlas=true
 		) {
 			if(streaming === true) {
-				if(this.socket === null) {
+				console.log(this.socket)
+				if(this.socket == null || this.socket.readyState !== 1) {
 					console.error('Server connection not found, please run login() first');
 					return false;
 				}
@@ -99,10 +100,12 @@ export class brainsatplay {
 	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 		//Connect to websocket
-		this.socket = this.setupWebSocket(dict);
-		this.info.auth.authenticated = true;
-		this.subscribed=true;
-		this.info.nDevices++;
+		if (this.socket == null  || this.socket.readyState !== 1){
+			this.socket = this.setupWebSocket(dict);
+			this.info.auth.authenticated = true;
+			this.subscribed=true;
+			this.info.nDevices++;
+		}
 	} 
 
 	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
@@ -175,7 +178,7 @@ export class brainsatplay {
         } else {
             console.log('invalid protocol')
             return;
-        }
+		}
 
         socket.onerror = () => {
             console.log('error')
@@ -198,10 +201,10 @@ export class brainsatplay {
 		return socket;
 	}
 
-	sendWSCommand(socket=this.socket, command='',dict={}){
-		if(socket.status){
+	sendWSCommand(command='',dict={}){
+		if(this.socket != null  && this.socket.readyState === 1){
 			if(command === 'initializeBrains') {
-				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+				this.socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
 			}
 			else if (command === 'bci') {
 				dict.destination = 'bci';
@@ -223,7 +226,9 @@ export class brainsatplay {
 					dict.time = [];
 				}
 				dict = JSON.stringify(dict);
-				socket.send(dict);
+				this.socket.send(dict);
+			} else {
+				this.socket.send(JSON.stringify({msg:command}))
 			}
 		}
 	}

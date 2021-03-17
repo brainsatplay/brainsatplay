@@ -1,6 +1,6 @@
 export class WorkerUtil {
 
-    constructor(nThreads=1, workerSrc = './js/eegworker.js', onReceivedMsg = this.onReceivedMsg, debug = false) {
+    constructor(nThreads=1, workerSrc = './js/utils/eegworker.mjs', onReceivedMsg = this.onReceivedMsg, debug = false) {
         // this.onReceivedMsg = onReceivedMsg || this.onReceivedMsg
 
         // if(!receivedMsg) { this.onReceivedMsg = onReceivedMsg; }
