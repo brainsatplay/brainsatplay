@@ -18,9 +18,6 @@ dotenv.config();
 // New Server Code
 import dataServer from './js/dataServer.mjs'; 
 import auth from './js/auth.js'; 
-
-console.log(dataServer)
-
 let dataServ = new dataServer('test');
 
 // Settings
@@ -31,12 +28,30 @@ var port = normalizePort(process.env.PORT || '1234');
 //
 // App
 //
-const file = 'dist/index.html'; // Pass an absolute path to the entrypoint here
-const options = {production: process.env.NODE_ENV === 'production' };
-
 const bundler = new Bundler(file, options);
 const app = express();
-app.use(bundler.middleware())
+
+// // Parcel
+// const file = 'dist/index.html'; // Pass an absolute path to the entrypoint here
+// const options = {production: process.env.NODE_ENV === 'production' };
+// const bundler = new Bundler(file, options);
+// app.use(bundler.middleware())
+
+// Snowpack
+import {startServer,createConfiguration} from 'snowpack';
+const config = createConfiguration({});
+const snowServer = await startServer(config);
+
+app.use(async (req, res, next) => {
+  try {
+    const buildResult = await snowServer.loadUrl(req.url);
+    res.send(buildResult.contents);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Other Middleware
 app.use(cors()) // allow Cross-domain requests
 app.use(cookieParser())
 app.use(bodyParser.json());
