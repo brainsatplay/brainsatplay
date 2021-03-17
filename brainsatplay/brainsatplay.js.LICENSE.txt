@@ -6,7 +6,7 @@
 /*!
  * The buffer module from node.js, for the browser.
  *
- * @author   Feross Aboukhadijeh <http://feross.org>
+ * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
  */
 
@@ -27,6 +27,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /*! https://mths.be/punycode v1.3.2 by @mathias */
 
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
 /**
  * @license
  * Lodash <https://lodash.com/>
@@ -37,7 +39,7 @@ PERFORMANCE OF THIS SOFTWARE.
  */
 
 /**
- * @license Complex.js v2.0.12 11/02/2016
+ * @license Complex.js v2.0.11 11/02/2016
  *
  * Copyright (c) 2016, Robert Eisele (robert@xarg.org)
  * Dual licensed under the MIT or GPL Version 2 licenses.

@@ -5,8 +5,29 @@ import 'regenerator-runtime/runtime'
 // import './js/eegvisuals.js'
 // import './js/utils/gpuUtils.js'
 // import './js/eegworker.js'
-import './js/appv2.js'
-import './js/appservertest.js'
+import {brainsatplay} from './js/appv2.js'
+import {DOMFragment} from './js/frontend/DOMFragment.js'
+
+let connectHTML = `
+	<button id='connect'>connectDevice</button>
+	<button id='server'>connectServer</button>
+`;
+
+let bcisession = new brainsatplay('guest','');
+
+let ui = new DOMFragment(connectHTML,document.body,undefined,
+	() => {
+		document.getElementById('connect').onclick = () => {
+			if(bcisession.info.authenticated) bcisession.connect('FreeEEG32_2',true,['EEG_Ch','FP1','all'],true,true);
+			else bcisession.connect('FreeEEG32_2',false,['EEG_Ch','FP1','all'],true,true);
+		}
+		document.getElementById('server').onclick = () => {
+			bcisession.login();
+		}
+	},
+	undefined,
+	'NEVER');
+
 
 if (process.env.NODE_ENV === 'development') {
     console.log('DEV MODE');

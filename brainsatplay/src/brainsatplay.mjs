@@ -1,906 +1,151 @@
-import muse from "muse-js";
-import bci from "bcijs";
-import {eeg32} from './hardware/eeg32.mjs';
-import {eegCoordinates} from './data/coordinates.mjs'; 
-import {Biquad} from './processing/biquad.mjs';
+/*
 
-/** @module brainsatplay */
+Data Streams
+- Local hardware
+  -- Serial
+  -- BLE
+  -- Sockets/SSEs
+- Server
+  -- Hardware and Game state data via Websockets
 
-export {Game}
- 
-/**
- * @class module:brainsatplay.Game
- * @description Manage game data.
- */
-class Game {
-    constructor(name) 
-    {
-        this.initialize()
-        // this.settings = settings;
-        this.name = name // this.settings.name;
+Data Processing 
+- eegworker.js, eegmath, bcijs, etc.
 
-        this.callbacks = {}
+Data State
+- Sort raw/filtered data
+- Sort processed data
 
-        this.bluetooth = {
-            devices: {
-                'muse': new muse.MuseClient()
-            },
-            device: false,
-            connected: false,
-            channelNames: [],
-        }
+UI Templating
+- StateManager.js
+- UIManager.js
+- ObjectListener.js
+- DOMFragment.js
 
-        this.info = {
-            interfaces: 0,
-            brains: 0,
-            access: 'public',
-            simulated: 0,
-        }
-        // this.simulate(this.settings.players.teams.names.length*this.settings.players.teams.size)
-    }
+Local Storage
+- BrowserFS for IndexedDB
+- CSV saving/parsing
 
-     /**
-     * @method module:brainsatplay.Game.initialize
-     * @description Initialize the game.
-     */
+Frontend Execution
+- UI State
+- Server State
+- Game/App State(s)
 
-    initialize(ignoreMe=false) {
+*/
+// import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
-        // if (!ignoreMe || this.brains === undefined){
-            this.brains = {
-                public: new Map(),
-                private: new Map()
-            }         
-        // } else {
-        //     let usernames = this.getUsernames()
-        //     let accessLevels = ['public','private']
-        //     accessLevels.forEach(access => {
-        //         if (access === this.info.access){
-        //             usernames.forEach(username => {
-        //         if (username !== this.me.username){
-        //             this.brains[this.info.access].delete(username)
-        //         }
-        //         })
-        //         } else {
-        //             this.brains[access] = new Map();
-        //         }
-        //     })
-        // }
+// import {eeg32, eegmath} from '/libraries/js/src/eeg32'
+// import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '/libraries/js/src/processing/biquad'
+// import {MuseClient} from 'muse-js'
 
-        this.eegCoordinates = eegCoordinates
+export {brainsatplay}
 
-        this.usedChannels = []
-        this.commonChannels = []
-        this.usedChannelNames = []
-        this.commonChannelNames = [];
-        this.connectionMessageBuffer = [];
+class brainsatplay {
+	constructor(
+		username='',
+		password='',
+		access='public',
+		appname='',
+		remoteHostURL='http://localhost:8080',//https://brainsatplay.azurewebsites.net/',
+		localHostURL='http://127.0.0.1:8000'
+	) {
+		this.devices = [];
 
-        if (this.connection === undefined || !(this.connection.status)) {
-            this.connection = {}
-            this.connection.ws = undefined
-            this.connection.status = false
-        } 
-        if (!ignoreMe || this.me === undefined){
-            this.me = {
-                username: 'me',
-                index: undefined,
-                consent: {raw: false, game:false}
-            };
-        }
+		this.info = {
+			nDevices: 0,
+			auth:{
+				url: new URL(remoteHostURL), 
+				username:username, 
+				password:password, 
+				access:access, 
+				appname:appname,
+				consent:{raw:false, brains:false}
+			},
+			subscribed: false,
+			connections: [],
+			localHostURL: localHostURL
+		}
 
-        this.metrics = {
-            synchrony: {
-                value: 0,
-                channels: Array(Object.keys(this.eegCoordinates).length).fill(0),
-            }
-        }
+		this.socket = null;
+	}
 
-        this.data = {}
+	connect(
+		location="local", //"server"
+		device="FreeEEG32_2",
+		useFilters=true,
+		pipeToAtlas=true
+		) {
+            // lastDevice = this.devices[this.devices.length-1]
+			if(this.socket == null) {
+				//Connect to websocket
+				this.socket = this.setupWebSocket();
+				this.subscribed=true;
+			}
+			// this.devices.push(new deviceStream(device,location,useFilters,pipeToAtlas,this.socket,this.info.auth));
+			// this.devices[this.devices.length-1].stream();
+			this.info.nDevices++;
+		
+		}
 
-        this.initializeSession()
-        this.setUpdateMessage()
-    }
+	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 
-    /**
-     * @method module:brainsatplay.Game.newGame
-     * @description Switch to a new game.
-     * @param name {string} Name of the new game.
-     * @param settings {dict} The settings of the game.
-     */
+		baseURL = this.checkURL(baseURL);
+        let json = JSON.stringify(dict);
 
-    newGame(name,){//settings={}){
-      this.initialize()
-      this.name = name;
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.setUpdateMessage
-     * @description Log update messages from an active Websocket connection.
-     */
-    setUpdateMessage(obj) {
-        if (obj === undefined) {
-            this.connectionMessageBuffer = [{destination: []}];
-        } else {
-            if (this.connectionMessageBuffer[0].destination === undefined || this.connectionMessageBuffer[0].destination.length === 0) {
-                this.connectionMessageBuffer = [obj]
-            } else {
-                this.connectionMessageBuffer.push(obj)
-
-            }
-        }
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.getMyIndex
-     * @description Update the current index of your username in the Game class.
-     */
-    getMyIndex() {
-        let user = 0;
-        let gotMe = false;
-
-        this.brains[this.info.access].forEach((_, key) => {
-            if (key === this.me.username) {
-                this.me.index = user;
-                gotMe = true;
-            }
-            user++
+        let response = await fetch(baseURL + 'login',
+            {
+                method: 'POST',
+                mode: 'cors',
+                headers: new Headers({
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }),
+                body: json
+            }).then((res) => {
+            return res.json().then((message) => message);
         })
-
-        if (!gotMe) {
-            this.me.index = undefined;
-        }
-    }
-
-    /**
-     * @method module:brainsatplay.Game.getUsernames
-     * @description Returns all usernames in the current game.
-     */
-    getUsernames(){
-        return Array.from( this.brains[this.info.access].keys())
-    }
-
-    /**
-     * @method module:brainsatplay.Game.simulate
-     * @description Simulate brains for your game.
-     */
-
-    simulate(count, amplitudes,frequencies) {
-
-        if (amplitudes === undefined){
-            amplitudes = Array.from({length: count}, e => e = undefined)
-        }
-
-        if (frequencies === undefined){
-            frequencies = Array.from({length: count}, e => e = undefined)
-        }
-
-        if (!this.bluetooth.connected){
-            this.add('me',undefined, undefined,{
-                on: true,
-                duration: .24, // s
-                t: Date.now(),
-                frequencies: frequencies[0],
-                amplitudes: amplitudes[0]
-            }) 
-        }
-        for (let i = 0; i < count-1; i++) {
-            this.add('other' + (i+1), undefined, undefined,{
-                on: true,
-                duration: .24, // s
-                t: Date.now(),
-                frequencies: frequencies[i],
-                amplitudes: amplitudes[i]
+            .then((message) => {
+                return message;
+            })
+            .catch(function (err) {
+                console.error(`\n`+err.message);
             });
+
+        if (response.result === 'OK') {
+            this.info.auth.username = response.msg;
         }
-        this.info.simulated = count;
-        this.getMyIndex()
-        this.updateUsedChannels()
-    }
+        return response;
+	} 
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.add
-     * @description Add a brain to your game.
-     */
-    add(id, channelNames, samplerate, simulationParams, access = 'public') {
-        let brain = new Brain(id,channelNames,samplerate,simulationParams)
-        this.brains[access].set(id, brain)
-        this.info.brains = this.brains[access].size
-
-        if (access === this.info.access) {
-            this.getMyIndex()
-            this.updateUsedChannels()
-        }
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.remove
-     * @description Remove brains from your game.
-     */
-
-    remove(id, access = 'public') {
-        this.brains[access].delete(id)
-        this.info.brains = this.brains[access].size
-        this.getMyIndex()
-        this.updateUsedChannels()
-    }
-
-    /**
-     * @method module:brainsatplay.Game.update
-     * @description Update the game by (1) generating synthetic voltage streams, (2) broadcasting your data to other clients, (3) updating the Websocket connetion status, (4) logging any update messages from the Websocket connection, and (5) updating the Session object for any ongoing experiments. Include in the animation loop of your front-end code.
-     */
-    update() {
-        // Generate synthetic data if specified
-        this.brains[this.info.access].forEach((user) => {
-            if (user.simulation.on){
-                if ((Date.now() - user.simulation.t) > user.simulation.duration*1000) {
-                    user.generateVoltageStream()
-                    user.simulation.t = Date.now()
-                }
-            }
+	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
+		baseURL = this.checkURL(baseURL);
+        let json = JSON.stringify(dict);
+        let response = await fetch(baseURL.toString() + 'signup',
+            {
+                method: 'POST',
+                mode: 'cors',
+                headers: new Headers({
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }),
+                body: json
+            }).then((res) => {
+            return res.json().then((message) => message);
         })
-
-        // FreeEEG Update
-        if (this.bluetooth.device === 'freeEEG32'){
-            let me = this.brains[this.info.access].get(this.me.username)
-            if (me !== undefined) {
-                let data = new Array(this.bluetooth.adcNames.length)
-                Object.keys(this.bluetooth.adcMap).forEach((name,ind) => {
-                    if (this.bluetooth.adcNames.includes(name)){
-                        data[ind] = this.bluetooth.devices['freeEEG32'].data[name]
-                    }
-                })
-                if ((this.connection.status)) {
-                    if (!this.me.consent.raw){
-                        this.send('bci',{signal:data,time:[]})
-
-                    } else {
-                        this.send('bci',{signal:[],time:[]})
-                    }
-                } else {
-                    if (this.brains[this.info.access].get(this.me.username)){
-                    this.brains[this.info.access].get(this.me.username).loadData({signal:data,time:[],consent:{raw:true,game:true}})
-                    }
-                }
-            }
-        }
-
-        // // Update Data
-        // let me = this.brains[this.info.access].get(this.me.username)
-        // if (me !== undefined){
-        //     for (const [key, callback] of Object.entries(this.settings.data.local.player.game)) {
-        //         me.data[key] = callback()
-        //     }
-        // }
-
-        // Broadcast Data
-        this.send('bci',{signal:[],time:[]})
-
-
-        // Update Websocket Status
-        if (this.connection.ws !== undefined){
-            this.connection.status = this.connection.ws.readyState === 1
-        }
-
-        this.setUpdateMessage()
-        this.updateSession()
-    }
-
-    /**
-     * @method module:brainsatplay.Game.getBrain
-     * @description Returns the specified brain.
-     * @param username {string} The user to return the brain of.
-     */
-    getBrain(username) {
-        return this.brains[this.info.access].get(username)
-    }
-
-    /**
-     * @method module:brainsatplay.Game.getVoltage
-     * @description Return the voltage buffer for the specified user.
-     * @param username {string} The user to return voltage data from.
-     * @param normalize {boolean} Normalize voltage data between 0 and 1.
-     */
-    getVoltage(username,normalize,filter) {
-        if (this.brains[this.info.access].has(username)){
-            return this.brains[this.info.access].get(username).getVoltage(normalize,filter)              
-        } else {
-            return this.brains[this.info.access].get(this.me.username).getVoltage(normalize,filter)              
-        }
-    }
-
-    /**
-     * @method module:brainsatplay.Game.createBuffer
-     * @description Return a blank buffer array.
-     * @param allChannels {boolean} Return a buffer array of length (true) eegCoordinates or (false) usedChannels.
-     * @param bufferSize {integer} The length of each buffer in the buffer array.
-     */
-    createBuffer(allChannels = true, bufferSize) {
-        if (allChannels){
-            return Array.from(Object.keys(this.eegCoordinates), e => {if (this.usedChannelNames.includes(e)){
-                return Array(bufferSize).fill(0)
-            } else {
-                return [NaN]
-            }})
-        } else {
-            return Array.from({length:this.usedChannelNames.length}, e => {return Array(bufferSize).fill(0)})
-        }
-    }
-
-    /**
-     * @async
-     * @method module:brainsatplay.Game.getMetric
-     * @description Returns the specified metric for the specified username.
-     * @param metricName {string} Choose between 'synchrony','power', 'delta', 'theta', 'alpha', 'beta', 'gamma'
-     * @param username {string} [username=this.me.username] The user to return voltage data from.
-     */
-
-    async getMetric(metricName,username,relative,filter) {
-        // if ((this.connection === undefined) || (location === 'local')){
-            if (metricName !== undefined){
-        if (metricName === 'synchrony') {
-            let dict = {}
-            dict.channels = this.synchrony('pcc')
-            let valuesOfInterest = [];
-            this.usedChannels.forEach((channelInfo) => {
-                valuesOfInterest.push(dict.channels[channelInfo.index])
+            .then((message) => {
+                console.log(`\n`+message);
+                return message;
             })
-            let avg = valuesOfInterest.reduce((a, b) => a + b, 0) / valuesOfInterest.length;
-            if (!isNaN(avg)) {
-                dict.average = avg;
-            } else {
-                dict.average = 0;
-            }
-            return dict
-        } else {
-            if (this.brains[this.info.access].has(username)){
-                return this.brains[this.info.access].get(username).getMetric(metricName,relative,filter)              
-            } else {
-                if (this.brains[this.info.access].has(this.me.username)){
-                    return this.brains[this.info.access].get(this.me.username).getMetric(metricName,relative,filter);      
-                } else {
-                    return Array.from(Object.keys(this.eegCoordinates), e => [NaN])
-                }    
-            }
-        } 
-    } else {
-        return {channels: Array.from({length: Object.keys(this.eegCoordinates).length}, e => NaN), average: NaN}
-    }
-    // } else {
-    //     if (this.connection === undefined){
-    //         val = 0
-    //     } else {
-    //         val = await this.request({game:this.name},'POST',metricName)
-    //     }
-    // }
-    }
+            .catch(function (err) {
+                console.error(`\n`+err.message);
+            });
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.updateUsedChannels
-     * @description Updates the used channels in the game.
-     */
+        return response;
+	}
 
-    updateUsedChannels() {
-        this.usedChannels = [];
-        this.usedChannelNames = [];
-        this.commonChannels = [];
-        this.commonChannelNames = [];
-
-        // Extract All Used EEG Channels
-        this.brains[this.info.access].forEach((user) => {
-            user.usedChannels.forEach((channelData) => {
-            let name = channelData.name
-            if (channelData.index !== -1 && this.usedChannelNames.indexOf(name) === -1) {
-                this.usedChannels.push({name: name, index: channelData.index})
-                this.usedChannelNames.push(name)
-            } else if (this.usedChannelNames.indexOf(name) !== -1 && this.commonChannelNames.indexOf(name) === -1){
-                this.commonChannels.push({name: name, index: channelData.index})
-                this.commonChannelNames.push(name)
-            }
-        })
-    })
-    }
-
-    /**
-     * @method module:brainsatplay.Game.synchrony
-     * @description Returns the similarity of the brains. When your brain is in the game (i.e. this.me.username !== undefined), then synchrony is relative to you.
-     */
-
-    synchrony(method = "pcc") {
-        let channelSynchrony = Array.from({length: Object.keys(this.eegCoordinates).length}, e => Array());
-        if (this.brains[this.info.access].size > 1) {
-            let edgesArray = [];
-            let usernames = this.getUsernames()
-            if (this.me.index && usernames.includes(this.me.username)) {
-                usernames.splice(usernames.indexOf(this.me.username),1)
-                usernames.forEach((username) => {
-                    edgesArray.push([this.me.username, username])
-                })
-            } else {
-                let pairwise = (list) => {
-                    if (list.length < 2) {
-                        return [];
-                    }
-                    var first = list[0],
-                        rest = list.slice(1),
-                        pairs = rest.map(function (x) {
-                            return [first, x];
-                        });
-                    return pairs.concat(pairwise(rest));
-                }
-                edgesArray = pairwise(usernames)
-            }
-
-            if (method === 'pcc') {
-                // Source: http://stevegardner.net/2012/06/11/javascript-code-to-calculate-the-pearson-correlation-coefficient/
-
-                edgesArray.forEach((edge) => {
-                    let xC = this.brains[this.info.access].get(edge[0]).getVoltage();
-                    let yC = this.brains[this.info.access].get(edge[1]).getVoltage();
-                    
-                    this.usedChannelNames.forEach((_,ind) => {
-                        let channel = this.usedChannels[ind].index
-                        let x = xC[channel]
-                        let y = yC[channel]
-
-                        var shortestArrayLength = 0;
-
-                        if (x.length === y.length) {
-                            shortestArrayLength = x.length;
-                        } else if (x.length > y.length) {
-                            shortestArrayLength = y.length;
-                            // console.error('x has more items in it, the last ' + (x.length - shortestArrayLength) + ' item(s) will be ignored');
-                        } else {
-                            shortestArrayLength = x.length;
-                            // console.error('y has more items in it, the last ' + (y.length - shortestArrayLength) + ' item(s) will be ignored');
-                        }
-                        var xy = [];
-                        var x2 = [];
-                        var y2 = [];
-
-                        for (var i = 0; i < shortestArrayLength; i++) {
-                            xy.push(x[i] * y[i]);
-                            x2.push(x[i] * x[i]);
-                            y2.push(y[i] * y[i]);
-                        }
-
-                        var sum_x = 0;
-                        var sum_y = 0;
-                        var sum_xy = 0;
-                        var sum_x2 = 0;
-                        var sum_y2 = 0;
-
-                        for (var i = 0; i < shortestArrayLength; i++) {
-                            sum_x += x[i];
-                            sum_y += y[i];
-                            sum_xy += xy[i];
-                            sum_x2 += x2[i];
-                            sum_y2 += y2[i];
-                        }
-
-                        var step1 = (shortestArrayLength * sum_xy) - (sum_x * sum_y);
-                        var step2 = (shortestArrayLength * sum_x2) - (sum_x * sum_x);
-                        var step3 = (shortestArrayLength * sum_y2) - (sum_y * sum_y);
-                        var step4 = Math.sqrt(step2 * step3);
-                        var answer = step1 / step4;
-
-                        if (!channelSynchrony[channel]) {
-                            channelSynchrony[channel] = [];
-                        }
-                    channelSynchrony[channel].push(answer)
-                    })
-                })
-
-                return channelSynchrony.map((channelData) => {
-                    return channelData.reduce((a, b) => a + b, 0) / channelData.length
-                })
-            } else {
-                return Array.from({length: Object.keys(this.eegCoordinates).length}, e => 0)
-            }
-        } else {
-            return Array.from({length: Object.keys(this.eegCoordinates).length}, e => 0)
-        }
-    }
-
-    /**
-     * @method module:brainsatplay.Game.access
-     * @description Set or return the current access level of the game.
-     * @param type {string} Choose from 'public' or 'private'
-     */
-
-    access(type) {
-        if (type !== undefined) {
-            if (this.bluetooth.connected){
-                this.brains[type].set(this.me.username,this.brains[this.info.access].get(this.me.username))
-                this.brains[this.info.access].delete(this.me.username)
-            }
-            this.info.access = type;
-            this.info.brains = this.brains[this.info.access].size
-            this.getMyIndex()
-            this.updateUsedChannels()
-            this.setUpdateMessage({destination: 'update'})
-        }
-        return this.info.access
-    }
-
-        /**
-     * @method module:brainsatplay.Game.consent
-     * @description Consent to sending data through our servers.
-     */
-    consent(type, value){
-        if (type === undefined) {
-            return this.me.consent
-        } else {
-            if (value === undefined) {
-                return this.me.consent[type]
-            } else {
-                this.me.consent[type] = value
-            }
-        }
-    }
-
-    /**
-     * @async
-     * @method module:brainsatplay.Game.connectBluetoothDevice
-     * @description Connect a Bluetooth Low Energy Device (BLE) from the browser. Connection to a BLE device can only be initiated when the game is not connected to the server (i.e. this.connection.status === false).
-     * @param type {string} Choose from 'muse'
-     */
-
-
-    async connectBluetoothDevice(type='muse',map){
-
-        let acceptedTypes = ['muse','freeEEG32']
-        // only allow connection if not sending data to server
-        if (!(this.connection.status)){
-            if (acceptedTypes.includes(type)){
-            if (type === 'muse'){
-        this.bluetooth.devices['muse'].start().then(() => {
-            this.bluetooth.channelNames = 'TP9,AF7,AF8,TP10,AUX' // Muse 
-            this.bluetooth.devices[type].eegReadings.subscribe(r => {
-                let me = this.brains[this.info.access].get(this.me.username)
-                if (me !== undefined) {
-                    if (this.connection.status) {
-                        let data = new Array(me.numChannels)
-                        data[r.electrode] = r.samples;
-                        if (this.me.consent.raw){
-                            this.send('bci',{signal:[r.samples],time:[r.timestamp],electrode:r.electrode})
-                        } else {
-                            this.send('bci',{signal:[],time:[]})
-                        }
-                    } else {
-                        if (this.brains[this.info.access].get(this.me.username)){
-                        this.brains[this.info.access].get(this.me.username).loadData({signal:[r.samples],time:Array(r.samples.length).fill(r.timestamp),electrode:r.electrode,consent:{raw:true,game:true}})
-                        }
-                    }
-                }
-              })
-            
-            this.commonBluetoothSetup(type)
-        });
-        } else if (type='freeEEG32'){
-            this.bluetooth.devices['freeEEG32'] = new eeg32();
-            this.bluetooth.devices[type].setupSerialAsync().then(() => {
-                if (map){
-                    this.bluetooth.adcMap = map;
-                } else {
-                    this.bluetooth.adcMap = {
-                        A0: 'O2',
-                        A1: 'T6',
-                        A2: 'T4',
-                        A3: 'F8',
-                        A4: 'Fp2',
-                        A5: 'F4',
-                        A6: 'C4',
-                        A7: 'P4',
-                        A8: '',
-                        A9: '',
-                        A10: '',
-                        A11: '',
-                        A12: 'Pz',
-                        A13: '',
-                        A14: '',
-                        A15: '',
-                        A16: 'Fz',
-                        A17: '',
-                        A18: '',
-                        A19: '',
-                        A20: '',
-                        A21: '',
-                        A22: '',
-                        A23: '',
-                        A24: 'Fp1',
-                        A25: 'F3',
-                        A26: 'C3',
-                        A27: 'P3',
-                        A28: 'O1',
-                        A29: 'T5',
-                        A30: 'T3',
-                        A31: 'F7',
-                    }
-                }
-                this.bluetooth.adcNames = Object.keys(this.bluetooth.adcMap).filter(key => this.bluetooth.adcMap[key] != '')
-                this.bluetooth.channelNames =this.bluetooth.adcNames.map((key) => key=this.bluetooth.adcMap[key])
-                this.bluetooth.channelNames = this.bluetooth.channelNames.join(',')
-                this.bluetooth.samplerate = this.bluetooth.devices['freeEEG32'].sps;
-                this.commonBluetoothSetup(type)
-            })
-        }
-    } else {
-            console.error('No Bluetooth compatibility with devices of type: ' + type)
-        }
-    } else {
-        console.error('Please connect your Muse before connecting to the server.')
-    }
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.commonBluetoothSetup
-     * @description A utility function to replace existing synthetic data with a Bluetooth stream.
-     */
-    commonBluetoothSetup(type){
-        this.bluetooth.device = type
-        this.remove(this.me.username)
-        this.add(this.me.username, this.bluetooth.channelNames,this.bluetooth.samplerate,{on:false})
-        this.updateBrainRoutine()
-        this.bluetooth.connected = true;
-    }
-
-    /**
-     * @method module:brainsatplay.Game.disconnect
-     * @description Disconnect the game from the server by terminating the Websocket connection.
-     * @param type {string} Choose from 'muse'
-     */
-
-    disconnect() {
-        this.connection.ws.close();
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.updateBrainRoutine
-     * @description A shortcut to call updateUsedChannels(), getMyIndex(), and setUpdateMessate() when Brains are added or removed from the game.
-     */
-
-    updateBrainRoutine(obj = {}) {
-        this.updateUsedChannels()
-        this.getMyIndex()
-        obj.destination = 'update'
-        this.setUpdateMessage(obj)
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.establishWebsocket
-     * @description Establish a Websocket connection. Sets the connection parameters.
-     */
-    
-    establishWebsocket(type='interfaces'){
-        
-        let connection;
-        let cookies;
-        
-        if (this.bluetooth.connected){
-            type = 'bidirectional';
-            cookies = [this.me.username,type,this.name,this.info.access,...this.bluetooth.channelNames.split(',')]
-        } else {
-            type = 'interfaces';
-            cookies = [this.me.username, type, this.name]
-        }
-
-        if (this.url.protocol === 'http:') {
-            connection = new WebSocket(`ws://` + this.url.hostname, cookies);
-        } else if (this.url.protocol === 'https:') {
-            connection = new WebSocket(`wss://` + this.url.hostname, cookies);
-        } else {
-            console.log('invalid protocol')
-            return
-        }
-        connection = this.setWebsocketMethods(connection,type)
-        this.connection.ws = connection
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.setWebsocketMethods
-     * @description Sets onerror, onopen, onmessage, and onclose methods for the Websocket connection.
-     */
-    setWebsocketMethods(connection=undefined){
-        if (connection){
-                connection.onerror = () => {
-                    this.setUpdateMessage({destination: 'error'})
-                };
-        
-                connection.onopen = () => {
-                    this.connection.status = true
-                    this.initialize(true)
-                    this.send('initializeBrains')
-                };
-        
-                connection.onmessage = (msg) => {
-        
-                    let obj = JSON.parse(msg.data);
-                    if (obj.destination === 'bci') {
-                        if (this.brains[this.info.access].get(obj.id) !== undefined) {
-                            this.brains[this.info.access].get(obj.id).loadData(obj)
-                        }
-                    } else if (obj.destination === 'init') {
-                        if (obj.privateBrains) {
-                            this.add(obj.privateInfo.id, obj.privateInfo.channelNames, undefined,{on:false}, 'private')
-                        } else {
-                            for (let newUser = 0; newUser < obj.nBrains; newUser++) {
-                                if (this.brains.public.get(obj.ids[newUser]) === undefined && obj.ids[newUser] !== undefined) {
-                                    this.add(obj.ids[newUser], obj.channelNames[newUser],undefined,{on:false})
-                                }
-                            }
-                        }
-                        this.updateUsedChannels()
-                        if (obj.nInterfaces === undefined){
-                            this.info.interfaces = 0;
-                        } else{
-                            this.info.interfaces = obj.nInterfaces;
-                        }
-                        this.getMyIndex()
-                        this.setUpdateMessage(obj)
-                    } else if (obj.destination === 'brains') {
-                        let update = obj.n;
-                        // Only update if access matches
-                        if (update === 1) {
-                            this.add(obj.id, obj.channelNames, undefined, {on:false}, obj.access)
-                        } else if (update === -1) {
-                            this.remove(obj.id, obj.access)
-                        }
-                        this.updateBrainRoutine(obj)
-                    } else if (obj.destination === 'interfaces') {
-                        this.info.interfaces += obj.n;
-                        obj.destination = 'update'
-                        this.setUpdateMessage(obj)
-                    } else if (obj.destination === 'bidirectional') {
-                        let update = obj.n;
-                        // Only update if access matches
-                        if (update === 1) {
-                            this.add(obj.id, obj.channelNames, undefined, {on:false}, obj.access)
-                        } else if (update === -1) {
-                            this.remove(obj.id, obj.access)
-                        }
-                        this.info.interfaces += update;
-                        obj.destination = 'update'
-                        this.setUpdateMessage(obj)
-                    } else {
-                        console.log(obj)
-                    }
-                };
-        
-                connection.onclose = () => {
-                    this.connection.status = false;
-                    let notRemoved = true;
-                    Object.keys(this.brains).forEach(access => {
-                        this.brains[access].forEach((brain,username) => {
-                            if (username !== this.me.username){
-                                this.remove(username,access)
-                            } else if (notRemoved){
-                                this.brains[access].get(this.me.username).username = 'me'
-                                this.brains[access].set('me',this.brains[access].get(this.me.username))
-                                this.brains[access].delete(this.me.username)
-                                this.me.username = 'me'
-                                notRemoved = false;
-                            }
-                        })
-                    })
-                    this.info.brains = 0;
-                    this.info.interfaces = 0;
-                    this.info.access = "public"
-                    this.simulate(this.info.simulated)
-                    // this.simulate(this.settings.players.teams.names.length*this.settings.players.teams.size)
-                    this.getMyIndex()
-                    this.setUpdateMessage({destination: 'closed'})
-                };
-        }
-        return connection
-    }
-
-    /**
-     * @async
-     * @method module:brainsatplay.Game.connect
-     * @description Connect game to a brainsatplay server.
-     * @param dict {dict} Login parameters.
-     * @param dict {string} Server URL.
-     */
-
-    async connect(dict = {'guestaccess': true}, url = 'https://brainsatplay.azurewebsites.net/') {
-
-        let resDict;
-        resDict = await this.login(dict, url)
-        this.establishWebsocket()
-        return resDict
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.send
-     * @description Send a message over Websockets to the server.
-     */
-
-    send(command,dict) {
-        if (this.connection.status){
-        if (command === 'initializeBrains') {
-            this.connection.ws.send(JSON.stringify({'destination': 'initializeBrains', 'public': this.info.access === 'public'}));
-            this.setUpdateMessage({destination: 'opened'})
-        } else if (command === 'bci'){
-            dict.destination = 'bci';
-            dict.id = this.me.username;
-            dict.consent = this.me.consent;
-
-            if (this.me.consent.game){
-                let reserved = ['voltage','time','electrode','consent']
-                let me = this.brains[this.info.access].get(this.me.username)
-                if (me !== undefined){
-                    Object.keys(me.data).forEach((key) => {
-                        if (!reserved.includes(key)){
-                            dict[key] = me.data[key]
-                        }
-                    })
-                }
-            }
-
-            if (!this.me.consent.raw){
-                dict.signal = [];
-                dict.time = [];
-            }
-                
-            dict = JSON.stringify(dict)
-            this.connection.ws.send(dict)
-        }
-    }
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.checkURL
-     * @description Check if a request href is properly formatted
-     * @param url {string} URL href
-     */
-    checkURL(url) {
-        if (url.slice(-1) !== '/') {
-            url += '/'
-        }
-        return url
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.checkPathname
-     * @description Check if a request pathname is properly formatted
-     * @param pathname {string} URL pathname
-     */
-
-    checkPathname(pathname) {
-        if (pathname.slice(0) === '/') {
-            pathname.splice(0,1)
-        }
-        return pathname
-    }
-
-
-    /**
-     * @ignore
-     * @async
-     * @method module:brainsatplay.Game.request
-     * @description Send an HTTP request
-     * @param body {dict} A dictionary to pass to the receiving server
-     * @param method {string} Choose between 'GET' and 'POST'
-     * @param pathname {string} The pathname of the server
-     * @param baseURL {string} The href of the server
-     */
-    
-    async request(body,method='POST',pathname='',baseURL=this.url.href){
-        if (pathname !== ''){
-            baseURL = this.checkURL(baseURL)
-            pathname = this.checkPathname(pathname)
+	async request(body,method="POST",pathname='',baseURL=this.info.auth.url.toString()){
+		if (pathname !== ''){
+            baseURL = this.checkURL(baseURL);
+            pathname = this.checkPathname(pathname);
             let dict = {
                 method: method,
                 mode: 'cors',
@@ -916,750 +161,907 @@ class Game {
 
             return await fetch(baseURL + pathname, dict).then((res) => {
             return res.json().then((dict) => {                 
-                return dict.message
+                return dict.message;
             })
         })
             .catch(function (err) {
-                console.log(`\n${err.message}`);
+                console.error(`\n`+err.message);
             });
         } else {
-            console.log(`You must provide a valid pathname to request resources from ${baseURL}`)
-            return
+            console.error(`You must provide a valid pathname to request resources from ` + baseURL);
+            return;
         }
-    }
+	}
 
-    /**
-     * @ignore
-     * @async
-     * @method module:brainsatplay.Game.login
-     * @description Login to a brainsatplay server. Called by [brainsatplay.Game.connect()]{@link module:brainsatplay.Game.connect}.
-     * @param dict {dict} Login parameters.
-     * @param dict {string} Server URL.
-     */
+	setupWebSocket() {
 
-    async login(dict, url = 'https://brainsatplay.azurewebsites.net/') {
-        url = this.checkURL(url)
-        this.url = new URL(url);
-
-        let json = JSON.stringify(dict)
-
-        let resDict = await fetch(url + 'login',
-            {
-                method: 'POST',
-                mode: 'cors',
-                headers: new Headers({
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }),
-                body: json
-            }).then((res) => {
-            return res.json().then((message) => message)
-        })
-            .then((message) => {
-                return message
-            })
-            .catch(function (err) {
-                console.log(`\n${err.message}`);
-            });
-
-        if (resDict.result === 'OK') {
-            this.me.username = resDict.msg;
+		let socket = null;
+        let subprotocol = ['username'+this.info.auth.username,
+        'password'+this.info.auth.password,
+        'appname'+this.info.auth.appname];
+		if (this.info.auth.url.protocol === 'http:') {
+            socket = new WebSocket(`ws://` + this.info.auth.url.host, subprotocol);
+        } else if (this.info.auth.url.protocol === 'https:') {
+            socket = new WebSocket(`wss://` + this.info.auth.url.host, subprotocol);
+        } else {
+            console.log('invalid protocol')
+            return;
         }
-        return resDict
-    }
 
-    /**
-     * @async
-     * @method module:brainsatplay.Game.signup
-     * @description Sign up for a brainsatplay account. Account details are used for [brainsatplay.Game.connect()]{@link module:brainsatplay.Game.connect}.
-     * @param dict {dict} Login parameters.
-     * @param dict {string} Server URL.
-     */
-    async signup(dict, url = 'https://brainsatplay.azurewebsites.net/') {
-        url = this.checkURL(url)
-        this.url = new URL(url);
-        let json = JSON.stringify(dict)
-        let resDict = await fetch(url + 'signup',
-            {
-                method: 'POST',
-                mode: 'cors',
-                headers: new Headers({
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }),
-                body: json
-            }).then((res) => {
-            return res.json().then((message) => message)
-        })
-            .then((message) => {
-                console.log(`\n${message}`);
-                return message
-            })
-            .catch(function (err) {
-                console.log(`\n${err.message}`);
-            });
-
-        return resDict
-    }
-
-
-    /**
-     * @method module:brainsatplay.Game.initializeSession
-     * @description Initialize an experimental session for recording data. 
-     * @param dict {dict} Setting dictionary.
-     */
-    initializeSession(settings){
-        this.session = {
-            samples: 0,
-            count: 0,
-            trial: 0,
-            iti: 0,
-            numTrials: 0,
-            t:0,
-            state:'',
-            type: '',
-            subset: 0,
-            eventDuration: 0,
-            currentEventState: {state: {}, chosen: []},
-            data: {events:[], voltage:[], time: []},
-            results: []
+        socket.onerror = () => {
+            console.log('error')
         };
 
-        if (settings !== undefined){
-            this.setSessionSettings(settings)
-        }
-    }
+        socket.onopen = () => {
+            console.log('ping')
+            socket.send(JSON.stringify({msg:'ping'}))
+        };
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.setSessionSettings
-     * @description Set session settings.
-     * @param settings {dict} Setting dictionary.
-     */
-
-    setSessionSettings(settings) {
-        this.session.samples = settings.numSamples
-        this.session.trial = 0;
-        this.session.numTrials = settings.trials;
-        this.session.iti = settings.iti;
-        this.session.t = Date.now();
-        this.session.state = 'pre-session';
-        this.session.type = settings.name;
-        this.session.subset = settings.subset;
-        this.session.eventDuration = settings.eventDuration;
-        this.session.currentEventState = {state: {}, chosen: []};
-
-        let stateDict = {};
-
-        settings.objects.forEach((name) => {
-            stateDict[name] = false;
-        })
-        let objectDict = {state: stateDict, chosen: []}
-        this.session.data.events = Array.from({length: settings.trials}, e => objectDict)
-        this.session.results = Array(settings.trials).fill(NaN)
-        this.session.data.voltage = Array.from({length: settings.trials}, e => Array.from({length: Object.keys(this.eegCoordinates).length}, e => []))
-        this.session.data.time = Array.from({length: settings.trials}, e => Array.from({length: Object.keys(this.eegCoordinates).length}, e => []))
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.updateSession
-     * @description Update session based on settings.
-     */
-
-    updateSession(){
-        if (this.session && this.session.state !=='done'){
-        if (['pre-session','iti'].includes(this.session.state)){
-            if (this.session.t+(this.session.iti) <= Date.now()){
-                this.session.state = 'trial-on';
-                this.brains[this.info.access].forEach((brain) => {
-                        brain.initializeStorage()
-                        brain.storage.store = true;
-                        brain.storage.samples = this.session.samples;
-                })
-                this.session.currentEventState = this.objectSelection()
-                this.session.t = Date.now();
-            }
-        } if (['trial-on','trial-off'].includes(this.session.state)){
-            let ready = [];
-            let brain = this.brains[this.info.access].get(this.me.username)
-            brain.usedChannels.forEach((_,ind) => {
-                ready.push(brain.storage.count[ind] === this.session.samples)
-            })
-            if (ready.every((val) => val === true)){
-                    let brain = this.brains[this.info.access].get(this.me.username)
-                    brain.storage.record = false;
-                    brain.storage.count = brain.storage.count.map((val) => 0);
-                    this.session.data.voltage[this.session.trial] = brain.storage.data.voltage
-                    this.session.data.time[this.session.trial] = brain.storage.data.time
-                this.session.trial++;
-                if ((this.session.trial) === this.session.numTrials){
-                    this.session.state = 'done';
-                    this.session.trial = NaN;
-                    this.session.currentEventState = this.objectSelection(false)
-                } else {
-                    this.session.state = 'iti';
-                    this.session.currentEventState = this.objectSelection(false)
-                    this.session.t = Date.now();
-                }
-            } else if (this.session.t+(this.session.eventDuration) <= Date.now() && this.session.state === 'trial-on'){
-                this.session.state = 'trial-off';
-                this.session.currentEventState = this.objectSelection(false)
-            }
-        }
-    }
-    }
-    
-    /**
-     * @method module:brainsatplay.Game.objectSelection
-     * @description Choose a subset of the objects declared in the session settings.
-     */
-
-    objectSelection(choose=true){
-        let eventState;
-
-        if (this.session.state !=='done'){
-            eventState = this.session.data.events[this.session.trial].state
-        } else {
-            eventState = this.session.currentEventState.state
+        socket.onmessage = (msg) => {
+            let obj = JSON.parse(msg.data);
+            console.log(obj.msg)
         }
 
-        let objKeys;
-        let chosen = [];
-
-        if (choose){
-            if (this.session.trial === 0){
-                objKeys = Object.keys(eventState)
-            } else {
-                let prevSubset = this.session.data.events[this.session.trial-1].chosen
-                objKeys = Object.keys(eventState).filter((key) => !prevSubset.includes(key))
-            }
-            
-            for (let i = 0; i < this.session.subset*objKeys.length ; i++){
-                chosen.push(objKeys.splice(Math.floor(Math.random()*objKeys.length),1)[0])
-            }
+        socket.onclose = (msg) => {
+            console.log('close')
         }
 
-        
-        Object.keys(eventState).forEach((object) => {
-            if (chosen.includes(object)){
-                eventState[object] = true;
-            } else {
-                eventState[object] = false;
-            }
-        })
+		return socket;
+	}
 
-        if (choose){
-            this.session.data.events[this.session.trial] = {state: eventState, chosen: chosen};
-        } 
+	sendWSCommand(socket=this.socket, command='',dict={}){
+		if(socket.status){
+			if(command === 'initializeBrains') {
+				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
+			}
+			else if (command === 'bci') {
+				dict.destination = 'bci';
+				dict.id = this.info.auth.username;
+				dict.consent = this.info.auth.consent;
+				if(this.info.auth.consent.game === true) {
+					//let reserved = ['voltage','time','electrode','consent'];
+					//let me = this.brains[this.info.access].get(this.me.username);
+					//if (me !== undefined){
+					//	Object.keys(me.data).forEach((key) => {
+					//		if (!reserved.includes(key)){
+					//			dict[key] = me.data[key];
+					//		}
+					//	});
+					//}
+				}
+				if(this.info.auth.consent.raw === false) {
+					dict.signal = [];
+					dict.time = [];
+				}
+				dict = JSON.stringify(dict);
+				socket.send(dict);
+			}
+		}
+	}
 
-        return {state: eventState, chosen: chosen}
+	getUsers(dict={ //
+		destination:'initializeBrains',
+		appname:'',
+		msg:'',
+		nBrains:0,
+		privateBrains:0,
+		privateInfo:'',
+		ninterfaces:0,
+		ids:[],
+		channelNames:[]
+	}) {
+		this.socket.send(JSON.stringify(dict));
+	}
+
+	onNewConnection(response){ //If a user is added to the server
+		this.info.connections.push({
+			username:response.id,
+			access:response.access,
+			channelNames:response.channelNames,
+			destination:response.destination
+		});
+		this.info.nDevices++;
+	}
+
+	onConnectionLost(response){ //If a user is removed from the server
+		let found = false; let idx = 0;
+		let c = this.info.connections.find((o,i) => {
+			if(o.username === response.username) {
+				found = true;
+				return true;
+			}
+		});
+		if (found === true) {
+			this.info.connections.splice(idx,1);
+			this.info.nDevices--;
+		}
+	}
+
+	checkURL(url) {
+        if (url.slice(-1) !== '/') {
+            url += '/';
+        }
+        return url;
     }
+
+	checkPathname(pathname) {
+        if (pathname.slice(0) === '/') {
+            pathname.splice(0,1);
+        }
+        return pathname;
+    }
+
 }
 
 
-/**
- * @class module:brainsatplay.Brain
- * @description Manage brain data from a single user
- */
 
-class Brain {
-    constructor(userId, channelNames, samplerate,simulationParams={on:false}){
-        this.username = userId;
-        this.eegCoordinates = eegCoordinates
-        this.usedChannels = []
-        this.channelNames = []
-        this.samplerate = {estimate: 0}
-        this.samplerate.default = samplerate
-        if (samplerate){
-            this.samplerate.default = samplerate
-        } else {
-            this.samplerate.default = 200;
-        }
+// class biquadChannelFilterer {
+//     constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
+//         this.channel=channel; this.idx = 0; this.sps = sps;
+//         this.filtering=filtering;
+//         this.bplower = 3; this.bpupper = 45;
+// 		this.scalingFactor = scalingFactor;
 
-        this.simulation = simulationParams
+// 		this.useSMA4 = false; this.last4=[];
+// 		this.useNotch50 = true; this.useNotch60 = true;
+// 		this.useLp1 = false; this.useBp1 = false;
+// 		this.useDCB = true; this.useScaling = false;
 
-        this.blink.threshold = 400 // uV
-        this.blink.duration = 50 // samples
-        this.blink.lastBlink = 0;
+//         this.notch50 = [
+//                     makeNotchFilter(50,sps,1)
+//                 ];
+//         this.notch60 = [
+//                     makeNotchFilter(60,sps,1)
+//                 ];
+//         this.lp1 = [
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps)
+//                 ];
+//         this.bp1 = [
+//                     makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+//                     makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+//                     makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+//                     makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
+//                 ];
+//         this.dcb = new DCBlocker(0.995);
+//     }
 
-        this.cleared = {
-            raw: false,
-            game: false
-        }
+//     reset(sps=this.sps) {
+//         this.notch50 = makeNotchFilter(50,sps,1);
+//         this.notch60 = makeNotchFilter(60,sps,1);
+//         this.lp1 = [
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps),
+//                     new Biquad('lowpass', 50, sps)
+//                 ];
+// 		this.bp1 = [
+// 					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+// 					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+// 					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+// 					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
+// 				];
+//         this.dcb = new DCBlocker(0.995);
+//     }
 
-        if (channelNames === undefined){
-            channelNames = 'TP9,AF7,AF8,TP10,AUX' // Muse 
-            // channelNames = 'Fz,C3,Cz,C4,Pz,PO7,Oz,PO8,F5,F7,F3,F1,F2,F4,F6,F8' // OpenBCI
-        }
+//     setBandpass(bplower=this.bplower,bpupper=this.bpupper,sps=this.sps) {
+//         this.bplower=bplower; this.bpupper = bpupper;
+//         this.bp1 = [
+//             makeBandpassFilter(bplower,bpupper,sps),
+//             makeBandpassFilter(bplower,bpupper,sps),
+//             makeBandpassFilter(bplower,bpupper,sps),
+//             makeBandpassFilter(bplower,bpupper,sps)
+//         ];
+//     }
 
-        channelNames = channelNames.toLowerCase().split(',')
-        channelNames.forEach((name) => {
-            let capName = name.charAt(0).toUpperCase() + name.slice(1)
-            if (capName.charAt(1) == 'o'){
-                capName = capName.charAt(0) + 'O' + capName.slice(2)
-            }
-            if (Object.keys(this.eegCoordinates).indexOf(capName) !== -1){
-                this.channelNames.push(capName)
-                this.usedChannels.push({name:capName, index: Object.keys(this.eegCoordinates).indexOf(capName)})
-            } else {
-                console.log(capName + ' electrode is not currently supported.')
-            }
-        })
+//     apply(latestData=0, idx=this.lastidx+1) {
+//         let out=latestData; 
+//         if(this.filtering === true) {
+// 			if(this.useDCB === true) { //Apply a DC blocking filter
+//                 out = this.dcb.applyFilter(out);
+//             }
+//             if(this.useSMA4 === true) { // 4 sample simple moving average (i.e. low pass)
+//                 if(idx < 4) {
+// 					this.last4.push(out);
+// 				}
+// 				else {
+// 					out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
+// 					this.last4.shift();
+// 					this.last4.push(out);
+// 				}
+//             }
+//             if(this.useNotch50 === true) { //Apply a 50hz notch filter
+//                 this.notch50.forEach((f,i) => {
+//                     out = f.applyFilter(out);
+//                 });
+//             }
+//             if(this.useNotch60 === true) { //Apply a 60hz notch filter
+//                 this.notch60.forEach((f,i) => {
+//                     out = f.applyFilter(out);
+//                 });
+//             } 
+//             if(this.useLp1 === true) { //Apply 4 50Hz lowpass filters
+//                 this.lp1.forEach((f,i) => {
+//                     out = f.applyFilter(out);
+//                 });
+//             }
+//             if(this.useBp1 === true) { //Apply 4 Bandpass filters
+//                 this.bp1.forEach((f,i) => {
+//                     out = f.applyFilter(out);
+//                 });
+// 				out *= this.bp1.length;
+//             }
+//             if(this.useScaling === true){
+//                 out *= this.scalingFactor;
+//             }
+//         }
+//         this.lastidx=idx;
+//         //console.log(this.channel, out)
+//         return out;
+//     }
+// }
 
-        this.bufferSize = 1000 // Samples
-        this.data = {
-            voltage: this.createBuffer(),
-            time: this.createBuffer()
-        }
 
-        this.initializeStorage()
-    }
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.createBuffer
-     * @description Initialize a buffer for all EEG coordinates.
-     */
+// class deviceStream {
+// 	constructor(
+// 		location="local", //"server"
+// 		device="FreeEEG32_2",
+// 		useFilters=true,
+// 		pipeToAtlas=true,
+// 		socket=null,
+// 		auth={
+// 			username:'guest', 
+// 			consent:{raw:false, brains:false}
+// 		}
+// 	) {
+
+// 		this.location = location;
+// 		this.deviceName = device;
+
+// 		this.device = null; //Device object, can be instance of eeg32, MuseClient, WebSocket, etc.
+// 		this.socket = socket; //Store bidirectional sockets here for use
+// 		this.auth = auth;
+// 		this.sps = null;
+// 		this.useFilters = useFilters;
+// 		this.useAtlas = false;
+// 		this.filters = [];
+// 		this.eegChannelTags = [];
+// 		this.atlas = null;
+// 		this.simulating = false;
+
+// 		this.init(device,location,useFilters,pipeToAtlas);
+// 	}
+
+// 	init = (device,location,useFilters,pipeToAtlas) => {
+		
+// 		if(location === "local") {
+// 			if(device === "FreeEEG32_2" || device === "FreeEEG32_19") {
+// 				this.sps = 512;
+// 				if(device === "FreeEEG32_2") { 
+// 					this.eegChannelTags = [
+// 						{ch: 4, tag: "Fp2"},
+// 						{ch: 24, tag: "Fp1"},
+// 						{ch: 8, tag: "other"}
+// 					];
+// 				}
+// 				else {
+// 					this.eegChannelTags = [
+// 						{ch: 4, tag: "Fp2"},
+// 						{ch: 24, tag: "Fp1"},
+// 						{ch: 8, tag: "other"}
+// 					];
+// 				}
+// 				this.device = new eeg32(
+// 					(newLinesInt) => {
+// 						this.eegChannelTags.forEach((o,i) => {
+// 							let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
+// 							let latestFiltered = new Array(latest.length).fill(0);
+// 							if(o.tag !== "other" && this.useFilters === true) { 
+// 								this.filters.forEach((f,j) => {
+// 									if(f.channel === "A"+o.ch) {
+// 										latest.forEach((sample,k) => { 
+// 											latestFiltered[k] = f.apply(sample); 
+// 										});
+// 									}
+// 								});
+// 								if(this.useAtlas === true) {
+// 									let coord = this.atlas.getEEGDataByTag(o.tag);								
+// 									coord.filtered.push(latestFiltered);
+// 									coord.raw.push(latest);
+// 								}
+// 							}
+// 							else {
+// 								let coord = this.atlas.getEEGDataByTag(o.tag);								
+// 								coord.raw.push(latest);
+// 							}
+// 						});
+// 						this.onMessage(newLinesInt);
+// 					},
+// 					()=>{	
+// 					},
+// 					()=>{
+// 					}
+// 				);
+// 				if(useFilters === true) {
+// 					this.eegChannelTags.forEach((row,i) => {
+// 						if(row.tag !== 'other') {
+// 							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
+// 						}
+// 						else { 
+// 							this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
+// 						}
+// 					});
+// 				}
+// 			}
+// 			else if(device === "muse") {
+// 				this.sps = 256;
+// 				this.eegChannelTags = [
+// 					{ch: 0, tag: "T9"},
+// 					{ch: 1, tag: "AF7"},
+// 					{ch: 2, tag: "AF8"},
+// 					{ch: 3, tag: "T10"},
+// 					{ch: 4, tag: "other"}
+// 				];
+// 				this.device = new MuseClient();
+// 			}
+// 			else if(device === "cyton") {
+
+// 			}
+// 			else if(device === "ganglion") {
+
+// 			}
+// 			else if(device === "hegduino") {
+
+// 			}
+// 		}
+// 		else if (location === "server") {
+
+// 		}
+
+// 		if(pipeToAtlas === true) {
+// 			this.atlas = new dataAtlas(location+":"+device,{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},true,true)
+// 			this.useAtlas = true;
+// 		} else if (pipeToAtlas !== false) {
+// 			this.atlas = pipeToAtlas; //External atlas reference
+// 			this.useAtlas = true;
+// 		}
+// 	}
+
+// 	async stream() {
+// 		if(this.location === "local") {
+// 			if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
+// 				await this.device.setupSerialAsync();
+// 			}
+// 			else if (this.deviceName === "muse") {
+// 				//connect muse and begin streaming		
+// 				//this.onConnect();
+// 				await this.device.connect();
+// 				await this.device.start();
+// 				this.device.eegReadings.subscribe(reading => {
+
+// 				});
+// 				this.device.telemetryData.subscribe(telemetry => {
+
+// 				});
+// 				this.device.accelerometerData.subscribe(accel => {
+
+// 				});
+// 			}
+// 			else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
+// 				//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
+// 			}
+// 			this.onConnect();
+// 		}
+// 		else if (this.location === "server") {
+// 			//subscribe to websocket updates
+			
+// 		}
+// 	}
+
+// 	sendDataToServer(times=[],signals=[],electrodes='',fields='') {
+// 		this.socket.send(JSON.stringify({
+// 			destination:'bci',
+// 			id:this.auth.username,
+// 			consent:this.auth.consent,
+// 			time:times,
+// 			signal:signals,
+// 			electrode:electrodes,
+// 			field:fields
+// 		}));
+// 	}
+
+// 	simulateData() {
+// 		let delay = 100;
+// 		if(this.simulating === true) {
+// 			let nSamplesToSim = Math.floor(this.sps*delay/1000);
+// 			for(let i = 0; i<nSamplesToSim; i++) {
+// 				//For each tagged channel generate fake data
+// 			}
+// 			setTimeout(requestAnimationFrame(this.simulateData),delay);
+// 		}
+// 	}
+
+// 	disconnect() {
+// 		if(this.location === "server") {
+// 			this.socket.close();
+// 		}
+// 		if(this.deviceName.indexOf("FreeEEG") > -1) {
+// 			this.device.disconnect();
+// 		}
+// 		this.onDisconnect();
+// 	}
+
+// 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
+// 	onMessage(msg="") {}
+
+// 	onConnect(msg="") {}
+
+// 	onDisconnect(msg="") {}
+// }
+
+
+// class dataAtlas {
+//     constructor(
+// 		name="atlas",
+// 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
+// 		useEEG10_20=true,
+// 		useCoherence=true,
+// 		runAnalyzer=false,
+// 		analysis=['fft'] //'fft','coherence','bcijs_bandpowers','heg_pulse'
+// 	) {
+//         this.name = name;
+
+//         this.data = {
+// 			eegshared:{eegChannelTags:initialData.eegshared.eegChannelTags, sps:initialData.eegshared.sps, frequencies:[], bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
+// 			eeg:[],
+// 			coherence:[],
+// 			heg:[],
+// 			fnirs:[],
+// 			accelerometer:[],
+// 			hrv:[],
+// 			spo2:[],
+// 			emg:[],
+// 			ecg:[],
+// 			eyetracker:[]
+// 		};
+
+// 		this.maxBufferSize = 30000; //Max samples in buffer before rollover kicks in
+// 		this.rolloverSize = 3000; //Number of samples to splice off on the front of the data buffers
+
+//         if(useEEG10_20 === true) {
+//             this.data.eeg = this.gen10_20Atlas();
+//         }
+//         if(useCoherence === true) {
+//             this.data.coherence = this.genCoherenceMap();
+//         }
+
+// 		this.analyzing = runAnalyzer;
+// 		this.analysis = analysis;
+// 		this.analyzerOpts = ['fft','coherence']; //'bcijs_bandpower','bcijs_pca','heg_pulse'
+// 		this.analyzerFuncs = [];
+// 		this.workerPostTime = 0;
+// 		this.workerWaiting = false;
+// 		this.workerIdx = 0;
+// 		if(runAnalyzer === true){
+// 			this.addDefaultAnalyzerFuncs();
+// 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+// 			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
+// 			window.workerResponses.push()
+// 			this.analyzer();
+// 		}
+//     }
+
+//     genEEGCoordinateStruct(tag,x,y,z){
+//         let bands = {scp:[],delta:[],theta:[],alpha1:[],alpha2:[],beta:[],lowgamma:[],highgamma:[]} 
+//         let struct = {
+//             tag:tag, 
+//             position:{x:x,y:y,z:z}, 
+//             count:0,
+//             times:[], 
+//             raw:[], 
+//             filtered:[], 
+// 			fftTimes:[], //Separate timing for ffts on workers
+//             ffts:[], 
+//             slices:JSON.parse(JSON.stringify(bands)), 
+//             means:JSON.parse(JSON.stringify(bands))
+//         };
+//         return struct;
+//     }
     
-    createBuffer(){
-        return Array.from(Object.keys(this.eegCoordinates), e => {if (this.channelNames.includes(e)){
-            return []
-        } else {
-            return [NaN]
-        }})
-    }
+//     addEEGCoord(tag,x,y,z){
+// 		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
+// 	}
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.initializeStorage
-     * @description Initialize a data storage container for the session.
-     */
+//     gen10_20Atlas() {
+//         let eegmap = [];
+//         let tags = ["Fp1","Fp2","Fz","F3","F4","F7","F8",
+//                     "Cz","C3","C4","T3","T4","T5","T6","Pz","P3","P4","O1","O2"];
+//         let coords=[[-21.5,70.2,-0.1],[28.4,69.1,-0.4], //MNI coordinates
+//                     [0.6,40.9,53.9],[-35.5,49.4,32.4],
+//                     [40.2,47.6,32.1],[-54.8,33.9,-3.5],
+//                     [56.6,30.8,-4.1],[0.8,-14.7,73.9],
+//                     [-52.2,-16.4,57.8],[54.1,-18.0,57.5],
+//                     [-70.2,-21.3,-10.7],[71.9,-25.2,-8.2],
+//                     [-61.5,-65.3,1.1],[59.3,-67.6,3.8],
+//                     [0.2,-62.1,64.5],[-39.4,-76.3,47.4],
+//                     [36.8,-74.9,49.2],[-26.8,-100.2,12.8],
+//                     [24.1,-100.5,14.1]];
 
-    initializeStorage(){
-        this.storage = {
-            store: false,
-            count: Array(this.usedChannels.length).fill(0),
-            samples: 0,
-            full: false,
-            data: {
-                voltage: this.createBuffer(),
-                time: this.createBuffer()
-            }
-        }
-    }
- 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.loadData
-     * @description Load data passed to the Brain to the correct buffer / container.
-     */
+//         tags.forEach((tag,i) => {
+//             eegmap.push(this.genEEGCoordinateStruct(tag,coords[i][0],coords[i][1],coords[i][2]));
+//         });
 
-    loadData(data) {
-        if ((data.consent !== undefined && data.consent.raw) || this.simulation.on){
-            this.cleared.raw = false;
-            let signal = data.signal
-            let time = data.time
+//         return eegmap;
+//     }
 
-            // drop data if undefined or NaN
-            signal = signal.filter((arr) => {if (!arr.includes(undefined) && !arr.includes(NaN)){return arr}})
+//     genCoherenceMap(channelTags = this.data.eegshared.eegChannelTags, taggedOnly = true) {
+// 		var cmap = [];
+// 		var l = 1, k = 0;
+// 		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []}
+		
+// 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
+// 			if(taggedOnly === false || taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other'))) {
+// 				var coord0 = this.getDataByTag(channelTags[k].tag);
+// 				var coord1 = this.getDataByTag(channelTags[k+l].tag);
 
-            signal.forEach((channelData, channel) => {
-                if (Array.isArray(channelData)) {
-                    if (channelData.length > 0) {
-                        if (Object.keys(data).includes('electrode')){
-                            channel = data.electrode
-                        }
-                        this.data.voltage[this.usedChannels[channel].index].push(...channelData);
-                        this.data.time[this.usedChannels[channel].index].push(...time);
+// 				cmap.push({
+// 					tag: channelTags[k].tag+":"+channelTags[l+k].tag,
+//                     x0: coord0?.position.x,
+//                     y0: coord0?.position.y,
+//                     z0: coord0?.position.z,
+//                     x1: coord1?.position.x,
+//                     y1: coord1?.position.y,
+//                     z1: coord1?.position.z,
+//                     count: 0,
+//                     times:[],
+//                     ffts:[],
+//                     slices: JSON.parse(JSON.stringify(freqBins)),
+//                     means: JSON.parse(JSON.stringify(freqBins))
+// 				});
+// 			}
+// 			l++;
+// 			if (l + k === channelTags.length) {
+// 				k++;
+// 				l = 1;
+// 			}
+// 		}
+// 		return cmap;
+// 	}
 
-                        let tDiff = this.data.time[this.usedChannels[channel].index].length - this.bufferSize
-                        if (tDiff > 0){
-                            this.data.time[this.usedChannels[channel].index].splice(0,tDiff)
-                        }
+// 	genHEGStruct(tag,x,y,z) {
+// 		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[]}
+// 	}
 
-                        let vDiff = this.data.voltage[this.usedChannels[channel].index].length - this.bufferSize
-                        if (vDiff > 0){
-                            this.data.voltage[this.usedChannels[channel].index].splice(0,vDiff)
-                        }
+// 	addHEGCoord(tag="heg1",x,y,z) {
+// 		this.data.heg.push(this.genHEGStruct(tag,x,y,z));
+// 	}
 
-                        if (this.storage.store === true){
-                            let diff = this.storage.samples - this.storage.count[channel];
-                            if (diff > 0){
-                                let pushedData;
-                                let pushedTime;
-                                if (diff < channelData.length){
-                                    pushedData = channelData.splice(0,diff)
-                                    pushedTime = time.splice(0,diff)
-                                } else {
-                                    pushedData = channelData
-                                    pushedTime = time
-                                }
-                                this.storage.data.voltage[this.usedChannels[channel].index].push(...pushedData)
-                                this.storage.data.time.push(...pushedTime)
-                                this.storage.count[channel] += pushedData.length;
-                            }
-                        }
-                    }
-                }
-            })
+// 	genFNIRSStruct(tag,x,y,z) {
+// 		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ir2:[],ambient:[]}
+// 	}
 
-            if (this.usedChannels.length > 0){
-                let timeElapsed = ((Math.max(...this.data.time[this.usedChannels[0].index]) - Math.min(...this.data.time[this.usedChannels[0].index]))/1000)
-                if (timeElapsed > 0){
-                    this.samplerate.estimate = Math.floor(this.data.time[this.usedChannels[0].index].length / timeElapsed)
-                } else {
-                    this.samplerate.estimate = Math.floor(this.samplerate.default)
-                }
-            }
-        } else if (this.cleared.raw === false){
-            this.data.voltage = this.createBuffer()
-            this.data.time = this.createBuffer()
-            this.cleared.raw = true
-        }
+// 	addFNIRSCoord(tag="banana1",x,y,z) {
+// 		this.data.fnirs.push(this.genHEGStruct(tag,x,y,z));
+// 	}
 
-        if ((data.consent !== undefined && data.consent.game) || this.simulation.on){
-            this.cleared.game = false;
-            let arbitraryFields = Object.keys(data)
-            arbitraryFields = arbitraryFields.filter(e => !['signal','time','electrode'].includes(e));
+// 	genAccelerometerStruct(tag,x,y,z) {
+// 		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[]};
+// 	}
 
-            arbitraryFields.forEach((field) =>{
-                this.data[field] = data[field]
-            })
-        } else if (this.cleared.game === false){
-            let voltage = this.data.voltage
-            let time = this.data.time;
-            let electrode = this.data.electrode;
-            this.data = {
-                voltage:voltage,
-                time:time,
-                electrode:electrode
-            };
-            this.cleared.game = true
-        }
-    }
+// 	addAccelerometerCoord(tag="accel1",x,y,z){
+// 		this.data.accelerometer.push(this.genAccelerometerStruct(tag,x,y,z));
+// 	}
 
-        /**
-     * @ignore
-     * @method module:brainsatplay.Game.generateSignal
-     * @description Generate a complex sine wave.
-     */
+// 	genHRVStruct(tag){
+// 		return {tag:tag, times:[], bpm:[], hrv:[]}
+// 	}
 
-    generateSignal(amplitudes = [], frequencies = [], samplerate = 256, duration = 1, phaseshifts = new Array(amplitudes.length).fill(0)) {
-        let al = amplitudes.length;
-        let fl = frequencies.length;
-        let pl = phaseshifts.length;
+// 	addHRV(tag="hrv1") {
+// 		this.data.hrv.push(genHRVStruct(tag));
+// 	}
 
-        if (al !== fl || fl !== pl) {
-            console.error('Amplitude array, frequency array, and phaseshift array must be of the same length.')
-        }
+// 	//ecg,emg,eyetracker
 
-        let signal = new Array(Math.round(samplerate * duration)).fill(0)
+// 	getEEGDataByChannel(ch=0) {
+// 		let found = false;
+// 		let search = this.channelTags.find((o,i) => {
+// 			if(o.ch === ch) {
+// 				found = this.getEEGDataByTag(o.tag);
+// 				return true;
+// 			}
+// 		});
+// 		return found;
+// 	}
 
-        frequencies.forEach((frequency, index) => {
-            for (let point = 0; point < samplerate * duration; point++) {
-                signal[point] += amplitudes[index] * Math.sin(2 * Math.PI * frequency * (point + phaseshifts[index]) / samplerate)
-            }
-        })
+//     //Return the object corresponding to the atlas tag
+// 	getEEGDataByTag(tag="Fp1"){
+// 		var found = undefined;
+// 		let atlasCoord = this.data.eeg.find((o, i) => {
+// 			if(o.tag === tag){
+// 				found = o;
+// 				return true;
+// 			}
+// 		});
+// 		return found;
+// 	}
 
-        signal = signal.map(point => point/fl)
+//     //Return the object corresponding to the atlas tag
+// 	getCoherenceByTag(tag="Fp1:Fpz"){
+// 		var found = undefined;
+// 		let atlasCoord = this.data.coherence.find((o, i) => {
+// 			if(o.tag === tag){
+// 				found = o;
+// 				return true;
+// 			}
+// 		});
+// 		return found;
+// 	}
 
-        return signal
-    }
+//     //Return an array of Array(3)s for each coordinate. Useful e.g. for graphics
+// 	getCoordPositions() {
+// 		var coords = [];
+// 		for(var i = 0; i< this.data.eeg.length; i++) {
+// 			coords.push([this.data.eeg[i].position.x,this.data.eeg[i].position.y,this.data.eeg[i].position.z]);
+// 		}
+// 		return coords;
+// 	}
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Game.generateVoltageStream
-     * @description Generate a synthetic voltage signal for each synthetic brain in the game.
-     */
-    generateVoltageStream() {
-        let userInd = 0
-        let n = 5
-        let freqs;
-        let amps;
-            if (this.simulation.on === true){
-                this.channelNames.forEach((channelName) => {
-                    // Generate frequencies if none are provided
-                    if (this.simulation.frequencies === undefined){
-                        freqs = Array.from({length: n}, e => Math.random() * 50)
-                    } else {
-                        freqs = this.simulation.frequencies
-                    }
+//     //Get the latest data pushed to tagged channels
+// 	getLatestData() {
+// 		var dat = [];
+// 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
+// 			var row = this.getDataByTag(r.tag);
+// 			var lastIndex = row.count - 1;
+// 			dat.push({
+//                 tag:row.tag,
+// 				count:row.count,
+// 				time: row.times[lastIndex],
+// 				fft: row.ffts[lastIndex],
+// 				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
+// 				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
+//                 });
+//             });
+// 		return dat;
+// 	}
 
-                    // Generate amplitudes if none are provided
-                    if (this.simulation.amplitudes === undefined){
-                        amps = Array(n).fill(100)
-                    } else {
-                        amps = this.simulation.amplitudes
-                    }
-                    let samples = this.generateSignal(amps, freqs, this.samplerate.default, this.simulation.duration, Array.from({length: freqs.length}, e => Math.random() * 2*Math.PI))
-                    this.loadData({signal:[samples], time:Array(samples.length).fill(Date.now()),electrode:this.channelNames.indexOf(channelName)})
-                })
-            }
-    }
+//     setDefaultTags() {
+// 		return [
+// 			{ch: 0, tag: null},{ch: 1, tag: null},{ch: 2, tag: null},{ch: 3, tag: null},
+// 			{ch: 4, tag: null},{ch: 5, tag: null},{ch: 6, tag: null},{ch: 7, tag: null},
+// 			{ch: 8, tag: null},{ch: 9, tag: null},{ch: 10, tag: null},{ch: 11, tag: null},
+// 			{ch: 12, tag: null},{ch: 13, tag: null},{ch: 14, tag: null},{ch: 15, tag: null},
+// 			{ch: 16, tag: null},{ch: 17, tag: null},{ch: 18, tag: null},{ch: 19, tag: null},
+// 			{ch: 20, tag: null},{ch: 21, tag: null},{ch: 22, tag: null},{ch: 23, tag: null},
+// 			{ch: 24, tag: null},{ch: 25, tag: null},{ch: 26, tag: null},{ch: 27, tag: null},
+// 			{ch: 28, tag: null},{ch: 29, tag: null},{ch: 30, tag: null},{ch: 31, tag: null}
+// 		];
+// 	}
 
-    /**
-     * @method module:brainsatplay.Brain.getVoltage
-     * @description Returns voltage buffer from the brain (channels x samples)
-     */
+//     getBandFreqs(frequencies) {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
+// 		var scpFreqs = [[],[]], deltaFreqs = [[],[]], thetaFreqs = [[],[]], alpha1Freqs = [[],[]], alpha2Freqs = [[],[]], betaFreqs = [[],[]], lowgammaFreqs = [[],[]], highgammaFreqs = [[],[]]; //x axis values and indices for named EEG frequency bands
+// 		frequencies.forEach((item,idx) => {
+// 			if((item >= 0.1) && (item <= 1)){
+// 				scpFreqs[0].push(item); scpFreqs[1].push(idx);
+// 			}
+// 			else if((item >= 1) && (item <= 4)){
+// 				deltaFreqs[0].push(item); deltaFreqs[1].push(idx);
+// 			}
+// 			else if((item > 4) && (item <= 8)) {
+// 				thetaFreqs[0].push(item); thetaFreqs[1].push(idx);
+// 			}
+// 			else if((item > 8) && (item <= 10)){
+// 				alpha1Freqs[0].push(item); alpha1Freqs[1].push(idx);
+// 			}
+// 			else if((item > 10) && (item <= 12)){
+// 				alpha2Freqs[0].push(item); alpha2Freqs[1].push(idx);
+// 			}
+// 			else if((item > 12) && (item <= 35)){
+// 				betaFreqs[0].push(item); betaFreqs[1].push(idx);
+// 			}
+// 			else if((item > 35) && (item <= 48)) {
+// 				lowgammaFreqs[0].push(item); lowgammaFreqs[1].push(idx);
+// 			}
+// 			else if(item > 48) {
+// 				highgammaFreqs[0].push(item); highgammaFreqs[1].push(idx);
+// 			}
+// 		});
+// 		return {scp: scpFreqs, delta: deltaFreqs, theta: thetaFreqs, alpha1: alpha1Freqs, alpha2: alpha2Freqs, beta: betaFreqs, lowgamma: lowgammaFreqs, highgamma: highgammaFreqs}
+// 	}
 
-    getVoltage(normalize=false, filters=[{type:'notch',freq_notch:50},{type:'notch',freq_notch:60},{type:'bandpass',freq_low:1, freq_high: 50}]){
-        
-        let voltage = this.removeDCOffset(this.data.voltage)
-        if (Array.isArray(filters)){
-            voltage = this.filter(voltage,filters)
-        }
+//     mapFFTData = (fft, lastPostTime, tag) => {
+// 		let atlasCoord = this.data.eeg.find((o, i) => {
+// 		if(o.tag === tag){
+// 			this.data.eeg[i].count++;
+// 			this.data.eeg[i].times.push(lastPostTime);
+// 			this.data.eeg[i].ffts.push(fft);
+// 			if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+// 			var scp = fft.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
+// 			this.data.eeg[i].data.slices.scp.push(scp);
+// 			this.data.eeg[i].data.means.scp.push(eegmath.mean(scp));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+// 			var delta = fft.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
+// 			this.data.eeg[i].slices.delta.push(delta);
+// 			this.data.eeg[i].means.delta.push(eegmath.mean(delta));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.theta[1].length > 0){
+// 			var theta = fft.slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
+// 			this.data.eeg[i].slices.theta.push(theta);
+// 			this.data.eeg[i].means.theta.push(eegmath.mean(theta));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
+// 			var alpha1 = fft.slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
+// 			this.data.eeg[i].slices.alpha1.push(alpha1);
+// 			this.data.eeg[i].means.alpha1.push(eegmath.mean(alpha1));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
+// 			var alpha2 = fft.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
+// 			this.data.eeg[i].slices.alpha2.push(alpha2);
+// 			this.data.eeg[i].means.alpha2.push(eegmath.mean(alpha2));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.beta[1].length > 0){
+// 			var beta  = fft.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
+// 			this.data.eeg[i].slices.beta.push(beta);
+// 			this.data.eeg[i].means.beta.push(eegmath.mean(beta));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
+// 			var lowgamma = fft.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
+// 			this.data.eeg[i].slices.lowgamma.push(lowgamma);
+// 			this.data.eeg[i].means.lowgamma.push(eegmath.mean(lowgamma));
+// 			}
+// 			if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
+// 			var highgamma = fft.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
+// 			this.data.eeg[i].slices.highgamma.push(highgamma);
+// 			this.data.eeg[i].means.highgamma.push(eegmath.mean(highgamma));
+// 			}
+// 			//console.timeEnd("slicing bands");
+// 			return true;
+// 		}
+// 		});
+// 	}
 
-        if (normalize){
-            return this.normalize(voltage)
-        } else {
-            return voltage
-        }
-    }
+//     mapCoherenceData = (data, lastPostTime) => { //Expects data in correct order
+// 		data.forEach((row,i) => {
+// 		  this.data.coherence[i].count++;
+// 		  this.data.coherence[i].amplitudes.push(row);
+// 		  this.data.coherence[i].times.push(lastPostTime);
 
-    /**
-     * @method module:brainsatplay.Brain.getMetric
-     * @description Returns the specified metric.
-     * @param metricName {string} Choose between 'power', 'delta', 'theta', 'alpha', 'beta', 'gamma'
-     */
-    async getMetric(metricName,relative,filters){
-            let dict = {};
-            // Derive Channel Readouts
-            if (metricName === 'power') {
-                dict.channels = this.power(filters,relative)
-            } else if (['delta', 'theta', 'alpha', 'beta', 'gamma'].includes(metricName)) {
-                dict.channels = this.bandpower(metricName, filters, relative)
-            }
-
-            // Get Values of Interest
-            let valuesOfInterest = [];
-            this.usedChannels.forEach((channelInfo) => {
-                valuesOfInterest.push(dict.channels[channelInfo.index])
-            })
-
-            // Derive Average Value
-            let avg = valuesOfInterest.reduce((a, b) => a + b, 0) / valuesOfInterest.length;
-            if (!isNaN(avg)) {
-                dict.average = avg;
-            } else {
-                dict.average = 0;
-            }
-            return dict 
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Brain.normalize
-     * @description Normalizes the passed array between 0 and 1
-     */
-
-    normalize(array) {
-        return array.map((channelData) => {
-            let max = Math.max(...channelData)
-            let min = Math.min(...channelData)
-            if (min !== max) {
-                return channelData.map((val) => {
-                    var delta = max - min;
-                    return ((val - min) / delta)
-                })
-            } else {
-                return channelData.map((val) => {
-                    return val
-                })
-            }
-        })
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Brain.stDev
-     * @description Returns the standard deviation of an array of values. 
-     */
-    stdDev(data, ignoreNaN = true) {
-
-        let dataOfInterest = [];
-        let indicesOfInterest = [];
-        if (ignoreNaN) {
-            data.forEach((val,ind) => {
-                if (!isNaN(val)) {
-                    dataOfInterest.push(val)
-                    indicesOfInterest.push(ind)
-                }
-            })
-        }
-
-        let avg = dataOfInterest.reduce((a, b) => a + b, 0) / dataOfInterest.length;
-        let sqD = dataOfInterest.map(val => {
-            let diff = val - avg;
-            return diff * diff;
-        })
-        let aSqD = sqD.reduce((a, b) => a + b, 0) / sqD.length;
-        let stdDev = Math.sqrt(aSqD);
-        let dev;
-
-        dataOfInterest.forEach((val, ind) => {
-            dev = (val - avg) / stdDev;
-            if (isNaN(dev)) {
-                data[indicesOfInterest[ind]] = 0;
-            } else {
-                data[indicesOfInterest[ind]] = dev;
-            }
-        })
-
-        return data
-    }
+// 		if(this.data.eegshared.bandFreqs.scp[1].length > 0){
+// 		  var scp = row.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
+// 		  this.data.coherence[i].slices.scp.push(scp);
+// 		  this.data.coherence[i].means.scp.push(eegmath.mean(scp));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.delta[1].length > 0){
+// 		  var delta = row.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
+// 		  this.data.coherence[i].slices.delta.push(delta);
+// 		  this.data.coherence[i].means.delta.push(eegmath.mean(delta));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.theta[1].length > 0){
+// 		  var theta = row.slice( this.shared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
+// 		  this.data.coherence[i].slices.theta.push(theta);
+// 		  this.data.coherence[i].means.theta.push(eegmath.mean(theta));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
+// 		  var alpha1 = row.slice( this.shared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
+// 		  this.data.coherence[i].slices.alpha1.push(alpha1);
+// 		  this.data.coherence[i].means.alpha1.push(eegmath.mean(alpha1));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
+// 		  var alpha2 = row.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
+// 		  this.data.coherence[i].slices.alpha2.push(alpha2);
+// 		  this.data.coherence[i].means.alpha2.push(eegmath.mean(alpha2));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.beta[1].length > 0){
+// 		  var beta  = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
+// 		  this.data.coherence[i].slices.beta.push(beta);
+// 		  this.data.coherence[i].means.beta.push(eegmath.mean(beta));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
+// 		  var lowgamma = row.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
+// 		  this.data.coherence[i].slices.lowgamma.push(lowgamma);
+// 		  this.data.coherence[i].means.lowgamma.push(eegmath.mean(lowgamma));
+// 		}
+// 		if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
+// 		  var highgamma = row.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
+// 		  this.data.coherence[i].slices.highgamma.push(highgamma);
+// 		  this.data.coherence[i].means.highgamma.push(eegmath.mean(highgamma));
+// 		}
+// 		});
+// 	}
     
-    /**
-     * @method module:brainsatplay.Brain.power
-     * @description Returns voltage power.
-     */
-    power(filters, relative = false) {
+//     //Returns the x axis (frequencies) for the bandpass filter amplitudes. The window gets stretched or squeezed between the chosen frequencies based on the sample rate in my implementation.
+// 	bandpassWindow(freqStart,freqEnd,nSteps) {
 
-            let voltage = this.getVoltage(false,filters);
-            let power = new Array(Object.keys(this.eegCoordinates).length);
-            voltage.forEach((channelData,ind) => {
-                power[ind] = channelData.reduce((acc, cur) => acc + (Math.pow(cur, 2) / 2), 0) / channelData.length
-            })
+// 		var freqEnd_nyquist = freqEnd*2;
+// 		var fftwindow = [];
+// 		  for (var i = 0; i < Math.ceil(0.5*nSteps); i++){
+// 			  fftwindow.push(freqStart + (freqEnd_nyquist-freqStart)*i/(nSteps));
+// 		  }
+// 		return fftwindow;
+// 	}
 
-            if (relative) {
-                power = this.stdDev(power, true)
-            }
+// 	bufferEEGSignals = (seconds=1) => { //Buffers 1 second of tagged eeg signals. Data buffered in order of objects in the eeg array
+// 		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
+// 		let buffer = [];
+// 		let syncTime = null;
+// 		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
+// 			if(this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
+// 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
+// 				if(dat !== undefined) {
+// 					//console.log(dat);
+// 					if(dat.filtered.length > 0) {buffer.push(dat.filtered.slice(dat.filtered.count-nSamples,dat.filtered.length));}
+// 					else if (dat.raw.length > 0) {buffer.push(dat.raw.slice(dat.raw.length-nSamples,dat.raw.length));}
+// 					if(syncTime === null) {
+// 						syncTime = dat.times[dat.times.length-1];
+// 					}
+// 				}
+// 			}
+// 		}
+// 		if(this.analyzing === true) { this.workerPostTime = syncTime; }
+// 		return buffer;
+// 	} 
 
-            return power
-    }
+// 	workerOnMessage(msg) {
+// 		if(msg.origin === this.name) {
+// 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
+// 				//parse data into atlas
+// 				var ffts = [...msg.output[1]];
+// 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
+// 					if(row.tag !== null && row.tag !== 'other') {
+// 						this.mapFFTData(ffts,this.workerPostTime,row.tag);
+// 					}
+// 				});
+// 			}
+// 			else if(msg.foo === "coherence"){ 
+// 				var ffts = [...msg.output[1]];
+// 				var coher = [...msg.output[2]];
+// 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
+// 					if(row.tag !== null && row.tag !== 'other') {
+// 						this.mapFFTData(ffts,this.workerPostTime,row.tag);
+// 					}
+// 					this.mapCoherenceData(coher,this.workerPostTime);
+// 				});
+// 				//coherence
+// 			}
+// 			this.workerWaiting = false;
+// 		}
+// 	}
 
-    /**
-     * @method module:brainsatplay.Brain.bandpower
-     * @description Returns bandpower in the specified EEG band.
-     */
-    bandpower(band, filters,relative=true) {
+// 	addDefaultAnalyzerFuncs() {
+// 		let fftFunc = () => {
+// 			if(this.workerWaiting === false){
+// 				let buf = this.bufferEEGSignals(1);
+// 				window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+// 				//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+// 				this.workerWaiting = true;
+// 			}
+// 		}
+// 		let coherenceFunc = () => {
+// 			if(this.workerWaiting === false){
+// 				let buf = this.bufferEEGSignals(1);
+// 				window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+// 				this.workerWaiting = true;
+// 			}
+// 		}	
+// 		//add other worker functions (see eegworker.js)
 
-            let voltage =this.getVoltage(false,filters);
-            let bandpower = new Array(Object.keys(this.eegCoordinates).length).fill(NaN);
-            
-            voltage.forEach((channelData,ind) => {
-                if (channelData.length > this.samplerate.estimate/2 || channelData.length === this.bufferSize){ // Check with Nyquist sampling theorem
-                    if (!channelData.includes(NaN)){
-                        bandpower[ind] = bci.bandpower(channelData, this.samplerate.estimate, band, {relative: relative});
-                    }
-                }
-            })
+// 		this.analyzerFuncs.push(fftFunc,coherenceFunc);
+// 		//'bcijs_bandpowers','bcijs_pca','heg_pulse'
+// 	}
 
-            // NOTE: How to keep this...
-            // if (relative) {
-            //     bandpower = this.stdDev(bandpower)
-            // }
-            return bandpower
-    }
+// 	analyzer = () => {
+// 		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
 
-    /**
-     * @ignore
-     * @method module:brainsatplay.Brain.filter
-     * @description Filters the passed EEG channel data with the specified filters
-     */
-    filter(data, filterArray){
-        let dataRed = data.filter(channelData => !isNaN(channelData[0]))
-        if (dataRed.length !== 0){
-            let filters = filterArray;
-            filterArray.forEach((dict,ind) => {
-                if (dict.filter === 'notch'){
-                    filters[ind] = new Biquad('notch',parameters[ind].freq_notch,this.samplerate.estimate,Biquad.calcNotchQ(parameters[ind].freq_notch,1),0);
-                } else if (dict.filter === 'bandpass'){
-                    filters[ind] = new Biquad('bandpass',
-                    Biquad.calcCenterFrequency(parameters[ind].freq_low,parameters[ind].freq_high),
-                    this.samplerate.estimate,
-                    Biquad.calcBandpassQ(Biquad.calcCenterFrequency(parameters[ind].freq_low,parameters[ind].freq_high),Biquad.calcBandwidth(parameters[ind].freq_low,parameters[ind].freq_high),9.75),
-                    0);
-                }
-            })
-
-            dataRed.forEach((channelData,ind) => {
-                let wave_filtered = channelData
-                channelData.forEach((amp,i) => {
-                    filterArray.forEach((dict,ind) => {
-                        if (dict.filter === 'notch'){
-                            wave_filtered[i] = notch.applyFilter(channelData[i]);
-                        }
-                        else if (dict.filter === 'bandpass'){
-                            wave_filtered[i] = 4*filters[ind].applyFilter(filters[ind].applyFilter(filters[ind].applyFilter(filters[ind].applyFilter(wave_filtered[i])))); //Need to rescale the outputs for some reason but otherwise it's accurate
-                        }
-                    })
-                })
-                data[this.usedChannels[ind].index] = wave_filtered
-            })
-        }
-        return data
-    }
-
-    /**
-     * @ignore
-     * @method module:brainsatplay.Brain.removeDCOffset
-     * @description Removes the average from each voltage buffer
-     */
-    removeDCOffset(voltages){
-        voltages = voltages.map(buffer => {
-            let mean = buffer.reduce((a, b) => a + b, 0) / buffer.length;
-            return buffer.map(point => point-mean)
-        })
-        return voltages
-    }
-
-    /**
-     * @method module:brainsatplay.Brain.blink
-     * @description Returns a Boolean array indicating the detection of a blink (works only with Muse headbands)
-     */
-
-    blink() {
-        let leftChannels = ['Af7','Fp1'] // Left
-        let rightChannels = ['Af8','Fp2'] // Right
-        let sideChannels = [leftChannels,rightChannels]
-        let blinks = [false,false]
-        let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
-
-        if (Date.now() - this.blink.lastBlink > 2*this.blink.duration){
-            let voltage = this.getVoltage()
-        sideChannels.forEach((channels,ind) => {
-                if (this.channelNames.includes(...channels)){
-                    let channelInd = this.usedChannels[this.channelNames.indexOf(...channels)].index
-                    let buffer = voltage[channelInd]
-                    let lastTwenty = buffer.slice(buffer.length-this.blink.duration)
-                    let max = Math.max(...lastTwenty.map(v => Math.abs(v)))
-                    blinks[ind] = (max > this.blink.threshold) * (quality[channelInd] > 0)
-                }
-            })
-            this.blink.lastBlink = Date.now()
-        }
-        
-        return blinks
-    }
-
-    /**
-     * @method module:brainsatplay.Brain.contactQuality
-     * @description Returns an array of values between 0 and 1 indicating signal quality for each EEG electrode.
-     */
-
-    contactQuality(threshold=100,sizeSlice=this.bufferSize){
-        let quality = Array.from({length: Object.keys(this.eegCoordinates).length}, e => NaN);
-        let voltage = this.getVoltage();
-        this.usedChannels.forEach((channelDict) => {
-            let buffer = voltage[channelDict.index]
-            buffer = buffer.slice(buffer.length-sizeSlice);
-            let aveAmp = buffer.reduce((a, b) => a + Math.abs(b), 0) / buffer.length
-            quality[channelDict.index] = 1 - Math.max(0, Math.min(1, aveAmp / threshold))
-        })
-
-    return quality
-    }
-
-    /**
-     * @method module:brainsatplay.Brain.setData
-     * @description Set the arbitrary data passed about this brain to other connected clients.
-     */
-    setData(dict){
-        let reserved = ['voltage','time','electrode','consent']
-        Object.keys(dict).forEach(key => {
-            if (!reserved.includes(key)){
-                this.data[key] = dict[key]
-            }
-        })
-    }
-}
+// 		this.analysis.forEach((run,i) => {
+// 			this.analyzerOpts.forEach((opt,j) => {
+// 				if(opt === run) {
+// 					this.analyzerFuncs[j]();
+// 				}
+// 			});
+// 		});
+			
+// 		setTimeout(()=>{requestAnimationFrame(this.analyzer)},20);
+// 	}
+// }

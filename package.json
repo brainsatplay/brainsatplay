@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node --max-old-space-size=4096 info && parcel ./src/index.html",
+    "serve": "node --max-old-space-size=4096 info && parcel build ./src/index.html && node src/server.mjs",
     "build": "parcel build ./src/index.html",
     "postbuild": "workbox generateSW",
     "compile": "webpack --mode production"
@@ -37,6 +38,7 @@
     "postprocessing": "^6.17.4",
     "serve-favicon": "^2.5.0",
     "smoothie": "^1.35.0",
+    "src": "^1.1.2",
     "three": "^0.121.1",
     "tslib": "^2.0.3",
     "uplot": "^1.4.0",

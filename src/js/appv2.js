@@ -40,11 +40,11 @@ import {MuseClient} from 'muse-js'
 
 export class brainsatplay {
 	constructor(
-		username='guest',
+		username='',
 		password='',
 		access='public',
 		appname='',
-		remoteHostURL='https://brainsatplay.azurewebsites.net/',
+		remoteHostURL='http://localhost:8080',//https://brainsatplay.azurewebsites.net/',
 		localHostURL='http://127.0.0.1:8000'
 	) {
 		this.devices = [];
@@ -98,43 +98,11 @@ export class brainsatplay {
 
 	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
-		if(this.info.authenticated === false) {
-			baseURL = this.checkURL(baseURL);
-			let json = JSON.stringify(dict);
-
-			let response = await fetch(baseURL + 'login',
-				{
-					method: 'POST',
-					mode: 'cors',
-					headers: new Headers({
-						'Accept': 'application/json',
-						'Content-Type': 'application/json'
-					}),
-					body: json
-				}).then((res) => {
-				return res.json().then((message) => message);
-			})
-				.then((message) => {
-					return message;
-				})
-				.catch(function (err) {
-					console.error(`\n`+err.message);
-				});
-
-			if (response.result === 'OK') {
-				this.info.auth.username = response.msg;
-				this.info.auth.authenticated = true;
-
-				//Connect to websocket
-				this.socket = this.setupWebSocket();
-				this.info.subscribed=true;
-			}
-			return response;
-		}
-		else {
-			this.socket = this.setupWebSocket();
-		}
-		
+		//Connect to websocket
+		this.socket = this.setupWebSocket(dict);
+		this.info.auth.authenticated = true;
+		this.subscribed=true;
+		this.info.nDevices++;
 	} 
 
 	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
@@ -194,47 +162,52 @@ export class brainsatplay {
         }
 	}
 
-	setupWebSocket() {
+	setupWebSocket(auth=this.info.auth) {
 
 		let socket = null;
-		let cookies = [];
-		cookies = [this.info.auth.username,this.info.auth.password,this.info.auth.appname];
-
-		if (this.info.auth.url.protocol === 'http:') {
-            socket = new WebSocket(`ws://` + this.info.auth.url.hostname, cookies);
-        } else if (this.info.auth.url.protocol === 'https:') {
-            socket = new WebSocket(`wss://` + this.info.auth.url.hostname, cookies);
+        let subprotocol = ['username'+auth.username,
+        'password'+auth.password,
+        'appname'+auth.appname];
+		if (auth.url.protocol === 'http:') {
+            socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
+        } else if (auth.url.protocol === 'https:') {
+            socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
         } else {
             console.log('invalid protocol')
             return;
         }
 
-		socket.onmessage((e) => {
-			//console.log(e.data);
-		});
-		socket.onopen((e) => {
-			console.log("Logged in and ready to stream!");
-		});
-		socket.onclose((e) => {
-			console.log("Connection lost")
-		});
-		socket.onerror((e) => {
-			console.error(e.data);
-			alert("Connection to server could not be made: ", e.data);
-		});
+        socket.onerror = () => {
+            console.log('error')
+        };
+
+        socket.onopen = () => {
+            console.log('ping')
+            socket.send(JSON.stringify({msg:'ping'}))
+        };
+
+        socket.onmessage = (msg) => {
+            let obj = JSON.parse(msg.data);
+            console.log(obj.msg)
+        }
+
+        socket.onclose = (msg) => {
+            console.log('close')
+        }
+
 		return socket;
 	}
 
-	sendWSCommandOld(socket=this.socket, command='',dict={}){
+	sendWSCommand(socket=this.socket, command='',dict={}){
 		if(socket.status){
 			if(command === 'initializeBrains') {
 				socket.send(JSON.stringify({'destination':'initializeBrains','public':this.auth.access === 'public'}))
 			}
 			else if (command === 'bci') {
 				dict.destination = 'bci';
-				dict.id = this.info.auth.username;
-				dict.consent = this.info.auth.consent;
-				if(this.info.auth.consent.game === true) {
+				dict.id = auth.username;
+				dict.consent = auth.consent;
+				if(auth.consent.game === true) {
 					//let reserved = ['voltage','time','electrode','consent'];
 					//let me = this.brains[this.info.access].get(this.me.username);
 					//if (me !== undefined){
