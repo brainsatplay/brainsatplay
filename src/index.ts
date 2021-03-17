@@ -6,6 +6,10 @@ import 'regenerator-runtime/runtime'
 // import './js/utils/gpuUtils.js'
 // import './js/eegworker.js'
 
+
+import './app.js'
+
+
 // GF: Snowpack requires us to set this ourselves...
 window.process = { env: {NODE_ENV: 'development' }}
 
