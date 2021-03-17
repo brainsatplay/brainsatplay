@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "postbuild": "workbox generateSW",
-    "compile": "webpack --mode production"
+    "webpack": "webpack --mode production"
   },
   "author": "",
   "license": "ISC",
@@ -40,6 +40,7 @@
     "normalize.css": "^8.0.1",
     "path": "^0.12.7",
     "postprocessing": "^6.17.4",
+    "script-loader": "^0.7.2",
     "serve-favicon": "^2.5.0",
     "smoothie": "^1.35.0",
     "snowpack": "^3.0.13",

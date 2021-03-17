@@ -3,11 +3,11 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    main: path.join(__dirname, 'library', 'src','brainsatplay.mjs'),
+    main: path.join(__dirname, 'src', 'js','appv2.js'),
   },
   output: {
     filename: 'brainsatplay.js',
-    path: path.join(__dirname, 'library'),
+    path: path.join(__dirname, 'brainsatplay'),
     publicPath: '/',
     library: 'brainsatplay',
   },
