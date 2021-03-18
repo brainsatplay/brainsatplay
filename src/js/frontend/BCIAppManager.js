@@ -9,7 +9,7 @@
 //Setup BrowserFS logic for indexedDB
 
 
-import {StateManager} from './utils/StateManager'
+import {State} from './State'
 import {UIManager} from './utils/UIManager'
 
 /*
@@ -32,7 +32,7 @@ export class BCIAppManager {
         appletConfigs=[]   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
 
-        this.state;
+        this.state = State;
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         this.appletConfigs.push(...this.getConfigsFromHashes());
@@ -41,15 +41,6 @@ export class BCIAppManager {
 
         this.bcisession;
 
-    }
-
-    initState = () => { 
-        //Allows you to subscribe to keys in the state for UI handling
-        //e.g. let subscriptionIdx = this.state.addToState('x',1,onchange); 
-        //then this.state.unsubscribe('x',subscriptionIdx);
-        this.state = new StateManager({
-
-        });
     }
 
     setupUITemplates = () => {
@@ -90,8 +81,8 @@ export class BCIAppManager {
     }
 
     setApps(
-        appletClasses=[],  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
-        appletConfigs=[]   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
+        appletClasses=this.appletClasses,  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletConfigs=this.appletConfigs   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;

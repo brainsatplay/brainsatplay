@@ -1,4 +1,4 @@
-import {State} from './StateOld'
+import {State} from './State'
 //import {applyFilter, IIRNotchFilter, IIRLowPassFilter} from '../utils/signal_analysis/IIRFilter'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../bciutils/signal_analysis/BiquadFilters'
 
