@@ -33,13 +33,12 @@ export class BCIAppManager {
     ) {
 
         this.state = State;
+        this.bcisession = null; //Device sessions
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         this.appletConfigs.push(...this.getConfigsFromHashes());
         this.uiManager;
         this.fs;
-
-        this.bcisession;
 
     }
 
