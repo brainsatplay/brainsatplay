@@ -73,14 +73,14 @@ export class BCIAppManager {
             this.deinitUI,
             this.appletClasses,
             this.appletConfigs,
-            ['app1','app2','app3','app4'],
+            undefined,
             'BCIAppManager'
         )
     }
 
     setApps(
         appletClasses=this.appletClasses,  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
-        appletConfigs=this.appletConfigs   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
+        appletConfigs=this.appletConfigs   //expects an object array like           [{name:"uPlot Applet",idx:0-3,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;

@@ -4,7 +4,7 @@ import {DOMFragment} from '../utils/DOMFragment'
 //Example Applet for integrating with the UI Manager
 export class AppletExample {
     constructor(
-        parent=document.body,
+        parent=document.body, 
         settings=[],
         bci=undefined
     ) {
@@ -20,7 +20,6 @@ export class AppletExample {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             buttonOutput: 0 //Add whatever else
         };
-
 
     }
 
