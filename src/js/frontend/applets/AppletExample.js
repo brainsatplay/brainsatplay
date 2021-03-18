@@ -1,20 +1,20 @@
-import {State} from '../State'                      // Shared values
+import {State, addEEGCoordToState} from '../State'                      // Shared values
 import {DOMFragment} from '../utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
-export class AppletTemplate {
+export class AppletExample {
     constructor(
         parent=document.body,
         settings=[],
-        bcisession=null
+        bci=null
     ) {
     
-        //-----Keep these----- 
+        //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
-        this.bcisession = bcisession; //Reference to the BCI session
+        this.bci = bci; //Reference the brainsatplay session to access data
         this.AppletHTML = null;
-        //---------------------
+        //------------------------
 
         this.props = { //changes to this will auto update the HTML
             id: String(Math.floor(Math.random()*1000000)), //Keep

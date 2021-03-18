@@ -32,7 +32,6 @@ export class BCIAppManager {
         appletConfigs=[]   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
 
-        this.state = State;
         this.bcisession = null; //Device sessions
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
