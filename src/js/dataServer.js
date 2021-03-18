@@ -7,6 +7,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 	}
 
 	addUser(username='',appname='',socket=null,availableProps=[]) {
+
+        socket = this.setWSBehavior(username, socket)
         
         if (!this.userData.has(username)){
             this.userData.set(username, {
@@ -24,7 +26,21 @@ class dataServer { //Just some working concepts for handling data sockets server
         }
 
 
-	}
+    }
+    
+    setWSBehavior(username, socket){
+        if (socket != null){
+            socket.on('message', (s) => {
+                let o = JSON.parse(s);
+                this.processUserCommand(username,o.msg)
+            });
+
+            socket.on('close', (s) => {
+                this.removeUser(username)
+            });
+        }
+        return socket
+    }
 
     removeUser(username='username') {
         this.userData.delete(username)

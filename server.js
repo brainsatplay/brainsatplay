@@ -135,16 +135,6 @@ wss.on('connection', function (ws, msg, request) {
 
   let username = msg.username
   let appname = msg.appname
-
-  // specify websocket behavior
-  ws.on('message', function (s) {
-    let o = JSON.parse(s);
-    dataServ.processUserCommand(username,o.msg)
-  });
-
-  ws.on('close', function () {
-    dataServ.removeUser(username)
-  });
   
   // add user
   dataServ.addUser(username,appname,ws)
