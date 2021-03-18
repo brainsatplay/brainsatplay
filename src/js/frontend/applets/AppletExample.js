@@ -17,9 +17,7 @@ export class AppletExample {
         //------------------------
 
         this.props = { //changes to this will auto update the HTML
-            id: String(Math.floor(Math.random()*1000000)), //Keep
-            width: "100px", //Keep
-            height: "100px", //Keep
+            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             buttonOutput: 0 //Add whatever else
         };
 
@@ -35,7 +33,7 @@ export class AppletExample {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-                <div id='Example_`+props.id+`' height='`+props.height+`' width='`+props.width+`' style='background-color:green; color:red;'>
+                <div id='Example_`+props.id+`' style='height:100%; width:100%; background-color:green; color:red;'>
                     Test
                 </div>
                 <button id='Button_`+props.id+`'>ClickMe</button>
@@ -74,8 +72,8 @@ export class AppletExample {
 
     onresize() {
         //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.renderProps.width;
-        //canvas.height = this.renderProps.height;
+        //canvas.width = this.AppletHTML.node.clientWidth;
+        //canvas.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
