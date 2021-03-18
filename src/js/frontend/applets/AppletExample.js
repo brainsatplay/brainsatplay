@@ -12,7 +12,7 @@ export class AppletExample {
         //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference the brainsatplay session to access data
+        this.bci = bci; //Reference to the brainsatplay session to access data
         this.AppletHTML = null;
         //------------------------
 
@@ -32,6 +32,7 @@ export class AppletExample {
 
     init() {
 
+        //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
                 <div id='Example_`+props.id+`' height='`+props.height+`' width='`+props.width+`' style='background-color:green; color:red;'>
@@ -42,6 +43,7 @@ export class AppletExample {
             `;
         }
 
+        //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             document.getElementById("Button_"+props.id).onclick = () => {
                 props.buttonOutput++;
@@ -49,28 +51,34 @@ export class AppletExample {
             }   
         }
 
-        this.AppletHTML = new DOMFragment(
-            HTMLtemplate,
-            this.parentNode,
-            this.props,
-            setupHTML,
-            undefined,
-            "NEVER"//Changes to this.props will automatically update the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles it
+        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+            HTMLtemplate,       //Define the html template string or function with properties
+            this.parentNode,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER"     //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); }
+
+
+        //Add whatever else you need to initialize
     
     }
 
     deinit() {
-
+        this.AppletHTML.deleteNode();
+        //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     onresize() {
-
+        //let canvas = document.getElementById(this.props.id+"canvas");
+        //canvas.width = this.renderProps.width;
+        //canvas.height = this.renderProps.height;
     }
 
-    configure(settings) {
+    configure(settings) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
@@ -80,4 +88,5 @@ export class AppletExample {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    //doSomething(){}
 } 
