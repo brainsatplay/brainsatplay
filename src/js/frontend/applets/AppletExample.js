@@ -16,10 +16,12 @@ export class AppletExample {
         this.AppletHTML = null;
         //------------------------
 
-        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values
+        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             buttonOutput: 0 //Add whatever else
         };
+
+        //etc..
 
     }
 
