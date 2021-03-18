@@ -1,10 +1,10 @@
-import {State} from './State'
+import {State} from './StateOld'
 //import {applyFilter, IIRNotchFilter, IIRLowPassFilter} from '../utils/signal_analysis/IIRFilter'
-import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../utils/signal_analysis/BiquadFilters'
+import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from '../bciutils/signal_analysis/BiquadFilters'
 
-import {eeg32, eegAtlas} from '../utils/eeg32'
+import {eeg32, eegAtlas} from '../bciutils/eeg32'
 
-import {cyton} from '../utils/hardware_compat/cyton'
+import {cyton} from '../bciutils/hardware_compat/cyton'
 
 
 export var EEG = new eeg32( //cyton(

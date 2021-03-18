@@ -64,10 +64,10 @@ export class StateManager {
     }
 
     //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
-    addToState(key, value, setPrimaryKeyResponse=null, debug=false) {
+    addToState(key, value, onchange=null, debug=false) {
         this.data[key] = value;
-        if(setPrimaryKeyResponse !== null){
-            this.setPrimaryKeyResponse(key,setPrimaryKeyResponse,debug);
+        if(onchange !== null){
+            return this.addSecondaryKeyResponse(key,onchange,debug);
         }
     }
 

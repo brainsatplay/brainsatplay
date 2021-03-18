@@ -1,6 +1,6 @@
-import {State} from '../frontend/State'
-import {EEG, ATLAS} from '../frontend/EEGInterface'
-import {DOMFragment} from '../frontend/DOMFragment'
+import {State} from '../State'
+import {EEG, ATLAS} from '../EEGInterfaceOld'
+import {DOMFragment} from '../utils/DOMFragment'
 
 //You can extend or call this class and set renderProps and these functions
 export class Applet {

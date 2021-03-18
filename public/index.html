@@ -60,6 +60,7 @@
     </script>
 
 <script type="module">
+  let workerURL = './_dist_/js/bciutils/eegworker.js';
 
   //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
   //console.log(window.workers);
@@ -71,7 +72,7 @@
   try {
     window.workers = [];
     for(var i = 0; i < window.threads; i++){
-      window.workers.push(new Worker(new URL('./_dist_/js/utils/eegworker.js', import.meta.url),
+      window.workers.push(new Worker(new URL(workerURL, import.meta.url),
       {
         name:'eegworker_'+window.workers.length, 
         type: 'module',
@@ -93,9 +94,9 @@
     //console.log(err);
   }
 
-  window.addWorker = () => {
+  window.addWorker = (workerurl=workerURL) => {
     try {
-      window.workers.push(new Worker(new URL('./_dist_/js/utils/eegworker.js', import.meta.url),
+      window.workers.push(new Worker(new URL(workerurl, import.meta.url),
       {
         name:'eegworker_'+window.workers.length, 
         type: 'module',
