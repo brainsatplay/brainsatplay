@@ -1,5 +1,5 @@
 
-import {brainsatplay} from './js/appv2.js'
+import {brainsatplay} from './js/brainsatplayv2.js'
 import {DOMFragment} from './js/frontend/DOMFragment.js'
 
 let connectHTML = `

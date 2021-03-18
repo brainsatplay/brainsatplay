@@ -21,12 +21,10 @@
 </head>
 <body>
 
-  <script type="module" src="/_dist_/index.js"></script>
+<script type="module" src="/_dist_/index.js"></script>
 
-<script type="module">
+<script>
   
-
-  import * as eegWorker from './_dist_/js/utils/eegworker'
   // https://developers.google.com/web/tools/workbox/modules/workbox-cli
   // it is needed because parcel will not recognize this as a file and not precess in its manner
   const sw = "/service-worker.js";
@@ -59,18 +57,21 @@
       console.error("Error during service worker registration:", error);
     });
 
-//window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
-//console.log(window.workers);
-window.workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
+    </script>
 
-window.threads = 2; //Make multiple workers for big tasks
-window.threadrot = 0;
+<script type="module">
+
+  //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
+  //console.log(window.workers);
+  window.workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
+
+  window.threads = 2; //Make multiple workers for big tasks
+  window.threadrot = 0;
   //WebWorker only works when hosted (e.g. with node)
-  
   try {
     window.workers = [];
     for(var i = 0; i < window.threads; i++){
-      window.workers.push(new Worker(eegWorker));
+      window.workers.push(new Worker(new URL('./_dist_/js/utils/eegworker.js', import.meta.url)));
       workers[i].onmessage = (e) => {
         var msg = e.data;
         //console.log(msg)
@@ -90,7 +91,7 @@ window.threadrot = 0;
 
   window.addWorker = () => {
     try {
-      window.workers.push(new Worker(eegWorker));
+      window.workers.push(new Worker(new URL('./_dist_/js/utils/eegworker.js', import.meta.url),{name:'eegworker', type: 'module',}));
         workers[i].onmessage = (e) => {
           var msg = e.data;
           //console.log(msg)

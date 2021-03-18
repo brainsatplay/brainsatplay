@@ -39,7 +39,7 @@ class dataServer { //Just some working concepts for handling data sockets server
     }
 
     
-    processUserCommand(username='',command=[]) { //Commands should be an array of arguments
+    processUserCommand(username='',command=[]) { //Commands should be an array of arguments 
         let u = this.userData.get(username);
         if(command[0] === 'getUsers') {
             let users = [];

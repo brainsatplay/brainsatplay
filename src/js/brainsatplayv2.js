@@ -186,7 +186,7 @@ export class brainsatplay {
 
         socket.onopen = () => {
             console.log('ping');
-            socket.send(JSON.stringify({msg:['ping']}));
+            socket.send(JSON.stringify({msg:['ping'],username:this.info.auth.username}));
         };
 
         socket.onmessage = (msg) => {
@@ -228,7 +228,7 @@ export class brainsatplay {
 				dict = JSON.stringify(dict);
 				this.socket.send(dict);
 			} else {
-				this.socket.send(JSON.stringify({msg:command}))
+				this.socket.send(JSON.stringify({msg:command,username:this.info.auth.username}));
 			}
 		}
 	}
@@ -442,7 +442,8 @@ class deviceStream {
 	}
 
 	init = (device,useFilters,pipeToAtlas) => {
-		
+
+
 		if(device.indexOf("FreeEEG32") > -1) {
 			this.sps = 512;
 			if(device === "FreeEEG32_2") { 
@@ -481,18 +482,23 @@ class deviceStream {
 							});
 							if(this.useAtlas === true) {
 								let coord;
-								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag);								
-								} else { coord = this.atlas.getEEGDataByChannel(o.ch); }
-								coord.filtered.push(latestFiltered);
-								coord.raw.push(latest);
+								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
+								else { coord = this.atlas.getEEGDataByChannel(o.ch); }
+								coord.count = this.device.data.count;
+								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
+								coord.filtered.push(...latestFiltered);
+								//console.log(coord);
+								coord.raw.push(...latest);
 							}
 						}
 						else {
 							if(this.useAtlas === true) {
-								let coord;
-								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag);								
-								} else { coord = this.atlas.getEEGDataByChannel(o.ch); }								
-								coord.raw.push(latest);
+								console.log(o);
+								let coord = this.atlas.getEEGDataByChannel(o.ch); 
+								console.log(coord);
+								coord.count = this.device.data.count;
+								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
+								coord.raw.push(...latest);
 							}
 						}
 					});
@@ -535,7 +541,7 @@ class deviceStream {
 
 		}
 
-
+				
 		if(pipeToAtlas === true) {
 			let eegConfig;
 			if(device === 'muse') { eegConfig = 'muse'; }
@@ -551,6 +557,7 @@ class deviceStream {
 			this.useAtlas = true;
 			this.configureDefaultStreamTable();
 		}
+
 
 		if(this.streaming === true) this.streamLoop();
 	}
@@ -789,6 +796,17 @@ class dataAtlas {
             this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
         }
 
+		if(this.data.eegshared.eegChannelTags) { //add structs for non-specified channels
+			this.data.eegshared.eegChannelTags.forEach((row,i) => {
+				if( this.getEEGDataByTag(row.tag) === false ) {
+					console.log(row);
+					this.addEEGCoord(row.ch);
+					console.log(this.data.eeg)
+				}
+			});
+		}
+		
+
 		this.analyzing = runAnalyzer;
 		this.analysis = analysis;
 		this.analyzerOpts = []; //'eegfft','eegcoherence','bcijs_bandpower','bcijs_pca','heg_pulse'
@@ -806,7 +824,7 @@ class dataAtlas {
 		}
     }
 
-    genEEGCoordinateStruct(tag,x,y,z){
+    genEEGCoordinateStruct(tag,x=0,y=0,z=0){
         let bands = {scp:[],delta:[],theta:[],alpha1:[],alpha2:[],beta:[],lowgamma:[],highgamma:[]} 
         let struct = {
             tag:tag, 
@@ -826,7 +844,7 @@ class dataAtlas {
         return struct;
     }
     
-    addEEGCoord(tag,x,y,z){
+    addEEGCoord(tag,x=999,y=999,z=999){
 		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
 	}
 
@@ -1042,10 +1060,15 @@ class dataAtlas {
 
 	getEEGDataByChannel(ch=0) {
 		let found = false;
-		let search = this.channelTags.find((o,i) => {
+		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
-				found = this.getEEGDataByTag(o.tag);
-				return true;
+				if(o.tag === null || o.tag === 'other') {
+					found = this.getEEGDataByTag(o.ch);
+				}
+				else { 
+					found = this.getEEGDataByTag(o.tag);
+				}
+				if(found !== false) return true;
 			}
 		});
 		return found;
@@ -1053,7 +1076,7 @@ class dataAtlas {
 
     //Return the object corresponding to the atlas tag
 	getEEGDataByTag(tag="FP1"){
-		var found = undefined;
+		var found = false;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
 				found = o;

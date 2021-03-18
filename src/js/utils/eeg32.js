@@ -43,8 +43,8 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 
 		this.maxBufferedSamples = this.sps*60*5; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 		
-		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.counter-1]
-			counter: 0,
+		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
+			count: 0,
 			startms: 0,
 			ms: [],
 			'A0': [],'A1': [],'A2': [],'A3': [],'A4': [],'A5': [],'A6': [],'A7': [], //ADC 0
@@ -67,7 +67,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 	}
 	
 	resetDataBuffers(){
-		this.data.counter = 0;
+		this.data.count = 0;
 		this.data.startms = 0;
 		for(const prop in this.data) {
 			if(typeof this.data[prop] === "object"){
@@ -89,13 +89,13 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 	getLatestData(channel="A0",count=1) { //Return slice of specified size of the latest data from the specified channel
 		let ct = count;
 		if(ct <= 1) {
-			return this.data[channel][this.data.counter-1];
+			return [this.data[channel][this.data.count-1]];
 		}
 		else {
-			if(ct > this.data.counter) {
-				ct = this.data.counter;
+			if(ct > this.data.count) {
+				ct = this.data.count;
 			}
-			return this.data[channel].slice(this.data.counter-ct,this.data.counter);
+			return this.data[channel].slice(this.data.count-ct,this.data.count);
 		}
 	}
 
@@ -139,15 +139,15 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
 
 					//line found, decode.
-					if(this.data.counter < this.maxBufferedSamples){
-						this.data.counter++;
+					if(this.data.count < this.maxBufferedSamples){
+						this.data.count++;
 					}
 
-					if(this.data.counter-1 === 0) {this.data.ms[this.data.counter-1]= Date.now(); this.data.startms = this.data.ms[0];}
+					if(this.data.count-1 === 0) {this.data.ms[this.data.count-1]= Date.now(); this.data.startms = this.data.ms[0];}
 					else {
-						this.data.ms[this.data.counter-1]=this.data.ms[this.data.counter-2]+this.updateMs;
+						this.data.ms[this.data.count-1]=this.data.ms[this.data.count-2]+this.updateMs;
 						
-						if(this.data.counter >= this.maxBufferedSamples) {
+						if(this.data.count >= this.maxBufferedSamples) {
 							this.data.ms.splice(0,5120);
 							this.data.ms.push(new Array(5120).fill(0));
 						}
@@ -155,27 +155,27 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 				
 					for(var i = 3; i < 99; i+=3) {
 						var channel = "A"+(i-3)/3;
-						this.data[channel][this.data.counter-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
-						if(this.data.counter >= this.maxBufferedSamples) { 
+						this.data[channel][this.data.count-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
+						if(this.data.count >= this.maxBufferedSamples) { 
 							this.data[channel].splice(0,5120);
 							this.data[channel].push(new Array(5120).fill(0));//shave off the last 10 seconds of data if buffer full (don't use shift())
 						}
-							//console.log(this.data[channel][this.data.counter-1],indices[k], channel)
+							//console.log(this.data[channel][this.data.count-1],indices[k], channel)
 					}
 
-					this.data["Ax"][this.data.counter-1]=this.bytesToInt16(line[99],line[100]);
-					this.data["Ay"][this.data.counter-1]=this.bytesToInt16(line[101],line[102]);
-					this.data["Az"][this.data.counter-1]=this.bytesToInt16(line[103],line[104]);
+					this.data["Ax"][this.data.count-1]=this.bytesToInt16(line[99],line[100]);
+					this.data["Ay"][this.data.count-1]=this.bytesToInt16(line[101],line[102]);
+					this.data["Az"][this.data.count-1]=this.bytesToInt16(line[103],line[104]);
 
 					
-					if(this.data.counter >= this.maxBufferedSamples) { 
+					if(this.data.count >= this.maxBufferedSamples) { 
 						this.data["Ax"].splice(0,5120);
 						this.data["Ay"].splice(0,5120);
 						this.data["Az"].splice(0,5120);
 						this.data["Ax"].push(new Array(5120).fill(0))
 						this.data["Ay"].push(new Array(5120).fill(0))
 						this.data["Az"].push(new Array(5120).fill(0))
-						this.data.counter -= 5120;
+						this.data.count -= 5120;
 					}
 					//console.log(this.data)
 					newLines++;
@@ -512,7 +512,7 @@ export class eegAtlas {
 		var raw = [];
 		this.channelTags.forEach((row,i) => {
 			var ch = 'A' + row.ch;
-			raw.push(this.data[ch].slice(this.data[ch][this.data.counter-1]-nSamples,this.data[ch].length));
+			raw.push(this.data[ch].slice(this.data[ch][this.data.count-1]-nSamples,this.data[ch].length));
 		});
 		return raw;
 	}
