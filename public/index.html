@@ -79,7 +79,7 @@
       workers[i].onmessage = (e) => {
         var msg = e.data;
         //console.log(msg)
-        window.receivedMsg(msg);
+        //window.receivedMsg(msg);
         window.workerResponses.forEach((foo,i) => {
           foo(msg);
         })
@@ -103,7 +103,7 @@
         workers[i].onmessage = (e) => {
           var msg = e.data;
           //console.log(msg)
-          window.receivedMsg(msg);
+          //window.receivedMsg(msg);
           window.workerResponses.forEach((foo,i) => {
             foo(msg);
           })
