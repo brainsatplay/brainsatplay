@@ -6,7 +6,7 @@ export class AppletExample {
     constructor(
         parent=document.body,
         settings=[],
-        bci=null
+        bci=undefined
     ) {
     
         //-------Keep these------- 
@@ -16,7 +16,7 @@ export class AppletExample {
         this.AppletHTML = null;
         //------------------------
 
-        this.props = { //changes to this will auto update the HTML
+        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             buttonOutput: 0 //Add whatever else
         };
@@ -32,9 +32,10 @@ export class AppletExample {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
+            let name = this.bci.devices[0].name; if(name===undefined) name='BCI';
             return `
                 <div id='Example_`+props.id+`' style='height:100%; width:100%; background-color:green; color:red;'>
-                    Test
+                    Test `+name+`
                 </div>
                 <button id='Button_`+props.id+`'>ClickMe</button>
                 <div id='Output_`+props.id+`'>`+props.buttonOutput+`</button>
