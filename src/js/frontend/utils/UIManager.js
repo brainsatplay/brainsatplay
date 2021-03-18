@@ -122,6 +122,12 @@ export class UIManager {
         });
     }
 
+    deinitApplets() {
+        this.applets.forEach((applet,i) => {
+            this.deinitApplet(i);
+        })
+    }
+
     reinitApplets = () => {
         this.applets.forEach((applet,i) => {
             applet.classinstance.deinit();

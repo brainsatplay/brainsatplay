@@ -77,11 +77,12 @@ export class brainsatplay {
 
 	connect(
 		device="FreeEEG32_2", //"FreeEEG32","FreeEEG32_19","muse"
+		analysis=['eegfft'], //'eegfft','eegcoherence',etc
 		streaming=false,
 		streamParams=[['EEG_Ch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
 		pipeToAtlas=true,
-		analysis=['eegfft'] //'eegfft','eegcoherence',etc
+		
 		) {
 			if(streaming === true) {
 				console.log(this.socket)

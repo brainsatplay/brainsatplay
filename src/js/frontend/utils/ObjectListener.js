@@ -159,7 +159,7 @@ export class ObjectListener {
 
 //Instance of an object listener. This will subscribe to object properties (or whole objects) and run attached functions when a change is detected.
 export class ObjectListenerInstance {
-    constructor(object,propName="__ANY__",onchange=this.onchange,interval="FRAMERATE",debug="false") {
+    constructor(object,propName="__ANY__",onchange=this.onchange,interval="FRAMERATE",debug=false) {
         this.debug=debug;
 
         this.onchange = onchange; //Main onchange function

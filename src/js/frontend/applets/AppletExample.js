@@ -1,12 +1,24 @@
 //Example Applet for integrating with the UI manager
-class AppletExample {
-    constructor(settings=[]) {
-
+export class AppletExample {
+    constructor(
+        appendTo=document.body,
+        settings=[]
+    ) {
 
     }
 
-    init() {
+    //Required template functions
 
+    init() {
+        this.AppletHTML = 
+            new DOMFragment(
+                this.HTMLtemplate,
+                this.parentNode,
+                this.renderProps,
+                ()=>{this.setupHTML();},
+                undefined,
+                "NEVER"
+                ); //Changes to this.props will automatically update the html template if "NEVER" is changed to "FRAMERATE" or another value
     }
 
     deinit() {
@@ -23,7 +35,7 @@ class AppletExample {
         });
     }
 
-    //Add anything else for internal use
+    //Add anything else for internal use below
 
 
 } 
