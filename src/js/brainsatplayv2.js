@@ -316,13 +316,13 @@ export class brainsatplay {
 		
 	}
 
-	subscribeToGame(appname='') {
-		//check that the user has the correct deviceconfig
+	subscribeToGame(appname='',spectating=false) {
 		this.socket.send(JSON.stringify([this.info.auth.username,'getGameData',appname]));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(newResult.msg === 'gameData' && newResult.appname === 'appname') {
-				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname]));
+				
+				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname,spectating]));
 				newResult.gameData.usernames.forEach((user) => {
 					newResult.gameData.usernames.forEach((prop) => {
 						this.state[user+"_"+prop] = null;
@@ -337,7 +337,7 @@ export class brainsatplay {
 		});
 	}
 
-	configureStreamForGame(appname='') {
+	configureStreamForGame(appname='') { //Set stream parameters based on what the game wants
 
 	}
 

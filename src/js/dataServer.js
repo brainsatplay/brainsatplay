@@ -114,7 +114,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             this.streamBetweenUsers(username,command[1],command[2]);
         }
         else if(command[0] === 'subscribeToGame') {
-            this.subscribeUserToGame(username,command[1]);
+            this.subscribeUserToGame(username,command[1],command[2]);
         } else if( command[0] === 'ping' || command === 'ping') {
             u.socket.send(JSON.stringify({msg:'pong'}))
         }
@@ -180,6 +180,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.gameSubscriptions.push({
 			appname:appname,
             usernames:[],
+            spectators:[], //usernames of spectators
 			propnames:propnames,
             lastTransmit:Date.now()
 		});
@@ -194,11 +195,12 @@ class dataServer { //Just some working concepts for handling data sockets server
 		return g;
 	}
 
-	subscribeUserToGame(username,appname) {
+	subscribeUserToGame(username,appname,spectating=false) {
 		let g = this.getGameSubscription(appname);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
 			g.usernames.push(username);
+            if(spectating === true) g.spectators.push(username);
 			
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
@@ -240,18 +242,24 @@ class dataServer { //Just some working concepts for handling data sockets server
                 let updateObj = {
                     msg:'gameData',
                     appname:sub.appname,
-                    userData:[]
+                    userData:[],
+                    spectators:[]
                 };
                 
                 sub.usernames.forEach((user,j) => {
-                    let userObj = {
-                        username:user
+                    if(sub.spectators.indexOf(user) < -1){
+                        let userObj = {
+                            username:user
+                        }
+                        let listener = this.userData.get(user);
+                        sub.propnames.forEach((prop,k) => {
+                            userObj[prop] = listener.props[prop];
+                        });
+                        updateObj.userData.push(userObj);
                     }
-                    let listener = this.userData.get(user);
-                    sub.propnames.forEach((prop,k) => {
-                        userObj[prop] = listener.props[prop];
-                    });
-                    updateObj.userData.push(userObj);
+                    else {
+                        spectators.push(user);
+                    }
                 });
 
                 sub.userNames.forEach((user,j) => {
