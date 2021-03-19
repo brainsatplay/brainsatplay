@@ -31,7 +31,7 @@ let ui = new DOMFragment(
 	'NEVER'
 );
 
-
+//BACKEND
 
 //Test atlas stuff again since minor tweakages were made
 //Test server streaming data to
@@ -44,5 +44,7 @@ let ui = new DOMFragment(
 //Test bcisession integrated into applet with all of the above bells and whistles tested
 //Update applets to new templates & referencing rules
 //Build out menus and stuff, make it fly as hell
+
+//THEN
 
 //Add HEG support & port features to new template structure
