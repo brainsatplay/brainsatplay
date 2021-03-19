@@ -130,10 +130,11 @@ export class StateManager {
 
     //Unsubscribe from the given key using the index of the response saved from the subscribe() function
     unsubscribe(key, responseIdx=null) {
-        this.removeSecondaryKeyResponse(key, responseIdx);
+        if(responseIdx !== null) this.removeSecondaryKeyResponse(key, responseIdx);
+        else console.error("Specify a subcription function index");
     }
 
-    unsubscribeAll(key) {
+    unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
     }
 

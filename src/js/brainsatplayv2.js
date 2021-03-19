@@ -313,8 +313,6 @@ export class brainsatplay {
 				console.log("User not found: ", username);
 			}
 		});
-
-		
 	}
 
 	subscribeToGame(appname='',spectating=false) {

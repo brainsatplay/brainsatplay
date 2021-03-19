@@ -151,6 +151,7 @@ export class ObjectListener {
                 }
             });
             indices.reverse().forEach((idx) => {
+                this.listeners[idx].stop();
                 this.listeners.splice(idx,1);
             });
         }
