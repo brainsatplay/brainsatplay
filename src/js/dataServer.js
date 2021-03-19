@@ -143,13 +143,22 @@ class dataServer { //Just some working concepts for handling data sockets server
         else if (command[0] === 'createGame') {
             this.createGameSubscription(command[1],command[2],command[3]);
         }
-        else if (command[0] === 'getGameData') {
+        else if (command[0] === 'getGameInfo') {
             let sub = this.getGameSubscription(command[1]);
             if(sub === undefined) {
                 u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:command[1],gameData:sub}));
+                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:command[1],gameData:sub}));
+            }
+        }
+        else if (command[0] === 'getGameData') {
+            let gameData = this.getGameData(command[1]);
+            if(gameData === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:command[1],gameData:gameData}));
             }
         }
         else if(command[0] === 'subscribeToUser') {
@@ -253,6 +262,40 @@ class dataServer { //Just some working concepts for handling data sockets server
 		});
 		return g;
 	}
+
+    getGameData(appname='') {
+        let gameData = undefined;
+        let s = this.gameSubscriptions.find((sub,i) => {
+            if(sub.appname === appname) {
+                let updateObj = {
+                    msg:'gameData',
+                    appname:sub.appname,
+                    devices:sub.devices,
+                    userData:[],
+                    spectators:[]
+                };
+                
+                sub.usernames.forEach((user,j) => {
+                    if(sub.spectators.indexOf(user) < -1){
+                        let userObj = {
+                            username:user
+                        }
+                        let listener = this.userData.get(user);
+                        sub.propnames.forEach((prop,k) => {
+                            userObj[prop] = listener.props[prop];
+                        });
+                        updateObj.userData.push(userObj);
+                    }
+                    else {
+                        spectators.push(user);
+                    }
+                });
+                gameData = updateObj;
+                return true;
+            }
+        });
+        return gameData;
+    }
 
 	subscribeUserToGame(username,appname,spectating=false) {
 		let g = this.getGameSubscription(appname);

@@ -123,7 +123,7 @@ export class brainsatplay {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,callback=()=>{}) => {
+	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=()=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
@@ -144,9 +144,9 @@ export class brainsatplay {
 					
 					if(coord !== undefined) {
 						if(prop === null) {
-							sub=this.state.addToState(atlasTag,coord,callback);
+							sub=this.state.addToState(atlasTag,coord,onData);
 						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only
-							sub=this.state.addToState(atlasTag,coord[prop],callback);
+							sub=this.state.addToState(atlasTag,coord[prop],onData);
 						}
 					}
 					return true;
@@ -256,6 +256,9 @@ export class brainsatplay {
 		else if (parsed.msg === 'getGameDataResult') {
 			this.state.commandResult = parsed;
 		}
+		else if (parsed.msg === 'getGameInfoResult') {
+			this.state.commandResult = parsed;
+		}
 		else if (parsed.msg === 'subscribedToUser') {
 			this.state.commandResult = parsed;
 		}
@@ -333,7 +336,6 @@ export class brainsatplay {
 			if(newResult.msg === 'getUsersResult') {
 				if(newResult.userData[0] === username) {
 					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
-					
 				}
 				onsuccess();
 				this.state.unsubscribe('commandResult',sub);
@@ -346,19 +348,20 @@ export class brainsatplay {
 	}
 
 	subscribeToGame(appname='',spectating=false,onsuccess=()=>{}) {
-		this.socket.send(JSON.stringify([this.info.auth.username,'getGameData',appname]));
+		this.socket.send(JSON.stringify([this.info.auth.username,'getGameInfo',appname]));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'gameData' && newResult.appname === 'appname') {
+			if(newResult.msg === 'getGameInfoResult' && newResult.appname === 'appname') {
 				
 				if(spectating === false) {
 					//check that this user has the correct streaming configuration with the correct connected device
+					this.configureStreamForGame(appname,newResult.gameData.propnames); //Expected propnames like ['EEG_Ch_FP1','EEG_FFT_FP2']
 				}
 
 				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname,spectating]));
 				newResult.gameData.usernames.forEach((user) => {
-					newResult.gameData.usernames.forEach((prop) => {
-						this.state[user+"_"+prop] = null;
+					newResult.gameData.propnames.forEach((prop) => {
+						this.state[appname+"_"+user+"_"+prop] = null;
 					});
 				});
 				onsuccess();
@@ -405,8 +408,8 @@ export class brainsatplay {
 		});
 	}
 
-	configureStreamForGame(appname='') { //Set local device stream parameters based on what the game wants
-
+	configureStreamForGame(appname='',streamParams=[]) { //Set local device stream parameters based on what the game wants
+		
 	}
 
 	sendWSCommand(command='',dict={}){
@@ -445,7 +448,7 @@ export class brainsatplay {
 		this.socket.close();
 	}
 
-	getUsersOld(dict={ //
+	getUsersOld(dict={ 
 		destination:'initializeBrains',
 		appname:'',
 		msg:'',
@@ -887,7 +890,7 @@ class deviceStream {
 	configureStreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
 		props.forEach((prop,i) => {
-			propsToSend.push(this.deviceName+"_"+prop[0]+"_"+prop[1]);
+			propsToSend.push(prop[0]+"_"+prop[1]);
 		});
 		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.info.auth.username}));
 	}
@@ -905,11 +908,12 @@ class deviceStream {
 				if(param[0].indexOf(option.prop) > -1) {
 					let args = [...param].shift();
 					let result = option.callback(...args);
-					if(result !== undefined) streamObj[this.info.deviceName+"_"+param.prop+"_"+tag] = result;
+					if(result !== undefined) streamObj[param.prop+"_"+tag] = result;
 					return true;
 				}
 			});
 		});
+		
 		this.socket.send(JSON.stringify(streamObj));
 	}
 
