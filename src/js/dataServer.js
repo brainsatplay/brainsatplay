@@ -101,6 +101,9 @@ class dataServer { //Just some working concepts for handling data sockets server
                 u.socket.send(JSON.stringify(result));
             }
         }
+        else if (command[0] === 'createGame') {
+            this.createGameSubscription(command[1],command[2],command[3]);
+        }
         else if (command[0] === 'getGameData') {
             let sub = this.getGameSubscription(command[1]);
             if(sub === undefined) {
@@ -176,9 +179,10 @@ class dataServer { //Just some working concepts for handling data sockets server
         }
 	}
 
-	createGameSubscription(appname='',propnames=[]) {
+	createGameSubscription(appname='',devices=[],propnames=[]) {
 		this.gameSubscriptions.push({
 			appname:appname,
+            devices:devices,
             usernames:[],
             spectators:[], //usernames of spectators
 			propnames:propnames,
@@ -242,6 +246,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 let updateObj = {
                     msg:'gameData',
                     appname:sub.appname,
+                    devices:sub.devices,
                     userData:[],
                     spectators:[]
                 };

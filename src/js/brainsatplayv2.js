@@ -231,6 +231,7 @@ export class brainsatplay {
 		}
 		else if (parsed.msg === 'gameData') {
 			this.state.data[parsed.appname+"_userData"] = parsed.userData;
+			this.state.data[parsed.appname+"_spectators"] = parsed.spectators;
 		}
 		else if (parsed.msg === 'getUserDataResult') {
 			this.state.commandResult = parsed;
@@ -342,7 +343,7 @@ export class brainsatplay {
 		});
 	}
 
-	configureStreamForGame(appname='') { //Set stream parameters based on what the game wants
+	configureStreamForGame(appname='') { //Set local device stream parameters based on what the game wants
 
 	}
 
