@@ -109,6 +109,9 @@ export class brainsatplay {
 					this.info.auth
 				)
 			);
+
+			//Device info accessible from state
+			this.state.addToState("device"+this.devices.length,this.devices[this.devices.length-1].info);
 			
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
@@ -319,7 +322,7 @@ export class brainsatplay {
 		return socket;
 	}
 
-	subscribeToUser(username='',userProps=[]) { // if successful, props will be available in state under this.state.data['username_prop']
+	subscribeToUser(username='',userProps=[],onsuccess=()=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		this.socket.send(JSON.stringify([this.info.auth.username,'getUsers',username]));
 		userProps.forEach((prop) => {
@@ -332,6 +335,7 @@ export class brainsatplay {
 					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
 					
 				}
+				onsuccess();
 				this.state.unsubscribe('commandResult',sub);
 			}
 			else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
@@ -341,7 +345,7 @@ export class brainsatplay {
 		});
 	}
 
-	subscribeToGame(appname='',spectating=false) {
+	subscribeToGame(appname='',spectating=false,onsuccess=()=>{}) {
 		this.socket.send(JSON.stringify([this.info.auth.username,'getGameData',appname]));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
@@ -357,7 +361,7 @@ export class brainsatplay {
 						this.state[user+"_"+prop] = null;
 					});
 				});
-
+				onsuccess();
 				this.state.unsubscribe('commandResult',sub);
 			}
 			else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
@@ -367,7 +371,7 @@ export class brainsatplay {
 		});
 	}
 
-	unsubscribeFromUser(username='',userProps=null) { //unsubscribe from user entirely or just from specific props
+	unsubscribeFromUser(username='',userProps=null,onsuccess=()=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
 		let sub = this.state.subscribe('commandResult',(newResult) => {
@@ -378,12 +382,13 @@ export class brainsatplay {
 						this.state.data[prop] = undefined;
 					}
 				}
+				onsuccess();
 				this.state.unsubscribe('commandResult',sub);
 			}
 		});
 	}
 
-	unsubscribeFromGame(appname='') {
+	unsubscribeFromGame(appname='',onsuccess=()=>{}) {
 		//send unsubscribe command
 		this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
 		let sub = this.state.subscribe('commandResult',(newResult) => {
@@ -394,6 +399,7 @@ export class brainsatplay {
 						this.state.data[prop] = undefined;
 					}
 				}
+				onsuccess();
 				this.state.unsubscribe('commandResult',sub);
 			}
 		});
@@ -618,24 +624,29 @@ class deviceStream {
 		}
 	) {
 
-		this.deviceName = device;
+		this.info = {
+			deviceName : device,
 
-		this.device = null; //Device object, can be instance of eeg32, MuseClient, etc.
-		this.streaming = streaming;
-		this.streamParams = streamParams; //[['EEG_Ch','FP1','all'],['EEG_FFT','AF7','all']]
-		this.socket = socket; //Store sockets here for use
+			streaming : streaming,
+			streamParams : streamParams, //[['EEG_Ch','FP1','all'],['EEG_FFT','AF7','all']]
+	
+			eegChannelTags : [],
+			streamLoopTiming : 100, //ms between update checks
+	
+			auth : auth,
+			sps : null,
+			useFilters : useFilters,
+			useAtlas : false,
+			simulating = false,
+		};
 
-		this.streamTable=[];
-		this.streamLoopTiming = 100; //ms between update checks
-
-		this.auth = auth;
-		this.sps = null;
-		this.useFilters = useFilters;
-		this.useAtlas = false;
-		this.filters = [];
-		this.eegChannelTags = [];
+		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
+		
+		this.socket = socket;
+		
+		this.streamTable=[]; //tags and callbacks for streaming
+		this.filters = [];   //biquadChannelFilterers 
 		this.atlas = null;
-		this.simulating = false;
 
 		this.init(device,useFilters,pipeToAtlas,analysis);
 	}
@@ -644,23 +655,23 @@ class deviceStream {
 
 
 		if(device.indexOf("freeeeg32") > -1) {
-			this.sps = 512;
+			this.info.sps = 512;
 			if(device === "freeeeg32_2") { 
-				this.eegChannelTags = [
+				this.info.eegChannelTags = [
 					{ch: 4, tag: "FP2", analyze:true},
 					{ch: 24, tag: "FP1", analyze:true},
 					{ch: 8, tag: "other", analyze:false}
 				];
 			}
 			else if (device === 'freeeeg32_19') {
-				this.eegChannelTags = [
+				this.info.eegChannelTags = [
 					{ch: 4, tag: "FP2", analyze:true},
 					{ch: 24, tag: "FP1", analyze:true},
 					{ch: 8, tag: "other", analyze:false}
 				];
 			}
 			else {
-				this.eegChannelTags = [
+				this.info.eegChannelTags = [
 					{ch: 4, tag: "FP2", analyze:true},
 					{ch: 24, tag: "FP1", analyze:true},
 					{ch: 8, tag: "other", analyze:false}
@@ -668,10 +679,10 @@ class deviceStream {
 			}
 			this.device = new eeg32(
 				(newLinesInt) => {
-					this.eegChannelTags.forEach((o,i) => {
+					this.info.eegChannelTags.forEach((o,i) => {
 						let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
 						let latestFiltered = new Array(latest.length).fill(0);
-						if(o.tag !== "other" && this.useFilters === true) { 
+						if(o.tag !== "other" && this.info.useFilters === true) { 
 							this.filters.forEach((f,j) => {
 								if(f.channel === "A"+o.ch) {
 									latest.forEach((sample,k) => { 
@@ -679,7 +690,7 @@ class deviceStream {
 									});
 								}
 							});
-							if(this.useAtlas === true) {
+							if(this.info.useAtlas === true) {
 								let coord;
 								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
 								else { coord = this.atlas.getEEGDataByChannel(o.ch); }
@@ -713,17 +724,17 @@ class deviceStream {
 			if(useFilters === true) {
 				this.eegChannelTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,true,this.device.uVperStep));
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,true,this.device.uVperStep));
 					}
 					else { 
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.sps,false,this.device.uVperStep)); 
+						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
 		}
 		else if(device === "muse") {
-			this.sps = 256;
-			this.eegChannelTags = [
+			this.info.sps = 256;
+			this.info.eegChannelTags = [
 				{ch: 0, tag: "T9", analyze:true},
 				{ch: 1, tag: "AF7", analyze:true},
 				{ch: 2, tag: "AF8", analyze:true},
@@ -749,7 +760,7 @@ class deviceStream {
 			else if(device.indexOf('freeeeg32') > -1) {	eegConfig = '10_20'; }
 			this.atlas = new dataAtlas(
 				location+":"+device,
-				{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},
+				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
 				eegConfig,true,true,
 				analysis
 				);
@@ -761,20 +772,20 @@ class deviceStream {
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
 			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
 			
-			this.useAtlas = true;
+			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
 		}
 
 
-		if(this.streaming === true) this.streamLoop();
+		if(this.info.streaming === true) this.streamLoop();
 	}
 
 	async connect() {
 	
-		if(this.deviceName === "freeeeg32_2" || this.deviceName === "freeeeg32_19") {
+		if(this.info.deviceName === "freeeeg32_2" || this.info.deviceName === "freeeeg32_19") {
 			await this.device.setupSerialAsync();
 		}
-		else if (this.deviceName === "muse") {
+		else if (this.info.deviceName === "muse") {
 			//connect muse and begin streaming
 			await this.device.connect();
 			await this.device.start();
@@ -788,9 +799,10 @@ class deviceStream {
 
 			});
 		}
-		else if (this.deviceName === "cyton" || this.deviceName === "ganglion") {
+		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
 		}
+		this.info.connected = true;
 		this.onConnect();
 		
 	}
@@ -799,7 +811,7 @@ class deviceStream {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (channel,nSamples='all') => {
 			let get = nSamples;
-			if(this.useAtlas === true) {
+			if(this.info.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
 					coord = this.atlas.getEEGDataByChannel(channel);
@@ -824,7 +836,7 @@ class deviceStream {
 
 		let getEEGFFTData = (channel,nArrays='all') => {
 			let get = nArrays;
-			if(this.useAtlas === true) {
+			if(this.info.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
 					coord = this.atlas.getEEGFFTData(channel);
@@ -847,7 +859,7 @@ class deviceStream {
 
 		let getCoherenceData = (tag, nArrays='all') => {
 			let get = nArrays;
-			if(this.useAtlas === true) {
+			if(this.info.useAtlas === true) {
 				let coord = this.atlas.getCoherenceByTag(tag);
 				if(get === 'all') {
 					get = coord.fftCount-coord.lastRead;
@@ -877,7 +889,7 @@ class deviceStream {
 		props.forEach((prop,i) => {
 			propsToSend.push(this.deviceName+"_"+prop[0]+"_"+prop[1]);
 		});
-		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.auth.username}));
+		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.info.auth.username}));
 	}
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
@@ -885,7 +897,7 @@ class deviceStream {
 	sendDataToSocket(params=[['prop','tag','count']],dataObj={}) {
 		let streamObj = {
 			msg:'data',
-			username:this.auth.username
+			username:this.info.auth.username
 		};
 		Object.assign(streamObj,dataObj); //Append any extra data not defined by parameters from the stream table
 		params.forEach((param,i) => {
@@ -893,7 +905,7 @@ class deviceStream {
 				if(param[0].indexOf(option.prop) > -1) {
 					let args = [...param].shift();
 					let result = option.callback(...args);
-					if(result !== undefined) streamObj[this.deviceName+"_"+param.prop+"_"+tag] = result;
+					if(result !== undefined) streamObj[this.info.deviceName+"_"+param.prop+"_"+tag] = result;
 					return true;
 				}
 			});
@@ -905,8 +917,8 @@ class deviceStream {
 	sendDataToServerOld(times=[],signals=[],electrodes='',fields='') {
 		this.socket.send(JSON.stringify({
 			destination:'bci',
-			id:this.auth.username,
-			consent:this.auth.consent,
+			id:this.info.auth.username,
+			consent:this.info.auth.consent,
 			time:times,
 			signal:signals,
 			electrode:electrodes,
@@ -916,8 +928,8 @@ class deviceStream {
 
 	streamLoop(prev={}) {
 		let params = [];
-		if(this.streamParams.length === 0) { console.error('No stream parameters set'); return false;}
-		this.streamParams.forEach(([param],i) => {
+		if(this.info.streamParams.length === 0) { console.error('No stream parameters set'); return false;}
+		this.info.streamParams.forEach(([param],i) => {
 			let c = this.streamTable.find((o,i) => {
 				let newParam = [...param];
 				if(o.prop === param[0]) {
@@ -928,13 +940,13 @@ class deviceStream {
 		});
 		if(params.length > 0) { this.sendDataToSocket(params); }
 
-		setTimeout(() => {this.streamLoop();}, this.streamLoopTiming);
+		setTimeout(() => {this.streamLoop();}, this.info.streamLoopTiming);
 	}
 
 	simulateData() {
 		let delay = 100;
-		if(this.simulating === true) {
-			let nSamplesToSim = Math.floor(this.sps*delay/1000);
+		if(this.info.simulating === true) {
+			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
 			for(let i = 0; i<nSamplesToSim; i++) {
 				//For each tagged channel generate fake data
 				//let sample = Math.sin(i*Math.PI/180);
@@ -944,12 +956,13 @@ class deviceStream {
 	}
 
 	disconnect() {
-		if(this.deviceName.indexOf("FreeEEG") > -1) {
+		if(this.info.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
-		else if (this.deviceName.indexOf("muse") > -1) {
+		else if (this.info.deviceName.indexOf("muse") > -1) {
 			this.device.disconnect(); 
 		}
+		this.info.connected = false;
 		this.onDisconnect();
 	}
 
