@@ -38,7 +38,6 @@ import {eeg32, eegmath} from './bciutils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './bciutils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
 import {StateManager} from './frontend/utils/StateManager'
-import { State } from './frontend/State'
 
 
 export class brainsatplay {
@@ -106,7 +105,8 @@ export class brainsatplay {
 					this.socket,
 					streamParams,
 					analysis,
-					this.info.auth)
+					this.info.auth
+				)
 			);
 			
 			this.devices[this.devices.length-1].connect();
@@ -324,7 +324,7 @@ export class brainsatplay {
 			if(newResult.msg === 'gameData' && newResult.appname === 'appname') {
 				
 				if(spectating === false) {
-					//check that this user has the correct streaming configuration 
+					//check that this user has the correct streaming configuration with the correct connected device
 				}
 
 				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname,spectating]));
