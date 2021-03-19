@@ -251,10 +251,22 @@ export class brainsatplay {
 		else if (parsed.msg === 'subscribedToGame') {
 			this.state.commandResult = parsed;
 		}
+		else if (parsed.msg === 'leftGame') {
+			this.state.commandResult = parsed;
+		}
+		else if (parsed.msg === 'gameDeleted') {
+			this.state.commandResult = parsed;
+		}
+		else if (parsed.msg === 'unsubscribed') {
+			this.state.commandResult = parsed;
+		}
 		else if (parsed.msg === 'gameNotFound') {
 			this.state.commandResult = parsed;
 		}
 		else if (parsed.msg === 'pong') {
+			console.log(parsed.msg);
+		}
+		else {
 			console.log(parsed.msg);
 		}
 	}
@@ -341,20 +353,36 @@ export class brainsatplay {
 		});
 	}
 
-	unsubscribeFromUser(username='',userProps=[]) { //unsubscribe from user entirely or just from specific props
+	unsubscribeFromUser(username='',userProps=null) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
-		//on success:
+		this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
+		let sub = this.state.subscribe('commandResult',(newResult) => {
+			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+				for(const prop in this.state.data) {
+					if(prop.indexOf(username) > -1) {
+						this.state.unsubscribeAll(prop);
+						this.state.data[prop] = undefined;
+					}
+				}
+				this.state.unsubscribe('commandResult',sub);
+			}
+		});
 	}
 
 	unsubscribeFromGame(appname='') {
 		//send unsubscribe command
-		//on success:
-		for(const prop in this.state.data) {
-			if(prop.indexOf(appname) > -1) {
-				this.state.unsubscribeAll(prop);
-				this.state.data[prop] = undefined;
+		this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
+		let sub = this.state.subscribe('commandResult',(newResult) => {
+			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+				for(const prop in this.state.data) {
+					if(prop.indexOf(appname) > -1) {
+						this.state.unsubscribeAll(prop);
+						this.state.data[prop] = undefined;
+					}
+				}
+				this.state.unsubscribe('commandResult',sub);
 			}
-		}
+		});
 	}
 
 	configureStreamForGame(appname='') { //Set local device stream parameters based on what the game wants
