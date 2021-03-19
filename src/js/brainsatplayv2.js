@@ -299,6 +299,9 @@ export class brainsatplay {
 			if(newResult.msg === 'getUsersResult') {
 				if(newResult.userData[0] === username) {
 					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
+					userProps.forEach((prop) => {
+						this.state[username+"_"+prop] = null;
+					});
 				}
 				this.state.unsubscribe('commandResult',sub);
 			}
