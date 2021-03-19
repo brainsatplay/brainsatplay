@@ -133,10 +133,8 @@ export class brainsatplay {
 			let device = this.devices.find((o,i) => {
 				if (o.name === deviceName && o.useAtlas === true) {
 					let coord = undefined;
-					if(atlasTag.indexOf('shared') > -1 )
-						coord = o.atlas.getDeviceDataByTag(atlasTag,null);
-					else 
-						coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
+					if(atlasTag.indexOf('shared') > -1 )coord = o.atlas.getDeviceDataByTag(atlasTag,null);
+					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
 					
 					if(coord !== undefined) {
 						if(prop === null) {
@@ -155,6 +153,10 @@ export class brainsatplay {
 
 	unsubscribe = (tag='FP1',sub) => {
 		this.state.unsubscribe(tag,sub);
+	}
+
+	unsubscribeAll = (tag='FP1') => {
+		this.state.unsubscribeAll(tag);
 	}
 
 	//Server login and socket initialization
