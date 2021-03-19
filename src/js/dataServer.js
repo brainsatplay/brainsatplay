@@ -265,10 +265,10 @@ class dataServer { //Just some working concepts for handling data sockets server
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.sockets.get('user').send(JSON.stringify({msg:'subscribedToGame',appname:appname,propnames:g.propnames}));
+			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,propnames:g.propnames}));
 		}
 		else {
-			u.sockets.get('user').send(JSON.stringify({msg:'gameNotFound',appname:appname}));
+			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
 		}
 	}
 
@@ -289,7 +289,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     sub.propnames.forEach((prop,j) => {
                         dataToSend[prop] = source.props[prop];
                     });
-                    listener.get('user').send(JSON.stringify(dataToSend));
+                    listener.get('user').socket.send(JSON.stringify(dataToSend));
                     sub.newData = false;
                     sub.lastTransmit = time;
                 }
@@ -323,13 +323,13 @@ class dataServer { //Just some working concepts for handling data sockets server
                 });
 
                 sub.userNames.forEach((user,j) => {
-                    user.sockets.get('user').send(JSON.stringify(updateObj));
+                    user.socket.send(JSON.stringify(updateObj));
                 });
             }
             sub.lastTransmit = time;
 		});
 
-		requestAnimationFrame(this.subscriptionLoop);
+		setTimeout(() => {this.subscriptionLoop()},10);
 	}
 
 }

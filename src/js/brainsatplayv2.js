@@ -112,6 +112,10 @@ export class brainsatplay {
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
 		}
+	
+	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
+		this.devices[deviceIdx].disconnect();
+	}
 
 	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,callback=()=>{}) => {
 		let sub = undefined;
@@ -419,10 +423,6 @@ export class brainsatplay {
 				this.socket.send(JSON.stringify({msg:command,username:this.info.auth.username}));
 			}
 		}
-	}
-
-	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
-		this.devices[deviceIdx].disconnect();
 	}
 
 	closeSocket() {

@@ -17,8 +17,8 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			if(bcisession.info.auth.authenticated) bcisession.connect('FreeEEG32_2',['eegcoherence'],true,['EEG_Ch','FP1','all']);
-			else bcisession.connect('FreeEEG32_2',['eegcoherence']);
+			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,['EEG_Ch','FP1','all']);
+			else bcisession.connect('freeeeg32_2',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login();
