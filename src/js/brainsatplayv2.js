@@ -341,6 +341,22 @@ export class brainsatplay {
 		});
 	}
 
+	unsubscribeFromUser(username='',userProps=[]) { //unsubscribe from user entirely or just from specific props
+		//send unsubscribe command
+		//on success:
+	}
+
+	unsubscribeFromGame(appname='') {
+		//send unsubscribe command
+		//on success:
+		for(const prop in this.state.data) {
+			if(prop.indexOf(appname) > -1) {
+				this.state.unsubscribeAll(prop);
+				this.state.data[prop] = undefined;
+			}
+		}
+	}
+
 	configureStreamForGame(appname='') { //Set local device stream parameters based on what the game wants
 
 	}
