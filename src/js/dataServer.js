@@ -49,11 +49,41 @@ class dataServer { //Just some working concepts for handling data sockets server
     }
 
     removeUserToUserStream(listener,source,propnames=null) { //delete stream or just particular props
+        this.userSubscriptions.find((o,i)=>{
+            if(o.listener === listener && o.source === source) {
+                if(!Array.isArray(propnames)) this.userSubscriptions.splice(i,1);
+                else {
+                    propnames.forEach((prop) => {
+                        let pidx = o.propnames.indexOf(prop);
+                        if(pidx > -1) {
+                            o.propnames.splice(pidx);
+                        }
+                    })
+                }
+                return true;
+            }
+        })
+    }
 
+    removeUserFromGame(appname='',username='') {
+        this.gameSubscriptions.find((o,i) => {
+            if(o.appname === appname) {
+                let uidx = o.usernames.indexOf(username);
+                if(uidx > -1) o.usernames.splice(uidx,1);
+                let sidx = o.spectators.indexOf(username);
+                if(sidx > -1) o.spectators.splice(sidx,1);
+                return true;
+            }
+        })
     }
 
     removeGameStream(appname='') {
-
+        this.gameSubscriptions.find((o,i) => {
+            if(o.appname === appname) {
+                this.gameSubscriptions.splice(i,1);
+                return true;
+            }
+        });
     }
 
     processMessage(msg='') {
@@ -118,7 +148,17 @@ class dataServer { //Just some working concepts for handling data sockets server
         }
         else if(command[0] === 'subscribeToGame') {
             this.subscribeUserToGame(username,command[1],command[2]);
-        } else if( command[0] === 'ping' || command === 'ping') {
+        }
+        else if(command[0] === 'unsubscribeFromUser') {
+            this.removeUserToUserStream(username,command[1],command[2])
+        } 
+        else if(command[0] === 'leaveGame') {
+            this.removeUserFromGame(command[1],u.username);
+        }
+        else if(command[0] === 'deleteGame') {
+            this.removeGameStream(command[1]);
+        }
+        else if( command[0] === 'ping' || command === 'ping') {
             u.socket.send(JSON.stringify({msg:'pong'}))
         }
     }
