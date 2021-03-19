@@ -141,7 +141,7 @@ export class brainsatplay {
 					if(coord !== undefined) {
 						if(prop === null) {
 							sub=this.state.addToState(atlasTag,coord,callback);
-						} else {
+						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only
 							sub=this.state.addToState(atlasTag,coord[prop],callback);
 						}
 					}
