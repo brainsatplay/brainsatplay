@@ -184,7 +184,7 @@ export class ObjectListenerInstance {
     }
 
     //Main onchange execution
-    onchange = () => {
+    onchange = (newData) => {
         console.log(this.propName," changed from: ", this.propOld," to: ", this.object[this.propName]);
     }
 
@@ -207,10 +207,10 @@ export class ObjectListenerInstance {
     }
 
     //Execute extra onchange functions
-    onchangeMulti = () => {
+    onchangeMulti = (newData) => {
         this.onchangeFuncs.forEach((func,i) => {
             if(this.debug === true) { console.log(func); }
-            func();
+            func(newData);
         });
     }
 
@@ -235,15 +235,15 @@ export class ObjectListenerInstance {
         if(this.propName === "__ANY__" || this.propName === null || this.propName === undefined){
             if(this.propOld !== JSON.stringifyWithCircularRefs(this.object)){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
-                this.onchange();
-                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(); }
+                this.onchange(this.object);
+                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object); }
                 this.setListenerRef(this.propName);
             }
         }
         else if(typeof this.object[this.propName] === "object") {
             if(this.propOld !== JSON.stringifyWithCircularRefs(this.object[this.propName])){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
-                this.onchange();
+                this.onchange(this.object[this.propName]);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(); }
                 this.setListenerRef(this.propName);
             }
@@ -251,15 +251,15 @@ export class ObjectListenerInstance {
         else if(typeof this.object[this.propName] === "function") {
             if(this.propOld !== this.object[this.propName].toString()){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
-                this.onchange()
-                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(); }
+                this.onchange(this.object[this.propName].toString());
+                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName].toString()); }
                 this.setListenerRef(this.propName);
             }
         }
         else if(this.object[this.propName] !== this.propOld) {
             if(this.debug === true) { console.log("onchange: ", this.onchange); }
-            this.onchange();
-            if(this.onchangeFuncs.length > 0) { this.onchangeMulti(); }
+            this.onchange(this.object[this.propName]);
+            if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
             this.setListenerRef(this.propName);
         }
         

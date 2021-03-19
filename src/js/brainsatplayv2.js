@@ -38,6 +38,7 @@ import {eeg32, eegmath} from './bciutils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './bciutils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
 import {StateManager} from './frontend/utils/StateManager'
+import { State } from './frontend/State'
 
 
 export class brainsatplay {
@@ -50,7 +51,9 @@ export class brainsatplay {
 		localHostURL='http://127.0.0.1:8000'
 	) {
 		this.devices = [];
-		this.state = new StateManager({});
+		this.state = new StateManager({
+			commandResult:{}
+		});
 
 		this.info = {
 			nDevices: 0,
@@ -221,22 +224,32 @@ export class brainsatplay {
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
 		if(parsed.msg === 'userData') {
-
+			for(const prop in parsed) {
+			 if (prop !== 'msg' && prop !== 'username') 
+				this.state.data[parsed.username+"_"+prop] = parsed[prop]; 
+			}
 		}
 		else if (parsed.msg === 'gameData') {
 
 		}
 		else if (parsed.msg === 'getUserDataResult') {
-
+			this.state.commandResult = parsed;
 		}
-		else if (parsed.msg === 'getUsersResult') {
+		else if (parsed.msg === 'getUsersResult') {		
+			this.state.commandResult = parsed;
 			console.log(parsed.userData);
 		}
+		else if (parsed.msg === 'subscribedToUser') {
+			this.state.commandResult = parsed;
+		}
+		else if (parsed.msg === 'userNotFound') {
+			this.state.commandResult = parsed;
+		}
 		else if (parsed.msg === 'subscribedToGame') {
-
+			this.state.commandResult = parsed;
 		}
 		else if (parsed.msg === 'gameNotFound') {
-
+			this.state.commandResult = parsed;
 		}
 		else if (parsed.msg === 'pong') {
 			console.log(parsed.msg);
@@ -278,12 +291,24 @@ export class brainsatplay {
 		return socket;
 	}
 
-	subscribeToUser(username='',streamProps=[]) {
+	subscribeToUser(username='',userProps=[]) {
 		//check if user is subscribable
 		this.socket.send(JSON.stringify([this.info.auth.username,'getUsers',username]));
 		//wait for result, if user found then add the user
-		this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,streamProps]));
-		//Now set up the listeners
+		let sub = this.state.subscribe('commandResult',(newResult) => {
+			if(newResult.msg === 'getUsersResult') {
+				if(newResult.userData[0] === username) {
+					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
+				}
+				this.state.unsubscribe('commandResult',sub);
+			}
+			else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
+				this.state.unsubscribe('commandResult',sub);
+				console.log("User not found");
+			}
+		});
+
+		
 	}
 
 	subscribeToGame(appname='') {
