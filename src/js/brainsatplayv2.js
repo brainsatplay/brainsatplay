@@ -312,17 +312,18 @@ export class brainsatplay {
 		return socket;
 	}
 
-	subscribeToUser(username='',userProps=[]) {
+	subscribeToUser(username='',userProps=[]) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		this.socket.send(JSON.stringify([this.info.auth.username,'getUsers',username]));
+		userProps.forEach((prop) => {
+			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
+		});
 		//wait for result, if user found then add the user
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(newResult.msg === 'getUsersResult') {
 				if(newResult.userData[0] === username) {
 					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
-					userProps.forEach((prop) => {
-						this.state[username+"_"+prop] = null;
-					});
+					
 				}
 				this.state.unsubscribe('commandResult',sub);
 			}

@@ -1,4 +1,4 @@
-import {State, addEEGCoordToState} from '../State'                      // Shared values
+import {State} from '../State'                      // Shared values
 import {DOMFragment} from '../utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
