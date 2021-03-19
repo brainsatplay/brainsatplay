@@ -149,7 +149,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:command[1],gameData:sub}));
+                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:command[1],gameInfo:sub}));
             }
         }
         else if (command[0] === 'getGameData') {
