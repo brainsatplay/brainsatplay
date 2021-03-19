@@ -28,4 +28,21 @@ let ui = new DOMFragment(
 		}
 	},
 	undefined,
-	'NEVER');
+	'NEVER'
+);
+
+
+
+//Test atlas stuff again since minor tweakages were made
+//Test server streaming data to
+//Test server subscribing to self
+//Test creating and streaming to/subbing from game.
+
+//THEN FRONTEND
+
+//Test UI manager again after finishing it
+//Test bcisession integrated into applet with all of the above bells and whistles tested
+//Update applets to new templates & referencing rules
+//Build out menus and stuff, make it fly as hell
+
+//Add HEG support & port features to new template structure
