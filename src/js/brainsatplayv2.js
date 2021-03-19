@@ -230,14 +230,16 @@ export class brainsatplay {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-
+			this.state.data[parsed.appname+"_userData"] = parsed.userData;
 		}
 		else if (parsed.msg === 'getUserDataResult') {
 			this.state.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
 			this.state.commandResult = parsed;
-			console.log(parsed.userData);
+		}
+		else if (parsed.msg === 'getGameDataResult') {
+			this.state.commandResult = parsed;
 		}
 		else if (parsed.msg === 'subscribedToUser') {
 			this.state.commandResult = parsed;
@@ -307,7 +309,7 @@ export class brainsatplay {
 			}
 			else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
 				this.state.unsubscribe('commandResult',sub);
-				console.log("User not found");
+				console.log("User not found: ", username);
 			}
 		});
 
@@ -318,8 +320,25 @@ export class brainsatplay {
 		//check that the user has the correct deviceconfig
 		this.socket.send(JSON.stringify([this.info.auth.username,'getGameData',appname]));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
-		this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname]));
-		//then set the stream params for the correct device and start the stream loop
+		let sub = this.state.subscribe('commandResult',(newResult) => {
+			if(newResult.msg === 'gameData' && newResult.appname === 'appname') {
+				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname]));
+				newResult.gameData.usernames.forEach((user) => {
+					newResult.gameData.usernames.forEach((prop) => {
+						this.state[user+"_"+prop] = null;
+					});
+				});
+				this.state.unsubscribe('commandResult',sub);
+			}
+			else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+				this.state.unsubscribe('commandResult',sub);
+				console.log("Game not found: ", appname);
+			}
+		});
+	}
+
+	configureStreamForGame(appname='') {
+
 	}
 
 	sendWSCommand(command='',dict={}){

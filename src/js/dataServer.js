@@ -102,7 +102,13 @@ class dataServer { //Just some working concepts for handling data sockets server
             }
         }
         else if (command[0] === 'getGameData') {
-            this.getGameSubscription(command[1]);
+            let sub = this.getGameSubscription(command[1]);
+            if(sub === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:command[1],gameData:sub}));
+            }
         }
         else if(command[0] === 'subscribeToUser') {
             this.streamBetweenUsers(username,command[1],command[2]);
@@ -161,10 +167,10 @@ class dataServer { //Just some working concepts for handling data sockets server
                     propnames:propnames,
                     newData:false
                 });
-                this.userData.get(listenerUser).socket.send(JSON.stringify({msg'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptons.length-1]}))
+                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptons.length-1]}))
             }
             else {
-                this.userData.get(listenerUser).socket.send(JSON.stringify({msg'userNotFound'}))
+                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'userNotFound'}))
             }
            
         }
@@ -172,8 +178,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 
 	createGameSubscription(appname='',propnames=[]) {
 		this.gameSubscriptions.push({
-			usernames:[],
 			appname:appname,
+            usernames:[],
 			propnames:propnames,
             lastTransmit:Date.now()
 		});
@@ -185,7 +191,6 @@ class dataServer { //Just some working concepts for handling data sockets server
 				return true;
 			}
 		});
-
 		return g;
 	}
 
