@@ -322,12 +322,17 @@ export class brainsatplay {
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(newResult.msg === 'gameData' && newResult.appname === 'appname') {
 				
+				if(spectating === false) {
+					//check that this user has the correct streaming configuration 
+				}
+
 				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname,spectating]));
 				newResult.gameData.usernames.forEach((user) => {
 					newResult.gameData.usernames.forEach((prop) => {
 						this.state[user+"_"+prop] = null;
 					});
 				});
+
 				this.state.unsubscribe('commandResult',sub);
 			}
 			else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
