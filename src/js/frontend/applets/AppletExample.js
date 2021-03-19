@@ -57,7 +57,7 @@ export class AppletExample {
             this.props,         //Reference to the HTML render properties (optional)
             setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
             undefined,          //Can have an onchange function fire when properties change
-            "NEVER"     //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+            "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); }
@@ -89,4 +89,6 @@ export class AppletExample {
     //--------------------------------------------
 
     //doSomething(){}
+
+   
 } 

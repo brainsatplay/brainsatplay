@@ -14,6 +14,7 @@ Data Processing
 Data State
 - Sort raw/filtered data
 - Sort processed data
+- Handle streaming data from other users
 
 UI Templating
 - StateManager.js
@@ -36,6 +37,7 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './bciutils/eeg32'
 import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './bciutils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
+import {StateManager} from './frontend/utils/StateManager'
 
 
 export class brainsatplay {
@@ -48,6 +50,7 @@ export class brainsatplay {
 		localHostURL='http://127.0.0.1:8000'
 	) {
 		this.devices = [];
+		this.state = new StateManager({});
 
 		this.info = {
 			nDevices: 0,
@@ -76,7 +79,7 @@ export class brainsatplay {
 	}
 
 	connect(
-		device="FreeEEG32_2", //"FreeEEG32","FreeEEG32_19","muse"
+		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
 		streaming=false,
 		streamParams=[['EEG_Ch','FP1','all']], //Device properties to stream
@@ -106,6 +109,46 @@ export class brainsatplay {
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
 		}
+
+	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,callback=()=>{}) => {
+		let sub = undefined;
+		let atlasTag = tag;
+		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
+		if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
+			atlasDataProp = 'eeg';	
+			if(atlasTag === 'shared') { atlasTag = 'eeghared'; }
+		}
+		else if (deviceName.indexOf('heg') > -1) {
+			atlasDataProp = 'heg';
+			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
+		}
+		if(atlasDataProp !== null) {
+			let device = this.devices.find((o,i) => {
+				if (o.name === deviceName && o.useAtlas === true) {
+					let coord = undefined;
+					if(atlasTag.indexOf('shared') > -1 )
+						coord = o.atlas.getDeviceDataByTag(atlasTag,null);
+					else 
+						coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
+					
+					if(coord !== undefined) {
+						if(prop === null) {
+							sub=this.state.addToState(atlasTag,coord,callback);
+						} else {
+							sub=this.state.addToState(atlasTag,coord[prop],callback);
+						}
+					}
+					return true;
+				}
+			});
+		}
+
+		return sub;
+	}
+
+	unsubscribe = (tag='FP1',sub) => {
+		this.state.unsubscribe(tag,sub);
+	}
 
 	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
@@ -175,6 +218,31 @@ export class brainsatplay {
         }
 	}
 
+	processSocketMessage(received='') {
+		let parsed = JSON.parse(received);
+		if(parsed.msg === 'userData') {
+
+		}
+		else if (parsed.msg === 'gameData') {
+
+		}
+		else if (parsed.msg === 'getUserDataResult') {
+
+		}
+		else if (parsed.msg === 'getUsersResult') {
+			console.log(parsed.userData);
+		}
+		else if (parsed.msg === 'subscribedToGame') {
+
+		}
+		else if (parsed.msg === 'gameNotFound') {
+
+		}
+		else if (parsed.msg === 'pong') {
+			console.log(parsed.msg);
+		}
+	}
+
 	setupWebSocket(auth=this.info.auth) {
 
 		let socket = null;
@@ -200,8 +268,7 @@ export class brainsatplay {
         };
 
         socket.onmessage = (msg) => {
-            let obj = JSON.parse(msg.data);
-            console.log(obj.msg);
+			this.processSocketMessage(msg.data);
         }
 
         socket.onclose = (msg) => {
@@ -209,6 +276,22 @@ export class brainsatplay {
         }
 
 		return socket;
+	}
+
+	subscribeToUser(username='',streamProps=[]) {
+		//check if user is subscribable
+		this.socket.send(JSON.stringify([this.info.auth.username,'getUsers',username]));
+		//wait for result, if user found then add the user
+		this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,streamProps]));
+		//Now set up the listeners
+	}
+
+	subscribeToGame(appname='') {
+		//check that the user has the correct deviceconfig
+		this.socket.send(JSON.stringify([this.info.auth.username,'getGameData',appname]));
+		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+		this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname]));
+		//then set the stream params for the correct device and start the stream loop
 	}
 
 	sendWSCommand(command='',dict={}){
@@ -417,7 +500,7 @@ class biquadChannelFilterer {
 
 class deviceStream {
 	constructor(
-		device="FreeEEG32_2",
+		device="freeeeg32_2",
 		streaming=true,
 		useFilters=true,
 		pipeToAtlas=true,
@@ -455,16 +538,16 @@ class deviceStream {
 	init = (device,useFilters,pipeToAtlas,analysis=[]) => {
 
 
-		if(device.indexOf("FreeEEG32") > -1) {
+		if(device.indexOf("freeeeg32") > -1) {
 			this.sps = 512;
-			if(device === "FreeEEG32_2") { 
+			if(device === "freeeeg32_2") { 
 				this.eegChannelTags = [
 					{ch: 4, tag: "FP2", analyze:true},
 					{ch: 24, tag: "FP1", analyze:true},
 					{ch: 8, tag: "other", analyze:false}
 				];
 			}
-			else if (device === 'FreeEEG32_19') {
+			else if (device === 'freeeeg32_19') {
 				this.eegChannelTags = [
 					{ch: 4, tag: "FP2", analyze:true},
 					{ch: 24, tag: "FP1", analyze:true},
@@ -558,7 +641,7 @@ class deviceStream {
 		if(pipeToAtlas === true) {
 			let eegConfig;
 			if(device === 'muse') { eegConfig = 'muse'; }
-			else if(device.indexOf('FreeEEG32') > -1) {	eegConfig = '10_20'; }
+			else if(device.indexOf('freeeeg32') > -1) {	eegConfig = '10_20'; }
 			this.atlas = new dataAtlas(
 				location+":"+device,
 				{eegshared:{eegChannelTags:this.eegChannelTags, sps:this.sps}},
@@ -571,7 +654,7 @@ class deviceStream {
 			this.atlas = pipeToAtlas; //External atlas reference
 			this.atlas.analysis.push(...analysis)
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
-			else if(device.indexOf('FreeEEG32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
+			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
 			
 			this.useAtlas = true;
 			this.configureDefaultStreamTable();
@@ -583,7 +666,7 @@ class deviceStream {
 
 	async connect() {
 	
-		if(this.deviceName === "FreeEEG32_2" || this.deviceName === "FreeEEG32_19") {
+		if(this.deviceName === "freeeeg32_2" || this.deviceName === "freeeeg32_19") {
 			await this.device.setupSerialAsync();
 		}
 		else if (this.deviceName === "muse") {
@@ -833,7 +916,6 @@ class dataAtlas {
 			console.log(this.data.eegshared.bandFreqs)
 		}
 		
-
 		this.analyzing = useAnalyzer;
 		this.analysis = analysis; // ['eegfft']
 		this.analyzerOpts = []; //'eegfft','eegcoherence','bcijs_bandpower','bcijs_pca','heg_pulse'
@@ -842,7 +924,7 @@ class dataAtlas {
 		this.workerWaiting = false;
 		this.workerIdx = 0;
 
-		if(useAnalyzer === true){
+		if(useAnalyzer === true) {
 			this.addDefaultAnalyzerFuncs();
 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
@@ -1101,6 +1183,22 @@ class dataAtlas {
 		return found;
 	}
 
+	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
+		var found = false;
+		if(device.indexOf("shared") < 0) {
+			let atlasCoord = this.data[device].find((o, i) => {
+				if(o.tag === tag){
+					found = o;
+					return true;
+				}
+			});
+			return found;
+		}
+		else {
+			return this.data[device]; //return shared data structs which are laid out a little differetly
+		}
+	}
+
     //Return the object corresponding to the atlas tag
 	getEEGDataByTag(tag="FP1"){
 		var found = false;
@@ -1139,7 +1237,7 @@ class dataAtlas {
 	getLatestFFTData() {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
-			let row = this.getDataByTag(r.tag);
+			let row = this.getEEGDataByTag(r.tag);
 			let lastIndex = row.fftCount - 1;
 			dat.push({
                 tag:row.tag,
