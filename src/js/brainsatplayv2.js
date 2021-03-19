@@ -80,8 +80,9 @@ export class brainsatplay {
 		this.info.auth.appname = appname;
 	}
 
+	//connect local device
 	connect(
-		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse"
+		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse","notion"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
 		streaming=false,
 		streamParams=[['EEG_Ch','FP1','all']], //Device properties to stream
@@ -111,12 +112,14 @@ export class brainsatplay {
 			
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
-		}
+	}
 	
+	//disconnect local device
 	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
 		this.devices[deviceIdx].disconnect();
 	}
 
+	//listen for changes to atlas data properties
 	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,callback=()=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
@@ -151,10 +154,12 @@ export class brainsatplay {
 		return sub;
 	}
 
+	//remove the specified onchange function via the sub index returned from subscribe()
 	unsubscribe = (tag='FP1',sub) => {
 		this.state.unsubscribe(tag,sub);
 	}
 
+	//this will remove the event listener if you don't have any logic associated with the tag (for performance)
 	unsubscribeAll = (tag='FP1') => {
 		this.state.unsubscribeAll(tag);
 	}
@@ -280,9 +285,11 @@ export class brainsatplay {
 	setupWebSocket(auth=this.info.auth) {
 
 		let socket = null;
-        let subprotocol = ['username'+auth.username,
-        'password'+auth.password,
-        'appname'+auth.appname];
+        let subprotocol = [
+			'username'+auth.username,
+     	   	'password'+auth.password,
+     	   	'appname'+auth.appname
+		];
 		if (auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
         } else if (auth.url.protocol === 'https:') {
