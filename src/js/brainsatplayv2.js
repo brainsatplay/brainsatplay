@@ -702,6 +702,10 @@ class deviceStream {
 
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 		
+		this.addedDeviceNames = [];
+		this.addedDeviceInit = [];
+		this.addedDeviceConnect = [];
+
 		this.socket = socket;
 		console.log(this.socket);
 		
@@ -820,6 +824,14 @@ class deviceStream {
 			this.info.sps = 256;
 			this.info.deviceType = 'heg';
 		}
+		else if (this.addedDeviceNames.indexOf(device) > -1) {
+			let idx = this.addedDeviceNames.indexOf(device);
+			if(this.addedDeviceProps[idx].eegChannelTags !== undefined)
+				this.info.eegChannelTags = this.addedDeviceProps[idx].eegChannelTags;
+			this.info.sps = this.addedDeviceProps[idx].sps;
+			this.info.deviceType = this.addedDeviceProps[idx].deviceType;
+			this.addedDeviceInit[idx]();
+		}
 				
 		if(pipeToAtlas === true) {
 			let eegConfig;
@@ -868,9 +880,22 @@ class deviceStream {
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
 		}
+		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
+			let idx = this.addedDeviceNames.indexOf(this.info.deviceName)
+			this.addedDeviceConnect[idx]();
+		}
 		this.info.connected = true;
 		this.onConnect();
 		
+	}
+
+	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}) => {
+		this.addedDeviceNames.push(deviceName);
+		this.addedDeviceInit.push(init);
+		this.addedDeviceConnect.push(connect);
+		for(const prop in props) {
+			this.info[prop] = props[prop];
+		}
 	}
 
 	configureDefaultStreamTable(params=[]) {
