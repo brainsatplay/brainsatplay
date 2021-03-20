@@ -219,6 +219,11 @@ class dataServer { //Just some working concepts for handling data sockets server
                     o.newData = true;
                 }
             });
+            this.gameSubscriptions.forEach((o,i) => {
+                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0) {
+                    o.updatedUsers.push[data.username];
+                }
+            })
             
         }
 	}
@@ -251,6 +256,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 			appname:appname,
             devices:devices,
             usernames:[],
+            updatedUsers:[], //users with new data available (clears when read from subcription)
             spectators:[], //usernames of spectators
 			propnames:propnames,
             lastTransmit:Date.now()
@@ -275,11 +281,13 @@ class dataServer { //Just some working concepts for handling data sockets server
                     appname:sub.appname,
                     devices:sub.devices,
                     propnames:sub.propnames,
+                    usernames:sub.usernames,
+                    updatedUsers:sub.updatedUsers,
                     userData:[],
                     spectators:[]
                 };
                 
-                sub.usernames.forEach((user,j) => {
+                sub.usernames.forEach((user,j) => { //get current relevant data for all players in game
                     if(sub.spectators.indexOf(user) < -1){
                         let userObj = {
                             username:user
@@ -343,6 +351,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             }
 		});
 
+        //optimize to only send updated data
 		this.gameSubscriptions.forEach((sub,i) => {
             if(sub.lastTransmit - time > this.subUpdateInterval){
                 let updateObj = {
@@ -350,11 +359,13 @@ class dataServer { //Just some working concepts for handling data sockets server
                     appname:sub.appname,
                     devices:sub.devices,
                     propnames:sub.propnames,
+                    usernames:sub.usernames,
+                    updatedUsers:sub.updatedUsers,
                     userData:[],
                     spectators:[]
                 };
                 
-                sub.usernames.forEach((user,j) => {
+                sub.updatedUsers.forEach((user,j) => {
                     if(sub.spectators.indexOf(user) < -1){
                         let userObj = {
                             username:user
@@ -369,6 +380,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                         spectators.push(user);
                     }
                 });
+                sub.updatedUsers = [];
 
                 sub.userNames.forEach((user,j) => {
                     user.socket.send(JSON.stringify(updateObj));
