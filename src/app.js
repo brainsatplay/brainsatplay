@@ -11,6 +11,7 @@ let connectHTML = `
 	<button id='getusers'>Get Users</button>
 	<button id='createGame'>Make Game session</button>
 	<button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+	<button id='subscribeToSelf'>Subscribe to game session (connect device first)</button>
 `; 
 
 
@@ -42,7 +43,7 @@ let ui = new DOMFragment(
 			bcisession.sendWSCommand(['getUserData','guest']);
 		}
 		document.getElementById('createGame').onclick = () => {
-			bcisession.sendWSCommand(['createGame','game']);
+			bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});

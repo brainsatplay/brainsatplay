@@ -154,6 +154,7 @@ class dataServer { //Just some working concepts for handling data sockets server
         }
         else if (commands[0] === 'createGame') {
             this.createGameSubscription(commands[1],commands[2],commands[3]);
+            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[this.gameSubscriptions.length-1]}));
         }
         else if (commands[0] === 'getGameInfo') {
             let sub = this.getGameSubscription(commands[1]);
@@ -273,6 +274,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     msg:'gameData',
                     appname:sub.appname,
                     devices:sub.devices,
+                    propnames:sub.propnames,
                     userData:[],
                     spectators:[]
                 };
@@ -347,6 +349,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     msg:'gameData',
                     appname:sub.appname,
                     devices:sub.devices,
+                    propnames:sub.propnames,
                     userData:[],
                     spectators:[]
                 };

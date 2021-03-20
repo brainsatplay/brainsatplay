@@ -292,10 +292,9 @@ export class brainsatplay {
 		}
 		else if (parsed.msg === 'ping') {
 			console.log(parsed.msg);
-
 		}
 		else {
-			console.log(parsed.msg);
+			console.log(parsed);
 		}
 	}
 
@@ -344,16 +343,18 @@ export class brainsatplay {
 		});
 		//wait for result, if user found then add the user
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'getUsersResult') {
-				if(newResult.userData[0] === username) {
-					this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+			if(typeof newResult === 'object') {
+				if(newResult.msg === 'getUsersResult') {
+					if(newResult.userData[0] === username) {
+						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+					}
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
 				}
-				onsuccess(newResult);
-				this.state.unsubscribe('commandResult',sub);
-			}
-			else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
-				this.state.unsubscribe('commandResult',sub);
-				console.log("User not found: ", username);
+				else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
+					this.state.unsubscribe('commandResult',sub);
+					console.log("User not found: ", username);
+				}
 			}
 		});
 	}
@@ -362,28 +363,29 @@ export class brainsatplay {
 		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			console.log(newResult);
-			if(newResult.msg === 'getGameInfoResult' && newResult.appname === 'appname') {
-				let configured = true;
-				if(spectating === false) {
-					//check that this user has the correct streaming configuration with the correct connected device
-					configured = this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['eegch_FP1','eegfft_FP2']
-				}
-				if(configured === true) {
-					this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
-					newResult.gameInfo.usernames.forEach((user) => {
-						newResult.gameInfo.propnames.forEach((prop) => {
-							this.state[appname+"_"+user+"_"+prop] = null;
+			if(typeof newResult === 'object') {
+				if(newResult.msg === 'getGameInfoResult' && newResult.appname === appname) {
+					let configured = true;
+					if(spectating === false) {
+						//check that this user has the correct streaming configuration with the correct connected device
+						configured = this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['eegch_FP1','eegfft_FP2']
+					}
+					if(configured === true) {
+						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
+						newResult.gameInfo.usernames.forEach((user) => {
+							newResult.gameInfo.propnames.forEach((prop) => {
+								this.state[appname+"_"+user+"_"+prop] = null;
+							});
 						});
-					});
 
-					onsuccess(newResult);
+						onsuccess(newResult);
+					}
 					this.state.unsubscribe('commandResult',sub);
 				}
-			}
-			else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
-				this.state.unsubscribe('commandResult',sub);
-				console.log("Game not found: ", appname);
+				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+					this.state.unsubscribe('commandResult',sub);
+					console.log("Game not found: ", appname);
+				}
 			}
 		});
 	}
