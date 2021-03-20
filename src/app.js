@@ -11,7 +11,7 @@ let connectHTML = `
 	<button id='getusers'>Get Users</button>
 	<button id='createGame'>Make Game session</button>
 	<button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-	<button id='subscribeToSelf'>Subscribe to game session (connect device first)</button>
+	<button id='subscribeToSelf'>Subscribe to self</button>
 `; 
 
 
