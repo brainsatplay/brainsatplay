@@ -1,3 +1,5 @@
+const { command } = require("snowpack/lib/commands/dev");
+
 class dataServer { //Just some working concepts for handling data sockets serverside
 	constructor(appnames=[]) {
 		this.userData=new Map();
@@ -98,14 +100,25 @@ class dataServer { //Just some working concepts for handling data sockets server
     processMessage(msg='') {
         let parsed = JSON.parse(msg);
         if(typeof parsed === 'object' && !Array.isArray(parsed)) { //if we got an object process it as most likely user data
-            this.updateUserData(parsed);
+            let hasData = false;
+            for(const prop in parsed) {
+                if(prop !== 'msg' && prop !== 'username') {
+                    hasData = true;
+                }
+            }
+            if(!hasData && parsed.username && parsed.msg) {
+                this.processUserCommand(data.username,data.msg);
+            }
+            else{
+                this.updateUserData(parsed);
+            }
         }
         else if (Array.isArray(parsed)) { //handle commands sent as arrays [username,cmd,arg1,arg2]
-            this.processUserCommand(parsed[0],[...parsed.shift()]);  
+            this.processUserCommand(parsed[0],parsed.slice(1));  
         }
         else if (typeof parsed === 'string') { //handle string commands with spaces, 'username command arg1 arg2'
             let cmd = parsed.split(' ');
-            this.processUserCommand(cmd[0],[...cmd.shift()]);
+            this.processUserCommand(cmd[0],cmd.slice(1));
         }
     }
 
@@ -192,31 +205,21 @@ class dataServer { //Just some working concepts for handling data sockets server
 
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
-            let hasData = false;
+
+            let o = this.userData.get(data.username)
             for(const prop in data) {
-                if(prop !== 'msg' && prop !== 'username') {
-                    hasData = true;
-                }
+                if(prop !== 'msg' && prop !== 'username') o.props[prop] = data[prop];
             }
+            let now = performance.now();
+            o.latency = now-o.lastUpdate;
+            o.lastUpdate = Date.now();
 
-            if(!hasData && data.username && data.msg) {
-                this.processUserCommand(data.username,data.msg);
-            }
-            else {
-                let o = this.userData.get(data.username)
-                for(const prop in data) {
-                    if(prop !== 'msg' && prop !== 'username') o.props[prop] = data[prop];
+            this.userSubscriptions.forEach((o,i) => {
+                if(o.source === data.username) {
+                    o.newData = true;
                 }
-                let now = performance.now();
-                o.latency = now-o.lastUpdate;
-                o.lastUpdate = Date.now();
-
-                this.userSubscriptions.forEach((o,i) => {
-                    if(o.source === data.username) {
-                        o.newData = true;
-                    }
-                });
-            }
+            });
+            
         }
 	}
 

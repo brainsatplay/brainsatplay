@@ -280,8 +280,9 @@ export class brainsatplay {
 		else if (parsed.msg === 'gameNotFound') {
 			this.state.commandResult = parsed;
 		}
-		else if (parsed.msg === 'pong') {
+		else if (parsed.msg === 'ping') {
 			console.log(parsed.msg);
+
 		}
 		else {
 			console.log(parsed.msg);
@@ -311,7 +312,7 @@ export class brainsatplay {
 
         socket.onopen = () => {
             console.log('ping');
-            socket.send(JSON.stringify({msg:['ping'],username:this.info.auth.username}));
+            socket.send(JSON.stringify({username:this.info.auth.username,msg:['ping']}));
         };
 
         socket.onmessage = (msg) => {
@@ -327,7 +328,7 @@ export class brainsatplay {
 
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
-		this.socket.send(JSON.stringify([this.info.auth.username,'getUsers',username]));
+		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUsers',username]}));
 		userProps.forEach((prop) => {
 			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
 		});
@@ -335,7 +336,7 @@ export class brainsatplay {
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(newResult.msg === 'getUsersResult') {
 				if(newResult.userData[0] === username) {
-					this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToUser',username,userProps])); //resulting data will be available in state
+					this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
 				}
 				onsuccess(newResult);
 				this.state.unsubscribe('commandResult',sub);
@@ -348,7 +349,7 @@ export class brainsatplay {
 	}
 
 	subscribeToGame(appname='',spectating=false,onsuccess=(newResult)=>{}) {
-		this.socket.send(JSON.stringify([this.info.auth.username,'getGameInfo',appname]));
+		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(newResult.msg === 'getGameInfoResult' && newResult.appname === 'appname') {
@@ -358,7 +359,7 @@ export class brainsatplay {
 					this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['EEG_Ch_FP1','EEG_FFT_FP2']
 				}
 
-				this.socket.send(JSON.stringify([this.info.auth.username,'subscribeToGame',appname,spectating]));
+				this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
 				newResult.gameInfo.usernames.forEach((user) => {
 					newResult.gameInfo.propnames.forEach((prop) => {
 						this.state[appname+"_"+user+"_"+prop] = null;

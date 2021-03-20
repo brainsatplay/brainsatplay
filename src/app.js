@@ -24,7 +24,7 @@ let ui = new DOMFragment(
 			bcisession.login();
     	}
     	document.getElementById('send').onclick = () => {
-			bcisession.sendWSCommand(["ping"]); //send array of arguments
+			bcisession.sendWSCommand(['ping']); //send array of arguments
 		}
 	},
 	undefined,
