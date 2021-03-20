@@ -97,14 +97,14 @@ class dataServer { //Just some working concepts for handling data sockets server
 
     processMessage(msg='') {
         let parsed = JSON.parse(msg);
-        if(typeof msg === object && !Array.isArray(object)) { //if we got an object process it as most likely user data
-            this.updateUserData(msg);
+        if(typeof parsed === 'object' && !Array.isArray(parsed)) { //if we got an object process it as most likely user data
+            this.updateUserData(parsed);
         }
-        else if (Array.isArray(msg)) { //handle commands sent as arrays [username,cmd,arg1,arg2]
-            this.processUserCommand(msg[0],[...msg.shift()]);  
+        else if (Array.isArray(parsed)) { //handle commands sent as arrays [username,cmd,arg1,arg2]
+            this.processUserCommand(parsed[0],[...parsed.shift()]);  
         }
-        else if (typeof msg === 'string') { //handle string commands with spaces, 'username command arg1 arg2'
-            let cmd = msg.split(' ');
+        else if (typeof parsed === 'string') { //handle string commands with spaces, 'username command arg1 arg2'
+            let cmd = parsed.split(' ');
             this.processUserCommand(cmd[0],[...cmd.shift()]);
         }
     }
@@ -193,26 +193,26 @@ class dataServer { //Just some working concepts for handling data sockets server
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
             let hasData = false;
-            for(const prop in obj) {
+            for(const prop in data) {
                 if(prop !== 'msg' && prop !== 'username') {
                     hasData = true;
                 }
             }
 
-            if(!hasData && obj.username && obj.msg) {
-                this.processUserCommand(obj.username,obj.msg);
+            if(!hasData && data.username && data.msg) {
+                this.processUserCommand(data.username,data.msg);
             }
             else {
-                let o = this.userData.get(obj.username)
-                for(const prop in obj) {
-                    if(prop !== 'msg' && prop !== 'username') o.props[prop] = obj[prop];
+                let o = this.userData.get(data.username)
+                for(const prop in data) {
+                    if(prop !== 'msg' && prop !== 'username') o.props[prop] = data[prop];
                 }
                 let now = performance.now();
                 o.latency = now-o.lastUpdate;
                 o.lastUpdate = Date.now();
 
                 this.userSubscriptions.forEach((o,i) => {
-                    if(o.source === obj.username) {
+                    if(o.source === data.username) {
                         o.newData = true;
                     }
                 });
