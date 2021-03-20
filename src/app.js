@@ -30,7 +30,7 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,['EEG_Ch','FP1','all']);
+			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all']]);
 			else bcisession.connect('freeeeg32_2',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {
@@ -40,13 +40,16 @@ let ui = new DOMFragment(
 			bcisession.sendWSCommand(['ping']); //send array of arguments
 		}
 		document.getElementById('getusers').onclick = () => {
-			bcisession.sendWSCommand(['getUserData','guest']);
+			bcisession.sendWSCommand(['getUsers']);
 		}
 		document.getElementById('createGame').onclick = () => {
 			bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
+		}
+		document.getElementById('subscribeToSelf').onclick = () => {
+			bcisession.subscribeToUser('guest',['eegch_FP1','eegch_FP2'],(res)=>{console.log("subscribed!", res)});
 		}
 	},
 	undefined,

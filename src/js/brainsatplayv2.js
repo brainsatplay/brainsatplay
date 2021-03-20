@@ -337,12 +337,13 @@ export class brainsatplay {
 
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
-		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUsers',username]}));
+		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
 		userProps.forEach((prop) => {
 			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
 		});
 		//wait for result, if user found then add the user
 		let sub = this.state.subscribe('commandResult',(newResult) => {
+			console.log(newResult);
 			if(typeof newResult === 'object') {
 				if(newResult.msg === 'getUsersResult') {
 					if(newResult.userData[0] === username) {
@@ -368,7 +369,12 @@ export class brainsatplay {
 					let configured = true;
 					if(spectating === false) {
 						//check that this user has the correct streaming configuration with the correct connected device
-						configured = this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['eegch_FP1','eegfft_FP2']
+						let streamParams = [];
+						newResult.gameInfo.propnames.forEach((prop) => {
+							console.log(prop);
+							streamParams.push(prop.split("_"));
+						});
+						configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 					}
 					if(configured === true) {
 						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
@@ -426,14 +432,16 @@ export class brainsatplay {
 
 	configureStreamForGame(deviceNames=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
 		let params = [];
-		streamParams.forEach((prop,i) => {
-			let p = prop.split();
-			params.push([p[0],p[1],'all']);
+		streamParams.forEach((p,i) => {
+			if(p[2] === undefined)
+				params.push([p[0],p[1],'all']);
+			else params.push([p[0],p[1],p[3]]);
 		});
 		let d = undefined;
 		deviceNames.forEach((name,i) => { //configure named device
 			d = this.devices.find((o,j) => {
 				if(o.info.deviceName.indexOf(name) > -1) {
+					if(o.socket === null) o.socket = this.socket;
 					let deviceParams = [];
 					params.forEach((p,k) => {
 						if(p[0].indexOf(o.info.deviceType) > -1) { //stream parameters should have the device type specified (in case multiple devices are involved)
@@ -695,6 +703,7 @@ class deviceStream {
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 		
 		this.socket = socket;
+		console.log(this.socket);
 		
 		this.streamTable=[]; //tags and callbacks for streaming
 		this.filters = [];   //biquadChannelFilterers 
@@ -952,7 +961,7 @@ class deviceStream {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	sendDataToSocket(params=[['prop','tag','count']],dataObj={}) {
+	sendDataToSocket = (params=[['prop','tag','count']],dataObj={}) => {
 		let streamObj = {
 			msg:'data',
 			username:this.info.auth.username
@@ -961,14 +970,15 @@ class deviceStream {
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
-					let args = [...param].shift();
+					let args = param.slice(1);
 					let result = option.callback(...args);
-					if(result !== undefined) streamObj[param.prop+"_"+tag] = result;
+					if(result !== undefined) streamObj[param[0]+"_"+param[1]] = result;
 					return true;
 				}
 			});
 		});
-		
+		//console.log(streamObj);
+		//console.log(this.socket);
 		this.socket.send(JSON.stringify(streamObj));
 	}
 
@@ -989,15 +999,15 @@ class deviceStream {
 		if(this.info.streaming === true) {
 			let params = [];
 			if(this.info.streamParams.length === 0) { console.error('No stream parameters set'); return false;}
-			this.info.streamParams.forEach(([param],i) => {
+			this.info.streamParams.forEach((param,i) => {
 				let c = this.streamTable.find((o,i) => {
-					let newParam = [...param];
 					if(o.prop === param[0]) {
-						params.push(newParam);
+						params.push(param);
 						return true;
 					}
 				});
 			});
+			//console.log(params);
 			if(params.length > 0) { this.sendDataToSocket(params); }
 			this.info.streamCt++;
 			setTimeout(() => {this.streamLoop();}, this.info.streamLoopTiming);
@@ -1083,7 +1093,7 @@ class dataAtlas {
 		}
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
-			console.log(this.data.coherence);
+			//console.log(this.data.coherence);
         }
 
 		if(this.data.eegshared.eegChannelTags) { //add structs for non-specified channels
@@ -1632,7 +1642,7 @@ class dataAtlas {
 	} 
 
 	workerOnMessage = (msg) => {
-		console.log(msg);
+		//console.log(msg);
 		if(msg.origin === this.name) {
 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
 				//parse data into atlas
