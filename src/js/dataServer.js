@@ -216,9 +216,9 @@ class dataServer { //Just some working concepts for handling data sockets server
             for(const prop in data) {
                 if(prop !== 'msg' && prop !== 'username') u.props[prop] = data[prop];
             }
-            let now = performance.now();
+            let now = Date.now();
             u.latency = now-u.lastUpdate;
-            u.lastUpdate = Date.now();
+            u.lastUpdate = now;
 
             this.userSubscriptions.forEach((o,i) => {
                 if(o.source === data.username) {
@@ -360,7 +360,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     sub.propnames.forEach((prop,j) => {
                         dataToSend[prop] = source.props[prop];
                     });
-                    listener.get('user').socket.send(JSON.stringify(dataToSend));
+                    listener.socket.send(JSON.stringify(dataToSend));
                     sub.newData = false;
                     sub.lastTransmit = time;
                 }
@@ -407,7 +407,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             sub.lastTransmit = time;
 		});
 
-		setTimeout(() => {this.subscriptionLoop()},10);
+		setTimeout(() => {this.subscriptionLoop();},10);
 	}
 
 }
