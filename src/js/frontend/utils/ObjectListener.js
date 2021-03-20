@@ -245,7 +245,7 @@ export class ObjectListenerInstance {
             if(this.propOld !== JSON.stringifyWithCircularRefs(this.object[this.propName])){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object[this.propName]);
-                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(); }
+                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
                 this.setListenerRef(this.propName);
             }
         }

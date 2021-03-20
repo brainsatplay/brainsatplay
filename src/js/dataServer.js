@@ -1,4 +1,3 @@
-const { command } = require("snowpack/lib/commands/dev");
 
 class dataServer { //Just some working concepts for handling data sockets serverside
 	constructor(appnames=[]) {
@@ -107,7 +106,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 }
             }
             if(!hasData && parsed.username && parsed.msg) {
-                this.processUserCommand(data.username,data.msg);
+                this.processUserCommand(parsed.username,parsed.msg);
             }
             else{
                 this.updateUserData(parsed);
@@ -123,79 +122,79 @@ class dataServer { //Just some working concepts for handling data sockets server
     }
 
     
-    processUserCommand(username='',command=[]) { //Commands should be an array of arguments 
+    processUserCommand(username='',commands=[]) { //Commands should be an array of arguments 
         let u = this.userData.get(username);
-        
-        if(command[0] === 'getUsers') {
+        u.socket.send(JSON.stringify({msg:commands}));
+        if(commands[0] === 'getUsers') {
             let users = [];
-            this.userData.forEach((name,o) => {
-                if(command[1] !== undefined) {
-                    if(o.appname === command[1]) {
+            this.userData.forEach((o,name) => {
+                if(commands[1] !== undefined) {
+                    if(o.appname === commands[1]) {
                         users.push(o);
                     }
                 }
-                else if(o.appname === u.appname) {
+                else if(u.appname !== '' && o.appname === u.appname) {
                     users.push(o.username);
                 }
             });
             if(users.length > 0) u.socket.send(JSON.stringify({msg:'getUsersResult', userData:users}))
             else u.socket.send(JSON.stringify({msg:'userNotFound', userData:[username]}))
         }
-        else if(command[0] === 'getUserData') {
-            if(command[2] === undefined) {
-                let u2 = this.getUserData(command[1]);
-                u.socket.send(JSON.stringify({msg:'getUserDataResult',username:command[1],props:u2.props}));
+        else if(commands[0] === 'getUserData') {
+            if(commands[2] === undefined) {
+                let u2 = this.getUserData(commands[1]);
+                u.socket.send(JSON.stringify({msg:'getUserDataResult',username:commands[1],props:u2.props}));
             }
-            else if (Array.isArray(command[2])) {
-                let d = this.getUserData(command[1]).props;
-                let result = {msg:'getUserDataResult',username:command[1],props:{}};
-                command[2].forEach((prop)=> {update[props][prop] = d.props[prop]});
+            else if (Array.isArray(commands[2])) {
+                let d = this.getUserData(commands[1]).props;
+                let result = {msg:'getUserDataResult',username:commands[1],props:{}};
+                commands[2].forEach((prop)=> {update[props][prop] = d.props[prop]});
                 u.socket.send(JSON.stringify(result));
             }
         }
-        else if (command[0] === 'createGame') {
-            this.createGameSubscription(command[1],command[2],command[3]);
+        else if (commands[0] === 'createGame') {
+            this.createGameSubscription(commands[1],commands[2],commands[3]);
         }
-        else if (command[0] === 'getGameInfo') {
-            let sub = this.getGameSubscription(command[1]);
+        else if (commands[0] === 'getGameInfo') {
+            let sub = this.getGameSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:command[1],gameInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
             }
         }
-        else if (command[0] === 'getGameData') {
-            let gameData = this.getGameData(command[1]);
+        else if (commands[0] === 'getGameData') {
+            let gameData = this.getGameData(commands[1]);
             if(gameData === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:command[1]}));
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:command[1],gameData:gameData}));
+                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
             }
         }
-        else if(command[0] === 'subscribeToUser') {
-            this.streamBetweenUsers(username,command[1],command[2]);
+        else if(commands[0] === 'subscribeToUser') {
+            this.streamBetweenUsers(username,commands[1],commands[2]);
         }
-        else if(command[0] === 'subscribeToGame') {
-            this.subscribeUserToGame(username,command[1],command[2]);
+        else if(commands[0] === 'subscribeToGame') {
+            this.subscribeUserToGame(username,commands[1],commands[2]);
         }
-        else if(command[0] === 'unsubscribeFromUser') {
-            let found = this.removeUserToUserStream(username,command[1],command[2]);
-            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:command[1],props:command[2]}));}
+        else if(commands[0] === 'unsubscribeFromUser') {
+            let found = this.removeUserToUserStream(username,commands[1],commands[2]);
+            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
-        else if(command[0] === 'leaveGame') {
-            let found = this.removeUserFromGame(command[1],u.username);
-            if(found) {  u.socket.send(JSON.stringify({msg:'leftGame',appname:command[1]}));}
+        else if(commands[0] === 'leaveGame') {
+            let found = this.removeUserFromGame(commands[1],u.username);
+            if(found) {  u.socket.send(JSON.stringify({msg:'leftGame',appname:commands[1]}));}
             else { u.socket.send(JSON.stringify({msg:'gameNotFound'}));}
         }
-        else if(command[0] === 'deleteGame') {
-            let found = this.removeGameStream(command[1]);
-            if(found) { u.socket.send(JSON.stringify({msg:'gameDeleted',appname:command[1]}));}
+        else if(commands[0] === 'deleteGame') {
+            let found = this.removeGameStream(commands[1]);
+            if(found) { u.socket.send(JSON.stringify({msg:'gameDeleted',appname:commands[1]}));}
             else { u.socket.send(JSON.stringify({msg:'gameNotFound'}));}
         }
-        else if( command[0] === 'ping' || command === 'ping') {
+        else if( commands[0] === 'ping' || commands === 'ping') {
             u.socket.send(JSON.stringify({msg:'pong'}))
         }
     }

@@ -2,14 +2,26 @@
 import {brainsatplay} from './js/brainsatplayv2.js'
 import {DOMFragment} from './js/frontend/utils/DOMFragment.js'
 
+
+
 let connectHTML = `
 	<button id='connect'>Connect Device</button>
     <button id='server'>Connect to Server</button>
-    <button id='send'>Send Ping</button>
+    <button id='ping'>Send Ping</button>
+	<button id='getusers'>Get Users</button>
+	<button id='createGame'>Make Game session</button>
+	<button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
 `; 
 
 
 let bcisession = new brainsatplay('guest','');
+
+bcisession.state.data.x = 0;
+bcisession.state.subscribe('x',(x) => {
+	console.log(x);
+})
+
+setTimeout(()=>{bcisession.state.data.x = 2},300);
 
 let ui = new DOMFragment(
 	connectHTML,
@@ -23,8 +35,17 @@ let ui = new DOMFragment(
 		document.getElementById('server').onclick = () => {
 			bcisession.login();
     	}
-    	document.getElementById('send').onclick = () => {
+    	document.getElementById('ping').onclick = () => {
 			bcisession.sendWSCommand(['ping']); //send array of arguments
+		}
+		document.getElementById('getusers').onclick = () => {
+			bcisession.sendWSCommand(['getUserData','guest']);
+		}
+		document.getElementById('createGame').onclick = () => {
+			bcisession.sendWSCommand(['createGame','game']);
+		}
+		document.getElementById('subscribeToGame').onclick = () => {
+			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
 		}
 	},
 	undefined,

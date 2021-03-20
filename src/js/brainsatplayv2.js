@@ -44,8 +44,8 @@ export class brainsatplay {
 	constructor(
 		username='',
 		password='',
-		access='public',
 		appname='',
+		access='public',
 		remoteHostURL='http://localhost:8000',//https://brainsatplay.azurewebsites.net/',
 		localHostURL='http://127.0.0.1:8000'
 	) {
@@ -248,37 +248,47 @@ export class brainsatplay {
 			this.state.data[parsed.appname+"_spectators"] = parsed.spectators;
 		}
 		else if (parsed.msg === 'getUserDataResult') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getGameDataResult') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getGameInfoResult') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'subscribedToUser') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'userNotFound') {
-			this.state.commandResult = parsed;
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'subscribedToGame') {
-			this.state.commandResult = parsed;
+			console.log(parsed.msg);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'leftGame') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'gameDeleted') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'unsubscribed') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'gameNotFound') {
-			this.state.commandResult = parsed;
+			console.log(parsed);
+			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'ping') {
 			console.log(parsed.msg);
@@ -352,22 +362,24 @@ export class brainsatplay {
 		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
+			console.log(newResult);
 			if(newResult.msg === 'getGameInfoResult' && newResult.appname === 'appname') {
-				
+				let configured = true;
 				if(spectating === false) {
 					//check that this user has the correct streaming configuration with the correct connected device
-					this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['EEG_Ch_FP1','EEG_FFT_FP2']
+					configured = this.configureStreamForGame(newResult.gameInfo.devices,newResult.gameInfo.propnames); //Expected propnames like ['eegch_FP1','eegfft_FP2']
 				}
-
-				this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
-				newResult.gameInfo.usernames.forEach((user) => {
-					newResult.gameInfo.propnames.forEach((prop) => {
-						this.state[appname+"_"+user+"_"+prop] = null;
+				if(configured === true) {
+					this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
+					newResult.gameInfo.usernames.forEach((user) => {
+						newResult.gameInfo.propnames.forEach((prop) => {
+							this.state[appname+"_"+user+"_"+prop] = null;
+						});
 					});
-				});
 
-				onsuccess(newResult);
-				this.state.unsubscribe('commandResult',sub);
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
+				}
 			}
 			else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
 				this.state.unsubscribe('commandResult',sub);
@@ -416,8 +428,9 @@ export class brainsatplay {
 			let p = prop.split();
 			params.push([p[0],p[1],'all']);
 		});
+		let d = undefined;
 		deviceNames.forEach((name,i) => { //configure named device
-			this.devices.find((o,j) => {
+			d = this.devices.find((o,j) => {
 				if(o.name === name) {
 					let deviceParams = [];
 					params.forEach((p,k) => {
@@ -434,6 +447,13 @@ export class brainsatplay {
 				}
 			});
 		});
+		if(d === undefined) {
+			console.error('Compatible device not found');
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 
 	sendWSCommand(command='',dict={}){
@@ -463,7 +483,9 @@ export class brainsatplay {
 				dict = JSON.stringify(dict);
 				this.socket.send(dict);
 			} else {
-				this.socket.send(JSON.stringify({msg:command,username:this.info.auth.username}));
+				let json = JSON.stringify({msg:command,username:this.info.auth.username});
+				console.log('Message sent: ', json);
+				this.socket.send(json);
 			}
 		}
 	}
