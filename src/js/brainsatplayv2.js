@@ -651,21 +651,20 @@ class deviceStream {
 	) {
 
 		this.info = {
-			deviceName : device,
-			deviceType : null,
-
-			streaming : streaming,
-			streamParams : streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
+			deviceName:device,
+			deviceType:null,
+			streaming:streaming,
+			streamParams:streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
 	
-			eegChannelTags : [],
-			streamLoopTiming : 100, //ms between update checks
-			streamCt : 0,
+			eegChannelTags:[],
+			streamLoopTiming:100, //ms between update checks
+			streamCt:0,
 
-			auth : auth,
-			sps : null,
-			useFilters : useFilters,
-			useAtlas : false,
-			simulating = false,
+			auth:auth,
+			sps: null,
+			useFilters:useFilters,
+			useAtlas:false,
+			simulating:false
 		};
 
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
