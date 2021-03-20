@@ -343,10 +343,9 @@ export class brainsatplay {
 		});
 		//wait for result, if user found then add the user
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			console.log(newResult);
 			if(typeof newResult === 'object') {
-				if(newResult.msg === 'getUsersResult') {
-					if(newResult.userData[0] === username) {
+				if(newResult.msg === 'getUserDataResult') {
+					if(newResult.username === username) {
 						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
 					}
 					onsuccess(newResult);
@@ -707,7 +706,7 @@ class deviceStream {
 		this.addedDeviceConnect = [];
 
 		this.socket = socket;
-		console.log(this.socket);
+		//console.log(this.socket);
 		
 		this.streamTable=[]; //tags and callbacks for streaming
 		this.filters = [];   //biquadChannelFilterers 
@@ -1002,9 +1001,13 @@ class deviceStream {
 				}
 			});
 		});
-		//console.log(streamObj);
-		//console.log(this.socket);
-		this.socket.send(JSON.stringify(streamObj));
+		for(const prop in streamObj) {
+			if(prop !== 'msg' && prop !== 'username') {
+				//console.log(streamObj);
+				this.socket.send(JSON.stringify(streamObj));
+				break;
+			}	
+		}
 	}
 
 	//old method

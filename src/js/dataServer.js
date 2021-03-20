@@ -109,12 +109,13 @@ class dataServer { //Just some working concepts for handling data sockets server
                     break;
                 }
             }
-            if(!hasData && parsed.username && parsed.msg) {
-                this.processUserCommand(parsed.username,parsed.msg);
-            }
-            else{
+            if(hasData) {
                 this.updateUserData(parsed);
             }
+            else if(parsed.username && parsed.msg) {
+                this.processUserCommand(parsed.username,parsed.msg);
+            }
+           
         }
         else if (Array.isArray(parsed)) { //handle commands sent as arrays [username,cmd,arg1,arg2]
             this.processUserCommand(parsed[0],parsed.slice(1));  
@@ -132,8 +133,6 @@ class dataServer { //Just some working concepts for handling data sockets server
         if(commands[0] === 'getUsers') {
             let users = [];
             this.userData.forEach((o,name) => {
-                console.log(o);
-                console.log(commands);
                 if(commands[1] !== undefined) {
                     if(o.username === commands[1]) {
                         users.push(o);
@@ -212,7 +211,8 @@ class dataServer { //Just some working concepts for handling data sockets server
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
 
-            let o = this.userData.get(data.username)
+            let o = this.userData.get(data.username);
+
             for(const prop in data) {
                 if(prop !== 'msg' && prop !== 'username') o.props[prop] = data[prop];
             }
@@ -229,7 +229,9 @@ class dataServer { //Just some working concepts for handling data sockets server
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0) {
                     o.updatedUsers.push[data.username];
                 }
-            })
+            });
+
+            //o.socket.send(JSON.stringify(o.props));
             
         }
 	}
@@ -254,7 +256,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     propnames:propnames,
                     newData:false
                 });
-                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptons.length-1]}))
+                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
             }
             else {
                 this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'userNotFound'}))
