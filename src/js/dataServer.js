@@ -211,14 +211,14 @@ class dataServer { //Just some working concepts for handling data sockets server
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
 
-            let o = this.userData.get(data.username);
+            let u = this.userData.get(data.username);
 
             for(const prop in data) {
-                if(prop !== 'msg' && prop !== 'username') o.props[prop] = data[prop];
+                if(prop !== 'msg' && prop !== 'username') u.props[prop] = data[prop];
             }
             let now = performance.now();
-            o.latency = now-o.lastUpdate;
-            o.lastUpdate = Date.now();
+            u.latency = now-u.lastUpdate;
+            u.lastUpdate = Date.now();
 
             this.userSubscriptions.forEach((o,i) => {
                 if(o.source === data.username) {
