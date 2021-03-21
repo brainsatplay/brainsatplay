@@ -73,7 +73,7 @@ let ui = new DOMFragment(
 //BACKEND
 
 //Stress testing
-//
+//See dataServer.js for more todo
 
 //THEN FRONTEND
 

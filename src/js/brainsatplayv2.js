@@ -375,6 +375,7 @@ export class brainsatplay {
 		//check if user is subscribable
 		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
 		userProps.forEach((prop) => {
+			if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
 			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
 		});
 		//wait for result, if user found then add the user
