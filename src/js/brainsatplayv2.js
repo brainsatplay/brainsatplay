@@ -899,13 +899,12 @@ class deviceStream {
 			await this.device.connect();
 			await this.device.start();
 			this.device.eegReadings.subscribe(o => {
-					let data = o.samples;
 					let time = Array(o.samples.length).fill(o.timestamp);
-					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))	
+					time = time.map((t,i) => {return t-(1-(this.info.sps/time.length)*i)})	
 					let coord = this.atlas.getEEGDataByChannel(o.electrode);
-					console.log(coord);
 					coord.times.push(...time);
-					coord.raw.push(...data);
+					coord.raw.push(...o.samples);
+					coord.count += o.samples.length
 		})
 			// this.device.telemetryData.subscribe(telemetry => {
 			// });
