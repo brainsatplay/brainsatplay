@@ -902,9 +902,9 @@ class deviceStream {
 					let data = o.samples;
 					let time = Array(o.samples.length).fill(o.timestamp);
 					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))	
-					let coord = this.atlas.getEEGDataByChannel(o.electrode)
-					coord.times.push(...time)
-					coord.raw.push(...data)
+					let coord = this.atlas.getEEGDataByChannel(o.electrode);
+					coord.times.push(...time);
+					coord.raw.push(...data);
 		})
 			// this.device.telemetryData.subscribe(telemetry => {
 			// });
@@ -952,6 +952,11 @@ class deviceStream {
 					if (coord.filtered.length > 0) {
 						let times = coord.times.slice(coord.times.length - get,coord.times.length);
 						let samples = coord.filtered.slice(coord.filtered.length - get,coord.filtered.length);
+						return {times:times, samples:samples};
+					}
+					else if (coord.raw.length > 0){
+						let times = coord.times.slice(coord.times.length - get,coord.times.length);
+						let samples = coord.raw.slice(coord.raw.length - get,coord.raw.length);
 						return {times:times, samples:samples};
 					}
 				}
