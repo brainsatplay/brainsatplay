@@ -141,7 +141,7 @@ export class brainsatplay {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=()=>{}) => {
+	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=(newData)=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
@@ -183,6 +183,14 @@ export class brainsatplay {
 	//this will remove the event listener if you don't have any logic associated with the tag (for performance)
 	unsubscribeAll = (tag='FP1') => {
 		this.state.unsubscribeAll(tag);
+	}
+
+	getData = (tag='FP1', deviceType='eeg') => { //get device data
+		this.devices.forEach((d,i) => {
+			if(d.info.deviceType === deviceType) {
+				return d.atlas.getDeviceDataByTag(deviceType,tag);
+			}
+		});
 	}
 
 	//Server login and socket initialization

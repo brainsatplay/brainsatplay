@@ -30,7 +30,12 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 
-		let onconnected = () => {console.log("connected");
+		let onconnected = () => {
+			console.log("connected");
+			bcisession.subscribe('freeeeg32_2','FP1','count', (newData) => {
+				console.log(newData);
+			})
+		}
 
 		document.getElementById('connect').onclick = () => {
 			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
