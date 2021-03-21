@@ -856,15 +856,18 @@ class deviceStream {
 			//connect muse and begin streaming
 			await this.device.connect();
 			await this.device.start();
-			this.device.eegReadings.subscribe(reading => {
-
-			});
-			this.device.telemetryData.subscribe(telemetry => {
-
-			});
-			this.device.accelerometerData.subscribe(accel => {
-
-			});
+			this.device.eegReadings.subscribe(o => {
+					let data = o.samples;
+					let time = Array(o.samples.length).fill(o.timestamp);
+					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))
+					let coord = this.atlas.getEEGDataByChannel(o.electrode)
+					coord.times.push(...time)
+					coord.raw.push(...data)
+		})
+			// this.device.telemetryData.subscribe(telemetry => {
+			// });
+			// this.device.accelerometerData.subscribe(accel => {
+			// });
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
@@ -1177,7 +1180,7 @@ class dataAtlas {
 		[56.6,30.8,-4.1]]; //FP1, FP2, F7, F8
 
 		function mid(arr1,arr2) { //midpoint
-			midpoint = [];
+			let midpoint = [];
 			arr1.forEach((el,i) => {
 				midpoint.push(0.5*(el*arr2[i]));
 			})

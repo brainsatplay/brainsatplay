@@ -30,8 +30,10 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
-			else bcisession.connect('freeeeg32_2',['eegcoherence']);
+			// if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
+			// else bcisession.connect('freeeeg32_2',['eegcoherence']);
+			if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
+			else bcisession.connect('muse',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login();
@@ -43,7 +45,9 @@ let ui = new DOMFragment(
 			bcisession.sendWSCommand(['getUsers']);
 		}
 		document.getElementById('createGame').onclick = () => {
-			bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
+			// bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
+			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_FP1','eegch_FP2']]);
+
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
