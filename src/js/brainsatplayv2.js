@@ -854,7 +854,7 @@ class deviceStream {
 					}
 					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
-					return {fftTimes:fftTimes, ffts:ffts};
+					return {times:fftTimes, ffts:ffts};
 				}
 			}
 		}
@@ -871,7 +871,7 @@ class deviceStream {
 				if(coord !== false) {
 					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
-					return {cohTimes:cohTimes, ffts:ffts};
+					return {times:cohTimes, ffts:ffts};
 				}
 			}
 		}
