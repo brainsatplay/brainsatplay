@@ -392,7 +392,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 
                 if(sub.updatedUsers.length > 0) { //only send data if there are updates
                     sub.updatedUsers.forEach((user,j) => {
-                        if(sub.spectators.indexOf(user) > -1){
+                        if(sub.spectators.indexOf(user) < 0){
                             let userObj = {
                                 username:user
                             }
