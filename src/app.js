@@ -34,7 +34,7 @@ let ui = new DOMFragment(
 			console.log("connected");
 
 			//subscribe after connecting or the device atlas won't be available
-			bcisession.subscribe('muse','FP1','count', (newData) => {
+			bcisession.subscribe('muse','AF7','count', (newData) => {
 				console.log(newData);
 			})
 		}
@@ -42,7 +42,7 @@ let ui = new DOMFragment(
 		document.getElementById('connect').onclick = () => {
 			// if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
 			// else bcisession.connect('freeeeg32_2',['eegcoherence']);
-			if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
+			if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
 			else bcisession.connect('muse',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {
@@ -56,14 +56,14 @@ let ui = new DOMFragment(
 		}
 		document.getElementById('createGame').onclick = () => {
 			// bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
-			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_FP1','eegch_FP2']]);
+			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
 
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
 		}
 		document.getElementById('subscribeToSelf').onclick = () => {
-			bcisession.subscribeToUser('guest',['eegch_FP1','eegch_FP2'],(res)=>{console.log("subscribed!", res)});
+			bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
 		}
 	},
 	undefined,
