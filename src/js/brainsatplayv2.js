@@ -763,7 +763,7 @@ class deviceStream {
 						let latestFiltered = new Array(latest.length).fill(0);
 						if(o.tag !== "other" && this.info.useFilters === true) { 
 							this.filters.forEach((f,j) => {
-								if(f.channel === "A"+o.ch) {
+								if(f.channel === o.ch) {
 									latest.forEach((sample,k) => { 
 										latestFiltered[k] = f.apply(sample); 
 									});
@@ -804,10 +804,10 @@ class deviceStream {
 			if(useFilters === true) {
 				this.info.eegChannelTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,true,this.device.uVperStep));
+						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
 					}
 					else { 
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,false,this.device.uVperStep)); 
+						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
