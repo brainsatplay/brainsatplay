@@ -91,7 +91,7 @@ export class brainsatplay {
 		pipeToAtlas=true
 		) {
 			if(streaming === true) {
-				console.log(this.socket)
+				console.log(this.socket);
 				if(this.socket == null || this.socket.readyState !== 1) {
 					console.error('Server connection not found, please run login() first');
 					return false;
@@ -208,13 +208,18 @@ export class brainsatplay {
 	}
 
 	//Server login and socket initialization
-	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
+	async login(beginStream=false, dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 		//Connect to websocket
 		if (this.socket == null  || this.socket.readyState !== 1){
 			this.socket = this.setupWebSocket(dict);
 			this.info.auth.authenticated = true;
 			this.subscribed=true;
 			this.info.nDevices++;
+		}
+		if(beginStream === true) {
+			this.devices.forEach((d,i) => {
+				this.beginStream(i);
+			})
 		}
 	} 
 

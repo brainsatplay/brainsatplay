@@ -46,7 +46,7 @@ let ui = new DOMFragment(
 			else bcisession.connect('muse',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {
-			bcisession.login();
+			bcisession.login(true);
     	}
     	document.getElementById('ping').onclick = () => {
 			bcisession.sendWSCommand(['ping']); //send array of arguments
