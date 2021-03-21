@@ -72,10 +72,8 @@ let ui = new DOMFragment(
 
 //BACKEND
 
-//Test atlas stuff again since minor tweakages were made
-//Test server streaming data to
-//Test server subscribing to self
-//Test creating and streaming to/subbing from game.
+//Stress testing
+//
 
 //THEN FRONTEND
 

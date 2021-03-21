@@ -35,11 +35,13 @@ Frontend Execution
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 import {eeg32, eegmath} from './bciutils/eeg32'
-import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './bciutils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
+
+import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
 
 
+//Class for server/socket connecting and macro controls for device streaming and data accessibilty.
 export class brainsatplay {
 	constructor(
 		username='',
@@ -62,7 +64,6 @@ export class brainsatplay {
 				password:password, 
 				access:access, 
 				appname:appname,
-				consent:{raw:false, brains:false},
 				authenticated:false
 			},
 			subscribed: false,
@@ -537,30 +538,6 @@ export class brainsatplay {
 		this.socket.close();
 	}
 
-	getUsersOld(dict={ 
-		destination:'initializeBrains',
-		appname:'',
-		msg:'',
-		nBrains:0,
-		privateBrains:0,
-		privateInfo:'',
-		ninterfaces:0,
-		ids:[],
-		channelNames:[]
-	}) {
-		this.socket.send(JSON.stringify(dict));
-	}
-
-	onNewConnectionOld(response){ //If a user is added to the server
-		this.info.connections.push({
-			username:response.id,
-			access:response.access,
-			channelNames:response.channelNames,
-			destination:response.destination
-		});
-		this.info.nDevices++;
-	}
-
 	onconnectionLost(response){ //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.connections.find((o,i) => {
@@ -591,116 +568,11 @@ export class brainsatplay {
 
 }
 
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
 
-class biquadChannelFilterer {
-    constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
-        this.channel=channel; this.idx = 0; this.sps = sps;
-        this.filtering=filtering;
-        this.bplower = 3; this.bpupper = 45;
-		this.scalingFactor = scalingFactor;
-
-		this.useSMA4 = false; this.last4=[];
-		this.useNotch50 = true; this.useNotch60 = true;
-		this.useLp1 = false; this.useBp1 = false;
-		this.useDCB = true; this.useScaling = false;
-
-        this.notch50 = [
-                    makeNotchFilter(50,sps,1)
-                ];
-        this.notch60 = [
-                    makeNotchFilter(60,sps,1)
-                ];
-        this.lp1 = [
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps)
-                ];
-        this.bp1 = [
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
-                ];
-        this.dcb = new DCBlocker(0.995);
-    }
-
-    reset(sps=this.sps) {
-        this.notch50 = makeNotchFilter(50,sps,1);
-        this.notch60 = makeNotchFilter(60,sps,1);
-        this.lp1 = [
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps)
-                ];
-		this.bp1 = [
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
-				];
-        this.dcb = new DCBlocker(0.995);
-    }
-
-    setBandpass(bplower=this.bplower,bpupper=this.bpupper,sps=this.sps) {
-        this.bplower=bplower; this.bpupper = bpupper;
-        this.bp1 = [
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps)
-        ];
-    }
-
-    apply(latestData=0, idx=this.lastidx+1) {
-        let out=latestData; 
-        if(this.filtering === true) {
-			if(this.useDCB === true) { //Apply a DC blocking filter
-                out = this.dcb.applyFilter(out);
-            }
-            if(this.useSMA4 === true) { // 4 sample simple moving average (i.e. low pass)
-                if(idx < 4) {
-					this.last4.push(out);
-				}
-				else {
-					out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
-					this.last4.shift();
-					this.last4.push(out);
-				}
-            }
-            if(this.useNotch50 === true) { //Apply a 50hz notch filter
-                this.notch50.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            }
-            if(this.useNotch60 === true) { //Apply a 60hz notch filter
-                this.notch60.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            } 
-            if(this.useLp1 === true) { //Apply 4 50Hz lowpass filters
-                this.lp1.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            }
-            if(this.useBp1 === true) { //Apply 4 Bandpass filters
-                this.bp1.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-				out *= this.bp1.length;
-            }
-            if(this.useScaling === true){
-                out *= this.scalingFactor;
-            }
-        }
-        this.lastidx=idx;
-        //console.log(this.channel, out)
-        return out;
-    }
-}
-
-
+//Class for handling local device streaming as well as automating data organization/analysis and streaming to server.
 class deviceStream {
 	constructor(
 		device="freeeeg32_2",
@@ -743,7 +615,7 @@ class deviceStream {
 		//console.log(this.socket);
 		
 		this.streamTable=[]; //tags and callbacks for streaming
-		this.filters = [];   //biquadChannelFilterers 
+		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 
 		this.init(device,useFilters,pipeToAtlas,analysis);
@@ -823,10 +695,10 @@ class deviceStream {
 			if(useFilters === true) {
 				this.info.eegChannelTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
 					}
 					else { 
-						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
@@ -1049,19 +921,6 @@ class deviceStream {
 		}
 	}
 
-	//old method
-	sendDataToServerOld(times=[],signals=[],electrodes='',fields='') {
-		this.socket.send(JSON.stringify({
-			destination:'bci',
-			id:this.info.auth.username,
-			consent:this.info.auth.consent,
-			time:times,
-			signal:signals,
-			electrode:electrodes,
-			field:fields
-		}));
-	}
-
 	streamLoop = (prev={}) => {
 		if(this.info.streaming === true) {
 			let params = [];
@@ -1114,6 +973,11 @@ class deviceStream {
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+
+//Class for organizing data and automating analysis protcols.
 class dataAtlas {
     constructor(
 		name="atlas",

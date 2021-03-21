@@ -45,7 +45,7 @@ export class BCIAppManager {
         
     }
 
-    initUI = () => { //Setup all of the UI rendering and logic/loops
+    initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
     }
 

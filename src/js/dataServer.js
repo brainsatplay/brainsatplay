@@ -1,5 +1,10 @@
 const {performance} = require('perf_hooks');
 
+/* TODO
+Security - e.g. regex control so scripts can't be pumped in
+
+*/
+
 class dataServer { //Just some working concepts for handling data sockets serverside
 	constructor(appnames=[]) {
 		this.userData=new Map();
