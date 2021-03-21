@@ -830,10 +830,10 @@ class deviceStream {
 			this.info.sps = 256;
 			this.info.deviceType = 'eeg';
 			this.info.eegChannelTags = [
-				{ch: 0, tag: "T9", analyze:true},
+				{ch: 0, tag: "TP9", analyze:true},
 				{ch: 1, tag: "AF7", analyze:true},
 				{ch: 2, tag: "AF8", analyze:true},
-				{ch: 3, tag: "T10", analyze:true},
+				{ch: 3, tag: "TP10", analyze:true},
 				{ch: 4, tag: "other", analyze: false}
 			];
 			this.device = new MuseClient();
@@ -896,7 +896,7 @@ class deviceStream {
 			this.device.eegReadings.subscribe(o => {
 					let data = o.samples;
 					let time = Array(o.samples.length).fill(o.timestamp);
-					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))
+					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))	
 					let coord = this.atlas.getEEGDataByChannel(o.electrode)
 					coord.times.push(...time)
 					coord.raw.push(...data)
