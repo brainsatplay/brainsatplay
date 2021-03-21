@@ -903,6 +903,7 @@ class deviceStream {
 					let time = Array(o.samples.length).fill(o.timestamp);
 					time.map((t,i) =>  t-(1-(this.fs/time.length)*i))	
 					let coord = this.atlas.getEEGDataByChannel(o.electrode);
+					console.log(coord);
 					coord.times.push(...time);
 					coord.raw.push(...data);
 		})
