@@ -6,7 +6,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.serverInstances=appnames;
 		this.userSubscriptions=[];
 		this.gameSubscriptions=[];
-        this.subUpdateInterval = 100; //ms
+        this.subUpdateInterval = 0; //ms
 
         this.subscriptionLoop();
 	}
@@ -225,9 +225,10 @@ class dataServer { //Just some working concepts for handling data sockets server
                     o.newData = true;
                 }
             });
+
             this.gameSubscriptions.forEach((o,i) => {
-                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0) {
-                    o.updatedUsers.push[data.username];
+                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
+                    o.updatedUsers.push(data.username);
                 }
             });
 
@@ -254,7 +255,8 @@ class dataServer { //Just some working concepts for handling data sockets server
                     listener:listenerUser,
                     source:sourceUser,
                     propnames:propnames,
-                    newData:false
+                    newData:false,
+                    lastTransmit:0
                 });
                 this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
             }
@@ -346,23 +348,26 @@ class dataServer { //Just some working concepts for handling data sockets server
 	subscriptionLoop = () => {
         let time = Date.now();
         //Should have delay interval checks for each subscription update for rate limiting
-		this.userSubscriptions.forEach((sub,i) => {
+        this.userSubscriptions.forEach((sub,i) => {
             //Should create a dispatcher that accumulates all subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 let listener = this.userData.get(sub.listener);
                 let source = this.userData.get(sub.source);
 
-                if(sub.newData === true) {
+                if(listener === undefined || source === undefined ) {
+                    this.userSubscriptions.splice(i,1);
+                }
+                else if(sub.newData === true) {
                     let dataToSend = {
                         msg:'userData',
-                        username:source.username
+                        username:listener.username
                     };
                     sub.propnames.forEach((prop,j) => {
                         dataToSend[prop] = source.props[prop];
                     });
-                    listener.socket.send(JSON.stringify(dataToSend));
                     sub.newData = false;
                     sub.lastTransmit = time;
+                    listener.socket.send(JSON.stringify(dataToSend));
                 }
             }
 		});
@@ -370,20 +375,24 @@ class dataServer { //Just some working concepts for handling data sockets server
         //optimize to only send updated data
 		this.gameSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
+                
+                //let t = this.userData.get('guest');
+                //if(t!== undefined) t.socket.send(JSON.stringify(sub));
+
                 let updateObj = {
                     msg:'gameData',
                     appname:sub.appname,
                     devices:sub.devices,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
+                    spectators:sub.spectators,
                     updatedUsers:sub.updatedUsers,
                     userData:[],
-                    spectators:[]
                 };
                 
                 if(sub.updatedUsers.length > 0) { //only send data if there are updates
                     sub.updatedUsers.forEach((user,j) => {
-                        if(sub.spectators.indexOf(user) < -1){
+                        if(sub.spectators.indexOf(user) > -1){
                             let userObj = {
                                 username:user
                             }
@@ -393,14 +402,19 @@ class dataServer { //Just some working concepts for handling data sockets server
                             });
                             updateObj.userData.push(userObj);
                         }
-                        else {
-                            spectators.push(user);
-                        }
                     });
                     sub.updatedUsers = [];
 
-                    sub.userNames.forEach((user,j) => {
-                        user.socket.send(JSON.stringify(updateObj));
+                    sub.usernames.forEach((user,j) => {
+                        let u = this.userData.get(user);
+                        if(u !== undefined )
+                            this.userData.get(user).socket.send(JSON.stringify(updateObj));
+                        else {
+                            sub.usernames.splice(sub.usernames.indexOf(user),1);
+                            if(sub.spectators.indexOf(user) > -1) {
+                                sub.spectators.splice(sub.spectators.indexOf(user),1);
+                            }
+                        }
                     });
                 }
             }

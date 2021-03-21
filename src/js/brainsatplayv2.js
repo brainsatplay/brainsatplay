@@ -237,64 +237,54 @@ export class brainsatplay {
 
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
+		console.log(parsed);
 		if(parsed.msg === 'userData') {
 			for(const prop in parsed) {
 			 if (prop !== 'msg' && prop !== 'username') 
 				this.state.data[parsed.username+"_"+prop] = parsed[prop]; 
 			}
+			
 		}
 		else if (parsed.msg === 'gameData') {
 			this.state.data[parsed.appname+"_userData"] = parsed.userData;
 			this.state.data[parsed.appname+"_spectators"] = parsed.spectators;
 		}
 		else if (parsed.msg === 'getUserDataResult') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getGameDataResult') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getGameInfoResult') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'subscribedToUser') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'userNotFound') {
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'subscribedToGame') {
-			console.log(parsed.msg);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'leftGame') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'gameDeleted') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'unsubscribed') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'gameNotFound') {
-			console.log(parsed);
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'ping') {
-			console.log(parsed.msg);
 		}
 		else {
-			console.log(parsed);
 		}
 	}
 
