@@ -39,6 +39,7 @@ import {MuseClient} from 'muse-js'
 
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
+import { raw } from 'express'
 
 
 //Class for server/socket connecting and macro controls for device streaming and data accessibilty.
@@ -1568,6 +1569,103 @@ class dataAtlas {
 		if(this.analyzing === true) { this.workerPostTime = syncTime; }
 		return buffer;
 	} 
+
+	readyEEGDataForWriting = (from=0,to='end') => {
+		function toISOLocal(d) {
+			var z  = n =>  ('0' + n).slice(-2);
+			var zz = n => ('00' + n).slice(-3);
+			var off = d.getTimezoneOffset();
+			var sign = off < 0? '+' : '-';
+			off = Math.abs(off);
+		  
+			return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
+				   + z(d.getMonth()+1) + '-' +
+				   z(d.getDate()) + 'T' +
+				   z(d.getHours()) + ':'  + 
+				   z(d.getMinutes()) + ':' +
+				   z(d.getSeconds()) + '.' +
+				   zz(d.getMilliseconds()) + 
+				   "(UTC" + sign + z(off/60|0) + ':00)'
+		  }
+		  
+		let header = ["TimeStamps","UnixTime"];
+		let data = [];
+		let mapidx = 0;
+		let datums = [];
+		this.data.eegshared.eegChannelTags.forEach((row,j) => {
+			datums.push(this.getEEGDataByChannel(row.ch));
+		});
+		
+		if(to === 'end') { to = datums[0].count; }
+
+		for(let i = from; i<to; i++){
+			let line=[];
+			line.push(toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
+			//first get the raw/filtered
+			datums.forEach((row,j) => {
+				if(row.filtered.length > 0) {
+					line.push(row.filtered[i].toFixed(0));
+				} else if (row.raw.length > 0) {
+					line.push(row.raw[i].toFixed(0));
+				}
+			});
+			//then get the fft/coherence data
+			datums.forEach((row,j) => {
+				if(row.times[i] === row.fftTimes[mapidx]) {
+					if(from === 0) {
+						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+							header.push(coord.tag+"; FFT Hz:",bpfreqs.join(","));
+					}
+					line.push(row.ffts[mapidx]);
+				}
+			});
+			this.data.coherence.forEach((row,i) => {
+				if(from===0) {
+					let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+					header.push(coord.tag+"; FFT Hz:",bpfreqs.join(","));
+				}
+				if(row.times[i] === row.fftTimes[mapidx]) {
+					line.push(row.ffts[mapidx]);
+				}
+			});
+			if(row.fftTimes[mapidx] === this.datum[0].times[i]){
+				mapidx++;
+			}
+			data.push(line.join(","));
+		}
+		if(datums[0].filtered.length === 0 ) {
+			header.push("No filters.");
+		}
+		else {
+			header.push("Filters used (unless tagged 'other'): Notch 50Hz:"+State.data.notch50+"; Notch 60Hz:"+State.data.notch60+" SMA(4):"+State.data.sma4+"; Low pass 50Hz:"+State.data.lowpass50+"; Bandpass ("+State.data.filterers[0].bplower+"Hz-"+State.data.filterers[0].bpupper+"Hz):"+State.data.bandpass)
+		}
+		//console.log(data)
+		return [header.join(",")+"\n",data.join("\n")];
+	}
+
+	regenAtlasses(freqStart,freqEnd,sps=512) {
+		this.data.eeg = this.makeAtlas10_20(); //reset atlas
+
+		let bandPassWindow = this.bandPassWindow(freqStart,freqEnd,sps);
+
+		this.data.eegshared.frequencies = bandPassWindow;//Push the x-axis values for each frame captured as they may change - should make this lighter
+		this.data.eegshared.bandFreqs = this.getBandFreqs(bandPassWindow); //Update bands accessed by the atlas for averaging
+
+		this.coherenceMap = this.genCoherenceMap();
+	}
+	
+	updateFrequencies = (freqStart, freqEnd) => {
+		var freq0 = freqStart; var freq1 = freqEnd;
+		if (freq0 > freq1) {
+			freq0 = 0;
+		}
+		if(freq1 > EEG.sps*0.5){
+			freq1 = EEG.sps*0.5;
+			State.data.freqEnd=freq1;
+		}
+	
+		ATLAS.regenAtlasses(State.data.freqStart,State.data.freqEnd,EEG.sps);
+	}
 
 	workeronmessage = (msg) => {
 		//console.log(msg);
