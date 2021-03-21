@@ -32,6 +32,8 @@ let ui = new DOMFragment(
 
 		let onconnected = () => {
 			console.log("connected");
+
+			//subscribe after connecting or the device atlas won't be available
 			bcisession.subscribe('freeeeg32_2','FP1','count', (newData) => {
 				console.log(newData);
 			})

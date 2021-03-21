@@ -793,10 +793,12 @@ class deviceStream {
 				},
 				()=>{	
 					if(this.info.useAtlas === true){
-						setTimeout(() => {this.atlas.analyzer();},1200);
+						setTimeout(() => {this.atlas.analyzer();},1200);		
+						this.onconnect();
 					}
 				},
 				()=>{
+					this.ondisconnect();
 				}
 			);
 			if(useFilters === true) {
@@ -886,6 +888,7 @@ class deviceStream {
 			this.device.accelerometerData.subscribe(accel => {
 
 			});
+			this.onconnect();
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
@@ -895,7 +898,6 @@ class deviceStream {
 			this.addedDeviceConnect[idx]();
 		}
 		this.info.connected = true;
-		this.onconnect();
 		
 	}
 
@@ -976,9 +978,9 @@ class deviceStream {
 		}
 
 		this.streamTable = [
-			{prop:'eegch',  		callback:getEEGChData	 },
-			{prop:'eegfft', 		callback:getEEGFFTData	 },
-			{prop:'eegcoherence', 	callback:getCoherenceData}
+			{prop:'eegch',  		callback:getEEGChData	 	},
+			{prop:'eegfft', 		callback:getEEGFFTData	 	},
+			{prop:'eegcoherence', 	callback:getCoherenceData	}
 		];
 
 		if(params.length > 0) {
@@ -1068,15 +1070,15 @@ class deviceStream {
 		}
 	}
 
-	disconnect() {
+	disconnect = () => {
 		if(this.info.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
 		else if (this.info.deviceName.indexOf("muse") > -1) {
 			this.device.disconnect(); 
+			this.ondisconnect();
 		}
 		this.info.connected = false;
-		this.ondisconnect();
 	}
 
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
