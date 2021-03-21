@@ -30,7 +30,7 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 		document.getElementById('connect').onclick = () => {
-			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
+			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],()=>{console.log("connected");},true,[['eegch','FP1','all'],['eegch','FP2','all']]);
 			else bcisession.connect('freeeeg32_2',['eegcoherence']);
 		}
 		document.getElementById('server').onclick = () => {

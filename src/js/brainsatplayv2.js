@@ -84,11 +84,11 @@ export class brainsatplay {
 	connect(
 		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse","notion"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
+		onconnect=()=>{}, //onconnect callback, subscribe to device outputs after connection completed
 		streaming=false,
 		streamParams=[['eegch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
-		pipeToAtlas=true,
-		
+		pipeToAtlas=true
 		) {
 			if(streaming === true) {
 				console.log(this.socket)
@@ -110,15 +110,19 @@ export class brainsatplay {
 				)
 			);
 
+			this.devices[this.devices.length-1].onconnect = onconnect;
+
 			//Device info accessible from state
 			this.state.addToState("device"+this.devices.length,this.devices[this.devices.length-1].info);
 			
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
+
 	}
 	
 	//disconnect local device
-	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
+	disconnect(deviceIdx=this.devices[this.devices.length-1],ondisconnect=()=>{}) {
+		this.devices.ondisconnect = ondisconnect;
 		this.devices[deviceIdx].disconnect();
 	}
 
@@ -530,7 +534,7 @@ export class brainsatplay {
 		this.info.nDevices++;
 	}
 
-	onConnectionLost(response){ //If a user is removed from the server
+	onconnectionLost(response){ //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.connections.find((o,i) => {
 			if(o.username === response.username) {
@@ -778,7 +782,6 @@ class deviceStream {
 							}
 						}
 					});
-					//this.onMessage(newLinesInt);
 				},
 				()=>{	
 					if(this.info.useAtlas === true){
@@ -884,7 +887,7 @@ class deviceStream {
 			this.addedDeviceConnect[idx]();
 		}
 		this.info.connected = true;
-		this.onConnect();
+		this.onconnect();
 		
 	}
 
@@ -1065,17 +1068,13 @@ class deviceStream {
 			this.device.disconnect(); 
 		}
 		this.info.connected = false;
-		this.onDisconnect();
+		this.ondisconnect();
 	}
 
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
-	onMessage(msg="") {
+	onconnect(msg="") {}
 
-	}
-
-	onConnect(msg="") {}
-
-	onDisconnect(msg="") {}
+	ondisconnect(msg="") {}
 }
 
 
@@ -1150,7 +1149,7 @@ class dataAtlas {
 			this.addDefaultAnalyzerFuncs();
 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
-			window.workerResponses.push(this.workerOnMessage);
+			window.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
     }
@@ -1669,7 +1668,7 @@ class dataAtlas {
 		return buffer;
 	} 
 
-	workerOnMessage = (msg) => {
+	workeronmessage = (msg) => {
 		//console.log(msg);
 		if(msg.origin === this.name) {
 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
