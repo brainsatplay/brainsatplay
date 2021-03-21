@@ -122,6 +122,20 @@ export class brainsatplay {
 		this.devices[deviceIdx].disconnect();
 	}
 
+	beginStream(deviceIdx=0,streamParams=null) {
+		if(this.devices[deviceIdx].info.streaming ) {
+			this.devices[deviceIdx].info.streaming = true;
+			if(streamProps !== null) {
+				this.devices[deviceIdx].info.streamParams = streamParams;
+			}
+			this.devices[deviceIdx].streamLoop();
+		}
+	}
+
+	endStream(deviceIdx=0) {
+		this.devices[deviceIdx].info.streaming = false;
+	}
+
 	//listen for changes to atlas data properties
 	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=()=>{}) => {
 		let sub = undefined;
@@ -372,7 +386,6 @@ export class brainsatplay {
 								this.state[appname+"_"+user+"_"+prop] = null;
 							});
 						});
-
 						onsuccess(newResult);
 					}
 					this.state.unsubscribe('commandResult',sub);
@@ -703,11 +716,9 @@ class deviceStream {
 		this.atlas = null;
 
 		this.init(device,useFilters,pipeToAtlas,analysis);
-
 	}
 
 	init = (device,useFilters,pipeToAtlas,analysis=[]) => {
-
 
 		if(device.indexOf("freeeeg32") > -1) {
 			this.info.sps = 512;
@@ -756,7 +767,6 @@ class deviceStream {
 								coord.filtered.push(...latestFiltered);
 								//console.log(coord);
 								coord.raw.push(...latest);
-
 							}
 						}
 						else {
@@ -955,9 +965,9 @@ class deviceStream {
 		}
 
 		this.streamTable = [
-			{prop:'eegch',  callback:getEEGChData},
-			{prop:'eegfft', callback:getEEGFFTData},
-			{prop:'eegcoherence', callback:getCoherenceData}
+			{prop:'eegch',  		callback:getEEGChData	 },
+			{prop:'eegfft', 		callback:getEEGFFTData	 },
+			{prop:'eegcoherence', 	callback:getCoherenceData}
 		];
 
 		if(params.length > 0) {
