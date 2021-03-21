@@ -35,7 +35,7 @@ export class WorkerUtil {
         this.workers[i].onmessage = (e) => {
             var msg = { idx: i, msg: e.data}; //Returned parsed string
             if(this.debug === true){console.log(i,": ", msg);}
-            callback;
+            callback(msg);
         };
     }
 
