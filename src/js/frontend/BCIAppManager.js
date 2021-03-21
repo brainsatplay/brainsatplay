@@ -8,9 +8,13 @@
 //  -- Setup BCI controls e.g. to control analysis on-the-fly.
 //Setup BrowserFS logic for indexedDB
 
-
-import {State} from './State'
 import {UIManager} from './utils/UIManager'
+import {CSV} from '../general/csv'
+import * as BrowserFS from 'browserfs'
+import { StateManager } from './utils/StateManager';
+const fs = BrowserFS.BFSRequire('fs')
+const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
+
 
 /*
 //Name applets and their template classes with specifications for the UI manager
@@ -32,7 +36,15 @@ export class BCIAppManager {
         appletConfigs=[]   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
 
-        this.bcisession = null; //Device sessions
+        this.state = new StateManager({
+            sessionName:'',
+            saveChunkSize:0,
+            saveChunkSize:5120,
+            newSessionCt:0,
+            fileSizeLimitMb: 250
+        });
+
+        this.bcisession = null; //brainsatplay class instance
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         this.appletConfigs.push(...this.getConfigsFromHashes());
@@ -67,7 +79,19 @@ export class BCIAppManager {
         return appletConfigs;    
     }
 
-    initUIManager = () => {
+    initUIManager = (contents) => {
+
+        // ------ need to flesh this out -------
+        let settings = JSON.parse(contents);
+        if(settings.appletConfigs.length > 0) {
+            this.appletConfigs = settings.appletConfigs;
+        }
+        let configs = this.getConfigsFromHashes();
+        if(configs.length === null){
+            this.appletConfigs = configs;
+        }
+        // -------------------------------------
+        
         this.uiManager = new UIManager(
             this.initUI,
             this.deinitUI,
@@ -78,7 +102,7 @@ export class BCIAppManager {
         )
     }
 
-    setApps(
+    setApps( //set the apps and create a new UI or recreate the original
         appletClasses=this.appletClasses,  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
         appletConfigs=this.appletConfigs   //expects an object array like           [{name:"uPlot Applet",idx:0-3,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
@@ -94,8 +118,218 @@ export class BCIAppManager {
         }
     }
 
+    //Inits the UImanager within the context of the filesystem so the data can be autosaved on demand (there should be a better method than mine)
     initFS = () => {
-        this.fs;
+        let oldmfs = fs.getRootFS();
+        BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
+            if(!rootForMfs) {
+                let configs = this.getConfigsFromHashes();
+                const UI = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                throw new Error(`?`);
+            }
+            BrowserFS.initialize(rootForMfs);
+            fs.exists('/data', (exists) => {
+                if(exists) { }
+                else {
+                    fs.mkdir('/data');
+                }
+                let contents = "";
+                fs.appendFile('/data/settings.json','',(e) => {
+                    if(e) throw e;
+                    fs.readFile('/data/settings.json', (err, data) => {
+                        if(err) {
+                            fs.mkdir('/data');
+                            fs.writeFile('/data/settings.json',
+                            JSON.stringify(
+                                {
+                                    appletConfigs:this.appletConfigs
+                                }
+                            ), (err) => {
+                                let configs = getConfigsFromHashes();
+                                const UI = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                                if(err) throw err;
+                            });
+                        }
+                        if(!data) {
+                            let newcontent = 
+                                JSON.stringify({
+                                    appletConfigs:[]
+                                });
+                            contents = newcontent;
+                            fs.writeFile('/data/settings.json', newcontent, (err) => {
+                                if(err) throw err;
+                                console.log("New settings file created");
+                                this.initUIManager(contents);
+                                listFiles();
+                            });
+                        }
+                        else{ 
+                            contents = data.toString();    
+                            initUIManager(contents);
+                            listFiles();
+                        }
+
+                        //configure autosaving when the device is connected
+                        this.bcisession.state.data.info = this.bcisession.info;
+                        this.bcisession.state.subscribe('info',(info) => {
+                            if(info.nDevices > 0) {
+                                if(this.bcisession.devices[info.nDevices-1].info.deviceType === 'eeg') {
+                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,'count', (c) => {
+                                        if(c - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                            autoSaveEEGChunk();
+                                            this.state.data.saveCounter = c;
+                                        }
+                                    });
+                                    document.getElementById("saveEEGSession").onclick = () => {
+                                        autoSaveEEGChunk();
+                                    }
+                                    document.getElementById("newEEGSession").onclick = () => {
+                                        newSession();
+                                    }
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+    
+            const newSession = () => {
+                let sessionName = new Date().toISOString(); //Use the time stamp as the session name
+                this.state.data.sessionName = sessionName;
+                this.state.data.sessionChunks = 0;
+                this.state.data.saveChunkSize = 5120;
+                this.state.data.newSessionCt++;
+                fs.appendFile('/data/'+sessionName,"", (e) => {
+                    if(e) throw e;
+                    listFiles();
+                });
+            }
+
+            const deleteFile = (path) => {
+                fs.unlink(path, (e) => {
+                    if(e) console.error(e);
+                    listFiles();
+                });
+            }
+    
+            const listFiles = () => {
+                fs.readdir('/data', (e,dirr) => { 
+                    if(e) return;
+                    if(dirr) {
+                        console.log("files",dirr)
+                        let filediv = document.getElementById("filesystem");
+                        filediv.innerHTML = "";
+                        dirr.forEach((str,i) => {
+                            if(str !== "settings.json"){
+                                filediv.innerHTML += file_template({id:str});
+                            }
+                        });
+                        dirr.forEach((str,i) => {
+                            if(str !== "settings.json") {
+                                document.getElementById(str+"svg").onclick = () => {
+                                    console.log(str);
+                                    writeToCSV(str);
+                                } 
+                                document.getElementById(str+"delete").onclick = () => { 
+                                    deleteFile("/data/"+str);
+                                } 
+                            }
+                        });
+                    }
+                });
+            }
+
+            const autoSaveEEGChunk = (startidx=0,to='end') => {
+                let from = startidx; 
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+    
+                let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
+                console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
+                if(this.state.data.sessionChunks === 0) {
+                    fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {
+                        if(e) throw e;
+                        this.state.data.sessionChunks++;
+                        listFiles();
+                    }); //+"_c"+State.data.sessionChunks
+                    
+                }
+                else {
+                    fs.appendFile('/data/'+this.state.data.sessionName, "\n"+data[1], (e) => {
+                        if(e) throw e;
+                        this.state.data.sessionChunks++;
+                    }); //+"_c"+State.data.sessionChunks
+                }
+                
+            }
+                
+            //Read a chunk of data from a saved dataset
+            const readFromDB = (path,begin=0,end=5120) => {
+                fs.open('/data/'+path,'r',(e,fd) => {
+                    if(e) throw e;
+                
+                    fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
+                        if (er) throw er;
+                        if(bytesRead !== 0) {
+                            let data = output.toString();
+                            //Now parse the data back into the buffers.
+                        };
+                    }); 
+                });
+            }
+
+            //Write CSV data in chunks to not overwhelm memory
+            const writeToCSV = (path) => {
+                fs.stat('/data/'+path,(e,stats) => {
+                    if(e) throw e;
+                    let filesize = stats.size;
+                    console.log(filesize)
+                    fs.open('/data/'+path,'r',(e,fd) => {
+                        if(e) throw e;
+                        let i = 0;
+                        let maxFileSize = this.state.data.fileSizeLimitMb*1024*1024;
+                        let end = maxFileSize;
+                        if(filesize < maxFileSize) {
+                            end = filesize;
+                            fs.read(fd,end,0,'utf-8',(e,output,bytesRead) => { 
+                                if (e) throw e;
+                                if(bytesRead !== 0) CSV.saveCSV(output.toString(),path);
+                            }); 
+                        }
+                        else {
+                            const writeChunkToFile = () => {
+                                if(i < filesize) {
+                                    if(i+end > filesize) {end=filesize - i;}  
+                                    let chunk = 0;
+                                    fs.read(fd,end,i,'utf-8',(e,output,bytesRead) => {   
+                                        if (e) throw e;
+                                        if(bytesRead !== 0) {
+                                            CSV.saveCSV(output.toString(),path+"_"+chunk);
+                                            i+=maxFileSize;
+                                            chunk++;
+                                            writeChunkToFile();
+                                        }
+                                    });
+                                }
+                            }  
+                        }
+                        //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
+                        //file.write(data.toString());
+                    }); 
+                });
+                
+            }
+
+            const saveSettings = () => {
+                fs.writeFile('/data/settings.json',
+                JSON.stringify({   
+                        appletConfigs:this.appletConfigs
+                    }
+                ), (err) => {
+                    if(err) throw err;
+                });
+            }
+
+        });
     }
 
 }

@@ -1289,7 +1289,30 @@ class dataAtlas {
 		this.data.hrv.push(genHRVStruct(tag));
 	}
 
-	//ecg,emg,eyetracker
+	//also do ecg,emg,eyetracker
+
+	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
+		var found = false;
+		if(typeof tag === 'number' && device === 'eeg') {
+			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
+				if(o.ch === tag && o.tag !== null) {
+					tag = o.tag;
+				}
+			});
+		}
+		if(device.indexOf("shared") < 0) {
+			let atlasCoord = this.data[device].find((o, i) => {
+				if(o.tag === tag){
+					found = o;
+					return true;
+				}
+			});
+			return found;
+		}
+		else {
+			return this.data[device]; //return shared data structs which are laid out a little differetly
+		}
+	}
 
 	getEEGDataByChannel(ch=0) {
 		let found = false;
@@ -1305,22 +1328,6 @@ class dataAtlas {
 			}
 		});
 		return found;
-	}
-
-	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
-		var found = false;
-		if(device.indexOf("shared") < 0) {
-			let atlasCoord = this.data[device].find((o, i) => {
-				if(o.tag === tag){
-					found = o;
-					return true;
-				}
-			});
-			return found;
-		}
-		else {
-			return this.data[device]; //return shared data structs which are laid out a little differetly
-		}
 	}
 
     //Return the object corresponding to the atlas tag
