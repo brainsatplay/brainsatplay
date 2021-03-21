@@ -193,9 +193,9 @@ export class brainsatplay {
 		});
 	}
 
-	addAnalyzerFunc(prop,callback) {
+	addAnalyzerFunc(prop=null,callback=()=>{}) {
 		this.devices.forEach((o,i) => {
-			if(o.atlas !== null) {
+			if(o.atlas !== null && prop !== null) {
 				if(o.atlas.analyzerOpts.indexOf(prop) < 0) {
 					o.atlas.analyzerOpts.push(prop)
 					o.atlas.analyzerFuncs.push(callback);
