@@ -124,7 +124,7 @@ export class BCIAppManager {
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
-                const UI = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
                 throw new Error(`?`);
             }
             BrowserFS.initialize(rootForMfs);
@@ -146,7 +146,7 @@ export class BCIAppManager {
                                 }
                             ), (err) => {
                                 let configs = getConfigsFromHashes();
-                                const UI = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
                                 if(err) throw err;
                             });
                         }
