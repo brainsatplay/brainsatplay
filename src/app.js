@@ -36,7 +36,7 @@ let ui = new DOMFragment(
 			//subscribe after connecting or the device atlas won't be available
 			bcisession.subscribe('muse','FP1','count', (newData) => {
 				console.log(newData);
-			})
+			});
 		}
 
 		document.getElementById('connect').onclick = () => {
@@ -57,7 +57,6 @@ let ui = new DOMFragment(
 		document.getElementById('createGame').onclick = () => {
 			// bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
 			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_FP1','eegch_FP2']]);
-
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});

@@ -891,7 +891,7 @@ class deviceStream {
 
 	async connect() {
 	
-		if(this.info.deviceName === "freeeeg32_2" || this.info.deviceName === "freeeeg32_19") {
+		if(this.info.deviceName.indexOf("freeeeg32_2") > -1) {
 			await this.device.setupSerialAsync();
 		}
 		else if (this.info.deviceName === "muse") {
