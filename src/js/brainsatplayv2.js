@@ -193,6 +193,20 @@ export class brainsatplay {
 		});
 	}
 
+	addAnalyzerFunc(prop,callback) {
+		this.devices.forEach((o,i) => {
+			if(o.atlas !== null) {
+				if(o.atlas.analyzerOpts.indexOf(prop) < 0) {
+					o.atlas.analyzerOpts.push(prop)
+					o.atlas.analyzerFuncs.push(callback);
+				}
+				else {
+					console.error("property "+prop+" exists");
+				}
+			}
+		})
+	}
+
 	//Server login and socket initialization
 	async login(dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
 		//Connect to websocket
