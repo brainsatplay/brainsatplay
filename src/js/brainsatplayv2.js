@@ -84,11 +84,11 @@ export class brainsatplay {
 	connect(
 		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse","notion"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
+		onconnect=()=>{}, //onconnect callback, subscribe to device outputs after connection completed
 		streaming=false,
 		streamParams=[['eegch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
-		pipeToAtlas=true,
-		
+		pipeToAtlas=true
 		) {
 			if(streaming === true) {
 				console.log(this.socket)
@@ -110,20 +110,38 @@ export class brainsatplay {
 				)
 			);
 
+			this.devices[this.devices.length-1].onconnect = onconnect;
+
 			//Device info accessible from state
 			this.state.addToState("device"+this.devices.length,this.devices[this.devices.length-1].info);
 			
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
+
 	}
 	
 	//disconnect local device
-	disconnect(deviceIdx=this.devices[this.devices.length-1]) {
+	disconnect(deviceIdx=this.devices[this.devices.length-1],ondisconnect=()=>{}) {
+		this.devices.ondisconnect = ondisconnect;
 		this.devices[deviceIdx].disconnect();
 	}
 
+	beginStream(deviceIdx=0,streamParams=null) {
+		if(this.devices[deviceIdx].info.streaming ) {
+			this.devices[deviceIdx].info.streaming = true;
+			if(streamProps !== null) {
+				this.devices[deviceIdx].info.streamParams = streamParams;
+			}
+			this.devices[deviceIdx].streamLoop();
+		}
+	}
+
+	endStream(deviceIdx=0) {
+		this.devices[deviceIdx].info.streaming = false;
+	}
+
 	//listen for changes to atlas data properties
-	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=()=>{}) => {
+	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=(newData)=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
@@ -165,6 +183,28 @@ export class brainsatplay {
 	//this will remove the event listener if you don't have any logic associated with the tag (for performance)
 	unsubscribeAll = (tag='FP1') => {
 		this.state.unsubscribeAll(tag);
+	}
+
+	getData = (tag='FP1', deviceType='eeg') => { //get device data
+		this.devices.forEach((d,i) => {
+			if(d.info.deviceType === deviceType) {
+				return d.atlas.getDeviceDataByTag(deviceType,tag);
+			}
+		});
+	}
+
+	addAnalyzerFunc(prop=null,callback=()=>{}) {
+		this.devices.forEach((o,i) => {
+			if(o.atlas !== null && prop !== null) {
+				if(o.atlas.analyzerOpts.indexOf(prop) < 0) {
+					o.atlas.analyzerOpts.push(prop)
+					o.atlas.analyzerFuncs.push(callback);
+				}
+				else {
+					console.error("property "+prop+" exists");
+				}
+			}
+		})
 	}
 
 	//Server login and socket initialization
@@ -372,7 +412,6 @@ export class brainsatplay {
 								this.state[appname+"_"+user+"_"+prop] = null;
 							});
 						});
-
 						onsuccess(newResult);
 					}
 					this.state.unsubscribe('commandResult',sub);
@@ -517,7 +556,7 @@ export class brainsatplay {
 		this.info.nDevices++;
 	}
 
-	onConnectionLost(response){ //If a user is removed from the server
+	onconnectionLost(response){ //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.connections.find((o,i) => {
 			if(o.username === response.username) {
@@ -703,11 +742,9 @@ class deviceStream {
 		this.atlas = null;
 
 		this.init(device,useFilters,pipeToAtlas,analysis);
-
 	}
 
 	init = (device,useFilters,pipeToAtlas,analysis=[]) => {
-
 
 		if(device.indexOf("freeeeg32") > -1) {
 			this.info.sps = 512;
@@ -740,7 +777,7 @@ class deviceStream {
 						let latestFiltered = new Array(latest.length).fill(0);
 						if(o.tag !== "other" && this.info.useFilters === true) { 
 							this.filters.forEach((f,j) => {
-								if(f.channel === "A"+o.ch) {
+								if(f.channel === o.ch) {
 									latest.forEach((sample,k) => { 
 										latestFiltered[k] = f.apply(sample); 
 									});
@@ -756,7 +793,6 @@ class deviceStream {
 								coord.filtered.push(...latestFiltered);
 								//console.log(coord);
 								coord.raw.push(...latest);
-
 							}
 						}
 						else {
@@ -768,23 +804,24 @@ class deviceStream {
 							}
 						}
 					});
-					//this.onMessage(newLinesInt);
 				},
 				()=>{	
 					if(this.info.useAtlas === true){
-						setTimeout(() => {this.atlas.analyzer();},1200);
+						setTimeout(() => {this.atlas.analyzer();},1200);		
+						this.onconnect();
 					}
 				},
 				()=>{
+					this.ondisconnect();
 				}
 			);
 			if(useFilters === true) {
 				this.info.eegChannelTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,true,this.device.uVperStep));
+						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
 					}
 					else { 
-						this.filters.push(new biquadChannelFilterer("A"+row.ch,this.info.sps,false,this.device.uVperStep)); 
+						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
@@ -877,7 +914,6 @@ class deviceStream {
 			this.addedDeviceConnect[idx]();
 		}
 		this.info.connected = true;
-		this.onConnect();
 		
 	}
 
@@ -958,9 +994,9 @@ class deviceStream {
 		}
 
 		this.streamTable = [
-			{prop:'eegch',  callback:getEEGChData},
-			{prop:'eegfft', callback:getEEGFFTData},
-			{prop:'eegcoherence', callback:getCoherenceData}
+			{prop:'eegch',  		callback:getEEGChData	 	},
+			{prop:'eegfft', 		callback:getEEGFFTData	 	},
+			{prop:'eegcoherence', 	callback:getCoherenceData	}
 		];
 
 		if(params.length > 0) {
@@ -1050,25 +1086,21 @@ class deviceStream {
 		}
 	}
 
-	disconnect() {
+	disconnect = () => {
 		if(this.info.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
 		}
 		else if (this.info.deviceName.indexOf("muse") > -1) {
 			this.device.disconnect(); 
+			this.ondisconnect();
 		}
 		this.info.connected = false;
-		this.onDisconnect();
 	}
 
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
-	onMessage(msg="") {
+	onconnect(msg="") {}
 
-	}
-
-	onConnect(msg="") {}
-
-	onDisconnect(msg="") {}
+	ondisconnect(msg="") {}
 }
 
 
@@ -1143,7 +1175,7 @@ class dataAtlas {
 			this.addDefaultAnalyzerFuncs();
 			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = window.addWorker(); // add a worker for this dataAtlas analyzer instance
-			window.workerResponses.push(this.workerOnMessage);
+			window.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
     }
@@ -1662,7 +1694,7 @@ class dataAtlas {
 		return buffer;
 	} 
 
-	workerOnMessage = (msg) => {
+	workeronmessage = (msg) => {
 		//console.log(msg);
 		if(msg.origin === this.name) {
 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 

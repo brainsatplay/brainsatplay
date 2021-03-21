@@ -29,6 +29,16 @@ let ui = new DOMFragment(
 	document.body,
 	undefined,
 	() => {
+
+		let onconnected = () => {
+			console.log("connected");
+
+			//subscribe after connecting or the device atlas won't be available
+			bcisession.subscribe('freeeeg32_2','FP1','count', (newData) => {
+				console.log(newData);
+			})
+		}
+
 		document.getElementById('connect').onclick = () => {
 			// if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
 			// else bcisession.connect('freeeeg32_2',['eegcoherence']);
