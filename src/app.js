@@ -57,7 +57,6 @@ let ui = new DOMFragment(
 		document.getElementById('createGame').onclick = () => {
 			// bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
 			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
-
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
 			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
@@ -72,10 +71,8 @@ let ui = new DOMFragment(
 
 //BACKEND
 
-//Test atlas stuff again since minor tweakages were made
-//Test server streaming data to
-//Test server subscribing to self
-//Test creating and streaming to/subbing from game.
+//Stress testing
+//See dataServer.js for more todo
 
 //THEN FRONTEND
 

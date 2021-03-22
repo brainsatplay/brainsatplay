@@ -35,11 +35,14 @@ Frontend Execution
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 import {eeg32, eegmath} from './bciutils/eeg32'
-import {Biquad, makeNotchFilter, makeBandpassFilter, DCBlocker} from './bciutils/signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
+
+import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
+import { raw } from 'express'
 
 
+//Class for server/socket connecting and macro controls for device streaming and data accessibilty.
 export class brainsatplay {
 	constructor(
 		username='',
@@ -62,7 +65,6 @@ export class brainsatplay {
 				password:password, 
 				access:access, 
 				appname:appname,
-				consent:{raw:false, brains:false},
 				authenticated:false
 			},
 			subscribed: false,
@@ -374,6 +376,7 @@ export class brainsatplay {
 		//check if user is subscribable
 		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
 		userProps.forEach((prop) => {
+			if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
 			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
 		});
 		//wait for result, if user found then add the user
@@ -537,30 +540,6 @@ export class brainsatplay {
 		this.socket.close();
 	}
 
-	getUsersOld(dict={ 
-		destination:'initializeBrains',
-		appname:'',
-		msg:'',
-		nBrains:0,
-		privateBrains:0,
-		privateInfo:'',
-		ninterfaces:0,
-		ids:[],
-		channelNames:[]
-	}) {
-		this.socket.send(JSON.stringify(dict));
-	}
-
-	onNewConnectionOld(response){ //If a user is added to the server
-		this.info.connections.push({
-			username:response.id,
-			access:response.access,
-			channelNames:response.channelNames,
-			destination:response.destination
-		});
-		this.info.nDevices++;
-	}
-
 	onconnectionLost(response){ //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.connections.find((o,i) => {
@@ -591,116 +570,11 @@ export class brainsatplay {
 
 }
 
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
 
-class biquadChannelFilterer {
-    constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
-        this.channel=channel; this.idx = 0; this.sps = sps;
-        this.filtering=filtering;
-        this.bplower = 3; this.bpupper = 45;
-		this.scalingFactor = scalingFactor;
-
-		this.useSMA4 = false; this.last4=[];
-		this.useNotch50 = true; this.useNotch60 = true;
-		this.useLp1 = false; this.useBp1 = false;
-		this.useDCB = true; this.useScaling = false;
-
-        this.notch50 = [
-                    makeNotchFilter(50,sps,1)
-                ];
-        this.notch60 = [
-                    makeNotchFilter(60,sps,1)
-                ];
-        this.lp1 = [
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps)
-                ];
-        this.bp1 = [
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                    makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
-                ];
-        this.dcb = new DCBlocker(0.995);
-    }
-
-    reset(sps=this.sps) {
-        this.notch50 = makeNotchFilter(50,sps,1);
-        this.notch60 = makeNotchFilter(60,sps,1);
-        this.lp1 = [
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps),
-                    new Biquad('lowpass', 50, sps)
-                ];
-		this.bp1 = [
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-					makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
-				];
-        this.dcb = new DCBlocker(0.995);
-    }
-
-    setBandpass(bplower=this.bplower,bpupper=this.bpupper,sps=this.sps) {
-        this.bplower=bplower; this.bpupper = bpupper;
-        this.bp1 = [
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps),
-            makeBandpassFilter(bplower,bpupper,sps)
-        ];
-    }
-
-    apply(latestData=0, idx=this.lastidx+1) {
-        let out=latestData; 
-        if(this.filtering === true) {
-			if(this.useDCB === true) { //Apply a DC blocking filter
-                out = this.dcb.applyFilter(out);
-            }
-            if(this.useSMA4 === true) { // 4 sample simple moving average (i.e. low pass)
-                if(idx < 4) {
-					this.last4.push(out);
-				}
-				else {
-					out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
-					this.last4.shift();
-					this.last4.push(out);
-				}
-            }
-            if(this.useNotch50 === true) { //Apply a 50hz notch filter
-                this.notch50.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            }
-            if(this.useNotch60 === true) { //Apply a 60hz notch filter
-                this.notch60.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            } 
-            if(this.useLp1 === true) { //Apply 4 50Hz lowpass filters
-                this.lp1.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-            }
-            if(this.useBp1 === true) { //Apply 4 Bandpass filters
-                this.bp1.forEach((f,i) => {
-                    out = f.applyFilter(out);
-                });
-				out *= this.bp1.length;
-            }
-            if(this.useScaling === true){
-                out *= this.scalingFactor;
-            }
-        }
-        this.lastidx=idx;
-        //console.log(this.channel, out)
-        return out;
-    }
-}
-
-
+//Class for handling local device streaming as well as automating data organization/analysis and streaming to server.
 class deviceStream {
 	constructor(
 		device="freeeeg32_2",
@@ -743,7 +617,7 @@ class deviceStream {
 		//console.log(this.socket);
 		
 		this.streamTable=[]; //tags and callbacks for streaming
-		this.filters = [];   //biquadChannelFilterers 
+		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 
 		this.init(device,useFilters,pipeToAtlas,analysis);
@@ -823,10 +697,10 @@ class deviceStream {
 			if(useFilters === true) {
 				this.info.eegChannelTags.forEach((row,i) => {
 					if(row.tag !== 'other') {
-						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
 					}
 					else { 
-						this.filters.push(new biquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
 					}
 				});
 			}
@@ -981,7 +855,7 @@ class deviceStream {
 					}
 					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
-					return {fftTimes:fftTimes, ffts:ffts};
+					return {times:fftTimes, ffts:ffts};
 				}
 			}
 		}
@@ -998,7 +872,7 @@ class deviceStream {
 				if(coord !== false) {
 					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
-					return {cohTimes:cohTimes, ffts:ffts};
+					return {times:cohTimes, ffts:ffts};
 				}
 			}
 		}
@@ -1047,19 +921,6 @@ class deviceStream {
 				break;
 			}	
 		}
-	}
-
-	//old method
-	sendDataToServerOld(times=[],signals=[],electrodes='',fields='') {
-		this.socket.send(JSON.stringify({
-			destination:'bci',
-			id:this.info.auth.username,
-			consent:this.info.auth.consent,
-			time:times,
-			signal:signals,
-			electrode:electrodes,
-			field:fields
-		}));
 	}
 
 	streamLoop = (prev={}) => {
@@ -1114,6 +975,11 @@ class deviceStream {
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+
+//Class for organizing data and automating analysis protcols.
 class dataAtlas {
     constructor(
 		name="atlas",
@@ -1423,7 +1289,30 @@ class dataAtlas {
 		this.data.hrv.push(genHRVStruct(tag));
 	}
 
-	//ecg,emg,eyetracker
+	//also do ecg,emg,eyetracker
+
+	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
+		var found = false;
+		if(typeof tag === 'number' && device === 'eeg') {
+			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
+				if(o.ch === tag && o.tag !== null) {
+					tag = o.tag;
+				}
+			});
+		}
+		if(device.indexOf("shared") < 0) {
+			let atlasCoord = this.data[device].find((o, i) => {
+				if(o.tag === tag){
+					found = o;
+					return true;
+				}
+			});
+			return found;
+		}
+		else {
+			return this.data[device]; //return shared data structs which are laid out a little differetly
+		}
+	}
 
 	getEEGDataByChannel(ch=0) {
 		let found = false;
@@ -1439,22 +1328,6 @@ class dataAtlas {
 			}
 		});
 		return found;
-	}
-
-	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
-		var found = false;
-		if(device.indexOf("shared") < 0) {
-			let atlasCoord = this.data[device].find((o, i) => {
-				if(o.tag === tag){
-					found = o;
-					return true;
-				}
-			});
-			return found;
-		}
-		else {
-			return this.data[device]; //return shared data structs which are laid out a little differetly
-		}
 	}
 
     //Return the object corresponding to the atlas tag
@@ -1703,6 +1576,103 @@ class dataAtlas {
 		if(this.analyzing === true) { this.workerPostTime = syncTime; }
 		return buffer;
 	} 
+
+	readyEEGDataForWriting = (from=0,to='end') => {
+		function toISOLocal(d) {
+			var z  = n =>  ('0' + n).slice(-2);
+			var zz = n => ('00' + n).slice(-3);
+			var off = d.getTimezoneOffset();
+			var sign = off < 0? '+' : '-';
+			off = Math.abs(off);
+		  
+			return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
+				   + z(d.getMonth()+1) + '-' +
+				   z(d.getDate()) + 'T' +
+				   z(d.getHours()) + ':'  + 
+				   z(d.getMinutes()) + ':' +
+				   z(d.getSeconds()) + '.' +
+				   zz(d.getMilliseconds()) + 
+				   "(UTC" + sign + z(off/60|0) + ':00)'
+		  }
+		  
+		let header = ["TimeStamps","UnixTime"];
+		let data = [];
+		let mapidx = 0;
+		let datums = [];
+		this.data.eegshared.eegChannelTags.forEach((row,j) => {
+			datums.push(this.getEEGDataByChannel(row.ch));
+		});
+		
+		if(to === 'end') { to = datums[0].count; }
+
+		for(let i = from; i<to; i++){
+			let line=[];
+			line.push(toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
+			//first get the raw/filtered
+			datums.forEach((row,j) => {
+				if(row.filtered.length > 0) {
+					line.push(row.filtered[i].toFixed(0));
+				} else if (row.raw.length > 0) {
+					line.push(row.raw[i].toFixed(0));
+				}
+			});
+			//then get the fft/coherence data
+			datums.forEach((row,j) => {
+				if(row.times[i] === row.fftTimes[mapidx]) {
+					if(from === 0) {
+						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+							header.push(coord.tag+"; FFT Hz:",bpfreqs.join(","));
+					}
+					line.push(row.ffts[mapidx]);
+				}
+			});
+			this.data.coherence.forEach((row,i) => {
+				if(from===0) {
+					let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+					header.push(coord.tag+"; FFT Hz:",bpfreqs.join(","));
+				}
+				if(row.times[i] === row.fftTimes[mapidx]) {
+					line.push(row.ffts[mapidx]);
+				}
+			});
+			if(row.fftTimes[mapidx] === this.datum[0].times[i]){
+				mapidx++;
+			}
+			data.push(line.join(","));
+		}
+		if(datums[0].filtered.length === 0 ) {
+			header.push("No filters.");
+		}
+		else {
+			header.push("Filters used (unless tagged 'other'): Notch 50Hz:"+State.data.notch50+"; Notch 60Hz:"+State.data.notch60+" SMA(4):"+State.data.sma4+"; Low pass 50Hz:"+State.data.lowpass50+"; Bandpass ("+State.data.filterers[0].bplower+"Hz-"+State.data.filterers[0].bpupper+"Hz):"+State.data.bandpass)
+		}
+		//console.log(data)
+		return [header.join(",")+"\n",data.join("\n")];
+	}
+
+	regenAtlasses(freqStart,freqEnd,sps=512) {
+		this.data.eeg = this.makeAtlas10_20(); //reset atlas
+
+		let bandPassWindow = this.bandPassWindow(freqStart,freqEnd,sps);
+
+		this.data.eegshared.frequencies = bandPassWindow;//Push the x-axis values for each frame captured as they may change - should make this lighter
+		this.data.eegshared.bandFreqs = this.getBandFreqs(bandPassWindow); //Update bands accessed by the atlas for averaging
+
+		this.coherenceMap = this.genCoherenceMap();
+	}
+	
+	updateFrequencies = (freqStart, freqEnd) => {
+		var freq0 = freqStart; var freq1 = freqEnd;
+		if (freq0 > freq1) {
+			freq0 = 0;
+		}
+		if(freq1 > EEG.sps*0.5){
+			freq1 = EEG.sps*0.5;
+			State.data.freqEnd=freq1;
+		}
+	
+		ATLAS.regenAtlasses(State.data.freqStart,State.data.freqEnd,EEG.sps);
+	}
 
 	workeronmessage = (msg) => {
 		//console.log(msg);

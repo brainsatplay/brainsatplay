@@ -1,6 +1,6 @@
-import {State} from './frontend/State'
-import {UIManager} from './frontend/utils/UIManager'
-import {DOMFragment} from './frontend/utils/DOMFragment'
+import {State} from '../../frontend/State'
+import {UIManager} from '../../frontend/utils/UIManager'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {
     menu_template,
     menuheader_template,
@@ -19,7 +19,7 @@ import {
   updateBandPass, 
   updateChannelTags, 
   updateChannelView,
-} from './frontend/EEGInterfaceOld'
+} from './EEGInterfaceOld'
 
 import {CSV} from './utils/general/csv'
 

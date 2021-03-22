@@ -1,4 +1,3 @@
-import {State} from '../State'                      // Shared values
 import {DOMFragment} from '../utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
@@ -12,7 +11,7 @@ export class AppletExample {
         //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
