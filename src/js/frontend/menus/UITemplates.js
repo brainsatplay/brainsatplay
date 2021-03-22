@@ -1,8 +1,8 @@
-import menusvg from '../../assets/menu.svg'
-import menuxsvg from '../../assets/menuX.svg'
-import logo from '../../public/logo512.png'
-import filesvg from '../../assets/file_noun.svg'
-import csvsvg from '../../assets/csv_noun.svg'
+import menusvg from '../../../assets/menu.svg'
+import menuxsvg from '../../../assets/menuX.svg'
+import logo from '../../../public/logo512.png'
+import filesvg from '../../../assets/file_noun.svg'
+import csvsvg from '../../../assets/csv_noun.svg'
 
 export function menu_template(props={}) {
     return `
