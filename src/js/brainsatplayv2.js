@@ -190,6 +190,9 @@ export class brainsatplay {
 	getData = (tag='FP1', deviceType='eeg') => { //get device data
 		this.devices.forEach((d,i) => {
 			if(d.info.deviceType === deviceType) {
+				if(tag === 'all') {
+					return d.atlas.data[deviceType]; //Return all objects
+				}
 				return d.atlas.getDeviceDataByTag(deviceType,tag);
 			}
 		});

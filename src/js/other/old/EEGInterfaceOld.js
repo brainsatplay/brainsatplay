@@ -656,11 +656,11 @@ export function updateChannelTags (input) {
 }
 
 
-export const addChannelOptions = (selectId, taggedOnly=true, additionalOptions=[]) => {
+export const addChannelOptions = (selectId, channelTags, taggedOnly=true, additionalOptions=[]) => {
     var select = document.getElementById(selectId);
     select.innerHTML = "";
     var opts = ``;
-    ATLAS.channelTags.forEach((row,i) => {
+    channelTags.forEach((row,i) => {
     if(taggedOnly === true){
         if(row.tag !== null && row.tag !== 'other') {
             if(i === 0) {
@@ -698,11 +698,11 @@ export const addChannelOptions = (selectId, taggedOnly=true, additionalOptions=[
     select.innerHTML = opts;
   }
 
-export const addCoherenceOptions = (selectId, additionalOptions=[]) => {
+export const addCoherenceOptions = (selectId, coherenceAtlas, additionalOptions=[]) => {
     var select = document.getElementById(selectId);
     select.innerHTML = "";
     var opts = ``;
-    ATLAS.coherenceMap.map.forEach((row,i) => {
+    coherenceAtlas.forEach((row,i) => {
       if(i===0) {
         opts += `<option value='`+row.tag+`' selected="selected">`+row.tag+`</option>`;
       }

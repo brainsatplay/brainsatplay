@@ -8,10 +8,17 @@
 //  -- Setup BCI controls e.g. to control analysis on-the-fly.
 //Setup BrowserFS logic for indexedDB
 
+import {
+    appletbox_template,  
+    appletselect_template,
+    file_template
+} from './menus/UITemplates'
+
 import {UIManager} from './utils/UIManager'
 import {CSV} from '../general/csv'
 import * as BrowserFS from 'browserfs'
 import { StateManager } from './utils/StateManager';
+import { DOMFragment } from './utils/DOMFragment';
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
@@ -44,6 +51,8 @@ export class BCIAppManager {
             fileSizeLimitMb: 250
         });
 
+        this.uiFragments = {}; //store DOMFragments for the UI here
+
         this.bcisession = null; //brainsatplay class instance
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
@@ -54,15 +63,23 @@ export class BCIAppManager {
     }
 
     setupUITemplates = () => {
-        
+        this.uiFragments.appletbox = new DOMFragment(
+            appletbox_template,
+            document.body
+        );
+        this.uiFragments.select = new DOMFragment(
+            appletselect_template,
+            document.body
+        );
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
-
+        this.setupUITemplates();
     }
 
     deinitUI = () => { //Destroy the UI and logic/loops
-
+        this.uiFragments.appletbox.deleteNode();
+        this.uiFragments.select.deleteNode();
     }
 
     getConfigsFromHashes() {
@@ -79,14 +96,14 @@ export class BCIAppManager {
         return appletConfigs;    
     }
 
-    initUIManager = (contents) => {
+    initUIManager = (settingsFileContents='') => {
 
         // ------ need to flesh this out -------
-        let settings = JSON.parse(contents);
-        if(settings.appletConfigs.length > 0) {
+        let settings = JSON.parse(settingsFileContents);
+        if(settings.appletConfigs) {
             this.appletConfigs = settings.appletConfigs;
         }
-        let configs = this.getConfigsFromHashes();
+        let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length === null){
             this.appletConfigs = configs;
         }
@@ -97,7 +114,7 @@ export class BCIAppManager {
             this.deinitUI,
             this.appletClasses,
             this.appletConfigs,
-            undefined,
+            ['applet1','applet2','applet3','applet4'], //defined in the appletselect template
             'BCIAppManager'
         )
     }
@@ -272,6 +289,7 @@ export class BCIAppManager {
                         if(bytesRead !== 0) {
                             let data = output.toString();
                             //Now parse the data back into the buffers.
+                            return data;
                         };
                     }); 
                 });

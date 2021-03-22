@@ -136,6 +136,7 @@ function initEEGui() {
             });
         }
     });  
+    
     document.getElementById("bandpass").addEventListener('change',() => {
         State.data.bandpass = document.getElementById("bandpass").checked;
     });

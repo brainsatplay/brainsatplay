@@ -81,20 +81,14 @@ export function menudropdown_template(props={}) {
      </td>`; 
 }
 
-export function menudropdown2_template(props={}) {
+export function appletselect_template(props={}) {
     return `
     <td style="width:100%; vertical-align:center; border:2px inset black;" colspan=5>
         <table style="margin-left:auto; margin-right:auto;">
             <tr>
                 <td>Applet 1:<select id="applet1"></select></td>
-            </tr>
-            <tr>
-                <td>Applet 2:<select id="applet2"></select></td>
-            </tr>
-            <tr>
+                <td>Applet 2:<select id="applet2"></select></td>      
                 <td>Applet 3:<select id="applet3"></select></td>
-            </tr>
-            <tr>
                 <td>Applet 4:<select id="applet4"></select></td>
             </tr>
         </table>
@@ -102,18 +96,21 @@ export function menudropdown2_template(props={}) {
     `;
 }
 
-export function menudropdown3_template(props={}) {
+export function appletbox_template( props={
+        containerId:'applets', 
+        styleInlineText='height:'+(window.innerHeight-90)+';width:'+window.innerWidth+';'
+}) {
     return `
-    <td style="width:100%; height:400px; vertical-align:top; border:2px inset black;" colspan=6>
-        <button id="saveSession">Save Current Data</button><button id="newSession">New Session</button>
-        <div id="filesystem" style="width:100%;height:400px;overflow-y:scroll;"></div>
-    </td>
+    <div style='`+props.styleInlineText+`z-index:2;position:absolute;' id='`+props.containerId+`'></div>
     `;
 }
 
-export function appletbox_template(props={}){
+export function menudropdown3_template(props={}) {
     return `
-    <div id="applets" style="z-index:2; position:absolute;top:90px;height:`+(window.innerHeight-90)+`;width:`+window.innerWidth+`" ></div>
+    <td style="width:100%; height:400px; vertical-align:top; border:2px inset black;" colspan=6>
+        <button id="saveEEGSession">Save Current Data</button><button id="newEEGSession">New Session</button>
+        <div id="filesystem" style="width:100%;height:400px;overflow-y:scroll;"></div>
+    </td>
     `;
 }
 
