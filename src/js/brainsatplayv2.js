@@ -777,7 +777,7 @@ class deviceStream {
 			await this.device.start();
 			this.device.eegReadings.subscribe(o => {
 					let time = Array(o.samples.length).fill(o.timestamp);
-					time = time.map((t,i) => {return t-(1-(this.info.sps/time.length)*i)})	
+					time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/10)})	
 					let coord = this.atlas.getEEGDataByChannel(o.electrode);
 					coord.times.push(...time);
 					coord.raw.push(...o.samples);
