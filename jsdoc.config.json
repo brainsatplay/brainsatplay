@@ -1,0 +1,24 @@
+{
+    "source": {
+        "includePattern": ".+\\.(js(doc|x)?|mjs)$",   // Only process file ending in .js, .jsdoc or .jsx
+        "include": ["./src","./README.md"],        // Check all folders.
+        "exclude": [
+            "node_modules",
+            "./src/js/bciutils/timechart",
+            "./src/js/other/old"            
+        ]             
+    },
+    "recurseDepth": 10,                         // Only go 10 levels deep.
+    "opts": {
+        "destination": "./docs/",               // Where I want my docs to be generated.
+        "recurse": true                         // Same as using -r or --recurse
+    },
+    "templates": {
+        "default": {
+            "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
+            "staticFiles": {
+                "paths": ["./screenshots/brainmap.PNG","./screenshots/Coherence.PNG","./screenshots/stream.png","./public/favicon.ico","./templates/brainstorm/static"]
+            }
+        }
+    }
+}

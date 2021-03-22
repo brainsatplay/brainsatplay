@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server.js",
     "postbuild": "workbox generateSW",
-    "webpack": "webpack --mode production"
+    "webpack": "webpack --mode production",
+    "generate-docs": "jsdoc -c jsdoc.config.json"
   },
   "author": "",
   "license": "ISC",
@@ -36,6 +37,7 @@
     "gl-matrix": "^3.3.0",
     "gpu.js": "^2.11.2",
     "http": "^0.0.1-security",
+    "jsdoc": "^3.6.6",
     "kbm-robot": "0.0.4",
     "muse-js": "^3.2.0",
     "normalize.css": "^8.0.1",

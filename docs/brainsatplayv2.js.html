@@ -1,4 +1,33 @@
-/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Brains@Play Docs | Source: brainsatplayv2.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link rel=icon href='favicon.ico'>
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: brainsatplayv2.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
 
 Data Streams
 - Local hardware
@@ -171,7 +200,7 @@ export class brainsatplay {
 		}
 		if(atlasDataProp !== null) {
 			let device = this.devices.find((o,i) => {
-				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
+				if (o.info.deviceName.indexOf(deviceName) > -1 &amp;&amp; o.info.useAtlas === true) {
 					let coord = undefined;
 					if(atlasTag.indexOf('shared') > -1 )coord = o.atlas.getDeviceDataByTag(atlasTag,null);
 					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
@@ -214,8 +243,8 @@ export class brainsatplay {
 
 	addAnalyzerFunc(prop=null,callback=()=>{}) {
 		this.devices.forEach((o,i) => {
-			if(o.atlas !== null && prop !== null) {
-				if(o.atlas.analyzerOpts.indexOf(prop) < 0) {
+			if(o.atlas !== null &amp;&amp; prop !== null) {
+				if(o.atlas.analyzerOpts.indexOf(prop) &lt; 0) {
 					o.atlas.analyzerOpts.push(prop)
 					o.atlas.analyzerFuncs.push(callback);
 				}
@@ -304,7 +333,7 @@ export class brainsatplay {
 		console.log(parsed);
 		if(parsed.msg === 'userData') {
 			for(const prop in parsed) {
-			 if (prop !== 'msg' && prop !== 'username') 
+			 if (prop !== 'msg' &amp;&amp; prop !== 'username') 
 				this.state.data[parsed.username+"_"+prop] = parsed[prop]; 
 			}
 			
@@ -406,7 +435,7 @@ export class brainsatplay {
 					onsuccess(newResult);
 					this.state.unsubscribe('commandResult',sub);
 				}
-				else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
+				else if (newResult.msg === 'userNotFound' &amp;&amp; newResult.userData[0] === username) {
 					this.state.unsubscribe('commandResult',sub);
 					console.log("User not found: ", username);
 				}
@@ -419,7 +448,7 @@ export class brainsatplay {
 		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 		let sub = this.state.subscribe('commandResult',(newResult) => {
 			if(typeof newResult === 'object') {
-				if(newResult.msg === 'getGameInfoResult' && newResult.appname === appname) {
+				if(newResult.msg === 'getGameInfoResult' &amp;&amp; newResult.appname === appname) {
 					let configured = true;
 					if(spectating === false) {
 						//check that this user has the correct streaming configuration with the correct connected device
@@ -441,7 +470,7 @@ export class brainsatplay {
 					}
 					this.state.unsubscribe('commandResult',sub);
 				}
-				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+				else if (newResult.msg === 'gameNotFound' &amp; newResult.appname === appname) {
 					this.state.unsubscribe('commandResult',sub);
 					console.log("Game not found: ", appname);
 				}
@@ -453,7 +482,7 @@ export class brainsatplay {
 		//send unsubscribe command
 		this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+			if(newResult.msg === 'leftGame' &amp;&amp; newResult.appname === appname) {
 				for(const prop in this.state.data) {
 					if(prop.indexOf(username) > -1) {
 						this.state.unsubscribeAll(prop);
@@ -470,7 +499,7 @@ export class brainsatplay {
 		//send unsubscribe command
 		this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+			if(newResult.msg === 'leftGame' &amp;&amp; newResult.appname === appname) {
 				for(const prop in this.state.data) {
 					if(prop.indexOf(appname) > -1) {
 						this.state.unsubscribeAll(prop);
@@ -520,7 +549,7 @@ export class brainsatplay {
 	}
 
 	sendWSCommand(command='',dict={}){
-		if(this.socket != null  && this.socket.readyState === 1){
+		if(this.socket != null  &amp;&amp; this.socket.readyState === 1){
 			if(command === 'initializeBrains') {
 				this.socket.send(JSON.stringify({'destination':'initializeBrains','public':this.info.auth.access === 'public'}))
 			}
@@ -671,7 +700,7 @@ class deviceStream {
 					this.info.eegChannelTags.forEach((o,i) => {
 						let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
 						let latestFiltered = new Array(latest.length).fill(0);
-						if(o.tag !== "other" && this.info.useFilters === true) { 
+						if(o.tag !== "other" &amp;&amp; this.info.useFilters === true) { 
 							this.filters.forEach((f,j) => {
 								if(f.channel === o.ch) {
 									latest.forEach((sample,k) => { 
@@ -932,7 +961,7 @@ class deviceStream {
 			});
 		});
 		for(const prop in streamObj) {
-			if(prop !== 'msg' && prop !== 'username') {
+			if(prop !== 'msg' &amp;&amp; prop !== 'username') {
 				//console.log(streamObj);
 				this.socket.send(JSON.stringify(streamObj));
 				break;
@@ -966,7 +995,7 @@ class deviceStream {
 		let delay = 100;
 		if(this.info.simulating === true) {
 			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
-			for(let i = 0; i<nSamplesToSim; i++) {
+			for(let i = 0; i&lt;nSamplesToSim; i++) {
 				//For each tagged channel generate fake data
 				//let sample = Math.sin(i*Math.PI/180);
 			}
@@ -1257,8 +1286,8 @@ class dataAtlas {
 		var cmap = [];
 		var l = 1, k = 0;
 		
-		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
-			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
+		for( var i = 0; i &lt; (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
+			if(taggedOnly === false || (taggedOnly === true &amp;&amp; ((channelTags[k].tag !== null &amp;&amp; channelTags[k+l].tag !== null)&amp;&amp;(channelTags[k].tag !== 'other' &amp;&amp; channelTags[k+l].tag !== 'other')&amp;&amp;(channelTags[k].analyze === true &amp;&amp; channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
 
@@ -1310,14 +1339,14 @@ class dataAtlas {
 
 	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
 		var found = false;
-		if(typeof tag === 'number' && device === 'eeg') {
+		if(typeof tag === 'number' &amp;&amp; device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
-				if(o.ch === tag && o.tag !== null) {
+				if(o.ch === tag &amp;&amp; o.tag !== null) {
 					tag = o.tag;
 				}
 			});
 		}
-		if(device.indexOf("shared") < 0) {
+		if(device.indexOf("shared") &lt; 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
 					found = o;
@@ -1375,7 +1404,7 @@ class dataAtlas {
     //Return an array of Array(3)s for each coordinate. Useful e.g. for graphics
 	getCoordPositions() {
 		var coords = [];
-		for(var i = 0; i< this.data.eeg.length; i++) {
+		for(var i = 0; i&lt; this.data.eeg.length; i++) {
 			coords.push([this.data.eeg[i].position.x,this.data.eeg[i].position.y,this.data.eeg[i].position.z]);
 		}
 		return coords;
@@ -1431,25 +1460,25 @@ class dataAtlas {
     getBandFreqs(frequencies) {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
 		var scpFreqs = [[],[]], deltaFreqs = [[],[]], thetaFreqs = [[],[]], alpha1Freqs = [[],[]], alpha2Freqs = [[],[]], betaFreqs = [[],[]], lowgammaFreqs = [[],[]], highgammaFreqs = [[],[]]; //x axis values and indices for named EEG frequency bands
 		frequencies.forEach((item,idx) => {
-			if((item >= 0.1) && (item <= 1)){
+			if((item >= 0.1) &amp;&amp; (item &lt;= 1)){
 				scpFreqs[0].push(item); scpFreqs[1].push(idx);
 			}
-			else if((item >= 1) && (item <= 4)){
+			else if((item >= 1) &amp;&amp; (item &lt;= 4)){
 				deltaFreqs[0].push(item); deltaFreqs[1].push(idx);
 			}
-			else if((item > 4) && (item <= 8)) {
+			else if((item > 4) &amp;&amp; (item &lt;= 8)) {
 				thetaFreqs[0].push(item); thetaFreqs[1].push(idx);
 			}
-			else if((item > 8) && (item <= 10)){
+			else if((item > 8) &amp;&amp; (item &lt;= 10)){
 				alpha1Freqs[0].push(item); alpha1Freqs[1].push(idx);
 			}
-			else if((item > 10) && (item <= 12)){
+			else if((item > 10) &amp;&amp; (item &lt;= 12)){
 				alpha2Freqs[0].push(item); alpha2Freqs[1].push(idx);
 			}
-			else if((item > 12) && (item <= 35)){
+			else if((item > 12) &amp;&amp; (item &lt;= 35)){
 				betaFreqs[0].push(item); betaFreqs[1].push(idx);
 			}
-			else if((item > 35) && (item <= 48)) {
+			else if((item > 35) &amp;&amp; (item &lt;= 48)) {
 				lowgammaFreqs[0].push(item); lowgammaFreqs[1].push(idx);
 			}
 			else if(item > 48) {
@@ -1566,7 +1595,7 @@ class dataAtlas {
 		let diff = (freqEnd - freqStart)/nSteps;
 		let fftwindow = [];
 		let i = 0;
-		while(i < freqEnd) {
+		while(i &lt; freqEnd) {
 			fftwindow.push(i);
 			i += diff;
 		}
@@ -1577,8 +1606,8 @@ class dataAtlas {
 		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
 		let buffer = [];
 		let syncTime = null;
-		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
-			if(this.data.eegshared.eegChannelTags[i].analyze === true && this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
+		for(var i = 0; i &lt; this.data.eegshared.eegChannelTags.length; i++){
+			if(this.data.eegshared.eegChannelTags[i].analyze === true &amp;&amp; this.data.eegshared.eegChannelTags[i].tag !== null &amp;&amp; this.data.eegshared.eegChannelTags[i].tag !== 'other') {
 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
 				if(dat !== undefined) {
 					//console.log(dat);
@@ -1599,7 +1628,7 @@ class dataAtlas {
 			var z  = n =>  ('0' + n).slice(-2);
 			var zz = n => ('00' + n).slice(-3);
 			var off = d.getTimezoneOffset();
-			var sign = off < 0? '+' : '-';
+			var sign = off &lt; 0? '+' : '-';
 			off = Math.abs(off);
 		  
 			return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
@@ -1622,7 +1651,7 @@ class dataAtlas {
 		
 		if(to === 'end') { to = datums[0].count; }
 
-		for(let i = from; i<to; i++){
+		for(let i = from; i&lt;to; i++){
 			let line=[];
 			line.push(toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 			//first get the raw/filtered
@@ -1699,7 +1728,7 @@ class dataAtlas {
 				var ffts = [...msg.output[1]];
 				let fftIdx = 0;
 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== null && row.tag !== 'other' && row.analyze === true) {
+					if(row.tag !== null &amp;&amp; row.tag !== 'other' &amp;&amp; row.analyze === true) {
 						this.mapFFTData(ffts[fftIdx],this.workerPostTime,row.tag);
 						fftIdx++;
 						//console.log(this.data.eeg[i]);
@@ -1711,7 +1740,7 @@ class dataAtlas {
 				var coher = [...msg.output[2]];
 				let fftIdx = 0;
 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== null && row.tag !== 'other' && row.analyze === true) {
+					if(row.tag !== null &amp;&amp; row.tag !== 'other' &amp;&amp; row.analyze === true) {
 						this.mapFFTData(ffts[fftIdx],this.workerPostTime,row.tag);
 						fftIdx++;
 						//console.log(this.data.eeg[i]);
@@ -1778,7 +1807,7 @@ class dataAtlas {
 				if(Array.isArray(this.data[prop])) {
 					this.data[prop].forEach((row,i) => {
 						for(const p in row) {
-							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
+							if((!Array.isArray(row[p])) &amp;&amp; typeof row[p] === 'object') {
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
 										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
@@ -1797,7 +1826,7 @@ class dataAtlas {
 			if(Array.isArray(this.data[dataArr])) {
 				this.data[dataArr].forEach((row,i) => {
 					for(const p in row) {
-						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
+						if((!Array.isArray(row[p])) &amp;&amp; typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
 									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
@@ -1827,3 +1856,26 @@ class dataAtlas {
 		setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 	}
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-brainsatplay.html">brainsatplay</a></li></ul><h3>Classes</h3><ul><li><a href="module-brainsatplay.brainsatplay.html">brainsatplay</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Mon Mar 22 2021 08:46:15 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

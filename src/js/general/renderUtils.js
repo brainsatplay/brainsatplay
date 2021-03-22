@@ -715,7 +715,7 @@ class Physics {
         this.physicsBodies = [];
 
         this.globalSettings = {
-            maxDistCheck = 1000,
+            maxDistCheck: 1000,
             gravity: 9.81
         };
 
