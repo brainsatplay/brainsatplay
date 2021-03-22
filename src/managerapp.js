@@ -36,7 +36,7 @@ let ui = new DOMFragment(
 
 			//subscribe after connecting or the device atlas won't be available
             //bcisession.subscribe('muse','AF7','count', (newData) => {
-			bcisession.subscribe('freeeeg32_2','FP1','count', (newData) => {
+			bcisession.subscribe('freeeeg32_2','FP1',undefined, (newData) => {
 				console.log(newData);
 			});
 		}
