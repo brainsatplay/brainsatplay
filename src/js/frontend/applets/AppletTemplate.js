@@ -32,7 +32,7 @@ export class AppletExample {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id=`+props.id+`></div>`
+            return `<div id=`+props.id+`></div>`;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
