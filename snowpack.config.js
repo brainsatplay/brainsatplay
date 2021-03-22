@@ -18,7 +18,7 @@ module.exports = {
       preloadCSS: true,
       target: 'es2015'
     }],
-    ],
+  ],
   packageOptions: {
     polyfillNode: true
   },
@@ -37,3 +37,6 @@ alias: {
   /* ... */
 },
 }
+
+//externalPackage: [...require('module').builtinModules.filter(m => m !== 'process')],
+  

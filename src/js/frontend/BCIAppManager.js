@@ -81,6 +81,10 @@ export class BCIAppManager {
             appletselect_template,
             document.body
         );
+        this.uiFragments.filemenu = new DOMFragment(
+            filemenu_template,
+            document.body
+        )
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
