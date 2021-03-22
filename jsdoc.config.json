@@ -17,7 +17,7 @@
         "default": {
             "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
             "staticFiles": {
-                "paths": ["./screenshots/brainmap.PNG","./screenshots/Coherence.PNG","./screenshots/stream.png","./public/favicon.ico","./templates/brainstorm/static"]
+                "paths": ["./screenshots","./public/favicon.ico","./templates/brainstorm/static"]
             }
         }
     }

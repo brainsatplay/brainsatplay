@@ -1,3 +1,19 @@
+<div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px;">
+<div style="text-align:center; width: 400px;">
+<img src="./logo.png" style="width: 300px;">
+<p>A full-stack framework for developing brain-responsive web apps with JavaScript</p>
+
+<img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"
+href="https://github.com/brainsatplay/brainsatplay">
+<img src="https://img.shields.io/badge/License-MIT-yellow.svg"
+href="https://opensource.org/licenses/MIT">
+</div>
+</div>
+
+## Description
+**brainsatplay.js** is full-stack framework for developing web-based brain-computer interface (BCI) applications. This library extends [bci.js](https://bci.js.org/) to remove the networking and data management requirements for developing functional BCI apps hosted on the web.
+
+
 # Test for EEG browser PWA
 
 See Web BCI test at https://webbci.netlify.app
@@ -20,11 +36,11 @@ Leveraging a developer option for chromium browsers (Chrome only currently), the
 
 Everything here now was accomplished over the past couple months independently, when it's done it will look like any other starter BCI software but accessible from a web link. PWAs can also be made downloadable on desktop or mobile depending on use case. This altogether makes for a flexible, rapid-development-friendly, cross platform, build-free software package to jump into the fray with our favorite hardware. I want to be able to develop something with instant cross platform access, plug and play ability, easy networking, and easy feature development. We got that with this software model, and I'll be experimenting with python and C wrappers to allow plugging those scripts into the interface for visualizing or networking with different data.
 
-![brainmap](screenshots/brainmap.PNG)
+![brainmap](./brainmap.PNG)
 
-![stream](screenshots/Coherence.PNG)
+![stream](./Coherence.PNG)
 
-![stream](screenshots/stream.png)
+![stream](./stream.png)
 
 
 ## Cool features
