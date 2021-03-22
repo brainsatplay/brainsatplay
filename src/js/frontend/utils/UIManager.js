@@ -163,7 +163,7 @@ export class UIManager {
         })
     }
 
-    responsiveUIUpdate(nodes=this.applets, topoffset=140) {
+    responsiveUIUpdate(nodes=this.applets, topoffset=110) {
         //console.log(nodes);
         nodes.forEach((node,i) => {
             //console.log(node)
