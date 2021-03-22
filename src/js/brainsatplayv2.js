@@ -116,12 +116,12 @@ export class brainsatplay {
 			this.devices.push(
 				new deviceStream(
 					device,
+					analysis,
 					streaming,
 					useFilters,
 					pipeToAtlas,
 					this.socket,
 					streamParams,
-					analysis,
 					this.info.auth
 				)
 			);
@@ -595,15 +595,14 @@ export class brainsatplay {
 class deviceStream {
 	constructor(
 		device="freeeeg32_2",
-		streaming=true,
+		analysis=['eegfft'],
 		useFilters=true,
 		pipeToAtlas=true,
+		streaming=false,
 		socket=null,
 		streamParams=[],
-		analysis=['eegfft'],
 		auth={
-			username:'guest', 
-			consent:{raw:false, brains:false}
+			username:'guest'
 		}
 	) {
 
@@ -790,13 +789,15 @@ class deviceStream {
 			await this.device.connect();
 			await this.device.start();
 			this.device.eegReadings.subscribe(o => {
+				if(this.info.useAtlas) {
 					let time = Array(o.samples.length).fill(o.timestamp);
 					time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/10)})	
 					let coord = this.atlas.getEEGDataByChannel(o.electrode);
 					coord.times.push(...time);
 					coord.raw.push(...o.samples);
 					coord.count += o.samples.length
-		})
+				}
+			});
 			// this.device.telemetryData.subscribe(telemetry => {
 			// });
 			// this.device.accelerometerData.subscribe(accel => {

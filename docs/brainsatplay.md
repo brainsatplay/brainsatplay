@@ -43,4 +43,26 @@ Configure devices for streaming. You can set multiple parameters for multiple de
 
 # deviceStream class
 
+These can be used standalone to get data from desired devices. Devices like the FreeEEG32 come with multiple popular configurations so they have multiple presets (freeeeg32,freeeg32_2,freeeeg32_19).
+
+* `let device = new deviceStream('freeeg32_2',analysis=['eegcoherence'],useFilters=true,pipeToAtlas=true,streaming=false,socket=null,streamParams=[], auth={username:username})` Only specify the device name and analysis for local streaming and data processing. You can set if you want to use biquad filters automatically on input data, whether to use a data atlas (which can be set to another data atlas to keep all data in one object), and whether to stream (specify the socket and stream parameters and username)
+
+* `device.connect()` Run the connect function for the configured device, which can create a USB or Bluetooth or other connection. Callbacks are set to automatically parse data into the atlas if specified.
+
+There are more functions for configuring streaming, and a streamloop function to run on repeat to send data out in an setTimeout loop.
+
+
 # dataAtlas class
+
+This is our endpoint for data organization to unify the frontend. This sorts data into objects used for on-demand access, optionally runs customizable analysis functions in a loop, and can be subscribed to from the main bci object for ease of access based on device type and a tagging system. This is mostly an internal class and will likely evolve.
+
+```
+let atlas = new dataAtlas(
+		name="atlas",
+		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
+		eegConfig='10_20', //'muse','big'
+		useCoherence=true,
+		useAnalyzer=false,
+		analysis=['eegfft'] //'eegfft','eegcoherence','bcijs_bandpowers','heg_pulse',etc
+	)
+```
