@@ -48,7 +48,7 @@ These can be used standalone to get data from desired devices. Devices like the 
 
 * `device.connect()` Run the connect function for the configured device, which can create a USB or Bluetooth or other connection. Callbacks are set to automatically parse data into the atlas if specified.
 
-* `device.addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {})` You can add unofficial support for any types of devices we've built features for (currently eeg, next heg and acclerometers, ecg, temp, etc). Set the initialization and connect functions, you need to look at how the other devices are implemented in the deviceStream class to replicate those features for the automated data processing and streaming functions.
+* `device.addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}, disconnect = () => {})` You can add unofficial support for any types of devices we've built features for (currently eeg, next heg and acclerometers, ecg, temp, etc). Set the initialization and connect functions, you need to look at how the other devices are implemented in the deviceStream class to replicate those features for the automated data processing and streaming functions.
 
 There are more functions for configuring streaming, and a streamloop function to run on repeat to send data out in an setTimeout loop.
 

@@ -628,6 +628,7 @@ class deviceStream {
 		this.addedDeviceNames = [];
 		this.addedDeviceInit = [];
 		this.addedDeviceConnect = [];
+		this.addedDeviceDisconnect = [];
 
 		this.socket = socket;
 		//console.log(this.socket);
@@ -807,17 +808,18 @@ class deviceStream {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
 		}
 		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
-			let idx = this.addedDeviceNames.indexOf(this.info.deviceName)
+			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
 			this.addedDeviceConnect[idx]();
 		}
 		this.info.connected = true;
 		
 	}
 
-	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}) => {
+	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}, disconnect = () => {}) => {
 		this.addedDeviceNames.push(deviceName);
 		this.addedDeviceInit.push(init);
 		this.addedDeviceConnect.push(connect);
+		this.addedDeviceDisconnect.push(disconnect); 
 		for(const prop in props) {
 			this.info[prop] = props[prop];
 		}
@@ -981,6 +983,10 @@ class deviceStream {
 		}
 		else if (this.info.deviceName.indexOf("muse") > -1) {
 			this.device.disconnect(); 
+			this.ondisconnect();
+		}
+		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1) {
+			this.addedDeviceDisconnect[this.addedDeviceNames.indexOf(this.info.deviceName)]();
 			this.ondisconnect();
 		}
 		this.info.connected = false;
