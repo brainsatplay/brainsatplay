@@ -31,7 +31,7 @@ export class AppletExample {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].name;
+            let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
             return `
             <div>
                 <div id='Example_`+props.id+`' style='height:100%; width:100%; border:2px solid black; background-color:green; color:white;'>

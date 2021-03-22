@@ -169,7 +169,7 @@ export class brainsatplay {
 			atlasDataProp = 'heg';
 			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }d
 		}
-		if(atlasDataProp !== null) {
+		if(atlasDataProp !== null) { 
 			let device = this.devices.find((o,i) => {
 				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
@@ -179,7 +179,7 @@ export class brainsatplay {
 					if(coord !== undefined) {
 						if(prop === null) {
 							sub=this.state.addToState(atlasTag,coord,onData);
-						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only
+						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
 							sub=this.state.addToState(atlasTag,coord[prop],onData);
 						}
 					}
@@ -918,7 +918,7 @@ class deviceStream {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	sendDataToSocket = (params=[['prop','tag','count']],dataObj={}) => {
+	sendDataToSocket = (params=[['prop','tag','arg1']],dataObj={}) => {
 		let streamObj = {
 			msg:'data',
 			username:this.info.auth.username
