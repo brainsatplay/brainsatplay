@@ -1,6 +1,6 @@
 
 export class UIManager {
-    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], menuId = "UIManager") {
+    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=null) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
@@ -9,8 +9,9 @@ export class UIManager {
         this.appletClasses = appletClasses;
         this.applets = [];
         this.appletsSpawned = 0;
-        
-        this.menuNode = document.getElementById(menuId);
+        this.maxApplets = 4;
+        this.bcisession=bcisession;
+    
         this.appletSelectIds = appletSelectIds;
 
         this.initAddApplets(appletConfigs);
@@ -19,11 +20,10 @@ export class UIManager {
             this.responsiveUIUpdate();
         })
 
-        //this.responsiveUIUpdate();
-        //State.subscribe('appletsSpawned', this.responsiveUIUpdate); 
+        //this.responsiveUIUpdate(); 
     
         appletSelectIds.forEach((id,i) => {
-            this.addAppletOptions(id,i+1);
+            this.addAppletOptions(id,i);
         })
 
     }
@@ -36,7 +36,7 @@ export class UIManager {
         if(appletConfigs.length === 0){
             this.appletClasses.forEach((classObj,i) => {
                 if(this.appletsSpawned < this.maxApplets) {
-                    this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls("applets")});
+                    this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});
                     this.appletsSpawned++;
                 }
             });
@@ -48,7 +48,7 @@ export class UIManager {
                     if(cfg.name === o.name) {
                         let k = i+1;
                         if(cfg.idx) { k=cfg.idx; }
-                        this.applets.push({ appletIdx:k, name:o.name, classinstance: new o.cls("applets")});
+                        this.applets.push({ appletIdx:k, name:o.name, classinstance: new o.cls("applets",this.bcisession)});
                         this.appletsSpawned++;
                         if(cfg.settings) {
                             this.initAppletwSettings(k,cfg.settings);
@@ -138,16 +138,9 @@ export class UIManager {
     addAppletOptions = (selectId,appletIdx) => {
         var select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None'>None</option>`;
-        var stateIdx = 0;
-        var found = this.applets.find((o,i) => {
-            if(o.appletIdx === appletIdx) {
-                stateIdx = i;
-                return true;
-            }
-        });
+        var newhtml = `<option value='None' selected="selected">None</option>`;
         this.appletClasses.forEach((classObj,i) => {
-            if(!!this.applets[stateIdx] && this.applets[stateIdx].name===classObj.name) {
+            if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
               newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
             }
             else{
@@ -157,11 +150,12 @@ export class UIManager {
         select.innerHTML = newhtml;
 
         select.addEventListener('change', ()=>{
-            this.deinitApplet(appletIdx);
+           // console.log(select.value);
+            this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
                 let found = this.appletClasses.find((o,i)=>{
                     if(o.name===select.value){
-                        this.addApplet(i,appletIdx);
+                        this.addApplet(i,appletIdx+1);
                         return true;
                     }
                 });
@@ -169,7 +163,7 @@ export class UIManager {
         })
     }
 
-    responsiveUIUpdate(nodes=this.applets, topoffset=90) {
+    responsiveUIUpdate(nodes=this.applets, topoffset=200) {
         //console.log(nodes);
         nodes.forEach((node,i) => {
             //console.log(node)

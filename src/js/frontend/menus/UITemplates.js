@@ -98,7 +98,7 @@ export function appletselect_template(props={}) {
 
 export function appletbox_template( props={
         containerId:'applets', 
-        styleInlineText:'height:'+(window.innerHeight-90)+';width:'+window.innerWidth+';'
+        styleInlineText:'height:'+(window.innerHeight-200)+';width:'+window.innerWidth+';'
 }) {
     return `
     <div style='`+props.styleInlineText+`z-index:2;position:absolute;' id='`+props.containerId+`'></div>
@@ -107,9 +107,9 @@ export function appletbox_template( props={
 
 export function filemenu_template(props={}) {
     return `
-    <div style="width:100%; height:400px; vertical-align:top; border:2px inset black;" colspan=6>
+    <div style="width:100%; vertical-align:top; border:2px inset black;" colspan=6>
         <button id="saveEEGSession">Save Current Data</button><button id="newEEGSession">New Session</button>
-        <div id="filesystem" style="width:100%;height:400px;overflow-y:scroll;"></div>
+        <div id="filesystem" style="width:100%;overflow-y:scroll;"></div>
     </div>
     `;
 }

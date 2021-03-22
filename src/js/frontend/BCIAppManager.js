@@ -75,7 +75,11 @@ export class BCIAppManager {
     setupUITemplates = () => {
         this.uiFragments.appletbox = new DOMFragment(
             appletbox_template,
-            document.body
+            document.body,
+            {
+                containerId:'applets', 
+                styleInlineText:'top:200px;width:'+window.innerWidth+';'
+            }
         );
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
@@ -94,6 +98,7 @@ export class BCIAppManager {
     deinitUI = () => { //Destroy the UI and logic/loops
         this.uiFragments.appletbox.deleteNode();
         this.uiFragments.select.deleteNode();
+        this.uiFragments.filemenu.deleteNode();
     }
 
     getConfigsFromHashes() {
@@ -131,7 +136,7 @@ export class BCIAppManager {
             this.appletClasses,
             this.appletConfigs,
             ['applet1','applet2','applet3','applet4'], //defined in the appletselect template
-            'BCIAppManager'
+            this.bcisession
         )
     }
 
@@ -157,7 +162,7 @@ export class BCIAppManager {
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
-                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
                 throw new Error(`?`);
             }
             BrowserFS.initialize(rootForMfs);
@@ -179,7 +184,7 @@ export class BCIAppManager {
                                 }
                             ), (err) => {
                                 let configs = getConfigsFromHashes();
-                                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs);
+                                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
                                 if(err) throw err;
                             });
                         }

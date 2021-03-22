@@ -3,14 +3,14 @@ import {DOMFragment} from '../utils/DOMFragment'
 //Example Applet for integrating with the UI Manager
 export class AppletExample {
     constructor(
-        parent=document.body, 
-        settings=[],
-        bci=undefined
+        parent=document.body,
+        bci=undefined,
+        settions=[]
     ) {
     
         //-------Keep these------- 
         this.parentNode = parent;
-        this.settings = settings;
+        this.settings = [];
         this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
@@ -32,13 +32,16 @@ export class AppletExample {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let name = this.bci.devices[0].name; if(name===undefined) name='BCI';
+            let name = 'BCI'; if(this.bci) if(this.bci.devices.length > 0) name = this.bci.devices[0].name;
             return `
-                <div id='Example_`+props.id+`' style='height:100%; width:100%; background-color:green; color:red;'>
+            <div>
+                <div id='Example_`+props.id+`' style='height:100px; width:100px; background-color:green; color:red;'>
                     Test `+name+`
+                    <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
+                    
+                    <button id='Button_`+props.id+`'>ClickMe</button>
                 </div>
-                <button id='Button_`+props.id+`'>ClickMe</button>
-                <div id='Output_`+props.id+`'>`+props.buttonOutput+`</button>
+            </div>  
             `;
         }
 
@@ -46,7 +49,7 @@ export class AppletExample {
         let setupHTML = (props=this.props) => {
             document.getElementById("Button_"+props.id).onclick = () => {
                 props.buttonOutput++;
-                document.getElementById('Output'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
+                document.getElementById('Output_'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
             }   
         }
 
