@@ -1,4 +1,3 @@
-const {performance} = require('perf_hooks');
 
 /* TODO
 Security - e.g. regex control so scripts can't be pumped in

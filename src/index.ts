@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime'
 
 
 import './app.js'
-
+//import './managerapp.js'
 
 // GF: Snowpack requires us to set this ourselves...
 window.process = { env: {NODE_ENV: 'development' }}

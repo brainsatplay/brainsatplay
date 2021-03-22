@@ -6,10 +6,10 @@ module.exports = {
   mount: {
       src: '/_dist_',
       public: {url: "/", static: true, resolve: false}
-},
+  },
   plugins: [
     '@snowpack/plugin-dotenv',
-      '@snowpack/plugin-typescript',
+    '@snowpack/plugin-typescript',
     ["@snowpack/plugin-optimize", {
       minifyJS: true,
       minifyCSS: true,

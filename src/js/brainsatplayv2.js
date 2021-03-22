@@ -39,7 +39,6 @@ import {MuseClient} from 'muse-js'
 
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
-import { raw } from 'express'
 
 
 //Class for server/socket connecting and macro controls for device streaming and data accessibilty.
