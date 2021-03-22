@@ -48,12 +48,14 @@ These can be used standalone to get data from desired devices. Devices like the 
 
 * `device.connect()` Run the connect function for the configured device, which can create a USB or Bluetooth or other connection. Callbacks are set to automatically parse data into the atlas if specified.
 
+* `device.addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {})` You can add unofficial support for any types of devices we've built features for (currently eeg, next heg and acclerometers, ecg, temp, etc). Set the initialization and connect functions, you need to look at how the other devices are implemented in the deviceStream class to replicate those features for the automated data processing and streaming functions.
+
 There are more functions for configuring streaming, and a streamloop function to run on repeat to send data out in an setTimeout loop.
 
 
 # dataAtlas class
 
-This is our endpoint for data organization to unify the frontend. This sorts data into objects used for on-demand access, optionally runs customizable analysis functions in a loop, and can be subscribed to from the main bci object for ease of access based on device type and a tagging system. This is mostly an internal class and will likely evolve.
+This is our endpoint for data organization to unify the frontend. It creates a coordinate system (we're using MNI) to parse data into based on device type and tags. This sorts data into objects used for on-demand access, optionally runs customizable analysis functions in a loop, and can be subscribed to from the main bci object for ease of access based on device type and a tagging system. This is mostly an internally used class for th deviceStream and will evolve.
 
 ```
 let atlas = new dataAtlas(
