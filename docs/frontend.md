@@ -36,3 +36,4 @@ This is just a hack I put together to manage the applets. It sets up and resizes
 ### Also the file system
 
 This is a work in progress. I am using IndexedDB via BrowserFS, which is just a nice fs wrapper for a bunch of file systems that have their own syntaxes. IndexedDB allows for arbitrary cache sizes and I can parse directly to a CSV file from there or performantly scroll cached datasets thanks to the big data developers behind it. BrowserFS is not well documented and has some mysteries as to how to use it across the app, so right now it's all in app.js and wraps the UI initialization in a semi-messy way. 
+

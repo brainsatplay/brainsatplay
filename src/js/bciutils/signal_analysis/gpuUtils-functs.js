@@ -131,7 +131,7 @@ function DFTlist(signals, len, freq, n) { //Extract a particular frequency
 }
 
 //FFT, simply implements a nyquist frequency based index skip for frequencies <= sampleRate*.25.
-//Other optimization: could do 4 at once and return a vec4, this is what you see in some other libs
+//Other optimization: could do 4 loops per thread and return a vec4, this is what you see in some other ultrafast libs
 function FFT(signal, len, freq, sr){ //Extract a particular frequency
     var real = 0;
     var imag = 0;
@@ -155,6 +155,34 @@ function FFT(signal, len, freq, sr){ //Extract a particular frequency
       real = real+signal[j]*Math.cos(sharedi);
       imag = imag-signal[j]*Math.sin(sharedi);
       N += 1;
+    }
+    //var mag = Math.sqrt(real[k]*real[k]+imag[k]*imag[k]);
+    return [real/N,imag/N]; //mag(real,imag)
+}
+
+function FFTlist(signals, len, freq, n, sr) { //Extract a particular frequency from a 1D list of equal sized signal arrays. Uses less samples for lower frequencies closer to nyquist threshold
+    var real = 0;
+    var imag = 0;
+    var _len = 1/len;
+    var shared = 6.28318530718*freq*_len;
+
+    var skip = 1;
+    var N = 0;
+    var factor = sr*.25;
+    if(freq <= factor){
+        while(freq <= factor){
+            factor=factor*.5;
+            skip+=1;
+        }
+    }
+
+    for(var i = 0; i<len; i+=skip){
+        var j = i;
+      if(j > len) { j = len; }
+      var sharedi = shared*j; //this.thread.x is the target frequency
+      real = real+signals[j+(len-1)*n]*Math.cos(sharedi);
+      imag = imag-signals[j+(len-1)*n]*Math.sin(sharedi);
+      N += 1;  
     }
     //var mag = Math.sqrt(real[k]*real[k]+imag[k]*imag[k]);
     return [real/N,imag/N]; //mag(real,imag)
@@ -321,13 +349,26 @@ function listdft2DKern(signals, scalar) {
 // [[signals1][signals2]]
 
 // More like a vertex buffer list to chunk through lists of signals
-function listdft1DKern(signals,len, scalar) {
+function listdft1DKern(signals, len, scalar) {
     var result = [0, 0];
     if (this.thread.x <= len) {
       result = DFT(signals,len,this.thread.x);
     } else {
       var n = Math.floor(this.thread.x/len);
       result = DFTlist(signals,len,this.thread.x-n*len,n);
+    }
+
+    return mag(result[0],result[1])*scalar;
+} // [signals1,signasl2]
+
+// More like a vertex buffer list to chunk through lists of signals
+function listfft1DKern(signals, len, scalar, sps) {
+    var result = [0, 0];
+    if (this.thread.x <= len) {
+      result = FFT(signals,len,this.thread.x,sps);
+    } else {
+      var n = Math.floor(this.thread.x/len);
+      result = FFTlist(signals,len,this.thread.x-n*len,n,sps);
     }
 
     return mag(result[0],result[1])*scalar;
@@ -340,6 +381,9 @@ function dft_windowedKern(signal, sampleRate, freqStart, freqEnd, scalar) {
 
     return mag(result[0],result[1])*scalar;
 } 
+
+
+//windowed functions should use a 1 second window for these hacky DFTs/FFTs to work right.
 
 function fft_windowedKern(signal, sampleRate, freqStart, freqEnd, scalar) {
     var result = [0,0];
@@ -377,7 +421,22 @@ function listdft1D_windowedKern(signals, sampleRate, freqStart, freqEnd, scalar)
     }
     //var mags = mag(result[0],result[1]);
 
-    return mag(result[0]*2,result[1]*2)*scalar; //Multiply result by 2 since we are only getting the positive results and want to estimate the actual amplitudes (positive = half power, reflected in the negative axis)
+    return mag(result[0],result[1])*scalar; 
+}
+
+function listfft1D_windowedKern(signals, sampleRate, freqStart, freqEnd, scalar) { //Will make a higher resolution DFT for a smaller frequency window.
+    var result = [0, 0];
+    if (this.thread.x < sampleRate) {
+      var freq = ( (this.thread.x/sampleRate) * ( freqEnd - freqStart ) ) + freqStart;
+      result = FFT(signals,sampleRate,freq,sampleRate);
+    } else {
+      var n = Math.floor(this.thread.x/sampleRate);
+      var freq = ( ( ( this.thread.x - n * sampleRate) / sampleRate ) * ( freqEnd - freqStart ) ) + freqStart;
+      result = FFTlist(signals,sampleRate,freq-n*sampleRate,n,sampleRate);
+    }
+    //var mags = mag(result[0],result[1]);
+
+    return mag(result[0],result[1])*scalar; 
 }
 
 function listidft1D_windowedKern(ffts, sampleRate, freqStart, freqEnd, scalar) { //Will make a higher resolution DFT for a smaller frequency window.
@@ -440,7 +499,7 @@ Scene drawing:
 export const createGpuKernels = {
     correlogramsKern, correlogramsPCKern, dftKern, idftKern, fftKern, ifftKern,
     dft_windowedKern, idft_windowedKern, fft_windowedKern, ifft_windowedKern, 
-    listdft2DKern, listdft1DKern, listdft1D_windowedKern, listidft1D_windowedKern, 
+    listdft2DKern, listdft1DKern, listfft1DKern, listfft1D_windowedKern, listdft1D_windowedKern, listidft1D_windowedKern, 
     bulkArrayMulKern, fftKern, ifftKern, multiImgConv2DKern
 }
 
