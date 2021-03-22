@@ -78,7 +78,7 @@ export class BCIAppManager {
             document.body,
             {
                 containerId:'applets', 
-                styleInlineText:'top:110px;width:'+window.innerWidth+';'
+                styleInlineText:'top:90px;width:'+window.innerWidth+';'
             }
         );
         this.uiFragments.select = new DOMFragment(
