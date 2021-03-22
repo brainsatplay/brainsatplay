@@ -113,9 +113,11 @@ export class BCIAppManager {
     initUIManager = (settingsFileContents='') => {
 
         // ------ need to flesh this out -------
-        let settings = JSON.parse(settingsFileContents);
-        if(settings.appletConfigs) {
-            this.appletConfigs = settings.appletConfigs;
+        if(settingsFileContents.length > 0){
+            let settings = JSON.parse(settingsFileContents);
+            if(settings.appletConfigs) {
+                this.appletConfigs = settings.appletConfigs;
+            }
         }
         let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length === null){
