@@ -186,18 +186,23 @@ class dataServer { //Just some working concepts for handling data sockets server
             }
         }
         else if(commands[0] === 'subscribeToUser') {
-            this.streamBetweenUsers(username,commands[1],commands[2]);
+            if(command[2]) this.streamBetweenUsers(username,commands[1],commands[2]);
+            else this.streamBetweenUsers(username,commands[1]);
         }
         else if(commands[0] === 'subscribeToGame') {
-            this.subscribeUserToGame(username,commands[1],commands[2]);
+            this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
-            let found = this.removeUserToUserStream(username,commands[1],commands[2]);
+            let found = undefined;
+            if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
+            else found = this.removeUserToUserStream(username,commands[1]);
             if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if(commands[0] === 'leaveGame') {
-            let found = this.removeUserFromGame(commands[1],u.username);
+            let found = undefined;
+            if(commands[2]) found = this.removeUserFromGame(commands[1],commands[2]);
+            else found = this.removeUserFromGame(commands[1],u.username);
             if(found) {  u.socket.send(JSON.stringify({msg:'leftGame',appname:commands[1]}));}
             else { u.socket.send(JSON.stringify({msg:'gameNotFound'}));}
         }

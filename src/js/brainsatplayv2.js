@@ -138,14 +138,14 @@ export class brainsatplay {
 	
 	//disconnect local device
 	disconnect(deviceIdx=this.devices[this.devices.length-1],ondisconnect=()=>{}) {
-		this.devices.ondisconnect = ondisconnect;
+		this.devices[deviceIdx].ondisconnect = ondisconnect;
 		this.devices[deviceIdx].disconnect();
 	}
 
 	beginStream(deviceIdx=0,streamParams=null) {
 		if(this.devices[deviceIdx].info.streaming ) {
 			this.devices[deviceIdx].info.streaming = true;
-			if(streamProps !== null) {
+			if(streamParams !== null) {
 				this.devices[deviceIdx].info.streamParams = streamParams;
 			}
 			this.devices[deviceIdx].streamLoop();
@@ -431,7 +431,7 @@ export class brainsatplay {
 						configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 					}
 					if(configured === true) {
-						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',appname,spectating]}));
+						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',this.info.auth.username,appname,spectating]}));
 						newResult.gameInfo.usernames.forEach((user) => {
 							newResult.gameInfo.propnames.forEach((prop) => {
 								this.state[appname+"_"+user+"_"+prop] = null;
@@ -453,7 +453,7 @@ export class brainsatplay {
 		//send unsubscribe command
 		this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
 		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+			if(newResult.msg === 'unsubscribed' && newResult.username === username) {
 				for(const prop in this.state.data) {
 					if(prop.indexOf(username) > -1) {
 						this.state.unsubscribeAll(prop);

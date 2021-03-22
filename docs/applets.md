@@ -1,68 +1,92 @@
 ## Applets
 The applet system here is just a simple way to make sure that modular content gets nested correctly in the app with everything else. As long as you maintain the basic format in the template, you can write any kind of javascript you want otherwise and involve any packages you want. There are some useful tools in the dom fragment system and state manager for you to take advantage of too, to ensure performant rendering.
 
-Check out AppletTemplate.js in the applets folder. You'll see a bunch of mostly empty functions and a constructor. In order to create applets, you need to copy and paste this template to a new file and then fill out all of the functions. You can try to extend the class too but I find that to be more mental work than it should be. 
+Check out AppletTemplate.js in the src/frontend/applets folder. You'll see a bunch of mostly empty functions and a constructor. In order to create applets, you need to copy and paste this template to a new file and then fill out all of the functions. You can try to extend the class too but I find that to be more mental work than it should be. 
 
 ```
-import {State} from '../frontend/State'
-import {EEG, ATLAS} from '../frontend/EEGInterface'
-import {DOMFragment} from '../frontend/DOMFragment'
+import {DOMFragment} from '../utils/DOMFragment'
 
-//You can extend or call this class and set renderProps and these functions
-export class Applet {
-    constructor (parentNode=document.getElementById("applets"),settings=[]) { // customize the render props in your constructor
-        this.parentNode = parentNode;
+//Example Applet for integrating with the UI Manager
+export class AppletExample {
+    constructor(
+        parent=document.body,
+        bci=undefined,
+        settings=[]
+    ) {
+    
+        //-------Keep these------- 
+        this.parentNode = parent;
+        this.settings = settings;
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
+        //------------------------
 
-        this.renderProps = {  //Add properties to set or update the HTML
-            width: "100px",
-            height: "100px",
-            id: String(Math.floor(Math.random()*1000000))
+        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
+            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            //Add whatever else
+        };
+
+        //etc..
+
+    }
+
+    //---------------------------------
+    //---Required template functions---
+    //---------------------------------
+
+    init() {
+
+        //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
+        let HTMLtemplate = (props=this.props) => { 
+            return `<div id=`+props.id+`></div>`;
         }
 
-        this.settings = settings;
-        if(settings.length > 0) { this.configure(settings);}
+        //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
+        let setupHTML = (props=this.props) => {
+            document.getElementById(props.id);
+        }
+
+        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+            HTMLtemplate,       //Define the html template string or function with properties
+            this.parentNode,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+        );  
+
+        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+
+
+        //Add whatever else you need to initialize
+    
     }
 
-    //----------- default functions, keep and customize these --------
-
-    //Create HTML template string with dynamic properties set in this.renderProps. Updates to these props will cause updates to the template
-    HTMLtemplate(props=this.renderProps) {
-        return ``;
+    deinit() {
+        this.AppletHTML.deleteNode();
+        //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
-    //Setup javascript functions for the new HTML here
-    setupHTML() {
-
+    onresize() {
+        //let canvas = document.getElementById(this.props.id+"canvas");
+        //canvas.width = this.AppletHTML.node.clientWidth;
+        //canvas.height = this.AppletHTML.node.clientHeight;
     }
 
-    //Initialize the applet. Keep the first line.
-    init() {
-        this.AppletHTML = new DOMFragment(this.HTMLtemplate,this.parentNode,this.renderProps,()=>{this.setupHTML();},undefined,"NEVER"); //Changes to this.props will automatically update the html template if interval not set to null or "NEVER". Use "FRAMERATE" for framerate level updating
-    }
-
-    configure(newsettings=this.settings) { //Expects an array []
-        this.settings=newsettings;
+    configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
     }
 
-    //Destroy applet. Keep this one line
-    deInit() {
-        this.AppletHTML.deleteNode();
-    }
+    //--------------------------------------------
+    //--Add anything else for internal use below--
+    //--------------------------------------------
 
-    //Callback for when the window resizes. This gets called by the UIManager class to help resize canvases etc.
-    onResize() {
+    //doSomething(){}
 
-    }
-
-    //------------ add new functions below ---------------
-
-    //doSomething() {}
-
-}
+   
+} 
 ```
 
 
