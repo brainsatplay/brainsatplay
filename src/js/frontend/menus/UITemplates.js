@@ -105,7 +105,7 @@ export function appletbox_template( props={
     `;
 }
 
-export function menudropdown3_template(props={}) {
+export function filemenu_template(props={}) {
     return `
     <td style="width:100%; height:400px; vertical-align:top; border:2px inset black;" colspan=6>
         <button id="saveEEGSession">Save Current Data</button><button id="newEEGSession">New Session</button>

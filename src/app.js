@@ -4,6 +4,19 @@ import {DOMFragment} from './js/frontend/utils/DOMFragment.js'
 
 
 
+let bcisession = new brainsatplay('guest','');
+
+bcisession.state.data.x = 0;
+bcisession.state.subscribe('x',(x) => {
+	console.log(x);
+})
+
+setTimeout(()=>{bcisession.state.data.x = 2},300);
+
+
+
+
+
 let connectHTML = `
 	<button id='connect'>Connect Device</button>
     <button id='server'>Connect to Server</button>
@@ -15,14 +28,6 @@ let connectHTML = `
 `; 
 
 
-let bcisession = new brainsatplay('guest','');
-
-bcisession.state.data.x = 0;
-bcisession.state.subscribe('x',(x) => {
-	console.log(x);
-})
-
-setTimeout(()=>{bcisession.state.data.x = 2},300);
 
 let ui = new DOMFragment(
 	connectHTML,

@@ -11,16 +11,19 @@
 import {
     appletbox_template,  
     appletselect_template,
+    filemenu_template,
     file_template
 } from './menus/UITemplates'
 
 import {UIManager} from './utils/UIManager'
 import {CSV} from '../general/csv'
-import * as BrowserFS from 'browserfs'
 import { StateManager } from './utils/StateManager';
 import { DOMFragment } from './utils/DOMFragment';
+
+import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
+
 
 
 /*
@@ -39,8 +42,10 @@ export defaultBCIApplets = [
 
 export class BCIAppManager {
     constructor(
+        bcisession=null,
         appletClasses=[],  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
-        appletConfigs=[]   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
+        appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
+        useFS=false
     ) {
 
         this.state = new StateManager({
@@ -53,12 +58,17 @@ export class BCIAppManager {
 
         this.uiFragments = {}; //store DOMFragments for the UI here
 
-        this.bcisession = null; //brainsatplay class instance
+        this.bcisession = bcisession; //brainsatplay class instance
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         this.appletConfigs.push(...this.getConfigsFromHashes());
         this.uiManager;
         this.fs;
+        this.useFS = useFS;
+
+        if(this.useFS === true) {
+            this.initFS();
+        }
 
     }
 
