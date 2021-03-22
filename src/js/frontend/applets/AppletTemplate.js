@@ -4,19 +4,20 @@ import {DOMFragment} from '../utils/DOMFragment'
 export class AppletExample {
     constructor(
         parent=document.body,
-        bci=undefined
+        bci=undefined,
+        settings=[]
     ) {
     
         //-------Keep these------- 
         this.parentNode = parent;
-        this.settings = [];
+        this.settings = settings;
         this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            buttonOutput: 0 //Add whatever else
+            //Add whatever else
         };
 
         //etc..
@@ -31,25 +32,12 @@ export class AppletExample {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].name;
-            return `
-            <div>
-                <div id='Example_`+props.id+`' style='height:100%; width:100%; border:2px solid black; background-color:green; color:white;'>
-                    Test `+name+`
-                    <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
-                    
-                    <button id='Button_`+props.id+`'>ClickMe</button>
-                </div>
-            </div>  
-            `;
+            return `<div id=`+props.id+`></div>`
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById("Button_"+props.id).onclick = () => {
-                props.buttonOutput++;
-                document.getElementById('Output_'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
-            }   
+            document.getElementById(props.id);
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -61,7 +49,7 @@ export class AppletExample {
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
+        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 
         //Add whatever else you need to initialize
