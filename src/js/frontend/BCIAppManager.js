@@ -43,9 +43,9 @@ export defaultBCIApplets = [
 export class BCIAppManager {
     constructor(
         bcisession=null,
-        appletClasses=[],  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletClasses=[],   //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
-        useFS=false
+        useFS=false         //launch with browserfs initialized
     ) {
 
         this.state = new StateManager({
@@ -85,10 +85,12 @@ export class BCIAppManager {
             appletselect_template,
             document.body
         );
-        this.uiFragments.filemenu = new DOMFragment(
-            filemenu_template,
-            document.body
-        )
+        if(this.useFS) {
+            this.uiFragments.filemenu = new DOMFragment(
+                filemenu_template,
+                document.body
+            )
+        }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

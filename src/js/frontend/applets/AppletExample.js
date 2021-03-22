@@ -4,8 +4,7 @@ import {DOMFragment} from '../utils/DOMFragment'
 export class AppletExample {
     constructor(
         parent=document.body,
-        bci=undefined,
-        settions=[]
+        bci=undefined
     ) {
     
         //-------Keep these------- 
