@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime' //for async calls
 export class hegduino {
     constructor(mode='usb',ondata=(newline)=>{},onconnect=()=>{},ondisconnect=()=>{},hostURL='http://192.168.4.1/') {
 
-        this.device = null;
+        this.interface = null;
         this.mode = mode;
 
         if(mode === 'usb' || mode === 'serial') {
@@ -19,18 +19,18 @@ export class hegduino {
     }
 
     setupSerialDevice(ondata=()=>{},onconnect=()=>{},ondisconnect=()=>{}) {
-        this.device = new webSerial();
-        this.device.onConnectedCallback = onconnect;
-        this.device.onReadLine = ondata;
-        this.device.onDisconnectedCallback = ondisconnect;
+        this.interface = new webSerial();
+        this.interface.onConnectedCallback = onconnect;
+        this.interface.onReadLine = ondata;
+        this.interface.onDisconnectedCallback = ondisconnect;
     }
 
     setupBLEDevice(ondata=()=>{},onconnect=()=>{},ondisconnect=()=>{}) {
-        this.device = new hegBLE();
-        this.device.onConnectedCallback = onconnect;
-        this.device.onDisconnectedCallback = ondisconnect;
-        this.device.onNotificationCallback = (e) => {
-            var line = this.device.decoder.decode(e.target.value);
+        this.interface = new hegBLE();
+        this.interface.onConnectedCallback = onconnect;
+        this.interface.onDisconnectedCallback = ondisconnect;
+        this.interface.onNotificationCallback = (e) => {
+            var line = this.interface.decoder.decode(e.target.value);
             ondata(line);
         }
     }
@@ -40,46 +40,46 @@ export class hegduino {
         let onheg = (e) => {
             ondata(e.data);
         }
-        this.device = new EventSourceUtil(hostURL+"events",onconnect,ondisconnect,undefined,[{tag:'heg',callback:onheg}])
-        device.newPostFunction('sendCommand',hostURL+"command");
+        this.interface = new EventSourceUtil(hostURL+"events",onconnect,ondisconnect,undefined,[{tag:'heg',callback:onheg}])
+        this.interface.newPostFunction('sendCommand',hostURL+"command");
     }
 
     sendCommand(command='') {
         if(mode === 'usb' || mode === 'serial') {
-            if(navigator.serial) this.device.sendMessageAsync(command);
-            else this.device.sendMessage(command);
+            if(navigator.serial) this.interface.sendMessageAsync(command);
+            else this.interface.sendMessage(command);
         }
         else if(mode === 'ble' || mode === 'bt') {
-            this.device.sendMessage(command);
+            this.interface.sendMessage(command);
         }
         else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
-            this.device.sendCommand(command);
+            this.interface.sendCommand(command);
         }
     }
 
     connect(path) { //chrome serial requires a path be specified (e.g. 'COM3')
         if(mode === 'usb' || mode === 'serial') {
             if(navigator.serial) this.device.setupSerialAsync();
-            else  this.device.connectSelected(true,path);
+            else  this.interface.connectSelected(true,path);
         }
         else if(mode === 'ble' || mode === 'bt') {
-            this.device.initBLE();
+            this.interface.initBLE();
         }
         else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
-            this.device.open();
+            this.interface.open();
         }
     }
 
     disconnect() {
         if(mode === 'usb' || mode === 'serial') {
-            if(navigator.serial) this.device.closePort();
-            else  this.device.connectSelected(false);
+            if(navigator.serial) this.interface.closePort();
+            else  this.interface.connectSelected(false);
         }
         else if(mode === 'ble' || mode === 'bt') {
-            this.device.disconnect();
+            this.interface.disconnect();
         }
         else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
-            this.device.close();
+            this.interface.close();
         }
     }
 }

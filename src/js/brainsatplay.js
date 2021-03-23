@@ -36,6 +36,7 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 import {eeg32, eegmath} from './bciutils/eeg32'
 import {MuseClient} from 'muse-js'
+import {hegduino} from './bciutils/hegduino'
 
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
@@ -101,6 +102,7 @@ export class brainsatplay {
 		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse","notion"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
 		onconnect=()=>{}, //onconnect callback, subscribe to device outputs after connection completed
+		ondisconnect=()=>{}, //ondisconnect callback, unsubscribe from outputs after device is disconnected
 		streaming=false,
 		streamParams=[['eegch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
@@ -127,6 +129,9 @@ export class brainsatplay {
 			);
 
 			this.devices[this.devices.length-1].onconnect = onconnect;
+			this.devices[this.devices.length-1].ondisconnect = ondisconnect;
+
+			this.devices[this.devices.length-1].init();
 
 			//Device info accessible from state
 			this.state.addToState("device"+this.devices.length,this.devices[this.devices.length-1].info);
@@ -611,7 +616,8 @@ class deviceStream {
 			deviceType:null,
 			streaming:streaming,
 			streamParams:streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
-	
+			analysis:analysis,
+
 			eegChannelTags:[],
 			streamLoopTiming:100, //ms between update checks
 			streamCt:0,
@@ -637,10 +643,10 @@ class deviceStream {
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 
-		this.init(device,useFilters,pipeToAtlas,analysis);
+		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
-	init = (device,useFilters,pipeToAtlas,analysis=[]) => {
+	init = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.info.pipeToAtlas,analysis=this.info.analysis) => {
 
 		if(device.indexOf("freeeeg32") > -1) {
 			this.info.sps = 512;
@@ -742,9 +748,37 @@ class deviceStream {
 			this.info.sps = 256;
 			this.info.deviceType = 'eeg';
 		}
-		else if(device === "hegduino") {
-			this.info.sps = 256;
+		else if(device.indexOf("hegduino") > -1) {
+			this.info.sps = Math.floor(2048/3);
 			this.info.deviceType = 'heg';
+			let ondata = (newline) => {
+				let data = newline.split("|");
+				let coord = this.atlas.getDeviceDataByTag('heg',0);
+				coord.count++;
+				if(this.device.mode === 'ble' && this.device.interface.android === true) {
+					coord.times.push(Date.now());
+					coord.red.push(parseFloat(data[0]));
+					coord.ir.push(parseFloat(data[1]));
+					coord.ratio.push(parseFloat(data[2]));
+				} else { 
+					coord.times.push(parseInt(data[0])); //Microseconds
+					coord.red.push(parseFloat(data[1]));
+					coord.ir.push(parseFloat(data[2]));
+					coord.ratio.push(parseFloat(data[3]));
+					coord.ambient.push(parseFloat(data[4]));
+					//ignore the rest for now
+				}
+			}
+			if(device === 'hegduinowifi' || device === 'hegduinosse') {
+				this.device= new hegduino('wifi',ondata,this.onconnect,this.ondisconnect);
+			}
+			else if (device === 'hegduinobt' || device === 'hegduinoble') {
+				this.device= new hegduino('ble',ondata,this.onconnect,this.ondisconnect);
+			}
+			else if (device === 'hegduinoserial' || device === 'hegduinousb') {
+				this.device= new hegduino('usb',ondata,this.onconnect,this.ondisconnect);
+			}
+
 		}
 		else if (this.addedDeviceNames.indexOf(device) > -1) {
 			let idx = this.addedDeviceNames.indexOf(device);
@@ -756,13 +790,14 @@ class deviceStream {
 		}
 				
 		if(pipeToAtlas === true) {
-			let eegConfig;
-			if(device === 'muse') { eegConfig = 'muse'; }
-			else if(device.indexOf('freeeeg32') > -1) {	eegConfig = '10_20'; }
+			let config;
+			if(device === 'muse') { config = 'muse'; }
+			else if(device.indexOf('freeeeg32') > -1) {	config = '10_20'; }
+			else if(Device.indexOf('hegduino') > -1) { config = 'hegduino'; }
 			this.atlas = new dataAtlas(
 				location+":"+device,
 				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
-				eegConfig,true,true,
+				config,true,true,
 				analysis
 				);
 			this.info.useAtlas = true;
@@ -772,7 +807,7 @@ class deviceStream {
 			this.atlas.analysis.push(...analysis)
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
 			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
-			
+			else if(Device.indexOf('hegduino') > -1) { config = 'hegduino'}
 			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
 		}
@@ -784,6 +819,7 @@ class deviceStream {
 	
 		if(this.info.deviceName.indexOf("freeeeg32_2") > -1) {
 			await this.device.setupSerialAsync();
+			this.onconnect();
 		}
 		else if (this.info.deviceName === "muse") {
 			//connect muse and begin streaming
@@ -803,16 +839,21 @@ class deviceStream {
 			// });
 			// this.device.accelerometerData.subscribe(accel => {
 			// });
+			this.onconnect();
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
+			this.onconnect();
+		}
+		else if (this.info.deviceType === 'heg') {
+			this.device.connect();
 		}
 		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
 			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
 			this.addedDeviceConnect[idx]();
+			this.onconnect();
 		}
 		this.info.connected = true;
-		
 	}
 
 	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}, disconnect = () => {}) => {
@@ -897,10 +938,32 @@ class deviceStream {
 			}
 		}
 
+		let getHEGData = (tag=0,nArrays='all',prop=null) => {
+			let get = nArrays;
+			if(this.info.useAtlas === true) {
+				let coord = this.atlas.getDeviceDataByTag('heg',tag);
+				if(get === 'all') {
+					get = coord.count-coord.lastRead;
+					coord.lastRead = coord.count;
+					if(get === 0) return undefined;
+				}
+				if(coord !== false) {
+					if(prop !== null) {
+						let times = coord.times.slice(coord.times.length - get, coord.times.length);
+						let data = coord[prop].slice(coord.ffts.length - get,coord.ffts.length);
+						let obj = {times:times}; obj[prop] = data;
+						return obj;
+					}
+					else return coord;
+				}
+			}
+		}
+
 		this.streamTable = [
 			{prop:'eegch',  		callback:getEEGChData	 	},
 			{prop:'eegfft', 		callback:getEEGFFTData	 	},
-			{prop:'eegcoherence', 	callback:getCoherenceData	}
+			{prop:'eegcoherence', 	callback:getCoherenceData	},
+			{prop:'hegdata',        callback:getHEGData			}
 		];
 
 		if(params.length > 0) {
@@ -980,10 +1043,14 @@ class deviceStream {
 	disconnect = () => {
 		if(this.info.deviceName.indexOf("FreeEEG") > -1) {
 			this.device.disconnect();
+			this.ondisconnect();
 		}
 		else if (this.info.deviceName.indexOf("muse") > -1) {
 			this.device.disconnect(); 
 			this.ondisconnect();
+		}
+		else if (this.info.deviceName.indexOf("hegduino") > -1) {
+			this.device.disconnect();
 		}
 		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1) {
 			this.addedDeviceDisconnect[this.addedDeviceNames.indexOf(this.info.deviceName)]();
@@ -1008,7 +1075,7 @@ class dataAtlas {
     constructor(
 		name="atlas",
 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
-		eegConfig='10_20', //'muse','big'
+		config='10_20', //'muse','big'
 		useCoherence=true,
 		useAnalyzer=false,
 		analysis=['eegfft'] //'eegfft','eegcoherence','bcijs_bandpowers','heg_pulse'
@@ -1035,15 +1102,19 @@ class dataAtlas {
 
 		this.rolloverLimit = 30000; //Max samples allowed in arrays before rollover kicks in
 
-        if(eegConfig === '10_20') {
+        if(config === '10_20') {
             this.data.eeg = this.gen10_20Atlas();
         }
-		else if (eegConfig === 'muse') {
+		else if (config === 'muse') {
 			this.data.eeg = this.genMuseAtlas();
 		}
-		else if (eegConfig === 'big') {
+		else if (config === 'big') {
 			this.data.eeg = this.genBigAtlas();
 		}
+		else if (config === 'hegduino') {
+			this.addHEGCoord(this.data.heg.length,0,60,60);
+		}
+
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
 			//console.log(this.data.coherence);
@@ -1282,7 +1353,7 @@ class dataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],lastRead:0}
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
