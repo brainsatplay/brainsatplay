@@ -59,6 +59,10 @@
     "ws": "^7.4.4"
   },
   "devDependencies": {
+    "@types/d3-axis": "^2.0.0",
+    "@types/d3-color": "^2.0.1",
+    "@types/d3-scale": "^3.2.2",
+    "@types/d3-selection": "^2.0.0",
     "@types/web-bluetooth": "0.0.9",
     "parcel-bundler": "^1.12.4",
     "sass": "^1.27.0",
