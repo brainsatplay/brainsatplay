@@ -13,6 +13,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.userSubscriptions=[];
 		this.gameSubscriptions=[];
         this.subUpdateInterval = 0; //ms
+        this.serverTimeout = 10*60*1000; //min*s*ms
 
         this.subscriptionLoop();
 	}
@@ -33,6 +34,14 @@ class dataServer { //Just some working concepts for handling data sockets server
             })
             availableProps.forEach((prop,i) => {
                 this.userData.get(username).props[prop] = '';
+            });
+        }
+        else { 
+            let d = this.userData.get(username);
+            d.appname = appname;
+            d.socket = socket;
+            availableProps.forEach((prop,i) => {
+                d.props[prop] = '';
             });
         }
     }
@@ -135,6 +144,7 @@ class dataServer { //Just some working concepts for handling data sockets server
     
     processUserCommand(username='',commands=[]) { //Commands should be an array of arguments 
         let u = this.userData.get(username);
+        u.lastUpdate = Date.now();
         //u.socket.send(JSON.stringify({msg:commands}));
         if(commands[0] === 'getUsers') {
             let users = [];
@@ -431,6 +441,13 @@ class dataServer { //Just some working concepts for handling data sockets server
             }
             sub.lastTransmit = time;
 		});
+
+        this.userData.forEach((u,i) => {
+            if(u.lastUpdate > this.serverTimeout) {
+                this.userData.socket.close();
+                this.userData.delete(u.username);
+            }
+        })
 
 		setTimeout(() => {this.subscriptionLoop();},10);
 	}
