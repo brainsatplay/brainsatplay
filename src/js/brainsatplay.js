@@ -240,10 +240,12 @@ export class brainsatplay {
 			this.subscribed=true;
 			this.info.nDevices++;
 		}
-		if(beginStream === true) {
-			this.devices.forEach((d,i) => {
-				this.beginStream(i);
-			})
+		if(this.socket !== null && this.socket.readyState === 1) {
+			if(beginStream === true) {
+				this.devices.forEach((d,i) => {
+					this.beginStream(i);
+				});
+			}
 		}
 	} 
 
@@ -394,96 +396,104 @@ export class brainsatplay {
 
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
-		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
-		userProps.forEach((prop) => {
-			if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
-			this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
-		});
-		//wait for result, if user found then add the user
-		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(typeof newResult === 'object') {
-				if(newResult.msg === 'getUserDataResult') {
-					if(newResult.username === username) {
-						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
+			userProps.forEach((prop) => {
+				if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
+				this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
+			});
+			//wait for result, if user found then add the user
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getUserDataResult') {
+						if(newResult.username === username) {
+							this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+						}
+						onsuccess(newResult);
+						this.state.unsubscribe('commandResult',sub);
 					}
-					onsuccess(newResult);
-					this.state.unsubscribe('commandResult',sub);
+					else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
+						this.state.unsubscribe('commandResult',sub);
+						console.log("User not found: ", username);
+					}
 				}
-				else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
-					this.state.unsubscribe('commandResult',sub);
-					console.log("User not found: ", username);
-				}
-			}
-		});
+			});
+		}
 	}
 
 	subscribeToGame(appname='',spectating=false,onsuccess=(newResult)=>{}) {
-		this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
-		//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
-		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(typeof newResult === 'object') {
-				if(newResult.msg === 'getGameInfoResult' && newResult.appname === appname) {
-					let configured = true;
-					if(spectating === false) {
-						//check that this user has the correct streaming configuration with the correct connected device
-						let streamParams = [];
-						newResult.gameInfo.propnames.forEach((prop) => {
-							console.log(prop);
-							streamParams.push(prop.split("_"));
-						});
-						configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
-					}
-					if(configured === true) {
-						this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',this.info.auth.username,appname,spectating]}));
-						newResult.gameInfo.usernames.forEach((user) => {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
+			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getGameInfoResult' && newResult.appname === appname) {
+						let configured = true;
+						if(spectating === false) {
+							//check that this user has the correct streaming configuration with the correct connected device
+							let streamParams = [];
 							newResult.gameInfo.propnames.forEach((prop) => {
-								this.state[appname+"_"+user+"_"+prop] = null;
+								console.log(prop);
+								streamParams.push(prop.split("_"));
 							});
-						});
-						onsuccess(newResult);
+							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
+						}
+						if(configured === true) {
+							this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',this.info.auth.username,appname,spectating]}));
+							newResult.gameInfo.usernames.forEach((user) => {
+								newResult.gameInfo.propnames.forEach((prop) => {
+									this.state[appname+"_"+user+"_"+prop] = null;
+								});
+							});
+							onsuccess(newResult);
+						}
+						this.state.unsubscribe('commandResult',sub);
 					}
-					this.state.unsubscribe('commandResult',sub);
+					else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+						this.state.unsubscribe('commandResult',sub);
+						console.log("Game not found: ", appname);
+					}
 				}
-				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
-					this.state.unsubscribe('commandResult',sub);
-					console.log("Game not found: ", appname);
-				}
-			}
-		});
+			});
+		}
 	}
 
 	unsubscribeFromUser(username='',userProps=null,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
-		this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
-		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'unsubscribed' && newResult.username === username) {
-				for(const prop in this.state.data) {
-					if(prop.indexOf(username) > -1) {
-						this.state.unsubscribeAll(prop);
-						this.state.data[prop] = undefined;
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(newResult.msg === 'unsubscribed' && newResult.username === username) {
+					for(const prop in this.state.data) {
+						if(prop.indexOf(username) > -1) {
+							this.state.unsubscribeAll(prop);
+							this.state.data[prop] = undefined;
+						}
 					}
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
 				}
-				onsuccess(newResult);
-				this.state.unsubscribe('commandResult',sub);
-			}
-		});
+			});
+		}
 	}
 
 	unsubscribeFromGame(appname='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
-		this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
-		let sub = this.state.subscribe('commandResult',(newResult) => {
-			if(newResult.msg === 'leftGame' && newResult.appname === appname) {
-				for(const prop in this.state.data) {
-					if(prop.indexOf(appname) > -1) {
-						this.state.unsubscribeAll(prop);
-						this.state.data[prop] = undefined;
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+					for(const prop in this.state.data) {
+						if(prop.indexOf(appname) > -1) {
+							this.state.unsubscribeAll(prop);
+							this.state.data[prop] = undefined;
+						}
 					}
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
 				}
-				onsuccess(newResult);
-				this.state.unsubscribe('commandResult',sub);
-			}
-		});
+			});
+		}
 	}
 
 	configureStreamForGame(deviceNames=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
