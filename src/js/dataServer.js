@@ -13,7 +13,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.userSubscriptions=[];
 		this.gameSubscriptions=[];
         this.subUpdateInterval = 0; //ms
-        this.serverTimeout = 10*60*1000; //min*s*ms
+        this.serverTimeout = 60*60*1000; //min*s*ms
 
         this.subscriptionLoop();
 	}
@@ -271,7 +271,8 @@ class dataServer { //Just some working concepts for handling data sockets server
                     propnames.push(propname);
                 }
             }
-            if(this.userData.get(listenerUser) !== undefined && source !== undefined) {
+            u = this.userData.get(listenerUser);
+            if(u !== undefined && source !== undefined) {
                 this.userSubscriptions.push({
                     listener:listenerUser,
                     source:sourceUser,
@@ -279,10 +280,10 @@ class dataServer { //Just some working concepts for handling data sockets server
                     newData:false,
                     lastTransmit:0
                 });
-                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
+                u.socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
             }
             else {
-                this.userData.get(listenerUser).socket.send(JSON.stringify({msg:'userNotFound'}))
+                u.socket.send(JSON.stringify({msg:'userNotFound'}))
             }
            
         }
@@ -418,6 +419,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                                 username:user
                             }
                             let listener = this.userData.get(user);
+
                             sub.propnames.forEach((prop,k) => {
                                 userObj[prop] = listener.props[prop];
                             });
@@ -429,10 +431,11 @@ class dataServer { //Just some working concepts for handling data sockets server
                     sub.usernames.forEach((user,j) => {
                         let u = this.userData.get(user);
                         if(u !== undefined )
-                            this.userData.get(user).socket.send(JSON.stringify(updateObj));
+                            u.socket.send(JSON.stringify(updateObj));
                         else {
                             sub.usernames.splice(sub.usernames.indexOf(user),1);
                             if(sub.spectators.indexOf(user) > -1) {
+                                u.lastUpdate = time; //prevents timing out for long spectator sessions
                                 sub.spectators.splice(sub.spectators.indexOf(user),1);
                             }
                         }
@@ -442,9 +445,8 @@ class dataServer { //Just some working concepts for handling data sockets server
             sub.lastTransmit = time;
 		});
 
-        let now = Date.now();
         this.userData.forEach((u,i) => {
-            if( now - u.lastUpdate > this.serverTimeout ) {
+            if(now - u.lastUpdate > this.serverTimeout) {
                 this.userData.socket.close();
                 this.userData.delete(u.username);
             }
