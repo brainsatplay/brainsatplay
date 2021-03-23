@@ -38,8 +38,8 @@ class dataServer { //Just some working concepts for handling data sockets server
         }
         else { 
             let d = this.userData.get(username);
+            d.lastUpdate = Date.now();
             d.appname = appname;
-            d.socket = socket;
             availableProps.forEach((prop,i) => {
                 d.props[prop] = '';
             });
