@@ -1,4 +1,4 @@
-export class EventSourceHelper {
+export class EventSourceUtil {
     constructor(hostUrl='http://192.168.4.1/events', onOpen=this.onOpen, onError=this.onError, onMsg=this.onMsg, customCallbacks=[]) { //Add custom callbacks like [{tag:'heg',callback:(e) => {console.log(e.data);}}]
         this.hostUrl = hostUrl;
 
@@ -70,8 +70,8 @@ export class EventSourceHelper {
     }
 
     //create a function to post to URLS with optional data, usernames, and passwords
-    newPostFunction(name="post",url=this.hostUrl,data=undefined,user=undefined,pass=undefined) {
-        const newPostFunction = () => {
+    newPostFunction(name="post",url=this.hostUrl) {
+        const newPostFunction = (data=undefined,user=undefined,pass=undefined) => {
             var xhr = new XMLHttpRequest();
             xhr.open('POST', url, true, user, pass);
             xhr.send(data); //Accepts: string | Document | Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array>
