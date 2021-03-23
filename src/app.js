@@ -47,8 +47,8 @@ let ui = new DOMFragment(
 		document.getElementById('connect').onclick = () => {
 			// if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],true,[['eegch','FP1','all'],['eegch','FP2','all']]);
 			// else bcisession.connect('freeeeg32_2',['eegcoherence']);
-			if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
-			else bcisession.connect('muse',['eegcoherence']);
+			if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],onconnected,true,[['eegch','AF7','all'],['eegch','AF8','all']]);
+			else bcisession.connect('muse',['eegcoherence'],onconnected);
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login(true);
