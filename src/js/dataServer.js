@@ -53,6 +53,7 @@ class dataServer { //Just some working concepts for handling data sockets server
     setWSBehavior(username, socket){
         if (socket != null){
             socket.on('message', (s) => {
+                console.log(s)
                 this.processMessage(s);
             });
 
@@ -446,7 +447,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		});
 
         this.userData.forEach((u,i) => {
-            if(now - u.lastUpdate > this.serverTimeout) {
+            if(time - u.lastUpdate > this.serverTimeout) {
                 this.userData.socket.close();
                 this.userData.delete(u.username);
             }

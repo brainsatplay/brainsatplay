@@ -306,7 +306,6 @@ export class brainsatplay {
 
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
-		console.log(parsed);
 		if(parsed.msg === 'userData') {
 			for(const prop in parsed) {
 			 if (prop !== 'msg' && prop !== 'username') 
@@ -350,6 +349,8 @@ export class brainsatplay {
 		}
 		else if (parsed.msg === 'gameNotFound') {
 			this.state.data.commandResult = parsed;
+		}else if (parsed.msg === 'resetUsername') {
+			this.info.auth.username = parsed.username;
 		}
 		else if (parsed.msg === 'ping') {
 		}
@@ -361,9 +362,9 @@ export class brainsatplay {
 
 		let socket = null;
         let subprotocol = [
-			'username'+auth.username,
-     	   	'password'+auth.password,
-     	   	'appname'+auth.appname
+			'username&'+auth.username,
+     	   	'password&'+auth.password,
+     	   	'appname&'+auth.appname
 		];
 		if (auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
@@ -378,10 +379,7 @@ export class brainsatplay {
             console.log('error');
         };
 
-        socket.onopen = () => {
-            console.log('ping');
-            socket.send(JSON.stringify({username:this.info.auth.username,msg:['ping']}));
-        };
+        socket.onopen = () => {};
 
         socket.onmessage = (msg) => {
 			this.processSocketMessage(msg.data);

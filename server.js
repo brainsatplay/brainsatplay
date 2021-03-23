@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require("cors")
 const WebSocket = require('ws');
-// const mongodb = require('mongodb'
+const mongodb = require('mongodb');
 require('dotenv').config();
 
 // New Server Code
@@ -46,11 +46,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // // Database Setup
-// mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
-//   .then(client => {
-//     app.set('mongodb', client);
-//     console.log('Connected to Database')
-//   })
+mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
+  .then(client => {
+    app.set('mongoClient', client);
+    console.log('Connected to Database')
+  })
 
 //Listen to Port for HTTP Requests
 app.use(function(req, res, next) {
@@ -114,21 +114,29 @@ function getCookie(req,name) {
 //Authentication
 server.on('upgrade', async (request, socket, head) => {
 
-    let username = getCookie(request, 'username') || request.headers['sec-websocket-protocol'].split('username')[1].split(',')[0]
-    let password = getCookie(request, 'password') || request.headers['sec-websocket-protocol'].split('password')[1].split(',')[0]
-    let appname = getCookie(request, 'appname') | request.headers['sec-websocket-protocol'].split('appname')[1].split(',')[0]
+    let _subprotocols = request.headers['sec-websocket-protocol'].split(', ') || undefined
+    let subprotocols = {}
+    _subprotocols.forEach((str)=>{
+      let arr = str.split('&')
+      subprotocols[arr[0]] = arr[1]
+    })
+    let username = getCookie(request, 'username') || subprotocols['username']
+    let password = getCookie(request, 'password') || subprotocols['password']
+    let appname = getCookie(request, 'appname') || subprotocols['appname']
 
-    let res = await auth.check({username,password},app.get('mongodb'))
-    if (res.result !== 'OK') {
-      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-      socket.destroy();
-      return;
-    }
+    auth.check({username,password},app.get('mongoClient')).then((res) => {
 
-    username = res.msg
-    wss.handleUpgrade(request, socket, head, function (ws) {
-      wss.emit('connection', ws, {username,appname}, request);
-    });
+      if (res.result !== 'OK') {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      username = res.msg
+      wss.handleUpgrade(request, socket, head, function (ws) {
+        wss.emit('connection', ws, {username,appname}, request);
+      });
+    })
 });
 
 wss.on('connection', function (ws, msg, request) {
@@ -138,6 +146,7 @@ wss.on('connection', function (ws, msg, request) {
   
   // add user
   dataServ.addUser(username,appname,ws)
+  ws.send(JSON.stringify({msg:'resetUsername',username:username}))
 });
 
 // error handlers

@@ -39,6 +39,7 @@
     "http": "^0.0.1-security",
     "jsdoc": "^3.6.6",
     "kbm-robot": "0.0.4",
+    "mongodb": "^3.6.5",
     "muse-js": "^3.2.0",
     "normalize.css": "^8.0.1",
     "path": "^0.12.7",
