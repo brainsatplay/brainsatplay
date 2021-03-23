@@ -1051,7 +1051,7 @@ class dataAtlas {
 
 		if(this.data.eegshared.eegChannelTags) { //add structs for non-specified channels
 			this.data.eegshared.eegChannelTags.forEach((row,i) => {
-				if( this.getEEGDataByTag(row.tag) === false ) {
+				if( this.getEEGDataByTag(row.tag) === undefined ) {
 					this.addEEGCoord(row.ch);
 				}
 			});
@@ -1316,7 +1316,7 @@ class dataAtlas {
 	//also do ecg,emg,eyetracker
 
 	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
-		var found = false;
+		var found = undefined;
 		if(typeof tag === 'number' && device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
 				if(o.ch === tag && o.tag !== null) {
@@ -1346,10 +1346,13 @@ class dataAtlas {
 		else if(tag === null || tag === 'all') {
 			return this.data[device]; //return shared data structs which are laid out a little differetly
 		}
+		else {
+			return found;
+		}
 	}
 
 	getEEGDataByChannel(ch=0) {
-		let found = false;
+		let found = undefined;
 		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
 				if(o.tag === null || o.tag === 'other') {
@@ -1366,7 +1369,7 @@ class dataAtlas {
 
     //Return the object corresponding to the atlas tag
 	getEEGDataByTag(tag="FP1"){
-		var found = false;
+		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
 				found = o;
