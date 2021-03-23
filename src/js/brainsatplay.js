@@ -1391,11 +1391,11 @@ class dataAtlas {
 		if(typeof tag === 'number' && device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
 				if(o.ch === tag && o.tag !== null) {
-					tag = o.tag;
+					tag = o.tag; //you can search for eeg data by channel number as well
+					return true;
 				}
 			});
 		}
-		
 		if(device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
@@ -1403,22 +1403,22 @@ class dataAtlas {
 					return true;
 				}
 			});
-			return found;
+			return found; //return shared data structs	
 		}
-		else if (typeof tag === 'string') {
+		else if (tag === null || tag === 'all') {
+			return this.data[device]; //return all device data structs	
+		}
+		else if (typeof tag === 'string' || typeof tag === 'number') {
 			let r = this.data[device].find((o,i) => {
 				if(o.tag === tag) {
-					found = o;
+					found = o; 	
 					return true;
 				}
 			});
-			return found;
-		}
-		else if(tag === null || tag === 'all') {
-			return this.data[device]; //return shared data structs which are laid out a little differetly
+			return found;  //return tagged data struct
 		}
 		else {
-			return found;
+			return found; //return undefined	
 		}
 	}
 

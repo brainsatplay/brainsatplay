@@ -2282,7 +2282,7 @@ export class boidsJS { //Birdoids Swarm AI. https://en.wikipedia.org/wiki/Boids
     if(this.swirlMul < 0) {
       this.swirlMul = 0;
     }
-    else if(this.swirlMul > 0.001){
+    else if(this.swirlMul > 0.01){
       this.swirlMul = 0.01;
     }
   }
