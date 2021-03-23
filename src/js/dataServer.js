@@ -442,8 +442,9 @@ class dataServer { //Just some working concepts for handling data sockets server
             sub.lastTransmit = time;
 		});
 
+        let now = Date.now();
         this.userData.forEach((u,i) => {
-            if(u.lastUpdate > this.serverTimeout) {
+            if( now - u.lastUpdate > this.serverTimeout ) {
                 this.userData.socket.close();
                 this.userData.delete(u.username);
             }
