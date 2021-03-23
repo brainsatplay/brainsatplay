@@ -1,10 +1,11 @@
+import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
 export class AppletExample {
     constructor(
         parent=document.body,
-        bci=undefined,
+        bci=new brainsatplay('','','Template'),
         settings=[]
     ) {
     

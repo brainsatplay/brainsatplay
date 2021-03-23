@@ -1,5 +1,5 @@
 
-import {brainsatplay} from './js/brainsatplayv2.js'
+import {brainsatplay} from './js/brainsatplay.js'
 import {DOMFragment} from './js/frontend/utils/DOMFragment.js'
 
 

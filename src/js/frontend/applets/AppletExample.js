@@ -1,10 +1,11 @@
+import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
 export class AppletExample {
     constructor(
         parent=document.body,
-        bci=undefined
+        bci=new brainsatplay('','','Example')
     ) {
     
         //-------Keep these------- 
@@ -20,7 +21,7 @@ export class AppletExample {
         };
 
         //etc..
-
+        this.sub1 = undefined;
     }
 
     //---------------------------------
@@ -34,11 +35,12 @@ export class AppletExample {
             let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
             return `
             <div>
-                <div id='Example_`+props.id+`' style='height:100%; width:100%; border:2px solid black; background-color:green; color:white;'>
+                <div id='Example_`+props.id+`' style='height:100%; width:100%; border:2px solid black; background-color:blue; color:white;'>
                     Test `+name+`
                     <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
-                    
                     <button id='Button_`+props.id+`'>ClickMe</button>
+                    <button id='Button2_`+props.id+`'>Subscribe</button>
+                    <div id='Output2_`+props.id+`>Awaiting FP1 data</div>
                 </div>
             </div>  
             `;
@@ -49,6 +51,14 @@ export class AppletExample {
             document.getElementById("Button_"+props.id).onclick = () => {
                 props.buttonOutput++;
                 document.getElementById('Output_'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
+            }   
+            document.getElementById("Button2_"+props.id).onclick = () => {
+                this.sub1 = this.bci.subscribe('eeg','FP1',undefined, (newData)=>{
+                    document.getElementById('Output2_'+props.id).innerHTML = newData;
+                });    
+                if(this.sub1 === undefined) {
+                    document.getElementById('Output2_'+props.id).innerHTML = 'EEG not found, run it first'
+                }
             }   
         }
 
