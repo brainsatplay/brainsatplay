@@ -1462,10 +1462,10 @@ class dataAtlas {
 	}
 
     //Return an array of Array(3)s for each coordinate. Useful e.g. for graphics
-	getCoordPositions() {
+	getCoordPositions(device='eeg') {
 		var coords = [];
-		for(var i = 0; i< this.data.eeg.length; i++) {
-			coords.push([this.data.eeg[i].position.x,this.data.eeg[i].position.y,this.data.eeg[i].position.z]);
+		for(var i = 0; i< this.data[device].length; i++) {
+			coords.push([this.data[device][i].position.x,this.data[device][i].position.y,this.data[device][i].position.z]);
 		}
 		return coords;
 	}
