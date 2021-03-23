@@ -4,6 +4,7 @@ export class hegduino {
     constructor(mode='usb',ondata=(newline)=>{},onconnect=()=>{},ondisconnect=()=>{},hostURL='http://192.168.4.1/') {
 
         this.device = null;
+        this.mode = mode;
 
         if(mode === 'usb' || mode === 'serial') {
             this.setupSerialDevice(ondata,onconnect,ondisconnect);
