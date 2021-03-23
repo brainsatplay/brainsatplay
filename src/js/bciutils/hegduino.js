@@ -1,18 +1,18 @@
 import 'regenerator-runtime/runtime' //for async calls
 
 export class hegduino {
-    constructor(mode='usb',ondata=(newline)=>{},onconnect=()=>{},ondisconnect=()=>{}) {
+    constructor(mode='usb',ondata=(newline)=>{},onconnect=()=>{},ondisconnect=()=>{},hostURL='http://192.168.4.1/') {
 
         this.device = null;
 
         if(mode === 'usb' || mode === 'serial') {
-            this.setupSerialDevice();
+            this.setupSerialDevice(ondata,onconnect,ondisconnect);
         }
         else if(mode === 'ble' || mode === 'bt') {
-            this.setupBLEDevice();
+            this.setupBLEDevice(ondata,onconnect,ondisconnect);
         }
         else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
-            this.setupSSEDevice();
+            this.setupSSEDevice(hostURL,ondata,onconnect,ondisconnect);
         }
 
     }
@@ -29,11 +29,12 @@ export class hegduino {
         this.device.onConnectedCallback = onconnect;
         this.device.onDisconnectedCallback = ondisconnect;
         this.device.onNotificationCallback = (e) => {
-            var val = this.device.decoder.decode(e.target.value);
-            ondata(val);
+            var line = this.device.decoder.decode(e.target.value);
+            ondata(line);
         }
     }
 
+    //Change hostURL if device is on main net and has a new IP
     setupSSEDevice(hostURL='http://192.168.4.1/',ondata=()=>{},onconnect=()=>{},ondisconnect=()=>{}) {
         let onheg = (e) => {
             ondata(e.data);
