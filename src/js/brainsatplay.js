@@ -1324,6 +1324,7 @@ class dataAtlas {
 				}
 			});
 		}
+		
 		if(device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
@@ -1333,7 +1334,16 @@ class dataAtlas {
 			});
 			return found;
 		}
-		else {
+		else if (typeof tag === 'string') {
+			let r = this.data[device].find((o,i) => {
+				if(o.tag === tag) {
+					found = o;
+					return true;
+				}
+			});
+			return found;
+		}
+		else if(tag === null || tag === 'all') {
 			return this.data[device]; //return shared data structs which are laid out a little differetly
 		}
 	}
