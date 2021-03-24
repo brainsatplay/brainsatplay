@@ -420,7 +420,8 @@ export class brainsatplay {
 		return socket;
 	}
 
-	getSubData(userOrAppname='',propname=null) {
+	//Get data for a particular app or user subcription. Leave propname null to get all data for that sub
+	getStreamData(userOrAppname='',propname=null) {
 		let o = {};
 		for(const prop in this.state.data) {
 			if(propname === null) {
@@ -428,10 +429,8 @@ export class brainsatplay {
 					o[prop] = this.state.data[prop];
 				}
 			}
-			else {
-				if(prop.indexOf(userOrAppname) > -1 && prop.indexOf(propname) > -1) {
-					o[prop] = this.state.data[prop];
-				}
+			else if((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
+				o[prop] = this.state.data[prop];
 			}
 		}
 		return o;
