@@ -721,6 +721,7 @@ class deviceStream {
 					}
 				},
 				()=>{
+					this.atlas.analyzing = false;
 					this.ondisconnect();
 				}
 			);
@@ -1913,15 +1914,15 @@ class dataAtlas {
 
 	analyzer = () => { //Make this stop when streaming stops
 		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
-
-		this.analysis.forEach((run,i) => {
-			this.analyzerOpts.forEach((opt,j) => {
-				if(opt === run) {
-					this.analyzerFuncs[j]();
-				}
+		if(this.analyzing === true) {
+			this.analysis.forEach((run,i) => {
+				this.analyzerOpts.forEach((opt,j) => {
+					if(opt === run) {
+						this.analyzerFuncs[j]();
+					}
+				});
 			});
-		});
-			
+		}	
 		setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 	}
 }
