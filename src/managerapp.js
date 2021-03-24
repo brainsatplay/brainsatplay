@@ -49,6 +49,7 @@ let ui = new DOMFragment(
 		}
 		document.getElementById('server').onclick = () => {
 			bcisession.login(true);
+			//console.log(bcisession.socket.url);
     	}
     	document.getElementById('ping').onclick = () => {
 			bcisession.sendWSCommand(['ping']); //send array of arguments

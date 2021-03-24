@@ -37,11 +37,15 @@ class dataServer { //Just some working concepts for handling data sockets server
             });
         }
         else { 
-            let d = this.userData.get(username);
-            d.lastUpdate = Date.now();
-            d.appname = appname;
+            let u = this.userData.get(username);
+            u.lastUpdate = Date.now();
+            u.appname = appname;
+            if(socket.url !== u.socket.url) { //handle same user on new port
+                u.socket.close();
+                u.socket = socket;
+            }
             availableProps.forEach((prop,i) => {
-                d.props[prop] = '';
+                u.props[prop] = '';
             });
         }
     }
@@ -210,6 +214,11 @@ class dataServer { //Just some working concepts for handling data sockets server
             if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
+        else if (commands[0] === 'logout') {
+            u.socket.send(JSON.stringify({msg:'logged out'}));
+            u.socket.close();
+            this.userData.delete(username);
+        }
         else if(commands[0] === 'leaveGame') {
             let found = undefined;
             if(commands[2]) found = this.removeUserFromGame(commands[1],commands[2]);

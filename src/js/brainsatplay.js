@@ -104,7 +104,7 @@ export class brainsatplay {
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
 		onconnect=()=>{}, //onconnect callback, subscribe to device outputs after connection completed
 		ondisconnect=()=>{}, //ondisconnect callback, unsubscribe from outputs after device is disconnected
-		streaming=false,
+		streaming=false, //set to stream to server (must be connected)
 		streamParams=[['eegch','FP1','all']], //Device properties to stream
 		useFilters=true, //Filter device output if it needs filtering (some hardware already applies filters so we may skip those)
 		pipeToAtlas=true
@@ -546,7 +546,7 @@ export class brainsatplay {
 		streamParams.forEach((p,i) => {
 			if(p[2] === undefined)
 				params.push([p[0],p[1],'all']);
-			else params.push([p[0],p[1],p[3]]);
+			else params.push([...p]);
 		});
 		let d = undefined;
 		deviceNames.forEach((name,i) => { //configure named device

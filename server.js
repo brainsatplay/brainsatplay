@@ -141,12 +141,12 @@ server.on('upgrade', async (request, socket, head) => {
 
 wss.on('connection', function (ws, msg, request) {
 
-  let username = msg.username
-  let appname = msg.appname
-  
+  let username = msg.username;
+  let appname = msg.appname;
+
   // add user
-  dataServ.addUser(username,appname,ws)
-  ws.send(JSON.stringify({msg:'resetUsername',username:username}))
+  dataServ.addUser(username,appname,ws);
+  ws.send(JSON.stringify({msg:'resetUsername',username:username}));
 });
 
 // error handlers
