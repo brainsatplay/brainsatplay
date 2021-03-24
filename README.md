@@ -15,37 +15,37 @@ href="https://opensource.org/licenses/MIT">
 
 ### Applets
 - [x] ???
-- [] Nexus
+- [ ] Nexus
 
 ### Features
 - [x] ???
-- [] Eye tracking
-- [] Navigate the UI via BCI or eye-tracking
+- [ ] Eye tracking
+- [ ] Navigate the UI via BCI or eye-tracking
 
 ### Hardware Compatibility
 - [x] FreeEEG32
 - [x] Muse 2 Headband
-- [] HEGAlpha
-- [] OpenBCI Ganglion
-- [] OpenBCI Cyton
-- [] OpenBCI Daisy-Cyton
-- [] Neurosity Notion 1 and 2 
-- [] Blueberry
+- [ ] HEGAlpha
+- [ ] OpenBCI Ganglion
+- [ ] OpenBCI Cyton
+- [ ] OpenBCI Daisy-Cyton
+- [ ] Neurosity Notion 1 and 2 
+- [ ] Blueberry
 
 ### Software Compatibility
-- [] BCI2000(Web)
+- [ ] BCI2000(Web)
 
 ### Game Engine Plugins
-- [] Unity
-- [] Unreal Engine
-- [] Godot
+- [ ] Unity
+- [ ] Unreal Engine
+- [ ] Godot
 
 ### Partners
 - [x] BCI4Kids / BCI Games
-- [] Utrecht Neuroprostheses
-- [] NCAN
-- [] Anton Nijholt?
-- [] Andrea Kubler?
+- [ ] Utrecht Neuroprostheses
+- [ ] NCAN
+- [ ] Anton Nijholt?
+- [ ] Andrea Kubler?
 
 
 
