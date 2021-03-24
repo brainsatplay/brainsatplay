@@ -37,6 +37,7 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './bciutils/eeg32'
 import {MuseClient} from 'muse-js'
 import {hegduino} from './bciutils/hegduino'
+import webgazer from 'webgazer'
 
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
@@ -641,6 +642,7 @@ class deviceStream {
 			analysis:analysis,
 
 			eegChannelTags:[],
+			deviceNum:0,
 			streamLoopTiming:100, //ms between update checks
 			streamCt:0,
 
@@ -777,22 +779,24 @@ class deviceStream {
 			this.info.sps = Math.floor(2048/3);
 			this.info.deviceType = 'heg';
 			let ondata = (newline) => {
-				let data = newline.split("|");
-				let coord = this.atlas.getDeviceDataByTag('heg',0);
-				coord.count++;
-				if(this.device.mode === 'ble' && this.device.interface.android === true) {
-					coord.times.push(Date.now());
-					coord.red.push(parseFloat(data[0]));
-					coord.ir.push(parseFloat(data[1]));
-					coord.ratio.push(parseFloat(data[2]));
-				} else { 
-					coord.times.push(parseInt(data[0])); //Microseconds
-					coord.red.push(parseFloat(data[1]));
-					coord.ir.push(parseFloat(data[2]));
-					coord.ratio.push(parseFloat(data[3]));
-					coord.ambient.push(parseFloat(data[4]));
-					//ignore the rest for now
-				}
+				if(coord.indexOf("|") > -1) {
+					let data = newline.split("|");
+					let coord = this.atlas.getDeviceDataByTag('heg',this.deviceNum);
+					coord.count++;
+					if(this.device.mode === 'ble' && this.device.interface.android === true) {
+						coord.times.push(Date.now());
+						coord.red.push(parseFloat(data[0]));
+						coord.ir.push(parseFloat(data[1]));
+						coord.ratio.push(parseFloat(data[2]));
+					} else { 
+						coord.times.push(parseInt(data[0])); //Microseconds
+						coord.red.push(parseFloat(data[1]));
+						coord.ir.push(parseFloat(data[2]));
+						coord.ratio.push(parseFloat(data[3]));
+						coord.ambient.push(parseFloat(data[4]));
+						//ignore the rest for now
+					}
+				} else {console.log("HEGDUINO: ", newline); }
 			}
 			if(device === 'hegduinowifi' || device === 'hegduinosse') {
 				this.device= new hegduino('wifi',ondata,
@@ -829,6 +833,9 @@ class deviceStream {
 			}
 
 		}
+		else if (device === 'eyetracker' || device === 'webgazer') {
+			this.info.deviceType = 'eyetracker';
+		}
 		else if (this.addedDeviceNames.indexOf(device) > -1) {
 			let idx = this.addedDeviceNames.indexOf(device);
 			if(this.addedDeviceProps[idx].eegChannelTags !== undefined)
@@ -842,7 +849,8 @@ class deviceStream {
 			let config;
 			if(device === 'muse') { config = 'muse'; }
 			else if(device.indexOf('freeeeg32') > -1) {	config = '10_20'; }
-			else if(Device.indexOf('hegduino') > -1) { config = 'hegduino'; }
+			else if(device.indexOf('hegduino') > -1) { config = 'hegduino'; }
+			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) { config = 'eyetracker'; }
 			this.atlas = new dataAtlas(
 				location+":"+device,
 				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
@@ -856,7 +864,8 @@ class deviceStream {
 			this.atlas.analysis.push(...analysis)
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
 			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
-			else if(Device.indexOf('hegduino') > -1) { config = 'hegduino'}
+			else if(device.indexOf('hegduino') > -1) { this.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); }
+			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); }
 			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
 		}
@@ -909,8 +918,32 @@ class deviceStream {
 			}
 			this.onconnect();
 		}
-		else if (this.info.deviceType === 'heg') {
+		else if (this.info.deviceName.indexOf('hegduino') > -1 ) {
 			this.device.connect();
+		}
+		else if (this.info.deviceType === 'eyetracker') {
+			webgazer.setGazeListener((data,elapsedTime) => {
+				if(data == null) {
+					return;
+				}
+				let x = data.x;
+				let y = data.y;
+				if(this.info.useAtlas === true) {
+					let o = this.atlas.data.eyetracker[this.deviceNum];
+					o.times.push(Date.now());
+					o.x.push(data.x);
+					o.y.push(data.y);
+					if(o.x.length > 10) { //10 sample moving average (to smooth things out)
+						o.smax.push(o.x.slice(o.x.length-10).reduce((a,b) => a+b)/10);
+						o.smay.push(o.y.slice(o.y.length-10).reduce((a,b) => a+b)/10);
+					}
+					else {
+						o.smax.push(o.x.slice(0).reduce((a,b) => a+b)/o.x.length);
+						o.smay.push(o.y.slice(0).reduce((a,b) => a+b)/o.y.length);
+					}
+				}
+
+			}).begin();
 		}
 		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
 			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
@@ -1183,6 +1216,9 @@ class dataAtlas {
 		else if (config === 'hegduino') {
 			this.addHEGCoord(this.data.heg.length,0,60,60);
 		}
+		else if (config === 'eyetracker') {
+			this.addEyeTracker(this.data.eyetracker.length);
+		}
 
         if(useCoherence === true) {
             this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
@@ -1446,11 +1482,19 @@ class dataAtlas {
 	}
 
 	genHRVStruct(tag){
-		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0}
+		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0};
 	}
 
 	addHRV(tag="hrv1") {
 		this.data.hrv.push(genHRVStruct(tag));
+	}
+
+	genEyeTrackerStruct(tag) {
+		return {tag:tag, times:[], x:[], y:[], smax:[], smay:[], lastRead:0};
+	}
+
+	addEyeTracker(tag="eyes") {
+		this.data.eyetracker.push(this.genEyeTrackerStruct(tag));
 	}
 
 	//also do ecg,emg,eyetracker
@@ -1717,7 +1761,7 @@ class dataAtlas {
 		  this.data.coherence[i].slices.highgamma.push(highgamma);
 		  this.data.coherence[i].means.highgamma.push(eegmath.mean(highgamma));
 		}
-		});
+	  });
 	}
     
     //Returns the x axis (frequencies) for the bandpass filter amplitudes. The window gets stretched or squeezed between the chosen frequencies based on the sample rate in my implementation.
@@ -1906,7 +1950,6 @@ class dataAtlas {
 				}
 			}
 		}	
-		//add other worker functions (see eegworker.js)
 
 		this.analyzerFuncs.push(fftFunc,coherenceFunc);
 		//'bcijs_bandpowers','bcijs_pca','heg_pulse'
