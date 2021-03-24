@@ -14,6 +14,10 @@ For streaming data to web. Use an arrow function for the onconnect callback to s
 For local only streaming
 * `bci.disconnect(0,ondisconnect)` 
 Disconnect device, you can specify a device index (or just disconnect the last one connected since you are usually only using one locally) and an ondisconnect callback or leave blank.
+* `bci.getDeviceData('eeg','all')`
+Returns the specified data object can return the full dataset for the device or just specified properties. If an object is returned you can save it to reference it in animations while it gets automatically updated in the atlas.
+* `bci.getStreamData('userOrAppname',propname)`
+Returns data from user or game subscriptions by name. Leave propname blank to return all data from that subscription.
 * `bci.sendWSCommand(command)` 
 Send commands to the server, see the dataServer doc for available commands and expected arguments.
 * `bci.subscribeToUser(username,['eegch','FP1'],onsuccess)` 
