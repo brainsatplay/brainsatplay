@@ -119,9 +119,9 @@ export class brainsatplay {
 				new deviceStream(
 					device,
 					analysis,
-					streaming,
 					useFilters,
 					pipeToAtlas,
+					streaming,
 					this.socket,
 					streamParams,
 					this.info.auth
@@ -650,11 +650,12 @@ class deviceStream {
 		this.streamTable=[]; //tags and callbacks for streaming
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
+		this.pipeToAtlas = pipeToAtlas
 
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
-	init = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.info.pipeToAtlas,analysis=this.info.analysis) => {
+	init = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.pipeToAtlas,analysis=this.info.analysis) => {
 
 		if(device.indexOf("freeeeg32") > -1) {
 			this.info.sps = 512;
@@ -697,11 +698,9 @@ class deviceStream {
 								let coord;
 								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
 								else { coord = this.atlas.getEEGDataByChannel(o.ch); }
-								//console.log(coord)
 								coord.count = this.device.data.count;
 								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
 								coord.filtered.push(...latestFiltered);
-								//console.log(coord);
 								coord.raw.push(...latest);
 							}
 						}
@@ -710,7 +709,7 @@ class deviceStream {
 								let coord = this.atlas.getEEGDataByChannel(o.ch); 
 								coord.count = this.device.data.count;
 								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
-								//coord.raw.push(...latest);
+								coord.raw.push(...latest);
 							}
 						}
 					});
@@ -810,7 +809,7 @@ class deviceStream {
 				);
 			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
-		} else if (pipeToAtlas !== false) {
+		} else if (pipeToAtlas !== false && pipeToAtlas !== true) {
 			this.atlas = pipeToAtlas; //External atlas reference
 			this.atlas.analysis.push(...analysis)
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
