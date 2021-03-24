@@ -115,7 +115,7 @@ export class brainsatplay {
 					return false;
 				}
 			}
-			if(device.indexOf("freeeeg32") > -1) {
+			if(device.indexOf("freeeeg32") > -1) { //only one serial connection allowed per window so destroy the old device
 				this.devices.forEach((o,i) => {
 					if(o.name.indexOf("freeeeg32") > -1) {
 						this.devices[i].atlas.analyzing = false;
@@ -897,7 +897,7 @@ class deviceStream {
 				this.atlas.analyzing = false;
 				this.ondisconnect();
 			});
-			
+
 			this.onconnect();
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
