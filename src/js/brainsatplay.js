@@ -439,9 +439,9 @@ export class brainsatplay {
 		return o;
 	}
 
-	addStreamFunc(name,callback) {
+	addStreamFunc(name,callback,idx=0) {
 		if(typeof name === 'string' && typeof callback === 'function') {
-			this.devices[0].addStreamFunc(name,callback);
+			this.devices[idx].addStreamFunc(name,callback);
 		}
 	}
 
