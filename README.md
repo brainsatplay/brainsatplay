@@ -22,7 +22,7 @@ With the latest node LTS installed, cd to where you extracted this folder from y
 
 `npm install`
 
-then (you may need Python and VS2017 or newer with Desktop C++ Development modules to build. You will get an error that will tell you what's missing)
+then
 
 `npm start`
 
