@@ -232,7 +232,7 @@ export class brainsatplay {
 		this.state.unsubscribeAll(tag);
 	}
 
-	getData = (tag='FP1', deviceType='eeg') => { //get device data
+	getDeviceData = (deviceType='eeg', tag='all') => { //get device data
 		this.devices.forEach((d,i) => {
 			if(d.info.deviceType === deviceType) {
 				if(tag === 'all') {
