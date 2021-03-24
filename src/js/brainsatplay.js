@@ -420,7 +420,7 @@ export class brainsatplay {
 		return socket;
 	}
 
-	//Get data for a particular app or user subcription. Leave propname null to get all data for that sub
+	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
 	getStreamData(userOrAppname='',propname=null) {
 		let o = {};
 		for(const prop in this.state.data) {
