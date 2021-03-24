@@ -4,7 +4,7 @@ import {DOMFragment} from './js/frontend/utils/DOMFragment.js'
 
 
 
-let bcisession = new brainsatplay('guest','');
+let bcisession = new brainsatplay('guest','','Brain Joust');
 
 bcisession.state.data.x = 0;
 bcisession.state.subscribe('x',(x) => {
@@ -12,9 +12,6 @@ bcisession.state.subscribe('x',(x) => {
 })
 
 setTimeout(()=>{bcisession.state.data.x = 2},300);
-
-
-
 
 
 let connectHTML = `
@@ -61,10 +58,10 @@ let ui = new DOMFragment(
 		}
 		document.getElementById('createGame').onclick = () => {
 			// bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
-			bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+			bcisession.sendWSCommand(['createGame',bcisession.info.auth.appname,['muse'],['eegch_AF7','eegch_AF8']]);
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
-			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
+			bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
 		}
 		document.getElementById('subscribeToSelf').onclick = () => {
 			bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});

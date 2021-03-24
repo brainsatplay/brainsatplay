@@ -14,6 +14,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 		this.gameSubscriptions=[];
         this.subUpdateInterval = 0; //ms
         this.serverTimeout = 60*60*1000; //min*s*ms
+        this.mongodb;
 
         this.subscriptionLoop();
 	}
@@ -300,15 +301,21 @@ class dataServer { //Just some working concepts for handling data sockets server
 	}
 
 	createGameSubscription(appname='',devices=[],propnames=[]) {
-		this.gameSubscriptions.push({
-			appname:appname,
-            devices:devices,
-            usernames:[],
-            updatedUsers:[], //users with new data available (clears when read from subcription)
-            spectators:[], //usernames of spectators
-			propnames:propnames,
-            lastTransmit:Date.now()
-		});
+        // this.mongodb.db("brainsatplay").collection('apps').find({ name: appname }).count().then(n => {
+        //     if (n > 0){
+                this.gameSubscriptions.push({
+                    appname:appname,
+                    devices:devices,
+                    usernames:[],
+                    updatedUsers:[], //users with new data available (clears when read from subcription)
+                    spectators:[], //usernames of spectators
+                    propnames:propnames,
+                    lastTransmit:Date.now()
+                });
+            // } else {
+            //     console.log('error: game not configured.')
+            // }
+        // });
 	}
 
 	getGameSubscription(appname='') {

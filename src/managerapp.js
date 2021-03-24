@@ -10,7 +10,7 @@ let applets = [
     {name:"Example Applet", cls:AppletExample}
 ];
 
-let bcisession = new brainsatplay('guest');
+let bcisession = new brainsatplay('guest','','game');
 
 
 let connectHTML = `
@@ -58,11 +58,11 @@ let ui = new DOMFragment(
 			bcisession.sendWSCommand(['getUsers']);
 		}
 		document.getElementById('createGame').onclick = () => {
-			bcisession.sendWSCommand(['createGame','game',['freeeeg32'],['eegch_FP1','eegch_FP2']]);
+			bcisession.sendWSCommand(['createGame',bcisession.info.auth.appname,['freeeeg32'],['eegch_FP1','eegch_FP2']]);
 			//bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
 		}
 		document.getElementById('subscribeToGame').onclick = () => {
-			bcisession.subscribeToGame('game',false,(res)=>{console.log("subscribed!", res)});
+			bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
 		}
 		document.getElementById('subscribeToSelf').onclick = () => {
 			bcisession.subscribeToUser('guest',['eegch_FP1','eegch_FP2'],(res)=>{console.log("subscribed!", res)});

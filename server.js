@@ -10,7 +10,7 @@ require('dotenv').config();
 // New Server Code
 const dataServer = require('./src/js/dataServer.js'); 
 const auth = require('./src/js/auth.js'); 
-let dataServ = new dataServer('test');
+let dataServ = new dataServer();
 
 // Settings
 let protocol = 'http';
@@ -49,6 +49,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
   .then(client => {
     app.set('mongoClient', client);
+    dataServ.mongodb = app.get('mongoClient')
     console.log('Connected to Database')
   })
 
@@ -139,7 +140,7 @@ server.on('upgrade', async (request, socket, head) => {
     })
 });
 
-wss.on('connection', function (ws, msg, request) {
+wss.on('connection', function (ws, msg, req) {
 
   let username = msg.username;
   let appname = msg.appname;
