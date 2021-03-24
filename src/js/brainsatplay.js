@@ -97,7 +97,7 @@ export class brainsatplay {
 		this.info.auth.appname = appname;
 	}
 
-	//connect local device
+	//connect local device and add it, use reconnect() if disconnecting and reconnecting device in same session.
 	connect(
 		device="freeeeg32_2", //"freeeeg32","freeeeg32_19","muse","notion"
 		analysis=['eegfft'], //'eegfft','eegcoherence',etc
@@ -139,6 +139,11 @@ export class brainsatplay {
 			this.devices[this.devices.length-1].connect();
 			this.info.nDevices++;
 
+	}
+
+	reconnect(deviceIdx=this.devices[this.devices.length-1],onconnect=undefined) { //Reconnect a device that has already been added
+		if(onconnect !== undefined) { this.devices[deviceIdx].onconnect = onconnect; }
+		this.devices[deviceIdx].connect();
 	}
 	
 	//disconnect local device
