@@ -115,6 +115,14 @@ export class brainsatplay {
 					return false;
 				}
 			}
+			if(device.indexOf("freeeeg32") > -1) {
+				this.devices.forEach((o,i) => {
+					if(o.name.indexOf("freeeeg32") > -1) {
+						this.devices[i].atlas.analyzing = false;
+						this.devices[i].splice(i,1);
+					}
+				})
+			}
 			this.devices.push(
 				new deviceStream(
 					device,
@@ -721,7 +729,10 @@ class deviceStream {
 				},
 				()=>{	
 					if(this.info.useAtlas === true){
-						setTimeout(() => {this.atlas.analyzer();},1200);		
+						if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+							this.atlas.analyzing = true;
+							setTimeout(() => {this.atlas.analyzer();},1200);		
+						}
 						this.onconnect();
 					}
 				},
@@ -783,13 +794,37 @@ class deviceStream {
 				}
 			}
 			if(device === 'hegduinowifi' || device === 'hegduinosse') {
-				this.device= new hegduino('wifi',ondata,this.onconnect,this.ondisconnect);
+				this.device= new hegduino('wifi',ondata,
+				()=>{
+					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.analyzing = true;
+						setTimeout(() => {this.atlas.analyzer();},1200);		
+					}
+					this.onconnect();
+				},
+				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
 			}
 			else if (device === 'hegduinobt' || device === 'hegduinoble') {
-				this.device= new hegduino('ble',ondata,this.onconnect,this.ondisconnect);
+				this.device= new hegduino('ble',ondata,
+				()=>{
+					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.analyzing = true;
+						setTimeout(() => {this.atlas.analyzer();},1200);		
+					}
+					this.onconnect();
+				},
+				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
 			}
 			else if (device === 'hegduinoserial' || device === 'hegduinousb') {
-				this.device= new hegduino('usb',ondata,this.onconnect,this.ondisconnect);
+				this.device= new hegduino('usb',ondata,
+				()=>{
+					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.analyzing = true;
+						setTimeout(() => {this.atlas.analyzer();},1200);		
+					}
+					this.onconnect();
+				},
+				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
 			}
 
 		}
@@ -848,14 +883,29 @@ class deviceStream {
 					coord.count += o.samples.length
 				}
 			});
+
 			// this.device.telemetryData.subscribe(telemetry => {
 			// });
 			// this.device.accelerometerData.subscribe(accel => {
 			// });
+			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.analyzing = true;
+				setTimeout(() => {this.atlas.analyzer();},1200);		
+			}
+			
+			this.device.gatt.addEventListener('gattserverdisconnected', () => {
+				this.atlas.analyzing = false;
+				this.ondisconnect();
+			});
+			
 			this.onconnect();
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
+			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.analyzing = true;
+				setTimeout(() => {this.atlas.analyzer();},1200);		
+			}
 			this.onconnect();
 		}
 		else if (this.info.deviceType === 'heg') {
@@ -864,6 +914,11 @@ class deviceStream {
 		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
 			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
 			this.addedDeviceConnect[idx]();
+
+			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.analyzing = true;
+				setTimeout(() => {this.atlas.analyzer();},1200);		
+			}
 			this.onconnect();
 		}
 		this.info.connected = true;
@@ -1090,7 +1145,7 @@ class dataAtlas {
 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
 		config='10_20', //'muse','big'
 		useCoherence=true,
-		useAnalyzer=false,
+		useAnalyzer=false, //call atlas.analyzer()
 		analysis=['eegfft'] //'eegfft','eegcoherence','bcijs_bandpowers','heg_pulse'
 	) {
         this.name = name;
@@ -1147,7 +1202,7 @@ class dataAtlas {
 			//console.log(this.data.eegshared.bandFreqs)
 		}
 		
-		this.analyzing = useAnalyzer;
+		this.analyzing = false;
 		this.analysis = analysis; // ['eegfft']
 		this.analyzerOpts = []; //'eegfft','eegcoherence','bcijs_bandpower','bcijs_pca','heg_pulse'
 		this.analyzerFuncs = [];
@@ -1834,16 +1889,20 @@ class dataAtlas {
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name}, this.workerIdx);
-				//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-				this.workerWaiting = true;
+				if(buf.length >= this.data.eegshared.sps) {
+					window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name}, this.workerIdx);
+					//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+					this.workerWaiting = true;
+				}
 			}
 		}
 		let coherenceFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name}, this.workerIdx);
-				this.workerWaiting = true;
+				if(buf.length >= this.data.eegshared.sps) {
+					window.postToWorker({foo:'coherence', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name}, this.workerIdx);
+					this.workerWaiting = true;
+				}
 			}
 		}	
 		//add other worker functions (see eegworker.js)
@@ -1927,7 +1986,7 @@ class dataAtlas {
 					}
 				});
 			});
+			setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 		}	
-		setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 	}
 }
