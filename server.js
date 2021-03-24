@@ -115,6 +115,7 @@ function getCookie(req,name) {
 //Authentication
 server.on('upgrade', async (request, socket, head) => {
 
+   console.log(request)
     let _subprotocols = request.headers['sec-websocket-protocol'].split(', ') || undefined
     let subprotocols = {}
     _subprotocols.forEach((str)=>{
