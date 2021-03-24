@@ -37,8 +37,8 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {eeg32, eegmath} from './bciutils/eeg32'
 import {MuseClient} from 'muse-js'
 import {hegduino} from './bciutils/hegduino'
-import webgazer from 'webgazer'
-
+//import webgazer from 'webgazer'
+let webgazer;
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
 
@@ -173,6 +173,17 @@ export class brainsatplay {
 
 	endStream(deviceIdx=0) {
 		this.devices[deviceIdx].info.streaming = false;
+	}
+
+	getDevice(deviceName='freeeeg32_2',num=0) {
+		let found = undefined;
+		this.devices.find((o,i) => {
+			if(o.info.deviceName === deviceName && o.info.deviceNum === num) {
+				found = 0;
+				return true;
+			}
+		});
+		return found;
 	}
 
 	//listen for changes to atlas data properties
@@ -407,6 +418,23 @@ export class brainsatplay {
         }
 
 		return socket;
+	}
+
+	getSubData(userOrAppname='',propname=null) {
+		let o = {};
+		for(const prop in this.state.data) {
+			if(propname === null) {
+				if(prop.indexOf(userOrAppname) > -1) {
+					o[prop] = this.state.data[prop];
+				}
+			}
+			else {
+				if(prop.indexOf(userOrAppname) > -1 && prop.indexOf(propname) > -1) {
+					o[prop] = this.state.data[prop];
+				}
+			}
+		}
+		return o;
 	}
 
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
