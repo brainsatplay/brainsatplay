@@ -175,7 +175,7 @@ export class brainsatplay {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceName='freeeeg32_2',tag='FP1',prop=null,onData=(newData)=>{}) => {
+	subscribe = (deviceName='eeg',tag='FP1',prop=null,onData=(newData)=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
@@ -191,7 +191,8 @@ export class brainsatplay {
 			let device = this.devices.find((o,i) => {
 				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
-					if(atlasTag.indexOf('shared') > -1 )coord = o.atlas.getDeviceDataByTag(atlasTag,null);
+					if(atlasTag.indexOf('shared') > -1 ) coord = o.atlas.getDeviceDataByTag(atlasTag,null);
+					else if (atlasTag === null || atlasTag === 'all') { coord = o.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
 					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
 					
 					if(coord !== undefined) {
