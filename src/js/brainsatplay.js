@@ -604,7 +604,9 @@ export class brainsatplay {
 				dict = JSON.stringify(dict);
 				this.socket.send(dict);
 			} else {
-				let json = JSON.stringify({msg:command,username:this.info.auth.username});
+				let o = {msg:command,username:this.info.auth.username};
+				Object.assign(o,dict);
+				let json = JSON.stringify(o);
 				console.log('Message sent: ', json);
 				this.socket.send(json);
 			}
