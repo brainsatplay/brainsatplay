@@ -439,6 +439,12 @@ export class brainsatplay {
 		return o;
 	}
 
+	addStreamFunc(name,callback) {
+		if(typeof name === 'string' && typeof callback === 'function') {
+			this.devices[0].addStreamFunc(name,callback);
+		}
+	}
+
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if(this.socket !== null && this.socket.readyState === 1) {
@@ -1104,6 +1110,10 @@ class deviceStream {
 			this.streamTable.push(...params);
 		}
 	} 
+
+	addStreamFunc(name = '',callback = () => {}) {
+		this.streamtable.push({prop:name,callback:callback});
+	}
 
 	configureStreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
