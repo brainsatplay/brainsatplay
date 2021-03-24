@@ -70,7 +70,7 @@ export class brainsatplay {
 				username:username, 
 				password:password, 
 				access:access, 
-				appname:appname,
+				appname:appname.toLowerCase().split(' ').join('').replace(/^[^a-z]+|[^\w]+/gi, ""),
 				authenticated:false
 			},
 			subscribed: false,
@@ -466,7 +466,7 @@ export class brainsatplay {
 		}
 	}
 
-	subscribeToGame(appname='',spectating=false,onsuccess=(newResult)=>{}) {
+	subscribeToGame(appname=this.info.auth.appname,spectating=false,onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
@@ -597,7 +597,7 @@ export class brainsatplay {
 					//	});
 					//}
 				}
-				if(this.info.auth.consent.raw === false) {
+				if(this.info.auth.consent.raw === false) { 
 					dict.signal = [];
 					dict.time = [];
 				}
