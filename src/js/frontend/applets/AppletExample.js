@@ -40,7 +40,7 @@ export class AppletExample {
                     <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
                     <button id='Button_`+props.id+`'>ClickMe</button>
                     <button id='Button2_`+props.id+`'>Subscribe</button>
-                    <div id='Output2_`+props.id+`>Awaiting FP1 data</div>
+                    <div id='Output2_`+props.id+`'>Awaiting FP1 data</div>
                 </div>
             </div>  
             `;
@@ -57,7 +57,7 @@ export class AppletExample {
                     document.getElementById('Output2_'+props.id).innerHTML = newData;
                 });    
                 if(this.sub1 === undefined) {
-                    document.getElementById('Output2_'+props.id).innerHTML = 'EEG not found, run it first'
+                    document.getElementById('Output2_'+props.id).innerHTML = 'EEG not found, run it first';
                 }
             }   
         }
