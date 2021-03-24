@@ -175,6 +175,7 @@ export class brainsatplay {
 		this.devices[deviceIdx].info.streaming = false;
 	}
 
+	//get the device stream object
 	getDevice(deviceName='freeeeg32_2',num=0) {
 		let found = undefined;
 		this.devices.find((o,i) => {
@@ -185,6 +186,19 @@ export class brainsatplay {
 		});
 		return found;
 	}
+
+	//get data for a particular device	
+	getDeviceData = (deviceType='eeg', tag='all') => { //get device data
+		this.devices.forEach((d,i) => {
+			if(d.info.deviceType === deviceType) {
+				if(tag === 'all') {
+					return d.atlas.data[deviceType]; //Return all objects
+				}
+				return d.atlas.getDeviceDataByTag(deviceType,tag);
+			}
+		});
+	}
+
 
 	//listen for changes to atlas data properties
 	subscribe = (deviceName='eeg',tag='FP1',prop=null,onData=(newData)=>{}) => {
@@ -230,17 +244,6 @@ export class brainsatplay {
 	//this will remove the event listener if you don't have any logic associated with the tag (for performance)
 	unsubscribeAll = (tag='FP1') => {
 		this.state.unsubscribeAll(tag);
-	}
-
-	getDeviceData = (deviceType='eeg', tag='all') => { //get device data
-		this.devices.forEach((d,i) => {
-			if(d.info.deviceType === deviceType) {
-				if(tag === 'all') {
-					return d.atlas.data[deviceType]; //Return all objects
-				}
-				return d.atlas.getDeviceDataByTag(deviceType,tag);
-			}
-		});
 	}
 
 	addAnalyzerFunc(prop=null,callback=()=>{}) {
