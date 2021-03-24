@@ -196,7 +196,7 @@ export class brainsatplay {
 					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
 					
 					if(coord !== undefined) {
-						if(prop === null) {
+						if(prop === null || Array.isArray(coord)) {
 							sub=this.state.addToState(atlasTag,coord,onData);
 						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
 							sub=this.state.addToState(atlasTag+"_"+prop,coord[prop],onData);

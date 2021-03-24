@@ -53,7 +53,7 @@ export class AppletExample {
                 document.getElementById('Output_'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
             }   
             document.getElementById("Button2_"+props.id).onclick = () => {
-                this.sub1 = this.bci.subscribe('eeg','FP1',undefined, (newData)=>{
+                this.sub1 = this.bci.subscribe('eeg','all', undefined, (newData)=>{
                     document.getElementById('Output2_'+props.id).innerHTML = newData;
                 });    
                 if(this.sub1 === undefined) {
