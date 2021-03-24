@@ -25,7 +25,7 @@ href="https://opensource.org/licenses/MIT">
 ### Hardware Compatibility
 - [x] FreeEEG32
 - [x] Muse 2 Headband
-- [ ] HEGAlpha
+- [x] HEGAlpha
 - [ ] OpenBCI Ganglion
 - [ ] OpenBCI Cyton
 - [ ] OpenBCI Daisy-Cyton
