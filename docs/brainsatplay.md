@@ -29,6 +29,9 @@ Unsubscribe from the selected user, you can optionally only unsubscribe from sel
 Leave and unsubscribe from the selected game. Set an onsuccess callback for UI handling
 * `bci.beginStream(deviceIdx,streamParams)` 
 Set the selected device (by index, leave undefined if just one device connected) to begin streaming and set any new stream parameters if needed (optional)
+* `bci.addStreamFunc(name,callback,idx=0)`
+Add a looping function to the stream so you can add custom parameters.
+Parameters are given to the stream like ['callbackname','arg1','arg2'] where arguments are given to the callback function named in the first index.
 * `let sub = bci.subscribe(deviceName,tag,prop,onData)`
 Subscribe to a data property in the selected device. Leave prop null to subscribe to a full data object specified by tag. Returns an index used to unsubscribe later.
 * `bci.unsubscribe(tag,sub)`
