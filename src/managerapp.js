@@ -3,7 +3,7 @@ import {brainsatplay} from './js/brainsatplay'
 import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
 
-import {AppletExample} from './js/frontend/applets/AppletExample'
+import {AppletExample} from './js/applets/AppletExample'
 
 
 let applets = [

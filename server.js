@@ -148,7 +148,7 @@ wss.on('connection', function (ws, msg, req) {
 
   // add user
   dataServ.addUser(username,appname,ws);
-  ws.send(JSON.stringify({msg:'resetUsername',username:username}));
+  ws.send(JSON.stringify({cmd:'resetUsername',username:username}));
 });
 
 // error handlers

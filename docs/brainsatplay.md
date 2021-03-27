@@ -6,7 +6,7 @@ Contains the brainsatplay login/streaming class along with its dependencies in t
 Create a brainsatplay session which contains many important macros for ease of use.
 * `bci.login(false)`
 Log in and set whether to begin streaming data or not to true if your device is already connected and you want to begin streaming data (optional)
-* `bci.signup({username:'',password:''}`
+* `bci.signup({username:'',password:''})`
 Sign up for brainsatplay's servers
 * `bci.connect("muse",['eegfft'],onconnect,true,[['eegch','FP1,'all']['eegfft','FP1','all']])`
 For streaming data to web. Use an arrow function for the onconnect callback to subscribe to device parameters and make the UI react.

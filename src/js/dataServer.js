@@ -125,7 +125,7 @@ class dataServer { //Just some working concepts for handling data sockets server
         if(typeof parsed === 'object' && !Array.isArray(parsed)) { //if we got an object process it as most likely user data
             let hasData = false;
             for(const prop in parsed) {
-                if(prop !== 'msg' && prop !== 'username') {
+                if(prop === 'userData') {
                     hasData = true;
                     break;
                 }
@@ -133,8 +133,8 @@ class dataServer { //Just some working concepts for handling data sockets server
             if(hasData) {
                 this.updateUserData(parsed);
             }
-            else if(parsed.username && parsed.msg) {
-                this.processUserCommand(parsed.username,parsed.msg);
+            else if(parsed.username && parsed.cmd) {
+                this.processUserCommand(parsed.username,parsed.cmd);
             }
            
         }
@@ -238,16 +238,17 @@ class dataServer { //Just some working concepts for handling data sockets server
     }
 
 	//Received a message from a user socket, now parse it into system
-	updateUserData(data={msg:'',username:'',prop1:[],prop2:[]}){ 
+	updateUserData(data={username:'',userData:{}}){ 
 
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
 
             let u = this.userData.get(data.username);
 
-            for(const prop in data) {
-                if(prop !== 'msg' && prop !== 'username') u.props[prop] = data[prop];
+            for(const prop in data.userData) {
+                u.props[prop] = data[prop];
             }
+
             let now = Date.now();
             u.latency = now-u.lastUpdate;
             u.lastUpdate = now;

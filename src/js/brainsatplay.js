@@ -199,6 +199,21 @@ export class brainsatplay {
 		});
 	}
 
+	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
+	getStreamData(userOrAppname='',propname=null) {
+		let o = {};
+		for(const prop in this.state.data) {
+			if(propname === null) {
+				if(prop.indexOf(userOrAppname) > -1) {
+					o[prop] = this.state.data[prop];
+				}
+			}
+			else if((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
+				o[prop] = this.state.data[prop];
+			}
+		}
+		return o;
+	}
 
 	//listen for changes to atlas data properties
 	subscribe = (deviceName='eeg',tag='FP1',prop=null,onData=(newData)=>{}) => {
@@ -246,6 +261,7 @@ export class brainsatplay {
 		this.state.unsubscribeAll(tag);
 	}
 
+	//Add functions to run custom data analysis loops. You can then add functions to gather this data for streaming.
 	addAnalyzerFunc(prop=null,callback=()=>{}) {
 		this.devices.forEach((o,i) => {
 			if(o.atlas !== null && prop !== null) {
@@ -258,6 +274,47 @@ export class brainsatplay {
 				}
 			}
 		})
+	}
+
+	//Input an object that will be updated with app data along with the device stream.
+	streamAppData(name='',props={}) {
+		if(this.info.nDevices > 0) {
+			let key = name+Math.floor(Math.random()*10000); //Add a little randomization in case you are streaming multiple of the same appname
+			let obj = Object.assign({[key+"newData"]:true},props);
+
+			this.state.addToState(key,obj,(newData) => {
+				this.state.data[key][key+"newData"] = true;
+			});
+
+			let newStreamFunc = () => {
+				if(this.state.data[key][key+"newData"] === true) {
+					this.state.data[key][key+"newData"] = false;
+					return this.state.data[key];
+				}
+				else {
+					return undefined;
+				}
+			}
+
+			this.addStreamFunc(key,newStreamFunc);
+			this.addStreamParam(['key']);
+		}
+	}
+
+	//Add functions for gathering data to send to the server
+	addStreamFunc(name,callback,idx=0) {
+		if(typeof name === 'string' && typeof callback === 'function' && this.devices[idx] !== undefined) {
+			this.devices[idx].addStreamFunc(name,callback);
+		} else { console.error("addStreamFunc error"); }
+	}
+
+	//add a parameter to the stream based on available callbacks [['function','arg1','arg2',etc][stream function 2...]]
+	addStreamParam(params=[],idx=0) {
+		params.forEach((p,i) => {
+			if(Array.isArray(p)) {
+				this.devices[idx].info.streamParams.push(p);
+			}
+		});
 	}
 
 	//Server login and socket initialization
@@ -423,32 +480,10 @@ export class brainsatplay {
 		return socket;
 	}
 
-	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
-	getStreamData(userOrAppname='',propname=null) {
-		let o = {};
-		for(const prop in this.state.data) {
-			if(propname === null) {
-				if(prop.indexOf(userOrAppname) > -1) {
-					o[prop] = this.state.data[prop];
-				}
-			}
-			else if((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
-				o[prop] = this.state.data[prop];
-			}
-		}
-		return o;
-	}
-
-	addStreamFunc(name,callback,idx=0) {
-		if(typeof name === 'string' && typeof callback === 'function') {
-			this.devices[idx].addStreamFunc(name,callback);
-		}
-	}
-
 	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getUserData',username]}));
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getUserData',username]}));
 			userProps.forEach((prop) => {
 				if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
 				this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
@@ -458,7 +493,7 @@ export class brainsatplay {
 				if(typeof newResult === 'object') {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToUser',username,userProps]})); //resulting data will be available in state
 						}
 						onsuccess(newResult);
 						this.state.unsubscribe('commandResult',sub);
@@ -474,7 +509,7 @@ export class brainsatplay {
 
 	subscribeToGame(appname=this.info.auth.appname,spectating=false,onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['getGameInfo',appname]}));
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',appname]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
@@ -490,7 +525,7 @@ export class brainsatplay {
 							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 						}
 						if(configured === true) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,msg:['subscribeToGame',this.info.auth.username,appname,spectating]}));
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating]}));
 							newResult.gameInfo.usernames.forEach((user) => {
 								newResult.gameInfo.propnames.forEach((prop) => {
 									this.state[appname+"_"+user+"_"+prop] = null;
@@ -512,7 +547,7 @@ export class brainsatplay {
 	unsubscribeFromUser(username='',userProps=null,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({msg:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
+			this.socket.send(JSON.stringify({cmd:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'unsubscribed' && newResult.username === username) {
 					for(const prop in this.state.data) {
@@ -531,7 +566,7 @@ export class brainsatplay {
 	unsubscribeFromGame(appname='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send({msg:['leaveGame',appname],username:this.info.auth.username})
+			this.socket.send({cmd:['leaveGame',appname],username:this.info.auth.username})
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'leftGame' && newResult.appname === appname) {
 					for(const prop in this.state.data) {
@@ -585,37 +620,11 @@ export class brainsatplay {
 
 	sendWSCommand(command='',dict={}){
 		if(this.socket != null  && this.socket.readyState === 1){
-			if(command === 'initializeBrains') {
-				this.socket.send(JSON.stringify({'destination':'initializeBrains','public':this.info.auth.access === 'public'}))
-			}
-			else if (command === 'bci') {
-				dict.destination = 'bci';
-				dict.id = this.info.auth.username;
-				dict.consent = this.info.auth.consent;
-				if(auth.consent.game === true) {
-					//let reserved = ['voltage','time','electrode','consent'];
-					//let me = this.brains[this.info.access].get(this.me.username);
-					//if (me !== undefined){
-					//	Object.keys(me.data).forEach((key) => {
-					//		if (!reserved.includes(key)){
-					//			dict[key] = me.data[key];
-					//		}
-					//	});
-					//}
-				}
-				if(this.info.auth.consent.raw === false) { 
-					dict.signal = [];
-					dict.time = [];
-				}
-				dict = JSON.stringify(dict);
-				this.socket.send(dict);
-			} else {
-				let o = {msg:command,username:this.info.auth.username};
+				let o = {cmd:command,username:this.info.auth.username};
 				Object.assign(o,dict);
 				let json = JSON.stringify(o);
 				console.log('Message sent: ', json);
 				this.socket.send(json);
-			}
 		}
 	}
 
@@ -1115,38 +1124,37 @@ class deviceStream {
 		this.streamtable.push({prop:name,callback:callback});
 	}
 
-	configureStreamParams(props=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
+	configureStreamParams(params=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
 		let propsToSend = [];
-		props.forEach((prop,i) => {
-			propsToSend.push(prop[0]+"_"+prop[1]);
+		params.forEach((param,i) => {
+			propsToSend.push(param.join('_'));
 		});
-		this.socket.send(JSON.stringify({msg:['addProps',propsToSend],username:this.info.auth.username}));
+		this.socket.send(JSON.stringify({cmd:['addProps',propsToSend],username:this.info.auth.username}));
 	}
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
 	sendDataToSocket = (params=[['prop','tag','arg1']],dataObj={}) => {
 		let streamObj = {
-			msg:'data',
-			username:this.info.auth.username
+			username:this.info.auth.username,
+			userData:{}
 		};
-		Object.assign(streamObj,dataObj); //Append any extra data not defined by parameters from the stream table
+		Object.assign(streamObj.userData,dataObj); //Append any extra data not defined by parameters from the stream table
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
 					let args = param.slice(1);
 					let result = option.callback(...args);
-					if(result !== undefined) streamObj[param[0]+"_"+param[1]] = result;
+					if(result !== undefined) {
+						let prop = '';
+						streamObj.userData[param.join('_')] = result;
+					}
 					return true;
 				}
 			});
 		});
-		for(const prop in streamObj) {
-			if(prop !== 'msg' && prop !== 'username') {
-				//console.log(streamObj);
-				this.socket.send(JSON.stringify(streamObj));
-				break;
-			}	
+		if(Object.keys(streamObj.userData).length > 0) {
+			this.socket.send(JSON.stringify(streamObj));
 		}
 	}
 
