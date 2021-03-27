@@ -78,6 +78,8 @@ export class brainsatplay {
 			localHostURL: localHostURL
 		}
 
+		this.atlas = new dataAtlas('atlas',undefined,undefined,false,false);
+
 		this.socket = null;
 	}
 
@@ -116,14 +118,18 @@ export class brainsatplay {
 					return false;
 				}
 			}
-			if(device.indexOf("freeeeg32") > -1) { //only one serial connection allowed per window so destroy the old device
-				this.devices.forEach((o,i) => {
-					if(o.name.indexOf("freeeeg32") > -1) {
-						this.devices[i].atlas.analyzing = false;
-						this.devices[i].splice(i,1);
-					}
-				})
+
+			if(this.devices.length > 0) {
+				if(device.indexOf('eeg') > -1 || device.indexOf('muse') > -1) {
+					let found = this.devices.find((o,i) => { //multiple EEGs get their own atlases just to uncomplicate things
+						if(o.deviceType === 'eeg'){
+							return true;
+						}
+					});
+					if(!found) pipeToAtlas = this.devices[0].atlas;
+				}
 			}
+
 			this.devices.push(
 				new deviceStream(
 					device,
@@ -137,17 +143,30 @@ export class brainsatplay {
 				)
 			);
 
-			this.devices[this.devices.length-1].onconnect = onconnect;
-			this.devices[this.devices.length-1].ondisconnect = ondisconnect;
+			let i = this.devices.length-1;
 
-			this.devices[this.devices.length-1].init();
+			this.devices[i].onconnect = () => {
+				onconnect();
+			}
+			
+			this.devices[i].ondisconnect = () => {
+				ondisconnect();
+				if(Array.isArray(this.devices[i].analysis) && this.devices[i].analysis.length > 0) {
+					this.devices[i].analyzing = false; //cancel analysis loop
+				}
+				this.devices[i].streaming = false; //cancel stream loop
+				this.devices.splice(i,1);
+			}
+
+			this.devices[i].init();
+
+			if(this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
 
 			//Device info accessible from state
-			this.state.addToState("device"+this.devices.length,this.devices[this.devices.length-1].info);
+			this.state.addToState("device"+(i),this.devices[i].info);
 			
-			this.devices[this.devices.length-1].connect();
+			this.devices[i].connect();
 			this.info.nDevices++;
-
 	}
 
 	reconnect(deviceIdx=this.devices[this.devices.length-1],onconnect=undefined) { //Reconnect a device that has already been added
@@ -176,11 +195,15 @@ export class brainsatplay {
 	}
 
 	//get the device stream object
-	getDevice(deviceName='freeeeg32_2',num=0) {
+	getDevice(deviceNameOrType='freeeeg32_2',deviceIdx=0) {
 		let found = undefined;
-		this.devices.find((o,i) => {
-			if(o.info.deviceName === deviceName && o.info.deviceNum === num) {
-				found = 0;
+		this.devices.find((d,i) => {
+			if(d.info.deviceName.indexOf(deviceNameOrType) > -1  && d.info.deviceNum === deviceIdx) {
+				found = d;
+				return true;
+			}
+			else if (d.info.deviceType.indexOf(deviceNameOrType) > -1 && d.info.deviceNum === deviceIdx) {
+				found = d;
 				return true;
 			}
 		});
@@ -188,9 +211,9 @@ export class brainsatplay {
 	}
 
 	//get data for a particular device	
-	getDeviceData = (deviceType='eeg', tag='all') => { //get device data
+	getDeviceData = (deviceType='eeg', tag='all', deviceIdx=0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
 		this.devices.forEach((d,i) => {
-			if(d.info.deviceType === deviceType) {
+			if(d.info.deviceType.indexOf(deviceType) > -1  && d.info.deviceNum === deviceIdx) {
 				if(tag === 'all') {
 					return d.atlas.data[deviceType]; //Return all objects
 				}
@@ -226,7 +249,7 @@ export class brainsatplay {
 		}
 		else if (deviceName.indexOf('heg') > -1) {
 			atlasDataProp = 'heg';
-			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }d
+			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
 		}
 		if(atlasDataProp !== null) { 
 			let device = this.devices.find((o,i) => {
@@ -261,6 +284,20 @@ export class brainsatplay {
 		this.state.unsubscribeAll(tag);
 	}
 
+	addAnalysisMode(mode='',deviceName=this.state.data.device0.deviceName,n=0) {
+		let device = this.getDevice(deviceName,n);
+		let found = device.info.analysis.find((s,i) => {
+			if(s === mode) {
+				return true;
+			}
+		});
+		if(!found) device.analysis.push(mode);
+		if(!device.atlas.analyzing) {
+			device.atlas.analyzing = true;
+			device.atlas.analyzer();
+		}
+	}
+
 	//Add functions to run custom data analysis loops. You can then add functions to gather this data for streaming.
 	addAnalyzerFunc(prop=null,callback=()=>{}) {
 		this.devices.forEach((o,i) => {
@@ -283,7 +320,7 @@ export class brainsatplay {
 			let obj = Object.assign({[key+"newData"]:true},props);
 
 			this.state.addToState(key,obj,(newData) => {
-				this.state.data[key][key+"newData"] = true;
+				if(!this.state.data[key][key+"newData"]) this.state.data[key][key+"newData"] = true;
 			});
 
 			let newStreamFunc = () => {
@@ -686,7 +723,7 @@ class deviceStream {
 			deviceType:null,
 			streaming:streaming,
 			streamParams:streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
-			analysis:analysis,
+			analysis:analysis, //['eegcoherence','eegfft' etc]
 
 			eegChannelTags:[],
 			deviceNum:0,
@@ -906,15 +943,19 @@ class deviceStream {
 				);
 			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
-		} else if (pipeToAtlas !== false && pipeToAtlas !== true) {
+		} else if (typeof pipeToAtlas === 'object') {
 			this.atlas = pipeToAtlas; //External atlas reference
-			this.atlas.analysis.push(...analysis)
 			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
 			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
 			else if(device.indexOf('hegduino') > -1) { this.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); }
 			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); }
 			this.info.useAtlas = true;
-			this.configureDefaultStreamTable();
+			if(this.atlas.analyzing === false && analysis.length > 0 ) {
+				this.atlas.analysis.push(...analysis);
+				this.configureDefaultStreamTable();
+				this.atlas.analyzing = true;
+				this.atlas.analyzer();
+			}
 		}
 
 		if(this.info.streaming === true) this.streamLoop();
@@ -1094,7 +1135,7 @@ class deviceStream {
 				if(get === 'all') {
 					get = coord.count-coord.lastRead;
 					coord.lastRead = coord.count;
-					if(get === 0) return undefined;
+					if(get <= 0) return undefined;
 				}
 				if(coord !== false) {
 					if(prop !== null) {
