@@ -121,7 +121,7 @@ export class brainsatplay {
 
 			if(this.devices.length > 0) {
 				if(device.indexOf('eeg') > -1 || device.indexOf('muse') > -1) {
-					let found = this.devices.find((o,i) => { //multiple EEGs get their own atlases just to uncomplicate things
+					let found = this.devices.find((o,i) => { //multiple EEGs get their own atlases just to uncomplicate things. Will need to generalize more later for other multi channel devices with shared preconfigurations if we want to try to connect multiple
 						if(o.deviceType === 'eeg'){
 							return true;
 						}
@@ -148,7 +148,7 @@ export class brainsatplay {
 			this.devices[i].onconnect = () => {
 				onconnect();
 			}
-			
+
 			this.devices[i].ondisconnect = () => {
 				ondisconnect();
 				if(Array.isArray(this.devices[i].analysis) && this.devices[i].analysis.length > 0) {
@@ -1267,7 +1267,7 @@ class deviceStream {
 class dataAtlas {
     constructor(
 		name="atlas",
-		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: null},{ch: 1, tag: null}],sps:512}},
+		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: 'FP1'},{ch: 1, tag: 'FP2'}],sps:512}},
 		config='10_20', //'muse','big'
 		useCoherence=true,
 		useAnalyzer=false, //call atlas.analyzer()
@@ -2060,15 +2060,35 @@ class dataAtlas {
 	}
 
 	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		let found = this.analysis.find((str,i) => {
+		let found = this.atlas.analysis.find((str,i) => {
 			if(name === str) {
 				return true;
 			}
 		});
 		if(found === undefined) {
-			this.analysis.push(name);
+			this.atlas.analysis.push(name);
+			if(this.atlas.analyzing === false) {
+				this.atlas.analyzing = true;
+				this.atlas.analyzer();
+			}
 		}
 	}
+
+	stopAnalysis(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if(this.devices.length > 0) {
+			if(name !== '' && typeof name === 'string') {
+				let found = this.atlas.analysis.find((str,i) => {
+					if(name === str) {
+						this.atlas.analysis.splice(i,1);
+						return true;
+					}
+				});
+			} else {
+				this.atlas.analyzing = false;
+			}
+		}
+	}
+
 
 	checkRollover(dataArr=null) { //'eeg','heg', etc
 		if(dataArr === null) {
