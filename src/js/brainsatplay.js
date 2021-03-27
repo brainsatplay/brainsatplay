@@ -210,6 +210,38 @@ export class brainsatplay {
 		return found;
 	}
 
+	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if(this.devices.length > 0) {
+			let found = this.atlas.analysis.find((str,i) => {
+				if(name === str) {
+					return true;
+				}
+			});
+			if(found === undefined) {
+				this.atlas.analysis.push(name);
+				if(this.atlas.analyzing === false) {
+					this.atlas.analyzing = true;
+					this.atlas.analyzer();
+				}
+			}
+		} else {console.error("no devices connected")}
+	}
+
+	stopAnalysis(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if(this.devices.length > 0) {
+			if(name !== '' && typeof name === 'string') {
+				let found = this.atlas.analysis.find((str,i) => {
+					if(name === str) {
+						this.atlas.analysis.splice(i,1);
+						return true;
+					}
+				});
+			} else {
+				this.atlas.analyzing = false;
+			}
+		} else {console.error("no devices connected")}
+	}
+
 	//get data for a particular device	
 	getDeviceData = (deviceType='eeg', tag='all', deviceIdx=0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
 		this.devices.forEach((d,i) => {
@@ -2056,36 +2088,6 @@ class dataAtlas {
 		if(n === undefined) {
 			this.analyzerOpts.push(name);
 			this.analyzerFuncs.push(foo);
-		}
-	}
-
-	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		let found = this.atlas.analysis.find((str,i) => {
-			if(name === str) {
-				return true;
-			}
-		});
-		if(found === undefined) {
-			this.atlas.analysis.push(name);
-			if(this.atlas.analyzing === false) {
-				this.atlas.analyzing = true;
-				this.atlas.analyzer();
-			}
-		}
-	}
-
-	stopAnalysis(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		if(this.devices.length > 0) {
-			if(name !== '' && typeof name === 'string') {
-				let found = this.atlas.analysis.find((str,i) => {
-					if(name === str) {
-						this.atlas.analysis.splice(i,1);
-						return true;
-					}
-				});
-			} else {
-				this.atlas.analyzing = false;
-			}
 		}
 	}
 
