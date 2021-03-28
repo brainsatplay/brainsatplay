@@ -297,12 +297,11 @@ export class uPlotApplet {
           
         //Do a push and pop and get the moving average instead
       }
-      else if (ref_ch.count > 0) {
+      if(graphmode === "TimeSeries" || graphmode === "Stacked") {
         var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
         if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1}
 
         if (graphmode === "TimeSeries") {
-          if(ref_ch.count > 0) {
             var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
             if(nsamples > ref_ch.count) { nsamples = ref_ch.count-1;}
             this.class.uPlotData = [
@@ -319,7 +318,7 @@ export class uPlotApplet {
                   }
                 });
               });
-            }
+            
           }
           else if (graphmode === "Stacked") {
             if(ref_ch.count > 0) {
@@ -356,7 +355,7 @@ export class uPlotApplet {
       }
 
       //console.log(uPlotData)
-      if(graphmode !== "Stacked"){
+      if(graphmode !== "Stacked" && this.class.uPlotData.length > 1){
         this.class.plot.setData(this.class.uPlotData);
       }
     }
@@ -518,7 +517,6 @@ export class uPlotApplet {
       }
       else if (gmode === "Coherence") {
         atlas.data.coherence.forEach((row,i) => {
-          console.log(view, row.tag)
           if(view === 'All' || row.tag === view) {
             newSeries.push({
               label:row.tag,
@@ -542,7 +540,7 @@ export class uPlotApplet {
           else{
             atlas.data.coherence.find((o,i) => {
               if(o.tag === view) {
-                this.class.uPlotData = [[...atlas.data.eegshared.frequencies],o.ffts[o.count-1]];
+                this.class.uPlotData = [[...atlas.data.eegshared.frequencies],o.ffts[o.fftCount-1]];
                 return true;
               }
             });
@@ -559,6 +557,7 @@ export class uPlotApplet {
         //console.log(newSeries);
         //console.log(this.class.uPlotData);
         newSeries[0].label = "Hz";
+        console.log(this.class.uPlotData)
         this.class.makeuPlot(
             newSeries, 
             this.class.uPlotData, 
