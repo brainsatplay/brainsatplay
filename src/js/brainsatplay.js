@@ -41,7 +41,6 @@ import {hegduino} from './bciutils/hegduino'
 let webgazer;
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
-import { createImportSpecifier } from 'typescript';
 
 /** @module brainsatplay */
 
