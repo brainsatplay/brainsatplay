@@ -41,6 +41,7 @@ import {hegduino} from './bciutils/hegduino'
 let webgazer;
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
+import { createImportSpecifier } from 'typescript';
 
 /** @module brainsatplay */
 
@@ -159,7 +160,6 @@ export class brainsatplay {
 			this.devices[i].init();
 
 			if(this.devices.length === 1) this.state.data.atlas = this.devices[0].atlas; //change over from dummy atlas
-
 			//Device info accessible from state
 			this.state.addToState("device"+(i),this.devices[i].info);
 			
@@ -1638,7 +1638,7 @@ class dataAtlas {
 					return true;
 				}
 			});
-			console.log(tag)
+			//console.log(tag)
 		}
 		if(device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {

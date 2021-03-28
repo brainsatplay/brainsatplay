@@ -230,72 +230,73 @@ export class uPlotApplet {
       var view = document.getElementById(this.props.id+"channel").value;
       let ch = null; 
       let atlas = this.bci.state.data.atlas;
-      let ref_ch = this.atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].tag);
+      //console.log(atlas);
+      let ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
       if (view !== 'All') {
         ch = parseInt(view);
       }
-
-      if(graphmode === 'FFT'){
-        //Animate plot(s)
-        //console.log(atlas);
-        this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
-        atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
-            if(row.analyze === true && (row.tag !== 'other' && row.tag !== null)) {
-              if(view === 'All' || row.ch === ch) {
-                atlas.data.eeg.find((o,i) => {
-                  if(o.tag === row.tag || o.tag === row.ch) this.class.uPlotData.push(o.ffts[o.fftCount-1]);
-                });
-              }
-            }
-        });  
-      }
-      else if (graphmode === 'Coherence') {
-        if(view === 'All') {
+      if(ref_ch.fftCount > 0) {
+        if(graphmode === 'FFT'){
+          //Animate plot(s)
+          //console.log(atlas);
           this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
-          //console.log(State.data.coherenceResult)
-          atlas.data.coherence.forEach((o,i) => {
-            this.class.uPlotData.push(o.ffts[o.fftCount-1]);
-          })
+          atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+              if(row.analyze === true && (row.tag !== 'other' && row.tag !== null)) {
+                if(view === 'All' || row.ch === ch) {
+                  atlas.data.eeg.find((o,i) => {
+                    if(o.tag === row.tag || o.tag === row.ch) this.class.uPlotData.push(o.ffts[o.fftCount-1]);
+                  });
+                }
+              }
+          });  
         }
-        else{
-          atlas.data.coherence.find((o,i) => {
-            //console.log(o)
-            if(o.tag === view) {
-              this.class.uPlotData = [[...atlas.data.eegshared.frequencies],o.ffts[o.fftCount-1]];
-              return true;
+        else if (graphmode === 'Coherence') {
+          if(view === 'All') {
+            this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
+            //console.log(State.data.coherenceResult)
+            atlas.data.coherence.forEach((o,i) => {
+              this.class.uPlotData.push(o.ffts[o.fftCount-1]);
+            })
+          }
+          else{
+            atlas.data.coherence.find((o,i) => {
+              //console.log(o)
+              if(o.tag === view) {
+                this.class.uPlotData = [[...atlas.data.eegshared.frequencies],o.ffts[o.fftCount-1]];
+                return true;
+              }
+            });
+          }
+        }
+        else if (graphmode === "CoherenceTimeSeries") {
+          var band = document.getElementById(this.props.id+"bandview").value
+          
+          var count = atlas.data.coherence.fftCount;
+          if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
+            this.class.uPlotData[0].shift();
+          }
+          //console.log(EEG.sps*this.xrange)
+          //console.log(this.class.uPlotData[0].length)
+          this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
+          
+          atlas.data.coherence.forEach((row,i) => {
+            if(view === 'All') {
+              this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
+              if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                this.class.uPlotData[i+1].shift();
+              }
+            } else if (row.tag === view) {
+              this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
+              if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                this.class.uPlotData[i+1].shift();
+              }
             }
           });
         }
-      }
-      else if (graphmode === "CoherenceTimeSeries") {
-        var band = document.getElementById(this.props.id+"bandview").value
-        
-        var count = atlas.data.coherence.fftCount;
-        if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
-          this.class.uPlotData[0].shift();
-        }
-        //console.log(EEG.sps*this.xrange)
-        //console.log(this.class.uPlotData[0].length)
-        this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
-        
-        atlas.data.coherence.forEach((row,i) => {
-          if(view === 'All') {
-            this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-            if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-              this.class.uPlotData[i+1].shift();
-            }
-          } else if (row.tag === view) {
-            this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-            if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-              this.class.uPlotData[i+1].shift();
-            }
-          }
-        });
-        
-        
+          
         //Do a push and pop and get the moving average instead
       }
-      else {
+      else if (ref_ch.count > 0) {
         var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
         if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1}
 
