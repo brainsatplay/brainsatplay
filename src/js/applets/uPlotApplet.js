@@ -38,9 +38,8 @@ export class uPlotApplet {
     //---------------------------------
 
     init() {
-
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
-        let  HTMLtemplate = (props=props) => {
+        let  HTMLtemplate = (props=this.props) => {
             return `
             <div id='`+props.id+`'>    
                 <div id='`+props.id+`canvas' style='position:absolute;z-index:3; top:50px'></div>
@@ -231,16 +230,21 @@ export class uPlotApplet {
       var view = document.getElementById(this.props.id+"channel").value;
       let ch = null; 
       let atlas = this.bci.state.data.atlas;
+      let ref_ch = this.atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].tag);
       if (view !== 'All') {
         ch = parseInt(view);
       }
+
       if(graphmode === 'FFT'){
         //Animate plot(s)
+        //console.log(atlas);
         this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
-        atlas.data.eegshared.eegchannelTags.forEach((row,i) => {
+        atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
             if(row.analyze === true && (row.tag !== 'other' && row.tag !== null)) {
               if(view === 'All' || row.ch === ch) {
-                this.class.uPlotData.push(atlas.data.eeg[i].ffts[atlas.data.eeg[i].fftCount-1]);
+                atlas.data.eeg.find((o,i) => {
+                  if(o.tag === row.tag || o.tag === row.ch) this.class.uPlotData.push(o.ffts[o.fftCount-1]);
+                });
               }
             }
         });  
@@ -293,13 +297,13 @@ export class uPlotApplet {
       }
       else {
         var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
-        if(nsamples > atlas.data.eeg[0].count) {nsamples = atlas.data.eeg[0].count-1}
+        if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1}
 
         if (graphmode === "TimeSeries") {
             var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
-            if(nsamples > atlas.data.eeg[0].count) { nsamples = atlas.data.eeg[0].count-1;}
+            if(nsamples > ref_ch.count) { nsamples = ref_ch.count-1;}
             this.class.uPlotData = [
-              atlas.data.eeg[0].times.slice(atlas.data.eeg[0].count - nsamples, atlas.data.eeg[0].count)
+              ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)
             ];
               atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
                 atlas.data.eeg.find((o,j) => {
@@ -315,7 +319,7 @@ export class uPlotApplet {
               });
           }
           else if (graphmode === "Stacked") {
-            this.class.uPlotData = [ atlas.data.eeg[0].times.slice(atlas.data.eeg[0].count - nsamples) ];
+            this.class.uPlotData = [ ref_ch.times.slice(ref_ch.count - nsamples) ];
             atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
               if(view === 'All' || row.ch === ch) {  
                 atlas.data.eeg.find((o,j) => {
@@ -349,19 +353,21 @@ export class uPlotApplet {
       let newSeries = [{}];
       let ch = null; 
       let atlas = this.bci.state.data.atlas;
-
+      let ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
+      //console.log(ref_ch);
+      
       if (view !== "All") {
         ch = parseInt(view);
       }
       if(gmode === "TimeSeries"){
         document.getElementById(this.props.id+"title").innerHTML = "ADC signals";
     
-        if(atlas.data.eeg[0].count > 0) {
+        if(ref_ch.count > 0) {
           var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
-          if(nsamples > atlas.data.eeg[0].count) {nsamples = atlas.data.eeg[0].count-1;}
+          if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1;}
     
           this.class.uPlotData = [
-              atlas.data.eeg[0].times.slice(atlas.data.eeg[0].count - nsamples, atlas.data.eeg[0].count)//.map((x,i) => x = x-EEG.data.ms[0])
+              ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)//.map((x,i) => x = x-EEG.data.ms[0])
           ];
             atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
               if(view === 'All' || row.ch === ch) {  
@@ -409,7 +415,7 @@ export class uPlotApplet {
           //Animate plot(s)
          
         this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
-        if(atlas.data.eeg[0].fftCount > 0) {
+        if(ref_ch.fftCount > 0) {
           //console.log(posFFTList);
             atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
               if(row.analyze === true && (row.tag !== 'other' && row.tag !== null)) {
@@ -439,7 +445,7 @@ export class uPlotApplet {
 
         if(view !== "All") {newSeries = this.class.makeSeriesFromChannelTags(atlas.data.eegshared.eegChannelTags,true,ch);}
         else {newSeries = this.class.makeSeriesFromChannelTags(atlas.data.eegshared.eegChannelTags,true);}
-        console.log(newSeries); console.log(atlas.data.eegshared.eegChannelTags)
+        //console.log(newSeries); console.log(atlas.data.eegshared.eegChannelTags)
         //console.log(newSeries);
         //console.log(this.class.uPlotData);
         //console.log(newSeries)
@@ -456,12 +462,12 @@ export class uPlotApplet {
       else if (gmode === "Stacked") {
         document.getElementById(this.props.id+"title").innerHTML = "ADC signals Stacked";
 
-        if(atlas.data.eeg[0].count > 0) {
+        if(ref_ch.count > 0) {
           var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
-          if(nsamples > atlas.data.eeg[0].count) {nsamples = atlas.data.eeg[0].count-1;}
+          if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1;}
     
           this.class.uPlotData = [
-              atlas.data.eeg[0].times.slice(atlas.data.eeg[0].count - nsamples, atlas.data.eeg[0].count)//.map((x,i) => x = x-EEG.data.ms[0])
+              ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)//.map((x,i) => x = x-EEG.data.ms[0])
           ];
           atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
             atlas.data.eeg.find((o,j) => {

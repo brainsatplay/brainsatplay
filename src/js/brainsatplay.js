@@ -243,7 +243,8 @@ export class brainsatplay {
 	//get data for a particular device	
 	getDeviceData = (deviceType='eeg', tag='all', deviceIdx=0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
 		this.devices.forEach((d,i) => {
-			if(d.info.deviceType.indexOf(deviceType) > -1  && d.info.deviceNum === deviceIdx) {
+			console.log('get')
+			if(d.info.deviceType.indexOf(deviceType) > -1 && d.info.deviceNum === deviceIdx) {
 				if(tag === 'all') {
 					return d.atlas.data[deviceType]; //Return all objects
 				}
@@ -1637,6 +1638,7 @@ class dataAtlas {
 					return true;
 				}
 			});
+			console.log(tag)
 		}
 		if(device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
