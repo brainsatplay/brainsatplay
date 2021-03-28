@@ -220,9 +220,9 @@ export class uPlotApplet {
     }
 
     updateLoop = () => {
-      if(this.looping) {
+      if(this.looping === true) {
         this.onUpdate();
-        setTimeout(()=>{this.loop = requestAnimationFrame(this.onUpdate); },16);
+        setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop); },16);
       }
     }
 
@@ -609,8 +609,11 @@ export class uPlotApplet {
       }
 
       this.setLegend();
-      this.looping = true; this.updateLoop(); 
-      //else if(graphmode === "StackedRaw") { graphmode = "StackedFFT" }//Stacked Coherence
+      if(this.looping !== true) { 
+        this.looping = true;
+        this.updateLoop();
+      }
+        //else if(graphmode === "StackedRaw") { graphmode = "StackedFFT" }//Stacked Coherence
     }
 
     setLegend = () => {
