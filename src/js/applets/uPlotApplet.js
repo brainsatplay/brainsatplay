@@ -188,6 +188,18 @@ export class uPlotApplet {
     }
 
     onresize() {
+      let atlas = this.bci.atlas;
+      if(document.getElementById(this.props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(this.props.id+'mode').value === "Coherence"){
+        addCoherenceOptions(this.props.id+'channel',atlas.data.coherence,true,['All']);
+      }
+      else if (document.getElementById(this.props.id+'mode').value === "TimeSeries" || document.getElementById(this.props.id+'mode').value === "Stacked"){
+        addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,false,['All']);
+      }
+      else {
+        addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
+      }
+
+
       this.setPlotDims();
       this.setuPlot();
     }

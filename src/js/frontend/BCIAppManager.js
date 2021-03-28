@@ -52,6 +52,7 @@ export class BCIAppManager {
             sessionName:'',
             saveChunkSize:0,
             saveChunkSize:5120,
+            saveIdx:0,
             newSessionCt:0,
             fileSizeLimitMb: 250
         });
@@ -94,6 +95,9 @@ export class BCIAppManager {
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
+        this.bcisession.onconnected = () => {
+            this.uiManager.responsiveUIUpdate();
+        }
         this.setupUITemplates();
     }
 

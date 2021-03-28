@@ -147,10 +147,12 @@ export class brainsatplay {
 
 			this.devices[i].onconnect = () => {
 				onconnect();
+				this.onconnected();
 			}
 
 			this.devices[i].ondisconnect = () => {
 				ondisconnect();
+				this.ondisconnected();
 				if(Array.isArray(this.devices[i].analysis) && this.devices[i].analysis.length > 0) {
 					this.devices[i].analyzing = false; //cancel analysis loop
 				}
@@ -167,6 +169,10 @@ export class brainsatplay {
 			this.devices[i].connect();
 			this.info.nDevices++;
 	}
+
+	onconnected = () => {}
+
+	ondisconnected = () => {}
 
 	reconnect(deviceIdx=this.devices[this.devices.length-1],onconnect=undefined) { //Reconnect a device that has already been added
 		if(onconnect !== undefined) { this.devices[deviceIdx].onconnect = onconnect; }
@@ -2029,6 +2035,8 @@ class dataAtlas {
 						//console.log(o);
 					}
 				});
+				
+				this.checkRollover();
 			}
 			else if(msg.foo === "coherence"){ 
 				var ffts = [...msg.output[1]];
@@ -2043,6 +2051,8 @@ class dataAtlas {
 				});
 				//coherence
 				this.mapCoherenceData(coher,this.workerPostTime);
+				
+				this.checkRollover();
 			}
 			this.workerWaiting = false;
 		}
@@ -2097,12 +2107,12 @@ class dataAtlas {
 							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
-										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
+										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*0.10));}
 									}
 								}
 							}
 							else if(Array.isArray(row[p])) {
-								if(row[p].length > this.rolloverLimit) {row[p].splice(0,this.row[p].length-this.rolloverLimit);}
+								if(row[p].length > this.rolloverLimit) {row[p].splice(0,Math.floor(this.rolloverLimit*.1));}
 							}
 						}
 					});
@@ -2116,12 +2126,12 @@ class dataAtlas {
 						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
-									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,this.row[p][pz].length-this.rolloverLimit);}
+									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*.1));}
 								}
 							}
 						}
 						else if(Array.isArray(row[p])) { //arrays
-							if(row[p].length > this.rolloverLimit) {row[p].splice(0,this.row[p].length-this.rolloverLimit);}
+							if(row[p].length > this.rolloverLimit) {row[p].splice(0,Math.floor(this.rolloverLimit*.1));}
 						}
 					}
 				});
