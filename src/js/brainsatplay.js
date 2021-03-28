@@ -62,8 +62,9 @@ export class brainsatplay {
 		this.devices = [];
 		this.state = new StateManager({
 			commandResult:{},
-			atlas: new dataAtlas('atlas',undefined,undefined,true,false)
 		});
+
+		this.atlas = new dataAtlas('atlas',undefined,undefined,true,false);
 
 		this.info = {
 			nDevices: 0,
@@ -159,7 +160,7 @@ export class brainsatplay {
 
 			this.devices[i].init();
 
-			if(this.devices.length === 1) this.state.data.atlas = this.devices[0].atlas; //change over from dummy atlas
+			if(this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
 			//Device info accessible from state
 			this.state.addToState("device"+(i),this.devices[i].info);
 			
@@ -2146,7 +2147,8 @@ class dataAtlas {
 		if(this.analyzing === true) {
 			this.analysis.forEach((run,i) => {
 				this.analyzerOpts.forEach((opt,j) => {
-					if(opt === run) {
+					if(opt === run) {					
+						console.log(opt)
 						this.analyzerFuncs[j]();
 					}
 				});

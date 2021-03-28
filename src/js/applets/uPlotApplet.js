@@ -85,7 +85,7 @@ export class uPlotApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let atlas = this.bci.state.data.atlas;
+            let atlas = this.bci.atlas;
             document.getElementById(props.id+"bandview").style.display="none";
             document.getElementById(props.id+'xrangetd').style.display = "none";
             document.getElementById(props.id+'mode').onchange = () => {
@@ -126,7 +126,7 @@ export class uPlotApplet {
               this.setuPlot();
             }
 
-            addChannelOptions(props.id+'channel',this.bci.state.data.atlas.data.eegshared.eegChannelTags,true,['All']);
+            addChannelOptions(props.id+'channel',this.bci.atlas.data.eegshared.eegChannelTags,true,['All']);
 
             document.getElementById(props.id+'xrangeset').onclick = () => {
               let val = parseInt(document.getElementById(props.id+'xrange').value)
@@ -167,24 +167,18 @@ export class uPlotApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
        
-        if(this.bci.state.data.atlas.data.eegshared.frequencies.length === 0) {
-          this.bci.state.data.atlas.data.eegshared.frequencies = this.bci.state.data.atlas.bandpassWindow(0,this.bci.state.data.atlas.data.eegshared.sps);
+        if(this.bci.atlas.data.eegshared.frequencies.length === 0) {
+          this.bci.atlas.data.eegshared.frequencies = this.bci.atlas.bandpassWindow(0,this.bci.atlas.data.eegshared.sps);
         }
        
         this.setPlotDims();
         
         this.class = new uPlotMaker(this.props.id+'canvas');    
 
-        //Add whatever else you need to initialize
-
-        this.sub = this.bci.state.subscribe('atlas',() => {
-          this.onUpdate()
-        });
-    
+        //Add whatever else you need to initialize  
     }
 
     deinit() {
-      this.bci.state.unsubscribe(this.sub);
       this.class.deInit();
       this.class = null;
       
@@ -208,15 +202,12 @@ export class uPlotApplet {
     //--------------------------------------------
 
     stop() {
-      if(this.sub !== null) this.bci.state.unsubscribe(this.sub);
-      this.sub = null;
+      cancelAnimationFrame(this.loop);
     }
 
     start() {
       this.stop();
-      this.sub = this.bci.state.subscribe('atlas',() => {
-        this.onUpdate()
-      });
+      this.updateLoop();
     }
 
     setPlotDims = () => {
@@ -224,12 +215,16 @@ export class uPlotApplet {
       this.plotHeight = this.AppletHTML.node.clientHeight - 30;
     }
 
+    updateLoop = () => {
+      this.onUpdate();
+      this.loop = requestAnimationFrame(this.onUpdate);
+    }
 
     onUpdate = () => {
       var graphmode = document.getElementById(this.props.id+"mode").value;
       var view = document.getElementById(this.props.id+"channel").value;
       let ch = null; 
-      let atlas = this.bci.state.data.atlas;
+      let atlas = this.bci.atlas;
       //console.log(atlas);
       let ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
       if (view !== 'All') {
@@ -365,7 +360,7 @@ export class uPlotApplet {
       let view = document.getElementById(this.props.id+"channel").value;
       let newSeries = [{}];
       let ch = null; 
-      let atlas = this.bci.state.data.atlas;
+      let atlas = this.bci.atlas;
       let ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
       //console.log(ref_ch);
       
@@ -605,7 +600,8 @@ export class uPlotApplet {
         this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
         
       }
-
+      console.log('ready')
+      this.updateLoop();
       this.setLegend();
       //else if(graphmode === "StackedRaw") { graphmode = "StackedFFT" }//Stacked Coherence
     }
@@ -629,7 +625,6 @@ export class uPlotApplet {
           }
         }
       });
-      
     }
 
    
