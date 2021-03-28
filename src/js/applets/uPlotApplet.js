@@ -284,7 +284,7 @@ export class uPlotApplet {
         else if (graphmode === "CoherenceTimeSeries") {
           var band = document.getElementById(this.props.id+"bandview").value
           
-          var count = atlas.data.coherence.fftCount;
+          var count = atlas.data.coherence[0].fftCount;
           if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
             this.class.uPlotData[0].shift();
           }
