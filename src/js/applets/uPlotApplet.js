@@ -25,7 +25,7 @@ export class uPlotApplet {
         };
 
         this.class = null;
-        this.sub = null;
+        this.looping = false;
         this.xrange = 10; //minutes
         this.yrange = true;
         this.plotWidth = 500;
@@ -85,10 +85,11 @@ export class uPlotApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let atlas = this.bci.atlas;
             document.getElementById(props.id+"bandview").style.display="none";
             document.getElementById(props.id+'xrangetd').style.display = "none";
             document.getElementById(props.id+'mode').onchange = () => {
+              
+              let atlas = this.bci.atlas;
               this.yrange = true;
               if(document.getElementById(props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(props.id+'mode').value === "Coherence"){
                 addCoherenceOptions(props.id+'channel',atlas.data.coherence,true,['All']);
@@ -206,8 +207,11 @@ export class uPlotApplet {
     }
 
     start() {
-      this.stop();
-      this.updateLoop();
+      this.looping = false;
+      setTimeout(() => {
+        this.looping = true;
+        this.updateLoop();
+      },100);
     }
 
     setPlotDims = () => {
@@ -216,8 +220,10 @@ export class uPlotApplet {
     }
 
     updateLoop = () => {
-      this.onUpdate();
-      this.loop = requestAnimationFrame(this.onUpdate);
+      if(this.looping) {
+        this.onUpdate();
+        setTimeout(()=>{this.loop = requestAnimationFrame(this.onUpdate); },16);
+      }
     }
 
     onUpdate = () => {
@@ -512,6 +518,7 @@ export class uPlotApplet {
       }
       else if (gmode === "Coherence") {
         atlas.data.coherence.forEach((row,i) => {
+          console.log(view, row.tag)
           if(view === 'All' || row.tag === view) {
             newSeries.push({
               label:row.tag,
@@ -600,9 +607,9 @@ export class uPlotApplet {
         this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
         
       }
-      console.log('ready')
-      this.updateLoop();
+
       this.setLegend();
+      this.looping = true; this.updateLoop(); 
       //else if(graphmode === "StackedRaw") { graphmode = "StackedFFT" }//Stacked Coherence
     }
 
