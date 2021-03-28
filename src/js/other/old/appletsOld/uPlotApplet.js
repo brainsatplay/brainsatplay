@@ -375,7 +375,7 @@ export class uPlotApplet {
             }
           else {
             this.class.uPlotData = [[...ATLAS.fftMap.shared.bandPassWindow]];
-              ATLAS.channelTags.forEach((row,i) => {  
+              atlas.data.eegshared.eegChannelTags.forEach((row,i) => {  
                 if(view === 'All' || row.ch === parseInt(view)) {
                   console.log("gotcha")
                   this.class.uPlotData.push([...ATLAS.fftMap.shared.bandPassWindow]);
@@ -396,7 +396,7 @@ export class uPlotApplet {
               undefined,
               this.yrange
             );
-          this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-EEG.data.startms)*.00001666667)+"m:"+((v-EEG.data.startms)*.001 - 60*Math.floor((v-EEG.data.startms)*.00001666667)).toFixed(1) + "s");
+          this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
       
         }
         else if (gmode === "FFT"){

@@ -60,7 +60,8 @@ export class brainsatplay {
 	) {
 		this.devices = [];
 		this.state = new StateManager({
-			commandResult:{}
+			commandResult:{},
+			atlas: new dataAtlas('atlas',undefined,undefined,true,false)
 		});
 
 		this.info = {
@@ -77,9 +78,6 @@ export class brainsatplay {
 			connections: [],
 			localHostURL: localHostURL
 		}
-
-		this.atlas = new dataAtlas('atlas',undefined,undefined,false,false);
-
 		this.socket = null;
 	}
 
@@ -160,7 +158,7 @@ export class brainsatplay {
 
 			this.devices[i].init();
 
-			if(this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
+			if(this.devices.length === 1) this.state.data.atlas = this.devices[0].atlas; //change over from dummy atlas
 
 			//Device info accessible from state
 			this.state.addToState("device"+(i),this.devices[i].info);
@@ -212,16 +210,16 @@ export class brainsatplay {
 
 	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if(this.devices.length > 0) {
-			let found = this.atlas.analysis.find((str,i) => {
+			let found = this.state.data.atlas.analysis.find((str,i) => {
 				if(name === str) {
 					return true;
 				}
 			});
 			if(found === undefined) {
-				this.atlas.analysis.push(name);
-				if(this.atlas.analyzing === false) {
-					this.atlas.analyzing = true;
-					this.atlas.analyzer();
+				this.state.data.atlas.analysis.push(name);
+				if(this.state.data.atlas.analyzing === false) {
+					this.state.data.atlas.analyzing = true;
+					this.state.data.atlas.analyzer();
 				}
 			}
 		} else {console.error("no devices connected")}
@@ -230,14 +228,14 @@ export class brainsatplay {
 	stopAnalysis(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if(this.devices.length > 0) {
 			if(name !== '' && typeof name === 'string') {
-				let found = this.atlas.analysis.find((str,i) => {
+				let found = this.state.data.atlas.analysis.find((str,i) => {
 					if(name === str) {
-						this.atlas.analysis.splice(i,1);
+						this.state.data.atlas.analysis.splice(i,1);
 						return true;
 					}
 				});
 			} else {
-				this.atlas.analyzing = false;
+				this.state.data.atlas.analyzing = false;
 			}
 		} else {console.error("no devices connected")}
 	}
@@ -847,7 +845,8 @@ class deviceStream {
 					});
 				},
 				()=>{	
-					if(this.info.useAtlas === true){
+					if(this.info.useAtlas === true){s			
+						this.atlas.data.eegshared.startTime = Date.now();
 						if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
 							this.atlas.analyzing = true;
 							setTimeout(() => {this.atlas.analyzer();},1200);		
@@ -900,11 +899,13 @@ class deviceStream {
 					let coord = this.atlas.getDeviceDataByTag('heg',this.deviceNum);
 					coord.count++;
 					if(this.device.mode === 'ble' && this.device.interface.android === true) {
+						if(coord.count === 1) { coord.startTime = Date.now(); }
 						coord.times.push(Date.now());
 						coord.red.push(parseFloat(data[0]));
 						coord.ir.push(parseFloat(data[1]));
 						coord.ratio.push(parseFloat(data[2]));
 					} else { 
+						if(coord.count === 1) { coord.startTime = parseInt(data[0]); }
 						coord.times.push(parseInt(data[0])); //Microseconds
 						coord.red.push(parseFloat(data[1]));
 						coord.ir.push(parseFloat(data[2]));
@@ -915,7 +916,7 @@ class deviceStream {
 				} else {console.log("HEGDUINO: ", newline); }
 			}
 			if(device === 'hegduinowifi' || device === 'hegduinosse') {
-				this.device= new hegduino('wifi',ondata,
+				this.device = new hegduino('wifi',ondata,
 				()=>{
 					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
 						this.atlas.analyzing = true;
@@ -1014,6 +1015,8 @@ class deviceStream {
 				}
 			});
 
+			this.atlas.data.eegshared.startTime = Date.now();
+
 			// this.device.telemetryData.subscribe(telemetry => {
 			// });
 			// this.device.accelerometerData.subscribe(accel => {
@@ -1050,6 +1053,7 @@ class deviceStream {
 				let y = data.y;
 				if(this.info.useAtlas === true) {
 					let o = this.atlas.data.eyetracker[this.deviceNum];
+					if(o.times.length === 0) { o.startTime = Date.now(); }
 					o.times.push(Date.now());
 					o.x.push(data.x);
 					o.y.push(data.y);
@@ -1299,7 +1303,7 @@ class deviceStream {
 class dataAtlas {
     constructor(
 		name="atlas",
-		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: 'FP1'},{ch: 1, tag: 'FP2'}],sps:512}},
+		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: 'FP1', analyze:true},{ch: 1, tag: 'FP2', analyze:true}],sps:512}},
 		config='10_20', //'muse','big'
 		useCoherence=true,
 		useAnalyzer=false, //call atlas.analyzer()
@@ -1311,8 +1315,10 @@ class dataAtlas {
 			eegshared:{
 				eegChannelTags:initialData.eegshared.eegChannelTags, 
 				sps:initialData.eegshared.sps, 
+				startTime:0,
 				frequencies:[], 
-				bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}},
+				bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}
+			},
 			eeg:[],
 			coherence:[],
 			heg:[],
@@ -1581,7 +1587,7 @@ class dataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0}
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -1597,7 +1603,7 @@ class dataAtlas {
 	}
 
 	genAccelerometerStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[],lastRead:0};
+		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[],lastRead:0, startTime:0};
 	}
 
 	addAccelerometerCoord(tag="accel1",x,y,z){
@@ -1605,7 +1611,7 @@ class dataAtlas {
 	}
 
 	genHRVStruct(tag){
-		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0};
+		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0, startTime:0};
 	}
 
 	addHRV(tag="hrv1") {
@@ -1613,7 +1619,7 @@ class dataAtlas {
 	}
 
 	genEyeTrackerStruct(tag) {
-		return {tag:tag, times:[], x:[], y:[], smax:[], smay:[], lastRead:0};
+		return {tag:tag, times:[], x:[], y:[], smax:[], smay:[], lastRead:0, startTime:0};
 	}
 
 	addEyeTracker(tag="eyes") {

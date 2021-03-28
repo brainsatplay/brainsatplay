@@ -4,10 +4,12 @@ import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
 
 import {AppletExample} from './js/applets/AppletExample'
+import {uPlotApplet} from './js/applets/uPlotApplet'
 
 
 let applets = [
-    {name:"Example Applet", cls:AppletExample}
+    {name:"Example Applet", cls: AppletExample },
+	{name:"uPlot", 			cls: uPlotApplet   }
 ];
 
 let bcisession = new brainsatplay('guest','','game');

@@ -180,19 +180,8 @@ export class uPlotMaker {
 		var newSeries = [{}];
 
 		channelTags.forEach((row,i) => {
-			if(row.viewing === true) {
-				if (taggedOnly === true){
-					if(row.tag !== null && row.tag !== 'other') {
-						if(ch===null || row.ch === ch) {
-							newSeries.push({
-								label:"A"+row.ch + ", Tag: "+row.tag,
-								value: (u, v) => v == null ? "-" : v.toFixed(2),
-								stroke: "rgb("+Math.random()*128+","+Math.random()*128+","+Math.random()*128+")"
-							});
-						}
-					}
-				}
-				else{
+			if (taggedOnly === true){
+				if(row.tag !== null && row.tag !== 'other') {
 					if(ch===null || row.ch === ch) {
 						newSeries.push({
 							label:"A"+row.ch + ", Tag: "+row.tag,
@@ -202,6 +191,16 @@ export class uPlotMaker {
 					}
 				}
 			}
+			else{
+				if(ch===null || row.ch === ch) {
+					newSeries.push({
+						label:"A"+row.ch + ", Tag: "+row.tag,
+						value: (u, v) => v == null ? "-" : v.toFixed(2),
+						stroke: "rgb("+Math.random()*128+","+Math.random()*128+","+Math.random()*128+")"
+					});
+				}
+			}
+			
 		  });
 		return newSeries;
 	}
@@ -273,7 +272,6 @@ export class uPlotMaker {
 
 		if(channelTags !== null) {
 			channelTags.forEach((row,i) => {
-				if(row.viewing === true) {
 
 				var r = Math.random()*128; var g = Math.random()*128; var b = Math.random()*128;
 				var newLineColor = "rgb("+r+","+g+","+b+")";
@@ -298,7 +296,7 @@ export class uPlotMaker {
 				});
 
 				datidx++;
-				}
+				
 			});
 		}
 		else{
