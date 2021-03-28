@@ -846,7 +846,7 @@ class deviceStream {
 					});
 				},
 				()=>{	
-					if(this.info.useAtlas === true){s			
+					if(this.info.useAtlas === true){			
 						this.atlas.data.eegshared.startTime = Date.now();
 						if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
 							this.atlas.analyzing = true;

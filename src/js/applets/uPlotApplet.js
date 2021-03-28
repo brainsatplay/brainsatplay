@@ -26,7 +26,7 @@ export class uPlotApplet {
 
         this.class = null;
         this.sub = null;
-        this.timeRange = 10; //minutes
+        this.xrange = 10; //minutes
         this.yrange = true;
         this.plotWidth = 500;
         this.plotHeight = 300;
@@ -301,6 +301,7 @@ export class uPlotApplet {
         if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1}
 
         if (graphmode === "TimeSeries") {
+          if(ref_ch.count > 0) {
             var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
             if(nsamples > ref_ch.count) { nsamples = ref_ch.count-1;}
             this.class.uPlotData = [
@@ -316,24 +317,35 @@ export class uPlotApplet {
                     }
                   }
                 });
-                
               });
+            }
           }
           else if (graphmode === "Stacked") {
-            this.class.uPlotData = [ ref_ch.times.slice(ref_ch.count - nsamples) ];
-            atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
-              if(view === 'All' || row.ch === ch) {  
+            if(ref_ch.count > 0) {
+              var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
+              if(nsamples > ref_ch.count) {nsamples = ref_ch.count-1;}
+        
+              this.class.uPlotData = [
+                  ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)//.map((x,i) => x = x-EEG.data.ms[0])
+              ];
+              atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
                 atlas.data.eeg.find((o,j) => {
-                  if(o.tag == row.tag || o.tag === o.ch) {
+                  if(o.tag === row.tag || o.tag === row.ch) {
                     if(o.filtered.length > 0) {
-                      this.class.uPlotData.push(o.filtered.slice(o.count - nsamples));
+                      this.class.uPlotData.push(o.filtered.slice(o.filtered.length - nsamples, o.filtered.length ));
                     } else {
-                      this.class.uPlotData.push(o.raw.slice(o.count - nsamples));
+                      this.class.uPlotData.push(o.raw.slice(o.count - nsamples, o.count));
                     }
                   }
                 });
-              } 
-            });
+              });
+            }
+            else {
+              this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
+                atlas.data.eegshared.eegChannelTags.forEach((row,i) => {  
+                    this.class.uPlotData.push([...atlas.data.eegshared.frequencies]);
+                });
+            }
             if(this.yrange !== true){
               this.class.updateStackedData(this.class.uPlotData);
             } else { 

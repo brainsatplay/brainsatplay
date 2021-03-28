@@ -400,7 +400,7 @@ export class uPlotMaker {
 			dat[0]
 		];
 
-		dat.forEach((row) => {
+		dat.forEach((row,i) => {
 			if(i>0){
 				uPlotData.push(row.map((t,j) => ymapper(t,j)));
 				mapidx++;
