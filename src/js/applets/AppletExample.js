@@ -79,12 +79,14 @@ export class AppletExample {
     
     }
 
+    //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
-    onresize() {
+    //Responsive UI update, for resizing and responding to new connections detected by the UI manager
+    responsive() {
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;

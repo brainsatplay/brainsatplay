@@ -62,7 +62,7 @@ export class AppletExample {
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
-    onresize() {
+    responsive() {
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;

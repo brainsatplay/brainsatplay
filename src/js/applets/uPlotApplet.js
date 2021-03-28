@@ -187,7 +187,7 @@ export class uPlotApplet {
       //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
-    onresize() {
+    responsive() {
       let atlas = this.bci.atlas;
       if(document.getElementById(this.props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(this.props.id+'mode').value === "Coherence"){
         addCoherenceOptions(this.props.id+'channel',atlas.data.coherence,true,['All']);
@@ -198,7 +198,6 @@ export class uPlotApplet {
       else {
         addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
       }
-
 
       this.setPlotDims();
       this.setuPlot();
@@ -306,8 +305,6 @@ export class uPlotApplet {
             }
           });
         }
-          
-        //Do a push and pop and get the moving average instead
       }
       if(graphmode === "TimeSeries" || graphmode === "Stacked") {
         var nsamples = Math.floor(atlas.data.eegshared.sps*this.xrange);
@@ -407,7 +404,6 @@ export class uPlotApplet {
                 });
               } 
             });
-          
         }
         else {
           this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];

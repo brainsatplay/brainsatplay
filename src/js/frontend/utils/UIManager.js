@@ -249,7 +249,7 @@ export class UIManager {
         
 
         this.applets.forEach((applet,i) => {
-            applet.classinstance.onresize();
+            applet.classinstance.responsive();
         });
     }
 }
