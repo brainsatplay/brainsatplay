@@ -20,8 +20,8 @@ export class SpectrogramApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            width:'500px',
-            height:'200px'
+            width:'800px',
+            height:'600px'
         };
 
         this.class = null;
@@ -117,7 +117,7 @@ export class SpectrogramApplet {
         this.class.canvas.style.height = this.AppletHTML.node.style.height;
       
         this.class.canvas.width = Math.floor(this.AppletHTML.node.clientWidth);
-        this.class.canvas.height = Math.floor(this.AppletHTML.node.clientHeight);
+        this.class.canvas.height = Math.floor(this.AppletHTML.node.clientHeight*4);
     
         this.class.init();
     }
