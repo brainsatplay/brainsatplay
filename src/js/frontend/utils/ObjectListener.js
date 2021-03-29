@@ -218,10 +218,10 @@ export class ObjectListenerInstance {
     //Update listener reference copy.
     setListenerRef = (propName) => {
         if(propName === "__ANY__" || propName === null || propName === undefined) {
-            this.propOld = JSON.stringifyWithCircularRefs(this.object);
+            this.propOld = JSON.stringifyFast(this.object);
         }
         else if(typeof this.object[propName] === "object"){
-            this.propOld = JSON.stringifyWithCircularRefs(this.object[propName]);
+            this.propOld = JSON.stringifyFast(this.object[propName]);
         }
         else if(typeof this.object[propName] === "function"){
             this.propOld = this.object[propName].toString();
@@ -234,7 +234,7 @@ export class ObjectListenerInstance {
 
     check = () => {
         if(this.propName === "__ANY__" || this.propName === null || this.propName === undefined){
-            if(this.propOld !== JSON.stringifyWithCircularRefs(this.object)){
+            if(this.propOld !== JSON.stringifyFast(this.object)){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object); }
@@ -242,7 +242,7 @@ export class ObjectListenerInstance {
             }
         }
         else if(typeof this.object[this.propName] === "object") {
-            if(this.propOld !== JSON.stringifyWithCircularRefs(this.object[this.propName])){
+            if(this.propOld !== JSON.stringifyFast(this.object[this.propName])){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object[this.propName]);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
@@ -302,13 +302,13 @@ export function sortObjectByValue(object) { //Sorts number and string objects by
             prop1[1] = prop1[1].toString();
         }
         else if(typeof prop1[1] === "object"){
-            prop1[1] = JSON.stringifyWithCircularRefs(prop1[1]);
+            prop1[1] = JSON.stringifyFast(prop1[1]);
         }
         if(typeof prop2[1] === "function"){
             prop2[1] = prop2[1].toString();
         }
         else if(typeof prop2[1] === "object"){
-            prop2[1] = JSON.stringifyWithCircularRefs(prop2[1]);
+            prop2[1] = JSON.stringifyFast(prop2[1]);
         }
         
         if(typeof prop1[1] === "string") {
@@ -360,65 +360,73 @@ export function sortObjectByPropName(object) {
 
 }
 
-
-if(JSON.stringifyWithCircularRefs === undefined) {
+//modified to also cut down the size arrays for faster looping
+if(JSON.stringifyFast === undefined) {
     //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
-    JSON.stringifyWithCircularRefs = (function() {
+    JSON.stringifyFast = (function() {
         const refs = new Map();
         const parents = [];
         const path = ["this"];
 
         function clear() {
-        refs.clear();
-        parents.length = 0;
-        path.length = 1;
+            refs.clear();
+            parents.length = 0;
+            path.length = 1;
         }
 
-        function updateParents(key, value) {
-        var idx = parents.length - 1;
-        var prev = parents[idx];
-        if (prev[key] === value || idx === 0) {
-            path.push(key);
-            parents.push(value);
-        } else {
-            while (idx-- >= 0) {
-            prev = parents[idx];
-            if (prev[key] === value) {
-                idx += 2;
-                parents.length = idx;
-                path.length = idx;
-                --idx;
-                parents[idx] = value;
-                path[idx] = key;
-                break;
-            }
-            }
-        }
-        }
-
-        function checkCircular(key, value) {
-        if (value != null) {
-            if (typeof value === "object") {
-            if (key) { updateParents(key, value); }
-
-            let other = refs.get(value);
-            if (other) {
-                return '[Circular Reference]' + other;
+        function updateParents(key, value) { //for json.parse
+            var idx = parents.length - 1;
+            var prev = parents[idx];
+            if (prev[key] === value || idx === 0) {
+                path.push(key);
+                parents.push(value);
             } else {
-                refs.set(value, path.join('.'));
+                while (idx-- >= 0) {
+                    prev = parents[idx];
+                    if (prev[key] === value) {
+                        idx += 2;
+                        parents.length = idx;
+                        path.length = idx;
+                        --idx;
+                        parents[idx] = value;
+                        path[idx] = key;
+                        break;
+                    }
+                }
             }
-            }
-        }
-        return value;
         }
 
-        return function stringifyWithCircularRefs(obj, space) {
-        try {
-            parents.push(obj);
-            return JSON.stringify(obj, checkCircular, space);
-        } finally {
-            clear();
+        function checkValues(key, value) {
+            let val = value;
+            if (val !== null) {
+                if (typeof value === "object") {
+                    if (key) { updateParents(key, value); }
+                    let other = refs.get(val);
+                    let c = value.constructor.name;
+                    if (other) {
+                        return '[Circular Reference]' + other;
+                    } else if(c === "Array" && value.length > 100) { //Cut arrays down to 100 samples for referencing
+                        val = value.slice(value.length-100);
+                        refs.set(val, path.join('.'));
+                    } else if (c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                        val = "instanceof_"+c;
+                        refs.set(val, path.join('.'));
+                    }
+                    else {
+                        refs.set(val, path.join('.'));
+                    }
+                }
+            }
+            return val;
         }
+
+        return function stringifyFast(obj, space) {
+            try {
+                parents.push(obj);
+                return JSON.stringify(obj, checkValues, space);
+            } finally {
+                clear();
+            }
         }
     })();
 }

@@ -14,8 +14,8 @@ export class StateManager {
 
         /*
         const onStateChanged = () => {
-            this.prev = Object.assign(this.prev,this.data);;
-            //this.prev=JSON.parse(JSON.stringifyWithCircularRefs(this.data)); //Not sure why this is problematic
+            this.prev = Object.assign({},this.data);
+            //this.prev=JSON.parse(JSON.stringifyFast(this.data));
         }
 
         //Causes app to be stuck on startup
@@ -71,8 +71,8 @@ export class StateManager {
         }
     }
 
-    getState() { //Return a copy of the latest state
-        return JSON.parse(JSON.stringifyWithCircularRefs(this.data));
+    getState() { //Return a hard copy of the latest state with reduced values
+        return JSON.parse(JSON.stringifyFast(this.data));
     }
 
     setState(updateObj={}){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
@@ -142,64 +142,73 @@ export class StateManager {
 }
 
 
-
-if(JSON.stringifyWithCircularRefs === undefined) {
-    JSON.stringifyWithCircularRefs = (function() {
+//modified to also cut down the size arrays for faster looping
+if(JSON.stringifyFast === undefined) {
+    //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
+    JSON.stringifyFast = (function() {
         const refs = new Map();
         const parents = [];
         const path = ["this"];
 
         function clear() {
-        refs.clear();
-        parents.length = 0;
-        path.length = 1;
+            refs.clear();
+            parents.length = 0;
+            path.length = 1;
         }
 
-        function updateParents(key, value) {
-        var idx = parents.length - 1;
-        var prev = parents[idx];
-        if (prev[key] === value || idx === 0) {
-            path.push(key);
-            parents.push(value);
-        } else {
-            while (idx-- >= 0) {
-            prev = parents[idx];
-            if (prev[key] === value) {
-                idx += 2;
-                parents.length = idx;
-                path.length = idx;
-                --idx;
-                parents[idx] = value;
-                path[idx] = key;
-                break;
-            }
-            }
-        }
-        }
-
-        function checkCircular(key, value) {
-        if (value != null) {
-            if (typeof value === "object") {
-            if (key) { updateParents(key, value); }
-
-            let other = refs.get(value);
-            if (other) {
-                return '[Circular Reference]' + other;
+        function updateParents(key, value) { //for json.parse
+            var idx = parents.length - 1;
+            var prev = parents[idx];
+            if (prev[key] === value || idx === 0) {
+                path.push(key);
+                parents.push(value);
             } else {
-                refs.set(value, path.join('.'));
+                while (idx-- >= 0) {
+                    prev = parents[idx];
+                    if (prev[key] === value) {
+                        idx += 2;
+                        parents.length = idx;
+                        path.length = idx;
+                        --idx;
+                        parents[idx] = value;
+                        path[idx] = key;
+                        break;
+                    }
+                }
             }
-            }
-        }
-        return value;
         }
 
-        return function stringifyWithCircularRefs(obj, space) {
-        try {
-            parents.push(obj);
-            return JSON.stringify(obj, checkCircular, space);
-        } finally {
-            clear();
+        function checkValues(key, value) {
+            let val = value;
+            if (val !== null) {
+                if (typeof value === "object") {
+                    if (key) { updateParents(key, value); }
+                    let other = refs.get(val);
+                    let c = value.constructor.name;
+                    if (other) {
+                        return '[Circular Reference]' + other;
+                    } else if(c === "Array" && value.length > 100) { //Cut arrays down to 100 samples for referencing
+                        val = value.slice(value.length-100);
+                        refs.set(val, path.join('.'));
+                    } else if (c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                        val = "instanceof_"+c;
+                        refs.set(val, path.join('.'));
+                    }
+                    else {
+                        refs.set(val, path.join('.'));
+                    }
+                }
+            }
+            return val;
         }
+
+        return function stringifyFast(obj, space) {
+            try {
+                parents.push(obj);
+                return JSON.stringify(obj, checkValues, space);
+            } finally {
+                clear();
+            }
         }
     })();
 }

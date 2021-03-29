@@ -411,7 +411,7 @@ export class uPlotApplet {
       if (view !== "All") {
         ch = parseInt(view);
       }
-      if(graphmode === 'HEG') {
+      if(gmode === 'HEG') {
         let tint = this.xrange*1000;
         let heg = atlas.data.heg[0];
         let j = 0;
