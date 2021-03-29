@@ -2102,6 +2102,7 @@ class dataAtlas {
 			for(const prop in this.data) {
 				if(Array.isArray(this.data[prop])) {
 					this.data[prop].forEach((row,i) => {
+						let ct; let ct2;
 						for(const p in row) {
 							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
 								for(const pz in row[p]) {
@@ -2111,8 +2112,19 @@ class dataAtlas {
 								}
 							}
 							else if(Array.isArray(row[p])) {
-								if(row[p].length > this.rolloverLimit) {row[p].splice(0,Math.floor(this.rolloverLimit*.1));}
+								if(row[p].length > this.rolloverLimit) {
+									row[p].splice(0,Math.floor(this.rolloverLimit*.1));
+									if(p === 'ffts') { //adjust counters
+										row.fftCount = row[p].length;
+										row.lastReadFFT = row[p].length;
+									}
+									else if (p === 'times') {
+										row.count = row[p].length;
+										row.lastRead = row[p].length;
+									}
+								}
 							}
+							
 						}
 					});
 				}
