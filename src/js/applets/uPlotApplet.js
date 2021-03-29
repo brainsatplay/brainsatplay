@@ -4,6 +4,9 @@ import {uPlotMaker} from '../bciutils/visuals/eegvisuals'
 import {eegmath} from '../bciutils/eeg32'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../frontend/menus/selectTemplates'
 
+
+document.head.insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="./_dist_/styles/css/uPlot.min.css" />`);
+
 //Example Applet for integrating with the UI Manager
 export class uPlotApplet {
     constructor(
