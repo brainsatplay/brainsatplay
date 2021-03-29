@@ -83,6 +83,9 @@ export class BrainMapApplet {
         
         this.class.updateHeatmap();
         this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
+
+        this.looping = true;
+        this.updateLoop();
     
     }
 

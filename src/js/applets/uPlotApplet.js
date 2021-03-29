@@ -28,6 +28,7 @@ export class uPlotApplet {
         };
 
         this.class = null;
+        this.loop = null;
         this.looping = false;
         this.xrange = 10; //minutes
         this.yrange = true;
