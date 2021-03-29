@@ -245,7 +245,7 @@ export class ObjectListenerInstance {
                 this.setListenerRef(this.propName);
             }
         }
-        else if(Array.isArray(this.object[this.propName])) {
+        else if(Array.isArray(this.object[this.propName])) { //cut arrays down for speed
             if(this.propOld !== JSON.stringifyFast(this.object[this.propName].slice(this.object[this.propName].length-100))){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object[this.propName]);

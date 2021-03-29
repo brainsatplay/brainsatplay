@@ -82,14 +82,13 @@ export class brainsatplay {
 		this.socket = null;
 	}
 
-	    /**
+	/**
      * @method module:brainsatplay.brainsatplay.setLoginInfo
      * @description Set user information.
      * @param username {string} Username.
      * @param password {string} Password.
 	 * @param access {string} Access level ('public' or 'private').
      * @param appname {string} Name of the app.
-
      */
 
 	setLoginInfo(username='',password='',access='public',appname='') {
@@ -180,8 +179,11 @@ export class brainsatplay {
 	
 	//disconnect local device
 	disconnect(deviceIdx=this.devices[this.devices.length-1],ondisconnect=()=>{}) {
+		this.devices[deviceIdx].info.streaming = false;
 		this.devices[deviceIdx].ondisconnect = ondisconnect;
 		this.devices[deviceIdx].disconnect();
+		this.devices[deviceIdx].splice(deviceIdx,1);
+		this.info.nDevices--;
 	}
 
 	beginStream(deviceIdx=0,streamParams=null) {

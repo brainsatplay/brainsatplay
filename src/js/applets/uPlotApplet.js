@@ -11,7 +11,7 @@ document.head.insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="./_di
 export class uPlotApplet {
     constructor(
         parent=document.body,
-        bci=new brainsatplay('','','uPlot'),
+        bci=new brainsatplay(),
         settings=[]
     ) {
     
@@ -192,27 +192,29 @@ export class uPlotApplet {
 
     responsive() {
       let atlas = this.bci.atlas;
-      if(document.getElementById(this.props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(this.props.id+'mode').value === "Coherence"){
-        addCoherenceOptions(this.props.id+'channel',atlas.data.coherence,true,['All']);
-      }
-      else if (document.getElementById(this.props.id+'mode').value === "TimeSeries" || document.getElementById(this.props.id+'mode').value === "Stacked"){
-        addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,false,['All']);
-      }
-      else {
-        addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
-      }
-      if(atlas.data.heg.length > 0) {
-        if(document.getElementById(this.props.id+"mode").options.indexOf("HEG") < 0) {
-          document.getElementById(this.props.id+"mode").innerHTML = `
-            <option value="HEG" selected="selected">HEG</option>
-            <option value="FFT">FFTs</option>
-            <option value="Coherence">Coherence</option>
-            <option value="CoherenceTimeSeries">Mean Coherence</option>
-            <option value="TimeSeries">Raw</option>
-            <option value="Stacked">Stacked Raw</option>
-          `;
+      if(this.bci.info.nDevices > 0) {
+        if(document.getElementById(this.props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(this.props.id+'mode').value === "Coherence"){
+          addCoherenceOptions(this.props.id+'channel',atlas.data.coherence,true,['All']);
         }
-      } 
+        else if (document.getElementById(this.props.id+'mode').value === "TimeSeries" || document.getElementById(this.props.id+'mode').value === "Stacked"){
+          addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,false,['All']);
+        }
+        else {
+          addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
+        }
+        if(atlas.data.heg.length > 0) {
+          if(document.getElementById(this.props.id+"mode").options.indexOf("HEG") < 0) {
+            document.getElementById(this.props.id+"mode").innerHTML = `
+              <option value="HEG" selected="selected">HEG</option>
+              <option value="FFT">FFTs</option>
+              <option value="Coherence">Coherence</option>
+              <option value="CoherenceTimeSeries">Mean Coherence</option>
+              <option value="TimeSeries">Raw</option>
+              <option value="Stacked">Stacked Raw</option>
+            `;
+          }
+        } 
+      }
 
       this.setPlotDims();
       this.setuPlot();

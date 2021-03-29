@@ -5,7 +5,7 @@ import {DOMFragment} from '../frontend/utils/DOMFragment'
 export class AppletExample {
     constructor(
         parent=document.body,
-        bci=new brainsatplay('','','Example'),
+        bci=new brainsatplay(),
         settings=[]
     ) {
     
