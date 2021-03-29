@@ -182,7 +182,7 @@ if(JSON.stringifyFast === undefined) {
             let val = value;
             if (val !== null) {
                 if (typeof value === "object") {
-                    if (key) { updateParents(key, value); }
+                    //if (key) { updateParents(key, value); }
                     let other = refs.get(val);
                     let c = value.constructor.name;
                     if (other) {
