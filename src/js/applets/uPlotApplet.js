@@ -60,7 +60,7 @@ export class uPlotApplet {
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
                           <option value="TimeSeries">Raw</option>
-                          <option value="Stacked">Stacked Raw</option>c
+                          <option value="Stacked">Stacked Raw</option>
                         </select>
                       </td>
                       <td id='`+props.id+`yrangetd' style='width:98px'>
@@ -201,6 +201,18 @@ export class uPlotApplet {
       else {
         addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
       }
+      if(atlas.data.heg.length > 0) {
+        if(document.getElementById(this.props.id+"mode").options.indexOf("HEG") < 0) {
+          document.getElementById(this.props.id+"mode").innerHTML = `
+            <option value="HEG" selected="selected">HEG</option>
+            <option value="FFT">FFTs</option>
+            <option value="Coherence">Coherence</option>
+            <option value="CoherenceTimeSeries">Mean Coherence</option>
+            <option value="TimeSeries">Raw</option>
+            <option value="Stacked">Stacked Raw</option>
+          `;
+        }
+      } 
 
       this.setPlotDims();
       this.setuPlot();
@@ -250,7 +262,22 @@ export class uPlotApplet {
       if (view !== 'All') {
         ch = parseInt(view);
       }
-      if(ref_ch.fftCount > 0) {
+      if(graphmode === 'HEG') {
+        let tint = this.xrange*1000;
+        let heg = atlas.data.heg[0];
+        let j = 0;
+        for(let i = heg.count-2; i > 0; i-- ) {
+          if(heg.times[heg.count-1] - heg.times[i] > tint) {
+            j = i;
+            break;
+          }
+        }
+        this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j)];
+        if(heg.ambient.length > 0) {
+          this.class.uPlotData.push(heg.ambient.slice(j))
+        }
+      }
+      else if(ref_ch.fftCount > 0) {
         if(graphmode === 'FFT'){
           //Animate plot(s)
           //console.log(atlas);
@@ -384,7 +411,65 @@ export class uPlotApplet {
       if (view !== "All") {
         ch = parseInt(view);
       }
-      if(gmode === "TimeSeries"){
+      if(graphmode === 'HEG') {
+        let tint = this.xrange*1000;
+        let heg = atlas.data.heg[0];
+        let j = 0;
+        if(heg.count > 2) {
+          for(let i = heg.count-2; i > 0; i-- ) {
+            if(heg.times[heg.count-1] - heg.times[i] > tint) {
+              j = i;
+              break;
+            }
+          }
+          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j)];
+          if(heg.ambient.length > 0) {
+            this.class.uPlotData.push(heg.ambient.slice(j))
+          }
+        }
+        else {
+          let arr = new Array(100).fill(0).map((x,i) => x = i);
+          this.uPlotData = [arr,arr,arr,arr];
+        }
+        let newSeries = [{}];
+        this.uPlotData.forEach((row,i) => {
+          if(i === 0) {
+            newSeries[0].label = "t"
+          }
+          else if (i === 1) {
+            newSeries.push({
+              label:"Red",
+              value: (u, v) => v == null ? "-" : v.toFixed(1),
+              stroke: "rgb(155,0,0)"
+            });
+          }
+          else if (i === 2) {
+            newSeries.push({
+              label:"IR",
+              value: (u, v) => v == null ? "-" : v.toFixed(1),
+              stroke: "rgb(0,155,155)"
+            });
+          }
+          else if (i === 3) {
+            newSeries.push({
+              label:"Ambient",
+              value: (u, v) => v == null ? "-" : v.toFixed(1),
+              stroke: "rgb(0,0,0)"
+            });
+          }
+        });
+        this.class.makeuPlot(
+          newSeries, 
+          this.class.uPlotData, 
+          this.plotWidth, 
+          this.plotHeight,
+          undefined,
+          this.yrange
+        );
+        this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.heg[0].startTime)*.00001666667)+"m:"+((v-atlas.data.heg[0].startTime)*.001 - 60*Math.floor((v-atlas.data.heg[0].startTime)*.00001666667)).toFixed(1) + "s");
+  
+      }
+      else if(gmode === "TimeSeries"){
         document.getElementById(this.props.id+"title").innerHTML = "ADC signals";
     
         if(ref_ch.count > 0) {

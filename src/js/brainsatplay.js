@@ -905,15 +905,14 @@ class deviceStream {
 					let data = newline.split("|");
 					let coord = this.atlas.getDeviceDataByTag('heg',this.deviceNum);
 					coord.count++;
+					if(coord.count === 1) { coord.startTime = Date.now(); }
 					if(this.device.mode === 'ble' && this.device.interface.android === true) {
-						if(coord.count === 1) { coord.startTime = Date.now(); }
 						coord.times.push(Date.now());
 						coord.red.push(parseFloat(data[0]));
 						coord.ir.push(parseFloat(data[1]));
 						coord.ratio.push(parseFloat(data[2]));
 					} else { 
-						if(coord.count === 1) { coord.startTime = parseInt(data[0]); }
-						coord.times.push(parseInt(data[0])); //Microseconds
+						coord.times.push(Date.now()); //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
 						coord.red.push(parseFloat(data[1]));
 						coord.ir.push(parseFloat(data[2]));
 						coord.ratio.push(parseFloat(data[3]));
@@ -1317,6 +1316,7 @@ class dataAtlas {
 		analysis=['eegfft'] //'eegfft','eegcoherence','bcijs_bandpowers','heg_pulse'
 	) {
         this.name = name;
+		this.config = config; 
 
         this.data = {
 			eegshared:{
