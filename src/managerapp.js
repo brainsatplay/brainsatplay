@@ -6,11 +6,13 @@ import {DOMFragment} from './js/frontend/utils/DOMFragment'
 import {AppletExample} from './js/applets/AppletExample'
 import {uPlotApplet} from './js/applets/uPlotApplet'
 import {SpectrogramApplet} from './js/applets/SpectrogramApplet'
+import { BrainMapApplet } from './js/applets/BrainMapApplet'
 
 let applets = [
     {name:"Example Applet", cls: AppletExample },
 	{name:"uPlot", 			cls: uPlotApplet   },
-	{name:"Spectrogram",    cls: SpectrogramApplet}
+	{name:"Spectrogram",    cls: SpectrogramApplet},
+	{name:"Brain Map",      cls: BrainMapApplet}
 ];
 
 let bcisession = new brainsatplay('guest','','game');

@@ -462,7 +462,7 @@ export class TimeChartMaker {
 		ATLAS.channelTags.forEach((row,i) => { // Recycle or make new time charts
 		  var chartname = 'timechart'+i;
 		  var nsamples = Math.floor(EEG.sps*nSecAdcGraph);
-		  var dat = EEG.data["A"+row.ch].slice(EEG.data.counter - nsamples, EEG.data.counter);
+		  var dat = EEG.data["A"+row.ch].slice(EEG.counter - nsamples, EEG.counter);
 		  if(this.timecharts[i] === undefined){
 			document.getElementById(this.divId).insertAdjacentHTML('beforeend',`<div id='`+chartname+`'></div>`);
 			var elem = document.getElementById(chartname);
@@ -516,7 +516,7 @@ export class TimeChartMaker {
 		if(this.timechartsdata[0].length > this.maxpoints) { //rebuild timecharts if the data array is too big to prevent slowdowns
 		  this.setEEGTimeCharts(EEG);
 		}
-		var latestIdx = EEG.data.counter-1;
+		var latestIdx = EEG.counter-1;
 		ATLAS.channelTags.forEach((row,i) => {
 		  var latestdat = EEG.data["A"+row.ch].slice(this.lasttimeIdx,latestIdx);
 		  this.timechartsdata[i].push(latestdat);
@@ -587,7 +587,7 @@ export class BrainMap2D {
 		this.heatmap.display();
 	}
 
-	updateHeatmapFromAtlas(fftMap, channelTags, viewing, normalize=1) { //Normalize is the peak expected value
+	updateHeatmapFromAtlas(eegMap, channelTags, viewing, normalize=1) { //Normalize is the peak expected value
 		var newpoints = [];
 
 		var halfwidth = this.pointsCanvas.width*.5;
@@ -595,25 +595,25 @@ export class BrainMap2D {
 
 		var sizeMul = 1/normalize;
 		channelTags.forEach((row,i) => {
-			let atlasCoord = fftMap.map.find((o, j) => {
+			let atlasCoord = eegMap.find((o, j) => {
 			  if(o.tag === row.tag){
-				    newpoints.push({x:o.data.x*this.scale+halfwidth, y:halfheight-o.data.y*this.scale, size:10, intensity:0.7});
+				    newpoints.push({x:o.position.x*this.scale+halfwidth, y:halfheight-o.position.y*this.scale, size:10, intensity:0.7});
 				if(viewing === "scp"){
-					newpoints[i].size = Math.max(...o.data.slices.scp[o.data.slices.scp.length-1])}//o.data.means.scp[o.data.means.scp.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.scp[o.slices.scp.length-1])}//o.means.scp[o.means.scp.length - 1];}
 				else if(viewing === "delta"){
-					newpoints[i].size = Math.max(...o.data.slices.delta[o.data.slices.delta.length-1])}//o.data.means.delta[o.data.means.delta.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.delta[o.slices.delta.length-1])}//o.means.delta[o.means.delta.length - 1];}
 				else if(viewing === "theta"){
-					newpoints[i].size = Math.max(...o.data.slices.theta[o.data.slices.theta.length-1])}//o.data.means.theta[o.data.means.theta.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.theta[o.slices.theta.length-1])}//o.means.theta[o.means.theta.length - 1];}
 				else if(viewing === "alpha1"){
-					newpoints[i].size = Math.max(...o.data.slices.alpha1[o.data.slices.alpha1.length-1])}//o.data.means.alpha[o.data.means.alpha.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.alpha1[o.slices.alpha1.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
 				else if(viewing === "alpha2"){
-					newpoints[i].size = Math.max(...o.data.slices.alpha2[o.data.slices.alpha2.length-1])}//o.data.means.alpha[o.data.means.alpha.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.alpha2[o.slices.alpha2.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
 				else if(viewing === "beta"){
-					newpoints[i].size = Math.max(...o.data.slices.beta[o.data.slices.beta.length-1])}//o.data.means.beta[o.data.means.beta.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.beta[o.slices.beta.length-1])}//o.means.beta[o.means.beta.length - 1];}
 				else if(viewing === "lowgamma"){
-					newpoints[i].size = Math.max(...o.data.slices.lowgamma[o.data.slices.lowgamma.length-1])}//o.data.means.gamma[o.data.means.gamma.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.lowgamma[o.slices.lowgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
 				else if(viewing === "highgamma"){
-					newpoints[i].size = Math.max(...o.data.slices.highgamma[o.data.slices.highgamma.length-1])}//o.data.means.gamma[o.data.means.gamma.length - 1];}
+					newpoints[i].size = Math.max(...o.slices.highgamma[o.slices.highgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
 
 					newpoints[i].size *= sizeMul; //Need a better method
 
@@ -634,7 +634,7 @@ export class BrainMap2D {
 	}
 
 	//pass this the atlas and channelTags from your eeg32 instance
-	updatePointsFromAtlas(fftMap,channelTags,clear=true) {
+	updatePointsFromAtlas(eegMap,channelTags,clear=true) {
 
 		var halfwidth = this.pointsCanvas.width*.5;
 		var halfheight = this.pointsCanvas.height*.5;
@@ -644,30 +644,30 @@ export class BrainMap2D {
 			this.pointsCtx.clearRect(0, 0, this.pointsCanvas.width, this.pointsCanvas.height);
 		}
 
-		fftMap.map.forEach((row,i) => {
+		eegMap.forEach((row,i) => {
 			this.pointsCtx.beginPath();
 			this.pointsCtx.fillStyle="rgba(0,0,255,1)";
-		  let tags = channelTags.find((o, i) => {
-			if(o.tag === row.tag){
-				this.pointsCtx.fillStyle = "rgba(0,0,0,0.7)";
-				this.pointsCtx.fillText(o.ch,halfwidth-15+row.data.x*this.scale,halfheight+10-row.data.y*this.scale,14);
-				//this.points[i] = { x: row.data.x*this.scale-halfwidth, y: halfheight+10-row.data.y, size: 10, intensity: 0.7 };
-				this.pointsCtx.fillStyle="rgba(0,255,0,1)";
-				//console.log("updating points")
-			  return true;
-			}
-		  });
-		  // Draws a circle at the coordinates on the canvas
-		  this.pointsCtx.arc(halfwidth+row.data.x*this.scale, halfheight-row.data.y*this.scale, 4, 0, Math.PI*2, true);
-		  this.pointsCtx.closePath();
-		  this.pointsCtx.fill();
+			let tags = channelTags.find((o, i) => {
+				if(o.tag === row.tag){
+					this.pointsCtx.fillStyle = "rgba(0,0,0,0.7)";
+					this.pointsCtx.fillText(o.ch,halfwidth-15+row.position.x*this.scale,halfheight+10-row.position.y*this.scale,14);
+					//this.points[i] = { x: row.position.x*this.scale-halfwidth, y: halfheight+10-row.position.y, size: 10, intensity: 0.7 };
+					this.pointsCtx.fillStyle="rgba(0,255,0,1)";
+					//console.log("updating points")
+				return true;
+				}
+			});
+			// Draws a circle at the coordinates on the canvas
+			this.pointsCtx.arc(halfwidth+row.position.x*this.scale, halfheight-row.position.y*this.scale, 4, 0, Math.PI*2, true);
+			this.pointsCtx.closePath();
+			this.pointsCtx.fill();
 
-		  this.pointsCtx.fillStyle = "rgba(0,0,0,0.7)";
-		  this.pointsCtx.fillText(row.tag,halfwidth+4+row.data.x*this.scale,halfheight+10-row.data.y*this.scale,14);
+			this.pointsCtx.fillStyle = "rgba(0,0,0,0.7)";
+			this.pointsCtx.fillText(row.tag,halfwidth+4+row.position.x*this.scale,halfheight+10-row.position.y*this.scale,14);
 		});
 	}
 
-	updateConnectomeFromAtlas(coherenceMap, fftMap, channelTags, viewing, clear=true, alphaScalar=0.01) { //
+	updateConnectomeFromAtlas(coherenceMap, eegMap, channelTags, viewing, clear=true, alphaScalar=0.01) { //
 		var halfwidth = this.pointsCanvas.width*.5;
 		var halfheight = this.pointsCanvas.height*.5;
 		var ctx = this.pointsCtx;
@@ -696,33 +696,33 @@ export class BrainMap2D {
 		else if(viewing === "highgamma") {
 			strokeStyle = "rgba(255,255,0,";}
 			//console.log(strokeStyle);
-		coherenceMap.map.forEach((row,i) => {
+		coherenceMap.forEach((row,i) => {
 			if(viewing === "scp") {	 //TODO:: figure out a good transparency (or could do line thickness) upper bound based on actual results
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.scp[row.data.slices.scp.length-1])*alphaScalar + ")";}//(row.data.means.scp[row.data.means.scp.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.scp[row.slices.scp.length-1])*alphaScalar + ")";}//(row.means.scp[row.means.scp.length-1]*alphaMul) + ")";}
 			else if(viewing === "delta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.delta[row.data.slices.delta.length-1])*alphaScalar + ")";}//(row.data.means.delta[row.data.means.delta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.delta[row.slices.delta.length-1])*alphaScalar + ")";}//(row.means.delta[row.means.delta.length-1]*alphaMul) + ")";}
 			else if(viewing === "theta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.theta[row.data.slices.theta.length-1])*alphaScalar + ")";}//(row.data.means.theta[row.data.means.theta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.theta[row.slices.theta.length-1])*alphaScalar + ")";}//(row.means.theta[row.means.theta.length-1]*alphaMul) + ")";}
 			else if(viewing === "alpha1") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.alpha1[row.data.slices.alpha1.length-1])*alphaScalar + ")";}//(row.data.means.alpha[row.data.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.alpha1[row.slices.alpha1.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
 			else if(viewing === "alpha2") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.alpha2[row.data.slices.alpha2.length-1])*alphaScalar + ")";}//(row.data.means.alpha[row.data.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.alpha2[row.slices.alpha2.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
 			else if(viewing === "beta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.beta[row.data.slices.beta.length-1])*alphaScalar + ")";}//(row.data.means.beta[row.data.means.beta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.beta[row.slices.beta.length-1])*alphaScalar + ")";}//(row.means.beta[row.means.beta.length-1]*alphaMul) + ")";}
 			else if(viewing === "lowgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.lowgamma[row.data.slices.lowgamma.length-1])*alphaScalar + ")";}//(row.data.means.gamma[row.data.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.lowgamma[row.slices.lowgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
 			else if(viewing === "highgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.slices.highgamma[row.data.slices.highgamma.length-1])*alphaScalar + ")";}//(row.data.means.gamma[row.data.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.highgamma[row.slices.highgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
 			//console.log(ctx.strokeStyle)
 			//console.log(ctx.strokeStyle);
 			ctx.beginPath();
-			ctx.moveTo(halfwidth+row.data.x0*this.scale,halfheight-row.data.y0*this.scale);
-			ctx.lineTo(halfwidth+row.data.x1*this.scale,halfheight-row.data.y1*this.scale);
+			ctx.moveTo(halfwidth+row.x0*this.scale,halfheight-row.y0*this.scale);
+			ctx.lineTo(halfwidth+row.x1*this.scale,halfheight-row.y1*this.scale);
 			ctx.stroke();
 		});
 
 		//Now redraw points on top of connectome
-		this.updatePointsFromAtlas(fftMap, channelTags, false);
+		this.updatePointsFromAtlas(eegMap, channelTags, false);
 	}
 
 	draw = () => {
@@ -915,9 +915,9 @@ export class thetaGamma2Octave { //Not finished
 		channelTags.forEach((row,i) => {
 			atlas.map.forEach((o,j) => {
 				if(o.tag === row.tag) {
-					var thetaMax = Math.max(...o.data.slices.theta[o.data.slices.theta.length-1])*this.adcScalingFactor;
-					var gammaMax = Math.max(...o.data.slices.lowgamma[o.data.slices.lowgamma.length-1])*this.adcScalingFactor;
-					gammaMaxidx = o.data.slices.lowgamma.indexOf(gammaMax);
+					var thetaMax = Math.max(...o.slices.theta[o.slices.theta.length-1])*this.adcScalingFactor;
+					var gammaMax = Math.max(...o.slices.lowgamma[o.slices.lowgamma.length-1])*this.adcScalingFactor;
+					gammaMaxidx = o.slices.lowgamma.indexOf(gammaMax);
 					gammaFreq = atlas.shared.bandFreqs.lowgamma[1][gammaMaxidx];
 					if(thetaMax > 0.00005) { //Threshold in Volts
 						this.audioctx.playFreq(450,0.1,'sine');

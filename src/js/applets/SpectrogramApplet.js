@@ -25,6 +25,8 @@ export class SpectrogramApplet {
         };
 
         this.class = null;
+        this.loop = null;
+        this.looping = false;
 
     }
 
@@ -87,12 +89,14 @@ export class SpectrogramApplet {
         this.class = new Spectrogram(this.props.id+'canvas', 10000);
         this.class.init();
             
+        this.looping = true;
         this.updateLoop();
     
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
         this.class.deInit();
         this.class = null;
         this.AppletHTML.deleteNode();
@@ -129,10 +133,12 @@ export class SpectrogramApplet {
     //--------------------------------------------
 
     updateLoop = () => {
-        if(this.bci.info.nDevices > 0) {
-            this.onUpdate();
+        if(this.looping) {
+            if(this.bci.info.nDevices > 0) {
+                this.onUpdate();
+            }
+            setTimeout(() => {this.loop = requestAnimationFrame(this.updateLoop),16});
         }
-        setTimeout(() => {this.loop = requestAnimationFrame(this.updateLoop),16});
     }
 
     onUpdate = () => {
