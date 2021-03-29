@@ -623,9 +623,10 @@ export class webSerial {
     }
 
     async onPortSelected(port) {
-        try {await port.open({ baudRate: 115200, bufferSize: 512 }); }
-        catch (err) { await port.open({ baudrate: 115200, buffersize: 512 }); }
+        try {await port.open({ baudRate: 115200, bufferSize: 200 }); }
+        catch (err) { await port.open({ baudrate: 115200, buffersize: 200 }); }
         this.onConnectedCallback();
+        this.subscribed = true;
         this.subscribe(port);
     }
 
@@ -667,7 +668,7 @@ export class webSerial {
 						//console.log(this.decoder.decode(value));
 					}
 					if(this.subscribed === true) {
-						setTimeout(()=>{streamData();}, 20);
+						setTimeout(()=>{streamData();}, 10);
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
