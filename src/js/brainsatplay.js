@@ -1728,16 +1728,27 @@ class dataAtlas {
 	getLatestFFTData() {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
-			let row = this.getEEGDataByTag(r.tag);
-			let lastIndex = row.fftCount - 1;
-			dat.push({
-                tag:row.tag,
-				fftCount:row.fftCount,
-				time: row.fftTimes[lastIndex],
-				fft: row.ffts[lastIndex],
-				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
-				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
-			});
+			if(r.analyze === true) {
+				let row = this.getEEGDataByTag(r.tag);
+				if(row.fftCount === 0) {
+					dat.push({
+						tag:row.tag,
+						fftCount:row.fftCount
+					});
+				}
+				else {
+					console.log(row);
+					let lastIndex = row.fftCount - 1;
+					dat.push({
+						tag:row.tag,
+						fftCount:row.fftCount,
+						time: row.fftTimes[lastIndex],
+						fft: row.ffts[lastIndex],
+						slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
+						mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
+					});
+				}
+			}
 		});
 		return dat;
 	}

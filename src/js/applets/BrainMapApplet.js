@@ -57,8 +57,8 @@ export class BrainMapApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             document.getElementById(props.id+'bandview').onchange = () => {
-            this.setBrainMap();
-        };
+                this.setBrainMap();
+            };
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -136,7 +136,7 @@ export class BrainMapApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.info.nDevices > 0) {
+            if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) {
                 this.onUpdate();
             }
             setTimeout(()=>{ this.loop = requestAnimationFrame(this.updateLoop); },16);
