@@ -21,7 +21,6 @@ let bcisession = new brainsatplay('guest','','game');
 
 
 let connectHTML = `
-	<button id='connect'>Connect Device</button>
     <button id='server'>Connect to Server</button>
     <button id='ping'>Send Ping</button>
 	<button id='getusers'>Get Users</button>
@@ -38,20 +37,14 @@ let ui = new DOMFragment(
 	undefined,
 	() => {
 
-		let onconnected = () => {
-			console.log("connected");
+		bcisession.makeConnectOptions();
 
-			//subscribe after connecting or the device atlas won't be available
-            //bcisession.subscribe('muse','AF7',undefined, (newData) => {
-			
-		}
-
-		document.getElementById('connect').onclick = () => {
-			if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,undefined,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
-			else bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected);
-			// if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
-			// else bcisession.connect('muse',['eegcoherence']);
-		}
+		// document.getElementById('connect').onclick = () => {
+		// 	if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,undefined,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
+		// 	else bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected);
+		// 	// if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
+		// 	// else bcisession.connect('muse',['eegcoherence']);
+		// }
 		document.getElementById('server').onclick = () => {
 			bcisession.login(true);
 			//console.log(bcisession.socket.url);
@@ -70,7 +63,9 @@ let ui = new DOMFragment(
 			bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
 		}
 		document.getElementById('subscribeToSelf').onclick = () => {
-			bcisession.subscribeToUser('guest',['eegch_FP1','eegch_FP2'],(res)=>{console.log("subscribed!", res)});
+			bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all']]);
+			//bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
+			bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2']],(res)=>{console.log("subscribed!", res)});
             //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
 		}
 	},

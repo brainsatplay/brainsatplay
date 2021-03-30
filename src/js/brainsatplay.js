@@ -186,6 +186,38 @@ export class brainsatplay {
 		this.info.nDevices--;
 	}
 
+	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
+		let id = Math.floor(Math.random()*10000)+"connect";
+		let html = `<select id='`+id+`select'>`;
+		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduino'];
+		deviceOptions.forEach((o,i) => {
+			if(i === 0) {
+                html += `<option value='`+o+`' selected='selected'>`+o+`</option>`
+			} else {
+				html+= `<option value='`+o+`'>`+o+`</option>`;
+			}
+		});
+		html += `</select><button id='`+id+`connect'>Connect</button>`;
+
+		parentNode.insertAdjacentHTML('afterbegin',html);
+
+		document.getElementById(id+"connect").onclick = () => {
+			let val = document.getElementById(id+"select").value;
+			if(val === 'muse') {
+				this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
+			}
+			else if (val === 'freeeeg32_2') {
+				this.connect('freeeeg32_2',['eegcoherence'],onconnect,ondisconnect);
+			}
+			else if (val === 'freeeeg32_19') {
+				this.connect('freeeeg32_19',['eegcoherence'],onconnect,ondisconnect);
+			}
+			else if (val === 'hegduino') {
+				this.connect('hegduino',[],onconnect,ondisconnect);
+			}
+		}
+	}
+
 	beginStream(deviceIdx=0,streamParams=null) {
 		if(this.devices[deviceIdx].info.streaming ) {
 			this.devices[deviceIdx].info.streaming = true;
@@ -561,8 +593,9 @@ export class brainsatplay {
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getUserData',username]}));
 			userProps.forEach((prop) => {
-				if(typeof prop === 'object') prop.join("_"); //if props are given like ['eegch','FP1']
-				this.state[username+"_"+prop] = null; //dummy values so you can attach listeners to expected outputs
+				let p = prop;
+				if(Array.isArray(p)) p = prop.join("_"); //if props are given like ['eegch','FP1']
+				this.state.data[username+"_"+p] = null; //dummy values so you can attach listeners to expected outputs
 			});
 			//wait for result, if user found then add the user
 			let sub = this.state.subscribe('commandResult',(newResult) => {
@@ -604,7 +637,7 @@ export class brainsatplay {
 							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating]}));
 							newResult.gameInfo.usernames.forEach((user) => {
 								newResult.gameInfo.propnames.forEach((prop) => {
-									this.state[appname+"_"+user+"_"+prop] = null;
+									this.state.data[appname+"_"+user+"_"+prop] = null;
 								});
 							});
 							onsuccess(newResult);
