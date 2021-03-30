@@ -507,7 +507,6 @@ export class brainsatplay {
 			 if (prop !== 'msg' && prop !== 'username') 
 				this.state.data[parsed.username+"_"+prop] = parsed[prop]; 
 			}
-			
 		}
 		else if (parsed.msg === 'gameData') {
 			this.state.data[parsed.appname+"_userData"] = parsed.userData;
@@ -706,6 +705,7 @@ export class brainsatplay {
 					let deviceParams = [];
 					params.forEach((p,k) => {
 						if(p[0].indexOf(o.info.deviceType) > -1) { //stream parameters should have the device type specified (in case multiple devices are involved)
+							if(name === 'muse')
 							deviceParams.push(p);
 						}
 					});
@@ -1376,10 +1376,10 @@ class dataAtlas {
 		this.rolloverLimit = 30000; //Max samples allowed in arrays before rollover kicks in
 
         if(config === '10_20') {
-            this.data.eeg = this.gen10_20Atlas();
+            this.data.eeg = this.gen10_20Atlas();//this.genBigAtlas();//
         }
 		else if (config === 'muse') {
-			this.data.eeg = this.genMuseAtlas();
+			this.data.eeg = this.genMuseAtlas();// this.genBigAtlas();
 		}
 		else if (config === 'big') {
 			this.data.eeg = this.genBigAtlas();
@@ -1461,16 +1461,17 @@ class dataAtlas {
 		function mid(arr1,arr2) { //midpoint
 			let midpoint = [];
 			arr1.forEach((el,i) => {
-				midpoint.push(0.5*(el*arr2[i]));
-			})
+				midpoint.push(0.5*(el+arr2[i]));
+			});
+			console.log(midpoint)
 			return midpoint;
 		}
 
 		let tags = ['FPZ','AF7','AF8','TP9','TP10'];
 		let coords = [
 			[0.6,40.9,53.9],
-			[mid(c[0],c[2])], //estimated
-			[mid(c[1],c[3])], //estimated
+			mid(c[0],c[2]), //estimated
+			mid(c[1],c[3]), //estimated
 			[-80.2,-31.3,-10.7], //estimated
 			[81.9,-34.2,-8.2] //estimated
 		];
@@ -1585,6 +1586,8 @@ class dataAtlas {
 		for(const prop in eegCoordinates) {
 			eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
 		}
+
+		return eegmap;
 	}
 
 	genCoherenceStruct(tag0,tag1,coord0,coord1) {
