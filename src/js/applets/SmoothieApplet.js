@@ -126,10 +126,10 @@ export class SmoothieApplet {
     responsive() {
       if(this.bci.atlas.settings.eeg) {
         addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+        this.setLegend();
       }
         this.class.canvas.style.height = this.AppletHTML.node.style.height;
         this.class.canvas.style.width = this.AppletHTML.node.style.width;
-  
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
