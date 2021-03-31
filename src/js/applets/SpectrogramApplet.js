@@ -106,20 +106,22 @@ export class SpectrogramApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         let a = this.bci.atlas.data;
-        if(document.getElementById(this.props.id+"mode").value === "FFT"){
-            addChannelOptions(this.props.id+"channel",a.eegshared.eegChannelTags);
-          }
-          else if(document.getElementById(this.props.id+"mode").value === "Coherence"){
-            addCoherenceOptions(this.props.id+"channel",a.coherence);
+        if(this.bci.atlas.settings.eeg) {
+            if(document.getElementById(this.props.id+"mode").value === "FFT"){
+                addChannelOptions(this.props.id+"channel",a.eegshared.eegChannelTags);
+            }
+            else if(document.getElementById(this.props.id+"mode").value === "Coherence"){
+                addCoherenceOptions(this.props.id+"channel",a.coherence);
+            }
         }
+            this.class.canvas.style.width = this.AppletHTML.node.style.width;
+            this.class.canvas.style.height = this.AppletHTML.node.style.height;
+        
+            this.class.canvas.width = Math.floor(this.AppletHTML.node.clientWidth);
+            this.class.canvas.height = Math.floor(this.AppletHTML.node.clientHeight*4);
+        
+            this.class.init();
 
-        this.class.canvas.style.width = this.AppletHTML.node.style.width;
-        this.class.canvas.style.height = this.AppletHTML.node.style.height;
-      
-        this.class.canvas.width = Math.floor(this.AppletHTML.node.clientWidth);
-        this.class.canvas.height = Math.floor(this.AppletHTML.node.clientHeight*4);
-    
-        this.class.init();
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -134,8 +136,8 @@ export class SpectrogramApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) {
-                this.onUpdate();
+            if(this.bci.atlas.settings.eeg){
+                if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(() => {this.loop = requestAnimationFrame(this.updateLoop),16});
         }

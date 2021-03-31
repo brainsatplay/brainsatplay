@@ -45,40 +45,40 @@ export class hegduino {
     }
 
     sendCommand(command='') {
-        if(mode === 'usb' || mode === 'serial') {
+        if(this.mode === 'usb' || this.mode === 'serial') {
             if(navigator.serial) this.interface.sendMessageAsync(command);
             else this.interface.sendMessage(command);
         }
-        else if(mode === 'ble' || mode === 'bt') {
+        else if(this.mode === 'ble' || this.mode === 'bt') {
             this.interface.sendMessage(command);
         }
-        else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
+        else if(this.mode === 'wifi' || this.mode === 'events' || this.mode === 'sse') {
             this.interface.sendCommand(command);
         }
     }
 
     connect(path) { //chrome serial requires a path be specified (e.g. 'COM3')
-        if(mode === 'usb' || mode === 'serial') {
-            if(navigator.serial) this.device.setupSerialAsync();
+        if(this.mode === 'usb' || this.mode === 'serial') {
+            if(navigator.serial) this.interface.setupSerialAsync();
             else  this.interface.connectSelected(true,path);
         }
-        else if(mode === 'ble' || mode === 'bt') {
+        else if(this.mode === 'ble' || this.mode === 'bt') {
             this.interface.initBLE();
         }
-        else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
+        else if(this.mode === 'wifi' || this.mode === 'events' || this.mode === 'sse') {
             this.interface.open();
         }
     }
 
     disconnect() {
-        if(mode === 'usb' || mode === 'serial') {
+        if(this.mode === 'usb' || this.mode === 'serial') {
             if(navigator.serial) this.interface.closePort();
             else  this.interface.connectSelected(false);
         }
-        else if(mode === 'ble' || mode === 'bt') {
+        else if(this.mode === 'ble' || this.mode === 'bt') {
             this.interface.disconnect();
         }
-        else if(mode === 'wifi' || mode === 'events' || mode === 'sse') {
+        else if(this.mode === 'wifi' || this.mode === 'events' || this.mode === 'sse') {
             this.interface.close();
         }
     }
@@ -643,7 +643,7 @@ export class webSerial {
                 this.monitorData.push(line);
             }
             this.onReadLine(line);
-            this.encodedBuffer = line;
+            this.encodedBuffer = this.encodedBuffer.substr(index + 1);
         }
     }
 

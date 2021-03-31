@@ -100,6 +100,7 @@ export class BrainMapApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+        
         var brainmapcanvas = document.getElementById(this.props.id+'canvas');
         var brainpointscanvas = document.getElementById(this.props.id+'points');
         brainmapcanvas.style.height = this.AppletHTML.node.style.height;
@@ -113,15 +114,16 @@ export class BrainMapApplet {
         
         this.class.scale = this.AppletHTML.node.clientHeight*.5*0.01*.8;
 
-        this.class.genHeatMap();
-        this.class.points = [];
-        this.bci.atlas.data.eeg.forEach((row,i) => {
-            this.class.points.push({x:row.position.x*this.class.scale+this.class.pointsCanvas.width*.5, y: this.class.pointsCanvas.height*.5-row.position.y*this.class.scale, size:90*this.class.scale, intensity:0.8});
-        });
+        if(this.bci.atlas.settings.eeg === true){
+            this.class.genHeatMap();
+            this.class.points = [];
+            this.bci.atlas.data.eeg.forEach((row,i) => {
+                this.class.points.push({x:row.position.x*this.class.scale+this.class.pointsCanvas.width*.5, y: this.class.pointsCanvas.height*.5-row.position.y*this.class.scale, size:90*this.class.scale, intensity:0.8});
+            });
 
-        this.class.updateHeatmap();
-        this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
-
+            this.class.updateHeatmap();
+            this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -136,8 +138,8 @@ export class BrainMapApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) {
-                this.onUpdate();
+            if(this.bci.atlas.settings.eeg === true){
+                if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(()=>{ this.loop = requestAnimationFrame(this.updateLoop); },16);
         }

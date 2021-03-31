@@ -124,9 +124,12 @@ export class SmoothieApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+      if(this.bci.atlas.settings.eeg) {
         addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+      }
         this.class.canvas.style.height = this.AppletHTML.node.style.height;
         this.class.canvas.style.width = this.AppletHTML.node.style.width;
+  
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -150,8 +153,8 @@ export class SmoothieApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0){
-                this.onUpdate();
+            if(this.bci.atlas.settings.eeg){
+              if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
         }

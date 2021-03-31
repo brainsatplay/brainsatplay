@@ -151,10 +151,10 @@ export class brainsatplay {
 			this.devices[i].ondisconnect = () => {
 				ondisconnect();
 				this.ondisconnected();
-				if(Array.isArray(this.devices[i].analysis) && this.devices[i].analysis.length > 0) {
-					this.devices[i].analyzing = false; //cancel analysis loop
+				if(Array.isArray(this.devices[i].info.analysis) && this.devices[i].info.analysis.length > 0) {
+					this.devices[i].info.analyzing = false; //cancel analysis loop
 				}
-				this.devices[i].streaming = false; //cancel stream loop
+				this.devices[i].info.streaming = false; //cancel stream loop
 				this.devices.splice(i,1);
 			}
 
@@ -189,7 +189,7 @@ export class brainsatplay {
 	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"connect";
 		let html = `<select id='`+id+`select'>`;
-		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduino'];
+		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduinousb','hegduinobt'];//,'hegduinowifi'];
 		deviceOptions.forEach((o,i) => {
 			if(i === 0) {
                 html += `<option value='`+o+`' selected='selected'>`+o+`</option>`
@@ -212,8 +212,14 @@ export class brainsatplay {
 			else if (val === 'freeeeg32_19') {
 				this.connect('freeeeg32_19',['eegcoherence'],onconnect,ondisconnect);
 			}
-			else if (val === 'hegduino') {
-				this.connect('hegduino',[],onconnect,ondisconnect);
+			else if (val === 'hegduinousb') {
+				this.connect('hegduinousb',[],onconnect,ondisconnect);
+			}
+			else if (val === 'hegduinobt') {
+				this.connect('hegduinobt',[],onconnect,ondisconnect);
+			}
+			else if (val === 'hegduinowifi') {
+				this.connect('hegduinowifi',[],onconnect,ondisconnect);
 			}
 		}
 	}
@@ -250,15 +256,15 @@ export class brainsatplay {
 
 	addAnalysisMode(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if(this.devices.length > 0) {
-			let found = this.atlas.analysis.find((str,i) => {
+			let found = this.atlas.settings.analysis.find((str,i) => {
 				if(name === str) {
 					return true;
 				}
 			});
 			if(found === undefined) {
-				this.atlas.analysis.push(name);
-				if(this.atlas.analyzing === false) {
-					this.atlas.analyzing = true;
+				this.atlas.settings.analysis.push(name);
+				if(this.atlas.settings.analyzing === false) {
+					this.atlas.settings.analyzing = true;
 					this.atlas.analyzer();
 				}
 			}
@@ -268,9 +274,9 @@ export class brainsatplay {
 	stopAnalysis(name='') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if(this.devices.length > 0) {
 			if(name !== '' && typeof name === 'string') {
-				let found = this.atlas.analysis.find((str,i) => {
+				let found = this.atlas.settings.analysis.find((str,i) => {
 					if(name === str) {
-						this.atlas.analysis.splice(i,1);
+						this.atlas.settings.analysis.splice(i,1);
 						return true;
 					}
 				});
@@ -362,7 +368,7 @@ export class brainsatplay {
 				return true;
 			}
 		});
-		if(!found) device.analysis.push(mode);
+		if(!found) device.info.analysis.push(mode);
 		if(!device.atlas.analyzing) {
 			device.atlas.analyzing = true;
 			device.atlas.analyzer();
@@ -424,6 +430,8 @@ export class brainsatplay {
 			}
 		});
 	}
+
+
 
 	//Server login and socket initialization
 	async login(beginStream=false, dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
@@ -936,58 +944,61 @@ class deviceStream {
 			this.info.sps = Math.floor(2048/3);
 			this.info.deviceType = 'heg';
 			let ondata = (newline) => {
-				if(coord.indexOf("|") > -1) {
+				if(newline.indexOf("|") > -1) {
 					let data = newline.split("|");
-					let coord = this.atlas.getDeviceDataByTag('heg',this.deviceNum);
-					coord.count++;
-					if(coord.count === 1) { coord.startTime = Date.now(); }
-					if(this.device.mode === 'ble' && this.device.interface.android === true) {
-						coord.times.push(Date.now());
-						coord.red.push(parseFloat(data[0]));
-						coord.ir.push(parseFloat(data[1]));
-						coord.ratio.push(parseFloat(data[2]));
-					} else { 
-						coord.times.push(Date.now()); //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
-						coord.red.push(parseFloat(data[1]));
-						coord.ir.push(parseFloat(data[2]));
-						coord.ratio.push(parseFloat(data[3]));
-						coord.ambient.push(parseFloat(data[4]));
-						//ignore the rest for now
+					console.log(data);
+					if(data.length > 3) {
+						let coord = this.atlas.data.heg[this.info.deviceNum];
+						coord.count++;
+						if(coord.count === 1) { coord.startTime = Date.now(); }
+						if(this.device.mode === 'ble' && this.device.interface.android === true) {
+							coord.times.push(Date.now());
+							coord.red.push(parseFloat(data[0]));
+							coord.ir.push(parseFloat(data[1]));
+							coord.ratio.push(parseFloat(data[2]));
+						} else { 
+							coord.times.push(Date.now()); //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
+							coord.red.push(parseFloat(data[1]));
+							coord.ir.push(parseFloat(data[2]));
+							coord.ratio.push(parseFloat(data[3]));
+							coord.ambient.push(parseFloat(data[4]));
+							//ignore the rest for now
+						}
 					}
 				} else {console.log("HEGDUINO: ", newline); }
 			}
 			if(device === 'hegduinowifi' || device === 'hegduinosse') {
 				this.device = new hegduino('wifi',ondata,
 				()=>{
-					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.analyzing = true;
+					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.settings.analyzing = true;
 						setTimeout(() => {this.atlas.analyzer();},1200);		
 					}
 					this.onconnect();
 				},
-				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
+				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
 			}
 			else if (device === 'hegduinobt' || device === 'hegduinoble') {
 				this.device= new hegduino('ble',ondata,
 				()=>{
-					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.analyzing = true;
+					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.settings.analyzing = true;
 						setTimeout(() => {this.atlas.analyzer();},1200);		
 					}
 					this.onconnect();
 				},
-				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
+				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
 			}
 			else if (device === 'hegduinoserial' || device === 'hegduinousb') {
 				this.device= new hegduino('usb',ondata,
 				()=>{
-					if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.analyzing = true;
+					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+						this.atlas.settings.analyzing = true;
 						setTimeout(() => {this.atlas.analyzer();},1200);		
 					}
 					this.onconnect();
 				},
-				()=>{ this.atlas.analyzing = false; this.ondisconnect();});
+				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
 			}
 
 		}
@@ -1007,7 +1018,7 @@ class deviceStream {
 			let config;
 			if(device === 'muse') { config = 'muse'; }
 			else if(device.indexOf('freeeeg32') > -1) {	config = '10_20'; }
-			else if(device.indexOf('hegduino') > -1) { config = 'hegduino'; }
+			else if(device.indexOf('hegduino') > -1) { config = 'hegduino';}
 			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) { config = 'eyetracker'; }
 			this.atlas = new dataAtlas(
 				location+":"+device,
@@ -1015,19 +1026,22 @@ class deviceStream {
 				config,true,true,
 				analysis
 				);
+
+			if(device.indexOf('hegduino') > -1) { this.info.deviceNum = this.atlas.data.heg.length-1; }
+			if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.info.deviceNum = this.atlas.data.eyetracker.length-1;}
 			this.info.useAtlas = true;
 			this.configureDefaultStreamTable();
 		} else if (typeof pipeToAtlas === 'object') {
 			this.atlas = pipeToAtlas; //External atlas reference
-			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); }
-			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); }
-			else if(device.indexOf('hegduino') > -1) { this.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); }
-			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); }
+			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); this.atlas.settings.eeg = true;}
+			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); this.atlas.settings.eeg = true;}
+			else if(device.indexOf('hegduino') > -1) { this.info.info.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); this.atlas.settings.heg = true;}
+			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.info.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); this.atlas.settings.eyetracker = true;}
 			this.info.useAtlas = true;
 			if(this.atlas.analyzing === false && analysis.length > 0 ) {
-				this.atlas.analysis.push(...analysis);
+				this.atlas.settings.analysis.push(...analysis);
 				this.configureDefaultStreamTable();
-				this.atlas.analyzing = true;
+				this.atlas.settings.analyzing = true;
 				this.atlas.analyzer();
 			}
 		}
@@ -1093,7 +1107,7 @@ class deviceStream {
 				let x = data.x;
 				let y = data.y;
 				if(this.info.useAtlas === true) {
-					let o = this.atlas.data.eyetracker[this.deviceNum];
+					let o = this.atlas.data.eyetracker[this.info.deviceNum];
 					if(o.times.length === 0) { o.startTime = Date.now(); }
 					o.times.push(Date.now());
 					o.x.push(data.x);
@@ -1352,6 +1366,20 @@ class dataAtlas {
 	) {
         this.name = name;
 		this.config = config; 
+		this.settings = { //Denotes active 
+			analyzing: false,
+			analysis: analysis, // ['eegfft']
+			heg:false,
+			eeg:false,
+			coherence:false,
+			eyetracker:false,
+			accelerometer:false,
+			hrv:false,
+			fnirs:false,
+			ecg:false,
+			spo2:false,
+			emg:false
+		};
 
         this.data = {
 			eegshared:{
@@ -1376,22 +1404,31 @@ class dataAtlas {
 		this.rolloverLimit = 30000; //Max samples allowed in arrays before rollover kicks in
 
         if(config === '10_20') {
+			
+			this.settings.eeg = true;
             this.data.eeg = this.gen10_20Atlas();//this.genBigAtlas();//
         }
 		else if (config === 'muse') {
+			
+			this.settings.eeg = true;
 			this.data.eeg = this.genMuseAtlas();// this.genBigAtlas();
 		}
 		else if (config === 'big') {
+			
+			this.settings.eeg = true;
 			this.data.eeg = this.genBigAtlas();
 		}
 		else if (config === 'hegduino') {
 			this.addHEGCoord(this.data.heg.length,0,60,60);
+			this.settings.heg = true;
 		}
 		else if (config === 'eyetracker') {
+			this.settings.eyetracker = true;
 			this.addEyeTracker(this.data.eyetracker.length);
 		}
 
         if(useCoherence === true) {
+			this.settings.coherence = true;
             this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
 			//console.log(this.data.coherence);
         }
@@ -1410,8 +1447,6 @@ class dataAtlas {
 			//console.log(this.data.eegshared.bandFreqs)
 		}
 		
-		this.analyzing = false;
-		this.analysis = analysis; // ['eegfft']
 		this.analyzerOpts = []; //'eegfft','eegcoherence','bcijs_bandpower','bcijs_pca','heg_pulse'
 		this.analyzerFuncs = [];
 		this.workerPostTime = 0;
@@ -1632,7 +1667,7 @@ class dataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0, startTime:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -1640,7 +1675,7 @@ class dataAtlas {
 	}
 
 	genFNIRSStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],red:[],ir:[],ir2:[],ambient:[],lastRead:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ir2:[],ambient:[],lastRead:0}
 	}
 
 	addFNIRSCoord(tag="banana1",x,y,z) {
@@ -1648,7 +1683,7 @@ class dataAtlas {
 	}
 
 	genAccelerometerStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[],lastRead:0, startTime:0};
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],Ax:[],Ay:[],Az:[],Gx:[],Gy:[],Gz:[],lastRead:0, startTime:0};
 	}
 
 	addAccelerometerCoord(tag="accel1",x,y,z){
@@ -1656,7 +1691,7 @@ class dataAtlas {
 	}
 
 	genHRVStruct(tag){
-		return {tag:tag, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0, startTime:0};
+		return {tag:tag, count:0, times:[], raw:[], filtered:[], bpm:[], hrv:[],lastRead:0, startTime:0};
 	}
 
 	addHRV(tag="hrv1") {
@@ -1664,7 +1699,7 @@ class dataAtlas {
 	}
 
 	genEyeTrackerStruct(tag) {
-		return {tag:tag, times:[], x:[], y:[], smax:[], smay:[], lastRead:0, startTime:0};
+		return {tag:tag, count:0, times:[], x:[], y:[], smax:[], smay:[], lastRead:0, startTime:0};
 	}
 
 	addEyeTracker(tag="eyes") {
@@ -1981,7 +2016,7 @@ class dataAtlas {
 				}
 			}
 		}
-		if(this.analyzing === true) { this.workerPostTime = syncTime; }
+		if(this.settings.analyzing === true) { this.workerPostTime = syncTime; }
 		return buffer;
 	} 
 
@@ -2201,8 +2236,8 @@ class dataAtlas {
 
 	analyzer = () => { //Make this stop when streaming stops
 		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
-		if(this.analyzing === true) {
-			this.analysis.forEach((run,i) => {
+		if(this.settings.analyzing === true) {
+			this.settings.analysis.forEach((run,i) => {
 				this.analyzerOpts.forEach((opt,j) => {
 					if(opt === run) {					
 						this.analyzerFuncs[j]();
