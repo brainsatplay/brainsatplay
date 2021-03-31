@@ -281,7 +281,7 @@ export class brainsatplay {
 					}
 				});
 			} else {
-				this.atlas.analyzing = false;
+				this.atlas.settings.analyzing = false;
 			}
 		} else {console.error("no devices connected")}
 	}
@@ -369,8 +369,8 @@ export class brainsatplay {
 			}
 		});
 		if(!found) device.info.analysis.push(mode);
-		if(!device.atlas.analyzing) {
-			device.atlas.analyzing = true;
+		if(!device.atlas.settings.analyzing) {
+			device.atlas.settings.analyzing = true;
 			device.atlas.analyzer();
 		}
 	}
@@ -897,15 +897,15 @@ class deviceStream {
 				()=>{	
 					if(this.info.useAtlas === true){			
 						this.atlas.data.eegshared.startTime = Date.now();
-						if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-							this.atlas.analyzing = true;
+						if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+							this.atlas.settings.analyzing = true;
 							setTimeout(() => {this.atlas.analyzer();},1200);		
 						}
 						this.onconnect();
 					}
 				},
 				()=>{
-					this.atlas.analyzing = false;
+					this.atlas.settings.analyzing = false;
 					this.ondisconnect();
 				}
 			);
@@ -1048,7 +1048,7 @@ class deviceStream {
 			else if(device.indexOf('hegduino') > -1) { this.info.info.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); this.atlas.settings.heg = true;}
 			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.info.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); this.atlas.settings.eyetracker = true;}
 			this.info.useAtlas = true;
-			if(this.atlas.analyzing === false && analysis.length > 0 ) {
+			if(this.atlas.settings.analyzing === false && analysis.length > 0 ) {
 				this.atlas.settings.analysis.push(...analysis);
 				this.configureDefaultStreamTable();
 				this.atlas.settings.analyzing = true;
@@ -1078,8 +1078,8 @@ class deviceStream {
 					coord.raw.push(...o.samples);
 					coord.count += o.samples.length;
 					let latestFiltered = new Array(o.samples.length).fill(0);
-					if(this.info.useFilters !== undefined) {
-						if(this.filters[o.electrode] ) {
+					if(this.info.useFilters === true) {
+						if(this.filters[o.electrode] !== undefined) {
 							o.samples.forEach((sample,k) => { 
 								latestFiltered[k] = this.filters[o.electrode].apply(sample); 
 							});
@@ -1095,8 +1095,8 @@ class deviceStream {
 			// });
 			// this.device.accelerometerData.subscribe(accel => {
 			// });
-			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.analyzing = true;
+			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.settings.analyzing = true;
 				setTimeout(() => {this.atlas.analyzer();},1200);		
 			}
 			
@@ -1109,8 +1109,8 @@ class deviceStream {
 		}
 		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
 			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
-			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.analyzing = true;
+			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.settings.analyzing = true;
 				setTimeout(() => {this.atlas.analyzer();},1200);		
 			}
 			this.onconnect();
@@ -1147,8 +1147,8 @@ class deviceStream {
 			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
 			this.addedDeviceConnect[idx]();
 
-			if(this.atlas.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.analyzing = true;
+			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+				this.atlas.settings.analyzing = true;
 				setTimeout(() => {this.atlas.analyzer();},1200);		
 			}
 			this.onconnect();
