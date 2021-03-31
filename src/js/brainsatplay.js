@@ -1082,7 +1082,7 @@ class deviceStream {
 					if(this.info.useFilters !== undefined) {
 						if(this.filters[o.electrode] ) {
 							o.samples.forEach((sample,k) => { 
-								latestFiltered[k] = f.apply(sample); 
+								latestFiltered[k] = this.filters[o.electrode].apply(sample); 
 							});
 						}
 						coord.filtered.push(...latestFiltered);
