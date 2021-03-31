@@ -927,9 +927,8 @@ class deviceStream {
 				{ch: 0, tag: "TP9", analyze:true},
 				{ch: 1, tag: "AF7", analyze:true},
 				{ch: 2, tag: "AF8", analyze:true},
-				{ch: 3, tag: "TP10", analyze:true},
-				{ch: 4, tag: "other", analyze: false}
-			];
+				{ch: 3, tag: "TP10", analyze:true}
+			]; // {ch: 4, tag: "other", analyze: false}
 			this.device = new MuseClient();
 
 			if(useFilters === true) {
@@ -1522,9 +1521,8 @@ class dataAtlas {
 			return midpoint;
 		}
 
-		let tags = ['FPZ','AF7','AF8','TP9','TP10'];
+		let tags = ['AF7','AF8','TP9','TP10'];
 		let coords = [
-			[0.6,40.9,53.9],
 			mid(c[0],c[2]), //estimated
 			mid(c[1],c[3]), //estimated
 			[-80.2,-31.3,-10.7], //estimated
