@@ -1100,7 +1100,7 @@ class deviceStream {
 				setTimeout(() => {this.atlas.analyzer();},1200);		
 			}
 			
-			this.device.gatt.addEventListener('gattserverdisconnected', () => {
+			this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
 				this.atlas.analyzing = false;
 				this.ondisconnect();
 			});
