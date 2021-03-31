@@ -713,7 +713,6 @@ export class brainsatplay {
 					let deviceParams = [];
 					params.forEach((p,k) => {
 						if(p[0].indexOf(o.info.deviceType) > -1) { //stream parameters should have the device type specified (in case multiple devices are involved)
-							if(name === 'muse')
 							deviceParams.push(p);
 						}
 					});
