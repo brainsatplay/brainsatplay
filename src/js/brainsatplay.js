@@ -1178,8 +1178,9 @@ class deviceStream {
 				else {
 					coord = this.atlas.getEEGDataByTag(channel);
 				}
-				if(coord !== false) { 
+				if(coord !== undefined) { 
 					if(get === 'all') {
+						if(coord.count === 0) return undefined;
 						get = coord.count-coord.lastRead;
 						coord.lastRead = coord.count; //tracks count of last reading for keeping up to date
 						if(get === 0) return undefined;
@@ -1194,6 +1195,12 @@ class deviceStream {
 						let samples = coord.raw.slice(coord.raw.length - get,coord.raw.length);
 						return {times:times, samples:samples};
 					}
+					else {
+						return undefined;
+					}
+				}
+				else {
+					return undefined;
 				}
 			}
 		}
@@ -1208,8 +1215,9 @@ class deviceStream {
 				else {
 					coord = this.atlas.getEEGDataByTag(channel);
 				}
-				if(coord !== false) {
+				if(coord !== undefined) {
 					if(get === 'all') {
+						if(coord.fftCount === 0) return undefined;
 						get = coord.fftCount-coord.lastReadFFT;
 						coord.lastReadFFT = coord.fftCount;
 						if(get === 0) return undefined;
@@ -1217,6 +1225,9 @@ class deviceStream {
 					let fftTimes = coord.fftTimes.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
 					return {times:fftTimes, ffts:ffts};
+				}
+				else {
+					return undefined;
 				}
 			}
 		}
@@ -1226,14 +1237,18 @@ class deviceStream {
 			if(this.info.useAtlas === true) {
 				let coord = this.atlas.getCoherenceByTag(tag);
 				if(get === 'all') {
+					if(coord.fftCount === 0) return undefined;
 					get = coord.fftCount-coord.lastRead;
 					coord.lastRead = coord.fftCount;
 					if(get === 0) return undefined;
 				}
-				if(coord !== false) {
+				if(coord !== undefined) {
 					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
 					return {times:cohTimes, ffts:ffts};
+				}
+				else {
+					return undefined;
 				}
 			}
 		}
@@ -1247,7 +1262,7 @@ class deviceStream {
 					coord.lastRead = coord.count;
 					if(get <= 0) return undefined;
 				}
-				if(coord !== false) {
+				if(coord !== undefined) {
 					if(prop !== null) {
 						let times = coord.times.slice(coord.times.length - get, coord.times.length);
 						let data = coord[prop].slice(coord.ffts.length - get,coord.ffts.length);
@@ -1255,6 +1270,9 @@ class deviceStream {
 						return obj;
 					}
 					else return coord;
+				}
+				else {
+					return undefined;
 				}
 			}
 		}
