@@ -931,6 +931,17 @@ class deviceStream {
 				{ch: 4, tag: "other", analyze: false}
 			];
 			this.device = new MuseClient();
+
+			if(useFilters === true) {
+				this.info.eegChannelTags.forEach((row,i) => {
+					if(row.tag !== 'other') {
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,1));
+					}
+					else { 
+						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,1)); 
+					}
+				});
+			}
 		}
 		else if(device === "cyton") {
 			this.info.sps = 256;
@@ -1066,7 +1077,16 @@ class deviceStream {
 					let coord = this.atlas.getEEGDataByChannel(o.electrode);
 					coord.times.push(...time);
 					coord.raw.push(...o.samples);
-					coord.count += o.samples.length
+					coord.count += o.samples.length;
+					let latestFiltered = new Array(o.samples.length).fill(0);
+					if(this.info.useFilters !== undefined) {
+						if(this.filters[o.electrode] ) {
+							o.samples.forEach((sample,k) => { 
+								latestFiltered[k] = f.apply(sample); 
+							});
+						}
+						coord.filtered.push(...latestFiltered);
+					}
 				}
 			});
 
