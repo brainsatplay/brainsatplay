@@ -11,7 +11,7 @@ export function page_template(props={}){
 }
 export function topbar_template(props={}){
     return `
-    <div id="topbar" style="display: flex; align-items: center; justify-content: center; height: 100px;">
+    <div id="topbar">
     </div>`;
 }
 export function menu_template(props={}) {
