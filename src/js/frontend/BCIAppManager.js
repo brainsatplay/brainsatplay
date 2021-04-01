@@ -15,7 +15,7 @@ import {
     file_template
 } from './menus/UITemplates'
 
-import {UIManager} from './utils/UIManager'
+import {UIManager} from './utils/AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from './utils/StateManager';
 import { DOMFragment } from './utils/DOMFragment';
