@@ -88,8 +88,15 @@ export class AppletManager {
             });
             var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
             else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
+            
+            this.applets[pos].classinstance.init()
+
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            appletDiv.init();
+            appletDiv.style.flex = '1 0 42%'
+            appletDiv.style.maxHeight = 'calc(50vh - 50px)';
+            appletDiv.style.maxWidth = 'calc(50vw - 50px)';
+
+            
             this.appletsSpawned++;
             this.responsive();
             console.log("applet added");

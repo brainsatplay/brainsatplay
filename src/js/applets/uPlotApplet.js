@@ -82,7 +82,7 @@ export class uPlotApplet {
                     </tr>
                   </table>
                 </div>
-                <div id='`+props.id+`canvas' height='100%' width='100%' style='z-index:3; top:50px height:100%; width:100%;'></div>
+                <div id='`+props.id+`canvas' height='100%' width='100%' style='z-index:3; height:100%; width:100%;'></div>
             </div>
             `; //
         }
@@ -224,10 +224,10 @@ export class uPlotApplet {
         } 
       }
 
-      this.setPlotDims();
+      this.setPlotDims(); 
       this.setuPlot();
 
-      this.start();
+      if(!this.looping) this.start();
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -254,9 +254,10 @@ export class uPlotApplet {
     }
 
     setPlotDims = () => {
-      console.log(this.AppletHTML.node.clientHeight)
-      this.plotWidth = this.AppletHTML.node.clientWidth ;
-      this.plotHeight = this.AppletHTML.node.clientHeight - 30;
+      //debugger;
+      console.log(this.AppletHTML.node.clientWidth)
+      this.plotWidth = this.AppletHTML.node.clientWidth;
+      this.plotHeight = this.AppletHTML.node.clientHeight;
     }
 
     updateLoop = () => {
