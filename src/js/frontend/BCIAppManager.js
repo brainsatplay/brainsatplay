@@ -86,7 +86,7 @@ export class BCIAppManager {
 
 
 
-        let ui = new DOMFragment(
+        this.uiFragments.Buttons = new DOMFragment(
         connectHTML,
         document.body,
         undefined,
