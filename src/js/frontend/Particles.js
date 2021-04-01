@@ -383,7 +383,7 @@ export class Boids {
             if(idx <= this.renderer.particles.length){
               this.particleClass.particles[idx].vx += this.boidsVel[idx][0]*this.frameRate*this.boidsMul;
               this.particleClass.particles[idx].vy += this.boidsVel[idx][1]*this.frameRate*this.boidsMul;
-              if(this.animationId === null) this.particleClass.updateParticle(idx);
+              if(this.particleClass.animationId !== null) this.particleClass.updateParticle(idx);
               //console.log(this.renderer.particles[idx].vx)
             }
             this.boidsPos[idx][0] = this.particleClass.particles[idx].x;
