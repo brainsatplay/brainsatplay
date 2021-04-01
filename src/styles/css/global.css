@@ -29,12 +29,18 @@
     background: rgb(230, 230, 230);
 }
 
+#sidebar button:focus {
+    outline: none;
+    background: rgb(210, 210, 210);
+}
+
 #sidebar-toggle{
     position:absolute;
     z-index: 10;
     top: 0px;
     width: 100px;
     height:100vh;
+    pointer-events: none;
 }
 
 /* Logo */
@@ -64,7 +70,6 @@
     justify-content: center; 
     height: 100px;
     border-bottom: 1px solid rgb(200, 200, 200);
-
 }
 
 #topbar p{
