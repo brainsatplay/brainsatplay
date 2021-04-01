@@ -14,7 +14,7 @@ let applets = [
 	// {name:"uPlot", 			cls: uPlotApplet   },
 	// {name:"Spectrogram",    cls: SpectrogramApplet},
 	{name:"Brain Map",      cls: BrainMapApplet},
-	{name:"Example Applet", cls: AppletExample },
+	{name:"Example Applet", cls: uPlotApplet },
 	{name:"Example Applet", cls: AppletExample },
 	{name:"Example Applet", cls: AppletExample },
 ];

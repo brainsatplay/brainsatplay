@@ -14,6 +14,11 @@ export class AppletManager {
     
         this.appletSelectIds = appletSelectIds;
 
+        
+        document.getElementById('applets').style.display = 'flex'
+        document.getElementById('applets').style.flexWrap = 'wrap'
+        document.getElementById('applets').style.flexGrow = '1'
+
         this.initAddApplets(appletConfigs);
 
         window.addEventListener('resize', ()=>{
@@ -24,10 +29,7 @@ export class AppletManager {
     
         appletSelectIds.forEach((id,i) => {
             this.addAppletOptions(id,i);
-        })
-        document.getElementById('applets').style.display = 'flex'
-        document.getElementById('applets').style.flexWrap = 'wrap'
-        document.getElementById('applets').style.flexGrow = '1'
+        });
     }
 
     initUI = () => {}
@@ -68,7 +70,6 @@ export class AppletManager {
     initApplets = () => {
         this.applets.forEach((applet,i) => {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
-            // applet.classinstance.AppletHTML.node.style.position = "absolute";
         });
         this.responsive();
     }
@@ -165,7 +166,7 @@ export class AppletManager {
         })
     }
 
-    responsive(nodes=this.applets, topoffset=110) {
+    responsive(nodes=this.applets) {
         nodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             appletDiv.style.flex = '1 0 42%'

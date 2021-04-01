@@ -254,8 +254,9 @@ export class uPlotApplet {
     }
 
     setPlotDims = () => {
-      this.plotWidth = this.AppletHTML.node.clientWidth;
-      this.plotHeight = this.AppletHTML.node.clientHeight - 30;
+      console.log(this.AppletHTML.node.clientHeight)
+      this.plotWidth = this.AppletHTML.node.scrollWidth ;
+      this.plotHeight = this.AppletHTML.node.style.height - 30;
     }
 
     updateLoop = () => {
