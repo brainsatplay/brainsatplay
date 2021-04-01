@@ -20,8 +20,8 @@ export class BrainMapApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            width:'400px',
-            height:'400px'
+            width:'300px',
+            height:'300px'
             //Add whatever else
         };
 
@@ -40,8 +40,9 @@ export class BrainMapApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
             <div id='${props.id}' style='width:${props.width}; height:${props.height};'>
+            
+                <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
                 <canvas id='`+props.id+`canvas' width='100%' height='100%' style='position:absolute; width:100x; height:100%; z-index:1; '></canvas>
                 <canvas id='`+props.id+`points' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:2; '></canvas>
             </div>
