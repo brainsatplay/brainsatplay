@@ -1,4 +1,4 @@
-import {StateManager} from './utils/StateManager'
+import {StateManager} from './StateManager'
 
 //Initial state values, some of these will be updated from last saved settings
 //Set General UI settings here
