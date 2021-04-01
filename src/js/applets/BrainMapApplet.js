@@ -42,8 +42,8 @@ export class BrainMapApplet {
             return `
             <div id='`+props.id+`'>
                 <div id='`+props.id+`canvascontainer'>
-                    <canvas id='`+props.id+`canvas' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:1; '></canvas>
-                    <canvas id='`+props.id+`points' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:2; '></canvas>
+                    <canvas id='`+props.id+`canvas' style='position:absolute; z-index:1; '></canvas>
+                    <canvas id='`+props.id+`points'style='position:absolute; z-index:2; '></canvas>
                 </div>
                 <table id='`+props.id+`menu' style='position:absolute; z-index:3; '>
                     <tr><td><h3>Brain Map |</h3></td>
