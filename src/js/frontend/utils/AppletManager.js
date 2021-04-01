@@ -84,8 +84,8 @@ export class AppletManager {
                     return true;
                 }
             });
-            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
-            else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
+            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
+            else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
             
             this.applets[pos].classinstance.init()
             this.applets[pos].classinstance.AppletHTML.node.style.flex = '1 0 42%'

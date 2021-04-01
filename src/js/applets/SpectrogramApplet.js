@@ -114,7 +114,13 @@ export class SpectrogramApplet {
                 addCoherenceOptions(this.props.id+"channel",a.coherence);
             }
         }
-            this.class.init();
+
+        this.class.canvas.width = this.AppletHTML.node.clientWidth*2;
+        this.class.canvas.height = this.AppletHTML.node.clientHeight*5;
+        this.class.canvas.style.width = this.AppletHTML.node.clientWidth;
+        this.class.canvas.style.height = this.AppletHTML.node.clientHeight;
+
+        this.class.init();
 
     }
 
@@ -131,6 +137,7 @@ export class SpectrogramApplet {
     updateLoop = () => {
         if(this.looping) {
             if(this.bci.atlas.settings.eeg){
+                //console.log(this.bci.atlas.getLatestFFTData()[0])
                 if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(() => {this.loop = requestAnimationFrame(this.updateLoop),16});

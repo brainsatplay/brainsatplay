@@ -94,7 +94,7 @@ export class BrainMapApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        
+        console.log(this.bci.atlas)
         var brainmapcanvas = document.getElementById(this.props.id+'canvas');
         var brainpointscanvas = document.getElementById(this.props.id+'points');
         brainmapcanvas.style.height = this.AppletHTML.node.style.height;
@@ -145,7 +145,7 @@ export class BrainMapApplet {
         this.class.updateHeatmapFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
 
         if(this.bci.atlas.data.coherence[0].fftCount > 0){
-            let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10;}
+            let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10; }
             this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
         }
     }
