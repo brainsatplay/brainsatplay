@@ -82,7 +82,7 @@ export class uPlotApplet {
                     </tr>
                   </table>
                 </div>
-                <div id='`+props.id+`canvas' style='z-index:3; top:50px'></div>
+                <div id='`+props.id+`canvas' height='100%' width='100%' style='z-index:3; top:50px height:100%; width:100%;'></div>
             </div>
             `; //
         }
