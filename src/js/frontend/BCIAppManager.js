@@ -79,7 +79,9 @@ export class BCIAppManager {
         // Navigation Sidebar
         let connectHTML = `
         <div id="sidebar">
-            <img class="logo" src="./logo512.png">
+            <div class="logo-container">
+                <img class="logo" src="./logo512.png">
+            </div>
             <div>
                 <button id='server'>Connect to Server</button>
                 <button id='ping'>Send Ping</button>
