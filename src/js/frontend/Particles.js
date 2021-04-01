@@ -259,7 +259,7 @@ export class Boids {
 
     stop = () => {
         cancelAnimationFrame(this.animationId);
-        this.particleClass.deInit();
+        this.particleClass.stop();
     }
 
     //Run a boids calculation to update velocities
