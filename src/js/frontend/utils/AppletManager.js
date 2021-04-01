@@ -71,7 +71,6 @@ export class AppletManager {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.flex = '1 0 42%'
-            appletDiv.style.maxHeight = 'calc(50vh - 50px)';
         });
         this.responsive();
     }
@@ -89,13 +88,7 @@ export class AppletManager {
             else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
             
             this.applets[pos].classinstance.init()
-
-            let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            appletDiv.style.flex = '1 0 42%'
-            appletDiv.style.maxHeight = 'calc(50vh - 50px)';
-            appletDiv.style.maxWidth = 'calc(50vw - 50px)';
-
-            
+            this.applets[pos].classinstance.AppletHTML.node.style.flex = '1 0 42%'
             this.appletsSpawned++;
             this.responsive();
             console.log("applet added");
@@ -129,6 +122,7 @@ export class AppletManager {
                 return true;
             }
         });
+        
     }
 
     deinitApplets() {
@@ -176,6 +170,7 @@ export class AppletManager {
     responsive(nodes=this.applets) {
         nodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
+            appletDiv.style.maxHeight = `calc(${100/(Math.ceil(this.applets.length/2))}vh - 50px)`;
         });
         
 
