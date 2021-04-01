@@ -15,7 +15,7 @@ import {
     file_template
 } from './menus/UITemplates'
 
-import {UIManager} from './utils/AppletManager'
+import {AppletManager} from './utils/AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from './utils/StateManager';
 import { DOMFragment } from './utils/DOMFragment';
@@ -63,7 +63,7 @@ export class BCIAppManager {
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         this.appletConfigs.push(...this.getConfigsFromHashes());
-        this.uiManager;
+        this.appletManager;
         this.fs;
         this.useFS = useFS;
 
@@ -152,7 +152,7 @@ export class BCIAppManager {
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
         this.bcisession.onconnected = () => {
-            this.uiManager.responsiveUIUpdate();
+            this.appletManager.responsive();
         }
         this.setupUITemplates();
     }
@@ -161,6 +161,7 @@ export class BCIAppManager {
         this.uiFragments.appletbox.deleteNode();
         this.uiFragments.select.deleteNode();
         this.uiFragments.filemenu.deleteNode();
+        this.uiFragments.Buttons.deleteNode();
     }
 
     getConfigsFromHashes() {
@@ -177,7 +178,7 @@ export class BCIAppManager {
         return appletConfigs;    
     }
 
-    initUIManager = (settingsFileContents='') => {
+    init = (settingsFileContents='') => {
 
         // ------ need to flesh this out -------
         if(settingsFileContents.length > 0){
@@ -192,7 +193,7 @@ export class BCIAppManager {
         }
         // -------------------------------------
         
-        this.uiManager = new UIManager(
+        this.appletManager = new AppletManager(
             this.initUI,
             this.deinitUI,
             this.appletClasses,
@@ -209,22 +210,23 @@ export class BCIAppManager {
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
 
-        if(this.uiManager !== null) {
-            this.initUIManager();
+        if(this.appletManager === null) {
+            this.init();
         }
         else {
-            this.uiManager.deinitApplets();
-            this.initUIManager();
+            this.appletManager.deinitApplets();
+            this.appletManager.deinitUI();
+            this.init();
         }
     }
 
-    //Inits the UImanager within the context of the filesystem so the data can be autosaved on demand (there should be a better method than mine)
+    //Inits the AppletManager within the context of the filesystem so the data can be autosaved on demand (there should be a better method than mine)
     initFS = () => {
         let oldmfs = fs.getRootFS();
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
-                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
+                this.appletManager = new AppletManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
                 throw new Error(`?`);
             }
             BrowserFS.initialize(rootForMfs);
@@ -246,7 +248,7 @@ export class BCIAppManager {
                                 }
                             ), (err) => {
                                 let configs = getConfigsFromHashes();
-                                this.uiManager = new UIManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
+                                this.appletManager = new AppletManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
                                 if(err) throw err;
                             });
                         }
@@ -259,13 +261,13 @@ export class BCIAppManager {
                             fs.writeFile('/data/settings.json', newcontent, (err) => {
                                 if(err) throw err;
                                 console.log("New settings file created");
-                                this.initUIManager(contents);
+                                this.initAppletManager(contents);
                                 listFiles();
                             });
                         }
                         else{ 
                             contents = data.toString();    
-                            initUIManager(contents);
+                            initAppletManager(contents);
                             listFiles();
                         }
 

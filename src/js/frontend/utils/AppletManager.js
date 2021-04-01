@@ -1,5 +1,5 @@
 
-export class UIManager {
+export class AppletManager {
     constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=null) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
@@ -17,10 +17,10 @@ export class UIManager {
         this.initAddApplets(appletConfigs);
 
         window.addEventListener('resize', ()=>{
-            this.responsiveUIUpdate();
+            this.responsive();
         })
 
-        //this.responsiveUIUpdate(); 
+        //this.responsive(); 
     
         appletSelectIds.forEach((id,i) => {
             this.addAppletOptions(id,i);
@@ -68,7 +68,7 @@ export class UIManager {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             applet.classinstance.AppletHTML.node.style.position = "absolute";
         });
-        this.responsiveUIUpdate();
+        this.responsive();
     }
 
     addApplet = (appletClassIdx, appletIdx) => {
@@ -85,7 +85,7 @@ export class UIManager {
             this.applets[pos].classinstance.init();
             this.applets[pos].classinstance.AppletHTML.node.style.position = "absolute";
             this.appletsSpawned++;
-            this.responsiveUIUpdate();
+            this.responsive();
             console.log("applet added");
         }
     }
@@ -100,7 +100,7 @@ export class UIManager {
                     }
                 }
                 o.classinstance.AppletHTML.node.style.position = "absolute";        
-                this.responsiveUIUpdate();
+                this.responsive();
                 return true;
             }
         });
@@ -114,7 +114,7 @@ export class UIManager {
                 this.applets[stateIdx].classinstance.deinit();
                 this.applets.splice(stateIdx,1);
                 this.appletsSpawned--;
-                this.responsiveUIUpdate();
+                this.responsive();
                 return true;
             }
         });
@@ -132,7 +132,7 @@ export class UIManager {
             applet.classinstance.init();
             applet.classinstance.AppletHTML.node.style.position = "absolute";
         });
-        this.responsiveUIUpdate();
+        this.responsive();
     }
 
     addAppletOptions = (selectId,appletIdx) => {
@@ -163,7 +163,7 @@ export class UIManager {
         })
     }
 
-    responsiveUIUpdate(nodes=this.applets, topoffset=110) {
+    responsive(nodes=this.applets, topoffset=110) {
         //console.log(nodes);
         nodes.forEach((appnode,i) => {
             //console.log(node)
