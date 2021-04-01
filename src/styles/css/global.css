@@ -17,6 +17,8 @@ div {
 #sidebar {
     position:absolute;
     width:100px; 
+    left:0px;
+    top:0px;
     height:100vh;
     background: whitesmoke;
     transition: 0.5s;
