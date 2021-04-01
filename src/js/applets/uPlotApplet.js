@@ -184,6 +184,7 @@ export class uPlotApplet {
     }
 
     deinit() {
+      this.stop();
       this.class.deInit();
       this.class = null;
       
@@ -255,7 +256,7 @@ export class uPlotApplet {
 
     setPlotDims = () => {
       //debugger;
-      console.log(this.AppletHTML.node.clientWidth)
+      //console.log(this.AppletHTML.node.clientWidth)
       this.plotWidth = this.AppletHTML.node.clientWidth;
       this.plotHeight = this.AppletHTML.node.clientHeight;
     }
