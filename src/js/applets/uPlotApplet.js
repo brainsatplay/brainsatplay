@@ -46,7 +46,6 @@ export class uPlotApplet {
         let  HTMLtemplate = (props=this.props) => {
             return `
             <div id='`+props.id+`'>    
-                <div id='`+props.id+`canvas' style='z-index:3; top:50px'></div>
                 <div id='`+props.id+`menu' style='position:absolute; float:right; z-index:4;'>
                   <table style='position:absolute; transform:translateX(40px);'>
                     <tr>
@@ -83,6 +82,7 @@ export class uPlotApplet {
                     </tr>
                   </table>
                 </div>
+                <div id='`+props.id+`canvas' style='z-index:3; top:50px'></div>
             </div>
             `; //
         }
