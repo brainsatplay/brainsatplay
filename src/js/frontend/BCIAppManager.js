@@ -165,7 +165,7 @@ export class BCIAppManager {
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
         document.body.style.display = 'flex'
         document.body.style.height = '100vh'
-        document.body.style.overflow = 'hidden'
+        //document.body.style.overflow = 'hidden'
         document.body.style.boxSizing = 'border-box'
 
         this.bcisession.onconnected = () => {

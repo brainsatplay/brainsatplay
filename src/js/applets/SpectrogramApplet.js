@@ -114,12 +114,6 @@ export class SpectrogramApplet {
                 addCoherenceOptions(this.props.id+"channel",a.coherence);
             }
         }
-            this.class.canvas.style.width = this.AppletHTML.node.style.width;
-            this.class.canvas.style.height = this.AppletHTML.node.style.height;
-        
-            this.class.canvas.width = Math.floor(this.AppletHTML.node.clientWidth);
-            this.class.canvas.height = Math.floor(this.AppletHTML.node.clientHeight*4);
-        
             this.class.init();
 
     }
