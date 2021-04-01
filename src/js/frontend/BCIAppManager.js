@@ -76,17 +76,19 @@ export class BCIAppManager {
     }
 
     setupUITemplates = () => {
-                
         // Navigation Sidebar
         let connectHTML = `
-        <div id="sidebar" style="width:100px; height:100vh;" >
-            <img src="./logo512.png" style="width: 100%; box-sizing: border-box; padding: 20%;">
-            <button id='server'>Connect to Server</button>
-            <button id='ping'>Send Ping</button>
-            <button id='getusers'>Get Users</button>
-            <button id='createGame'>Make Game session</button>
-            <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-            <button id='subscribeToSelf'>Subscribe to self</button>
+        <div id="sidebar">
+            <img class="logo" src="./logo512.png">
+            <div>
+                <button id='server'>Connect to Server</button>
+                <button id='ping'>Send Ping</button>
+                <button id='getusers'>Get Users</button>
+                <button id='createGame'>Make Game session</button>
+                <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                <button id='subscribeToSelf'>Subscribe to self</button>
+            </div>
+            <div id="sidebar-toggle"></div>
         </div>
         `; 
 
@@ -101,6 +103,7 @@ export class BCIAppManager {
             // 	// if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
             // 	// else bcisession.connect('muse',['eegcoherence']);
             // }
+
             document.getElementById('server').onclick = () => {
                 this.bcisession.login(true);
                 //console.log(bcisession.socket.url);

@@ -1,0 +1,48 @@
+/* Sidebar */
+
+#sidebar {
+    width:100px; 
+    height:100vh;
+    background: whitesmoke;
+    transition: width 0.5s;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items:  center;
+    border: 1px solid gray;
+    z-index: 10;
+    box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+}
+
+#sidebar:hover {
+    width: 300px;
+}
+
+#sidebar button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 25px;
+    border: none;
+}
+
+#sidebar-toggle{
+    position:absolute;
+    z-index: 10;
+    top: 0px;
+    width: 100px;
+    height:100vh;
+}
+
+/* Logo */
+.logo {
+    height: 100px; 
+    box-sizing: border-box; 
+    padding: 20px;
+}
+
+/* Topbar */
+
+#topbar {
+    background: whitesmoke;
+}
