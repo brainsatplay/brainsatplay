@@ -71,10 +71,8 @@ export class AppletManager {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.flex = '1 0 42%'
-            appletDiv.style.minHeight = '100px';
-            
-            appletDiv.style.maxHeight = '100vh';
-            appletDiv.style.maxWidth = '100vw';
+            appletDiv.style.maxHeight = 'calc(50vh - 50px)';
+            appletDiv.style.maxWidth = 'calc(50vw - 50px)';
         });
         this.responsive();
     }
