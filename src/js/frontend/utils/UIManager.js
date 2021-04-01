@@ -165,80 +165,81 @@ export class UIManager {
 
     responsiveUIUpdate(nodes=this.applets, topoffset=110) {
         //console.log(nodes);
-        nodes.forEach((node,i) => {
+        nodes.forEach((appnode,i) => {
             //console.log(node)
             //TODO: replace this with something more procedural for n-elements with varied arrangements 
             //(e.g. arbitrary sizes and arrangements for applets. This is why we didn't use tables to place the apps.)
-            
+            let appletDiv =  appnode.classinstance.AppletHTML.node;
+
             if(nodes.length === 1) { //1 full view
                 if(i===0){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth-15 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight - topoffset + "px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth-15 + "px";
+                    appletDiv.style.height = window.innerHeight - topoffset + "px";
+                    appletDiv.style.top = 0+"px";
+                    appletDiv.style.left = 0+"px";
                 }
             }
             if(nodes.length === 2) { //2 stacked views
                 var transformy = window.innerHeight*.5- topoffset*.5;
                 if(i===0){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth-15 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth-15 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.top = 0+"px";
+                    appletDiv.style.left = 0+"px";
                 }
                 else if(i===1){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth-15 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = transformy+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth-15 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.top = transformy+"px";
+                    appletDiv.style.left = 0+"px";
                 }
             }
             if(nodes.length === 3) {
                 var transformy = window.innerHeight*.5 - topoffset*.5;
                 if(i===0){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.top = 0+"px";
+                    appletDiv.style.left = 0+"px";
                 }
                 else if(i===1){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
-                    node.classinstance.AppletHTML.node.style.left = window.innerWidth*.5-7.5+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.top = 0+"px";
+                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
                 }
                 else if(i === 2){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth-15 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = transformy+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth-15 + "px";
+                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
+                    appletDiv.style.top = transformy+"px";
+                    appletDiv.style.left = 0+"px";
                 }
             }
             if(nodes.length === 4) {
                 var transformy = window.innerHeight*.5- topoffset*.5;
                 if(i===0){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.top = 0+"px";
+                    appletDiv.style.left = 0+"px";
                 }
                 else if(i===1){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.left = window.innerWidth*.5-7.5+"px";
-                    node.classinstance.AppletHTML.node.style.top = 0+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
+                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
+                    appletDiv.style.top = 0+"px";
                 }
                 else if(i === 2){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = transformy+"px";
-                    node.classinstance.AppletHTML.node.style.left = 0+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
+                    appletDiv.style.top = transformy+"px";
+                    appletDiv.style.left = 0+"px";
                 }
                 else if(i === 3){
-                    node.classinstance.AppletHTML.node.style.width = window.innerWidth*.5-7.5 + "px";
-                    node.classinstance.AppletHTML.node.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    node.classinstance.AppletHTML.node.style.top = transformy+"px";
-                    node.classinstance.AppletHTML.node.style.left = window.innerWidth*.5-7.5+"px";
+                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
+                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
+                    appletDiv.style.top = transformy+"px";
+                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
                 }
             }
             if(nodes.length === 5) {
