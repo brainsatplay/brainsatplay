@@ -40,12 +40,10 @@ export class BrainMapApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='`+props.id+`'>
-                <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
-                <div id='`+props.id+`canvascontainer' style='width:`+props.height+`; height:`+props.height+`;'>
-                    <canvas id='`+props.id+`canvas' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:1; '></canvas>
-                    <canvas id='`+props.id+`points' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:2; '></canvas>
-                </div>
+            <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
+            <div id='${props.id}' style='width:${props.width}; height:${props.height};'>
+                <canvas id='`+props.id+`canvas' width='100%' height='100%' style='position:absolute; width:100x; height:100%; z-index:1; '></canvas>
+                <canvas id='`+props.id+`points' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:2; '></canvas>
             </div>
             `;
         }
