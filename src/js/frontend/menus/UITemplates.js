@@ -93,15 +93,14 @@ export function menudropdown_template(props={}) {
 
 export function appletselect_template(props={}) {
     return `
-    <div style="font-size: 80%; margin-left: 25px; display: flex;">
-            <div style="padding: 10px;">
-                <p>Applet 1: <select id="applet1"></select></span>
-                <p>Applet 3: <select id="applet3"></select></span> 
-            </div>     
-            <div style="padding: 10px;">
-                <p>Applet 2: <select id="applet2"></select></span>
-                <p>Applet 4: <select id="applet4"></select></span>
-            </div>
+    <div style="margin-left: 25px;">
+    <span style="font-size: 80%;">Applets</span>
+    <hr>
+    <div style="display: flex;">
+    <select id="applet1"></select>
+    <select id="applet2"></select>
+    <select id="applet3"></select> 
+    <select id="applet4"></select>
     </div>
     `;
 }

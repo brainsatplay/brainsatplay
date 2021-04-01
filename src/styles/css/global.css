@@ -64,3 +64,18 @@
     justify-content: center; 
     height: 100px;
 }
+
+#topbar p{
+    font-size: 80%;
+}
+
+
+/* Selector */
+select {
+    padding: 5px;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    color: black;
+    font-size: 60%;
+    margin: 0px 10px;
+}

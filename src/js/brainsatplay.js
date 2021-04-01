@@ -188,20 +188,17 @@ export class brainsatplay {
 
 	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"connect";
-		let html = `<select id='`+id+`select'>`;
+		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr><select id='`+id+`select'></div>`;
 		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduinousb','hegduinobt'];//,'hegduinowifi'];
+		html += `<option value="" disabled selected>Choose your device</option>`
 		deviceOptions.forEach((o,i) => {
-			if(i === 0) {
-                html += `<option value='`+o+`' selected='selected'>`+o+`</option>`
-			} else {
-				html+= `<option value='`+o+`'>`+o+`</option>`;
-			}
+			html+= `<option value='`+o+`'>`+o+`</option>`;
 		});
-		html += `</select><button id='`+id+`connect'>Connect</button>`;
+		// html += `</select><button id='`+id+`connect'>Connect</button>`;
 
 		parentNode.insertAdjacentHTML('afterbegin',html);
 
-		document.getElementById(id+"connect").onclick = () => {
+		document.getElementById(id+"select").onchange = () => {
 			let val = document.getElementById(id+"select").value;
 			if(val === 'muse') {
 				this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
