@@ -25,7 +25,9 @@ export class AppletManager {
         appletSelectIds.forEach((id,i) => {
             this.addAppletOptions(id,i);
         })
-
+        document.getElementById('applets').style.display = 'flex'
+        document.getElementById('applets').style.flexWrap = 'wrap'
+        document.getElementById('applets').style.flexGrow = '1'
     }
 
     initUI = () => {}
@@ -66,7 +68,7 @@ export class AppletManager {
     initApplets = () => {
         this.applets.forEach((applet,i) => {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
-            applet.classinstance.AppletHTML.node.style.position = "absolute";
+            // applet.classinstance.AppletHTML.node.style.position = "absolute";
         });
         this.responsive();
     }
@@ -83,7 +85,7 @@ export class AppletManager {
             var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
             else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets")});}
             this.applets[pos].classinstance.init();
-            this.applets[pos].classinstance.AppletHTML.node.style.position = "absolute";
+            // this.applets[pos].classinstance.AppletHTML.node.style.position = "absolute";
             this.appletsSpawned++;
             this.responsive();
             console.log("applet added");
@@ -99,7 +101,7 @@ export class AppletManager {
                         o.classinstance.configure(settings);
                     }
                 }
-                o.classinstance.AppletHTML.node.style.position = "absolute";        
+                // o.classinstance.AppletHTML.node.style.position = "absolute";        
                 this.responsive();
                 return true;
             }
@@ -130,7 +132,7 @@ export class AppletManager {
         this.applets.forEach((applet,i) => {
             applet.classinstance.deinit();
             applet.classinstance.init();
-            applet.classinstance.AppletHTML.node.style.position = "absolute";
+            // applet.classinstance.AppletHTML.node.style.position = "absolute";
         });
         this.responsive();
     }
@@ -164,88 +166,9 @@ export class AppletManager {
     }
 
     responsive(nodes=this.applets, topoffset=110) {
-        //console.log(nodes);
         nodes.forEach((appnode,i) => {
-            //console.log(node)
-            //TODO: replace this with something more procedural for n-elements with varied arrangements 
-            //(e.g. arbitrary sizes and arrangements for applets. This is why we didn't use tables to place the apps.)
             let appletDiv =  appnode.classinstance.AppletHTML.node;
-
-            if(nodes.length === 1) { //1 full view
-                if(i===0){
-                    appletDiv.style.width = window.innerWidth-15 + "px";
-                    appletDiv.style.height = window.innerHeight - topoffset + "px";
-                    appletDiv.style.top = 0+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-            }
-            if(nodes.length === 2) { //2 stacked views
-                var transformy = window.innerHeight*.5- topoffset*.5;
-                if(i===0){
-                    appletDiv.style.width = window.innerWidth-15 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.top = 0+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-                else if(i===1){
-                    appletDiv.style.width = window.innerWidth-15 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.top = transformy+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-            }
-            if(nodes.length === 3) {
-                var transformy = window.innerHeight*.5 - topoffset*.5;
-                if(i===0){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.top = 0+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-                else if(i===1){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.top = 0+"px";
-                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
-                }
-                else if(i === 2){
-                    appletDiv.style.width = window.innerWidth-15 + "px";
-                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    appletDiv.style.top = transformy+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-            }
-            if(nodes.length === 4) {
-                var transformy = window.innerHeight*.5- topoffset*.5;
-                if(i===0){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.top = 0+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-                else if(i===1){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5 - topoffset*.502 + "px";
-                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
-                    appletDiv.style.top = 0+"px";
-                }
-                else if(i === 2){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    appletDiv.style.top = transformy+"px";
-                    appletDiv.style.left = 0+"px";
-                }
-                else if(i === 3){
-                    appletDiv.style.width = window.innerWidth*.5-7.5 + "px";
-                    appletDiv.style.height = window.innerHeight*.5-topoffset*.502 + "px";
-                    appletDiv.style.top = transformy+"px";
-                    appletDiv.style.left = window.innerWidth*.5-7.5+"px";
-                }
-            }
-            if(nodes.length === 5) {
-            }
-            if(nodes.length === 6) {
-            }
+            appletDiv.style.flex = '1 0 42%'
         });
         
 

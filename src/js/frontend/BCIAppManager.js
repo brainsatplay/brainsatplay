@@ -9,10 +9,12 @@
 //Setup BrowserFS logic for indexedDB
 
 import {
+    page_template,
+    topbar_template,
     appletbox_template,  
     appletselect_template,
     filemenu_template,
-    file_template
+    file_template,
 } from './menus/UITemplates'
 
 import {AppletManager} from './utils/AppletManager'
@@ -75,25 +77,24 @@ export class BCIAppManager {
 
     setupUITemplates = () => {
                 
+        // Navigation Sidebar
         let connectHTML = `
-        <button id='server'>Connect to Server</button>
-        <button id='ping'>Send Ping</button>
-        <button id='getusers'>Get Users</button>
-        <button id='createGame'>Make Game session</button>
-        <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-        <button id='subscribeToSelf'>Subscribe to self</button>
+        <div id="sidebar" style="width:100px; height:100vh;" >
+            <img src="./logo512.png" style="width: 100%; box-sizing: border-box; padding: 20%;">
+            <button id='server'>Connect to Server</button>
+            <button id='ping'>Send Ping</button>
+            <button id='getusers'>Get Users</button>
+            <button id='createGame'>Make Game session</button>
+            <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+            <button id='subscribeToSelf'>Subscribe to self</button>
+        </div>
         `; 
-
-
 
         this.uiFragments.Buttons = new DOMFragment(
         connectHTML,
         document.body,
         undefined,
         () => {
-
-            this.bcisession.makeConnectOptions();
-
             // document.getElementById('connect').onclick = () => {
             // 	if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,undefined,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
             // 	else bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected);
@@ -127,30 +128,41 @@ export class BCIAppManager {
         undefined,
         'NEVER'
         );
-
-        this.uiFragments.appletbox = new DOMFragment(
-            appletbox_template,
-            document.body,
-            {
-                containerId:'applets', 
-                styleInlineText:'top:90px;width:'+window.innerWidth+';'
-            }
+        this.uiFragments.page = new DOMFragment(
+            page_template,
+            document.body
+        );
+        this.uiFragments.topbar = new DOMFragment(
+            topbar_template,
+            document.getElementById('page')
         );
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
-            document.body
+            document.getElementById('topbar')
         );
+        this.bcisession.makeConnectOptions(document.getElementById('topbar'));
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
                 filemenu_template,
                 document.body
             )
         }
-
-
+        this.uiFragments.appletbox = new DOMFragment(
+            appletbox_template,
+            document.getElementById('page'),
+            {
+                containerId:'applets', 
+                styleInlineText:''
+            }
+        );
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
+        document.body.style.display = 'flex'
+        document.body.style.height = '100vh'
+        document.body.style.overflow = 'hidden'
+        document.body.style.boxSizing = 'border-box'
+
         this.bcisession.onconnected = () => {
             this.appletManager.responsive();
         }

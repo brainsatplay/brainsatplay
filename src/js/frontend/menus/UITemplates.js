@@ -4,6 +4,16 @@ import logo from '../../../assets/logo512.png'
 import filesvg from '../../../assets/file_noun.svg'
 import csvsvg from '../../../assets/csv_noun.svg'
 
+export function page_template(props={}){
+    return `
+    <div id="page" style="display:flex;flex-direction: column; width: 100%;">
+    </div>`;
+}
+export function topbar_template(props={}){
+    return `
+    <div id="topbar" style="display: flex; align-items: center; justify-content: center; height: 100px;">
+    </div>`;
+}
 export function menu_template(props={}) {
     return `
     <img id="logo" src=`+logo+` style="position:absolute; height:50px; left:50%; margin-left:-25px; width:50px; top:17px; z-index:9999; pointer-events:none;"/>  
@@ -83,25 +93,25 @@ export function menudropdown_template(props={}) {
 
 export function appletselect_template(props={}) {
     return `
-    <td style="width:100%; vertical-align:center; border:2px inset black;" colspan=5>
-        <table style="margin-left:auto; margin-right:auto;">
-            <tr>
-                <td>Applet 1:<select id="applet1"></select></td>
-                <td>Applet 2:<select id="applet2"></select></td>      
-                <td>Applet 3:<select id="applet3"></select></td>
-                <td>Applet 4:<select id="applet4"></select></td>
-            </tr>
-        </table>
-    </td>
+    <div style="font-size: 80%; margin-left: 25px; display: flex;">
+            <div style="padding: 10px;">
+                <p>Applet 1: <select id="applet1"></select></span>
+                <p>Applet 3: <select id="applet3"></select></span> 
+            </div>     
+            <div style="padding: 10px;">
+                <p>Applet 2: <select id="applet2"></select></span>
+                <p>Applet 4: <select id="applet4"></select></span>
+            </div>
+    </div>
     `;
 }
 
 export function appletbox_template( props={
         containerId:'applets', 
-        styleInlineText:'height:'+(window.innerHeight-200)+';width:'+window.innerWidth+';'
+        styleInlineText:'flex-grow: 1;'
 }) {
     return `
-    <div style='`+props.styleInlineText+`z-index:2;position:absolute;' id='`+props.containerId+`'></div>
+    <div style='`+props.styleInlineText+`z-index:2; display:flex;' id='`+props.containerId+`'></div>
     `;
 }
 
