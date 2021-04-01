@@ -170,7 +170,17 @@ export class AppletManager {
     responsive(nodes=this.applets) {
         nodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
-            appletDiv.style.maxHeight = `calc(${100/(Math.ceil(this.applets.length/2))}vh - 50px)`;
+            let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
+            if (nodes.length === 1){
+                appletDiv.style.flex = `1 0 ${100}%`
+                appletDiv.style.maxHeight = `calc(${100}vh - 100px)`;
+            } else if (nodes.length === 2){
+                appletDiv.style.flex = `1 0 ${100}%`
+                appletDiv.style.maxHeight = `calc(${50}vh - 50px)`;           
+            } else {
+                appletDiv.style.flex = `1 0 ${gridPercent - gridPercent*0.2}%`
+                appletDiv.style.maxHeight = `calc(${gridPercent}vh - 50px)`;
+            }
         });
         
 

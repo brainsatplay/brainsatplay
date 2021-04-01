@@ -41,15 +41,11 @@ export class BrainMapApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='`+props.id+`'>
-                <div id='`+props.id+`canvascontainer'>
+                <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
+                <div id='`+props.id+`canvascontainer' style='width:`+props.height+`; height:`+props.height+`;'>
                     <canvas id='`+props.id+`canvas' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:1; '></canvas>
                     <canvas id='`+props.id+`points' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:2; '></canvas>
                 </div>
-                <table id='`+props.id+`menu' style='position:absolute; z-index:3; '>
-                    <tr><td><h3>Brain Map |</h3></td>
-                    <td><h4>Viewing:</h4></td>
-                    <td>`+genBandviewSelect(props.id+'bandview')+`</td></tr>
-                </table>
             </div>
             `;
         }

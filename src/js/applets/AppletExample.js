@@ -36,7 +36,6 @@ export class AppletExample {
         let HTMLtemplate = (props=this.props) => { 
             let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
             return `
-            <div>
                 <div id='Example_`+props.id+`' style='height:100%; width:100%; border:2px solid black; background-color:blue; color:white;'>
                     Test `+name+`
                     <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
@@ -44,7 +43,6 @@ export class AppletExample {
                     <button id='Button2_`+props.id+`'>Subscribe</button>
                     <div id='Output2_`+props.id+`'>Awaiting FP1 data</div>
                 </div>
-            </div>  
             `;
         }
 
