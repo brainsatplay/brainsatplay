@@ -41,9 +41,8 @@ export class BrainMapApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='width:${props.width}; height:${props.height};'>
-            
                 <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
-                <canvas id='`+props.id+`canvas' width='100%' height='100%' style='position:absolute; width:100x; height:100%; z-index:1; '></canvas>
+                <canvas id='`+props.id+`canvas' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:1; '></canvas>
                 <canvas id='`+props.id+`points' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:2; '></canvas>
             </div>
             `;
