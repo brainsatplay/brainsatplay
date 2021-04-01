@@ -25,7 +25,7 @@ export class AppletManager {
         appletSelectIds.forEach((id,i) => {
             this.addAppletOptions(id,i);
         })
-        let applets = document.getElementById('applets')
+        let applets = document.getElementById('applets');
         applets.style.display = 'flex'
         applets.style.flexWrap = 'wrap'
         applets.style.flexGrow = '1'
@@ -71,6 +71,10 @@ export class AppletManager {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.flex = '1 0 42%'
+            appletDiv.style.minHeight = '100px';
+            
+            appletDiv.style.maxHeight = '100vh';
+            appletDiv.style.maxWidth = '100vw';
         });
         this.responsive();
     }

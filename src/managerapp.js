@@ -11,9 +11,6 @@ import { SmoothieApplet } from './js/applets/SmoothieApplet'
 
 let applets = [
 	{name:"Example Applet", cls: AppletExample },
-	{name:"Example Applet", cls: AppletExample },
-	{name:"Example Applet", cls: AppletExample },
-	{name:"Example Applet", cls: AppletExample },
 	{name:"Smooth",         cls: SmoothieApplet},
 	{name:"uPlot", 			cls: uPlotApplet   },
 	{name:"Spectrogram",    cls: SpectrogramApplet},

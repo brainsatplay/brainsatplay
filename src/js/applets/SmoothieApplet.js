@@ -20,6 +20,8 @@ export class SmoothieApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            width:'400px',
+            height:'300px'
             //Add whatever else
         };
 
@@ -41,7 +43,6 @@ export class SmoothieApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='`+props.id+`'>
-                <canvas id='`+props.id+`canvas' width=`+props.width+` height=`+props.height+` style='z-index:3; position:absolute; width:`+props.width+`; height:`+props.height+`;'></canvas>
                 <table id='`+props.id+`menu' style='position:absolute; z-index:4; color:white;'>
                 <tr>
                 <td>
@@ -63,6 +64,7 @@ export class SmoothieApplet {
                     </td>
                     </tr>
                 </table>
+                <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
             </div>
             `;
         }
@@ -128,8 +130,7 @@ export class SmoothieApplet {
         addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
         this.setLegend();
       }
-        this.class.canvas.style.height = this.AppletHTML.node.style.height;
-        this.class.canvas.style.width = this.AppletHTML.node.style.width;
+      
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

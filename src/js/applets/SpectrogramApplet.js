@@ -41,9 +41,8 @@ export class SpectrogramApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='`+props.id+`'>
-                <canvas id='`+props.id+`canvas' height='`+props.height+`' width='`+props.width+`' style='position:absolute; z-index:3;  width:`+props.width+`px; height:`+props.height+`px;'></canvas>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:4; color: white;'> 
-                Mode
+                    Mode
                     <select id='`+props.id+`mode'>
                         <option value="FFT" selected="selected">FFT</option>
                         <option value="Coherence">Coherence</option>
@@ -53,6 +52,7 @@ export class SpectrogramApplet {
                         <option value="0" selected="selected">0</option>
                     </select>
                 </div>
+                <canvas id='`+props.id+`canvas' height='100%' width='100%' style='z-index:3; width:100%; height:100%;'></canvas>
             </div>
             `;
         }
