@@ -14,6 +14,11 @@ export class AppletManager {
     
         this.appletSelectIds = appletSelectIds;
 
+        
+        document.getElementById('applets').style.display = 'flex'
+        document.getElementById('applets').style.flexWrap = 'wrap'
+        document.getElementById('applets').style.flexGrow = '1'
+
         this.initAddApplets(appletConfigs);
 
         window.addEventListener('resize', ()=>{
@@ -168,7 +173,7 @@ export class AppletManager {
         })
     }
 
-    responsive(nodes=this.applets, topoffset=110) {
+    responsive(nodes=this.applets) {
         nodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             // appletDiv.style.height = 'auto'
