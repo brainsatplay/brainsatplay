@@ -2,13 +2,24 @@ div {
     box-sizing: border-box; 
 }
 
+/* Page */
+#page {
+    display:flex;
+    position: absolute;
+    top: 0px;
+    left:100px;
+    flex-direction: column; 
+    width: calc(100vw - 100px)
+}
+
 /* Sidebar */
 
 #sidebar {
+    position:absolute;
     width:100px; 
     height:100vh;
     background: whitesmoke;
-    transition: width 0.5s;
+    transition: 0.5s;
     border-right: 1px solid rgb(200, 200, 200);
     z-index: 10;
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
@@ -16,6 +27,21 @@ div {
 
 #sidebar:hover {
     width: 300px;
+}
+
+#sidebar-container:hover .overlay{
+    opacity: 50%;
+}
+
+#sidebar-container .overlay{
+    position: absolute;
+    background: black;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0%;
+    transition: 0.5s;
+    pointer-events: none;
+    z-index: 9;
 }
 
 #sidebar button {

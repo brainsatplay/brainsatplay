@@ -78,19 +78,22 @@ export class BCIAppManager {
     setupUITemplates = () => {
         // Navigation Sidebar
         let connectHTML = `
-        <div id="sidebar">
-            <div class="logo-container">
-                <img class="logo" src="./logo512.png">
-            </div>
-            <div>
-                <button id='server'>Connect to Server</button>
-                <button id='ping'>Send Ping</button>
-                <button id='getusers'>Get Users</button>
-                <button id='createGame'>Make Game session</button>
-                <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-                <button id='subscribeToSelf'>Subscribe to self</button>
+        <div id="sidebar-container">
+            <div id="sidebar">
+                <div class="logo-container">
+                    <img class="logo" src="./logo512.png">
+                </div>
+                <div>
+                    <button id='server'>Connect to Server</button>
+                    <button id='ping'>Send Ping</button>
+                    <button id='getusers'>Get Users</button>
+                    <button id='createGame'>Make Game session</button>
+                    <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                    <button id='subscribeToSelf'>Subscribe to self</button>
+                </div>
             </div>
             <div id="sidebar-toggle"></div>
+            <div class="overlay"></div>
         </div>
         `; 
 

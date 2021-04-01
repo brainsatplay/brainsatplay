@@ -6,7 +6,7 @@ import csvsvg from '../../../assets/csv_noun.svg'
 
 export function page_template(props={}){
     return `
-    <div id="page" style="display:flex;flex-direction: column; width: 100%;">
+    <div id="page">
     </div>`;
 }
 export function topbar_template(props={}){
