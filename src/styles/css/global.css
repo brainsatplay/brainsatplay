@@ -5,7 +5,7 @@
     height:100vh;
     background: whitesmoke;
     transition: width 0.5s;
-    border: 1px solid rgb(200, 200, 200);
+    border-right: 1px solid rgb(200, 200, 200);
     z-index: 10;
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
@@ -63,6 +63,8 @@
     align-items: center; 
     justify-content: center; 
     height: 100px;
+    border-bottom: 1px solid rgb(200, 200, 200);
+
 }
 
 #topbar p{
