@@ -10,14 +10,14 @@ import { BrainMapApplet } from './js/applets/BrainMapApplet'
 import { SmoothieApplet } from './js/applets/SmoothieApplet'
 
 let applets = [
-	// {name:"Smooth",         cls: SmoothieApplet},
-	// {name:"uPlot", 			cls: uPlotApplet   },
-	// {name:"Spectrogram",    cls: SpectrogramApplet},
-	// {name:"Brain Map",      cls: BrainMapApplet},
 	{name:"Example Applet", cls: AppletExample },
 	{name:"Example Applet", cls: AppletExample },
 	{name:"Example Applet", cls: AppletExample },
 	{name:"Example Applet", cls: AppletExample },
+	{name:"Smooth",         cls: SmoothieApplet},
+	{name:"uPlot", 			cls: uPlotApplet   },
+	{name:"Spectrogram",    cls: SpectrogramApplet},
+	{name:"Brain Map",      cls: BrainMapApplet},
 ];
 
 let bcisession = new brainsatplay('guest','','game');
