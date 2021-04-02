@@ -53,9 +53,10 @@ export class NexusApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
+            console.log(props)
             return `
-            <div id='${props.id}' style='height:${props.height}; width:${props.width}; background: black'>
-                <canvas class="nexus-webgl"></canvas>
+            <div id='${props.id}' class="nexus-wrapper" style='height:${props.height}; width:${props.width};'>
+                <canvas class="nexus-webgl" width='100%' height='100%'></canvas>
                 <div class="nexus-loading-bar"></div>
                 <div class="nexus-point-container"></div>
                 <div id="nexus-gameHero" class="nexus-container"><div><h1>Nexus</h1><p>Neurofeedback + Group Meditation</p></div></div>

@@ -90,7 +90,6 @@ export class BCIAppManager {
                     <button id='createGame'>Make Game session</button>
                     <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
                     <button id='subscribeToSelf'>Subscribe to self</button>
-                    <hr>
                     <div>
                         <button class="collapsible">File System</button>
                         <div class="content">

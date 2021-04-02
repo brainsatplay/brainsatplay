@@ -41,7 +41,7 @@ export class SmoothieApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `
+             return `
             <div id='`+props.id+`'>
                 <table id='`+props.id+`menu' style='position:absolute; z-index:4; color:white;'>
                 <tr>
