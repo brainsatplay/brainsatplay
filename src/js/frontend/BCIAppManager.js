@@ -90,6 +90,13 @@ export class BCIAppManager {
                     <button id='createGame'>Make Game session</button>
                     <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
                     <button id='subscribeToSelf'>Subscribe to self</button>
+                    <hr>
+                    <div>
+                        <button class="collapsible">File System</button>
+                        <div class="content">
+                            <p>Lorem ipsum...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="sidebar-toggle"></div>
@@ -136,6 +143,25 @@ export class BCIAppManager {
         undefined,
         'NEVER'
         );
+
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+        
+        for (i = 0; i < coll.length; i++) {
+          coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.opacity === "1") {
+              content.style.opacity = "0";
+              content.style.right = "0%";
+            } else {
+                content.style.opacity = "1";
+                content.style.right = "-100%";
+            }
+          });
+        }
+
+
         this.uiFragments.page = new DOMFragment(
             page_template,
             document.body

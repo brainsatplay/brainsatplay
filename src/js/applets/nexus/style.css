@@ -1,0 +1,144 @@
+*
+{
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body
+{
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    background: black;
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.webgl
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    outline: none;
+    /* mix-blend-mode: exclusion; */
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    text-align: left;
+    height: 100vh;
+    width: 100vw;
+    padding: 50px;;
+    color: white;
+    z-index: 1;
+    pointer-events: none;
+    line-height: 3em;
+}
+
+#gameHero {
+    transition-duration: 1.5s;
+    transition-property: opacity;
+}
+
+.container div {
+    width: 100%;
+}
+
+.container h1 {
+    font-size: 5em;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.container p {
+    font-size: 0.8em;
+    width: 100%;
+}
+
+section {
+    height: 100vh;
+}
+
+.loading-bar {
+    position: absolute;
+    top: calc(50% + 0.8em + 5em);
+    width: 100%;
+    height: 2px;
+    background: #ffffff;
+    z-index: 2;
+    transform: scaleX(0);
+    transform-origin: top left;
+    transition: transform 1.5s;
+    will-change: transform;
+}
+
+.loading-bar.ended
+{
+    transform-origin: 100% 0;
+    transition: transform 1.5s ease-in-out;
+}
+
+.point {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    transition: transform 0.5s;
+    will-change: transform;
+}
+
+.point:active {
+	pointer-events: none;
+}
+
+.point .label {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    width: 40px;
+    height: 40px;
+    color: #ffffff;
+    border-radius: 50%;
+    background: #0000008a;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 100;
+    line-height: 40px;
+    cursor: pointer;
+    transform: scale(0, 0);
+    transition: transform 0.5s;
+}
+
+.point.visible .label {
+    transform: scale(1, 1);
+}
+
+.point .text
+{
+    position: absolute;
+    top: 30px;
+    left: -120px;
+    width: 200px;
+    padding: 20px;
+    border-radius: 4px;
+    background: #00000077;
+    border: 1px solid #ffffff77;
+    color: #ffffff;
+    line-height: 1.3em;
+    font-weight: 100;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+
+.point:hover .text {
+    opacity: 1;
+}

@@ -2,6 +2,10 @@ div {
     box-sizing: border-box; 
 }
 
+button {
+    cursor: pointer;
+}
+
 /* Page */
 #page {
     display:flex;
@@ -43,7 +47,7 @@ div {
     opacity: 0%;
     transition: 0.5s;
     pointer-events: none;
-    z-index: 9;
+    z-index: 8;
 }
 
 #sidebar button {
@@ -74,6 +78,31 @@ div {
     height:100vh;
     pointer-events: none;
 }
+
+/* Style the button that is used to open and close the collapsible content */
+/* .collapsible { } */
+  
+  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+  .active, .collapsible:hover {
+    background-color: #ccc;
+  }
+  
+  /* Style the collapsible content. Note: hidden by default */
+  .content {
+    position: relative;
+    padding: 25px;
+    height: 50vh;
+    width: 30vw;
+    box-sizing: border-box;
+    top: 0px; 
+    right: 0%;
+    transform: translateY(-50%);
+    opacity: 0;
+    overflow: hidden;
+    background-color: #f1f1f1;
+    z-index: -1;
+    transition: 0.5s;
+  }
 
 /* Logo */
 

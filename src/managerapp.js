@@ -8,6 +8,7 @@ import {uPlotApplet} from './js/applets/uPlotApplet'
 import {SpectrogramApplet} from './js/applets/SpectrogramApplet'
 import { BrainMapApplet } from './js/applets/BrainMapApplet'
 import { SmoothieApplet } from './js/applets/SmoothieApplet'
+import { NexusApplet } from './js/applets/nexus/NexusApplet'
 
 let applets = [
 	{name:"Example Applet", cls: AppletExample },
@@ -15,6 +16,8 @@ let applets = [
 	{name:"uPlot", 			cls: uPlotApplet   },
 	{name:"Spectrogram",    cls: SpectrogramApplet},
 	{name:"Brain Map",      cls: BrainMapApplet},
+	{name:"Nexus",      cls: NexusApplet},
+
 ];
 
 let bcisession = new brainsatplay('guest','','game');
