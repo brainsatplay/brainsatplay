@@ -1,11 +1,15 @@
+//Joshua Brewster, AGPL (copyleft)
 
-export class cyton { //Contains structs and necessary functions/API calls to analyze serial data for the FreeEEG32
+import 'regenerator-runtime/runtime' //For async functions on node\\
+
+export class cyton { //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
 
     constructor(
 		onDecodedCallback = this.onDecodedCallback,
 		onConnectedCallback = this.onConnectedCallback,
 		onDisconnectedCallback = this.onDisconnectedCallback,
 		CustomDecoder = this.decode,
+		mode='daisy', //"daisy", then "single" or whatever, daisy is the only real setting
 		baudrate = 115200
 		) {
 		this.onDecodedCallback = onDecodedCallback;
@@ -14,18 +18,20 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.decode = CustomDecoder;
 		//Free EEG 32 data structure:
         /*
-            [stop byte, start byte, counter byte, 32x3 channel data bytes (24 bit), 3x2 accelerometer data bytes, stop byte, start byte...]
+            [stop byte, start byte, counter byte, 32x3 channel data bytes (24 bit), 3x2 accelerometer data bytes, stop byte, start byte...] Gyroscope not enabled yet but would be printed after the accelerometer..
             Total = 105 bytes/line
         */
 		this.connected = false;
 		this.subscribed = false;
         this.buffer = [];
-        this.startByte = 160; // Start byte value
-		this.stopByte = 192; // Stop byte value
+        this.startByte = 0xA0; // Start byte value
+		this.stopByte = 0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
 		this.searchString = new Uint8Array([this.stopByte,this.startByte]); //Byte search string
+		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
+		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
 
 		this.sps = 250; // Sample rate
-		this.nChannels = 8;
+		this.nChannels = 16;
 		this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
 		this.updateMs = 1000/this.sps; //even spacing
 		this.stepSize = 1/(Math.pow(2,23)-1);
@@ -36,15 +42,17 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
 		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
 
-		this.maxBufferedSamples = this.sps*60*5; //max samples in buffer this.sps*60*nMinutes = max minutes of data
+		this.maxBufferedSamples = this.sps*60*1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 		
-		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.counter-1]
-			counter: 0,
+		this.mode = mode;
+
+		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
+			count: 0,
+			startms: 0,
 			ms: [],
-			'A0': [],'A1': [],'A2': [],'A3': [],'A4': [],'A5': [],'A6': [],'A7': [], //Cyton 0
-			'A8': [],'A9': [],'A10': [],'A11': [],'A12': [],'A13': [],'A14': [],'A15': [], //Cyton 1 (Stacked)
-            'Ax': [], 'Ay': [], 'Az': [], //Peripheral data (accelerometer)
-            'Ax2': [], 'Ay2': [], 'Az2': []  
+			'A0': [],'A1': [],'A2': [],'A3': [],'A4': [],'A5': [],'A6': [],'A7': [], //ADC 0
+			'A8': [],'A9': [],'A10': [],'A11': [],'A12': [],'A13': [],'A14': [],'A15': [], //ADC 1
+			'Ax': [], 'Ay': [], 'Az': [], 'Gx': [], 'Gy': [], 'Gz': []  //Peripheral data (accelerometer, gyroscope)
 		};
 
 		this.resetDataBuffers();
@@ -60,15 +68,16 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	}
 	
 	resetDataBuffers(){
-		this.data.counter = 0;
+		this.data.count = 0;
+		this.data.startms = 0;
 		for(const prop in this.data) {
 			if(typeof this.data[prop] === "object"){
 				this.data[prop] = new Array(this.maxBufferedSamples).fill(0);
 			}
 		}
-    }
-    
-    setScalar(gain=24,stepSize=1/(Math.pow(2,23)-1),vref=4.50) {
+	}
+
+	setScalar(gain=24,stepSize=1/(Math.pow(2,23)-1),vref=4.50) {
         this.stepSize = stepSize;
 		this.vref = vref; //2.5V voltage ref +/- 250nV
 		this.gain = gain;
@@ -77,6 +86,19 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
 		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
     }
+
+	getLatestData(channel="A0",count=1) { //Return slice of specified size of the latest data from the specified channel
+		let ct = count;
+		if(ct <= 1) {
+			return [this.data[channel][this.data.count-1]];
+		}
+		else {
+			if(ct > this.data.count) {
+				ct = this.data.count;
+			}
+			return this.data[channel].slice(this.data.count-ct,this.data.count);
+		}
+	}
 
     bytesToInt16(x0,x1){
 		return x0 * 256 + x1;
@@ -101,82 +123,75 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		var search = this.boyerMoore(needle);
 		var skip = search.byteLength;
 		var indices = [];
+		let newLines = 0;
 
 		for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
 			indices.push(i);
 		}
 		//console.log(indices);
-
 		if(indices.length >= 2){
-			var line = buffer.splice(indices[0],indices[1]+6-indices[0]); //Splice out this line to be decoded
+			for(let k = 1; k < indices.length; k++) {
+				if(indices[k] - indices[k-1] === 32) {
+					var line = buffer.slice(indices[k-1],indices[k]+1); //Slice out this line to be decoded
+					
+					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
 
-			// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
+					//line found, decode.
+					if(this.data.count < this.maxBufferedSamples){
+						this.data.count++;
+					}
 
-            if(indices[1] - indices[0] !== 32) {
-                let j = 0;
-                while (j < 6) { //Cyton has 6 stop bytes possible
-                    j++;
-                    this.searchString = new Uint8Array([this.startByte,j]);
-                    needle = this.searchString
-                    haystack = buffer;
-                    search = this.boyerMoore(needle);
-                    skip = search.byteLength;
-                    indices = [];
+					if(this.data.count-1 === 0) {this.data.ms[this.data.count-1] = Date.now(); this.data.startms = this.data.ms[0];}
+					else {
+						this.data.ms[this.data.count-1]=this.data.ms[this.data.count-2]+this.updateMs;
+						
+						if(this.data.count >= this.maxBufferedSamples) {
+							this.data.ms.splice(0,5120);
+							this.data.ms.push(new Array(5120).fill(0));
+						}
+					}//Assume no dropped samples
+				
+					for(var i = 3; i < 27; i+=3) {
+						let channel;
+						if(this.mode === 'daisy') {
+							if(lines[2] % 2 !== 0) {
+								channel = "A"+(i-3)/3;
+							} else { channel = "A"+(8+(i-3)/3); }
+						}
+						else {
+							channel = "A"+(i-3)/3;
+						}
+						this.data[channel][this.data.count-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
+						if(this.data.count >= this.maxBufferedSamples) { 
+							this.data[channel].splice(0,5120);
+							this.data[channel].push(new Array(5120).fill(0));//shave off the last 10 seconds of data if buffer full (don't use shift())
+						}
+							//console.log(this.data[channel][this.data.count-1],indices[k], channel)
+					}
 
-                    for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
-                        indices.push(i);
-                    }
-                    if(indices.length >= 2){
-                        line = buffer.splice(indices[0],indices[1]+6-indices[0]); //Splice out this line to be decoded
-                        if(indices[1] - indices[0] === 32) { 
-                            this.stopByte = j;
-                            break;
-                        }
-                    }
-                }
-                if(indices[1] - indices[0] !== 32) { 
-                    buffer.splice(0,indices[1]);
-                    return false; //This is not a valid sequence going by size, drop sequence and return
-                }
-            }
+					this.data["Ax"][this.data.count-1]=this.bytesToInt16(line[27],line[28]);
+					this.data["Ay"][this.data.count-1]=this.bytesToInt16(line[29],line[30]);
+					this.data["Az"][this.data.count-1]=this.bytesToInt16(line[31],line[32]);
 
-			if(indices[0] !== 0){
-				buffer.splice(0,indices[0]); // Remove any useless junk on the front of the buffer.
+					
+					if(this.data.count >= this.maxBufferedSamples) { 
+						this.data["Ax"].splice(0,5120);
+						this.data["Ay"].splice(0,5120);
+						this.data["Az"].splice(0,5120);
+						this.data["Ax"].push(new Array(5120).fill(0));
+						this.data["Ay"].push(new Array(5120).fill(0));
+						this.data["Az"].push(new Array(5120).fill(0));
+						this.data.count -= 5120;
+					}
+					//console.log(this.data)
+					newLines++;
+					//console.log(indices[k-1],indices[k])
+					//console.log(buffer[indices[k-1],buffer[indices[k]]])
+					//indices.shift();
+				}	
 			}
-
-			//line found, decode.
-			if(this.data.counter < this.maxBufferedSamples){
-				this.data.counter++;
-			}
-
-			if(this.data.counter-1 === 0) {this.data.ms[this.data.counter-1]= Date.now();}
-			else {
-				if(this.data.counter >= this.maxBufferedSamples && this.data.ms[this.data.counter-1] !== 0 ) {
-					this.data.ms.push(this.data.ms[this.data.counter-1]+this.updateMs);
-					this.data.ms.shift();
-				}
-				else{
-					this.data.ms[this.data.counter-1]=this.data.ms[this.data.counter-2]+this.updateMs;
-				}
-			}//Assume no dropped samples
-		
-			for(var i = 3; i < 27; i+=3) {
-				var channel = "A"+(i-3)/3;
-				if(this.data.counter >= this.maxBufferedSamples) { 
-					this.data[channel].push(this.bytesToInt24(line[i],line[i+1],line[i+2]));
-					this.data[channel].shift();
-				}
-				else{
-					this.data[channel][this.data.counter-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
-				}
-			}
-
-			this.data["Ax"][this.data.counter-1]=this.bytesToInt16(line[27],line[28]);
-			this.data["Ay"][this.data.counter-1]=this.bytesToInt16(line[29],line[30]);
-			this.data["Az"][this.data.counter-1]=this.bytesToInt16(line[31],line[32]);
-			//console.log(this.data)
-
-			return true;
+			if(newLines > 0) buffer.splice(0,indices[indices.length-1]);
+			return newLines;
 			//Continue
 		}
 		//else {this.buffer = []; return false;}
@@ -198,19 +213,16 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	onReceive(value){
 		this.buffer.push(...value);
 
-		let newLines = 0;
-		while (this.buffer.length > 209) {
-			//console.log("decoding... ", this.buffer.length)
-			this.decode(this.buffer);
-			newLines++
-		}
-		this.onDecodedCallback(newLines);
+		let newLines = this.decode(this.buffer);
+		//console.log(this.data)
+		//console.log("decoding... ", this.buffer.length)
+		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
 	}
 
 	async onPortSelected(port,baud=this.baudrate) {
 		try{
 			try {
-				await port.open({ baudRate: baud, bufferSize: 2048 });
+				await port.open({ baudRate: baud, bufferSize: this.readBufferSize });
 				this.onConnectedCallback();
 				this.connected = true;
 				this.subscribed = true;
@@ -218,7 +230,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		
 			} //API inconsistency in syntax between linux and windows
 			catch {
-				await port.open({ baudrate: baud, buffersize: 2048 });
+				await port.open({ baudrate: baud, buffersize: this.readBufferSize });
 				this.onConnectedCallback();
 				this.connected = true;
 				this.subscribed = true;
@@ -232,15 +244,15 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	}
 
 	async subscribe(port){
-		while (this.port.readable && this.subscribed === true) {
+		if (this.port.readable && this.subscribed === true) {
 			this.reader = port.readable.getReader();
-			while(this.subscribed === true) {
+			const streamData = async () => {
 				try {
 					const { value, done } = await this.reader.read();
 					if (done || this.subscribed === false) {
 						// Allow the serial port to be closed later.
 						await this.reader.releaseLock();
-						break;
+						
 					}
 					if (value) {
 						//console.log(value.length);
@@ -251,12 +263,55 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 						//console.log("new Read");
 						//console.log(this.decoder.decode(value));
 					}
+					if(this.subscribed === true) {
+						setTimeout(()=>{streamData();}, this.readRate);//Throttled read 1/512sps = 1.953ms/sample @ 103 bytes / line or 1030bytes every 20ms
+					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-					break;
+					
 				}
 			}
+			streamData();
 		}
+	}
+
+	//Unfinished
+	async subscribeSafe(port) { //Using promises instead of async/await to cure hangs when the serial update does not meet tick requirements
+		var readable = new Promise((resolve,reject) => {
+			while(this.port.readable && this.subscribed === true){
+				this.reader = port.readable.getReader();
+				var looper = true;
+				var prom1 = new Promise((resolve,reject) => {
+					return this.reader.read();
+				});
+
+				var prom2 = new Promise((resolve,reject) => {
+					setTimeout(resolve,100,"readfail");
+				});
+				while(looper === true ) {
+					//console.log("reading...");
+					Promise.race([prom1,prom2]).then((result) => {
+						console.log("newpromise")
+						if(result === "readfail"){
+							console.log(result);
+						}
+						else{
+							const {value, done} = result;
+							if(done === true || this.subscribed === true) { var donezo = new Promise((resolve,reject) => {
+								resolve(this.reader.releaseLock())}).then(() => {
+									looper = false;
+									return;
+								});
+							}
+							else{
+								this.onReceive(value);
+							}
+						}
+					});
+				}
+			}
+			resolve("not readable");
+		});
 	}
 
 	async closePort(port=this.port) {
@@ -377,3 +432,4 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	//---------------------end copy/pasted solution------------------------
 
 }
+
