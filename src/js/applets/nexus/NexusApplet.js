@@ -54,11 +54,11 @@ export class NexusApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' style='height:${props.height}; width:${props.width};'>
-                <canvas class="webgl"></canvas>
-                <div class="loading-bar"></div>
-                <div class="point-container"></div>
-                <div id="gameHero" class="container"><div><h1>Nexus</h1><p>Neurofeedback + Group Meditation</p></div></div>
+            <div id='${props.id}' style='height:${props.height}; width:${props.width}; background: black'>
+                <canvas class="nexus-webgl"></canvas>
+                <div class="nexus-loading-bar"></div>
+                <div class="nexus-point-container"></div>
+                <div id="nexus-gameHero" class="nexus-container"><div><h1>Nexus</h1><p>Neurofeedback + Group Meditation</p></div></div>
             </div>
             `;
         }
@@ -89,7 +89,7 @@ export class NexusApplet {
 const raycaster = new THREE.Raycaster()
 
 // Loading Manager
-const loadingBarElement = document.querySelector('.loading-bar')
+const loadingBarElement = document.querySelector('.nexus-loading-bar')
 
 const loadingManager = new THREE.LoadingManager(
     // Loaded
@@ -99,7 +99,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
         loadingBarElement.classList.add('ended')
         loadingBarElement.style.transform = ''
-        document.getElementById("gameHero").style.opacity = 0;
+        document.getElementById("nexus-gameHero").style.opacity = 0;
 
         gsap.delayedCall(2.0,() => 
         {
@@ -125,7 +125,7 @@ const displacementMap = textureLoader.load(mapDisp)
  * Canvas
  */
 const container = document.getElementById(this.props.id)
-const canvas = document.querySelector('canvas.webgl')
+const canvas = document.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene

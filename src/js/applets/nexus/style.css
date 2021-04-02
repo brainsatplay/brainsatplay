@@ -1,73 +1,49 @@
-*
-{
-    margin: 0;
-    padding: 0;
-}
-
-html,
-body
-{
-    height: 100vh;
-    font-family: 'Poppins', sans-serif;
-    background: black;
-}
-
-body {
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
-.webgl
+.nexus-webgl
 {
     position: absolute;
     top: 0;
     left: 0;
     outline: none;
-    /* mix-blend-mode: exclusion; */
 }
 
-.container {
+.nexus-container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     position: relative;
     box-sizing: border-box;
     text-align: left;
-    height: 100vh;
-    width: 100vw;
-    padding: 50px;;
+    height: 100%;
+    width: 100%;
+    padding: 50px;
     color: white;
     z-index: 1;
     pointer-events: none;
     line-height: 3em;
 }
 
-#gameHero {
+#nexus-gameHero {
     transition-duration: 1.5s;
     transition-property: opacity;
 }
 
-.container div {
+.nexus-container div {
     width: 100%;
 }
 
-.container h1 {
+.nexus-container h1 {
     font-size: 5em;
     text-transform: uppercase;
     width: 100%;
 }
 
-.container p {
+.nexus-container p {
     font-size: 0.8em;
     width: 100%;
 }
 
-section {
-    height: 100vh;
-}
-
-.loading-bar {
-    position: absolute;
+.nexus-loading-bar {
+    position: relative;
     top: calc(50% + 0.8em + 5em);
     width: 100%;
     height: 2px;
@@ -79,13 +55,13 @@ section {
     will-change: transform;
 }
 
-.loading-bar.ended
+.nexus-loading-bar.ended
 {
     transform-origin: 100% 0;
     transition: transform 1.5s ease-in-out;
 }
 
-.point {
+.nexus-point {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -94,11 +70,11 @@ section {
     will-change: transform;
 }
 
-.point:active {
+.nexus-point:active {
 	pointer-events: none;
 }
 
-.point .label {
+.nexus-point .label {
     position: absolute;
     top: -20px;
     left: -20px;
@@ -116,11 +92,11 @@ section {
     transition: transform 0.5s;
 }
 
-.point.visible .label {
+.nexus-point.visible .label {
     transform: scale(1, 1);
 }
 
-.point .text
+.nexus-point .text
 {
     position: absolute;
     top: 30px;
@@ -139,6 +115,6 @@ section {
     pointer-events: none;
 }
 
-.point:hover .text {
+.nexus-point:hover .text {
     opacity: 1;
 }

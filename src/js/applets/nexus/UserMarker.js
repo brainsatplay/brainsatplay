@@ -19,15 +19,15 @@ export class UserMarker {
     this.prevMarkers = []
     this.createMarker()
     this.createHTMLElement()
-    this.element = document.querySelector(`.point-${this.name}`)
+    this.element = document.querySelector(`.nexus-point-${this.name}`)
     this.active = false;
   }
 
   createHTMLElement(){
-    document.querySelector(`.point-container`).innerHTML += `
-    <div class="point point-${this.name}">
-      <div class="label">${this.name}</div>
-      <div class="text">${this.name} is down here. Scroll to zoom in and see.</div>
+    document.querySelector(`.nexus-point-container`).innerHTML += `
+    <div class="nexus-point nexus-point-${this.name}">
+      <div class="nexus-label">${this.name}</div>
+      <div class="nexus-text">${this.name} is down here. Scroll to zoom in and see.</div>
     </div>
     `
   }
