@@ -99,6 +99,24 @@ export class AppletManager {
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.gridArea = String.fromCharCode(97 + i);
             appletDiv.style.overflow = 'hidden'
+
+            // Fullscreen Functionality
+            appletDiv.addEventListener('dblclick', () => {
+                const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                if (!fullscreenElement){
+                    if (appletDiv.requestFullscreen){
+                        appletDiv.requestFullscreen()
+                    } else if (appletDiv.webkitRequestFullscreen){
+                        appletDiv.webkitRequestFullscreen()
+                    }
+                } else {
+                    if (document.exitFullscreen){
+                        document.exitFullscreen()
+                    } else if (document.webkitExitFullscreen){
+                        document.webkitExitFullscreen()
+                    }
+                }
+            })
         });
         this.responsive();
     }
