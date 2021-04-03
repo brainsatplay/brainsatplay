@@ -9,6 +9,7 @@ body
 {
     height: 100vh;
     font-family: 'Poppins', sans-serif;
+    background: black;
 }
 
 body {
@@ -166,4 +167,18 @@ select {
     color: black;
     font-size: 60%;
     margin: 0px 10px;
+}
+
+
+/* Draggable */
+.draggable {
+    cursor: move;
+}
+
+.draggable.dragging{
+    opacity: 0.5;
+}
+
+.hovered {
+    opacity: 0.5;
 }

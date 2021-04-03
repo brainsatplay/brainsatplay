@@ -87,6 +87,49 @@ export class AppletManager {
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.gridArea = String.fromCharCode(97 + i);
             appletDiv.style.overflow = 'hidden'
+            appletDiv.name = applet.name
+
+            // Drag functionality
+            // appletDiv.draggable = true
+            // appletDiv.classList.add("draggable")
+            appletDiv.addEventListener('dragstart', () => {
+                appletDiv.classList.add("dragging")
+            })
+            appletDiv.addEventListener('dragend', () => {
+                appletDiv.classList.remove("dragging")
+            })
+
+            appletDiv.addEventListener('dragover', (e) => {
+                e.preventDefault()
+                // let dragging = document.querySelector('.dragging')
+                // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
+                // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
+                // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
+                // let htmlString = '<h1>Replaced!</h1>'
+                // appletDiv.innerHTML = htmlString.trim();
+                // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
+                appletDiv.classList.add('hovered')
+            })
+
+            appletDiv.addEventListener('dragleave', (e) => {
+                e.preventDefault()
+                // let dragging = document.querySelector('.dragging')
+                // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
+                // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
+                // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
+                // let htmlString = '<h1>Replaced!</h1>'
+                // appletDiv.innerHTML = htmlString.trim();
+                // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
+                appletDiv.classList.remove('hovered')
+            })
+
+            appletDiv.addEventListener("drop", function(event) {
+                event.preventDefault();
+                let dragging = document.querySelector('.dragging')
+                appletDiv.classList.remove('hovered')
+              }, false);
 
             // Fullscreen Functionality
             appletDiv.addEventListener('dblclick', () => {
@@ -131,7 +174,8 @@ export class AppletManager {
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
             appletDiv.style.gridArea = String.fromCharCode(97 + pos);
             appletDiv.style.overflow = 'hidden'
-
+            appletDiv.draggable = true
+            appletDiv.style.cursor = 'move'
             // Fullscreen Functionality
             appletDiv.addEventListener('dblclick', () => {
                 const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
