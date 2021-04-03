@@ -124,8 +124,8 @@ export class AppletManager {
         
     }
 
-    appletDivSettings = (appletDiv, pos) => {
-        appletDiv.style.gridArea = String.fromCharCode(97 + pos);
+    appletDivSettings = (appletDiv, appletIdx) => {
+        appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
         appletDiv.style.overflow = 'hidden'
         appletDiv.draggable = true
         appletDiv.style.cursor = 'move'
