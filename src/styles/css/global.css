@@ -95,10 +95,9 @@ button {
     background: rgb(230, 230, 230);
 }
 
-#sidebar button:focus {
+/* #sidebar button:focus {
     outline: none;
-    background: rgb(210, 210, 210);
-}
+} */
 
 #sidebar-toggle{
     position:absolute;
@@ -118,11 +117,6 @@ button {
     width: 100%;
 }
   
-  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-  .active, .collapsible:hover {
-    background-color: #ccc;
-  }
-  
   /* Style the collapsible content. Note: hidden by default */
   .content {
     position: absolute;
@@ -131,7 +125,7 @@ button {
     box-sizing: border-box;
     top: 0; 
     right: 0;
-    opacity: 0;
+    opacity: 0%;
     overflow: hidden;
     background-color: #f1f1f1;
     z-index: -1;

@@ -151,11 +151,11 @@ export class BCIAppManager {
         var coll = document.getElementsByClassName("collapsible");
         var i;
         for (i = 0; i < coll.length; i++) {
+            coll[i].nextElementSibling.style.opacity = '0'
           coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
+            // this.classList.toggle("active");
             var content = this.nextElementSibling;
-            console.log(content.style.opacity)
-            if (content.style.opacity !== "1") {
+            if (content.style.opacity === "0") {
                 content.style.opacity = "1";
                 content.style.right = `-${content.clientWidth}px`;
                 content.style.pointerEvents = 'auto'
