@@ -1,12 +1,12 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../brainsatplay'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
 import { SoundJS } from '../../frontend/UX/Sound';
 
 //Example Applet for integrating with the UI Manager
-export class CircleApp {
+export class CircleApplet {
 
-    static devices = ['eeg']
+    static devices = ['heg']
 
     constructor(
         parent=document.body,
@@ -53,13 +53,13 @@ export class CircleApp {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id=`+props.id+`>
-                <div id='`+props.id+`menu' style='position:absolute;'>
-                    <table id='`+props.id+`table'>
-                        <button id='`+props.id+`audio'></button>
+                <div id='`+props.id+`menu' style='position:absolute; z-index:3; '>
+                    <table id='`+props.id+`table' style='z-index:99;'>
+                        <td><button id='`+props.id+`audio'>Tone</button></td>
                     </table>
-                    <button id='`+props.id+`showhide'>Hide UI</button>
+                    <button id='`+props.id+`showhide' style='opacity:0.3;'>Hide UI</button>
                 </div>
-                <canvas id='`+props.id+`canvas'></canvas>
+                <canvas id='`+props.id+`canvas' height='100%' width='100%' style='width:100%; height:100%;'></canvas>
             </div>
             `;
         }
@@ -69,20 +69,20 @@ export class CircleApp {
             let aud = document.getElementById(props.id+'audio');
             aud.style.opacity = 0.3;
             aud.onclick = () => {
-                if(this.soundF === null) {
+                if(this.soundFX === null) {
                     this.soundFX = new SoundJS();
                     this.soundFX.gainNode.gain.value = 0.1;
                     this.soundFX.playFreq([300]);
                     aud.style.opacity = 1.0;
                 }
                 else {
-                    if(this.soundFX.gain.gain.value === 0) {
+                    if(this.soundFX.gainNode.gain.value === 0) {
                             this.soundFX.gainNode.gain.value = 0.1;
                             aud.style.opacity = 1.0;
                     }
                     else {
                         this.soundFX.gainNode.gain.value = 0;
-                        aud.style.opacity = 0.3;
+                        aud.style.opacity = 0.2;
                     }
                 }
             }
@@ -102,8 +102,16 @@ export class CircleApp {
                 }
             }
 
+            showhide.onmouseover = () => {
+                showhide.style.opacity = 1.0;
+            }
+            showhide.onmouseleave = () => {
+                showhide.style.opacity = 0.2;
+            }
+
             this.canvas = document.getElementById(props.id+"canvas");
             this.ctx = this.canvas.getContext('2d');
+            this.draw();
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -119,8 +127,6 @@ export class CircleApp {
 
 
         //Add whatever else you need to initialize
-
-        this.draw();
 
         this.looping = true;
         this.loop = this.updateLoop();
@@ -142,6 +148,10 @@ export class CircleApp {
     responsive() {
         this.canvas.width = this.AppletHTML.node.clientWidth;
         this.canvas.height = this.AppletHTML.node.clientHeight;
+        this.canvas.style.width = this.AppletHTML.node.clientWidth;
+        this.canvas.style.height = this.AppletHTML.node.clientHeight;
+
+        this.draw();
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -160,21 +170,22 @@ export class CircleApp {
 	}
 
     updateLoop = () => {
-        if(this.bci.atlas.settings.heg) {
-            let ct = this.bci.atlas.heg[0].count;
-            if(ct >= 2) {
-                let score = this.bci.atlas.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.heg[0].ratio.slice(ct-40));
-                this.angleChange = score;
-                this.draw();
+        if(this.looping){
+            if(this.bci.atlas.settings.heg) {
+                let ct = this.bci.atlas.heg[0].count;
+                if(ct >= 2) {
+                    let score = this.bci.atlas.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.heg[0].ratio.slice(ct-40));
+                    this.angleChange = score;
+                    this.draw();
+                }
             }
+            setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);
         }
-        setTimeout(() => { this.loop = requestAnimationFrame(updateLoop); },16);
     }
 
     draw = () => {
         let cWidth = this.canvas.width;
         let cHeight = this.canvas.height;
-
            // style the background
         var gradient = this.ctx.createRadialGradient(cWidth*0.5,cHeight*0.5,2,cWidth*0.5,cHeight*0.5,100*this.angle*this.angle);
         gradient.addColorStop(0,"purple");
@@ -201,6 +212,7 @@ export class CircleApp {
         // color in the circle
         this.ctx.fillStyle = this.cColor;
         this.ctx.fill();
+        console.log(this.ctx, this.cColor, this.bgColor)
         
     }
 

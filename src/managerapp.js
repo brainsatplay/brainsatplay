@@ -10,12 +10,15 @@ import { BrainMapApplet } from './js/applets/EEG/BrainMapApplet'
 import { SmoothieApplet } from './js/applets/EEG/SmoothieApplet'
 import { NexusApplet } from './js/applets/nexus/NexusApplet'
 
+import { CircleApplet } from './js/applets/HEG/Circle'
+
 let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Nexus",      		cls: NexusApplet		},
 	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
 	{	name:"uPlot", 			cls: uPlotApplet   		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
+	{   name:"Circle", 			cls: CircleApplet		},
 	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 

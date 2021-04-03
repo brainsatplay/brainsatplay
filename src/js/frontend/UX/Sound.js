@@ -34,7 +34,7 @@ export class SoundJS { //Only one Audio context at a time!
             this.osc.splice(len,1);
           }
         this.osc[len].type = type;
-        this.osc[len].connect(this.gain);
+        this.osc[len].connect(this.gainNode);
         this.osc[len].frequency.setValueAtTime(element, startTime);
         if(seconds!=0){
           //0 = unlimited 
@@ -60,7 +60,7 @@ export class SoundJS { //Only one Audio context at a time!
         var idx = this.sourceList.length - 1;
         this.sourceList[idx].buffer = element;
         this.sourceList[idx].onended = () => {this.sourceList.splice(idx, 1)};
-        this.sourceList[idx].connect(this.gain); //Attach to volume node
+        this.sourceList[idx].connect(this.gainNode); //Attach to volume node
       });
     }
   
