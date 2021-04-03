@@ -98,6 +98,8 @@ const loadingBarElement = document.querySelector('.nexus-loading-bar')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
+        renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
+        canvas.style.display = 'block'
         gsap.delayedCall(3.0,() => 
         {
         gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
@@ -163,7 +165,7 @@ const displacementMap = textureLoader.load(mapDisp)
  * Canvas
  */
 const nexusContainer = document.getElementById(this.props.id)
-const canvas = document.querySelector('canvas.nexus-webgl')
+let canvas = document.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene
@@ -194,7 +196,7 @@ const renderer = new THREE.WebGLRenderer({
  const segmentsX = 400
  const imageAspect = imageWidth/imageHeight
  let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
- let meshWidth = fov_y * camera.aspect;
+ let meshWidth = (fov_y  - 1.0)* camera.aspect;
  let meshHeight = meshWidth / imageAspect;
 
 /**
@@ -227,10 +229,12 @@ overlay.position.z = 0.2
 scene.add(overlay)
 
 // Renderer
-renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
+console.log(nexusContainer.clientWidth, nexusContainer.clientHeight)
+renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 document.getElementById('nexus-renderer-container').appendChild(renderer.domElement)
-
+canvas = document.querySelector('canvas.nexus-webgl')
+canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
 
@@ -387,7 +391,7 @@ scene.add(plane)
 function resizeNexus() {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
-    meshWidth = fov_y * camera.aspect
+    meshWidth = (fov_y  - 1.0)* camera.aspect;
     meshHeight = meshWidth / imageAspect
     regeneratePlaneGeometry()
     points.forEach(point => {
@@ -423,10 +427,10 @@ false)
 nexusContainer.addEventListener('dblclick', () => {
     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
     if (!fullscreenElement){
-        if (canvas.requestFullscreen){
-            canvas.requestFullscreen()
-        } else if (canvas.webkitRequestFullscreen){
-            canvas.webkitRequestFullscreen()
+        if (nexusContainer.requestFullscreen){
+            nexusContainer.requestFullscreen()
+        } else if (nexusContainer.webkitRequestFullscreen){
+            nexusContainer.webkitRequestFullscreen()
         }
     } else {
         if (document.exitFullscreen){
