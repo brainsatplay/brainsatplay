@@ -10,7 +10,7 @@ export class AppletManager {
         this.appletClasses = appletClasses;
         this.appletsSpawned = 0;
         this.maxApplets = 4;
-        this.applets = Array.from({length: this.maxApplets}, e => null);
+        this.applets = Array.from({length: this.maxApplets}, (e,i) => { return {appletIdx: i+1,name:null,classinstance: null}});
 
         this.bcisession=bcisession;
     
@@ -45,6 +45,7 @@ export class AppletManager {
                     //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
                     //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
                     this.applets[i] = {
+                        appletIdx: i+1,
                         name:classObj.name,
                         classinstance: new classObj.cls("applets",this.bcisession)
                     }
@@ -60,6 +61,7 @@ export class AppletManager {
                         let k = i+1;
                         if(cfg.idx) { k=cfg.idx; }
                         this.applets[i] = {
+                            appletIdx: i+1,
                             name:o.name,
                             classinstance: new o.cls("applets",this.bcisession)
                         }
@@ -78,20 +80,6 @@ export class AppletManager {
     }
 
     initApplets = () => {
-
-        // Create grid subdivisions based on applet count
-        let gridSideDivisions = Math.ceil(Math.sqrt(this.applets.length))
-        let innerStrings = Array.from({length: gridSideDivisions}, e => [])
-        this.applets.forEach((applet,i,self) => {
-            innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
-        })
-        innerStrings = innerStrings.map((stringArray) => {
-            return '"' + stringArray.join(' ') + '"'
-        }).join(' ')
-        let applets = document.getElementById('applets');
-        applets.style.gridTemplateAreas = innerStrings
-        applets.style.gridTemplateColumns = `repeat(${gridSideDivisions},1fr)`
-        applets.style.gridTemplateRows =  `repeat(${gridSideDivisions},1fr)`
 
         // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
@@ -125,7 +113,7 @@ export class AppletManager {
         if(this.appletsSpawned < this.maxApplets) {
             var classObj = this.appletClasses[appletClassIdx];
             var found = this.applets.find((o,i) => {
-                if(i+1 === appletIdx) {
+                if(o.appletIdx === appletIdx) {
                     this.deinitApplet(appletIdx);
                     return true;
                 }
@@ -135,9 +123,8 @@ export class AppletManager {
                    
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
-            console.log(appletIdx)
-            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
-            else { this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {appletIdx: applexIdx,name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            else { this.applets[pos] = {appletIdx: applexIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
             
             this.applets[pos].classinstance.init();
 
@@ -172,7 +159,7 @@ export class AppletManager {
 
     initAppletwSettings = (appletIdx=null,settings=null) => {
         var found = this.applets.find((o,i) => {
-            if(i+1 === appletIdx) {
+            if(o.appletIdx === appletIdx) {
                 o.classinstance.init();
                 if(!!settings){
                     if(!!o.classinstance.configure){
@@ -188,7 +175,7 @@ export class AppletManager {
     deinitApplet = (appletIdx) => {
         var stateIdx = null;
         var found = this.applets.find((o,i) => {
-            if(i+1=== appletIdx) {
+            if(o.appletIdx === appletIdx) {
                 stateIdx = i;  
                 // let applets = document.getElementById('applets')
                 
@@ -208,7 +195,7 @@ export class AppletManager {
                     this.applets[stateIdx].classinstance.deinit();
                 }
                 //this.applets[stateIdx].container.deleteFragment();
-                this.applets[stateIdx] = null;
+                this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};
                 this.appletsSpawned--;
                 this.responsive();
                 return true;
@@ -260,24 +247,51 @@ export class AppletManager {
     }
 
     responsive(nodes=this.applets) {
-        nodes = nodes.filter(n => n != null)
-        nodes.forEach((appnode,i) => {
+
+        // Create grid subdivisions based on applet count
+        let activeNodes = nodes.filter(n => n.classinstance != null)
+        let gridRows = Math.ceil(Math.sqrt(nodes.length))
+        let innerStrings = Array.from({length: gridRows}, e => [])
+        nodes.forEach((applet,i,self) => {
+            if (activeNodes.length > 1){
+                if (applet.classinstance != null){
+                    innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
+                } else {
+                    if (Math.floor(i/gridRows) == Math.floor((i+1)/gridRows)){
+                        innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (i+1)));
+                    } else if (Math.floor(i/gridRows) == Math.floor((i-1)/gridRows)){
+                        innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (i-1)));
+                    }
+                }
+            } else {
+                innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
+            }
+            })
+        innerStrings = innerStrings.map((stringArray) => {
+            return '"' + stringArray.join(' ') + '"'
+        }).join(' ')
+        let applets = document.getElementById('applets');
+        console.log(applets.style.gridTemplateAreas)
+        console.log(innerStrings)
+        applets.style.gridTemplateAreas = innerStrings
+        applets.style.gridTemplateColumns = `repeat(${gridRows},1fr)`
+        applets.style.gridTemplateRows =  `repeat(${gridRows},1fr)`
+
+        activeNodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
             if (nodes.length === 1){
-                // appletDiv.style.flex = `1 0 ${100}%`
-                appletDiv.style.maxHeight = `calc(${100}vh - 100px)`;
+                appletDiv.style.maxHeight = `calc(${100}vh - 50px)`;
+                console.log('setting to 100')
             } else if (nodes.length === 2){
-                // appletDiv.style.flex = `1 0 ${100}%`
                 appletDiv.style.maxHeight = `calc(${50}vh - 50px)`;           
             } else {
-                // appletDiv.style.flex = `1 0 ${gridPercent - gridPercent*0.2}%`
                 appletDiv.style.maxHeight = `calc(${gridPercent}vh - 50px)`;
             }
         });
         
 
-        nodes.forEach((applet,i) => {
+        activeNodes.forEach((applet,i) => {
             applet.classinstance.responsive();
         });
     }

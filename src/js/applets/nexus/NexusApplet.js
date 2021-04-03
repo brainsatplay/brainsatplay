@@ -229,11 +229,10 @@ const overlayMaterial = new THREE.ShaderMaterial({
     `
 })
 const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
-overlay.position.z = 0.2
+overlay.position.z = camera.position.z - 0.1;
 scene.add(overlay)
 
 // Renderer
-console.log(nexusContainer.clientWidth, nexusContainer.clientHeight)
 renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 document.getElementById('nexus-renderer-container').appendChild(renderer.domElement)
@@ -392,7 +391,7 @@ const plane = new THREE.Mesh(planeGeometry, material)
 scene.add(plane)
 
 // Resize
-function resizeNexus() {
+this.resizeNexus = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     meshWidth = (fov_y  - 1.0)* camera.aspect;
@@ -424,7 +423,7 @@ function resizeNexus() {
 
 }
 
-window.addEventListener('resize', resizeNexus, 
+window.addEventListener('resize', this.resizeNexus, 
 false)
 
 function regeneratePlaneGeometry() {
@@ -529,6 +528,7 @@ animate();
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+        this.resizeNexus()
         // const canvas = document.querySelector('canvas.nexus-webgl')
         // canvas.width = this.AppletHTML.node.clientWidth;
         // canvas.height = this.AppletHTML.node.clientHeight;
