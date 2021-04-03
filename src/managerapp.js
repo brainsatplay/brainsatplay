@@ -14,9 +14,9 @@ let applets = [
 	{name:"Smooth",         cls: SmoothieApplet},
 	{name:"Nexus",      cls: NexusApplet},
 	{name:"Spectrogram",    cls: SpectrogramApplet},
+	{name:"Example Applet", cls: AppletExample },
 	{name:"Brain Map",      cls: BrainMapApplet},
 	{name:"uPlot", 			cls: uPlotApplet   },
-	{name:"Example Applet", cls: AppletExample },
 ];
 
 let bcisession = new brainsatplay('guest','','game');

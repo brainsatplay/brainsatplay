@@ -427,24 +427,6 @@ function resizeNexus() {
 window.addEventListener('resize', resizeNexus, 
 false)
 
-// Fullscreen
-nexusContainer.addEventListener('dblclick', () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-    if (!fullscreenElement){
-        if (nexusContainer.requestFullscreen){
-            nexusContainer.requestFullscreen()
-        } else if (nexusContainer.webkitRequestFullscreen){
-            nexusContainer.webkitRequestFullscreen()
-        }
-    } else {
-        if (document.exitFullscreen){
-            document.exitFullscreen()
-        } else if (document.webkitExitFullscreen){
-            document.webkitExitFullscreen()
-        }
-    }
-})
-
 function regeneratePlaneGeometry() {
     let newGeometry = new THREE.PlaneGeometry(
         meshWidth, meshHeight, segmentsX, segmentsX/imageAspect
