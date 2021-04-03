@@ -2,13 +2,14 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 
 
-class device {
+class devicePlugin {
     constructor() {
-        this.name = 'device';
-        this.sps = '';
-        this.scalar = 1; //Voltage scalar (e.g. if you have raw ADC values)
-        
-        this.class = null; //Invoke a device class here if needed
+        this.atlas = null;
+        this.mode = mode;
+
+        this.device = null; //Invoke a device class here if needed
+        this.filters = [];
+       
     }
 
     init = () => {
@@ -17,11 +18,16 @@ class device {
 
     connect = () => {
 
+        this.onconnect();
     }
 
     disconnect = () => {
 
+        this.ondisconnect();
     }
 
+    //externally set callbacks
+    onconnect = () => {}
+    ondisconnect = () => {}
 
 }

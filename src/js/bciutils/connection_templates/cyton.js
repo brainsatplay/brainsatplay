@@ -8,8 +8,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		onDecodedCallback = this.onDecodedCallback,
 		onConnectedCallback = this.onConnectedCallback,
 		onDisconnectedCallback = this.onDisconnectedCallback,
-		CustomDecoder = this.decode,
 		mode='daisy', //"daisy", then "single" or whatever, daisy is the only real setting
+		CustomDecoder = this.decode,
 		baudrate = 115200
 		) {
 		this.onDecodedCallback = onDecodedCallback;

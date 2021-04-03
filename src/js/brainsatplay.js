@@ -826,7 +826,7 @@ class deviceStream {
 		this.streamTable=[]; //tags and callbacks for streaming
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
-		this.pipeToAtlas = pipeToAtlas
+		this.pipeToAtlas = pipeToAtlas;
 
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
@@ -1416,8 +1416,8 @@ class dataAtlas {
 
         this.data = {
 			eegshared:{
-				eegChannelTags:initialData.eegshared.eegChannelTags, 
-				sps:initialData.eegshared.sps, 
+				eegChannelTags:initialData.eegshared?.eegChannelTags, 
+				sps:initialData.eegshared?.sps, 
 				startTime:0,
 				frequencies:[], 
 				bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}

@@ -360,7 +360,7 @@ export class Boids {
     }
 
     animate = () => {
-        this.update();
+        this.updateParticles();
         setTimeout(()=>{this.animationId = requestAnimationFrame(this.animate);},20);
     }
 

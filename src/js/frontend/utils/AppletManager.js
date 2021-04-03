@@ -1,3 +1,4 @@
+import { DOMFragment } from "./DOMFragment";
 
 export class AppletManager {
     constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=null) {
@@ -39,6 +40,9 @@ export class AppletManager {
         if(appletConfigs.length === 0){
             this.appletClasses.forEach((classObj,i) => {
                 if(this.appletsSpawned < this.maxApplets) {
+                    //let containerId = Math.floor(Math.random()*100000)+"applet";
+                    //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
+                    //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
                     this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});
                     this.appletsSpawned++;
                 }
@@ -84,6 +88,12 @@ export class AppletManager {
                     return true;
                 }
             });
+            //let containerId = Math.floor(Math.random()*100000)+"applet";
+            //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
+                   
+            //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
+            //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
+
             var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
             else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
             
@@ -116,6 +126,7 @@ export class AppletManager {
             if(o.appletIdx === appletIdx) {
                 stateIdx = i;  
                 this.applets[stateIdx].classinstance.deinit();
+                //this.applets[stateIdx].container.deleteFragment();
                 this.applets.splice(stateIdx,1);
                 this.appletsSpawned--;
                 this.responsive();
