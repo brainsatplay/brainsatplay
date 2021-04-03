@@ -85,7 +85,7 @@ export class uPlotApplet {
                     </tr>
                   </table>
                 </div>
-                <div id='`+props.id+`canvas' style='z-index:3; position:absolute; background-color:white;'></div>
+                <div id='`+props.id+`canvas' style='z-index:3; position:absolute; background-color:white; min-height:100px; min-width:100px;'></div>
             </div>
             `; //
         }
@@ -229,9 +229,16 @@ export class uPlotApplet {
       }
 
       this.setPlotDims(); 
-      this.setuPlot();
-
-      if(!this.looping) this.start();
+      if(this.plotWidth === 0 || this.plotHeight === 0) {
+        setTimeout(() => {
+          this.setPlotDims();         
+          this.setuPlot();
+        }, 100);
+      }
+      else {
+        this.setuPlot();
+        if(!this.looping) this.start();
+      }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -263,6 +270,9 @@ export class uPlotApplet {
 
       this.plotWidth = this.AppletHTML.node.clientWidth;
       this.plotHeight = this.AppletHTML.node.clientHeight;
+      //if(this.plotWidth < 100) this.plotWidth = 400;
+      //if(this.plotHeight < 100) this.plotHeight = 300;
+
     }
 
     updateLoop = () => {
