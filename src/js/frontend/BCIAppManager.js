@@ -167,6 +167,10 @@ export class BCIAppManager {
                         overlay.style.pointerEvents = 'none'              
                     }
                 })
+            } else {
+                content.style.opacity = "0";
+                content.style.right = "0";
+                content.style.pointerEvents = 'none'      
             }
           });
           coll[i].nextElementSibling.addEventListener('mouseout', function() {
