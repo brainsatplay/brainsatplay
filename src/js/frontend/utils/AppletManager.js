@@ -8,9 +8,10 @@ export class AppletManager {
 
         
         this.appletClasses = appletClasses;
-        this.applets = [];
         this.appletsSpawned = 0;
         this.maxApplets = 4;
+        this.applets = Array.from({length: this.maxApplets}, e => null);
+
         this.bcisession=bcisession;
     
         this.appletSelectIds = appletSelectIds;
@@ -27,10 +28,10 @@ export class AppletManager {
             this.addAppletOptions(id,i);
         })
         let applets = document.getElementById('applets');
-        applets.style.display = 'flex'
-        applets.style.flexWrap = 'wrap'
-        applets.style.flexGrow = '1'
-    }x
+        applets.style.display = 'grid'
+        applets.style.height = 'calc(100vh - 100px)'
+        applets.style.width = 'calc(100vw - 100px)'
+    }
 
     initUI = () => {}
 
@@ -43,7 +44,10 @@ export class AppletManager {
                     //let containerId = Math.floor(Math.random()*100000)+"applet";
                     //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
                     //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
-                    this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});
+                    this.applets[i] = {
+                        name:classObj.name,
+                        classinstance: new classObj.cls("applets",this.bcisession)
+                    }
                     this.appletsSpawned++;
                 }
             });
@@ -55,7 +59,10 @@ export class AppletManager {
                     if(cfg.name === o.name) {
                         let k = i+1;
                         if(cfg.idx) { k=cfg.idx; }
-                        this.applets.push({ appletIdx:k, name:o.name, classinstance: new o.cls("applets",this.bcisession)});
+                        this.applets[i] = {
+                            name:o.name,
+                            classinstance: new o.cls("applets",this.bcisession)
+                        }
                         this.appletsSpawned++;
                         if(cfg.settings) {
                             this.initAppletwSettings(k,cfg.settings);
@@ -71,10 +78,27 @@ export class AppletManager {
     }
 
     initApplets = () => {
+
+        // Create grid subdivisions based on applet count
+        let gridSideDivisions = Math.ceil(Math.sqrt(this.applets.length))
+        let innerStrings = Array.from({length: gridSideDivisions}, e => [])
+        this.applets.forEach((applet,i,self) => {
+            innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
+        })
+        innerStrings = innerStrings.map((stringArray) => {
+            return '"' + stringArray.join(' ') + '"'
+        }).join(' ')
+        let applets = document.getElementById('applets');
+        applets.style.gridTemplateAreas = innerStrings
+        applets.style.gridTemplateColumns = `repeat(${gridSideDivisions},1fr)`
+        applets.style.gridTemplateRows =  `repeat(${gridSideDivisions},1fr)`
+
+        // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
-            appletDiv.style.flex = '1 0 42%'
+            appletDiv.style.gridArea = String.fromCharCode(97 + i);
+            appletDiv.style.overflow = 'hidden'
         });
         this.responsive();
     }
@@ -83,7 +107,7 @@ export class AppletManager {
         if(this.appletsSpawned < this.maxApplets) {
             var classObj = this.appletClasses[appletClassIdx];
             var found = this.applets.find((o,i) => {
-                if(o.appletIdx === appletIdx) {
+                if(i+1 === appletIdx) {
                     this.deinitApplet(appletIdx);
                     return true;
                 }
@@ -93,12 +117,13 @@ export class AppletManager {
                    
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
-
-            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
-            else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)});}
+            console.log(appletIdx)
+            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            else { this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
             
             this.applets[pos].classinstance.init()
-            this.applets[pos].classinstance.AppletHTML.node.style.flex = '1 0 42%'
+            // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
+            // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
             this.responsive();
             console.log("applet added");
@@ -107,7 +132,7 @@ export class AppletManager {
 
     initAppletwSettings = (appletIdx=null,settings=null) => {
         var found = this.applets.find((o,i) => {
-            if(o.appletIdx === appletIdx) {
+            if(i+1 === appletIdx) {
                 o.classinstance.init();
                 if(!!settings){
                     if(!!o.classinstance.configure){
@@ -123,11 +148,27 @@ export class AppletManager {
     deinitApplet = (appletIdx) => {
         var stateIdx = null;
         var found = this.applets.find((o,i) => {
-            if(o.appletIdx === appletIdx) {
+            if(i+1=== appletIdx) {
                 stateIdx = i;  
-                this.applets[stateIdx].classinstance.deinit();
+                // let applets = document.getElementById('applets')
+                
+                // let gridAreas = this.applets[i].classinstance.AppletHTML.node.style.gridArea.split(' / ')
+                // gridAreas = gridAreas.filter((val,ind,self) => self.indexOf(val) === ind)
+                // console.log(gridAreas)
+                // console.log(applets.style.gridTemplateAreas)
+                // gridAreas.forEach(gridArea => {
+                //     applets.style.gridTemplateAreas = `'b' 'c d'`
+                    
+                //     applets.style.gridTemplateAreas.replace(
+                //         gridArea,
+                //         '') 
+                // })
+                // console.log(applets.style.gridTemplateAreas)
+                if (this.applets[stateIdx] != null){
+                    this.applets[stateIdx].classinstance.deinit();
+                }
                 //this.applets[stateIdx].container.deleteFragment();
-                this.applets.splice(stateIdx,1);
+                this.applets[stateIdx] = null;
                 this.appletsSpawned--;
                 this.responsive();
                 return true;
@@ -179,23 +220,24 @@ export class AppletManager {
     }
 
     responsive(nodes=this.applets) {
+        nodes = nodes.filter(n => n != null)
         nodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
             if (nodes.length === 1){
-                appletDiv.style.flex = `1 0 ${100}%`
+                // appletDiv.style.flex = `1 0 ${100}%`
                 appletDiv.style.maxHeight = `calc(${100}vh - 100px)`;
             } else if (nodes.length === 2){
-                appletDiv.style.flex = `1 0 ${100}%`
+                // appletDiv.style.flex = `1 0 ${100}%`
                 appletDiv.style.maxHeight = `calc(${50}vh - 50px)`;           
             } else {
-                appletDiv.style.flex = `1 0 ${gridPercent - gridPercent*0.2}%`
+                // appletDiv.style.flex = `1 0 ${gridPercent - gridPercent*0.2}%`
                 appletDiv.style.maxHeight = `calc(${gridPercent}vh - 50px)`;
             }
         });
         
 
-        this.applets.forEach((applet,i) => {
+        nodes.forEach((applet,i) => {
             applet.classinstance.responsive();
         });
     }

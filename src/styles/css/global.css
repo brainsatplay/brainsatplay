@@ -118,7 +118,7 @@ button {
     right: 0%;
     transform: translateY(-50%);
     opacity: 0;
-    /* overflow: hidden; */
+    overflow: hidden;
     background-color: #f1f1f1;
     z-index: -1;
     transition: 0.5s;

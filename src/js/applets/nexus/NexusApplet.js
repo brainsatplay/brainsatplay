@@ -105,16 +105,20 @@ const loadingManager = new THREE.LoadingManager(
         gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
         loadingBarElement.classList.add('ended')
         loadingBarElement.style.transform = ''
-        document.getElementById("nexus-gameHero").style.opacity = 0;
+        let hero = document.getElementById("nexus-gameHero")
+        // Check if Nexus HTML still exists
+        if (hero){
+            hero.style.opacity = 0;
 
-        gsap.delayedCall(2.0,() => 
-        {
-            // Get My Location
-            getGeolocation()
-            glitchPass.enabled = true
-            glitchPass.lastGlitchTime = Date.now();
-            controls.enabled = true;
-        })
+            gsap.delayedCall(2.0,() => 
+            {
+                // Get My Location
+                getGeolocation()
+                glitchPass.enabled = true
+                glitchPass.lastGlitchTime = Date.now();
+                controls.enabled = true;
+            })
+        }
     })
     },
 
