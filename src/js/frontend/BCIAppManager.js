@@ -160,6 +160,8 @@ export class BCIAppManager {
           });
         }
 
+        document.body.style.overflow = "hidden";
+
 
         this.uiFragments.page = new DOMFragment(
             page_template,

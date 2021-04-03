@@ -116,7 +116,7 @@ export class AppletManager {
                         document.webkitExitFullscreen()
                     }
                 }
-            })
+            });
         });
         this.responsive();
     }
@@ -139,7 +139,29 @@ export class AppletManager {
             var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
             else { this.applets[pos] = {name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
             
-            this.applets[pos].classinstance.init()
+            this.applets[pos].classinstance.init();
+
+            let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
+            appletDiv.style.gridArea = String.fromCharCode(97 + pos);
+            appletDiv.style.overflow = 'hidden'
+
+            // Fullscreen Functionality
+            appletDiv.addEventListener('dblclick', () => {
+                const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                if (!fullscreenElement){
+                    if (appletDiv.requestFullscreen){
+                        appletDiv.requestFullscreen()
+                    } else if (appletDiv.webkitRequestFullscreen){
+                        appletDiv.webkitRequestFullscreen()
+                    }
+                } else {
+                    if (document.exitFullscreen){
+                        document.exitFullscreen()
+                    } else if (document.webkitExitFullscreen){
+                        document.webkitExitFullscreen()
+                    }
+                }
+            });
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
