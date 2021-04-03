@@ -110,7 +110,7 @@ const loadingManager = new THREE.LoadingManager(
         if (hero){
             hero.style.opacity = 0;
 
-            gsap.delayedCall(2.0,() => 
+            gsap.delayedCall(0.5,() => 
             {
                 // Get My Location
                 getGeolocation()
@@ -400,18 +400,16 @@ this.resizeNexus = () => {
     points.forEach(point => {
         if (point.active){
             point.updateMesh(meshWidth,meshHeight)
-            let screenPos = new THREE.Vector3(point.x,point.y,point.z)
+            let screenPos = point.marker.position.clone()
             screenPos.project(camera)
             let translateX = nexusContainer.clientWidth * screenPos.x * 0.5
             point.element.style.transform = `translate(${translateX}px)`
             let translateY = nexusContainer.clientHeight * screenPos.y * 0.5
             point.element.style.transform = `translate(${translateY}px)`
-
             if (point.name == 'me'){
                 material.uniforms.point.value = new THREE.Vector2(point.x,point.y)
                 material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
                 controls.target.set(point.x,point.y,point.z)
-                // camera.position.set(point.x,point.y)
             }
         }
     })
@@ -438,7 +436,12 @@ function regeneratePlaneGeometry() {
 let currentIntersect = null
 
 var animate = function () {
-    requestAnimationFrame(animate)
+
+    // Limit Framerate
+    setTimeout( function() {
+        requestAnimationFrame( animate );
+    }, 1000 / 60 );
+
     animateUsers()
     material.uniforms.uTime.value = Date.now() - tStart
     points.forEach(point => {

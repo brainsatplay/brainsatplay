@@ -80,23 +80,28 @@ export class BCIAppManager {
         let connectHTML = `
         <div id="sidebar-container">
             <div id="sidebar">
+            <div id="sidebar-inner">
                 <div class="logo-container">
                     <img class="logo" src="./logo512.png">
                 </div>
-                <div>
-                    <button id='server'>Connect to Server</button>
-                    <button id='ping'>Send Ping</button>
-                    <button id='getusers'>Get Users</button>
-                    <button id='createGame'>Make Game session</button>
-                    <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-                    <button id='subscribeToSelf'>Subscribe to self</button>
-                    <div>
-                        <button class="collapsible">File System</button>
-                        <div class="content">
-                            <p>Lorem ipsum...</p>
-                        </div>
+                <div class="collapsible-container">
+                    <button class="collapsible">File System</button>
+                    <div class="content">
+                        <p>Lorem ipsum...</p>
                     </div>
-                </div>
+                    </div>
+                    <div class="collapsible-container">
+                    <button class="collapsible">Dev Tools</button>
+                    <div class="content">
+                        <button id='server'>Connect to Server</button>
+                        <button id='ping'>Send Ping</button>
+                        <button id='getusers'>Get Users</button>
+                        <button id='createGame'>Make Game session</button>
+                        <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                        <button id='subscribeToSelf'>Subscribe to self</button>
+                    </div>
+                    </div>
+                    </div>
             </div>
             <div id="sidebar-toggle"></div>
             <div class="overlay"></div>
@@ -145,19 +150,35 @@ export class BCIAppManager {
 
         var coll = document.getElementsByClassName("collapsible");
         var i;
-        
         for (i = 0; i < coll.length; i++) {
           coll[i].addEventListener("click", function() {
             this.classList.toggle("active");
             var content = this.nextElementSibling;
-            if (content.style.opacity === "1") {
-              content.style.opacity = "0";
-              content.style.right = "0%";
-            } else {
+            console.log(content.style.opacity)
+            if (content.style.opacity !== "1") {
                 content.style.opacity = "1";
-                content.style.right = "-100%";
+                content.style.right = `-${content.clientWidth}px`;
+                content.style.pointerEvents = 'auto'
+                Array.from(document.getElementsByClassName("collapsible")).forEach(toggleButton => {
+                    let overlay = toggleButton.nextElementSibling
+                    if (overlay.style.opacity === "1" && overlay != content){
+                        overlay.style.opacity = "0";
+                        overlay.style.right = "0";
+                        overlay.style.pointerEvents = 'none'              
+                    }
+                })
             }
           });
+          coll[i].nextElementSibling.addEventListener('mouseout', function() {
+            this.style.opacity = "0";
+            this.style.right = "0";
+            this.style.pointerEvents = 'none'
+        })
+        coll[i].nextElementSibling.addEventListener('mouseover', function() {
+            this.style.opacity = "1";
+            this.style.right = `-${this.clientWidth}px`;
+            this.style.pointerEvents = 'auto'
+      })
         }
 
         document.body.style.overflow = "hidden";
