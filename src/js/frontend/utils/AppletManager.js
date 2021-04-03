@@ -124,7 +124,7 @@ export class AppletManager {
         
     }
 
-    appletDivSettings = (appletDiv) => {
+    appletDivSettings = (appletDiv, pos) => {
         appletDiv.style.gridArea = String.fromCharCode(97 + pos);
         appletDiv.style.overflow = 'hidden'
         appletDiv.draggable = true
@@ -242,7 +242,7 @@ export class AppletManager {
             this.applets[pos].classinstance.init();
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            this.appletDivSettings(appletDiv);
+            this.appletDivSettings(appletDiv, pos);
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
