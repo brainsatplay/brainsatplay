@@ -1,10 +1,13 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
-import {addChannelOptions,addCoherenceOptions} from '../frontend/menus/selectTemplates'
-import {Spectrogram} from '../bciutils/visuals/eegvisuals'
+import {brainsatplay} from '../../brainsatplay'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
+import {Spectrogram} from '../../bciutils/visuals/eegvisuals'
 
 //Example Applet for integrating with the UI Manager
 export class SpectrogramApplet {
+
+    static devices = ['eeg']
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),
@@ -12,9 +15,9 @@ export class SpectrogramApplet {
     ) {
     
         //-------Keep these------- 
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 

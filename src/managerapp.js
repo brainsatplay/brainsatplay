@@ -4,20 +4,20 @@ import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
 
 import {AppletExample} from './js/applets/AppletExample'
-import {uPlotApplet} from './js/applets/uPlotApplet'
-import {SpectrogramApplet} from './js/applets/SpectrogramApplet'
-import { BrainMapApplet } from './js/applets/BrainMapApplet'
-import { SmoothieApplet } from './js/applets/SmoothieApplet'
+import {uPlotApplet} from './js/applets/General/uPlotApplet'
+import {SpectrogramApplet} from './js/applets/EEG/SpectrogramApplet'
+import { BrainMapApplet } from './js/applets/EEG/BrainMapApplet'
+import { SmoothieApplet } from './js/applets/EEG/SmoothieApplet'
 import { NexusApplet } from './js/applets/nexus/NexusApplet'
 
 let applets = [
-	{name:"Smooth",         cls: SmoothieApplet},
-	{name:"Nexus",      cls: NexusApplet},
-	{name:"Spectrogram",    cls: SpectrogramApplet},
-	{name:"Example Applet", cls: AppletExample },
-	{name:"Brain Map",      cls: BrainMapApplet},
-	{name:"uPlot", 			cls: uPlotApplet   },
-];
+	{	name:"Smooth",         	cls: SmoothieApplet		},
+	{	name:"Nexus",      		cls: NexusApplet		},
+	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
+	{	name:"Example Applet", 	cls: AppletExample 		},
+	{	name:"Brain Map",      	cls: BrainMapApplet		},
+	{	name:"uPlot", 			cls: uPlotApplet   		},
+];//sssssymmetry (ღ˘⌣˘ღ)
 
 let bcisession = new brainsatplay('guest','','game');
 

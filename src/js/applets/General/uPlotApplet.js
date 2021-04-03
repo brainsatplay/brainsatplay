@@ -1,14 +1,17 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
-import {uPlotMaker} from '../bciutils/visuals/eegvisuals'
-import {eegmath} from '../bciutils/eeg32'
-import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../frontend/menus/selectTemplates'
+import {brainsatplay} from '../../brainsatplay'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
+import {eegmath} from '../../bciutils/eeg32'
+import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 
 
 document.head.insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="./_dist_/styles/css/uPlot.min.css" />`);
 
 //Example Applet for integrating with the UI Manager
 export class uPlotApplet {
+
+    static devices = ['eeg','heg']
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),
@@ -16,9 +19,9 @@ export class uPlotApplet {
     ) {
     
         //-------Keep these------- 
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 

@@ -1,10 +1,13 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
-import {BrainMap2D} from '../bciutils/visuals/eegvisuals'
-import {genBandviewSelect} from '../frontend/menus/selectTemplates'
+import {brainsatplay} from '../../brainsatplay'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {BrainMap2D} from '../../bciutils/visuals/eegvisuals'
+import {genBandviewSelect} from '../../frontend/menus/selectTemplates'
 
 //Example Applet for integrating with the UI Manager
 export class BrainMapApplet {
+
+    static devices = ['eeg']
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),
@@ -12,9 +15,9 @@ export class BrainMapApplet {
     ) {
     
         //-------Keep these------- 
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 

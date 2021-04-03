@@ -3,6 +3,9 @@ import {DOMFragment} from '../frontend/utils/DOMFragment'
 
 //Example Applet for integrating with the UI Manager
 export class AppletTemplate {
+
+    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),
@@ -10,9 +13,9 @@ export class AppletTemplate {
     ) {
     
         //-------Keep these------- 
+        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 

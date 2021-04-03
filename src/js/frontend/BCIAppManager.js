@@ -220,6 +220,9 @@ export class BCIAppManager {
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
         this.bcisession.onconnected = () => {
+            //this.appletManager.reinitApplets();
+            this.appletManager.deinitApplets();
+            this.appletManager.initAddApplets();
             this.appletManager.responsive();
         }
         this.setupUITemplates();

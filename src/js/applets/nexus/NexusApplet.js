@@ -22,6 +22,9 @@ import mapDisp from "./img/mapDisplacement.jpeg"
 
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
+
+    static devices = ['eeg'] //,heg
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

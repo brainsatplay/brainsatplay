@@ -1,7 +1,8 @@
+import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 
 export class AppletManager {
-    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=null) {
+    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new brainsatplay()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
@@ -37,48 +38,93 @@ export class AppletManager {
 
     deinitUI = () => {}
 
+    //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-        if(appletConfigs.length === 0){
-            this.appletClasses.forEach((classObj,i) => {
-                if(this.appletsSpawned < this.maxApplets) {
-                    //let containerId = Math.floor(Math.random()*100000)+"applet";
-                    //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
-                    //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
+        this.appletClasses.forEach((classObj,i) => {
+            if(this.appletsSpawned < this.maxApplets) {
+                //let containerId = Math.floor(Math.random()*100000)+"applet";
+                //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
+                //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
+                let config = undefined;
+                if(appletConfigs.length !== 0) {
+                    appletConfigs.forEach((cfg,i)=> {
+                        this.appletClasses.find((o,j) => {
+                            if(cfg.name === o.name) {
+                                config = cfg.settings;
+                            }
+                        });
+                    });
+                }
+
+                if(this.bcisession.info.nDevices > 0) {
+                    let found = this.bcisession.devices.find((o,j) => {
+                        if(!classObj.devices) {
+                            this.applets[i] = {
+                                appletIdx: i+1,
+                                name:classObj.name,
+                                classinstance: new classObj.cls("applets",this.bcisession,config)
+                            }
+                            this.appletsSpawned++;
+                        }
+                        else if(Array.isArray(classObj.devices)) {
+                            if(classObj.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.indexOf(o.info.deviceName) > -1) {
+                                this.applets[i] = {
+                                    appletIdx: i+1,
+                                    name:classObj.name,
+                                    classinstance: new classObj.cls("applets",this.bcisession,config)
+                                }
+                                this.appletsSpawned++;
+                            }
+                        } 
+                        else if (typeof classObj.devices === 'object') { // { devices:['eeg'], eegChannelTags:['FP1','FP2'] }
+                            if(classObj.devices.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.devices.indexOf(o.info.deviceName) > -1) {
+                                if(classObj.devices.eegChannelTags) {
+                                    let passed = false;
+                                    classObj.devices.eegChannelTags.forEach((tag,k) => {
+                                        let found = o.atlas.eegshared.eegChannelTags.find((t) => {
+                                            if(t.tag === tag) {
+                                                passed = true;
+                                                return true;
+                                            }
+                                        }); 
+                                        if(!found) passed = false;
+                                    });
+                                    if(passed) {
+                                        this.applets[i] = {
+                                            appletIdx: i+1,
+                                            name:classObj.name,
+                                            classinstance: new classObj.cls("applets",this.bcisession,config)
+                                        }
+                                        this.appletsSpawned++;
+                                    }
+                                }
+                                else {
+                                    this.applets[i] = {
+                                        appletIdx: i+1,
+                                        name:classObj.name,
+                                        classinstance: new classObj.cls("applets",this.bcisession,config)
+                                    }
+                                    this.appletsSpawned++;
+                                }
+                            }
+                        }
+                    });
+                }
+                else {
                     this.applets[i] = {
                         appletIdx: i+1,
                         name:classObj.name,
-                        classinstance: new classObj.cls("applets",this.bcisession)
+                        classinstance: new classObj.cls("applets",this.bcisession,config)
                     }
                     this.appletsSpawned++;
                 }
-            });
-            this.initApplets();
-        }
-        else{
-            appletConfigs.forEach((cfg,i)=> { //Expects objects like {name:"",idx:1 to max,settings:["a","b","c"]} the idx and settings are optional to set up specific layouts
-                this.appletClasses.find((o,j) => {
-                    if(cfg.name === o.name) {
-                        let k = i+1;
-                        if(cfg.idx) { k=cfg.idx; }
-                        this.applets[i] = {
-                            appletIdx: i+1,
-                            name:o.name,
-                            classinstance: new o.cls("applets",this.bcisession)
-                        }
-                        this.appletsSpawned++;
-                        if(cfg.settings) {
-                            this.initAppletwSettings(k,cfg.settings);
-                        }
-                        else {
-                            this.initAppletwSettings(k,null);
-                        }
-                    }
-                    
-                });
-            });
-        }
+            }
+        });
+        this.initApplets();
+        
     }
 
+    //initialize applets added to the list into each container by index
     initApplets = () => {
 
         // Assign applets to proper areas
@@ -152,7 +198,7 @@ export class AppletManager {
         this.responsive();
     }
 
-    addApplet = (appletClassIdx, appletIdx) => {
+    addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
         if(this.appletsSpawned < this.maxApplets) {
             var classObj = this.appletClasses[appletClassIdx];
             var found = this.applets.find((o,i) => {
@@ -166,8 +212,8 @@ export class AppletManager {
                    
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
-            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {appletIdx: pos+1,name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
-            else { this.applets[pos] = {appletIdx: pos+1, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {appletIdx: pos+1,name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession,settings)};}
+            else { this.applets[pos] = {appletIdx: pos+1, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession,settings)};}
             
             this.applets[pos].classinstance.init();
 
@@ -199,21 +245,6 @@ export class AppletManager {
             this.responsive();
             console.log("applet added");
         }
-    }
-
-    initAppletwSettings = (appletIdx=null,settings=null) => {
-        var found = this.applets.find((o,i) => {
-            if(o.appletIdx === appletIdx) {
-                o.classinstance.init();
-                if(!!settings){
-                    if(!!o.classinstance.configure){
-                        o.classinstance.configure(settings);
-                    }
-                }
-                this.responsive();
-                return true;
-            }
-        });
     }
 
     deinitApplet = (appletIdx) => {
