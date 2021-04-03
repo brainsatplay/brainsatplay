@@ -32,7 +32,7 @@ export class UserMarker {
     `
   }
 
-  animateLabel(camera){
+  animateLabel(camera,container){
     let screenPos = new THREE.Vector3(this.x,this.y,this.z)
     let distanceToPoint = screenPos.distanceTo(new THREE.Vector3(
       camera.position.x,
@@ -44,8 +44,8 @@ export class UserMarker {
       this.element.classList.remove('visible')
     }
     screenPos.project(camera)
-    let translateX = window.innerWidth * screenPos.x * 0.5
-    let translateY = -window.innerHeight * screenPos.y * 0.5
+    let translateX = container.clientWidth * screenPos.x * 0.5
+    let translateY = -container.clientHeight * screenPos.y * 0.5
     this.element.style.transform = `translate(${translateX}px,${translateY}px)`
   }
 

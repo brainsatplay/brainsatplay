@@ -53,13 +53,16 @@ export class NexusApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            console.log(props)
             return `
             <div id='${props.id}' class="nexus-wrapper" style='height:${props.height}; width:${props.width};'>
-                <canvas class="nexus-webgl" width='100%' height='100%'></canvas>
+                <div id="nexus-renderer-container"><canvas class="nexus-webgl"></canvas>                </div>
                 <div class="nexus-loading-bar"></div>
                 <div class="nexus-point-container"></div>
-                <div id="nexus-gameHero" class="nexus-container"><div><h1>Nexus</h1><p>Neurofeedback + Group Meditation</p></div></div>
+                <div id="nexus-gameHero" class="nexus-container">
+                <div>
+                <h1>Nexus</h1>
+                <p>Neurofeedback + Group Meditation</p>
+                </div></div>
             </div>
             `;
         }
@@ -107,6 +110,8 @@ const loadingManager = new THREE.LoadingManager(
             // Get My Location
             getGeolocation()
             glitchPass.enabled = true
+            glitchPass.lastGlitchTime = Date.now();
+            controls.enabled = true;
         })
     })
     },
@@ -116,27 +121,66 @@ const loadingManager = new THREE.LoadingManager(
         loadingBarElement.style.transform = `scaleX(${itemsLoaded/itemsTotal})`
     }
 )
-
+// const gltfLoader = new GLTFLoader(loadingManager)
+// const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
 // Textures
 const textureLoader = new THREE.TextureLoader(loadingManager)
 const texture = textureLoader.load(mapTexture)
+// const futuristicInterface = textureLoader.load('./textures/interfaceNormalMap.png')
 const displacementMap = textureLoader.load(mapDisp)
+
+// const matcapTexture = textureLoader.load('./textures/matcaps/8.png')
+
+// // Text
+// const fontLoader = new THREE.FontLoader()
+// fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
+//     points.forEach((point,name) => {
+
+//         const textGeometry = new THREE.TextBufferGeometry(
+//             name,
+//             {
+//                 font: font,
+//                 size: 0.5/10,
+//                 height: 0.2/10,
+//                 curveSegments: 5,
+//                 bevelEnabled: true,
+//                 bevelThickness: 0.03/10,
+//                 bevelSize:0.02/10,
+//                 bevelOffset:0,
+//                 bevelSegments: 4
+//             }
+//         )
+//         textGeometry.computeBoundingBox()
+//         textGeometry.center()
+//         const textMaterial = new THREE.MeshMatcapMaterial({matcap: matcapTexture})
+//         const text = new THREE.Mesh(textGeometry, textMaterial)
+//         text.position.set(point.x, point.y, 0.1)
+//         scene.add(text)
+//     })
+// })
 
 /**
  * Canvas
  */
-const container = document.getElementById(this.props.id)
+const nexusContainer = document.getElementById(this.props.id)
 const canvas = document.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene
  */
 const scene = new THREE.Scene()
+// // const light = new THREE.AmbientLight(0x00b3ff);
+// const light = new THREE.AmbientLight(0xffffff);
+// light.position.set(0, 5, 10);
+// light.intensity = 1.4;
+// scene.add(light);
+
 /**
  * Camera
  */
-const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.01, 1000)
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
 camera.position.z = 3
+
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
@@ -183,9 +227,12 @@ overlay.position.z = 0.2
 scene.add(overlay)
 
 // Renderer
-renderer.setSize(container.clientWidth, container.clientHeight)
-renderer.setPixelRatio(Math.min(container.devicePixelRatio,2))
-document.body.appendChild(renderer.domElement)
+renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+document.getElementById('nexus-renderer-container').appendChild(renderer.domElement)
+
+// GUI
+// const gui = new dat.GUI({width: 400});
 
 /** 
  * Postprocessing 
@@ -205,8 +252,7 @@ document.body.appendChild(renderer.domElement)
  }
 
  const renderTarget = new RenderTargetClass(
-    container.clientWidth, 
-    container.clientHeight,
+    window.innerWidth , window.innerHeight,
     {
         minFilter: THREE.LinearFilter,
         maxFilter: THREE.LinearFilter,
@@ -219,11 +265,19 @@ document.body.appendChild(renderer.domElement)
  // Composer
 const effectComposer = new EffectComposer(renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(container.clientWidth, container.clientHeight)
+effectComposer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
+
+// const effectGrayScale = new ShaderPass( LuminosityShader );
+// effectComposer.addPass( effectGrayScale );
+
+// const effectSobel = new ShaderPass( SobelOperatorShader );
+// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
+// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
+// effectComposer.addPass( effectSobel );
 
 const glitchPass = new GlitchPass()
 glitchPass.goWild = false
@@ -236,7 +290,22 @@ effectComposer.addPass(shaderPass)
 
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
+// bloomPass.strength = 0.5
+// bloomPass.radius = 1
+// bloomPass.threshold = 0.6
 effectComposer.addPass(bloomPass)
+
+// // Custom Shader Pass
+// const customPass = new ShaderPass({
+//     uniforms: {
+//         tDiffuse: { value: null },
+//         uInterfaceMap: { value: null }
+//     },
+//     vertexShader: interfaceVertexShader,
+//     fragmentShader: interfaceFragmentShader
+// })
+// customPass.material.uniforms.uInterfaceMap.value = futuristicInterface
+// effectComposer.addPass(customPass)
 
 // Antialiasing
 if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
@@ -251,17 +320,19 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
+controls.enabled = false;
+
 //controls.addEventListener('change', render)
 
 // Mouse
 const mouse = new THREE.Vector2()
-container.addEventListener('mousemove', (e) => {
-    mouse.x = (e.clientX/container.clientWidth) * 2 - 1
-    mouse.y = -(e.clientY/container.clientHeight) * 2 + 1
+nexusContainer.addEventListener('mousemove', (e) => {
+    mouse.x = (e.layerX/nexusContainer.clientWidth) * 2 - 1
+    mouse.y = -(e.layerY/nexusContainer.clientHeight) * 2 + 1
 })
 
 
-container.addEventListener('click', () => {
+nexusContainer.addEventListener('click', () => {
     if (currentIntersect){
         currentIntersect.object.material.opacity = 1.0 
     }
@@ -271,10 +342,18 @@ container.addEventListener('click', () => {
 let points = new Map()
 let diameter = 1e-2/4;
 points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight}))
+// points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight})); // Cape Town
+// let la = points.get('Los Angeles')
 
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(meshWidth, meshHeight, segmentsX, segmentsX/imageAspect)
 let tStart = Date.now()
+//  let point1 = {
+//     position: new THREE.Vector2(NaN,NaN)
+//  }
+//  let pointArr = new Float32Array() //[point1]
+//  pointArr[0] = NaN
+//  pointArr[1] = NaN
 
 const material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
@@ -284,6 +363,8 @@ const material = new THREE.ShaderMaterial({
     blending: THREE.AdditiveBlending,
     uniforms:
     {
+        // points: { value: pointArr },
+        // count: {value: pointArr.length/2 },
         point: { value: new THREE.Vector2(NaN,NaN) },
         count: {value: 1 },
         uTime: { value: 0 },
@@ -291,7 +372,8 @@ const material = new THREE.ShaderMaterial({
         displacementMap: { value: displacementMap },
         displacementHeight: { value: 0.1 },
         colorThreshold: { value: 0.030},
-        aspectRatio: {value: container.clientWidth / container.clientHeight}
+        aspectRatio: {value: window.innerWidth / window.innerHeight}
+        // colorThreshold: { value: new THREE.Vector2(0.05*window.innerWidth,0.05*window.innerHeight) },
     }
 })
 
@@ -302,35 +384,43 @@ const plane = new THREE.Mesh(planeGeometry, material)
 scene.add(plane)
 
 // Resize
-container.addEventListener('resize', () => {
-    camera.aspect = container.clientWidth / container.clientHeight
+function resizeNexus() {
+    camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     meshWidth = fov_y * camera.aspect
     meshHeight = meshWidth / imageAspect
     regeneratePlaneGeometry()
     points.forEach(point => {
-        point.updateMesh(meshWidth,meshHeight)
-        let screenPos = new THREE.Vector3(point.x,point.y,point.z)
-        screenPos.project(camera)
-        let translateX = container.clientWidth * screenPos.x * 0.5
-        point.element.style.transform = `translate(${translateX}px)`
+        if (point.active){
+            point.updateMesh(meshWidth,meshHeight)
+            let screenPos = new THREE.Vector3(point.x,point.y,point.z)
+            screenPos.project(camera)
+            let translateX = nexusContainer.clientWidth * screenPos.x * 0.5
+            point.element.style.transform = `translate(${translateX}px)`
+            let translateY = nexusContainer.clientHeight * screenPos.y * 0.5
+            point.element.style.transform = `translate(${translateY}px)`
+
+            if (point.name == 'me'){
+                material.uniforms.point.value = new THREE.Vector2(point.x,point.y)
+                material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
+                controls.target.set(point.x,point.y,point.z)
+                // camera.position.set(point.x,point.y)
+            }
+        }
     })
 
-    let me = points.get('me')
-    material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
-    material.uniforms.aspectRatio.value = container.clientWidth / container.clientHeight
-    controls.target.set(me.x,me.y,0.12)
-    camera.position.set(me.x,me.y)
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(container.devicePixelRatio, 2))
-    effectComposer.setPixelRatio(Math.min(container.devicePixelRatio, 2))
-    effectComposer.setSize(container.clientWidth, container.clientHeight)
+    renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
 
-}, 
+}
+
+window.addEventListener('resize', resizeNexus, 
 false)
 
 // Fullscreen
-container.addEventListener('dblclick', () => {
+nexusContainer.addEventListener('dblclick', () => {
     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
     if (!fullscreenElement){
         if (canvas.requestFullscreen){
@@ -347,29 +437,6 @@ container.addEventListener('dblclick', () => {
     }
 })
 
-// Animate
-let currentIntersect = null
-
-
-// Stats
-// const stats = Stats()
-// document.body.appendChild(stats.dom)
-
-var animate = function () {
-    requestAnimationFrame(animate)
-    animateUsers()
-    material.uniforms.uTime.value = Date.now() - tStart
-    points.forEach(point => {
-        point.animateLabel(camera)
-    })
-    // stats.update()
-    controls.update()
-    // renderer.render(scene, camera)
-    effectComposer.render()
-};
-
-animate()
-
 function regeneratePlaneGeometry() {
     let newGeometry = new THREE.PlaneGeometry(
         meshWidth, meshHeight, segmentsX, segmentsX/imageAspect
@@ -377,6 +444,28 @@ function regeneratePlaneGeometry() {
     plane.geometry.dispose()
     plane.geometry = newGeometry
 }
+
+// Animate
+let currentIntersect = null
+
+var animate = function () {
+    requestAnimationFrame(animate)
+    animateUsers()
+    material.uniforms.uTime.value = Date.now() - tStart
+    points.forEach(point => {
+        point.animateLabel(camera,nexusContainer)
+    })
+    // stats.update()
+    controls.update()
+    // renderer.render(scene, camera)
+    effectComposer.render()
+};
+
+
+// Stats
+// const stats = Stats()
+// document.body.appendChild(stats.dom)
+
 // Draw Shapes
 function animateUsers(){
     raycaster.setFromCamera(mouse,camera)
@@ -425,7 +514,7 @@ function getGeolocation(){
         //     position: new THREE.Vector2(me.x,me.y)
         //  }
          material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
-         controls.target.set(me.x,me.y,0.12)
+         controls.target.set(me.x,me.y,me.z)
          camera.position.set(me.x,me.y)
     }, 
     // Error
@@ -439,6 +528,7 @@ function getGeolocation(){
         maximumAge: 0
     });
 }
+animate();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -449,9 +539,9 @@ function getGeolocation(){
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        // const canvas = document.querySelector('canvas.nexus-webgl')
+        // canvas.width = this.AppletHTML.node.clientWidth;
+        // canvas.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

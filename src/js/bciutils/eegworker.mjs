@@ -5,7 +5,6 @@
 import { gpuUtils } from './signal_analysis/gpuUtils.js';
 import { eegmath } from './eeg32';
 
-
 const gpu = new gpuUtils();
 
 onmessage = (e) => {
