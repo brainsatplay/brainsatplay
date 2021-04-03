@@ -40,7 +40,7 @@ export class BrainMapApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' style='width:${props.width}; height:${props.height};'>
+            <div id='${props.id}'>
                 <div style="position: absolute; z-index:3;">`+genBandviewSelect(props.id+'bandview')+`</div>
                 <canvas id='`+props.id+`canvas' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:1; '></canvas>
                 <canvas id='`+props.id+`points' width='100%' height='100%' style='position:absolute; width:100%; height:100%; z-index:2; '></canvas>
