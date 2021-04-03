@@ -76,7 +76,7 @@ export class BCIAppManager {
     }
 
     setupUITemplates = () => {
-        // Navigation Sidebar
+
         let connectHTML = `
         <div id="sidebar-container">
             <div id="sidebar">
@@ -85,13 +85,18 @@ export class BCIAppManager {
                     <img class="logo" src="./logo512.png">
                 </div>
                 <div class="collapsible-container">
-                    <button class="collapsible">File System</button>
+                    <button class="collapsible">
+                    <div class="img-cont">
+                    <img src="./_dist_/assets/folder-solid.svg">
+                    <span>File Manager</span>
+                    </div>
+                    </button>
                     <div class="content">
                         <p>Lorem ipsum...</p>
                     </div>
                     </div>
                     <div class="collapsible-container">
-                    <button class="collapsible">Dev Tools</button>
+                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
                     <div class="content">
                         <button id='server'>Connect to Server</button>
                         <button id='ping'>Send Ping</button>
@@ -153,7 +158,7 @@ export class BCIAppManager {
         for (i = 0; i < coll.length; i++) {
             coll[i].nextElementSibling.style.opacity = '0'
           coll[i].addEventListener("click", function() {
-            // this.classList.toggle("active");
+            this.classList.toggle("active");
             var content = this.nextElementSibling;
             if (content.style.opacity === "0") {
                 content.style.opacity = "1";

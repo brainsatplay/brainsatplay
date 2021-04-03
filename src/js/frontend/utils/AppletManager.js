@@ -30,8 +30,8 @@ export class AppletManager {
         })
         let applets = document.getElementById('applets');
         applets.style.display = 'grid'
-        applets.style.height = 'calc(100vh - 100px)'
-        applets.style.width = 'calc(100vw - 100px)'
+        applets.style.height = 'calc(100vh - 75px)'
+        applets.style.width = 'calc(100vw - 75px)'
     }
 
     initUI = () => {}

@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "@giveback007/util-lib": "^0.16.4",
     "@neurosity/notion": "^5.1.1",
     "@snowpack/plugin-dotenv": "^2.0.5",

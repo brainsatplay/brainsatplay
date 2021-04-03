@@ -32,9 +32,9 @@ button {
     display:flex;
     position: absolute;
     top: 0px;
-    left:100px;
+    left:75px;
     flex-direction: column; 
-    width: calc(100vw - 100px)
+    width: calc(100vw - 75px)
 }
 
 /* Sidebar */
@@ -45,7 +45,7 @@ button {
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: center;
-    width:100px; 
+    width:75px; 
     left:0px;
     top:0px;
     height:100vh;
@@ -57,7 +57,7 @@ button {
 }
 
 #sidebar:hover {
-    width: 300px;
+    width: 250px;
 }
 
 #sidebar-container:hover .overlay{
@@ -80,19 +80,61 @@ button {
 }
 
 #sidebar button {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin: 5px 10px;
     box-sizing: border-box; 
+    min-width: 50px;
+    min-height: 50px;
+    flex-grow: 1;
+    width: 100%;
+    position: relative;
+    padding: 5px;
+    margin: 5px 0px;
     border-radius: 5%;
     font-size: 80%;
     background: transparent;
     border: 1px solid rgb(200, 200, 200);
-    transition: background-color 0.5s;
+    text-align: left;
+    transition: 0.5s;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 }
-
 #sidebar button:hover {
     background: rgb(230, 230, 230);
+}
+
+#sidebar button .img-cont span {
+    visibility: hidden;
+    width: calc(200px - 50px - 75px);
+    /* width: calc(10px); */
+    text-align: left;
+    padding: 5px 0;
+    border-radius: 6px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    opacity: 0;
+    transition: 0.5s;
+}
+
+
+#sidebar:hover button {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+#sidebar:hover button .img-cont span{
+    visibility: visible;
+    opacity: 1;
+}
+
+#sidebar button img {
+    box-sizing: border-box; 
+    /* width: 100%; */
+    width: 40px;
+    max-width: 50px;
+    padding: 10px;
 }
 
 /* #sidebar button:focus {
@@ -103,18 +145,24 @@ button {
     position:absolute;
     z-index: 10;
     top: 0px;
-    width: 100px;
+    width: 75px;
     height:100vh;
     pointer-events: none;
 }
 
 /* Style the button that is used to open and close the collapsible content */
 .collapsible-container { 
-    position: relative 
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 #sidebar .collapsible-container{
     width: 100%;
+    box-sizing: border-box; 
+    padding: 0px 20px;
 }
   
   /* Style the collapsible content. Note: hidden by default */
@@ -145,11 +193,11 @@ button {
 }
 
 .logo {
-    height: 100px; 
+    height: 75px; 
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
-    padding: 20px;
+    padding: 15px;
 }
 
 /* Topbar */
