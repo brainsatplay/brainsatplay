@@ -94,7 +94,7 @@ export class BrainMapApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        console.log(this.bci.atlas)
+        //console.log(this.bci.atlas)
         var brainmapcanvas = document.getElementById(this.props.id+'canvas');
         var brainpointscanvas = document.getElementById(this.props.id+'points');
         brainmapcanvas.style.height = this.AppletHTML.node.style.height;
