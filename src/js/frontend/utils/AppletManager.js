@@ -123,8 +123,8 @@ export class AppletManager {
                    
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
-            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {appletIdx: applexIdx,name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
-            else { this.applets[pos] = {appletIdx: applexIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets[pos] = {appletIdx: pos+1,name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
+            else { this.applets[pos] = {appletIdx: pos+1, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession)};}
             
             this.applets[pos].classinstance.init();
 
@@ -191,7 +191,7 @@ export class AppletManager {
                 //         '') 
                 // })
                 // console.log(applets.style.gridTemplateAreas)
-                if (this.applets[stateIdx] != null){
+                if (this.applets[stateIdx].classinstance != null){
                     this.applets[stateIdx].classinstance.deinit();
                 }
                 //this.applets[stateIdx].container.deleteFragment();
