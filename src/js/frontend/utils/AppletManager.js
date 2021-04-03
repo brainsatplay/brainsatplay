@@ -124,6 +124,30 @@ export class AppletManager {
         
     }
 
+    appletDivSettings = (appletDiv) => {
+        appletDiv.style.gridArea = String.fromCharCode(97 + pos);
+        appletDiv.style.overflow = 'hidden'
+        appletDiv.draggable = true
+        appletDiv.style.cursor = 'move'
+        // Fullscreen Functionality
+        appletDiv.addEventListener('dblclick', () => {
+            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+            if (!fullscreenElement){
+                if (appletDiv.requestFullscreen){
+                    appletDiv.requestFullscreen()
+                } else if (appletDiv.webkitRequestFullscreen){
+                    appletDiv.webkitRequestFullscreen()
+                }
+            } else {
+                if (document.exitFullscreen){
+                    document.exitFullscreen()
+                } else if (document.webkitExitFullscreen){
+                    document.webkitExitFullscreen()
+                }
+            }
+        });
+    }
+
     //initialize applets added to the list into each container by index
     initApplets = () => {
 
@@ -218,27 +242,7 @@ export class AppletManager {
             this.applets[pos].classinstance.init();
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            appletDiv.style.gridArea = String.fromCharCode(97 + pos);
-            appletDiv.style.overflow = 'hidden'
-            appletDiv.draggable = true
-            appletDiv.style.cursor = 'move'
-            // Fullscreen Functionality
-            appletDiv.addEventListener('dblclick', () => {
-                const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                if (!fullscreenElement){
-                    if (appletDiv.requestFullscreen){
-                        appletDiv.requestFullscreen()
-                    } else if (appletDiv.webkitRequestFullscreen){
-                        appletDiv.webkitRequestFullscreen()
-                    }
-                } else {
-                    if (document.exitFullscreen){
-                        document.exitFullscreen()
-                    } else if (document.webkitExitFullscreen){
-                        document.webkitExitFullscreen()
-                    }
-                }
-            });
+            this.appletDivSettings(appletDiv);
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
