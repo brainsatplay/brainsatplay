@@ -230,7 +230,7 @@ export class uPlotApplet {
 
       this.setPlotDims(); 
       if(this.plotWidth === 0 || this.plotHeight === 0) {
-        setTimeout(() => {
+        setTimeout(() => { //wait for screen to resize
           this.setPlotDims();         
           this.setuPlot();
         }, 100);
