@@ -96,11 +96,19 @@ export function appletselect_template(props={}) {
     <div style="margin-left: 25px;">
     <span style="font-size: 80%;">Applets</span>
     <hr>
-    <div style="display: flex;">
-    <select id="applet1"></select>
-    <select id="applet2"></select>
-    <select id="applet3"></select> 
-    <select id="applet4"></select>
+    <div style="display: flex; flex-wrap: wrap; font-size: 80%;">
+        <div style="width: 100%; margin: 5px;">
+            Applet 1: <select id="applet1"></select>
+        </div>
+        <div style="width: 100%; margin: 5px;">
+        Applet 2: <select id="applet2"></select>
+        </div>
+        <div style="width: 100%; margin: 5px;">
+        Applet 3: <select id="applet3"></select> 
+        </div>
+        <div style="width: 100%; margin: 5px;">
+        Applet 4: <select id="applet4"></select>
+        </div>
     </div>
     `;
 }

@@ -181,6 +181,10 @@ button {
     pointer-events: none;
   }
 
+  /* .content button {
+      min-height: 0;
+  } */
+
 /* Logo */
 
 .logo-container {

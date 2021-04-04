@@ -84,6 +84,16 @@ export class BCIAppManager {
                 <div class="logo-container">
                     <img class="logo" src="./logo512.png">
                 </div>
+                <div id="device-menu" class="collapsible-container">
+                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/wave-square-solid.svg"><span>Device Manager</span></div></button>
+                    <div class="content">
+                    </div>
+                </div>
+                <div id="applet-menu" class="collapsible-container">
+                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/th-large-solid.svg"><span>Applets</span></div></button>
+                    <div class="content">
+                    </div>
+                </div>
                 <div class="collapsible-container">
                     <button class="collapsible">
                     <div class="img-cont">
@@ -94,8 +104,8 @@ export class BCIAppManager {
                     <div class="content">
                         <p>Lorem ipsum...</p>
                     </div>
-                    </div>
-                    <div class="collapsible-container">
+                </div>
+                <div class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
                     <div class="content">
                         <button id='server'>Connect to Server</button>
@@ -105,8 +115,8 @@ export class BCIAppManager {
                         <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
                         <button id='subscribeToSelf'>Subscribe to self</button>
                     </div>
-                    </div>
-                    </div>
+                </div>
+            </div>
             </div>
             <div id="sidebar-toggle"></div>
             <div class="overlay"></div>
@@ -153,6 +163,17 @@ export class BCIAppManager {
         'NEVER'
         );
 
+        let closeAllOpenCollapsibles = (content=null) => {
+            Array.from(document.getElementsByClassName("collapsible")).forEach(toggleButton => {
+                let overlay = toggleButton.nextElementSibling
+                if (overlay.style.opacity === "1" && overlay != content){
+                    overlay.style.opacity = "0";
+                    overlay.style.right = "0";
+                    overlay.style.pointerEvents = 'none'              
+                }
+            })
+        }
+
         var coll = document.getElementsByClassName("collapsible");
         var i;
         for (i = 0; i < coll.length; i++) {
@@ -164,31 +185,23 @@ export class BCIAppManager {
                 content.style.opacity = "1";
                 content.style.right = `-${content.clientWidth}px`;
                 content.style.pointerEvents = 'auto'
-                Array.from(document.getElementsByClassName("collapsible")).forEach(toggleButton => {
-                    let overlay = toggleButton.nextElementSibling
-                    if (overlay.style.opacity === "1" && overlay != content){
-                        overlay.style.opacity = "0";
-                        overlay.style.right = "0";
-                        overlay.style.pointerEvents = 'none'              
-                    }
-                })
+                closeAllOpenCollapsibles(content)
             } else {
                 content.style.opacity = "0";
                 content.style.right = "0";
                 content.style.pointerEvents = 'none'      
             }
           });
-          coll[i].nextElementSibling.addEventListener('mouseout', function() {
+          coll[i].nextElementSibling.addEventListener('mouseleave', function() {
             this.style.opacity = "0";
             this.style.right = "0";
             this.style.pointerEvents = 'none'
         })
-        coll[i].nextElementSibling.addEventListener('mouseover', function() {
-            this.style.opacity = "1";
-            this.style.right = `-${this.clientWidth}px`;
-            this.style.pointerEvents = 'auto'
-      })
         }
+        let sidebar = document.getElementById('sidebar')
+        sidebar.addEventListener('mouseleave', function(e) {           
+            closeAllOpenCollapsibles()
+        })
 
         document.body.style.overflow = "hidden";
 
@@ -201,11 +214,13 @@ export class BCIAppManager {
             topbar_template,
             document.getElementById('page')
         );
+        let contentChild1 = Array.from(document.getElementById('applet-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
-            document.getElementById('topbar')
+            contentChild1
         );
-        this.bcisession.makeConnectOptions(document.getElementById('topbar'));
+        let contentChild2 = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
+        this.bcisession.makeConnectOptions(contentChild2);
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
                 filemenu_template,
