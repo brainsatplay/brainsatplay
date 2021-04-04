@@ -48,6 +48,7 @@ import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32Plugin';
 import { musePlugin } from './bciutils/devicePlugins/musePlugin';
 import { hegduinoPlugin } from './bciutils/devicePlugins/hegduinoPlugin';
 import { cytonPlugin } from './bciutils/devicePlugins/cytonPlugin';
+import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 
 /** @module brainsatplay */
 
@@ -214,7 +215,7 @@ export class brainsatplay {
 				this.connect('freeeeg32_2',['eegcoherence'],onconnect,ondisconnect);
 			}
 			else if (val === 'freeeeg32_19') {
-				this.connect('freeeeg32_19',['eegcoherence'],onconnect,ondisconnect);
+				this.connect('freeeeg32_19',['eegfft'],onconnect,ondisconnect);
 			}
 			else if (val === 'hegduinousb') {
 				this.connect('hegduinousb',[],onconnect,ondisconnect);
@@ -808,7 +809,6 @@ class deviceStream {
 			streamParams:streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
 			analysis:analysis, //['eegcoherence','eegfft' etc]
 
-			eegChannelTags:[],
 			deviceNum:0,
 			streamLoopTiming:100, //ms between update checks
 			streamCt:0,
@@ -826,13 +826,9 @@ class deviceStream {
 			{  name:'freeeeg32',   cls:eeg32Plugin        },
 			{  name:'muse', 	   cls:musePlugin         },
 			{  name:'hegduino',    cls:hegduinoPlugin 	  },
-			{  name:'cyton', 	   cls:cytonPlugin	      }
+			{  name:'cyton', 	   cls:cytonPlugin	      },
+			{  name:'webgazer',    cls:webgazerPlugin     }
 		];
-
-		this.addedDeviceNames = [];
-		this.addedDeviceInit = [];
-		this.addedDeviceConnect = [];
-		this.addedDeviceDisconnect = [];
 
 		this.socket = socket;
 		//console.log(this.socket);
@@ -852,7 +848,12 @@ class deviceStream {
 				o.cls.init(info,pipeToAtlas);
 				this.atlas = o.atlas;
 				this.filters = o.filters;
-				if(this.atlas !== null) this.configureDefaultStreamTable()
+				if(this.atlas !== null) {
+					this.configureDefaultStreamTable();
+					if(this.info.streaming === true) this.streamLoop();
+				}
+
+				return true;
 			}
 		});
 	}
@@ -865,360 +866,10 @@ class deviceStream {
 		this.device.disconnect();
 	}
 
-	initOld = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.pipeToAtlas,analysis=this.info.analysis) => {
-
-		if(device.indexOf("freeeeg32") > -1) {
-			this.info.sps = 512;
-			this.info.deviceType = 'eeg';
-			if(device === "freeeeg32_2") { 
-				this.info.eegChannelTags = [
-					{ch: 4, tag: "FP2", analyze:true},
-					{ch: 24, tag: "FP1", analyze:true},
-					{ch: 8, tag: "other", analyze:false}
-				];
-			}
-			else if (device === 'freeeeg32_19') {
-				this.info.eegChannelTags = [
-					{ch: 4, tag: "FP2", analyze:true},
-					{ch: 24, tag: "FP1", analyze:true},
-					{ch: 8, tag: "other", analyze:false}
-				];
-			}
-			else {
-				this.info.eegChannelTags = [
-					{ch: 4, tag: "FP2", analyze:true},
-					{ch: 24, tag: "FP1", analyze:true},
-					{ch: 8, tag: "other", analyze:false}
-				];
-			}
-			this.device = new eeg32(
-				(newLinesInt) => {
-					this.info.eegChannelTags.forEach((o,i) => {
-						let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
-						let latestFiltered = new Array(latest.length).fill(0);
-						if(o.tag !== "other" && this.info.useFilters === true) { 
-							this.filters.forEach((f,j) => {
-								if(f.channel === o.ch) {
-									latest.forEach((sample,k) => { 
-										latestFiltered[k] = f.apply(sample); 
-									});
-								}
-							});
-							if(this.info.useAtlas === true) {
-								let coord;
-								if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
-								else { coord = this.atlas.getEEGDataByChannel(o.ch); }
-								coord.count += newLinesInt;
-								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
-								coord.filtered.push(...latestFiltered);
-								coord.raw.push(...latest);
-							}
-						}
-						else {
-							if(this.info.useAtlas === true) {
-								let coord = this.atlas.getEEGDataByChannel(o.ch); 
-								coord.count += newLinesInt;
-								coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
-								coord.raw.push(...latest);
-							}
-						}
-					});
-				},
-				()=>{	
-					if(this.info.useAtlas === true){			
-						this.atlas.data.eegshared.startTime = Date.now();
-						if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-							this.atlas.settings.analyzing = true;
-							setTimeout(() => {this.atlas.analyzer();},1200);		
-						}
-						this.onconnect();
-					}
-				},
-				()=>{
-					this.atlas.settings.analyzing = false;
-					this.ondisconnect();
-				}
-			);
-			if(useFilters === true) {
-				this.info.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== 'other') {
-						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,this.device.uVperStep));
-					}
-					else { 
-						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
-					}
-				});
-			}
-		}
-		else if(device === "muse") {
-			this.info.sps = 256;
-			this.info.deviceType = 'eeg';
-			this.info.eegChannelTags = [
-				{ch: 0, tag: "TP9", analyze:true},
-				{ch: 1, tag: "AF7", analyze:true},
-				{ch: 2, tag: "AF8", analyze:true},
-				{ch: 3, tag: "TP10", analyze:true}
-			]; // {ch: 4, tag: "other", analyze: false}
-			this.device = new MuseClient();
-
-			if(useFilters === true) {
-				this.info.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== 'other') {
-						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,1));
-					}
-					else { 
-						this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,1)); 
-					}
-				});
-			}
-		}
-		else if(device === "cyton") {
-			this.info.sps = 256;
-			this.info.deviceType = 'eeg';
-		}
-		else if(device === "ganglion") {
-			this.info.sps = 256;
-			this.info.deviceType = 'eeg';
-		}
-		else if(device.indexOf("hegduino") > -1) {
-			this.info.sps = Math.floor(2048/3);
-			this.info.deviceType = 'heg';
-			let ondata = (newline) => {
-				if(newline.indexOf("|") > -1) {
-					let data = newline.split("|");
-					console.log(data);
-					if(data.length > 3) {
-						let coord = this.atlas.data.heg[this.info.deviceNum];
-						coord.count++;
-						if(coord.count === 1) { coord.startTime = Date.now(); }
-						if(this.device.mode === 'ble' && this.device.interface.android === true) {
-							coord.times.push(Date.now());
-							coord.red.push(parseFloat(data[0]));
-							coord.ir.push(parseFloat(data[1]));
-							coord.ratio.push(parseFloat(data[2]));
-						} else { 
-							coord.times.push(Date.now()); //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
-							coord.red.push(parseFloat(data[1]));
-							coord.ir.push(parseFloat(data[2]));
-							coord.ratio.push(parseFloat(data[3]));
-							coord.ambient.push(parseFloat(data[4]));
-							//ignore the rest for now
-						}
-					}
-				} else {console.log("HEGDUINO: ", newline); }
-			}
-			if(device === 'hegduinowifi' || device === 'hegduinosse') {
-				this.device = new hegduino('wifi',ondata,
-				()=>{
-					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.settings.analyzing = true;
-						setTimeout(() => {this.atlas.analyzer();},1200);		
-					}
-					this.onconnect();
-				},
-				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
-			}
-			else if (device === 'hegduinobt' || device === 'hegduinoble') {
-				this.device= new hegduino('ble',ondata,
-				()=>{
-					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.settings.analyzing = true;
-						setTimeout(() => {this.atlas.analyzer();},1200);		
-					}
-					this.onconnect();
-				},
-				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
-			}
-			else if (device === 'hegduinoserial' || device === 'hegduinousb') {
-				this.device= new hegduino('usb',ondata,
-				()=>{
-					if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-						this.atlas.settings.analyzing = true;
-						setTimeout(() => {this.atlas.analyzer();},1200);		
-					}
-					this.onconnect();
-				},
-				()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
-			}
-
-		}
-		else if (device === 'eyetracker' || device === 'webgazer') {
-			this.info.deviceType = 'eyetracker';
-		}
-		else if (this.addedDeviceNames.indexOf(device) > -1) {
-			let idx = this.addedDeviceNames.indexOf(device);
-			if(this.addedDeviceProps[idx].eegChannelTags !== undefined)
-				this.info.eegChannelTags = this.addedDeviceProps[idx].eegChannelTags;
-			this.info.sps = this.addedDeviceProps[idx].sps;
-			this.info.deviceType = this.addedDeviceProps[idx].deviceType;
-			this.addedDeviceInit[idx]();
-		}
-				
-		if(pipeToAtlas === true) {
-			let config;
-			if(device === 'muse') { config = 'muse'; }
-			else if(device.indexOf('freeeeg32') > -1) {	config = '10_20'; }
-			else if(device.indexOf('hegduino') > -1) { config = 'hegduino';}
-			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) { config = 'eyetracker'; }
-			this.atlas = new dataAtlas(
-				location+":"+device,
-				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
-				config,true,true,
-				analysis
-				);
-
-			if(device.indexOf('hegduino') > -1) { this.info.deviceNum = this.atlas.data.heg.length-1; }
-			if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.info.deviceNum = this.atlas.data.eyetracker.length-1;}
-			this.info.useAtlas = true;
-			this.configureDefaultStreamTable();
-		} else if (typeof pipeToAtlas === 'object') {
-			this.atlas = pipeToAtlas; //External atlas reference
-			if(device==='muse') { this.atlas.data.eeg = this.atlas.genMuseAtlas(); this.atlas.settings.eeg = true;}
-			else if(device.indexOf('freeeeg32') > -1) { this.atlas.data.eeg = this.atlas.gen10_20Atlas(); this.atlas.settings.eeg = true;}
-			else if(device.indexOf('hegduino') > -1) { this.info.info.deviceNum = this.atlas.data.heg.length; this.atlas.addHEGCoord(this.atlas.data.heg.length); this.atlas.settings.heg = true;}
-			else if(device.indexOf('eye') > -1 || device.indexOf('webgazer') > -1) {this.info.deviceNum = this.atlas.data.eyetracker.length; this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); this.atlas.settings.eyetracker = true;}
-			this.info.useAtlas = true;
-			if(this.atlas.settings.analyzing === false && analysis.length > 0 ) {
-				this.atlas.settings.analysis.push(...analysis);
-				this.configureDefaultStreamTable();
-				this.atlas.settings.analyzing = true;
-				this.atlas.analyzer();
-			}
-		}
-
-		if(this.info.streaming === true) this.streamLoop();
-	}
-
-	async connectOld() {
-	
-		if(this.info.deviceName.indexOf("freeeeg32_2") > -1) {
-			await this.device.setupSerialAsync();
-			this.onconnect();
-		}
-		else if (this.info.deviceName === "muse") {
-			//connect muse and begin streaming
-			await this.device.connect();
-			await this.device.start();
-			this.device.eegReadings.subscribe(o => {
-				if(this.info.useAtlas) {
-					let time = Array(o.samples.length).fill(o.timestamp);
-					time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/10)})	
-					let coord = this.atlas.getEEGDataByChannel(o.electrode);
-					coord.times.push(...time);
-					coord.raw.push(...o.samples);
-					coord.count += o.samples.length;
-					let latestFiltered = new Array(o.samples.length).fill(0);
-					if(this.info.useFilters === true) {
-						if(this.filters[o.electrode] !== undefined) {
-							o.samples.forEach((sample,k) => { 
-								latestFiltered[k] = this.filters[o.electrode].apply(sample); 
-							});
-						}
-						coord.filtered.push(...latestFiltered);
-					}
-				}
-			});
-
-			this.atlas.data.eegshared.startTime = Date.now();
-
-			// this.device.telemetryData.subscribe(telemetry => {
-			// });
-			// this.device.accelerometerData.subscribe(accel => {
-			// });
-			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.settings.analyzing = true;
-				setTimeout(() => {this.atlas.analyzer();},1200);		
-			}
-			
-			this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
-				this.atlas.analyzing = false;
-				this.ondisconnect();
-			});
-
-			this.onconnect();
-		}
-		else if (this.info.deviceName === "cyton" || this.info.deviceName === "ganglion") {
-			//connect boards and begin streaming (See WIP cyton.js in /js/utils/hardware_compat)
-			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.settings.analyzing = true;
-				setTimeout(() => {this.atlas.analyzer();},1200);		
-			}
-			this.onconnect();
-		}
-		else if (this.info.deviceName.indexOf('hegduino') > -1 ) {
-			this.device.connect();
-		}
-		else if (this.info.deviceType === 'eyetracker') {
-			webgazer.setGazeListener((data,elapsedTime) => {
-				if(data == null) {
-					return;
-				}
-				let x = data.x;
-				let y = data.y;
-				if(this.info.useAtlas === true) {
-					let o = this.atlas.data.eyetracker[this.info.deviceNum];
-					if(o.times.length === 0) { o.startTime = Date.now(); }
-					o.times.push(Date.now());
-					o.x.push(data.x);
-					o.y.push(data.y);
-					if(o.x.length > 10) { //10 sample moving average (to smooth things out)
-						o.smax.push(o.x.slice(o.x.length-10).reduce((a,b) => a+b)/10);
-						o.smay.push(o.y.slice(o.y.length-10).reduce((a,b) => a+b)/10);
-					}
-					else {
-						o.smax.push(o.x.slice(0).reduce((a,b) => a+b)/o.x.length);
-						o.smay.push(o.y.slice(0).reduce((a,b) => a+b)/o.y.length);
-					}
-				}
-
-			}).begin();
-		}
-		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1){
-			let idx = this.addedDeviceNames.indexOf(this.info.deviceName);
-			this.addedDeviceConnect[idx]();
-
-			if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-				this.atlas.settings.analyzing = true;
-				setTimeout(() => {this.atlas.analyzer();},1200);		
-			}
-			this.onconnect();
-		}
-		this.info.connected = true;
-	}
-
-	disconnectOld = () => {
-		if(this.info.deviceName.indexOf("freeeeg") > -1) {
-			this.device.disconnect();
-			this.ondisconnect();
-		}
-		else if (this.info.deviceName.indexOf("muse") > -1) {
-			this.device.disconnect(); 
-			this.ondisconnect();
-		}
-		else if (this.info.deviceName.indexOf("hegduino") > -1) {
-			this.device.disconnect();
-		}
-		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1) {
-			this.addedDeviceDisconnect[this.addedDeviceNames.indexOf(this.info.deviceName)]();
-			this.ondisconnect();
-		}
-		this.info.connected = false;
-	}
-
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
 	onconnect(msg="") {}
 
 	ondisconnect(msg="") {}
-
-	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}, disconnect = () => {}) => {
-		this.addedDeviceNames.push(deviceName);
-		this.addedDeviceInit.push(init);
-		this.addedDeviceConnect.push(connect);
-		this.addedDeviceDisconnect.push(disconnect); 
-		for(const prop in props) {
-			this.info[prop] = props[prop];
-		}
-	}
 
 	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
