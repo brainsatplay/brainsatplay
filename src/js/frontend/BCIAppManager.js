@@ -51,8 +51,7 @@ export class BCIAppManager {
     ) {
 
         this.state = new StateManager({
-            eegSessionName:'',
-            hegSessionName:'',
+            sessionName:'',
             saveChunkSize:0,
             saveChunkSize:5120,
             saveIdx:0,
@@ -388,10 +387,15 @@ export class BCIAppManager {
             });
     
             const newSession = () => {
-                
-                let eegSessionName = new Date().toISOString()+"_eeg"; //Use the time stamp as the session name
-                this.state.data.eegSessionName = eegSessionName;
-                this.state.data.sessionChunks = 0;
+                let deviceType = this.bcisession.devices[info.nDevices-1].info.deviceType === 'eeg'
+                let sessionName = new Date().toISOString(); //Use the time stamp as the session name
+                if(deviceType === 'eeg') { 
+                    sessionName += "_eeg"
+                } else if (deviceType === 'heg') {
+                    sessionName += "_heg"
+                }
+                this.state.data.sessionName = sessionName;
+                his.state.data.sessionChunks = 0;
                 this.state.data.saveChunkSize = 5120;
                 this.state.data.newSessionCt++;
                 fs.appendFile('/data/'+sessionName,"", (e) => {
@@ -439,9 +443,9 @@ export class BCIAppManager {
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
     
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
-                console.log("Saving chunk to /data/"+this.state.data.eegSessionName,this.state.data.sessionChunks);
+                console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
-                    fs.appendFile('/data/'+this.state.data.eegSessionName, data[0]+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                         listFiles();
@@ -449,7 +453,7 @@ export class BCIAppManager {
                     
                 }
                 else {
-                    fs.appendFile('/data/'+this.state.data.eegSessionName, "\n"+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.sessionName, "\n"+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                     }); //+"_c"+State.data.sessionChunks
