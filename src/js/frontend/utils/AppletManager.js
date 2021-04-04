@@ -350,8 +350,6 @@ export class AppletManager {
             return '"' + stringArray.join(' ') + '"'
         }).join(' ')
         let applets = document.getElementById('applets');
-        console.log(applets.style.gridTemplateAreas)
-        console.log(innerStrings)
         applets.style.gridTemplateAreas = innerStrings
         applets.style.gridTemplateColumns = `repeat(${gridRows},1fr)`
         applets.style.gridTemplateRows =  `repeat(${gridRows},1fr)`
@@ -361,7 +359,6 @@ export class AppletManager {
             let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
             if (nodes.length === 1){
                 appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar
-                console.log('setting to 100')
             } else if (nodes.length === 2){
                 appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar       
             } else {
