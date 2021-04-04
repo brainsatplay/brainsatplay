@@ -30,7 +30,7 @@ export class AppletManager {
         })
         let applets = document.getElementById('applets');
         applets.style.display = 'grid'
-        applets.style.height = 'calc(100vh - 75px)'
+        applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
         applets.style.width = 'calc(100vw - 75px)'
     }
 
@@ -127,8 +127,8 @@ export class AppletManager {
     appletDivSettings = (appletDiv, appletIdx) => {
         appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
         appletDiv.style.overflow = 'hidden'
-        appletDiv.draggable = true
-        appletDiv.style.cursor = 'move'
+        // appletDiv.draggable = true
+        // appletDiv.style.cursor = 'move'
         // Fullscreen Functionality
         appletDiv.addEventListener('dblclick', () => {
             const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
@@ -360,12 +360,12 @@ export class AppletManager {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
             if (nodes.length === 1){
-                appletDiv.style.maxHeight = `calc(${100}vh - 50px)`;
+                appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar
                 console.log('setting to 100')
             } else if (nodes.length === 2){
-                appletDiv.style.maxHeight = `calc(${50}vh - 50px)`;           
+                appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar       
             } else {
-                appletDiv.style.maxHeight = `calc(${gridPercent}vh - 50px)`;
+                appletDiv.style.maxHeight = `calc(${gridPercent}vh)`; // Must subtract top navigation bar
             }
         });
         

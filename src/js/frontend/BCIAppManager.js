@@ -210,10 +210,10 @@ export class BCIAppManager {
             page_template,
             document.body
         );
-        this.uiFragments.topbar = new DOMFragment(
-            topbar_template,
-            document.getElementById('page')
-        );
+        // this.uiFragments.topbar = new DOMFragment(
+        //     topbar_template,
+        //     document.getElementById('page')
+        // );
         let contentChild1 = Array.from(document.getElementById('applet-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
