@@ -51,7 +51,8 @@ export class BCIAppManager {
     ) {
 
         this.state = new StateManager({
-            sessionName:'',
+            eegSessionName:'',
+            hegSessionName:'',
             saveChunkSize:0,
             saveChunkSize:5120,
             saveIdx:0,
@@ -387,8 +388,9 @@ export class BCIAppManager {
             });
     
             const newSession = () => {
-                let sessionName = new Date().toISOString(); //Use the time stamp as the session name
-                this.state.data.sessionName = sessionName;
+                
+                let eegSessionName = new Date().toISOString()+"_eeg"; //Use the time stamp as the session name
+                this.state.data.eegSessionName = eegSessionName;
                 this.state.data.sessionChunks = 0;
                 this.state.data.saveChunkSize = 5120;
                 this.state.data.newSessionCt++;
@@ -437,9 +439,9 @@ export class BCIAppManager {
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
     
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
-                console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
+                console.log("Saving chunk to /data/"+this.state.data.eegSessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
-                    fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.eegSessionName, data[0]+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                         listFiles();
@@ -447,12 +449,31 @@ export class BCIAppManager {
                     
                 }
                 else {
-                    fs.appendFile('/data/'+this.state.data.sessionName, "\n"+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.eegSessionName, "\n"+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                     }); //+"_c"+State.data.sessionChunks
                 }
                 
+            }
+
+            const autoSaveHEGChunk = (startidx=0,to='end') => {
+                let from = startidx; 
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+                console.log("Saving chunk to /data/"+this.state.data.hegSessionName,this.state.data.sessionChunks);
+                if(this.state.data.sessionChunks === 0) {
+                    fs.appendFile('/data/'+this.state.data.hegSessionName, data[0]+data[1], (e) => {
+                        if(e) throw e;
+                        this.state.data.sessionChunks++;
+                        listFiles();
+                    }); //+"_c"+State.data.sessionChunks
+                }
+                else {
+                    fs.appendFile('/data/'+this.state.data.hegSessionName, "\n"+data[1], (e) => {
+                        if(e) throw e;
+                        this.state.data.sessionChunks++;
+                    }); //+"_c"+State.data.sessionChunks
+                }
             }
                 
             //Read a chunk of data from a saved dataset

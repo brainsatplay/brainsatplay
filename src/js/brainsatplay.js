@@ -34,13 +34,20 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
-import {eeg32, eegmath} from './bciutils/eeg32'
+import {eeg32} from './bciutils/eeg32'
+import {eegmath} from './bciutils/eegmath'
 import {MuseClient} from 'muse-js'
 import {hegduino} from './bciutils/hegduino'
 // import webgazer from 'webgazer'
 let webgazer;
 import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
+
+
+import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32Plugin';
+import { musePlugin } from './bciutils/devicePlugins/musePlugin';
+import { hegduinoPlugin } from './bciutils/devicePlugins/hegduinoPlugin';
+import { cytonPlugin } from './bciutils/devicePlugins/cytonPlugin';
 
 /** @module brainsatplay */
 
@@ -815,6 +822,13 @@ class deviceStream {
 
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 		
+		this.deviceConfigs = [
+			{  name:'freeeeg32',   cls:eeg32Plugin        },
+			{  name:'muse', 	   cls:musePlugin         },
+			{  name:'hegduino',    cls:hegduinoPlugin 	  },
+			{  name:'cyton', 	   cls:cytonPlugin	      }
+		];
+
 		this.addedDeviceNames = [];
 		this.addedDeviceInit = [];
 		this.addedDeviceConnect = [];
@@ -831,7 +845,27 @@ class deviceStream {
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
-	init = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.pipeToAtlas,analysis=this.info.analysis) => {
+	init = (info=this.info, pipeToAtlas=this.pipeToAtlas) => {
+		this.deviceConfigs.find((o,i) => {
+			if(info.deviceName.indexOf(o.name) > -1 ) {
+				this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
+				o.cls.init(info,pipeToAtlas);
+				this.atlas = o.atlas;
+				this.filters = o.filters;
+				if(this.atlas !== null) this.configureDefaultStreamTable()
+			}
+		});
+	}
+
+	connect = () => {
+		this.device.connect();
+	}
+
+	disconnect = () => {
+		this.device.disconnect();
+	}
+
+	initOld = (device=this.info.deviceName,useFilters=this.info.useFilters,pipeToAtlas=this.pipeToAtlas,analysis=this.info.analysis) => {
 
 		if(device.indexOf("freeeeg32") > -1) {
 			this.info.sps = 512;
@@ -1055,7 +1089,7 @@ class deviceStream {
 		if(this.info.streaming === true) this.streamLoop();
 	}
 
-	async connect() {
+	async connectOld() {
 	
 		if(this.info.deviceName.indexOf("freeeeg32_2") > -1) {
 			await this.device.setupSerialAsync();
@@ -1151,6 +1185,30 @@ class deviceStream {
 		}
 		this.info.connected = true;
 	}
+
+	disconnectOld = () => {
+		if(this.info.deviceName.indexOf("freeeeg") > -1) {
+			this.device.disconnect();
+			this.ondisconnect();
+		}
+		else if (this.info.deviceName.indexOf("muse") > -1) {
+			this.device.disconnect(); 
+			this.ondisconnect();
+		}
+		else if (this.info.deviceName.indexOf("hegduino") > -1) {
+			this.device.disconnect();
+		}
+		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1) {
+			this.addedDeviceDisconnect[this.addedDeviceNames.indexOf(this.info.deviceName)]();
+			this.ondisconnect();
+		}
+		this.info.connected = false;
+	}
+
+	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
+	onconnect(msg="") {}
+
+	ondisconnect(msg="") {}
 
 	addDeviceCompatibility = (props={deviceName:'', deviceType:'eeg', sps:0}, init = () => {}, connect = () => {}, disconnect = () => {}) => {
 		this.addedDeviceNames.push(deviceName);
@@ -1357,29 +1415,7 @@ class deviceStream {
 		}
 	}
 
-	disconnect = () => {
-		if(this.info.deviceName.indexOf("FreeEEG") > -1) {
-			this.device.disconnect();
-			this.ondisconnect();
-		}
-		else if (this.info.deviceName.indexOf("muse") > -1) {
-			this.device.disconnect(); 
-			this.ondisconnect();
-		}
-		else if (this.info.deviceName.indexOf("hegduino") > -1) {
-			this.device.disconnect();
-		}
-		else if (this.addedDeviceNames.indexOf(this.info.deviceName) > -1) {
-			this.addedDeviceDisconnect[this.addedDeviceNames.indexOf(this.info.deviceName)]();
-			this.ondisconnect();
-		}
-		this.info.connected = false;
-	}
 
-	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
-	onconnect(msg="") {}
-
-	ondisconnect(msg="") {}
 }
 
 

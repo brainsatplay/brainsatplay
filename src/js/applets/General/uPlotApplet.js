@@ -1,7 +1,7 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
-import {eegmath} from '../../bciutils/eeg32'
+import {eegmath} from '../../bciutils/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 
 

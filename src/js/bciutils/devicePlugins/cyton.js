@@ -1,4 +1,4 @@
-//Joshua Brewster, AGPL (copyleft)
+//Joshua Brewster, GPL (copyleft)
 
 import 'regenerator-runtime/runtime' //For async functions on node\\
 

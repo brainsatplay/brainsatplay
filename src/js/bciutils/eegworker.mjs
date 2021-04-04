@@ -3,7 +3,7 @@
 //var parentpath = localpath.substr(0,localpath.lastIndexOf("/"));
 
 import { gpuUtils } from './signal_analysis/gpuUtils.js';
-import { eegmath } from './eeg32';
+import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 

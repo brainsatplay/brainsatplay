@@ -5,7 +5,7 @@ import {cyton} from './cyton'
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 
 export class cytonPlugin {
-    constructor(mode='daisy') {
+    constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
 
@@ -69,8 +69,10 @@ export class cytonPlugin {
             }
         }
 
-        if(mode === 'daisy') {
-            info.eegChannelTags = [
+        let eegChannelTags = [];
+
+        if(mode.indexOf('daisy') > -1 ) {
+            eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
@@ -81,7 +83,7 @@ export class cytonPlugin {
             );
 
         } else {
-            info.eegChannelTags = [
+            eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
@@ -93,7 +95,7 @@ export class cytonPlugin {
         }
 
         if(info.useFilters === true) {
-            info.eegChannelTags.forEach((row,i) => {
+            eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,this.device.uVperStep));
                 }
@@ -107,8 +109,8 @@ export class cytonPlugin {
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
             this.atlas = new dataAtlas(
-				location+":"+device,
-				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
+				location+":"+this.mode,
+				{eegshared:{eegChannelTags:eegChannelTags, sps:info.sps}},
 				config,true,true,
 				info.analysis
 				);
