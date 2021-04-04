@@ -34,13 +34,7 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
-import {eeg32} from './bciutils/eeg32'
 import {eegmath} from './bciutils/eegmath'
-import {MuseClient} from 'muse-js'
-import {hegduino} from './bciutils/hegduino'
-// import webgazer from 'webgazer'
-let webgazer;
-import {BiquadChannelFilterer} from './bciutils/signal_analysis/BiquadFilters'
 import {StateManager} from './frontend/utils/StateManager'
 
 
