@@ -1731,25 +1731,27 @@ class dataAtlas {
 		}
 		if(this.settings.analyzing === true) { this.workerPostTime = syncTime; }
 		return buffer;
-	} 
+	}
+	
+	toISOLocal(d) {
+		var z  = n =>  ('0' + n).slice(-2);
+		var zz = n => ('00' + n).slice(-3);
+		var off = d.getTimezoneOffset();
+		var sign = off < 0? '+' : '-';
+		off = Math.abs(off);
+	  
+		return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
+			   + z(d.getMonth()+1) + '-' +
+			   z(d.getDate()) + 'T' +
+			   z(d.getHours()) + ':'  + 
+			   z(d.getMinutes()) + ':' +
+			   z(d.getSeconds()) + '.' +
+			   zz(d.getMilliseconds()) + 
+			   "(UTC" + sign + z(off/60|0) + ':00)'
+	}
 
 	readyEEGDataForWriting = (from=0,to='end') => {
-		function toISOLocal(d) {
-			var z  = n =>  ('0' + n).slice(-2);
-			var zz = n => ('00' + n).slice(-3);
-			var off = d.getTimezoneOffset();
-			var sign = off < 0? '+' : '-';
-			off = Math.abs(off);
-		  
-			return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
-				   + z(d.getMonth()+1) + '-' +
-				   z(d.getDate()) + 'T' +
-				   z(d.getHours()) + ':'  + 
-				   z(d.getMinutes()) + ':' +
-				   z(d.getSeconds()) + '.' +
-				   zz(d.getMilliseconds()) + 
-				   "(UTC" + sign + z(off/60|0) + ':00)'
-		  }
+		
 		  
 		let header = ["TimeStamps","UnixTime"];
 		let data = [];
@@ -1763,7 +1765,7 @@ class dataAtlas {
 
 		for(let i = from; i<to; i++){
 			let line=[];
-			line.push(toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
+			line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 			//first get the raw/filtered
 			datums.forEach((row,j) => {
 				if(row.filtered.length > 0) {
@@ -1796,14 +1798,20 @@ class dataAtlas {
 			}
 			data.push(line.join(","));
 		}
-		if(datums[0].filtered.length === 0 ) {
-			header.push("No filters.");
-		}
-		else {
-			header.push("Filters used (unless tagged 'other'): Notch 50Hz:"+State.data.notch50+"; Notch 60Hz:"+State.data.notch60+" SMA(4):"+State.data.sma4+"; Low pass 50Hz:"+State.data.lowpass50+"; Bandpass ("+State.data.filterers[0].bplower+"Hz-"+State.data.filterers[0].bpupper+"Hz):"+State.data.bandpass)
-		}
+	
 		//console.log(data)
 		return [header.join(",")+"\n",data.join("\n")];
+	}
+
+	readyHEGDataForWriting = (from=0,to='end',hegIdx=0) => {
+		let header = ["TimeStamps","UnixTime","Red","IR","Ambient","Ratio"];
+		let data = [];
+		let row = this.data.heg[hegIdx];
+		if(to === 'end') to = row.times.length;
+		for(let i = from; i < to; i++) {
+			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
+		};
+		return [header.join(',')+"\n",data.join('\n')];
 	}
 
 	regenAtlasses(freqStart,freqEnd,sps=512) {

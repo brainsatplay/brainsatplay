@@ -464,16 +464,17 @@ export class BCIAppManager {
             const autoSaveHEGChunk = (startidx=0,to='end') => {
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
-                console.log("Saving chunk to /data/"+this.state.data.hegSessionName,this.state.data.sessionChunks);
+                let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);
+                console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
-                    fs.appendFile('/data/'+this.state.data.hegSessionName, data[0]+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                         listFiles();
                     }); //+"_c"+State.data.sessionChunks
                 }
                 else {
-                    fs.appendFile('/data/'+this.state.data.hegSessionName, "\n"+data[1], (e) => {
+                    fs.appendFile('/data/'+this.state.data.sessionName, "\n"+data[1], (e) => {
                         if(e) throw e;
                         this.state.data.sessionChunks++;
                     }); //+"_c"+State.data.sessionChunks
