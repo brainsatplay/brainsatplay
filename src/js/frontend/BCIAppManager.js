@@ -366,17 +366,33 @@ export class BCIAppManager {
                         this.bcisession.state.data.info = this.bcisession.info;
                         this.bcisession.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
-                                if(this.bcisession.devices[info.nDevices-1].info.deviceType === 'eeg') {
+                                let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType
+                                if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,'count', (c) => {
                                         if(c - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveEEGChunk();
                                             this.state.data.saveCounter = c;
                                         }
                                     });
-                                    document.getElementById("saveEEGSession").onclick = () => {
+                                    document.getElementById("saveSession").onclick = () => {
                                         autoSaveEEGChunk();
                                     }
-                                    document.getElementById("newEEGSession").onclick = () => {
+                                    
+                                    document.getElementById("newSession").onclick = () => {
+                                        newSession();
+                                    }
+                                } else if (mainDevice === 'heg'){
+                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,'count', (c) => {
+                                        if(c - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                            autoSaveHEGChunk();
+                                            this.state.data.saveCounter = c;
+                                        }
+                                    });
+                                    document.getElementById("saveSession").onclick = () => {
+                                        autoSaveHEGChunk();
+                                    }
+                                    
+                                    document.getElementById("newSession").onclick = () => {
                                         newSession();
                                     }
                                 }
@@ -387,7 +403,7 @@ export class BCIAppManager {
             });
     
             const newSession = () => {
-                let deviceType = this.bcisession.devices[info.nDevices-1].info.deviceType === 'eeg'
+                let deviceType = this.bcisession.devices[info.nDevices-1].info.deviceType
                 let sessionName = new Date().toISOString(); //Use the time stamp as the session name
                 if(deviceType === 'eeg') { 
                     sessionName += "_eeg"
