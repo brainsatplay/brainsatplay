@@ -9,7 +9,7 @@ let plotter = new uPlotApplet(
 
 //Now add some ui elements like to connect to the device
 
-plotter.bci.makeConnectOptions(documet.body,()=> { plotter.responsive(); });
+plotter.bci.makeConnectOptions(document.body,()=> { plotter.responsive(); });
 
 //Init applet
 
