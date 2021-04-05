@@ -5,7 +5,6 @@ const dbName = "brainsatplay";
 
 var SALT_FACTOR = 5;
 
-// req.app.get('mongo_client')
 module.exports.check = async (auth, mongodb) => {
     let username = auth.username
     let password = auth.password
