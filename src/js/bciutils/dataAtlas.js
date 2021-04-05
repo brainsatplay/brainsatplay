@@ -1,5 +1,5 @@
 
-import {eegmath} from './bciutils/eegmath'
+import {eegmath} from './eegmath'
 
 //relies on eegworker (see implementation in public/index.html)
 
