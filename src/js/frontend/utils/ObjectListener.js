@@ -221,7 +221,7 @@ export class ObjectListenerInstance {
             this.propOld = JSON.stringifyFast(this.object);
         }
         else if(Array.isArray(this.object[propName])) {
-            this.propOld = JSON.stringifyFast(this.object[propName].slice(this.object[propName].length-100));
+            this.propOld = JSON.stringifyFast(this.object[propName].slice(this.object[propName].length-25));
         }
         else if(typeof this.object[propName] === "object"){
             this.propOld = JSON.stringifyFast(this.object[propName]);
@@ -246,7 +246,7 @@ export class ObjectListenerInstance {
             }
         }
         else if(Array.isArray(this.object[this.propName])) { //cut arrays down for speed
-            if(this.propOld !== JSON.stringifyFast(this.object[this.propName].slice(this.object[this.propName].length-100))){
+            if(this.propOld !== JSON.stringifyFast(this.object[this.propName].slice(this.object[this.propName].length-25))){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object[this.propName]);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
