@@ -126,7 +126,6 @@ server.on('upgrade', async (request, socket, head) => {
     let password = getCookie(request, 'password') || subprotocols['password']
     let appname = getCookie(request, 'appname') || subprotocols['appname']
 
-    console.log(app.get('mongoClient'))
     auth.check({username,password},app.get('mongoClient')).then((res) => {
 
       if (res.result !== 'OK') {
