@@ -145,7 +145,7 @@ export class eeg32Plugin {
         }
 
         let setup = () => {
-            let elm = document.getElementById;
+
 
         }
 
