@@ -605,7 +605,7 @@ export class brainsatplay {
 		};
 
         socket.onmessage = (msg) => {
-			console.log(msg.data)
+			console.log('Message recieved: ' + msg.data)
 			this.processSocketMessage(msg.data);
         }
 
