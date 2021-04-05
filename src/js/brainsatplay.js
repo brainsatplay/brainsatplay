@@ -861,7 +861,7 @@ class deviceStream {
 		this.deviceConfigs.find((o,i) => {
 			if(info.deviceName.indexOf(o.name) > -1 ) {
 				this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
-				o.cls.init(info,pipeToAtlas);
+				this.device.init(info,pipeToAtlas);
 				this.atlas = o.atlas;
 				this.filters = o.filters;
 				if(this.atlas !== null) {
