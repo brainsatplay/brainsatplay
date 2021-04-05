@@ -193,7 +193,12 @@ export class brainsatplay {
 	
 		html += `<option value="" disabled selected>Choose your device</option>`
 	
-		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduinousb','hegduinobt','cyton','cyton_daisy'];//,'hegduinowifi'];
+		let deviceOptions = [
+			'muse',
+			'freeeeg32_2','freeeeg32_19',
+			'hegduinousb','hegduinobt', //,'hegduinowifi',
+			'cyton','cyton_daisy'
+		];
 
 		deviceOptions.forEach((o,i) => {
 			html+= `<option value='`+o+`'>`+o+`</option>`;
