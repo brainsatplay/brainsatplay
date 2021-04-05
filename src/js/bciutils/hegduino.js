@@ -63,7 +63,7 @@ export class hegduino {
             else  this.interface.connectSelected(true,path);
         }
         else if(this.mode === 'ble' || this.mode === 'bt') {
-            this.interface.initBLE();
+            this.interface.connect();
         }
         else if(this.mode === 'wifi' || this.mode === 'events' || this.mode === 'sse') {
             this.interface.open();
@@ -125,7 +125,7 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
      HEGwebAPI.appendFragment(HTMLtoAppend,parentId);
      document.getElementById(buttonId).onclick = () => { 
        if(this.async === false) {
-         this.initBLE();
+         this.connect();
        } 
        else{
          this.initBLEasync();
