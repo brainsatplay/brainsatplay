@@ -510,13 +510,32 @@ export class brainsatplay {
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
 		if(parsed.msg === 'userData') {
-			for(const prop in parsed) {
-			 if (prop !== 'msg' && prop !== 'username') 
-				this.state.data[parsed.username+"_"+prop] = parsed[prop]; 
+			for (const prop in parsed.userData) {
+				this.state.data[parsed.username+"_userData"][prop] = parsed.userData[prop]; 
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-			this.state.data[parsed.appname+"_userData"] = parsed.userData;
+
+			if(this.state.data[parsed.appname+"_userData"]) {
+				parsed.userData.forEach((o,i) => {
+					let found = this.state.data[parsed.appname+"_userData"].find((p,j) => {
+						if(p.username === o.username) {
+							for(const prop in o) {
+								o[prop] === p[prop];
+							}
+						}
+					});
+					if(!found) {
+						this.state.data[parsed.appname+"_userData"].push(o);
+					}
+				});
+				//Should check if usernames are still present to splice them off but should do it only on an interval
+				//this.state.data[parsed.appname+"_userData"].forEach((u,i) => {
+				//	let found = parsed.usernames.find((name) => { if(u.username === name) return true; });
+				//  if(!found) { this.state.data[parsed.appname+"_userData"].splice(i,1); }
+				//});
+			}
+			else { this.state.data[parsed.appname+"_userData"] = parsed.userData; }
 			this.state.data[parsed.appname+"_spectators"] = parsed.spectators;
 		}
 		else if (parsed.msg === 'getUserDataResult') {
@@ -613,7 +632,7 @@ export class brainsatplay {
 						onsuccess(newResult);
 						this.state.unsubscribe('commandResult',sub);
 					}
-					else if (newResult.msg === 'userNotFound' && newResult.userData[0] === username) {
+					else if (newResult.msg === 'userNotFound' && newResult.username === username) {
 						this.state.unsubscribe('commandResult',sub);
 						console.log("User not found: ", username);
 					}

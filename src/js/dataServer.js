@@ -170,13 +170,17 @@ class dataServer { //Just some working concepts for handling data sockets server
         else if(commands[0] === 'getUserData') {
             if(commands[2] === undefined) {
                 let u2 = this.getUserData(commands[1]);
-                u.socket.send(JSON.stringify({msg:'getUserDataResult',username:commands[1],props:u2.props}));
+                if(u2 === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
+                else {u.socket.send(JSON.stringify({msg:'getUserDataResult',username:commands[1],props:u2.props})); }
             }
             else if (Array.isArray(commands[2])) {
                 let d = this.getUserData(commands[1]).props;
                 let result = {msg:'getUserDataResult',username:commands[1],props:{}};
-                commands[2].forEach((prop)=> {update[props][prop] = d.props[prop]});
-                u.socket.send(JSON.stringify(result));
+                if(d === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
+                else {
+                    commands[2].forEach((prop)=> {update[props][prop] = d.props[prop]});
+                    u.socket.send(JSON.stringify(result)); 
+                }
             }
         }
         else if (commands[0] === 'createGame') {
@@ -288,6 +292,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 this.userSubscriptions.push({
                     listener:listenerUser,
                     source:sourceUser,
+                    id:sourceUser+"_"+Math.floor(Math.random()*10000000),
                     propnames:propnames,
                     newData:false,
                     lastTransmit:0
@@ -295,7 +300,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 u.socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
             }
             else {
-                u.socket.send(JSON.stringify({msg:'userNotFound'}))
+                u.socket.send(JSON.stringify({msg:'userNotFound', username:sourceUser}));
             }
            
         }
@@ -307,6 +312,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                 this.gameSubscriptions.push({
                     appname:appname,
                     devices:devices,
+                    id:appname+"_"+Math.floor(Math.random()*10000000),
                     usernames:[],
                     updatedUsers:[], //users with new data available (clears when read from subcription)
                     spectators:[], //usernames of spectators
@@ -336,6 +342,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     msg:'gameData',
                     appname:sub.appname,
                     devices:sub.devices,
+                    id:sub.id,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
                     updatedUsers:sub.updatedUsers,
@@ -378,7 +385,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,propnames:g.propnames}));
+			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames}));
 		}
 		else {
 			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
@@ -389,7 +396,7 @@ class dataServer { //Just some working concepts for handling data sockets server
         let time = Date.now();
         //Should have delay interval checks for each subscription update for rate limiting
         this.userSubscriptions.forEach((sub,i) => {
-            //Should create a dispatcher that accumulates all subscription data to push all concurrent data in one message per listening user
+            //Should create a dispatcher that accumulates all user and game subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 let listener = this.userData.get(sub.listener);
                 let source = this.userData.get(sub.source);
@@ -400,10 +407,12 @@ class dataServer { //Just some working concepts for handling data sockets server
                 else if(sub.newData === true) {
                     let dataToSend = {
                         msg:'userData',
-                        username:listener.username
+                        username:sub.source,
+                        id:sub.id,
+                        userData:{}
                     };
                     sub.propnames.forEach((prop,j) => {
-                        dataToSend[prop] = source.props[prop];
+                        dataToSend.userData[prop] = source.props[prop];
                     });
                     sub.newData = false;
                     sub.lastTransmit = time;
@@ -412,7 +421,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             }
 		});
 
-        //optimize to only send updated data
+        //optimized to only send updated data
 		this.gameSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
@@ -423,6 +432,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     msg:'gameData',
                     appname:sub.appname,
                     devices:sub.devices,
+                    id:sub.id,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
                     spectators:sub.spectators,
@@ -448,7 +458,7 @@ class dataServer { //Just some working concepts for handling data sockets server
 
                     sub.usernames.forEach((user,j) => {
                         let u = this.userData.get(user);
-                        if(u !== undefined )
+                        if(u !== undefined)
                             u.socket.send(JSON.stringify(updateObj));
                         else {
                             sub.usernames.splice(sub.usernames.indexOf(user),1);
