@@ -64,14 +64,13 @@ export class BCIAppManager {
         this.bcisession = bcisession; //brainsatplay class instance
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
-        this.appletConfigs.push(...this.getConfigsFromHashes());
         this.appletManager;
         this.fs;
         this.useFS = useFS;
 
         if(this.useFS === true) {
             this.initFS();
-        }
+        } else { this.init(); }
 
     }
 
@@ -101,8 +100,7 @@ export class BCIAppManager {
                     <span>File Manager</span>
                     </div>
                     </button>
-                    <div class="content">
-                        <p>Lorem ipsum...</p>
+                    <div id="filecontainer" class="content">
                     </div>
                 </div>
                 <div class="collapsible-container">
@@ -224,7 +222,7 @@ export class BCIAppManager {
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
                 filemenu_template,
-                document.body
+                'filecontainer'
             )
         }
         this.uiFragments.appletbox = new DOMFragment(
@@ -338,8 +336,7 @@ export class BCIAppManager {
                                     appletConfigs:this.appletConfigs
                                 }
                             ), (err) => {
-                                let configs = getConfigsFromHashes();
-                                this.appletManager = new AppletManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
+                                this.init();
                                 if(err) throw err;
                             });
                         }
@@ -352,13 +349,13 @@ export class BCIAppManager {
                             fs.writeFile('/data/settings.json', newcontent, (err) => {
                                 if(err) throw err;
                                 console.log("New settings file created");
-                                this.initAppletManager(contents);
+                                this.init(contents);
                                 listFiles();
                             });
                         }
                         else{ 
                             contents = data.toString();    
-                            initAppletManager(contents);
+                            this.init(contents);
                             listFiles();
                         }
 
@@ -374,11 +371,11 @@ export class BCIAppManager {
                                             this.state.data.saveCounter = c;
                                         }
                                     });
-                                    document.getElementById("saveSession").onclick = () => {
+                                    document.getElementById("saveBCISession").onclick = () => {
                                         autoSaveEEGChunk();
                                     }
                                     
-                                    document.getElementById("newSession").onclick = () => {
+                                    document.getElementById("newBCISession").onclick = () => {
                                         newSession();
                                     }
                                 } else if (mainDevice === 'heg'){
@@ -388,11 +385,11 @@ export class BCIAppManager {
                                             this.state.data.saveCounter = c;
                                         }
                                     });
-                                    document.getElementById("saveSession").onclick = () => {
+                                    document.getElementById("saveBCISession").onclick = () => {
                                         autoSaveHEGChunk();
                                     }
                                     
-                                    document.getElementById("newSession").onclick = () => {
+                                    document.getElementById("newBCISession").onclick = () => {
                                         newSession();
                                     }
                                 }
@@ -411,7 +408,7 @@ export class BCIAppManager {
                     sessionName += "_heg"
                 }
                 this.state.data.sessionName = sessionName;
-                his.state.data.sessionChunks = 0;
+                this.state.data.sessionChunks = 0;
                 this.state.data.saveChunkSize = 5120;
                 this.state.data.newSessionCt++;
                 fs.appendFile('/data/'+sessionName,"", (e) => {

@@ -1,5 +1,6 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
+import { DOMFragment } from '../../frontend/utils/DOMFragment';
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 
 
@@ -61,5 +62,26 @@ export class devicePlugin {
     //externally set callbacks
     onconnect = () => {}
     ondisconnect = () => {}
+
+    addControls = (parentNode = document.body) => {
+        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        let template = () => {
+            return `
+            `;
+        }
+
+        let setup = () => {
+            let elm = document.getElementById;
+
+        }
+
+        this.ui = new DOMFragment(
+            template,
+            parentNode,
+            undefined,
+            setup
+        )
+        
+    }
 
 }

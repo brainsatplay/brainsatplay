@@ -2,6 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import {hegduino} from '../hegduino'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
 export class hegduinoPlugin {
     constructor(mode='hegduinousb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -10,6 +11,7 @@ export class hegduinoPlugin {
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
+        this.ui = null;
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -118,5 +120,39 @@ export class hegduinoPlugin {
     //externally set callbacks
     onconnect = () => {}
     ondisconnect = () => {}
+
+    addControls = (parentNode=document.body) => {
+        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        let template = () => {
+            return `
+            <div id='`+id+`hegduinoControls'>
+                <button id='`+id+`hegon'>On</button>
+                <button id='`+id+`hegoff'>Off</button>
+                <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
+            </div>
+            `;
+        }
+
+        let setup = () => {
+            let elm = document.getElementById;
+            elm(id+'hegon').onclick = () => {
+                this.device.sendCommand('t');
+            }
+            elm(id+'hegoff').onclick = () => {
+                this.device.sendCommand('f');
+            }
+            elm(id+'sendcmd').onclick = () => {
+                this.device.sendCommand(elm(id+'hegcmd').value);
+            }
+        }
+
+        this.ui = new DOMFragment(
+            template,
+            parentNode,
+            undefined,
+            setup
+        )
+        
+    }
 
 }

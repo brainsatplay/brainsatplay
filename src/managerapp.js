@@ -24,7 +24,5 @@ let applets = [
 
 let bcisession = new brainsatplay('guest','','game');
 
-let mgr = new BCIAppManager(bcisession,applets,undefined,false);
-
-mgr.init();
+let mgr = new BCIAppManager(bcisession,applets,undefined,true);
 

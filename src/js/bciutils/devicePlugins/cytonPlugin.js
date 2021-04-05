@@ -3,6 +3,7 @@
 
 import {cyton} from './cyton'
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
+import { DOMFragment } from '../../frontend/utils/DOMFragment';
 
 export class cytonPlugin {
     constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -143,5 +144,25 @@ export class cytonPlugin {
     onconnect = () => {}
     ondisconnect = () => {}
 
+    addControls = (parentNode = document.body) => {
+        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        let template = () => {
+            return `
+            `;
+        }
+
+        let setup = () => {
+            let elm = document.getElementById;
+
+        }
+
+        this.ui = new DOMFragment(
+            template,
+            parentNode,
+            undefined,
+            setup
+        )
+        
+    }
 
 }

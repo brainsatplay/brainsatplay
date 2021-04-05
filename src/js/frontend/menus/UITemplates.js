@@ -125,7 +125,7 @@ export function appletbox_template( props={
 export function filemenu_template(props={}) {
     return `
     <div style="width:100%; vertical-align:top; border:2px inset black;" colspan=6>
-        <button id="saveEEGSession">Save Current Data</button><button id="newEEGSession">New Session</button>
+        <button id="saveBCISession">Save Current Data</button><button id="newBCISession">New Session</button>
         <div id="filesystem" style="width:100%;overflow-y:scroll;"></div>
     </div>
     `;

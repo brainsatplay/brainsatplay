@@ -1721,8 +1721,8 @@ class dataAtlas {
 				//console.log(dat)
 				if(dat !== undefined) {
 					//console.log(dat);
-					if(dat.filtered.length > 0) {buffer.push(dat.filtered.slice(dat.filtered.length-nSamples,dat.filtered.length));}
-					else if (dat.raw.length > 0) {buffer.push(dat.raw.slice(dat.raw.length-nSamples,dat.raw.length));}
+					if(dat.filtered.length > 0) {buffer.push(dat.filtered.slice(dat.filtered.length-nSamples));}
+					else if (dat.raw.length > 0) {buffer.push(dat.raw.slice(dat.raw.length-nSamples));}
 					if(syncTime === null) {
 						syncTime = dat.times[dat.times.length-1];
 					}

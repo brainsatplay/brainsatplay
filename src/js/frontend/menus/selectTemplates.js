@@ -1,5 +1,7 @@
 //Templates for select menus. 
 
+import { DOMFragment } from "../utils/DOMFragment";
+
 export const addChannelOptions = (selectId, channelTags=[], taggedOnly=true, additionalOptions=[]) => {
     var select = document.getElementById(selectId);
     select.innerHTML = "";
@@ -75,4 +77,54 @@ export function genBandviewSelect(id='bandviewselectid'){
       <option value="lowgamma">Low Gamma (35Hz-48Hz)</option>
       <option value="highgamma">High Gamma (48Hz+)</option>
     </select>`;
+  }
+
+
+  //Lets you reassign EEG channelTags. Returns a DOMFragment instance and renders the template to the specified parentNode
+  export function makeEEGChannelSelector(parentNode, atlas){
+    let tags = this.atlas.data.eegshared?.eegChannelTags;
+    if(tags) {
+      let id = Math.floor(Math.random()*10000);
+      let template = () => {
+
+        let options = ``;
+
+        this.atlas.data.eeg.forEach((row) => {
+          options+= `<option value='`+row.tag+`'>`+row.tag+`</option>`
+        })
+
+        let tr = `<tr>`;
+
+        tags.forEach((tag,i) => {
+          tr += `<td>`+tag.ch+`:<select id='`+tag.ch+`select'>`+options+`</select></td>`
+          if( i > 0 && i % 5 === 0) { tr += `</tr><tr>`}
+        });
+
+        tr += `</tr>`;
+
+        return `
+        <table id='`+id+`channelselector'>
+        `+tr+`
+        </table>
+        `
+      }
+
+      let setup = () => {
+        tags.forEach((tag) => {
+          document.getElementById(tag.ch+'select').onchange = () => {
+            tag.tag = document.getElementById(tag.ch+'select').value;
+          }
+        });
+      }
+
+      let frag = new DOMFragment(
+        template,
+        parentNode,
+        undefined,
+        setup
+        );
+
+      return frag;
+    }
+    else console.error('tags not found');
   }

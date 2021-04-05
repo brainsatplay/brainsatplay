@@ -2,6 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import {MuseClient} from 'muse-js'
+import { DOMFragment } from '../../frontend/utils/DOMFragment';
 
 export class musePlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -116,5 +117,26 @@ export class musePlugin {
     //externally set callbacks
     onconnect = () => {}
     ondisconnect = () => {}
+
+    addControls = (parentNode = document.body) => {
+        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        let template = () => {
+            return `
+            `;
+        }
+
+        let setup = () => {
+            let elm = document.getElementById;
+
+        }
+
+        this.ui = new DOMFragment(
+            template,
+            parentNode,
+            undefined,
+            setup
+        )
+        
+    }
 
 }
