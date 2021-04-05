@@ -113,8 +113,7 @@ export class musePlugin {
     }
 
     disconnect = () => {
-        this.device.disconnect(); 
-        this.ondisconnect();
+        this.device.disconnect();
     }
 
     //externally set callbacks

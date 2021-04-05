@@ -127,12 +127,10 @@ export class eeg32Plugin {
 
     connect = async () => {
         await this.device.setupSerialAsync();
-        this.onconnect();
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.ondisconnect();
     }
 
     //externally set callbacks
