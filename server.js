@@ -46,14 +46,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // // Database Setup
-mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true }, (err,db)=> {
-  if (err == undefined){
+mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true }).then(db => {
   app.set('mongoClient', db);
   dataServ.mongodb = app.get('mongoClient')
   console.log('Connected to Database')
-  } else {
-    console.log('Error: ' + err)
-  }
+}).catch(err => {
+  console.log('Error: ' + err)
 })
 
 //Listen to Port for HTTP Requests
