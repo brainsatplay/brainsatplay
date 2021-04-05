@@ -245,9 +245,9 @@ export class BCIAppManager {
 
             let contentChild = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
 
-            console.log(this.bcisession.info.nDevices,this.bcisession.devices[this.bcisession.info.nDevices-1])
-            //if(this.uiFragments.controls !== null) {this.uiFragments.controls.deleteNode();} //set new controls
-            //this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
+            //console.log(this.bcisession.info.nDevices,this.bcisession.devices[this.bcisession.info.nDevices-1])
+            if(this.uiFragments.controls !== null) {this.uiFragments.controls.deleteNode();} //set new controls
+            this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
 
             //this.appletManager.reinitApplets();
             this.appletManager.deinitApplets();

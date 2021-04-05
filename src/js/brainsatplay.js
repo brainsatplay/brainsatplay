@@ -165,8 +165,8 @@ export class brainsatplay {
 			//Device info accessible from state
 			this.state.addToState("device"+(i),this.devices[i].info);
 			
-			this.devices[i].connect();
 			this.info.nDevices++;
+			this.devices[i].connect();
 	}
 
 	onconnected = () => {}
