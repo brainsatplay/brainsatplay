@@ -236,6 +236,7 @@ export class uPlotApplet {
             this.plotWidth = 400; this.plotHeight = 300;
           }
           this.setuPlot();
+          if(!this.looping) this.start();
         }, 100);
       }
       else {

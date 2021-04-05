@@ -25,7 +25,7 @@ export class hegduinoPlugin {
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
                 let data = newline.split("|");
-                console.log(data);
+                //console.log(data);
                 if(data.length > 3) {
                     let coord = this.atlas.data.heg[info.deviceNum];
                     coord.count++;
@@ -111,12 +111,10 @@ export class hegduinoPlugin {
 
     connect = () => {
         this.device.connect();
-        this.onconnect();
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.ondisconnect();
     }
 
     //externally set callbacks
@@ -136,14 +134,14 @@ export class hegduinoPlugin {
         }
 
         let setup = () => {
-            let elm = document.getElementById;
-            elm(id+'hegon').onclick = () => {
+         
+            document.getElementById(id+'hegon').onclick = () => {
                 this.device.sendCommand('t');
             }
-            elm(id+'hegoff').onclick = () => {
+            document.getElementById(id+'hegoff').onclick = () => {
                 this.device.sendCommand('f');
             }
-            elm(id+'sendcmd').onclick = () => {
+            document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(elm(id+'hegcmd').value);
             }
         }

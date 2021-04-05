@@ -172,9 +172,9 @@ export class CircleApplet {
     updateLoop = () => {
         if(this.looping){
             if(this.bci.atlas.settings.heg) {
-                let ct = this.bci.atlas.heg[0].count;
+                let ct = this.bci.atlas.data.heg[0].count;
                 if(ct >= 2) {
-                    let score = this.bci.atlas.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.heg[0].ratio.slice(ct-40));
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.data.heg[0].ratio.slice(ct-40));
                     this.angleChange = score;
                     this.draw();
                 }
@@ -212,7 +212,7 @@ export class CircleApplet {
         // color in the circle
         this.ctx.fillStyle = this.cColor;
         this.ctx.fill();
-        console.log(this.ctx, this.cColor, this.bgColor)
+        //console.log(this.ctx, this.cColor, this.bgColor)
         
     }
 
