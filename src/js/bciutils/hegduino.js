@@ -60,7 +60,11 @@ export class hegduino {
     connect(path) { //chrome serial requires a path be specified (e.g. 'COM3')
         if(this.mode === 'usb' || this.mode === 'serial') {
             if(navigator.serial) this.interface.setupSerialAsync();
-            else  this.interface.connectSelected(true,path);
+            else if(chrome.serial) this.interface.connectSelected(true,path);
+            else {
+                console.error("ERROR: Cannot locate navigator.serial. Enable #experimental-web-platform-features in chrome://flags");
+                alert("Serial support not found. Enable #experimental-web-platform-features in chrome://flags or use a chrome extension")
+            }
         }
         else if(this.mode === 'ble' || this.mode === 'bt') {
             this.interface.connect();
