@@ -6,4 +6,14 @@ let plotter = new uPlotApplet(
     new brainsatplay()
 )
 
+
+//Now add some ui elements like to connect to the device
+
+plotter.bci.makeConnectOptions(documet.body,()=> { plotter.responsive(); });
+
+//Init applet
+
+plotter.init();
+
+
 //That's all folks
