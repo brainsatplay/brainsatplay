@@ -875,8 +875,8 @@ class deviceStream {
 			if(info.deviceName.indexOf(o.name) > -1 ) {
 				this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
 				this.device.init(info,pipeToAtlas);
-				this.atlas = o.atlas;
-				this.filters = o.filters;
+				this.atlas = this.device.atlas;
+				this.filters = this.device.filters;
 				if(this.atlas !== null) {
 					this.configureDefaultStreamTable();
 					if(this.info.streaming === true) this.streamLoop();
