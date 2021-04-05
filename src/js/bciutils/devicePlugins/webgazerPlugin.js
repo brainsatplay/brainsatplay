@@ -101,8 +101,7 @@ export class webgazerPlugin {
         }
 
         let setup = () => {
-            let elm = document.getElementById;
-
+           
         }
 
         this.ui = new DOMFragment(

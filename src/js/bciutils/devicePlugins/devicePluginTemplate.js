@@ -72,7 +72,7 @@ export class devicePlugin {
         }
 
         let setup = () => {
-            let elm = document.getElementById;
+           
 
         }
 

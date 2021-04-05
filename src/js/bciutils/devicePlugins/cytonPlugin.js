@@ -157,8 +157,7 @@ export class cytonPlugin {
         }
 
         let setup = () => {
-            let elm = document.getElementById;
-
+            
         }
 
         this.ui = new DOMFragment(
