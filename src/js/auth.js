@@ -8,39 +8,43 @@ var SALT_FACTOR = 5;
 module.exports.check = async (auth, mongodb) => {
     let username = auth.username
     let password = auth.password
-    const db = mongodb.db(dbName);
     let profile;
     let msg;
     let dict = {result:'incomplete',msg:'no message set'};
 
-    if (password === ''){
-        if (username !== '' && username != 'guest'){
-        let numDocs = await db.collection('profiles').find({ username: username }).count();
-        if (numDocs == 0){
-            dict = { result: 'OK', msg: username }
+    if (mongodb != undefined){
+      const db = mongodb.db(dbName);
+        if (password === ''){
+            if (username !== '' && username != 'guest'){
+            let numDocs = await db.collection('profiles').find({ username: username }).count();
+            if (numDocs == 0){
+                dict = { result: 'OK', msg: username }
+            } else {
+                dict = { result: 'incomplete', msg: 'profile exists with this username. please choose a different ID.' }
+            }
+            } else {
+            username = uuid.v4();
+            dict = { result: 'OK', msg: username}
+            }
         } else {
-            dict = { result: 'incomplete', msg: 'profile exists with this username. please choose a different ID.' }
+          if (username === undefined) {
+              dict = { result: 'incomplete', msg: 'username not defined' }
+          } else {
+            profile = await db.collection('profiles').findOne({ $or: [ { username: username }, { email: username } ] })      
+            if (profile===null){
+              msg = 'no profile exists with this username or email. please try again.'
+              dict = { result: 'incomplete', msg: msg }
+            } else {
+              dict = await compareAsync(password,profile.password)
+              if (dict.result === 'OK'){
+                  dict.msg = username
+              }
+          } 
         }
-        } else {
-        username = uuid.v4();
-        dict = { result: 'OK', msg: username}
-        }
+      }
     } else {
-    if (username === undefined) {
-        dict = { result: 'incomplete', msg: 'username not defined' }
-    } else {
-      profile = await db.collection('profiles').findOne({ $or: [ { username: username }, { email: username } ] })      
-      if (profile===null){
-        msg = 'no profile exists with this username or email. please try again.'
-        dict = { result: 'incomplete', msg: msg }
-      } else {
-        dict = await compareAsync(password,profile.password)
-        if (dict.result === 'OK'){
-            dict.msg = username
-        }
-    } 
-  }
-}
+      dict = { result: 'OK', msg: username }
+    }
 return dict
 }
 
