@@ -85,7 +85,7 @@ export class hegduinoPlugin {
             let config = 'hegduino';
             this.atlas = new dataAtlas(
                 location+":"+this.mode,
-                {eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
+                {hegshared:{sps:this.info.sps}},
                 config,true,true,
                 info.analysis
                 );
@@ -95,7 +95,8 @@ export class hegduinoPlugin {
             
         } else if (typeof pipeToAtlas === 'object') {
             this.atlas = pipeToAtlas; //External atlas reference
-            info.info.deviceNum = this.atlas.data.heg.length; 
+            info.deviceNum = this.atlas.data.heg.length; 
+            this.atlas.data.hegshared = {sps:info.sps};
             this.atlas.addHEGCoord(this.atlas.data.heg.length); 
             this.atlas.settings.heg = true;
             this.info.useAtlas = true;

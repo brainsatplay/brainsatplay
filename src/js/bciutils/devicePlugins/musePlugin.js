@@ -46,13 +46,15 @@ export class musePlugin {
 			let config = 'muse';
             this.atlas = new dataAtlas(
 				location+":"+this.mode,
-				{eegshared:{eegChannelTags:eegChannelTags, sps:info.sps}},
+				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
 				config,true,true,
 				info.analysis
 				);
 			info.useAtlas = true;
 		} else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
 			this.atlas = pipeToAtlas; //External atlas reference
+            this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
+            this.atlas.data.eegshared.sps = info.sps;
 			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
             this.atlas.settings.eeg = true;
             info.useAtlas = true;

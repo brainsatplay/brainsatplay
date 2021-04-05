@@ -73,7 +73,7 @@ export class cytonPlugin {
 
         let eegChannelTags = [];
 
-        if(mode.indexOf('daisy') > -1 ) {
+        if(this.mode.indexOf('daisy') > -1 ) {
             eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
@@ -112,13 +112,15 @@ export class cytonPlugin {
 			let config = '10_20';
             this.atlas = new dataAtlas(
 				location+":"+this.mode,
-				{eegshared:{eegChannelTags:eegChannelTags, sps:info.sps}},
+				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
 				config,true,true,
 				info.analysis
 				);
 			info.useAtlas = true;
 		} else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
 			this.atlas = pipeToAtlas; //External atlas reference
+            this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
+            this.atlas.data.eegshared.sps = info.sps;
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas();
             info.useAtlas = true;
 			if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {

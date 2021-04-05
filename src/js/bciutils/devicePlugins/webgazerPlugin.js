@@ -29,7 +29,7 @@ export class webgazerPlugin {
 			
             this.atlas = new dataAtlas(
                 location+":"+this.mode,
-                {eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
+                undefined,
                 config,true,true,
                 info.analysis
                 );

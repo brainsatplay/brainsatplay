@@ -106,13 +106,15 @@ export class eeg32Plugin {
 			let config = '10_20'; 
 			this.atlas = new dataAtlas(
 				location+":"+this.mode,
-				{eegshared:{eegChannelTags:eegChannelTags, sps:info.sps}},
+				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
 				config,true,true,
 				info.analysis
 			);
 			info.useAtlas = true;
 		} else if (typeof pipeToAtlas === 'object') {
 			this.atlas = pipeToAtlas; //External atlas reference
+            this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
+            this.atlas.data.eegshared.sps = info.sps;
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas(); this.atlas.settings.eeg = true;
 			info.useAtlas = true;
 			if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {

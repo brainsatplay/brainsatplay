@@ -36,8 +36,8 @@ export class dataAtlas {
 
         this.data = {
 			eegshared:{
-				eegChannelTags:initialData.eegshared?.eegChannelTags, 
-				sps:initialData.eegshared?.sps, 
+				eegChannelTags:[], 
+				sps:[], 
 				startTime:0,
 				frequencies:[], 
 				bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}
@@ -53,6 +53,8 @@ export class dataAtlas {
 			ecg:[],
 			eyetracker:[]
 		};
+
+        Object.assign(this.data,initialData);
 
 		this.rolloverLimit = 51200; //Max samples allowed in arrays before rollover kicks in
 
