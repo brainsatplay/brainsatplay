@@ -600,9 +600,12 @@ export class brainsatplay {
             console.log('error');
         };
 
-        socket.onopen = () => {};
+        socket.onopen = () => {
+			console.log('socket opened')
+		};
 
         socket.onmessage = (msg) => {
+			console.log(msg.data)
 			this.processSocketMessage(msg.data);
         }
 
