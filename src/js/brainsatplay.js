@@ -190,8 +190,11 @@ export class brainsatplay {
 	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"connect";
 		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr><select id='`+id+`select'></div>`;
-		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduinousb','hegduinobt'];//,'hegduinowifi'];
+	
 		html += `<option value="" disabled selected>Choose your device</option>`
+	
+		let deviceOptions = ['muse','freeeeg32_2','freeeeg32_19','hegduinousb','hegduinobt','cyton','cyton_daisy'];//,'hegduinowifi'];
+
 		deviceOptions.forEach((o,i) => {
 			html+= `<option value='`+o+`'>`+o+`</option>`;
 		});
@@ -218,6 +221,12 @@ export class brainsatplay {
 			}
 			else if (val === 'hegduinowifi') {
 				this.connect('hegduinowifi',[],onconnect,ondisconnect);
+			}
+			else if (val === 'cyton') {
+				this.connect('cyton',['eegfft'],onconnect,ondisconnect);
+			}
+			else if (val === 'cyton_daisy') {
+				this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
 			}
 		}
 	}
