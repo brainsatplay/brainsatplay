@@ -1,6 +1,7 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
+import {dataAtlas} from '../dataAtlas'
 import {MuseClient} from 'muse-js'
 import { DOMFragment } from '../../frontend/utils/DOMFragment';
 
@@ -30,7 +31,7 @@ export class musePlugin {
         ]; // {ch: 4, tag: "other", analyze: false}
         this.device = new MuseClient();
 
-        if(useFilters === true) {
+        if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
