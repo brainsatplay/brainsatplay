@@ -417,8 +417,8 @@ if(JSON.stringifyFast === undefined) {
                     let c = value.constructor.name;
                     if (other) {
                         return '[Circular Reference]' + other;
-                    } else if(c === "Array" && value.length > 100) { //Cut arrays down to 100 samples for referencing
-                        val = value.slice(value.length-100);
+                    } else if(c === "Array" && value.length > 25) { //Cut arrays down to 100 samples for referencing
+                        val = value.slice(value.length-25);
                         refs.set(val, path.join('.'));
                     } else if (c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
