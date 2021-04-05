@@ -59,7 +59,9 @@ export class BCIAppManager {
             fileSizeLimitMb: 250
         });
 
-        this.uiFragments = {}; //store DOMFragments for the UI here
+        this.uiFragments = {
+            controls:null,
+        }; //store DOMFragments for the UI here
 
         this.bcisession = bcisession; //brainsatplay class instance
         this.appletClasses = appletClasses;
@@ -126,6 +128,7 @@ export class BCIAppManager {
         document.body,
         undefined,
         () => {
+
             // document.getElementById('connect').onclick = () => {
             // 	if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,undefined,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
             // 	else bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected);
@@ -219,6 +222,7 @@ export class BCIAppManager {
         );
         let contentChild2 = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
+
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
                 filemenu_template,
@@ -238,6 +242,12 @@ export class BCIAppManager {
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
         this.bcisession.onconnected = () => {
+
+            let contentChild = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
+
+            if(this.uiFragments.controls !== null) {this.uiFragments.controls.deleteNode();} //set new controls
+            this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
+
             //this.appletManager.reinitApplets();
             this.appletManager.deinitApplets();
             this.appletManager.initAddApplets();
@@ -363,7 +373,7 @@ export class BCIAppManager {
                         this.bcisession.state.data.info = this.bcisession.info;
                         this.bcisession.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
-                                let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType
+                                let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - Math.floor(this.bcisession.atlas.rolloverLimit*0.1); } //rollover occurred, adjust
