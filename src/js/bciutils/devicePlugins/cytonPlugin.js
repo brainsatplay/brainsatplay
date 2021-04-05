@@ -107,6 +107,8 @@ export class cytonPlugin {
             });
         }
 
+        info.eegChannelTags = eegChannelTags;
+
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';

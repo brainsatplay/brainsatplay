@@ -20,24 +20,23 @@ export class eeg32Plugin {
     init = (info,pipeToAtlas) => {
         info.sps = 512;
         info.deviceType = 'eeg';
-        let eegChannelTags = [];
 
         if(this.mode === "freeeeg32_2") { 
-            eegChannelTags = [
+           info.eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
         }
         else if (this.mode === 'freeeeg32_19') {
-            eegChannelTags = [
+            info.eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
         }
         else {
-            eegChannelTags = [
+            info.eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
@@ -92,7 +91,7 @@ export class eeg32Plugin {
             }
         );
         if(info.useFilters === true) {
-            this.atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+            info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,this.device.uVperStep));
                 }
