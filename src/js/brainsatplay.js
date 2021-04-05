@@ -336,7 +336,7 @@ export class brainsatplay {
 					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
 					
 					if(coord !== undefined) {
-						if(prop === null || Array.isArray(coord)) {
+						if(prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
 							sub=this.state.addToState(atlasTag,coord,onData);
 						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
 							sub=this.state.addToState(atlasTag+"_"+prop,coord[prop],onData);
@@ -1115,7 +1115,7 @@ class dataAtlas {
 			eyetracker:[]
 		};
 
-		this.rolloverLimit = 30000; //Max samples allowed in arrays before rollover kicks in
+		this.rolloverLimit = 51200; //Max samples allowed in arrays before rollover kicks in
 
         if(config === '10_20') {
 			
@@ -1907,16 +1907,15 @@ class dataAtlas {
 			for(const prop in this.data) {
 				if(Array.isArray(this.data[prop])) {
 					this.data[prop].forEach((row,i) => {
-						let ct; let ct2;
 						for(const p in row) {
-							if((!Array.isArray(row[p])) && typeof row[p] === 'object') {
+							if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //e.g. {slices:{alpha1:[...]}}
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
-										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*0.10));}
+										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*0.10));} //shave off 10% of the values
 									}
 								}
 							}
-							else if(Array.isArray(row[p])) {
+							else if(Array.isArray(row[p])) { // e.g. {ffts:[...] fftCount:x}
 								if(row[p].length > this.rolloverLimit) {
 									row[p].splice(0,Math.floor(this.rolloverLimit*.1));
 									if(p === 'ffts') { //adjust counters
