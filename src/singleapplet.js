@@ -15,5 +15,7 @@ plotter.bci.makeConnectOptions(document.body,()=> { plotter.responsive(); });
 
 plotter.init();
 
+plotter.responsive();
+
 
 //That's all folks
