@@ -201,11 +201,11 @@ class dataServer { //Just some working concepts for handling data sockets server
                 u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
             }
         }
-        else if(commands[0] === 'subscribeToUser') {
+        else if(commands[0] === 'subscribeToUser') {  //User to user stream
             if(command[2]) this.streamBetweenUsers(username,commands[1],commands[2]);
             else this.streamBetweenUsers(username,commands[1]);
         }
-        else if(commands[0] === 'subscribeToGame') {
+        else if(commands[0] === 'subscribeToGame') { //Join game
             this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
