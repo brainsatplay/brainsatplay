@@ -127,6 +127,13 @@ export class cytonPlugin {
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas();
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
+
+            this.atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+				if( this.atlas.getEEGDataByTag(row.tag) === undefined ) {
+					this.atlas.addEEGCoord(row.ch);
+				}
+			});
+
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
             info.useAtlas = true;
