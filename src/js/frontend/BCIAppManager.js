@@ -254,6 +254,11 @@ export class BCIAppManager {
             this.appletManager.initAddApplets();
             this.appletManager.responsive();
         }
+
+        this.bcisession.ondisconnected = () => {
+
+        }
+        
         this.setupUITemplates();
     }
 

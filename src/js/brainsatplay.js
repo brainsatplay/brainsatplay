@@ -156,7 +156,8 @@ export class brainsatplay {
 					this.devices[i].info.analyzing = false; //cancel analysis loop
 				}
 				this.devices[i].info.streaming = false; //cancel stream loop
-				this.devices.splice(i,1);
+				this.devices.splice(i,1);			
+				this.info.nDevices--;
 			}
 
 			this.devices[i].init();
@@ -173,22 +174,24 @@ export class brainsatplay {
 
 	ondisconnected = () => {}
 
-	reconnect(deviceIdx=this.devices[this.devices.length-1],onconnect=undefined) { //Reconnect a device that has already been added
-		if(onconnect !== undefined) { this.devices[deviceIdx].onconnect = onconnect; }
-		this.devices[deviceIdx].connect();
+	reconnect(deviceIdx=this.devices.length-1,onconnect=()=>{}) { //Reconnect a device that has already been added
+		if(deviceIdx > -1) {
+			this.devices[deviceIdx].connect();
+			onconnect();
+		} else { console.log("No devices connected"); }
 	}
 	
 	//disconnect local device
-	disconnect(deviceIdx=this.devices[this.devices.length-1],ondisconnect=()=>{}) {
-		this.devices[deviceIdx].info.streaming = false;
-		this.devices[deviceIdx].ondisconnect = ondisconnect;
-		this.devices[deviceIdx].disconnect();
-		this.devices[deviceIdx].splice(deviceIdx,1);
-		this.info.nDevices--;
+	disconnect(deviceIdx=this.devices.length-1,ondisconnect=()=>{}) {
+		if(deviceIdx > -1) {
+			this.devices[deviceIdx].info.streaming = false;
+			this.devices[deviceIdx].disconnect();
+			ondisconnect();
+		} else { console.log("No devices connected"); }
 	}
 
 	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
-		let id = Math.floor(Math.random()*10000)+"connect";
+		let id = Math.floor(Math.random()*10000)+"devicemenu";
 		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr><select id='`+id+`select'></div>`;
 	
 		html += `<option value="" disabled selected>Choose your device</option>`
@@ -203,11 +206,13 @@ export class brainsatplay {
 		deviceOptions.forEach((o,i) => {
 			html+= `<option value='`+o+`'>`+o+`</option>`;
 		});
+
 		// html += `</select><button id='`+id+`connect'>Connect</button>`;
 
 		parentNode.insertAdjacentHTML('afterbegin',html);
+		parentNode.insertAdjacentHTML('beforeend',`<button id='`+id+`connect'>Connect</button><button id='`+id+`disconnect'>Disconnect</button>`);
 
-		document.getElementById(id+"select").onchange = () => {
+		document.getElementById(id+"connect").onclick = () => {
 			let val = document.getElementById(id+"select").value;
 			if(val === 'muse') {
 				this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
@@ -233,6 +238,10 @@ export class brainsatplay {
 			else if (val === 'cyton_daisy') {
 				this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
 			}
+		}
+
+		document.getElementById(id+"disconnect").onclick = () => { 
+			this.disconnect(); //Need to add disconnect buttons for every device added if multiple devices streaming
 		}
 	}
 
