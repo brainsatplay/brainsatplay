@@ -531,6 +531,12 @@ export class brainsatplay {
 
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
+
+		if(!parsed.msg) {
+			console.log(received);
+			return;
+		}
+
 		if(parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
 				this.state.data[parsed.username+"_userData"][prop] = parsed.userData[prop]; 
@@ -572,6 +578,9 @@ export class brainsatplay {
 		else if (parsed.msg === 'getGameInfoResult') {
 			this.state.data.commandResult = parsed;
 		}
+		else if (parsed.msg === 'getGamesResult') {
+			this.state.data.commandResult = parsed;
+		}
 		else if (parsed.msg === 'subscribedToUser') {
 			this.state.data.commandResult = parsed;
 		}
@@ -598,7 +607,9 @@ export class brainsatplay {
 		else if (parsed.msg === 'ping') {
 		}
 		else {
+			console.log(parsed);
 		}
+		
 	}
 
 	setupWebSocket(auth=this.info.auth) {
@@ -666,43 +677,6 @@ export class brainsatplay {
 		}
 	}
 
-	subscribeToGame(appname=this.info.auth.appname,spectating=false,onsuccess=(newResult)=>{}) {
-		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',appname]}));
-			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
-			let sub = this.state.subscribe('commandResult',(newResult) => {
-				if(typeof newResult === 'object') {
-					if(newResult.msg === 'getGameInfoResult' && newResult.appname === appname) {
-						let configured = true;
-						if(spectating === false) {
-							//check that this user has the correct streaming configuration with the correct connected device
-							let streamParams = [];
-							newResult.gameInfo.propnames.forEach((prop) => {
-								console.log(prop);
-								streamParams.push(prop.split("_"));
-							});
-							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
-						}
-						if(configured === true) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating]}));
-							newResult.gameInfo.usernames.forEach((user) => {
-								newResult.gameInfo.propnames.forEach((prop) => {
-									this.state.data[appname+"_"+user+"_"+prop] = null;
-								});
-							});
-							onsuccess(newResult);
-						}
-						this.state.unsubscribe('commandResult',sub);
-					}
-					else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
-						this.state.unsubscribe('commandResult',sub);
-						console.log("Game not found: ", appname);
-					}
-				}
-			});
-		}
-	}
-
 	unsubscribeFromUser(username='',userProps=null,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
@@ -722,14 +696,125 @@ export class brainsatplay {
 		}
 	}
 
-	unsubscribeFromGame(appname='',onsuccess=(newResult)=>{}) {
+	getGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',gameid]}));
+			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {
+						
+						console.log(newResult.gameInfo);
+						onsuccess(newResult); //list games, then subscrie to game by id
+						this.state.unsubscribe('commandResult',sub);
+					}
+				}
+				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+					this.state.unsubscribe('commandResult',sub);
+					console.log("Game not found: ", appname);
+				}
+			});
+		}
+	}
+
+	//connect using the unique id of the subscription
+	subscribeToGame(gameid='',spectating=false,onsuccess=(newResult)=>{}) {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',gameid]}));
+			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getGameInfoResult' && newResult.gameInfo.id === gameid) {
+						let configured = true;
+						if(spectating === false) {
+							//check that this user has the correct streaming configuration with the correct connected device
+							let streamParams = [];
+							newResult.gameInfo.propnames.forEach((prop) => {
+								console.log(prop);
+								streamParams.push(prop.split("_"));
+							});
+							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
+						}
+						if(configured === true) {
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating]}));
+							newResult.gameInfo.usernames.forEach((user) => {
+								newResult.gameInfo.propnames.forEach((prop) => {
+									this.state.data[newResult.gameInfo.id+"_"+user+"_"+prop] = null;
+								});
+							});
+							onsuccess(newResult);
+						}
+						this.state.unsubscribe('commandResult',sub);
+					}
+					else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+						this.state.unsubscribe('commandResult',sub);
+						console.log("Game not found: ", appname);
+					}
+				}
+			});
+		}
+	}
+
+	unsubscribeFromGame(gameId='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send({cmd:['leaveGame',appname],username:this.info.auth.username})
+			this.socket.send({cmd:['leaveGame',gameId],username:this.info.auth.username})
 			let sub = this.state.subscribe('commandResult',(newResult) => {
-				if(newResult.msg === 'leftGame' && newResult.appname === appname) {
+				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
 					for(const prop in this.state.data) {
-						if(prop.indexOf(appname) > -1) {
+						if(prop.indexOf(gameId) > -1) {
+							this.state.unsubscribeAll(prop);
+							this.state.data[prop] = undefined;
+						}
+					}
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
+				}
+			});
+		}
+	}
+
+	//Browse multiplayer instances for an app
+	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
+		let id = Math.floor(Math.random()*1000000)+appname;
+		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
+		parentNode.insertAdjacentHTML('afterbegin',html);
+
+		document.getElementById(id+'search').onclick = () => {
+			this.getGames(appname, (result) => {
+				let tablehtml = '';
+				result.gameInfo.forEach((g) => {
+					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
+				});
+
+				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
+
+				result.gameInfo.forEach((g) => { 
+					document.getElementById(g.id+'connect').onclick = () => {
+						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
+							onjoined(g);
+							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
+							document.getElementById(id+'disconnect').onclick = () => {
+								this.unsubscribeFromGame(g.id,()=>{
+									onleave(g);
+									let node = document.getElementById(id+'disconnect');
+									node.parentNode.removeChild(node);
+								});
+							}
+						});
+					}
+				});
+			});
+		}
+	}
+
+	kickPlayerFromGame = (gameId, userToKick, onsuccess=(newResult)=>{}) => {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send({cmd:['leaveGame',gameId,userToKick],username:this.info.auth.username});
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
+					for(const prop in this.state.data) {
+						if(prop.indexOf(userToKick) > -1) {
 							this.state.unsubscribeAll(prop);
 							this.state.data[prop] = undefined;
 						}

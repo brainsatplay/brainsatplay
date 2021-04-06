@@ -93,10 +93,10 @@ class dataServer { //Just some working concepts for handling data sockets server
         return found;
     }
 
-    removeUserFromGame(appname='',username='') {
+    removeUserFromGame(id='',username='') {
         let found = false;
         let sub = this.gameSubscriptions.find((o,i) => {
-            if(o.appname === appname) {
+            if(o.id === id) {
                 let uidx = o.usernames.indexOf(username);
                 if(uidx > -1) o.usernames.splice(uidx,1);
                 let sidx = o.spectators.indexOf(username);
@@ -188,12 +188,12 @@ class dataServer { //Just some working concepts for handling data sockets server
             u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[this.gameSubscriptions.length-1]}));
         }
         else if (commands[0] === 'getGames') { //List games with the app name
-            let sub = this.getGameSubscriptions(commands[1]);
-            if(sub === undefined) {
+            let subs = this.getGameSubscriptions(commands[1]);
+            if(subs === undefined) {
                 u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getGamesResult',appname:commands[1],gameInfo:subs}));
             }
         }
         else if (commands[0] === 'getGameInfo') { //List the game info for the particular ID
@@ -238,7 +238,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             if(commands[2]) found = this.removeUserFromGame(commands[1],commands[2]);
             else found = this.removeUserFromGame(commands[1],u.username);
             if(found) {  u.socket.send(JSON.stringify({msg:'leftGame',appname:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'gameNotFound'}));}
+            else { u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));}
         }
         else if(commands[0] === 'deleteGame') {
             let found = this.removeGameStream(commands[1]);
@@ -336,12 +336,11 @@ class dataServer { //Just some working concepts for handling data sockets server
 	}
 
 	getGameSubscriptions(appname='') {
-        let subs = [];
 		let g = this.gameSubscriptions.filter((o) => {
             if(o.appname === appname) return true;
         })
-        if(subs.length === 0) return undefined;
-		else return subs;
+        if(g.length === 0) return undefined;
+		else return g;
 	}
 
     getGameSubscription(id='') {
