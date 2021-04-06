@@ -677,7 +677,7 @@ export class webSerial {
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-					
+                    this.closePort();	
 				}
 			}
 			streamData();
