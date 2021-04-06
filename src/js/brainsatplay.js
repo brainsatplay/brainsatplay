@@ -145,6 +145,7 @@ export class brainsatplay {
 			let i = this.devices.length-1;
 
 			this.devices[i].onconnect = () => {
+				this.info.nDevices++;
 				onconnect();
 				this.onconnected();
 			}
@@ -166,7 +167,6 @@ export class brainsatplay {
 			//Device info accessible from state
 			this.state.addToState("device"+(i),this.devices[i].info);
 			
-			this.info.nDevices++;
 			this.devices[i].connect();
 	}
 

@@ -55,7 +55,6 @@ export class AppletManager {
                         });
                     });
                 }
-
                 if(this.bcisession.info.nDevices > 0) {
                     let found = this.bcisession.devices.find((o,j) => {
                         if(!classObj.devices) {
@@ -345,7 +344,7 @@ export class AppletManager {
             } else {
                 innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
             }
-            })
+        });
         innerStrings = innerStrings.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
         }).join(' ')

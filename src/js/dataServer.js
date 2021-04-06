@@ -187,7 +187,16 @@ class dataServer { //Just some working concepts for handling data sockets server
             this.createGameSubscription(commands[1],commands[2],commands[3]);
             u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[this.gameSubscriptions.length-1]}));
         }
-        else if (commands[0] === 'getGameInfo') {
+        else if (commands[0] === 'getGames') { //List games with the app name
+            let sub = this.getGameSubscriptions(commands[1]);
+            if(sub === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
+            }
+        }
+        else if (commands[0] === 'getGameInfo') { //List the game info for the particular ID
             let sub = this.getGameSubscription(commands[1]);
             if(sub === undefined) {
                 u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
@@ -325,19 +334,28 @@ class dataServer { //Just some working concepts for handling data sockets server
         // });
 	}
 
-	getGameSubscription(appname='') {
+	getGameSubscriptions(appname='') {
+        let subs = [];
+		let g = this.gameSubscriptions.filter((o) => {
+            if(o.appname === appname) return true;
+        })
+        if(subs.length === 0) return undefined;
+		else return subs;
+	}
+
+    getGameSubscription(id='') {
 		let g = this.gameSubscriptions.find((o,i) => {
-			if(o.appname === appname) {
+			if(o.id === id) {
 				return true;
 			}
 		});
-		return g;
+        return g;
 	}
 
-    getGameData(appname='') {
+    getGameData(id='') {
         let gameData = undefined;
         let s = this.gameSubscriptions.find((sub,i) => {
-            if(sub.appname === appname) {
+            if(sub.id === id) {
                 let updateObj = {
                     msg:'gameData',
                     appname:sub.appname,
@@ -372,8 +390,8 @@ class dataServer { //Just some working concepts for handling data sockets server
         return gameData;
     }
 
-	subscribeUserToGame(username,appname,spectating=false) {
-		let g = this.getGameSubscription(appname);
+	subscribeUserToGame(username,id,spectating=false) {
+		let g = this.getGameSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
             if( g.usernames.indexOf(username) < 0) { 

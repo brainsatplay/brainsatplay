@@ -56,6 +56,8 @@ export class musePlugin {
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
 			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
+            this.atlas.data.coherence = this.atlas.genCoherenceMap();
+            this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
             info.useAtlas = true;
 			if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {

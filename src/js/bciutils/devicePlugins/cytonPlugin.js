@@ -124,6 +124,9 @@ export class cytonPlugin {
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas();
+            this.atlas.data.coherence = this.atlas.genCoherenceMap();
+            this.atlas.settings.coherence = true;
+            this.atlas.settings.eeg = true;
             info.useAtlas = true;
 			if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {
 				this.atlas.settings.analysis.push(...info.analysis);
