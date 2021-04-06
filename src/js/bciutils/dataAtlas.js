@@ -37,7 +37,7 @@ export class dataAtlas {
         this.data = {
 			eegshared:{
 				eegChannelTags:[], 
-				sps:[], 
+				sps:1, 
 				startTime:0,
 				frequencies:[], 
 				bandFreqs:{scp:[[],[]], delta:[[],[]], theta:[[],[]], alpha1:[[],[]], alpha2:[[],[]], beta:[[],[]], lowgamma:[[],[]], highgamma:[[],[]]}
@@ -692,8 +692,7 @@ export class dataAtlas {
 	}
 
 	readyEEGDataForWriting = (from=0,to='end') => {
-		
-		  
+		 
 		let header = ["TimeStamps","UnixTime"];
 		let data = [];
 		let mapidx = 0;

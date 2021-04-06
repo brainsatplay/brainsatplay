@@ -1,6 +1,7 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {eeg32} from '../eeg32'
+import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import {dataAtlas} from '../dataAtlas'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
@@ -117,7 +118,7 @@ export class eeg32Plugin {
             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas(); 
-            this.atlas.data.coherence = this.atlas.genCoherenceMap();
+            this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
 			info.useAtlas = true;
@@ -136,7 +137,7 @@ export class eeg32Plugin {
     }
 
     disconnect = () => {
-        this.device.disconnect();
+        this.device.closePort();
     }
 
     //externally set callbacks

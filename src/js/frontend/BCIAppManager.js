@@ -258,7 +258,7 @@ export class BCIAppManager {
         this.bcisession.ondisconnected = () => {
 
         }
-        
+
         this.setupUITemplates();
     }
 
@@ -382,7 +382,7 @@ export class BCIAppManager {
                                 let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - Math.floor(this.bcisession.atlas.rolloverLimit*0.1); } //rollover occurred, adjust
+                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk();
                                             this.state.data.saveCounter = row.count;
@@ -398,7 +398,7 @@ export class BCIAppManager {
                                     }
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - Math.floor(this.bcisession.atlas.rolloverLimit*0.1); } //rollover occurred, adjust
+                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveHEGChunk();
                                             this.state.data.saveCounter = row.count;
