@@ -781,7 +781,7 @@ export class dataAtlas {
 					}
 				});
 				
-				this.checkRollover();
+				this.checkRollover('eeg');
 			}
 			else if(msg.foo === "coherence"){ 
 				var ffts = [...msg.output[1]];
@@ -797,7 +797,7 @@ export class dataAtlas {
 				//coherence
 				this.mapCoherenceData(coher,this.workerPostTime);
 				
-				this.checkRollover();
+				this.checkRollover('eeg');
 			}
 			this.workerWaiting = false;
 		}
