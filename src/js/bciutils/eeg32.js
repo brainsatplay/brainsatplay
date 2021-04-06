@@ -263,7 +263,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-					
+					this.closePort();	
 				}
 			}
 			streamData();
