@@ -55,17 +55,10 @@ export class AppletManager {
                         });
                     });
                 }
-                if(this.bcisession.info.nDevices > 0) {
+
+                if(this.bcisession.info.nDevices === 1 && classObj.devices) {
                     let found = this.bcisession.devices.find((o,j) => {
-                        if(!classObj.devices) {
-                            this.applets[i] = {
-                                appletIdx: i+1,
-                                name:classObj.name,
-                                classinstance: new classObj.cls("applets",this.bcisession,config)
-                            }
-                            this.appletsSpawned++;
-                        }
-                        else if(Array.isArray(classObj.devices)) {
+                        if(Array.isArray(classObj.devices)) {
                             if(classObj.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.indexOf(o.info.deviceName) > -1) {
                                 this.applets[i] = {
                                     appletIdx: i+1,

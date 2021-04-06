@@ -44,11 +44,12 @@ export class webgazerPlugin {
             this.atlas.addEyeTracker(this.atlas.data.eyetracker.length); 
             this.atlas.settings.eyetracker = true;
             info.useAtlas = true;
-            if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {
+            if(info.analysis.length > 0 ) {
                 this.atlas.settings.analysis.push(...info.analysis);
-                this.configureDefaultStreamTable();
-                this.atlas.settings.analyzing = true;
-                this.atlas.analyzer();
+                if(!this.atlas.settings.analyzing) { 
+                    this.atlas.settings.analyzing = true;
+                    this.atlas.analyzer();
+                }
             }
         }
 

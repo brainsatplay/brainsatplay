@@ -60,10 +60,12 @@ export class musePlugin {
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
             info.useAtlas = true;
-			if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {
+			if(info.analysis.length > 0 ) {
 				this.atlas.settings.analysis.push(...info.analysis);
-				this.atlas.settings.analyzing = true;
-				this.atlas.analyzer();
+                if(!this.atlas.settings.analyzing) { 
+                    this.atlas.settings.analyzing = true;
+                    this.atlas.analyzer();
+                }
 			}
 		}
 

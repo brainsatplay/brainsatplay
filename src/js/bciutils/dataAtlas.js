@@ -808,20 +808,24 @@ export class dataAtlas {
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				if(buf[0].length >= this.data.eegshared.sps) {
-					window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-					//window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-					this.workerWaiting = true;
-				}
+                if(buf.length > 0) {
+                    if(buf[0].length >= this.data.eegshared.sps) {
+                        window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+                        //window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+                        this.workerWaiting = true;
+                    }
+                }
 			}
 		}
 		let coherenceFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
-				if(buf[0].length >= this.data.eegshared.sps) {
-					window.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-					this.workerWaiting = true;
-				}
+                if(buf.length > 0) {
+                    if(buf[0].length >= this.data.eegshared.sps) {
+                        window.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+                        this.workerWaiting = true;
+                    }
+                }
 			}
 		}	
 
