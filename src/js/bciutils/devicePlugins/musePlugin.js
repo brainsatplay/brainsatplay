@@ -55,6 +55,8 @@ export class musePlugin {
 			this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
+            this.atlas.data.eegshared.frequencies = this.bandpassWindow(0,128,info.sps*0.5);
+			this.atlas.data.eegshared.bandFreqs = this.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap();
             this.atlas.settings.coherence = true;

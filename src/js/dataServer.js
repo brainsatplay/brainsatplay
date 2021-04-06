@@ -324,6 +324,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     id:appname+"_"+Math.floor(Math.random()*10000000),
                     usernames:[],
                     updatedUsers:[], //users with new data available (clears when read from subcription)
+                    newUsers:[], //indicates users that just joined and have received no data yet
                     spectators:[], //usernames of spectators
                     propnames:propnames,
                     lastTransmit:Date.now()
@@ -364,6 +365,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     propnames:sub.propnames,
                     usernames:sub.usernames,
                     updatedUsers:sub.updatedUsers,
+                    newUsers:sub.newUsers,
                     userData:[],
                     spectators:[]
                 };
@@ -397,6 +399,7 @@ class dataServer { //Just some working concepts for handling data sockets server
             if( g.usernames.indexOf(username) < 0) { 
                 g.usernames.push(username);
                 if(spectating === true) g.spectators.push(username);
+                g.newUsers.push(username);
             }
 			
 			g.propnames.forEach((prop,j) => {
@@ -455,6 +458,7 @@ class dataServer { //Just some working concepts for handling data sockets server
                     usernames:sub.usernames,
                     spectators:sub.spectators,
                     updatedUsers:sub.updatedUsers,
+                    newUsers:sub.newUsers,
                     userData:[],
                 };
                 
@@ -472,20 +476,62 @@ class dataServer { //Just some working concepts for handling data sockets server
                             updateObj.userData.push(userObj);
                         }
                     });
+
+                    if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users
+
+                        let fullUserData = [...updateObj.userData];
+
+                        sub.usernames.forEach((user, j) => {
+                            if(sub.updatedUsers.indexOf(user) < 0 && sub.spectators.indexOf(user) < 0) {
+                                let userObj = {
+                                    username:user
+                                }
+                                let listener = this.userData.get(user);
+    
+                                sub.propnames.forEach((prop,k) => {
+                                    userObj[prop] = listener.props[prop];
+                                });
+                                fullUserData.push(userObj);
+                            }
+                        });
+
+                        let fullUpdateObj = Object.assign({},updateObj);
+
+                        fullUpdateObj.userData = fullUserData;
+
+                        sub.newUsers.forEach((user, j) => {
+                            let u = this.userData.get(user);
+                            if(u !== undefined)
+                                u.socket.send(JSON.stringify(updateObj));
+                            else {
+                                sub.usernames.splice(sub.usernames.indexOf(user),1);
+                                if(sub.spectators.indexOf(user) > -1) {
+                                    sub.spectators.splice(sub.spectators.indexOf(user),1);
+                                }
+                            }
+                        });
+
+                        sub.newUsers = [];
+                    }
+
                     sub.updatedUsers = [];
 
                     sub.usernames.forEach((user,j) => {
-                        let u = this.userData.get(user);
-                        if(u !== undefined)
-                            u.socket.send(JSON.stringify(updateObj));
-                        else {
-                            sub.usernames.splice(sub.usernames.indexOf(user),1);
-                            if(sub.spectators.indexOf(user) > -1) {
+                        if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
+                            let u = this.userData.get(user);
+                            if(u !== undefined) {
+                                u.socket.send(JSON.stringify(updateObj));
                                 u.lastUpdate = time; //prevents timing out for long spectator sessions
-                                sub.spectators.splice(sub.spectators.indexOf(user),1);
+                            } else {
+                                sub.usernames.splice(sub.usernames.indexOf(user),1);
+                                if(sub.spectators.indexOf(user) > -1) {
+                                    sub.spectators.splice(sub.spectators.indexOf(user),1);
+                                }
                             }
                         }
                     });
+
+                    
                 }
             }
             sub.lastTransmit = time;
