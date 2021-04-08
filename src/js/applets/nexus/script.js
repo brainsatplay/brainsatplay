@@ -213,6 +213,7 @@ points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidt
 const planeGeometry = new THREE.PlaneGeometry(meshWidth, meshHeight, segmentsX, segmentsX/imageAspect)
 let tStart = Date.now()
 
+let colorReachBase = 0.030
 const material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
     fragmentShader: mapFragmentShader,
@@ -227,7 +228,7 @@ const material = new THREE.ShaderMaterial({
         uTexture: { value: texture },
         displacementMap: { value: displacementMap },
         displacementHeight: { value: 0.1 },
-        colorThreshold: { value: 0.030},
+        colorThreshold: { value: colorReachBase},
         aspectRatio: {value: window.innerWidth / window.innerHeight}
     }
 })
@@ -255,6 +256,8 @@ window.addEventListener('resize', () => {
 
     let me = points.get('me')
     material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
+    material.uniforms.colorThreshold.value = colorReachBase*
+
     material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
     controls.target.set(me.x,me.y,0.12)
     camera.position.set(me.x,me.y)

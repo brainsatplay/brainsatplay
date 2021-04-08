@@ -351,7 +351,7 @@ nexusContainer.addEventListener('click', () => {
 // Set Default Users
 let points = new Map()
 let diameter = 1e-2/4;
-points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight}))
+points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
 // points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight})); // Cape Town
 // let la = points.get('Los Angeles')
 
@@ -365,6 +365,7 @@ let tStart = Date.now()
 //  pointArr[0] = NaN
 //  pointArr[1] = NaN
 
+let colorReachBase = 0.030;
 const material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
     fragmentShader: mapFragmentShader,
@@ -381,7 +382,7 @@ const material = new THREE.ShaderMaterial({
         uTexture: { value: texture },
         displacementMap: { value: displacementMap },
         displacementHeight: { value: 0.1 },
-        colorThreshold: { value: 0.030},
+        colorThreshold: { value: colorReachBase},
         aspectRatio: {value: window.innerWidth / window.innerHeight}
         // colorThreshold: { value: new THREE.Vector2(0.05*window.innerWidth,0.05*window.innerHeight) },
     }
@@ -438,7 +439,7 @@ function regeneratePlaneGeometry() {
 // Animate
 let currentIntersect = null
 
-var animate = function () {
+var animate = () => {
 
     // Limit Framerate
     setTimeout( function() {
@@ -462,7 +463,7 @@ var animate = function () {
 // document.body.appendChild(stats.dom)
 
 // Draw Shapes
-function animateUsers(){
+const animateUsers = () => {
     raycaster.setFromCamera(mouse,camera)
     const objectArray = Array.from( points.keys() ).map(key => points.get(key).marker)
     const intersects = raycaster.intersectObjects(objectArray)
@@ -493,9 +494,38 @@ function animateUsers(){
             scene.remove( obj );
         })
 
+        point.prevGroups.forEach((group) => {
+            scene.remove( group );
+        })
+
         // Add new marker
         scene.add(point.marker)
+        scene.add(point.neurofeedbackGroup)
     })
+
+    let me = points.get('me')
+    let atlas = this.bci.atlas
+    let channelTags = atlas.data.eegshared.eegChannelTags;
+    let scaling = {}
+
+    // init
+    me.neurofeedbackDimensions.forEach(key => {
+        scaling[key] = []
+    })
+
+    // populate
+    channelTags.forEach(row => {
+        let coord = atlas.getEEGDataByTag(row.tag)
+        me.neurofeedbackDimensions.forEach(key => {
+            if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
+        })
+    })
+    me.neurofeedbackDimensions.forEach(key => {
+        let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
+        me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
+    })
+
+    console.log(this.bci.atlas)
 }
 
 // Geolocation

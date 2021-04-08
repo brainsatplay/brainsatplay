@@ -8,6 +8,7 @@ export class UserMarker {
     this.latitude = settings.latitude
     this.longitude = settings.longitude
     this.d = settings.diameter;
+    this.neurofeedbackDimensions = settings.neurofeedbackDimensions
     this.meshWidth = settings.meshWidth;
     this.meshHeight = settings.meshHeight;
     this.x = this.mercX();
@@ -17,6 +18,7 @@ export class UserMarker {
     this.material;
     this.marker;
     this.prevMarkers = []
+    this.prevGroups = []
     this.createMarker()
     this.createHTMLElement()
     this.element = document.querySelector(`.nexus-point-${this.name}`)
@@ -76,13 +78,31 @@ export class UserMarker {
   createMarker(){
     // Log old sphere
     if (this.marker != undefined) {this.prevMarkers.push(this.marker)}
+    if (this.neurofeedbackGroup != undefined) {this.prevGroups.push(this.neurofeedbackGroup)}
 
     // Create new sphere
-    this.geometry = new THREE.SphereGeometry( this.d,10,10);
-    this.material = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0.5, transparent: true} );
-    this.marker = new THREE.Mesh( this.geometry, this.material );
+    this.neurofeedbackGroup = new THREE.Group()
+    let material = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0.5, transparent: true})
+    this.marker = new THREE.Mesh( 
+      new THREE.SphereGeometry( this.d,10,10), 
+      material 
+      );
     this.marker.position.set(this.x, this.y, this.z);
-    this.marker.geometry.computeBoundingBox()
+    this.marker.geometry.computeBoundingBox();
+
+    // Neurofeedback elements
+    let n = this.neurofeedbackDimensions.length
+    let radius = 0.01
+    let miniSphereGeometry = new THREE.SphereGeometry( this.d/3,10,10)
+    let miniSphereMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000, opacity: 0.5, transparent: true})
+    
+    for (let i = 0; i < n; i++){
+      let miniSphere = new THREE.Mesh(miniSphereGeometry,miniSphereMaterial)
+      miniSphere.position.set(radius*Math.sin(i*2*Math.PI/n), radius*Math.cos(i*2*Math.PI/n))
+      miniSphere.name = this.neurofeedbackDimensions[i]
+      this.neurofeedbackGroup.add(miniSphere)
+    }
+    this.neurofeedbackGroup.position.set(this.x,this.y,this.z)
     this.active = true;
   }
 
@@ -92,6 +112,10 @@ export class UserMarker {
   
   mercY(lat=this.latitude) {
     return -((this.meshHeight/180.0) * (90 - lat)) + this.meshHeight/2;
+  }
+
+  animateNeurofeedback(){
+
   }
 
 }
