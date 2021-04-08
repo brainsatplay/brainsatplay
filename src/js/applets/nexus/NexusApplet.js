@@ -19,6 +19,8 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import mapTexture from "./img/mapTexture.jpeg"
 import mapDisp from "./img/mapDisplacement.jpeg"
+// import * as p5 from 'p5'
+// console.log(p5.noise)
 
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
@@ -112,7 +114,7 @@ const loadingManager = new THREE.LoadingManager(
         // Check if Nexus HTML still exists
         if (hero){
             hero.style.opacity = 0;
-
+            getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
                 // Get My Location
@@ -352,7 +354,9 @@ nexusContainer.addEventListener('click', () => {
 let points = new Map()
 let diameter = 1e-2/4;
 points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
-// points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight})); // Cape Town
+points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
+points.set('Somewhere',new UserMarker({latitude: 0, longitude: 0, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
+
 // let la = points.get('Los Angeles')
 
 // Plane
@@ -381,7 +385,7 @@ const material = new THREE.ShaderMaterial({
         uTime: { value: 0 },
         uTexture: { value: texture },
         displacementMap: { value: displacementMap },
-        displacementHeight: { value: 0.1 },
+        displacementHeight: { value: 0.04 },
         colorThreshold: { value: colorReachBase},
         aspectRatio: {value: window.innerWidth / window.innerHeight}
         // colorThreshold: { value: new THREE.Vector2(0.05*window.innerWidth,0.05*window.innerHeight) },
@@ -417,7 +421,7 @@ this.resizeNexus = () => {
             }
         }
     })
-
+    drawCylinder()
     renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -438,7 +442,7 @@ function regeneratePlaneGeometry() {
 
 // Animate
 let currentIntersect = null
-
+let coherence = 0;
 var animate = () => {
 
     // Limit Framerate
@@ -501,13 +505,14 @@ const animateUsers = () => {
         // Add new marker
         scene.add(point.marker)
         scene.add(point.neurofeedbackGroup)
+        point.neurofeedbackGroup.rotateZ(0.01);
     })
 
     let me = points.get('me')
     let atlas = this.bci.atlas
     let channelTags = atlas.data.eegshared.eegChannelTags;
     let scaling = {}
-
+    let myAlphaCoherence = []
     // init
     me.neurofeedbackDimensions.forEach(key => {
         scaling[key] = []
@@ -523,9 +528,52 @@ const animateUsers = () => {
     me.neurofeedbackDimensions.forEach(key => {
         let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
         me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
+        if (key = 'alpha1'){
+            let coherenceBuffer = this.bci.atlas.data.coherence[0].means['alpha1']
+            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+            console.log(coherence)
+        }
+        material.uniforms.colorThreshold.value = colorReachBase*nfscale
     })
 
-    console.log(this.bci.atlas)
+    // coherence
+    // coherence = 0.5 + Math.sin(Date.now()/1000)/2;
+    let coherenceLine = scene.getObjectByName('coherenceLine')
+    if (coherenceLine) {
+        coherenceLine.material.opacity = coherence
+    }
+}
+
+function drawCylinder() {
+    let coherenceLine = scene.getObjectByName('coherenceLine')
+    if (coherenceLine) {
+        coherenceLine.geometry.dispose()
+        coherenceLine.material.dispose()
+        scene.remove(coherenceLine)
+    }
+    const pointPositions = []
+    points.forEach(point => {
+        if (pointPositions.length < 2){
+            pointPositions.push(point.marker.position)
+        }
+    })
+    let direction = new THREE.Vector3().subVectors( pointPositions[1], pointPositions[0] );
+    if (direction.x != NaN && direction.y != NaN && direction.z != NaN){
+        const lineGeometry = new THREE.CylinderGeometry( 0.0005, 0.0005,  direction.length(), 32 );
+        lineGeometry.applyMatrix4(new THREE.Matrix4().makeRotationX(Math.PI/2));
+        const lineMaterial = new THREE.MeshBasicMaterial( {
+            color: 0xff00ff,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            opacity:1
+        } );
+        const edge = new THREE.Mesh( lineGeometry, lineMaterial);
+        edge.name = 'coherenceLine'
+        let edgeCenter = new THREE.Vector3().addVectors( pointPositions[0], direction.multiplyScalar(0.5))
+        edge.position.set(edgeCenter.x,edgeCenter.y,edgeCenter.z)
+        edge.lookAt(pointPositions[1]);
+        scene.add(edge)
+    }
 }
 
 // Geolocation
@@ -538,6 +586,8 @@ function getGeolocation(){
         // material.uniforms.points.value[0]= {
         //     position: new THREE.Vector2(me.x,me.y)
         //  }
+        // draw line
+        drawCylinder()
          material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
          controls.target.set(me.x,me.y,me.z)
          camera.position.set(me.x,me.y)
@@ -549,7 +599,7 @@ function getGeolocation(){
     // Options
     {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 10000,
         maximumAge: 0
     });
 }

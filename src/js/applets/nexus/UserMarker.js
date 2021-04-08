@@ -13,7 +13,7 @@ export class UserMarker {
     this.meshHeight = settings.meshHeight;
     this.x = this.mercX();
     this.y = this.mercY();
-    this.z = 0.12;
+    this.z = 0.05;
     this.geometry;
     this.material;
     this.marker;
