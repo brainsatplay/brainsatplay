@@ -2,7 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {eeg32} from '../eeg32'
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
-import {dataAtlas} from '../dataAtlas'
+import {dataAtlas} from '../DataAtlas'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
 export class eeg32Plugin {

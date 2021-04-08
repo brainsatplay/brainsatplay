@@ -8,9 +8,9 @@ const mongodb = require('mongodb');
 require('dotenv').config();
 
 // New Server Code
-const dataServer = require('./src/js/dataServer.js'); 
+const DataServer = require('./src/js/DataServer.js'); 
 const auth = require('./src/js/auth.js'); 
-let dataServ = new dataServer();
+let dataServ = new DataServer();
 
 // Settings
 let protocol = 'http';

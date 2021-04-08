@@ -1,4 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Brains@Play Docs | Source: bciutils/DataAtlas.js</title>
 
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link rel=icon href='favicon.ico'>
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: bciutils/DataAtlas.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
 import {eegmath} from './eegmath'
 
 //relies on eegworker (see implementation in public/index.html)
@@ -308,8 +337,8 @@ export class DataAtlas {
 		var cmap = [];
 		var l = 1, k = 0;
 		
-		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
-			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
+		for( var i = 0; i &lt; (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
+			if(taggedOnly === false || (taggedOnly === true &amp;&amp; ((channelTags[k].tag !== null &amp;&amp; channelTags[k+l].tag !== null)&amp;&amp;(channelTags[k].tag !== 'other' &amp;&amp; channelTags[k+l].tag !== 'other')&amp;&amp;(channelTags[k].analyze === true &amp;&amp; channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
 
@@ -369,16 +398,16 @@ export class DataAtlas {
 
 	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
 		var found = undefined;
-		if(typeof tag === 'number' && device === 'eeg') {
+		if(typeof tag === 'number' &amp;&amp; device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
-				if(o.ch === tag && o.tag !== null) {
+				if(o.ch === tag &amp;&amp; o.tag !== null) {
 					tag = o.tag; //you can search for eeg data by channel number as well
 					return true;
 				}
 			});
 			//console.log(tag)
 		}
-		if(device.indexOf("shared") < 0) {
+		if(device.indexOf("shared") &lt; 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
 					found = o;
@@ -448,7 +477,7 @@ export class DataAtlas {
     //Return an array of Array(3)s for each coordinate. Useful e.g. for graphics
 	getCoordPositions(device='eeg') {
 		var coords = [];
-		for(var i = 0; i< this.data[device].length; i++) {
+		for(var i = 0; i&lt; this.data[device].length; i++) {
 			coords.push([this.data[device][i].position.x,this.data[device][i].position.y,this.data[device][i].position.z]);
 		}
 		return coords;
@@ -515,25 +544,25 @@ export class DataAtlas {
     getBandFreqs(frequencies) {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
 		var scpFreqs = [[],[]], deltaFreqs = [[],[]], thetaFreqs = [[],[]], alpha1Freqs = [[],[]], alpha2Freqs = [[],[]], betaFreqs = [[],[]], lowgammaFreqs = [[],[]], highgammaFreqs = [[],[]]; //x axis values and indices for named EEG frequency bands
 		frequencies.forEach((item,idx) => {
-			if((item >= 0.1) && (item <= 1)){
+			if((item >= 0.1) &amp;&amp; (item &lt;= 1)){
 				scpFreqs[0].push(item); scpFreqs[1].push(idx);
 			}
-			else if((item >= 1) && (item <= 4)){
+			else if((item >= 1) &amp;&amp; (item &lt;= 4)){
 				deltaFreqs[0].push(item); deltaFreqs[1].push(idx);
 			}
-			else if((item > 4) && (item <= 8)) {
+			else if((item > 4) &amp;&amp; (item &lt;= 8)) {
 				thetaFreqs[0].push(item); thetaFreqs[1].push(idx);
 			}
-			else if((item > 8) && (item <= 10)){
+			else if((item > 8) &amp;&amp; (item &lt;= 10)){
 				alpha1Freqs[0].push(item); alpha1Freqs[1].push(idx);
 			}
-			else if((item > 10) && (item <= 12)){
+			else if((item > 10) &amp;&amp; (item &lt;= 12)){
 				alpha2Freqs[0].push(item); alpha2Freqs[1].push(idx);
 			}
-			else if((item > 12) && (item <= 35)){
+			else if((item > 12) &amp;&amp; (item &lt;= 35)){
 				betaFreqs[0].push(item); betaFreqs[1].push(idx);
 			}
-			else if((item > 35) && (item <= 48)) {
+			else if((item > 35) &amp;&amp; (item &lt;= 48)) {
 				lowgammaFreqs[0].push(item); lowgammaFreqs[1].push(idx);
 			}
 			else if(item > 48) {
@@ -650,7 +679,7 @@ export class DataAtlas {
 		let diff = (freqEnd - freqStart)/nSteps;
 		let fftwindow = [];
 		let i = 0;
-		while(i < freqEnd) {
+		while(i &lt; freqEnd) {
 			fftwindow.push(i);
 			i += diff;
 		}
@@ -661,8 +690,8 @@ export class DataAtlas {
 		let nSamples = Math.floor(this.data.eegshared.sps * seconds);
 		let buffer = [];
 		let syncTime = null;
-		for(var i = 0; i < this.data.eegshared.eegChannelTags.length; i++){
-			if(this.data.eegshared.eegChannelTags[i].analyze === true && this.data.eegshared.eegChannelTags[i].tag !== null && this.data.eegshared.eegChannelTags[i].tag !== 'other') {
+		for(var i = 0; i &lt; this.data.eegshared.eegChannelTags.length; i++){
+			if(this.data.eegshared.eegChannelTags[i].analyze === true &amp;&amp; this.data.eegshared.eegChannelTags[i].tag !== null &amp;&amp; this.data.eegshared.eegChannelTags[i].tag !== 'other') {
 				let dat = this.getEEGDataByTag(this.data.eegshared.eegChannelTags[i].tag);
 				//console.log(dat)
 				if(dat !== undefined) {
@@ -683,7 +712,7 @@ export class DataAtlas {
 		var z  = n =>  ('0' + n).slice(-2);
 		var zz = n => ('00' + n).slice(-3);
 		var off = d.getTimezoneOffset();
-		var sign = off < 0? '+' : '-';
+		var sign = off &lt; 0? '+' : '-';
 		off = Math.abs(off);
 	  
 		return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
@@ -708,7 +737,7 @@ export class DataAtlas {
 		
 		if(to === 'end') { to = datums[0].count; }
 
-		for(let i = from; i<to; i++){
+		for(let i = from; i&lt;to; i++){
 			let line=[];
 			line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 			//first get the raw/filtered
@@ -753,7 +782,7 @@ export class DataAtlas {
 		let data = [];
 		let row = this.data.heg[hegIdx];
 		if(to === 'end') to = row.times.length;
-		for(let i = from; i < to; i++) {
+		for(let i = from; i &lt; to; i++) {
 			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
 		};
 		return [header.join(',')+"\n",data.join('\n')];
@@ -778,7 +807,7 @@ export class DataAtlas {
 				var ffts = [...msg.output[1]];
 				let fftIdx = 0;
 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== null && row.tag !== 'other' && row.analyze === true) {
+					if(row.tag !== null &amp;&amp; row.tag !== 'other' &amp;&amp; row.analyze === true) {
 						this.mapFFTData(ffts[fftIdx],this.workerPostTime,row.tag);
 						fftIdx++;
 						//console.log(o);
@@ -792,7 +821,7 @@ export class DataAtlas {
 				var coher = [...msg.output[2]];
 				let fftIdx = 0;
 				this.data.eegshared.eegChannelTags.forEach((row,i) => {
-					if(row.tag !== null && row.tag !== 'other' && row.analyze === true) {
+					if(row.tag !== null &amp;&amp; row.tag !== 'other' &amp;&amp; row.analyze === true) {
 						this.mapFFTData(ffts[fftIdx],this.workerPostTime,row.tag);
 						fftIdx++;
 						//console.log(o);
@@ -857,7 +886,7 @@ export class DataAtlas {
 				if(Array.isArray(this.data[prop])) {
 					this.data[prop].forEach((row,i) => {
 						for(const p in row) {
-							if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //e.g. {slices:{alpha1:[...]}}
+							if((!Array.isArray(row[p])) &amp;&amp; typeof row[p] === 'object') { //e.g. {slices:{alpha1:[...]}}
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
 										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*0.10));} //shave off 10% of the values
@@ -887,7 +916,7 @@ export class DataAtlas {
 			if(Array.isArray(this.data[dataArr])) {
 				this.data[dataArr].forEach((row,i) => {
 					for(const p in row) {
-						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
+						if((!Array.isArray(row[p])) &amp;&amp; typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
 									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*.1));}
@@ -917,3 +946,26 @@ export class DataAtlas {
 		}	
 	}
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-brainsatplay.html">brainsatplay</a></li></ul><h3>Classes</h3><ul><li><a href="AppletManager.html">AppletManager</a></li><li><a href="BCIAppManager.html">BCIAppManager</a></li><li><a href="DataAtlas.html">DataAtlas</a></li><li><a href="DataServer.html">DataServer</a></li><li><a href="DOMFragment.html">DOMFragment</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Thu Apr 08 2021 13:39:45 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

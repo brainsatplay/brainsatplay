@@ -1,4 +1,33 @@
-import { brainsatplay } from "../../brainsatplay";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Brains@Play Docs | Source: frontend/utils/AppletManager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link rel=icon href='favicon.ico'>
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: frontend/utils/AppletManager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 
 
@@ -47,9 +76,9 @@ export class AppletManager {
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
         this.appletClasses.forEach((classObj,i) => {
-            if(this.appletsSpawned < this.maxApplets) {
+            if(this.appletsSpawned &lt; this.maxApplets) {
                 //let containerId = Math.floor(Math.random()*100000)+"applet";
-                //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
+                //let container = new DOMFragment(`&lt;div id=${containerId}>&lt;/div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
                 //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
                 let config = undefined;
                 if(appletConfigs.length !== 0) {
@@ -62,7 +91,7 @@ export class AppletManager {
                     });
                 }
 
-                if(this.bcisession.info.nDevices === 1 && classObj.devices) {
+                if(this.bcisession.info.nDevices === 1 &amp;&amp; classObj.devices) {
                     let found = this.bcisession.devices.find((o,j) => {
                         if(Array.isArray(classObj.devices)) {
                             if(classObj.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.indexOf(o.info.deviceName) > -1) {
@@ -174,7 +203,7 @@ export class AppletManager {
                 // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
                 // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
                 // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                // let htmlString = '<h1>Replaced!</h1>'
+                // let htmlString = '&lt;h1>Replaced!&lt;/h1>'
                 // appletDiv.innerHTML = htmlString.trim();
                 // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
                 appletDiv.classList.add('hovered')
@@ -187,7 +216,7 @@ export class AppletManager {
                 // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
                 // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
                 // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                // let htmlString = '<h1>Replaced!</h1>'
+                // let htmlString = '&lt;h1>Replaced!&lt;/h1>'
                 // appletDiv.innerHTML = htmlString.trim();
                 // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
                 appletDiv.classList.remove('hovered')
@@ -221,7 +250,7 @@ export class AppletManager {
     }
 
     addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
-        if(this.appletsSpawned < this.maxApplets) {
+        if(this.appletsSpawned &lt; this.maxApplets) {
             var classObj = this.appletClasses[appletClassIdx];
             var found = this.applets.find((o,i) => {
                 if(o.appletIdx === appletIdx) {
@@ -230,7 +259,7 @@ export class AppletManager {
                 }
             });
             //let containerId = Math.floor(Math.random()*100000)+"applet";
-            //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
+            //let container = new DOMFragment(`&lt;div id=${containerId}>&lt;/div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
                    
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.bcisession), container: container});}
@@ -298,13 +327,13 @@ export class AppletManager {
     addAppletOptions = (selectId,appletIdx) => {
         var select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None' selected="selected">None</option>`;
+        var newhtml = `&lt;option value='None' selected="selected">None&lt;/option>`;
         this.appletClasses.forEach((classObj,i) => {
-            if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
-              newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
+            if(this.applets[appletIdx] &amp;&amp; this.applets[appletIdx].name===classObj.name) {
+              newhtml += `&lt;option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`&lt;/option>`;
             }
             else{
-              newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
+              newhtml += `&lt;option value='`+classObj.name+`'>`+this.appletClasses[i].name+`&lt;/option>`;
             }
         });
         select.innerHTML = newhtml;
@@ -369,4 +398,26 @@ export class AppletManager {
             applet.classinstance.responsive();
         });
     }
-}
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-brainsatplay.html">brainsatplay</a></li></ul><h3>Classes</h3><ul><li><a href="AppletManager.html">AppletManager</a></li><li><a href="BCIAppManager.html">BCIAppManager</a></li><li><a href="DataAtlas.html">DataAtlas</a></li><li><a href="DataServer.html">DataServer</a></li><li><a href="DOMFragment.html">DOMFragment</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Thu Apr 08 2021 13:39:45 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
