@@ -35,7 +35,7 @@ Frontend Execution
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 import {StateManager} from './frontend/utils/StateManager'
-import {dataAtlas} from './bciutils/DataAtlas'
+import {DataAtlas} from './bciutils/DataAtlas'
 
 import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32Plugin';
 import { musePlugin } from './bciutils/devicePlugins/musePlugin';
@@ -62,7 +62,7 @@ export class brainsatplay {
 			commandResult:{},
 		});
 
-		this.atlas = new dataAtlas('atlas',undefined,undefined,true,false);
+		this.atlas = new DataAtlas('atlas',undefined,undefined,true,false);
 
 		this.info = {
 			nDevices: 0,

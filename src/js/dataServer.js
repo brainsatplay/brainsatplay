@@ -554,4 +554,4 @@ class DataServer {
 
 }
 
-module.exports = dataServer
+module.exports = DataServer

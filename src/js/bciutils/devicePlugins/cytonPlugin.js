@@ -1,7 +1,7 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 
-import {dataAtlas} from '../dataAtlas'
+import {DataAtlas} from '../DataAtlas'
 import {cyton} from './cyton'
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import { DOMFragment } from '../../frontend/utils/DOMFragment';
@@ -112,7 +112,7 @@ export class cytonPlugin {
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
-            this.atlas = new dataAtlas(
+            this.atlas = new DataAtlas(
 				location+":"+this.mode,
 				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
 				config,true,true,

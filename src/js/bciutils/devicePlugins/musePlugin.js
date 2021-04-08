@@ -1,7 +1,7 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
-import {dataAtlas} from '../DataAtlas'
+import {DataAtlas} from '../DataAtlas'
 import {MuseClient} from 'muse-js'
 import { DOMFragment } from '../../frontend/utils/DOMFragment';
 
@@ -44,7 +44,7 @@ export class musePlugin {
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = 'muse';
-            this.atlas = new dataAtlas(
+            this.atlas = new DataAtlas(
 				location+":"+this.mode,
 				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
 				config,true,true,

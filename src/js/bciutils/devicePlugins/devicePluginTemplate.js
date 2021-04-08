@@ -1,7 +1,7 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import { DOMFragment } from '../../frontend/utils/DOMFragment';
-import {dataAtlas} from '../dataAtlas'
+import {DataAtlas} from '../dataAtlas'
 import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 
 
@@ -25,7 +25,7 @@ export class devicePlugin {
         // Setup atlas
         // if(pipeToAtlas === true) {
         //     let config = 'hegduino';
-        //     this.atlas = new dataAtlas(
+        //     this.atlas = new DataAtlas(
         //         location+":"+this.mode,
         //         {eegshared:{eegChannelTags:info.eegChannelTags, sps:this.info.sps}},
         //         config,true,true,
