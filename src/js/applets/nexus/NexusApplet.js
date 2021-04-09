@@ -521,9 +521,11 @@ const animateUsers = () => {
     // populate
     channelTags.forEach(row => {
         let coord = atlas.getEEGDataByTag(row.tag)
-        me.neurofeedbackDimensions.forEach(key => {
-            if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
-        })
+        if (coord){
+            me.neurofeedbackDimensions.forEach(key => {
+                if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
+            })
+        }
     })
     me.neurofeedbackDimensions.forEach(key => {
         let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
@@ -531,7 +533,6 @@ const animateUsers = () => {
         if (key = 'alpha1'){
             let coherenceBuffer = this.bci.atlas.data.coherence[0].means['alpha1']
             coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
-            console.log(coherence)
         }
         material.uniforms.colorThreshold.value = colorReachBase*nfscale
     })
@@ -558,7 +559,7 @@ function drawCylinder() {
         }
     })
     let direction = new THREE.Vector3().subVectors( pointPositions[1], pointPositions[0] );
-    if (direction.x != NaN && direction.y != NaN && direction.z != NaN){
+    if (!isNaN(direction.length())){
         const lineGeometry = new THREE.CylinderGeometry( 0.0005, 0.0005,  direction.length(), 32 );
         lineGeometry.applyMatrix4(new THREE.Matrix4().makeRotationX(Math.PI/2));
         const lineMaterial = new THREE.MeshBasicMaterial( {
