@@ -62,14 +62,20 @@ export class BlobApplet {
             <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
                 <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
                 <div class="blob-gui-container"></div>
-                <div class="blob-mask"></div>
-                <div id="blob-gameHero" class="blob-container">
-                    <div>
-                        <h1>Blob Study</h1>
-                    </div>
-                </div>
             </div>
             `;
+            // return `
+            // <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
+            //     <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
+            //     <div class="blob-gui-container"></div>
+            //     <div class="blob-mask"></div>
+            //     <div id="blob-gameHero" class="blob-container">
+            //         <div>
+            //             <h1>Blob Study</h1>
+            //         </div>
+            //     </div>
+            // </div>
+            // `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
@@ -101,12 +107,12 @@ const loadingManager = new THREE.LoadingManager(
         {
             canvas.style.opacity = '1'
             this.resizeBlob()
-            gsap.delayedCall(2.0,() => 
-            {
-                document.querySelector('.blob-mask').style.opacity = '0'
-                document.getElementById('blob-gameHero').style.opacity = '0'
+            // gsap.delayedCall(2.0,() => 
+            // {
+            //     document.querySelector('.blob-mask').style.opacity = '0'
+            //     document.getElementById('blob-gameHero').style.opacity = '0'
 
-            })
+            // })
         })
     }, 
     // Progress
