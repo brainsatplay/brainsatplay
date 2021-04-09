@@ -22,7 +22,7 @@ let applets = [
 	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 
-let bcisession = new brainsatplay('guest','','game');
+let bcisession = new brainsatplay();
 
 let mgr = new BCIAppManager(bcisession,applets,undefined,true);
 

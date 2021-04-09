@@ -93,7 +93,7 @@ export function menudropdown_template(props={}) {
 
 export function appletselect_template(props={}) {
     return `
-    <div style="margin-left: 25px;">
+    <div>
     <span style="font-size: 80%;">Applets</span>
     <hr>
     <div style="display: flex; flex-wrap: wrap; font-size: 80%;">
@@ -111,6 +111,29 @@ export function appletselect_template(props={}) {
         </div>
     </div>
     `;
+}
+
+export function login_template(props={}) {
+    return `
+    <div id="login-container" class="form-container">
+    <div id="login" class="form-context">
+        <p id="login-message" class="small"></p>
+        <div class='flex'>
+            <form id="login-form" action="">
+                <div class="login-element">
+                    <input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
+                </div>
+                <div class="login-element" style="text-align:right;">
+                    <input type="password" name="password" autocomplete="off" placeholder="Password"/>
+                </div>
+            </form>
+        </div>
+        <div class="login-buttons">
+            <button id="login-button">Sign In</button>
+        </div>
+    </div>
+</div>
+`;
 }
 
 export function appletbox_template( props={

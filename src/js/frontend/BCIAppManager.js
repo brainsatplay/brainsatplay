@@ -15,6 +15,7 @@ import {
     appletselect_template,
     filemenu_template,
     file_template,
+    login_template
 } from './menus/UITemplates'
 
 import {AppletManager} from './utils/AppletManager'
@@ -109,12 +110,22 @@ export class BCIAppManager {
                     </div>
                     </button>
                     <div id="filecontainer" class="content">
+                    <span style="font-size: 80%;">File Manager</span>
+                    <hr>
+                    </div>
+                </div>
+                <div id="profile-menu" class="collapsible-container">
+                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/user-solid.svg"><span>Profile</span></div></button>
+                    <div class="content">
+                    <span style="font-size: 80%;">Profile</span>
+                    <hr>
                     </div>
                 </div>
                 <div class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
                     <div class="content">
-                        <button id='server'>Connect to Server</button>
+                        <span style="font-size: 80%;">Server</span>
+                        <hr>
                         <button id='ping'>Send Ping</button>
                         <button id='getusers'>Get Users</button>
                         <button id='createGame'>Make Game session</button>
@@ -141,11 +152,6 @@ export class BCIAppManager {
             // 	// if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
             // 	// else bcisession.connect('muse',['eegcoherence']);
             // }
-
-            document.getElementById('server').onclick = () => {
-                this.bcisession.login(true);
-                //console.log(bcisession.socket.url);
-            }
             document.getElementById('ping').onclick = () => {
                 this.bcisession.sendWSCommand(['ping']); //send array of arguments
             }
@@ -228,6 +234,25 @@ export class BCIAppManager {
         );
         let contentChild2 = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
+        
+        let contentChild3 = Array.from(document.getElementById('profile-menu').childNodes).filter(n => n.className==="content")[0]
+        this.uiFragments.login = new DOMFragment(
+            login_template,
+            contentChild3
+        );
+
+        document.getElementById('login-button').onclick = () => {
+            let form = document.getElementById('login-form')
+            let formDict = {}
+            let formData = new FormData(form);
+            for (var pair of formData.entries()) {
+                formDict[pair[0]] = pair[1];
+            } 
+            console.log(this.bcisession.info.auth)
+            this.bcisession.setLoginInfo(formDict.username, formDict.password)
+            console.log(this.bcisession.info.auth)
+            this.bcisession.login(true)
+        }
 
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(

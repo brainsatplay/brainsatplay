@@ -76,6 +76,7 @@ button {
 }
 
 #sidebar-inner {
+    width: 100%;
     flex-grow: 1;
 }
 
@@ -197,7 +198,7 @@ button {
 }
 
 .logo {
-    height: 75px; 
+    width: 75px; 
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -243,3 +244,91 @@ select {
 .hovered {
     opacity: 0.5;
 }
+
+/* Login */
+
+form input {
+    width: 100%; height: 100%; padding: 10px 0px; display: flex; align-items: center; justify-content:center; background:transparent; border: transparent; border-bottom: 1px solid darkgray;
+}
+input:focus{
+    outline: none;
+}
+
+/* .form-container{
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+    position: fixed;
+    display: flex;
+    justify-content:center;
+    align-items: center;
+    text-align: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: -1;
+    transition: 0.5s ease-in-out;
+    -o-transition: 0.5s ease-in-out;
+    -ms-transition: 0.5s ease-in-out;
+    -moz-transition: 0.5s ease-in-out;
+    -webkit-transition: 0.5s ease-in-out;
+} */
+
+.form-container button {
+    margin: 10px;
+    min-height: 0px;
+}
+
+.form-container input::placeholder {
+    color: darkgray;
+}
+
+.form-context {
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+.form-context form {
+    width: 100%;
+}
+
+#login-container {
+    transition: 0.5s ease-in-out;
+    -o-transition: 0.5s ease-in-out;
+    -ms-transition: 0.5s ease-in-out;
+    -moz-transition: 0.5s ease-in-out;
+    -webkit-transition: 0.5s ease-in-out;
+}
+
+#login{
+    /* linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)); */
+    /* width: 75%; */
+    /* font-size: 20px; */
+    text-align: center;
+    z-index:1;
+}
+
+.login-element{
+    margin:20px;
+}
+
+#login-button {
+    width: 100%;
+}
+
+#signup-button {
+    width: 100%;
+}
+
+.login-buttons{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content:center;
+    align-items: center;
+}
+
+.login-buttons button{
+    flex-grow: 1;
+    margin: 10px;
+} 
