@@ -12,6 +12,9 @@ import { NexusApplet } from './js/applets/nexus/NexusApplet'
 import { BlobApplet } from './js/applets/blob/BlobApplet'
 
 import { CircleApplet } from './js/applets/HEG/Circle'
+import { AudioApplet } from './js/applets/HEG/AudioApplet'
+import { VideoApplet } from './js/applets/HEG/VideoApplet'
+import { BoidsApplet } from './js/applets/HEG/Boids'
 
 let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
@@ -19,12 +22,14 @@ let applets = [
 	{	name:"uPlot", 			cls: uPlotApplet   		},
 	{	name:"Blob",      		cls: BlobApplet		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
-	{   name:"Circle", 			cls: CircleApplet		},
 	{	name:"Nexus",      		cls: NexusApplet		},
+	{   name:"HEGCircle", 		cls: CircleApplet		},
+	{   name:"HEGAudio",        cls: AudioApplet		},
+	{   name:"HEGVideo",		cls: VideoApplet		}, // {   name:"HEGBoids",        cls: BoidsApplet		},
 	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 
-let bcisession = new brainsatplay();
+let bcisession = new brainsatplay('guest','','game');
 
 let mgr = new BCIAppManager(bcisession,applets,undefined,true);
 

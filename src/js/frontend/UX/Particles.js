@@ -38,15 +38,19 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
       this.seedsY = [];
       this.currentAngle = 0;
 
-      if(this.randomSeed === true) {
-        this.seedAngles();     // Start off with 100 angles ready to go
+      // Generate the particles
+      if(this.particles.length < this.settings.maxParticles) {
+        for (var i = 0; i < (this.settings.maxParticles - this.particles.length); i++) {
+          this.genParticle();
+          //console.log(this.particles[i]);
+        }
       }
 
       if(canvasId){
         this.canvas = document.getElementById(this.canvasId);
         this.context = this.canvas.getContext("2d");    
-        this.settings.startingX = Math.random()*this.canvas.width;
-        this.settings.startingY = Math.random()*this.canvas.height;
+        //this.settings.startingX = Math.random()*this.canvas.width;
+        //this.settings.startingY = Math.random()*this.canvas.height;
         this.settings.groundLevel = this.canvas.height*0.999;
         this.settings.ceilingLevel = this.canvas.height*0.001;
         this.settings.rightWall = this.canvas.width * 0.999;
@@ -212,8 +216,8 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
 export class Boids {
     constructor(boidsCount = 200, canvasId=undefined) {
       this.boidsCount = boidsCount;
-      this.boidsPos = []; //vec3 list
-      this.boidsVel = [];
+      this.boidsPos = new Array(boidsCount).fill([0,0,0]); //vec3 list
+      this.boidsVel = new Array(boidsCount).fill([0,0,0]);
       
       this.groupingSize = 10; //Max # that a boid will reference.
       this.groupingRadius = 10000; //Max radius for a boid to check for flocking
@@ -243,6 +247,8 @@ export class Boids {
 
       this.canvasId = canvasId;
       this.particleClass = new Particles(boidsCount,true,canvasId);
+      
+      console.log(this.particleClass.particles);
       if(this.canvasId) {
           this.particleClass.animate();
           this.animate();
@@ -263,7 +269,7 @@ export class Boids {
     }
 
     //Run a boids calculation to update velocities
-    calcBoids() { 
+    calcBoids = () => { 
 
         //Simple recursive boids, does not scale up well without limiting group sizes
         var newVelocities = [];
@@ -380,7 +386,7 @@ export class Boids {
           this.frameRate = (this.thisFrame - this.lastFrame) * 0.001; //Framerate in seconds
           this.boidsPos.forEach((item,idx) => {
             //this.boidsPos[idx] = [item[0]+(this.boidsVel[idx][0]*this.frameRate),item[1]+(this.boidsVel[idx][1]*this.frameRate),item[2]+(this.boidsVel[idx][2]*this.frameRate)];
-            if(idx <= this.renderer.particles.length){
+            if(idx <= this.particleClass.particles.length){
               this.particleClass.particles[idx].vx += this.boidsVel[idx][0]*this.frameRate*this.boidsMul;
               this.particleClass.particles[idx].vy += this.boidsVel[idx][1]*this.frameRate*this.boidsMul;
               if(this.particleClass.animationId === null) this.particleClass.updateParticle(idx);

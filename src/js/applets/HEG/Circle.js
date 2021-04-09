@@ -29,8 +29,7 @@ export class CircleApplet {
         //etc..
         this.loop = null;
         this.looping = false;
-
-        
+   
         this.canvas = null;
         this.ctx = null;
         this.angle = 1.57;
@@ -174,7 +173,9 @@ export class CircleApplet {
             if(this.bci.atlas.settings.heg) {
                 let ct = this.bci.atlas.data.heg[0].count;
                 if(ct >= 2) {
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.data.heg[0].ratio.slice(ct-40));
+                    let avg = 40; if(ct < avg) { avg = ct; }
+                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.angleChange = score;
                     this.draw();
                 }
