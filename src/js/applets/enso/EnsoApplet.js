@@ -234,7 +234,7 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
-controls.enabled = true;
+controls.enabled = false;
 
 //controls.addEventListener('change', render)
 
