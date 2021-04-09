@@ -529,9 +529,13 @@ const animateUsers = () => {
         let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
         me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
         if (key = 'alpha1'){
-            let coherenceBuffer = this.bci.atlas.data.coherence[0].means['alpha1']
-            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
-            console.log(coherence)
+            if(this.bci.atlas.settings.coherence) {
+                let coherenceBuffer = this.bci.atlas.data.coherence[0].means['alpha1']
+                if(coherenceBuffer.length > 0) {
+                    coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+                    console.log(coherence)
+                }
+            }
         }
         material.uniforms.colorThreshold.value = colorReachBase*nfscale
     })

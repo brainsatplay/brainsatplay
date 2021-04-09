@@ -1,8 +1,9 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../brainsatplay'
+import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {Boids} from '../../frontend/UX/Particles'
 
 //Example Applet for integrating with the UI Manager
-export class BoidsApp {
+export class BoidsApplet {
 
     static devices = ['heg']
 
@@ -25,6 +26,9 @@ export class BoidsApp {
         };
 
         //etc..
+        this.class = null;
+        this.looping = false;
+        this.loop = null;
 
     }
 
@@ -39,8 +43,11 @@ export class BoidsApp {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id=`+props.id+`>
-                <div id='`+props.id+`menu' style='position:absolute;'></div>
-                <canvas id='`+props.id+`canvas'></canvas>
+                <div id='`+props.id+`menu' style='position:absolute; z-index:3; '>
+                    <table id='`+props.id+`table' style='z-index:99;'>
+                    </table>
+                </div>
+                <canvas id='`+props.id+`canvas' height='100%' width='100%' style='width:100%; height:100%;'></canvas>
             </div>
             `;
         }
@@ -63,11 +70,17 @@ export class BoidsApp {
 
 
         //Add whatever else you need to initialize
-    
+        this.class = new Boids(200,this.props.id+'canvas');
+        this.looping = true;
+        this.updateLoop();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
+        cancelAnimationFrame(this.loop);
+        this.class.stop();
+        this.class = null;
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -89,7 +102,20 @@ export class BoidsApp {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
-    //doSomething(){}
+    updateLoop() {
+        if(this.looping){
+            if(this.bci.atlas.settings.heg) {
+                let ct = this.bci.atlas.data.heg[0].count;
+                if(ct >= 2) {
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.data.heg[0].ratio.slice(ct-40));
+                    this.class.onData(score);
+                }
+            }
+            setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);
+        }
+    }
+
+
 
    
 } 
