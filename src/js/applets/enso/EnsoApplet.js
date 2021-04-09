@@ -5,25 +5,23 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import vertexShader from './shaders/blob/vertex.glsl'
-import fragmentShader from './shaders/blob/fragment.glsl'
+import vertexShader from './shaders/enso/vertex.glsl'
+import fragmentShader from './shaders/enso/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
-import blobTexture from "./img/blobTexture.jpeg"
+import dummyTexture from "./img/dummyTexture.jpeg"
 
 // import * as p5 from 'p5'
 // console.log(p5.noise)
 
 //Example Applet for integrating with the UI Manager
-export class BlobApplet {
+export class EnsoApplet {
 
     static devices = ['eeg'] //,heg
 
@@ -59,19 +57,19 @@ export class BlobApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
-                <div class="blob-gui-container"></div>
+            <div id='${props.id}' class="enso-wrapper" style='height:${props.height}; width:${props.width};'>
+                <div id="enso-renderer-container"><canvas class="enso-webgl"></canvas></div>
+                <div class="enso-gui-container"></div>
             </div>
             `;
             // return `
-            // <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
-            //     <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
-            //     <div class="blob-gui-container"></div>
-            //     <div class="blob-mask"></div>
-            //     <div id="blob-gameHero" class="blob-container">
+            // <div id='${props.id}' class="enso-wrapper" style='height:${props.height}; width:${props.width};'>
+            //     <div id="enso-renderer-container"><canvas class="enso-webgl"></canvas></div>
+            //     <div class="enso-gui-container"></div>
+            //     <div class="enso-mask"></div>
+            //     <div id="enso-gameHero" class="enso-container">
             //         <div>
-            //             <h1>Blob Study</h1>
+            //             <h1>enso Study</h1>
             //         </div>
             //     </div>
             // </div>
@@ -97,7 +95,7 @@ export class BlobApplet {
 
 
 /**
- * Blob
+ * Enso
  */
 
 const loadingManager = new THREE.LoadingManager(
@@ -106,11 +104,11 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(0.1,() => 
         {
             canvas.style.opacity = '1'
-            this.resizeBlob()
+            this.resizeEnso()
             // gsap.delayedCall(2.0,() => 
             // {
-            //     document.querySelector('.blob-mask').style.opacity = '0'
-            //     document.getElementById('blob-gameHero').style.opacity = '0'
+            //     document.querySelector('.enso-mask').style.opacity = '0'
+            //     document.getElementById('enso-gameHero').style.opacity = '0'
 
             // })
         })
@@ -121,13 +119,13 @@ const loadingManager = new THREE.LoadingManager(
     }
 )
 const textureLoader = new THREE.TextureLoader(loadingManager)
-const texture = textureLoader.load(blobTexture)
+textureLoader.load(dummyTexture)
 
 /**
  * Canvas
  */
-const blobContainer = document.getElementById(this.props.id)
-let canvas = document.querySelector('canvas.blob-webgl')
+const ensoContainer = document.getElementById(this.props.id)
+let canvas = document.querySelector('canvas.enso-webgl')
 
 /**
  * Scene
@@ -139,13 +137,13 @@ const scene = new THREE.Scene()
 // light.intensity = 1.4;
 // scene.add(light);
 
-let sphereDiameter = 100
+let diameter = 100
 
 /**
  * Camera
  */
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
-camera.position.z = 20
+camera.position.z = diameter*2
 
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
@@ -164,14 +162,14 @@ const renderer = new THREE.WebGLRenderer({
  let meshHeight = meshWidth / imageAspect;
 
 // Renderer
-renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
+renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-document.getElementById('blob-renderer-container').appendChild(renderer.domElement)
-canvas = document.querySelector('canvas.blob-webgl')
+document.getElementById('enso-renderer-container').appendChild(renderer.domElement)
+canvas = document.querySelector('canvas.enso-webgl')
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
-// blobContainer.querySelector('.blob-gui-container').appendChild(gui.domElement);
+// ensoContainer.querySelector('.enso-gui-container').appendChild(gui.domElement);
 
 /** 
  * Postprocessing 
@@ -204,23 +202,16 @@ canvas = document.querySelector('canvas.blob-webgl')
  // Composer
 const effectComposer = new EffectComposer(renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(blobContainer.clientWidth, blobContainer.clientHeight)
+effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
 
-// const effectGrayScale = new ShaderPass( LuminosityShader );
-// effectComposer.addPass( effectGrayScale );
-
 // const effectSobel = new ShaderPass( SobelOperatorShader );
 // effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
 // effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
 // effectComposer.addPass( effectSobel );
-
-// const shaderPass = new ShaderPass(RGBShiftShader)
-// shaderPass.enabled = true
-// effectComposer.addPass(shaderPass)
 
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
@@ -229,17 +220,6 @@ bloomPass.radius = 1
 // bloomPass.threshold = 0.6
 effectComposer.addPass(bloomPass)
 
-// // Custom Shader Pass
-// const customPass = new ShaderPass({
-//     uniforms: {
-//         tDiffuse: { value: null },
-//         uInterfaceMap: { value: null }
-//     },
-//     vertexShader: interfaceVertexShader,
-//     fragmentShader: interfaceFragmentShader
-// })
-// customPass.material.uniforms.uInterfaceMap.value = futuristicInterface
-// effectComposer.addPass(customPass)
 
 // Antialiasing
 if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
@@ -254,12 +234,16 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
-controls.enabled = false;
+controls.enabled = true;
 
 //controls.addEventListener('change', render)
 
 // Plane
-const sphereGeometry = new THREE.SphereGeometry(sphereDiameter, Math.pow(2,6), Math.pow(2,6) );
+const generateTorus = () => {
+    return new THREE.TorusGeometry(diameter,3,10,100);
+}
+
+const geometry = generateTorus()
 let tStart = Date.now()
 
 // const material = new THREE.MeshNormalMaterial( );
@@ -303,8 +287,8 @@ const material = new THREE.ShaderMaterial({
 
 
 // Mesh
-const blob = new THREE.Mesh(sphereGeometry, material)
-scene.add(blob)
+const enso = new THREE.Mesh(geometry, material)
+scene.add(enso)
 
 // let colorMenu = gui.addFolder('Color');
 // colorMenu.add(materialControls, 'rPower', 0, 1).onChange(materialControls.updateColor);
@@ -317,28 +301,26 @@ scene.add(blob)
 
 
 // Resize
-this.resizeBlob = () => {
+this.resizeEnso = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     meshWidth = (fov_y  - 1.0)* camera.aspect;
     meshHeight = meshWidth / imageAspect
     regenerateGeometry()
-    renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
+    renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(blobContainer.clientWidth, blobContainer.clientHeight)
+    effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
 }
 
-window.addEventListener('resize', this.resizeBlob, 
+window.addEventListener('resize', this.resizeEnso, 
 false)
 
 function regenerateGeometry() {
-    let newGeometry = new THREE.SphereGeometry(
-        5,32,32
-    )
-    blob.geometry.dispose()
-    blob.geometry = newGeometry
+    let newGeometry = generateTorus()
+    enso.geometry.dispose()
+    enso.geometry = newGeometry
 }
 
 // Animate
@@ -361,7 +343,7 @@ var animate = () => {
 
 // // Stats
 // const stats = Stats()
-// blobContainer.appendChild(stats.dom)
+// ensoContainer.appendChild(stats.dom)
 
     animate();
     }
@@ -374,7 +356,7 @@ var animate = () => {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeBlob()
+        this.resizeEnso()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

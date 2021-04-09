@@ -10,6 +10,7 @@ import { BrainMapApplet } from './js/applets/EEG/BrainMapApplet'
 import { SmoothieApplet } from './js/applets/EEG/SmoothieApplet'
 import { NexusApplet } from './js/applets/nexus/NexusApplet'
 import { BlobApplet } from './js/applets/blob/BlobApplet'
+import { EnsoApplet } from './js/applets/enso/EnsoApplet'
 
 import { CircleApplet } from './js/applets/HEG/Circle'
 import { AudioApplet } from './js/applets/HEG/AudioApplet'
@@ -20,6 +21,7 @@ let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
 	{	name:"uPlot", 			cls: uPlotApplet   		},
+	{	name:"Enso",      		cls: EnsoApplet		},
 	{	name:"Blob",      		cls: BlobApplet		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
 	{	name:"Nexus",      		cls: NexusApplet		},
