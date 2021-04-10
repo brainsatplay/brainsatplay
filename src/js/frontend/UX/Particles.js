@@ -1,6 +1,6 @@
 
 export class Particles { //Adapted from this great tutorial: https://modernweb.com/creating-particles-in-html5-canvas/
-    constructor(maxParticles = 100, randomSeed = true, canvasId=undefined) {
+    constructor(maxParticles = 100, randomSeed = true, canvasId=undefined, velocityFunc = undefined) { //custom velocity function is allowed
 
       this.canvasId = canvasId;
       this.canvas = null; this.context = null; this.animationId = null;
@@ -27,7 +27,8 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
         groundLevel: 200 * 0.999,
         leftWall: 200 * 0.001,
         rightWall: 200 * 0.999,
-        ceilingWall: 200 * 0.001
+        ceilingWall: 200 * 0.001,
+        velocityFunc: velocityFunc
       };
 
       //for default anim
@@ -169,6 +170,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
     }
 
     animate = () => {
+        if(this.velocityFunc !== undefined) this.velocityFunc();
         this.draw();
         setTimeout(() => { this.animationId = requestAnimationFrame(this.animate); }, 16);
     }
