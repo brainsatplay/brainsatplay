@@ -1,7 +1,7 @@
 import uPlot from 'uplot';
 import { SmoothieChart, TimeSeries } from "smoothie";
 import './webgl-heatmap'
-import TimeChart from '../timechart/dist/timechart.module';
+//import TimeChart from '../timechart/dist/timechart.module';
 
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
@@ -432,100 +432,100 @@ export class uPlotMaker {
 
 
 
-export class TimeChartMaker {
-	constructor(divId, maxpoints=20000){
-		if(TimeChart === "undefined") {
-			alert("timechart not found!");
-			return;
-		}
+// export class TimeChartMaker {
+// 	constructor(divId, maxpoints=20000){
+// 		if(TimeChart === "undefined") {
+// 			alert("timechart not found!");
+// 			return;
+// 		}
 
-		this.divId = divId;
-		this.timecharts = [];
-		this.timechartsdata = [];
-		this.lasttimeIdx = 0;
+// 		this.divId = divId;
+// 		this.timecharts = [];
+// 		this.timechartsdata = [];
+// 		this.lasttimeIdx = 0;
 
-		this.maxpoints = maxpoints;
-	}
+// 		this.maxpoints = maxpoints;
+// 	}
 
-	deInit() {
-		this.timecharts.forEach((chart,i) => {
-			chart.dispose(); //does not delete shadow root
-		});
-	}
+// 	deInit() {
+// 		this.timecharts.forEach((chart,i) => {
+// 			chart.dispose(); //does not delete shadow root
+// 		});
+// 	}
 
-	init() {
+// 	init() {
 
-	}
+// 	}
 
-	setEEGTimeCharts = (EEG, ATLAS, nSecAdcGraph=10) => { //Creates timecharts from the EEG class data
-		console.log("run");
-		ATLAS.channelTags.forEach((row,i) => { // Recycle or make new time charts
-		  var chartname = 'timechart'+i;
-		  var nsamples = Math.floor(EEG.sps*nSecAdcGraph);
-		  var dat = EEG.data["A"+row.ch].slice(EEG.counter - nsamples, EEG.counter);
-		  if(this.timecharts[i] === undefined){
-			document.getElementById(this.divId).insertAdjacentHTML('beforeend',`<div id='`+chartname+`'></div>`);
-			var elem = document.getElementById(chartname);
-			this.timechartsdata.push(dat);
-			//debugger;
-			var timechart = new TimeChart(elem, {
-			  series: [{ dat }],
-			  lineWidth: 2,
-			  xRange: { min: 0, max: 20 * 1000 },
-			  realTime: true,
-			  zoom: {
-				  x: {
-					  autoRange: true,
-					  minDomainExtent: 50,
-				  },
-				  y: {
-					  autoRange: true,
-					  minDomainExtent: 1,
-				  }
-			  },
-			});
+// 	setEEGTimeCharts = (EEG, ATLAS, nSecAdcGraph=10) => { //Creates timecharts from the EEG class data
+// 		console.log("run");
+// 		ATLAS.channelTags.forEach((row,i) => { // Recycle or make new time charts
+// 		  var chartname = 'timechart'+i;
+// 		  var nsamples = Math.floor(EEG.sps*nSecAdcGraph);
+// 		  var dat = EEG.data["A"+row.ch].slice(EEG.counter - nsamples, EEG.counter);
+// 		  if(this.timecharts[i] === undefined){
+// 			document.getElementById(this.divId).insertAdjacentHTML('beforeend',`<div id='`+chartname+`'></div>`);
+// 			var elem = document.getElementById(chartname);
+// 			this.timechartsdata.push(dat);
+// 			//debugger;
+// 			var timechart = new TimeChart(elem, {
+// 			  series: [{ dat }],
+// 			  lineWidth: 2,
+// 			  xRange: { min: 0, max: 20 * 1000 },
+// 			  realTime: true,
+// 			  zoom: {
+// 				  x: {
+// 					  autoRange: true,
+// 					  minDomainExtent: 50,
+// 				  },
+// 				  y: {
+// 					  autoRange: true,
+// 					  minDomainExtent: 1,
+// 				  }
+// 			  },
+// 			});
 
-			this.timecharts.push(timechart);
-		  }
-		  else {
-			this.timecharts[i].dispose();
-			this.timechartsdata[i] = dat;
-			var elem = document.getElementById(chartname);
-			var timechart = new TimeChart(elem, {
-			  series: [{ dat }],
-			  lineWidth: 2,
-			  xRange: { min: 0, max: 20 * 1000 },
-			  realTime: true,
-			  zoom: {
-				  x: {
-					  autoRange: true,
-					  minDomainExtent: 50,
-				  },
-				  y: {
-					  autoRange: true,
-					  minDomainExtent: 1,
-				  }
-			  },
-			});
-			this.timecharts[i] = timechart;
-		  }
-		});
-	}
+// 			this.timecharts.push(timechart);
+// 		  }
+// 		  else {
+// 			this.timecharts[i].dispose();
+// 			this.timechartsdata[i] = dat;
+// 			var elem = document.getElementById(chartname);
+// 			var timechart = new TimeChart(elem, {
+// 			  series: [{ dat }],
+// 			  lineWidth: 2,
+// 			  xRange: { min: 0, max: 20 * 1000 },
+// 			  realTime: true,
+// 			  zoom: {
+// 				  x: {
+// 					  autoRange: true,
+// 					  minDomainExtent: 50,
+// 				  },
+// 				  y: {
+// 					  autoRange: true,
+// 					  minDomainExtent: 1,
+// 				  }
+// 			  },
+// 			});
+// 			this.timecharts[i] = timechart;
+// 		  }
+// 		});
+// 	}
 
-	updateTimeCharts = (EEG, ATLAS) => {
-		if(this.timechartsdata[0].length > this.maxpoints) { //rebuild timecharts if the data array is too big to prevent slowdowns
-		  this.setEEGTimeCharts(EEG);
-		}
-		var latestIdx = EEG.counter-1;
-		ATLAS.channelTags.forEach((row,i) => {
-		  var latestdat = EEG.data["A"+row.ch].slice(this.lasttimeIdx,latestIdx);
-		  this.timechartsdata[i].push(latestdat);
-		  this.timecharts[i].update();
-		});
-		this.lasttimeIdx = latestIdx;
-	  }
+// 	updateTimeCharts = (EEG, ATLAS) => {
+// 		if(this.timechartsdata[0].length > this.maxpoints) { //rebuild timecharts if the data array is too big to prevent slowdowns
+// 		  this.setEEGTimeCharts(EEG);
+// 		}
+// 		var latestIdx = EEG.counter-1;
+// 		ATLAS.channelTags.forEach((row,i) => {
+// 		  var latestdat = EEG.data["A"+row.ch].slice(this.lasttimeIdx,latestIdx);
+// 		  this.timechartsdata[i].push(latestdat);
+// 		  this.timecharts[i].update();
+// 		});
+// 		this.lasttimeIdx = latestIdx;
+// 	  }
 
-}
+// }
 
 
 
