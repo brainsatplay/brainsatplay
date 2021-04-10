@@ -31,9 +31,6 @@ export class AppletManager {
 
         //this.responsive(); 
     
-        appletSelectIds.forEach((id,i) => {
-            this.addAppletOptions(id,i);
-        })
         let applets = document.getElementById('applets');
         applets.style.display = 'grid'
         applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
@@ -47,25 +44,29 @@ export class AppletManager {
     // Check class compatibility with current devices
     checkCompatibility = (classObj, devices=this.bcisession.devices) => {
         let compatible = false
-        this.bcisession.devices.forEach((device) => {
-            if(Array.isArray(classObj.devices)) { // Check devices only
-                if (classObj.devices.includes(device.info.deviceType) || classObj.devices.includes(device.info.deviceName)) compatible = true
-            } 
-            else if (typeof classObj.devices === 'object'){ // Check devices AND specific channel tags
-                if (classObj.devices.includes(device.info.devices.deviceType) || classObj.devices.devices.includes(device.info.deviceName)){
-                    if(classObj.devices.eegChannelTags) {
-                        classObj.devices.eegChannelTags.forEach((tag,k) => {
-                            let found = o.atlas.eegshared.eegChannelTags.find((t) => {
-                                if(t.tag === tag) {
-                                    return true;
-                                }
-                            }); 
-                            if(found) compatible = true;
-                        });
+        if (this.bcisession.devices.length === 0) compatible = true
+        else {
+            this.bcisession.devices.forEach((device) => {
+                if(Array.isArray(classObj.devices)) { // Check devices only
+                    if (classObj.devices.includes(device.info.deviceType) || classObj.devices.includes(device.info.deviceName)) compatible = true
+                } 
+                else if (typeof classObj.devices === 'object'){ // Check devices AND specific channel tags
+                    if (classObj.devices.includes(device.info.devices.deviceType) || classObj.devices.devices.includes(device.info.deviceName)){
+                        if(classObj.devices.eegChannelTags) {
+                            classObj.devices.eegChannelTags.forEach((tag,k) => {
+                                let found = o.atlas.eegshared.eegChannelTags.find((t) => {
+                                    if(t.tag === tag) {
+                                        return true;
+                                    }
+                                }); 
+                                if(found) compatible = true;
+                            });
+                        }
                     }
                 }
-            }
-        })
+            })
+        }
+
         return compatible
     }
 
@@ -123,7 +124,11 @@ export class AppletManager {
         })
 
         this.initApplets();
-        
+
+        // Generate applet selectors
+        this.appletSelectIds.forEach((id,i) => {
+            this.addAppletOptions(id,i);
+        }) 
     }
 
     appletDivSettings = (appletDiv, appletIdx) => {
@@ -306,11 +311,13 @@ export class AppletManager {
         select.innerHTML = "";
         var newhtml = `<option value='None' selected="selected">None</option>`;
         this.appletClasses.forEach((classObj,i) => {
-            if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
-              newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
-            }
-            else{
-              newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
+            if (this.checkCompatibility(classObj.cls)){
+                if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
+                    newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
+                }
+                else{
+                    newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
+                }
             }
         });
         select.innerHTML = newhtml;

@@ -37,7 +37,6 @@ let applets = [
 	{   name:"Sunrise",         cls: ThreeSunriseApplet },
 	{   name:"HillCimber",      cls: HillClimberApplet  },
 	{   name:"TextScroller",    cls: TextScrollerApplet },
-	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 
 let bcisession = new brainsatplay('guest','','game');
