@@ -231,6 +231,10 @@ let resizeCosmos = () => {
     // Update renderer
     renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    // Update effect composer
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
 }
 
 window.addEventListener('resize', () =>
@@ -251,6 +255,7 @@ scene.add(camera)
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
+controls.enabled = false;
 
 /**
  * Renderer
@@ -261,35 +266,102 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+/** 
+ * Postprocessing 
+ **/
+
+ // Render Target
+
+ let RenderTargetClass = null
+
+ if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ {
+     RenderTargetClass = THREE.WebGLMultisampleRenderTarget
+ }
+ else
+ {
+     RenderTargetClass = THREE.WebGLRenderTarget
+ }
+
+ const renderTarget = new RenderTargetClass(
+    window.innerWidth , window.innerHeight,
+    {
+        minFilter: THREE.LinearFilter,
+        maxFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        encoding: THREE.sRGBEncoding,
+        type: THREE.HalfFloatType // For Safari (doesn't work)
+    }
+ )
+
+ // Composer
+const effectComposer = new EffectComposer(renderer,renderTarget)
+effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+
+ // Passes
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass)
+
+// const bloomPass = new UnrealBloomPass()
+// bloomPass.enabled = true
+// bloomPass.strength = 0.1
+// bloomPass.radius = 1
+// bloomPass.threshold = 0.6
+// effectComposer.addPass(bloomPass)
+
+
+// Antialiasing
+if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+{
+    const smaaPass = new SMAAPass()
+    effectComposer.addPass(smaaPass)
+    console.log('Using SMAA')
+}
+
 /**
- * Generate the first cosmos
+ * Generate galaxy
  */
 generateCosmos()
+
+/**
+ * Get Coherence Values
+ */
+const getCoherence = (band='alpha1') => {
+    let coherence = null;
+    if(this.bci.atlas.settings.coherence) {
+        let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
+        if(coherenceBuffer.length > 0) {
+            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+        }
+    }
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+}
 
 /**
  * Animate
  */
 const clock = new THREE.Clock()
 
-const tick = () =>
+const animate = () =>
 {
     const elapsedTime = clock.getElapsedTime()
 
     // Update material
-    let neurofeedback = (0.5 + 0.5*Math.sin(Date.now()/1000))
-    material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
+    material.uniforms.uTime.value += 0.001 + 0.01*getCoherence()
 
     // Update controls
     controls.update()
 
     // Render
-    renderer.render(scene, camera)
+    // renderer.render(scene, camera)
+    effectComposer.render()
 
     // Call tick again on the next frame
-    window.requestAnimationFrame(tick)
+    window.requestAnimationFrame(animate)
 }
 
-tick()
+animate()
     }
 
     //Delete all event listeners and loops here and delete the HTML block

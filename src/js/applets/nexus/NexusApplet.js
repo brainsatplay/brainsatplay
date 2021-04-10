@@ -442,7 +442,6 @@ function regeneratePlaneGeometry() {
 
 // Animate
 let currentIntersect = null
-let coherence = 0;
 var animate = () => {
 
     // Limit Framerate
@@ -465,6 +464,17 @@ var animate = () => {
 // Stats
 // const stats = Stats()
 // document.body.appendChild(stats.dom)
+
+const getCoherence = (band='alpha1') => {
+    let coherence = null;
+    if(this.bci.atlas.settings.coherence) {
+        let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
+        if(coherenceBuffer.length > 0) {
+            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+        }
+    }
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+}
 
 // Draw Shapes
 const animateUsers = () => {
@@ -530,22 +540,13 @@ const animateUsers = () => {
     me.neurofeedbackDimensions.forEach(key => {
         let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
         me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
-        if (key = 'alpha1'){
-            if(this.bci.atlas.settings.coherence) {
-                let coherenceBuffer = this.bci.atlas.data.coherence[0].means['alpha1']
-                if(coherenceBuffer.length > 0) {
-                    coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
-                }
-            }
-        }
         material.uniforms.colorThreshold.value = colorReachBase*nfscale
     })
 
     // coherence
-    // coherence = 0.5 + Math.sin(Date.now()/1000)/2;
     let coherenceLine = scene.getObjectByName('coherenceLine')
     if (coherenceLine) {
-        coherenceLine.material.opacity = coherence
+        coherenceLine.material.opacity = getCoherence()
     }
 }
 

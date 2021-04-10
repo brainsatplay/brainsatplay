@@ -327,9 +327,20 @@ function regenerateGeometry() {
     enso.geometry = newGeometry
 }
 
+// Coherence
+const getCoherence = (band='alpha1') => {
+    let coherence = null;
+    if(this.bci.atlas.settings.coherence) {
+        let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
+        if(coherenceBuffer.length > 0) {
+            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+        }
+    }
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+}
+
 // Animate
 
-let coherence = 0;
 var animate = () => {
 
     // Limit Framerate
@@ -338,8 +349,7 @@ var animate = () => {
     }, 1000 / 60 );
 
     material.uniforms.uTime.value = Date.now() - tStart
-    coherence = 0.5 * (1+Math.sin(material.uniforms.uTime.value/1000))
-    material.uniforms.uNoiseIntensity.value = coherence
+    material.uniforms.uNoiseIntensity.value = 1-getCoherence()
     controls.update()
     effectComposer.render()
 };
