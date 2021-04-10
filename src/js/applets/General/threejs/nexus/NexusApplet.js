@@ -546,9 +546,11 @@ const animateUsers = () => {
 
     // coherence
     let coherenceLine = scene.getObjectByName('coherenceLine')
+    let coherence = getCoherence()
     if (coherenceLine) {
-        coherenceLine.material.opacity = getCoherence()
+        coherenceLine.material.opacity = coherence
     }
+    glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
 
 function drawCylinder() {

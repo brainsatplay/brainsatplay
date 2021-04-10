@@ -86,6 +86,7 @@ export class BCIAppManager {
     setupUITemplates = () => {
 
         let connectHTML = `
+        <div class="app">
         <div id="sidebar-container">
             <div id="sidebar">
             <div id="sidebar-inner">
@@ -137,6 +138,7 @@ export class BCIAppManager {
             </div>
             <div id="sidebar-toggle"></div>
             <div class="overlay"></div>
+        </div>
         </div>
         `; 
 
@@ -211,7 +213,9 @@ export class BCIAppManager {
             this.style.pointerEvents = 'none'
         })
         }
-        let sidebar = document.getElementById('sidebar')
+
+        let app = document.querySelector('.app')
+        let sidebar = app.querySelector('#sidebar')
         sidebar.addEventListener('mouseleave', function(e) {           
             closeAllOpenCollapsibles()
         })
@@ -221,28 +225,28 @@ export class BCIAppManager {
 
         this.uiFragments.page = new DOMFragment(
             page_template,
-            document.body
+            app
         );
         // this.uiFragments.topbar = new DOMFragment(
         //     topbar_template,
         //     document.getElementById('page')
         // );
-        let contentChild1 = Array.from(document.getElementById('applet-menu').childNodes).filter(n => n.className==="content")[0]
+        let contentChild1 = Array.from(app.querySelector('#applet-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
             contentChild1
         );
-        let contentChild2 = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
+        let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
         
-        let contentChild3 = Array.from(document.getElementById('profile-menu').childNodes).filter(n => n.className==="content")[0]
+        let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.login = new DOMFragment(
             login_template,
             contentChild3
         );
 
-        document.getElementById('login-button').onclick = () => {
-            let form = document.getElementById('login-form')
+        app.querySelector('#login-button').onclick = () => {
+            let form = app.querySelector('#login-form')
             let formDict = {}
             let formData = new FormData(form);
             for (var pair of formData.entries()) {
@@ -272,7 +276,7 @@ export class BCIAppManager {
 
         this.bcisession.onconnected = () => {
 
-            let contentChild = Array.from(document.getElementById('device-menu').childNodes).filter(n => n.className==="content")[0]
+            let contentChild = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
 
             //console.log(this.bcisession.info.nDevices,this.bcisession.devices[this.bcisession.info.nDevices-1])
             if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
@@ -335,6 +339,10 @@ export class BCIAppManager {
             ['applet1','applet2','applet3','applet4'], //defined in the appletselect template
             this.bcisession
         )
+
+        // Remove overlay
+        document.body.querySelector('.app').style.display = 'block';
+        document.body.querySelector('.loader').style.opacity = 0;
     }
 
     setApps( //set the apps and create a new UI or recreate the original

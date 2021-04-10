@@ -1,12 +1,12 @@
 import {brainsatplay} from '../../../../brainsatplay'
 import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
-import '../style.css'
+import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import vertexShader from './shaders/cosmos/vertex.glsl'
-import fragmentShader from './shaders/cosmos/fragment.glsl'
+import vertexShader from './shaders/enso/vertex.glsl'
+import fragmentShader from './shaders/enso/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
@@ -17,8 +17,11 @@ import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
 
+// import * as p5 from 'p5'
+// console.log(p5.noise)
+
 //Example Applet for integrating with the UI Manager
-export class CosmosApplet {
+export class EnsoApplet {
 
     static devices = ['eeg'] //,heg
 
@@ -63,7 +66,7 @@ export class CosmosApplet {
                     </div>
                 </div>
             </div>
-            `;  
+            `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
@@ -85,15 +88,16 @@ export class CosmosApplet {
 
 
 /**
- * Cosmos
+ * Enso
  */
+
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
         gsap.delayedCall(0.1,() => 
         {
             canvas.style.opacity = '1'
-            this.resizeCosmos()
+            this.resizeEnso()
         })
     }, 
     // Progress
@@ -104,169 +108,54 @@ const loadingManager = new THREE.LoadingManager(
 const textureLoader = new THREE.TextureLoader(loadingManager)
 textureLoader.load(dummyTexture)
 
-
- // Debug
-//  const gui = new GUI()
-
- // Canvas
- const cosmosContainer = document.getElementById(this.props.id)
- const canvas = cosmosContainer.querySelector('canvas.brainsatplay-threejs-webgl')
- 
-
-// Scene
-const scene = new THREE.Scene()
+/**
+ * Canvas
+ */
+const ensoContainer = document.getElementById(this.props.id)
+let canvas = ensoContainer.querySelector('canvas.brainsatplay-threejs-webgl')
 
 /**
- * Cosmos
+ * Scene
  */
-const parameters = {}
-parameters.count = 200000
-parameters.size = 0.005
-parameters.radius = 5
-parameters.branches = 3
-parameters.spin = 1
-parameters.randomness = 0.2
-parameters.randomnessPower = 3
-parameters.insideColor = '#ff6030'
-parameters.outsideColor = '#1b3984'
+const scene = new THREE.Scene()
+// // const light = new THREE.AmbientLight(0x00b3ff);
+// const light = new THREE.AmbientLight(0xffffff);
+// light.position.set(0, 5, 10);
+// light.intensity = 1.4;
+// scene.add(light);
 
-let geometry = null
-let material = null
-let points = null
-
-const generateCosmos = () =>
-{
-    if(points !== null)
-    {
-        geometry.dispose()
-        material.dispose()
-        scene.remove(points)
-    }
-
-    /**
-     * Geometry
-     */
-    geometry = new THREE.BufferGeometry()
-
-    const positions = new Float32Array(parameters.count * 3)
-    const randomness = new Float32Array(parameters.count * 3)
-    const colors = new Float32Array(parameters.count * 3)
-    const scales = new Float32Array(parameters.count * 1)
-
-    const insideColor = new THREE.Color(parameters.insideColor)
-    const outsideColor = new THREE.Color(parameters.outsideColor)
-
-    for(let i = 0; i < parameters.count; i++)
-    {
-        const i3 = i * 3
-
-        // Position
-        const radius = Math.random() * parameters.radius
-
-        const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
-
-        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-
-        positions[i3    ] = Math.cos(branchAngle) * radius
-        positions[i3 + 1] = 0
-        positions[i3 + 2] = Math.sin(branchAngle) * radius
-    
-        randomness[i3    ] = randomX
-        randomness[i3 + 1] = randomY
-        randomness[i3 + 2] = randomZ
-
-        // Color
-        const mixedColor = insideColor.clone()
-        mixedColor.lerp(outsideColor, radius / parameters.radius)
-
-        colors[i3    ] = mixedColor.r
-        colors[i3 + 1] = mixedColor.g
-        colors[i3 + 2] = mixedColor.b
-
-        // Scale
-        scales[i] = Math.random()
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
-
-    /**
-     * Material
-     */
-    material = new THREE.ShaderMaterial({
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        vertexColors: true,
-        uniforms:
-        {
-            uTime: { value: 0 },
-            uSize: { value: 30 * renderer.getPixelRatio() }
-        },    
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader
-    })
-
-    /**
-     * Points
-     */
-    points = new THREE.Points(geometry, material)
-    scene.add(points)
-}
-
-// gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateCosmos)
-// gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateCosmos)
-// gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateCosmos)
-// gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateCosmos)
-// gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateCosmos)
-// gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
-// gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
-
-this.resizeCosmos = () => {
-    // Update camera
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-
-    // Update renderer
-    renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-    // Update effect composer
-    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-}
-
-window.addEventListener('resize', () =>
-{
-    this.resizeCosmos()
-})
+let diameter = 100
 
 /**
  * Camera
  */
-// Base camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
-camera.position.x = 3
-camera.position.y = 3
-camera.position.z = 3
-scene.add(camera)
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
+camera.position.z = diameter*2
 
-// Controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
-controls.enabled = false;
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true
+})
 
 /**
- * Renderer
+ * Texture Params
  */
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
-})
-renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+ let imageWidth = 1200
+ let imageHeight = 600
+ const segmentsX = 400
+ const imageAspect = imageWidth/imageHeight
+ let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
+ let meshWidth = (fov_y  - 1.0)* camera.aspect;
+ let meshHeight = meshWidth / imageAspect;
+
+// Renderer
+renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
+
+// GUI
+// const gui = new GUI({ autoPlace: false });
+// ensoContainer.querySelector('.gui-container').appendChild(gui.domElement);
 
 /** 
  * Postprocessing 
@@ -299,18 +188,27 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  // Composer
 const effectComposer = new EffectComposer(renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
 
-// const bloomPass = new UnrealBloomPass()
-// bloomPass.enabled = true
-// bloomPass.strength = 0.1
-// bloomPass.radius = 1
+// const effectSobel = new ShaderPass( SobelOperatorShader );
+// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
+// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
+// effectComposer.addPass( effectSobel );
+
+// const shaderPass = new ShaderPass(RGBShiftShader)
+// shaderPass.enabled = true
+// effectComposer.addPass(shaderPass)
+
+const bloomPass = new UnrealBloomPass()
+bloomPass.enabled = true
+// bloomPass.strength = 0.5
+bloomPass.radius = 1
 // bloomPass.threshold = 0.6
-// effectComposer.addPass(bloomPass)
+effectComposer.addPass(bloomPass)
 
 
 // Antialiasing
@@ -321,15 +219,101 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
     console.log('Using SMAA')
 }
 
-/**
- * Generate galaxy
- */
-generateCosmos()
 
-/**
- * Get Coherence Values
- */
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.screenSpacePanning = true
+controls.enableDamping = true
+controls.enabled = false;
 
+//controls.addEventListener('change', render)
+
+// Plane
+const generateTorus = () => {
+    return new THREE.TorusGeometry(diameter,3,10,100);
+}
+
+const geometry = generateTorus()
+let tStart = Date.now()
+
+// const material = new THREE.MeshNormalMaterial( );
+
+var materialControls = new function () {
+    this.rPower = 0.0;
+    this.gPower = 0.85;
+    this.bPower = 1.0;
+    this.alpha = 1.0;
+    this.noiseIntensity = 0.5;
+
+    this.updateColor = function () {
+        material.uniforms.uColor.value = [
+            materialControls.rPower,
+            materialControls.gPower,
+            materialControls.bPower,
+            materialControls.alpha
+        ]
+    };
+
+    this.updateNoise = function () {
+        material.uniforms.uNoiseIntensity.value = materialControls.noiseIntensity
+    };
+};
+
+
+const material = new THREE.ShaderMaterial({
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    // transparent: true,
+    // wireframe: true,
+    // blending: THREE.AdditiveBlending,
+    uniforms:
+    {
+        uTime: { value: 0 },
+        aspectRatio: {value: window.innerWidth / window.innerHeight},
+        uColor: {value: [materialControls.rPower,materialControls.gPower,materialControls.bPower,materialControls.alpha] },
+        uNoiseIntensity: {value: materialControls.noiseIntensity}
+    }
+})
+
+
+// Mesh
+const enso = new THREE.Mesh(geometry, material)
+scene.add(enso)
+
+// let colorMenu = gui.addFolder('Color');
+// colorMenu.add(materialControls, 'rPower', 0, 1).onChange(materialControls.updateColor);
+// colorMenu.add(materialControls, 'gPower', 0, 1).onChange(materialControls.updateColor);
+// colorMenu.add(materialControls, 'bPower', 0, 1).onChange(materialControls.updateColor);
+
+// let offsetMenu = gui.addFolder('Noise');
+// offsetMenu.add(materialControls, 'noiseIntensity', 0, 1).onChange(materialControls.updateNoise);
+
+
+
+// Resize
+this.resizeEnso = () => {
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    meshWidth = (fov_y  - 1.0)* camera.aspect;
+    meshHeight = meshWidth / imageAspect
+    regenerateGeometry()
+    renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
+
+}
+
+window.addEventListener('resize', this.resizeEnso, 
+false)
+
+function regenerateGeometry() {
+    let newGeometry = generateTorus()
+    enso.geometry.dispose()
+    enso.geometry = newGeometry
+}
+
+// Coherence
 const getCoherence = (band='alpha1') => {
     let coherence = null;
     if(this.bci.atlas.settings.coherence) {
@@ -343,35 +327,31 @@ const getCoherence = (band='alpha1') => {
     return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
 
-/**
- * Animate
- */
-const clock = new THREE.Clock()
-
-const animate = () =>
-{
-    const elapsedTime = clock.getElapsedTime()
+// Animate
+var animate = () => {
 
     // Limit Framerate
     setTimeout( function() {
         requestAnimationFrame( animate );
-    }, 1000 / 60 );    
+    }, 1000 / 60 );
 
-    // Update material
+    material.uniforms.uTime.value = Date.now() - tStart
+
     let coherence = getCoherence()
-    material.uniforms.uTime.value += 0.001 + 0.01*coherence
-    let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+    material.uniforms.uNoiseIntensity.value = 1-coherence
+    let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-    
-    // Update controls
+
     controls.update()
-
-    // Render
-    // renderer.render(scene, camera)
     effectComposer.render()
-}
+};
 
-animate()
+
+// // Stats
+// const stats = Stats()
+// ensoContainer.appendChild(stats.dom)
+
+    animate();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -382,7 +362,7 @@ animate()
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeCosmos()
+        this.resizeEnso()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
