@@ -5,8 +5,8 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import vertexShader from './shaders/galaxy/vertex.glsl'
-import fragmentShader from './shaders/galaxy/fragment.glsl'
+import vertexShader from './shaders/cosmos/vertex.glsl'
+import fragmentShader from './shaders/cosmos/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
@@ -21,7 +21,7 @@ import dummyTexture from "./img/dummyTexture.jpeg"
 // console.log(p5.noise)
 
 //Example Applet for integrating with the UI Manager
-export class GalaxyApplet {
+export class CosmosApplet {
 
     static devices = ['eeg'] //,heg
 
@@ -57,9 +57,9 @@ export class GalaxyApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="galaxy-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="galaxy-renderer-container"><canvas class="galaxy-webgl"></canvas></div>
-                <div class="galaxy-gui-container"></div>
+            <div id='${props.id}' class="cosmos-wrapper" style='height:${props.height}; width:${props.width};'>
+                <div id="cosmos-renderer-container"><canvas class="cosmos-webgl"></canvas></div>
+                <div class="cosmos-gui-container"></div>
             </div>
             `;  
         }
@@ -83,7 +83,7 @@ export class GalaxyApplet {
 
 
 /**
- * Galaxy
+ * Cosmos
  */
 const loadingManager = new THREE.LoadingManager(
     // Loaded
@@ -91,7 +91,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(0.1,() => 
         {
             canvas.style.opacity = '1'
-            resizeGalaxy()
+            resizeCosmos()
         })
     }, 
     // Progress
@@ -107,15 +107,15 @@ textureLoader.load(dummyTexture)
  const gui = new GUI()
 
  // Canvas
- const galaxyContainer = document.getElementById(this.props.id)
- const canvas = document.querySelector('canvas.galaxy-webgl')
+ const cosmosContainer = document.getElementById(this.props.id)
+ const canvas = document.querySelector('canvas.cosmos-webgl')
  
 
 // Scene
 const scene = new THREE.Scene()
 
 /**
- * Galaxy
+ * Cosmos
  */
 const parameters = {}
 parameters.count = 200000
@@ -132,7 +132,7 @@ let geometry = null
 let material = null
 let points = null
 
-const generateGalaxy = () =>
+const generateCosmos = () =>
 {
     if(points !== null)
     {
@@ -215,27 +215,27 @@ const generateGalaxy = () =>
     scene.add(points)
 }
 
-gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateGalaxy)
-gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy)
-gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateGalaxy)
-gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateGalaxy)
-gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateGalaxy)
-gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
-gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
+gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateCosmos)
+gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateCosmos)
+gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateCosmos)
+gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateCosmos)
+gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateCosmos)
+gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
+gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
 
-let resizeGalaxy = () => {
+let resizeCosmos = () => {
     // Update camera
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
 
     // Update renderer
-    renderer.setSize(galaxyContainer.clientWidth, galaxyContainer.clientHeight)
+    renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 }
 
 window.addEventListener('resize', () =>
 {
-    resizeGalaxy()
+    resizeCosmos()
 })
 
 /**
@@ -258,13 +258,13 @@ controls.enableDamping = true
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
-renderer.setSize(galaxyContainer.clientWidth, galaxyContainer.clientHeight)
+renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /**
- * Generate the first galaxy
+ * Generate the first cosmos
  */
-generateGalaxy()
+generateCosmos()
 
 /**
  * Animate
@@ -300,7 +300,7 @@ tick()
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        // this.resizeGalaxy()
+        // this.resizeCosmos()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
