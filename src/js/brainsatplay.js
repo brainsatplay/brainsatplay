@@ -223,9 +223,9 @@ export class brainsatplay {
 
 	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"devicemenu";
-		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr><select id='`+id+`select'></div>`;
+		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr></div><div class="device-gallery">`;
 	
-		html += `<option value="" disabled selected>Choose your device</option>`
+		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
 	
 		let deviceOptions = [
 			'muse',
@@ -235,41 +235,48 @@ export class brainsatplay {
 		];
 
 		deviceOptions.forEach((o,i) => {
-			html+= `<option value='`+o+`'>`+o+`</option>`;
+			// html+= `<option value='`+o+`'>`+o+`</option>`;
+			html+= `
+			<div id='brainsatplay-${o}' value='${o}' class='device-card'>
+			${o}
+			</div>`;
 		});
+
+		html += `</div>`
 
 		// html += `</select><button id='`+id+`connect'>Connect</button>`;
 
 		parentNode.insertAdjacentHTML('afterbegin',html);
-		parentNode.insertAdjacentHTML('beforeend',`<button id='`+id+`connect'>Connect</button><button id='`+id+`disconnect'>Disconnect</button>`);
+		parentNode.insertAdjacentHTML('beforeend',`<button id='`+id+`disconnect'>Disconnect</button>`);
 
-		document.getElementById(id+"connect").onclick = () => {
-			let val = document.getElementById(id+"select").value;
-			if(val === 'muse') {
-				this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
+		deviceOptions.forEach((o,i) => {
+			document.getElementById(`brainsatplay-${o}`).onclick = () => {
+				if(o === 'muse') {
+					this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
+				}
+				else if (o === 'freeeeg32_2') {
+					this.connect('freeeeg32_2',['eegcoherence'],onconnect,ondisconnect);
+				}
+				else if (o === 'freeeeg32_19') {
+					this.connect('freeeeg32_19',['eegfft'],onconnect,ondisconnect);
+				}
+				else if (o === 'hegduinousb') {
+					this.connect('hegduinousb',[],onconnect,ondisconnect);
+				}
+				else if (o === 'hegduinobt') {
+					this.connect('hegduinobt',[],onconnect,ondisconnect);
+				}
+				else if (o === 'hegduinowifi') {
+					this.connect('hegduinowifi',[],onconnect,ondisconnect);
+				}
+				else if (o === 'cyton') {
+					this.connect('cyton',['eegfft'],onconnect,ondisconnect);
+				}
+				else if (o === 'cyton_daisy') {
+					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
+				}
 			}
-			else if (val === 'freeeeg32_2') {
-				this.connect('freeeeg32_2',['eegcoherence'],onconnect,ondisconnect);
-			}
-			else if (val === 'freeeeg32_19') {
-				this.connect('freeeeg32_19',['eegfft'],onconnect,ondisconnect);
-			}
-			else if (val === 'hegduinousb') {
-				this.connect('hegduinousb',[],onconnect,ondisconnect);
-			}
-			else if (val === 'hegduinobt') {
-				this.connect('hegduinobt',[],onconnect,ondisconnect);
-			}
-			else if (val === 'hegduinowifi') {
-				this.connect('hegduinowifi',[],onconnect,ondisconnect);
-			}
-			else if (val === 'cyton') {
-				this.connect('cyton',['eegfft'],onconnect,ondisconnect);
-			}
-			else if (val === 'cyton_daisy') {
-				this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
-			}
-		}
+		});
 
 		document.getElementById(id+"disconnect").onclick = () => { 
 			this.disconnect(); //Need to add disconnect buttons for every device added if multiple devices streaming

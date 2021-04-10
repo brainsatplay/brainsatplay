@@ -170,7 +170,8 @@ button {
   .content {
     position: absolute;
     padding: 25px;
-    width: 30vw;
+    width: calc((100vw - 250px)/2);
+    max-width: calc(100vw - 250px);
     box-sizing: border-box;
     top: 0; 
     right: 0;
@@ -332,3 +333,28 @@ input:focus{
     flex-grow: 1;
     margin: 10px;
 } 
+
+/* Devices */
+.device-gallery {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+.device-card{
+    width: 125px;
+    flex-grow: 1;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.5s;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 5%;
+    font-size: 80%;
+    margin: 5px;
+}
+
+.device-card:hover {
+    background: rgb(230, 230, 230);
+}
