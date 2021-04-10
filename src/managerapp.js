@@ -18,6 +18,7 @@ import { VideoApplet } from './js/applets/HEG/VideoApplet'
 import { BoidsApplet } from './js/applets/HEG/Boids'
 import { HillClimberApplet } from './js/applets/HEG/HillClimber'
 import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
+import { ThreeSunriseApplet } from './js/applets/HEG/ThreeSunrise/ThreeSunrise'
 
 let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
@@ -31,6 +32,7 @@ let applets = [
 	{   name:"HEGBoids",        cls: BoidsApplet		},
 	{   name:"HEGAudio",        cls: AudioApplet		},
 	{   name:"HEGVideo",		cls: VideoApplet		}, // 
+	{   name:"Sunrise",         cls: ThreeSunriseApplet },
 	{   name:"HillCimber",      cls: HillClimberApplet  },
 	{   name:"TextScroller",    cls: TextScrollerApplet },
 	{	name:"Example Applet", 	cls: AppletExample 		},
