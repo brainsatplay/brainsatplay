@@ -110,7 +110,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
         loadingBarElement.classList.add('ended')
         loadingBarElement.style.transform = ''
-        let hero = document.getElementById("gameHero")
+        let hero = appletContainer.querySelector(".nexus-gameHero")
         // Check if Nexus HTML still exists
         if (hero){
             hero.style.opacity = 0;
