@@ -2,7 +2,6 @@ uniform float aspectRatio;
 uniform float uTime;
 uniform float uNoiseScaling;
 uniform float uNoiseIntensity;
-varying vec2 vUv;
 varying float offset;
 
 //Classic Perlin 3D Noise 
@@ -82,7 +81,6 @@ float cnoise(vec3 P){
 
 void main()
 {
-    vUv = uv;
     offset = cnoise(uNoiseIntensity*position + uTime/1000.0);
     vec3 posTimeoffset =  position + position*uNoiseIntensity*(0.5*offset);
     vec4 modelPosition = modelMatrix * vec4(posTimeoffset, 1.0);

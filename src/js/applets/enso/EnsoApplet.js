@@ -115,7 +115,7 @@ const loadingManager = new THREE.LoadingManager(
     }, 
     // Progress
     (itemURL, itemsLoaded, itemsTotal) => {
-        console.log(itemsLoaded/itemsTotal)
+        // console.log(itemsLoaded/itemsTotal)
     }
 )
 const textureLoader = new THREE.TextureLoader(loadingManager)
@@ -336,7 +336,7 @@ const getCoherence = (band='alpha1') => {
             coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
 }
 
 // Animate

@@ -17,9 +17,6 @@ import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
 
-// import * as p5 from 'p5'
-// console.log(p5.noise)
-
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
 
@@ -96,7 +93,7 @@ const loadingManager = new THREE.LoadingManager(
     }, 
     // Progress
     (itemURL, itemsLoaded, itemsTotal) => {
-        console.log(itemsLoaded/itemsTotal)
+        // console.log(itemsLoaded/itemsTotal)
     }
 )
 const textureLoader = new THREE.TextureLoader(loadingManager)
@@ -104,7 +101,7 @@ textureLoader.load(dummyTexture)
 
 
  // Debug
- const gui = new GUI()
+//  const gui = new GUI()
 
  // Canvas
  const cosmosContainer = document.getElementById(this.props.id)
@@ -215,13 +212,13 @@ const generateCosmos = () =>
     scene.add(points)
 }
 
-gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateCosmos)
-gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateCosmos)
-gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateCosmos)
-gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateCosmos)
-gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateCosmos)
-gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
-gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
+// gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateCosmos)
+// gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateCosmos)
+// gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateCosmos)
+// gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateCosmos)
+// gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateCosmos)
+// gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
+// gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
 
 let resizeCosmos = () => {
     // Update camera
@@ -335,7 +332,7 @@ const getCoherence = (band='alpha1') => {
             coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
 }
 
 /**

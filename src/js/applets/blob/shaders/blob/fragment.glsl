@@ -3,7 +3,6 @@ uniform float uNoiseScaling;
 uniform float uNoiseIntensity;
 
 uniform vec4 uColor;
-varying vec2 vUv;
 varying float offset;
 
 void main()

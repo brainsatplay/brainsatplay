@@ -279,7 +279,7 @@ export class BCIAppManager {
             this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
 
             //this.appletManager.reinitApplets();
-            this.appletManager.deinitApplets();
+            // this.appletManager.deinitApplets();
             this.appletManager.initAddApplets();
             this.appletManager.responsive();
         }

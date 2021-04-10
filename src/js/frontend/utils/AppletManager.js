@@ -44,80 +44,84 @@ export class AppletManager {
 
     deinitUI = () => {}
 
-    //add the initial list of applets
-    initAddApplets = (appletConfigs=[]) => {
-        this.appletClasses.forEach((classObj,i) => {
-            if(this.appletsSpawned < this.maxApplets) {
-                //let containerId = Math.floor(Math.random()*100000)+"applet";
-                //let container = new DOMFragment(`<div id=${containerId}></div>`,"applets"); //make container, then delete when deiniting (this.applets[i].container.deleteFragment());
-                //this.applets.push({ appletIdx:i+1, name:classObj.name, classinstance: new classObj.cls(container.node,this.bcisession), container: container});
-                let config = undefined;
-                if(appletConfigs.length !== 0) {
-                    appletConfigs.forEach((cfg,i)=> {
-                        this.appletClasses.find((o,j) => {
-                            if(cfg.name === o.name) {
-                                config = cfg.settings;
-                            }
+    // Check class compatibility with current devices
+    checkCompatibility = (classObj, devices=this.bcisession.devices) => {
+        let compatible = false
+        this.bcisession.devices.forEach((device) => {
+            if(Array.isArray(classObj.devices)) { // Check devices only
+                if (classObj.devices.includes(device.info.deviceType) || classObj.devices.includes(device.info.deviceName)) compatible = true
+            } 
+            else if (typeof classObj.devices === 'object'){ // Check devices AND specific channel tags
+                if (classObj.devices.includes(device.info.devices.deviceType) || classObj.devices.devices.includes(device.info.deviceName)){
+                    if(classObj.devices.eegChannelTags) {
+                        classObj.devices.eegChannelTags.forEach((tag,k) => {
+                            let found = o.atlas.eegshared.eegChannelTags.find((t) => {
+                                if(t.tag === tag) {
+                                    return true;
+                                }
+                            }); 
+                            if(found) compatible = true;
                         });
-                    });
-                }
-
-                if(this.bcisession.info.nDevices === 1 && classObj.devices) {
-                    let found = this.bcisession.devices.find((o,j) => {
-                        if(Array.isArray(classObj.devices)) {
-                            if(classObj.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.indexOf(o.info.deviceName) > -1) {
-                                this.applets[i] = {
-                                    appletIdx: i+1,
-                                    name:classObj.name,
-                                    classinstance: new classObj.cls("applets",this.bcisession,config)
-                                }
-                                this.appletsSpawned++;
-                            }
-                        } 
-                        else if (typeof classObj.devices === 'object') { // { devices:['eeg'], eegChannelTags:['FP1','FP2'] }
-                            if(classObj.devices.devices.indexOf(o.info.deviceType) > -1 || classObj.devices.devices.indexOf(o.info.deviceName) > -1) {
-                                if(classObj.devices.eegChannelTags) {
-                                    let passed = false;
-                                    classObj.devices.eegChannelTags.forEach((tag,k) => {
-                                        let found = o.atlas.eegshared.eegChannelTags.find((t) => {
-                                            if(t.tag === tag) {
-                                                passed = true;
-                                                return true;
-                                            }
-                                        }); 
-                                        if(!found) passed = false;
-                                    });
-                                    if(passed) {
-                                        this.applets[i] = {
-                                            appletIdx: i+1,
-                                            name:classObj.name,
-                                            classinstance: new classObj.cls("applets",this.bcisession,config)
-                                        }
-                                        this.appletsSpawned++;
-                                    }
-                                }
-                                else {
-                                    this.applets[i] = {
-                                        appletIdx: i+1,
-                                        name:classObj.name,
-                                        classinstance: new classObj.cls("applets",this.bcisession,config)
-                                    }
-                                    this.appletsSpawned++;
-                                }
-                            }
-                        }
-                    });
-                }
-                else {
-                    this.applets[i] = {
-                        appletIdx: i+1,
-                        name:classObj.name,
-                        classinstance: new classObj.cls("applets",this.bcisession,config)
                     }
-                    this.appletsSpawned++;
                 }
             }
-        });
+        })
+        return compatible
+    }
+
+    //add the initial list of applets
+    initAddApplets = (appletConfigs=[]) => {
+
+        // Load Config
+        let config = undefined;
+        if(appletConfigs.length !== 0) {
+            appletConfigs.forEach((cfg,i)=> {
+                this.appletClasses.find((o,j) => {
+                    if(cfg.name === o.name) {
+                        config = cfg.settings;
+                    }
+                });
+            });
+        }
+
+        // Collect a list of unused applets
+        let currentApplets = this.applets.map(applet => applet.name)
+        let unusedAppletClasses = this.appletClasses.filter(applet => {
+            let usable = false;
+            if (!currentApplets.includes(applet.name)){ // Flag currently used applets (no duplicates)
+                usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+                if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
+            }
+        })
+
+        // Check the compatibility of current applets with connected devices
+        currentApplets.forEach((className,i) => {
+            let applet = this.appletClasses.filter(applet => applet.name == className)[0]
+            let compatible = false;
+            if (applet != undefined){
+                compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+            }
+            
+            // Replace incompatible applets
+            if (!compatible){
+
+                // Deinit old applet
+                if (this.applets[i].classinstance != null){
+                    this.deinitApplet(this.applets[i].appletIdx);
+                }
+
+                // Add new applet
+                let classObj = unusedAppletClasses[0]
+                this.applets[i] = {
+                    appletIdx: i+1,
+                    name:classObj.name,
+                    classinstance: new classObj.cls("applets",this.bcisession,config)
+                }
+                unusedAppletClasses.splice(0,1)
+            }
+            this.appletsSpawned++;
+        })
+
         this.initApplets();
         
     }
@@ -151,6 +155,7 @@ export class AppletManager {
 
         // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
+            if (applet.classinstance != null){
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.style.gridArea = String.fromCharCode(97 + i);
@@ -216,6 +221,7 @@ export class AppletManager {
                     }
                 }
             });
+        }
         });
         this.responsive();
     }
@@ -330,6 +336,7 @@ export class AppletManager {
         let gridRows = Math.ceil(Math.sqrt(nodes.length))
         let innerStrings = Array.from({length: gridRows}, e => [])
         nodes.forEach((applet,i,self) => {
+            if (applet.classinstance != null){
             if (activeNodes.length > 1){
                 if (applet.classinstance != null){
                     innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
@@ -343,6 +350,7 @@ export class AppletManager {
             } else {
                 innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
             }
+        }
         });
         innerStrings = innerStrings.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
