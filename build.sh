@@ -8,3 +8,7 @@ git add build -f
 git commit -m "gh-pages commit"
 # push to subtree remote 
 git subtree push --prefix build origin build
+
+# remove build directory
+sudo rm -rf build
+
