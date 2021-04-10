@@ -68,6 +68,7 @@ button {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+    pointer-events: none;
 }
 
 .loader img {
