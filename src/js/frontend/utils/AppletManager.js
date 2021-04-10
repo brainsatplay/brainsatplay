@@ -319,9 +319,7 @@ export class AppletManager {
                     newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
                 }
                 else{
-                    if (this.applets.find(applet => applet.name === classObj.name) == undefined){ // No duplicate applets
-                        newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
-                    }
+                    newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
                 }
             }
         });

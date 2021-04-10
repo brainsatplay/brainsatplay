@@ -1,7 +1,7 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
-import './style.css'
+import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -54,12 +54,12 @@ export class CosmosApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="cosmos-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="cosmos-renderer-container"><canvas class="cosmos-webgl"></canvas></div>
-                <div class="cosmos-gui-container"></div>
-                <div id="cosmos-gameHero" class="cosmos-container">
+            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:${props.height}; width:${props.width};'>
+                <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
+                <div class="brainsatplay-threejs-gui-container"></div>
+                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
                     <div>
-                        <p>Alpha Coherence: <span id="cosmos-alphacoherence"></span></p>
+                        <p>Alpha Coherence: <span class="brainsatplay-threejs-alphacoherence"></span></p>
                     </div>
                 </div>
             </div>
@@ -110,7 +110,7 @@ textureLoader.load(dummyTexture)
 
  // Canvas
  const cosmosContainer = document.getElementById(this.props.id)
- const canvas = document.querySelector('canvas.cosmos-webgl')
+ const canvas = cosmosContainer.querySelector('canvas.brainsatplay-threejs-webgl')
  
 
 // Scene
@@ -355,7 +355,7 @@ const animate = () =>
     // Update material
     let coherence = getCoherence()
     material.uniforms.uTime.value += 0.001 + 0.01*coherence
-    let coherenceReadout = document.getElementById('cosmos-alphacoherence')
+    let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
     
     // Update controls

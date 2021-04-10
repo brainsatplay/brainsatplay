@@ -1,7 +1,7 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
-import './style.css'
+import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -17,7 +17,7 @@ import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorSha
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
-import blobTexture from "./img/blobTexture.jpeg"
+import dummyTexture from "./img/dummyTexture.jpeg"
 
 // import * as p5 from 'p5'
 // console.log(p5.noise)
@@ -59,28 +59,16 @@ export class BlobApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
-                <div class="blob-gui-container"></div>
-                <div id="blob-gameHero" class="blob-container">
+            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:${props.height}; width:${props.width};'>
+                <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
+                <div class="brainsatplay-threejs-gui-container"></div>
+                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
                     <div>
-                        <p>Alpha Coherence: <span id="blob-alphacoherence"></span></p>
+                        <p>Alpha Coherence: <span class="brainsatplay-threejs-alphacoherence"></span></p>
                     </div>
                 </div>
             </div>
             `;
-            // return `
-            // <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
-            //     <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
-            //     <div class="blob-gui-container"></div>
-            //     <div class="blob-mask"></div>
-                // <div id="blob-gameHero" class="blob-container">
-                //     <div>
-                //         <h1>Blob Study</h1>
-                //     </div>
-                // </div>
-            // </div>
-            // `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
@@ -111,13 +99,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(0.1,() => 
         {
             canvas.style.opacity = '1'
-            this.resizeBlob()
-            // gsap.delayedCall(2.0,() => 
-            // {
-            //     document.querySelector('.blob-mask').style.opacity = '0'
-            //     document.getElementById('blob-gameHero').style.opacity = '0'
-
-            // })
+            this.resizeMesh()
         })
     }, 
     // Progress
@@ -126,13 +108,13 @@ const loadingManager = new THREE.LoadingManager(
     }
 )
 const textureLoader = new THREE.TextureLoader(loadingManager)
-const texture = textureLoader.load(blobTexture)
+const texture = textureLoader.load(dummyTexture)
 
 /**
  * Canvas
  */
-const blobContainer = document.getElementById(this.props.id)
-let canvas = document.querySelector('canvas.blob-webgl')
+const appletContainer = document.getElementById(this.props.id)
+let canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
 
 /**
  * Scene
@@ -157,14 +139,13 @@ const renderer = new THREE.WebGLRenderer({
 })
 
 // Renderer
-renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
+renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-document.getElementById('blob-renderer-container').appendChild(renderer.domElement)
-canvas = document.querySelector('canvas.blob-webgl')
+appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
-// blobContainer.querySelector('.blob-gui-container').appendChild(gui.domElement);
+// appletContainer.querySelector('.gui-container').appendChild(gui.domElement);
 
 /** 
  * Postprocessing 
@@ -197,7 +178,7 @@ canvas = document.querySelector('canvas.blob-webgl')
  // Composer
 const effectComposer = new EffectComposer(renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(blobContainer.clientWidth, blobContainer.clientHeight)
+effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
@@ -252,7 +233,7 @@ controls.enabled = false;
 //controls.addEventListener('change', render)
 
 // Plane
-const sphereGeometry = generateGeometry()
+const geometry = generateGeometry()
 
 let tStart = Date.now()
 
@@ -297,8 +278,8 @@ const material = new THREE.ShaderMaterial({
 
 
 // Mesh
-const blob = new THREE.Mesh(sphereGeometry, material)
-scene.add(blob)
+const mesh = new THREE.Mesh(geometry, material)
+scene.add(mesh)
 
 // let colorMenu = gui.addFolder('Color');
 // colorMenu.add(materialControls, 'rPower', 0, 1).onChange(materialControls.updateColor);
@@ -311,18 +292,18 @@ scene.add(blob)
 
 
 // Resize
-this.resizeBlob = () => {
+this.resizeMesh = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     regenerateGeometry()
-    renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
+    renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(blobContainer.clientWidth, blobContainer.clientHeight)
+    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
 }
 
-window.addEventListener('resize', this.resizeBlob, 
+window.addEventListener('resize', this.resizeMesh, 
 false)
 
 function generateGeometry() {
@@ -331,8 +312,8 @@ function generateGeometry() {
 }
 function regenerateGeometry() {
     let newGeometry = generateGeometry()
-    blob.geometry.dispose()
-    blob.geometry = newGeometry
+    mesh.geometry.dispose()
+    mesh.geometry = newGeometry
 }
 
 // Coherence
@@ -361,7 +342,7 @@ var animate = () => {
     material.uniforms.uTime.value = Date.now() - tStart  
     let coherence = getCoherence()
     material.uniforms.uNoiseIntensity.value = 1-coherence
-    let coherenceReadout = document.getElementById('blob-alphacoherence')
+    let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
     
     controls.update()
@@ -371,7 +352,7 @@ var animate = () => {
 
 // // Stats
 // const stats = Stats()
-// blobContainer.appendChild(stats.dom)
+// appletContainer.appendChild(stats.dom)
 
     animate();
     }
@@ -384,7 +365,7 @@ var animate = () => {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeBlob()
+        this.resizeMesh()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

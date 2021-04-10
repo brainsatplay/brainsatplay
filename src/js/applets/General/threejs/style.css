@@ -1,47 +1,46 @@
-.cosmos-wrapper {
+.brainsatplay-threejs-wrapper {
     background: black;
     position:relative;
     width: 100%;
     height: 100%;
 }
 
-.cosmos-webgl
+.brainsatplay-threejs-webgl
 {
     position: relative;
     width: 100%;
     height: 100%;
     outline: none;
     opacity: 0;
-    transition: opacity 1.0s;
+    transition: opacity 1.brainsatplay-threejs-0s;
 }
 
 
-.cosmos-renderer-container {
+.brainsatplay-threejs-renderer-container {
     /* position: relative; */
     width: 100%;
     height: 100%;
 }
 
-.cosmos-gui-container{
+.brainsatplay-threejs-gui-container{
     position: absolute;
     top: 0px;
     right: 25px;
 }
 
-.cosmos-mask{
+.brainsatplay-threejs-mask{
     position: absolute;
     top: 0px;
     height: 100%;
     width: 100%;
     background: black;
-    opacity: 0.50;
-    transition: opacity 1.5s;
+    opacity: 0.brainsatplay-threejs-50;
+    transition: opacity 1.brainsatplay-threejs-5s;
 }
 
 
 
-
-.cosmos-container {
+.brainsatplay-threejs-container {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -60,22 +59,26 @@
     font-weight: bold;
 }
 
-#cosmos-alphacoherence{
+.brainsatplay-threejs-alphacoherence{
     font-weight: normal;
 }
 
-.cosmos-container div {
+.brainsatplay-threejs-gameHero {
+    transition: opacity 1.brainsatplay-threejs-5s;
+}
+
+.brainsatplay-threejs-container div {
     width: 100%;
 }
 
-.cosmos-container h1 {
+.brainsatplay-threejs-container h1 {
     font-size: 5vw;
     margin: 0px;
     text-transform: uppercase;
     width: 100%;
 }
 
-.cosmos-container p {
-    font-size: 0.8em;
+.brainsatplay-threejs-container p {
+    font-size: 0.brainsatplay-threejs-8em;
     width: 100%;
 }

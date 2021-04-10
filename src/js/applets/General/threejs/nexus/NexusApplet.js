@@ -1,5 +1,5 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
 import './style.css'
 import * as THREE from 'three'
@@ -59,11 +59,11 @@ export class NexusApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="nexus-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="nexus-renderer-container"><canvas class="nexus-webgl"></canvas>                </div>
+            <div id='${props.id}' class="wrapper" style='height:${props.height}; width:${props.width};'>
+                <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
                 <div class="nexus-loading-bar"></div>
                 <div class="nexus-point-container"></div>
-                <div id="nexus-gameHero" class="nexus-container">
+                <div class="nexus-gameHero nexus-container">
                 <div>
                 <h1>Nexus</h1>
                 <p>Neurofeedback + Group Meditation</p>
@@ -103,14 +103,14 @@ const loadingBarElement = document.querySelector('.nexus-loading-bar')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
-        renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
+        renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
         canvas.style.display = 'block'
         gsap.delayedCall(3.0,() => 
         {
         gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
         loadingBarElement.classList.add('ended')
         loadingBarElement.style.transform = ''
-        let hero = document.getElementById("nexus-gameHero")
+        let hero = document.getElementById("gameHero")
         // Check if Nexus HTML still exists
         if (hero){
             hero.style.opacity = 0;
@@ -173,8 +173,8 @@ const displacementMap = textureLoader.load(mapDisp)
 /**
  * Canvas
  */
-const nexusContainer = document.getElementById(this.props.id)
-let canvas = document.querySelector('canvas.nexus-webgl')
+const appletContainer = document.getElementById(this.props.id)
+let canvas = appletContainer.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene
@@ -238,10 +238,9 @@ overlay.position.z = camera.position.z - 0.1;
 scene.add(overlay)
 
 // Renderer
-renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
+renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-document.getElementById('nexus-renderer-container').appendChild(renderer.domElement)
-canvas = document.querySelector('canvas.nexus-webgl')
+appletContainer.querySelector('.nexus-renderer-container').appendChild(renderer.domElement)
 canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
@@ -277,7 +276,7 @@ canvas.style.display = 'none'
  // Composer
 const effectComposer = new EffectComposer(renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
+effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
@@ -338,13 +337,13 @@ controls.enabled = false;
 
 // Mouse
 const mouse = new THREE.Vector2()
-nexusContainer.addEventListener('mousemove', (e) => {
-    mouse.x = (e.layerX/nexusContainer.clientWidth) * 2 - 1
-    mouse.y = -(e.layerY/nexusContainer.clientHeight) * 2 + 1
+appletContainer.addEventListener('mousemove', (e) => {
+    mouse.x = (e.layerX/appletContainer.clientWidth) * 2 - 1
+    mouse.y = -(e.layerY/appletContainer.clientHeight) * 2 + 1
 })
 
 
-nexusContainer.addEventListener('click', () => {
+appletContainer.addEventListener('click', () => {
     if (currentIntersect){
         currentIntersect.object.material.opacity = 1.0 
     }
@@ -410,9 +409,9 @@ this.resizeNexus = () => {
             point.updateMesh(meshWidth,meshHeight)
             let screenPos = point.marker.position.clone()
             screenPos.project(camera)
-            let translateX = nexusContainer.clientWidth * screenPos.x * 0.5
+            let translateX = appletContainer.clientWidth * screenPos.x * 0.5
             point.element.style.transform = `translate(${translateX}px)`
-            let translateY = nexusContainer.clientHeight * screenPos.y * 0.5
+            let translateY = appletContainer.clientHeight * screenPos.y * 0.5
             point.element.style.transform = `translate(${translateY}px)`
             if (point.name == 'me'){
                 material.uniforms.point.value = new THREE.Vector2(point.x,point.y)
@@ -422,10 +421,10 @@ this.resizeNexus = () => {
         }
     })
     drawCylinder()
-    renderer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight);
+    renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(nexusContainer.clientWidth, nexusContainer.clientHeight)
+    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
 }
 
@@ -453,7 +452,7 @@ var animate = () => {
     animateUsers()
     material.uniforms.uTime.value = Date.now() - tStart
     points.forEach(point => {
-        point.animateLabel(camera,nexusContainer)
+        point.animateLabel(camera,appletContainer)
     })
     // stats.update()
     controls.update()
@@ -623,9 +622,6 @@ animate();
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeNexus()
-        // const canvas = document.querySelector('canvas.nexus-webgl')
-        // canvas.width = this.AppletHTML.node.clientWidth;
-        // canvas.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

@@ -1,7 +1,7 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
-import './style.css'
+import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -57,28 +57,16 @@ export class EnsoApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="enso-wrapper" style='height:${props.height}; width:${props.width};'>
-                <div id="enso-renderer-container"><canvas class="enso-webgl"></canvas></div>
-                <div class="enso-gui-container"></div>
-                <div id="enso-gameHero" class="enso-container">
+            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:${props.height}; width:${props.width};'>
+                <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
+                <div class="brainsatplay-threejs-gui-container"></div>
+                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
                     <div>
-                        <p>Alpha Coherence: <span id="enso-alphacoherence"></span></p>
+                        <p>Alpha Coherence: <span class="brainsatplay-threejs-alphacoherence"></span></p>
                     </div>
                 </div>
             </div>
             `;
-            // return `
-            // <div id='${props.id}' class="enso-wrapper" style='height:${props.height}; width:${props.width};'>
-            //     <div id="enso-renderer-container"><canvas class="enso-webgl"></canvas></div>
-            //     <div class="enso-gui-container"></div>
-            //     <div class="enso-mask"></div>
-            //     <div id="enso-gameHero" class="enso-container">
-            //         <div>
-            //             <h1>enso Study</h1>
-            //         </div>
-            //     </div>
-            // </div>
-            // `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
@@ -110,12 +98,6 @@ const loadingManager = new THREE.LoadingManager(
         {
             canvas.style.opacity = '1'
             this.resizeEnso()
-            // gsap.delayedCall(2.0,() => 
-            // {
-            //     document.querySelector('.enso-mask').style.opacity = '0'
-            //     document.getElementById('enso-gameHero').style.opacity = '0'
-
-            // })
         })
     }, 
     // Progress
@@ -130,7 +112,7 @@ textureLoader.load(dummyTexture)
  * Canvas
  */
 const ensoContainer = document.getElementById(this.props.id)
-let canvas = document.querySelector('canvas.enso-webgl')
+let canvas = ensoContainer.querySelector('canvas.brainsatplay-threejs-webgl')
 
 /**
  * Scene
@@ -169,12 +151,11 @@ const renderer = new THREE.WebGLRenderer({
 // Renderer
 renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-document.getElementById('enso-renderer-container').appendChild(renderer.domElement)
-canvas = document.querySelector('canvas.enso-webgl')
+ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
-// ensoContainer.querySelector('.enso-gui-container').appendChild(gui.domElement);
+// ensoContainer.querySelector('.gui-container').appendChild(gui.domElement);
 
 /** 
  * Postprocessing 
@@ -358,7 +339,7 @@ var animate = () => {
 
     let coherence = getCoherence()
     material.uniforms.uNoiseIntensity.value = 1-coherence
-    let coherenceReadout = document.getElementById('enso-alphacoherence')
+    let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
 
     controls.update()
