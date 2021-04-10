@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["/Users/garrettflynn/Documents/Github/eegpwatestground/src/index.ts"],
-  "sourcesContent": ["import 'regenerator-runtime/runtime'\n\n\n//import './app.js'\nimport './managerapp.js'\n\n// GF: Snowpack requires us to set this ourselves...\nwindow.process = { env: {NODE_ENV: 'development' }}\n\nif (process.env.NODE_ENV === 'development') {\n    console.log('DEV MODE');\n}\n\n// GF: serviceWorker import is not working \nif (process.env.NODE_ENV === 'production') {    \n    if(!(navigator as any).serial)\n        alert(\"navigator.serial not found! Enable #enable-experimental-web-platform-features in chrome://flags (search 'experimental')\")\n\t\n\t\t// import serviceWorker from './service-worker';\n\n\tconst serviceWorker = require('./service-worker')\n\t// If you want your app to work offline and load faster, you can change\n    // unregister() to register() below. Note this comes with some pitfalls.\n    serviceWorker.register();\n}\n"],
-  "mappings": "AAAA;AAIA;AAGA,OAAO,UAAU,CAAE,KAAK,CAAC,UAAU;AAEnC,IAAI,QAAQ,IAAI,aAAa,eAAe;AACxC,UAAQ,IAAI;AAAA;AAIhB,IAAI,QAAQ,IAAI,aAAa,cAAc;AACvC,MAAG,CAAE,UAAkB;AACnB,UAAM;AAIb,QAAM,gBAAgB,QAAQ;AAG3B,gBAAc;AAAA;",
-  "names": []
-}
