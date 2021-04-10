@@ -103,7 +103,7 @@ const loadingBarElement = document.querySelector('.nexus-loading-bar')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
-        renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+        this.resizeNexus()
         canvas.style.display = 'block'
         gsap.delayedCall(3.0,() => 
         {
