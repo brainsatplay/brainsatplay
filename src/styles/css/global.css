@@ -303,7 +303,7 @@ select {
     padding: 5px;
     border: 1px solid darkgray;
     border-radius: 5px;
-    background: transparent;
+    background: black;
     color: white;
     font-size: 80%;
     margin: 0px 10px;
