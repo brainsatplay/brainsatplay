@@ -341,8 +341,6 @@ export class AppletManager {
 
     responsive(nodes=this.applets) {
 
-        console.log('responding')
-
         // Create grid subdivisions based on applet count
         let activeNodes = nodes.filter(n => n.classinstance != null)
         let gridRows = Math.ceil(Math.sqrt(nodes.length))
