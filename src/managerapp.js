@@ -19,7 +19,7 @@ import { VideoApplet } from './js/applets/HEG/VideoApplet'
 import { BoidsApplet } from './js/applets/HEG/Boids'
 import { HillClimberApplet } from './js/applets/HEG/HillClimber'
 import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
-import { ThreeSunriseApplet } from './js/applets/HEG/ThreeSunrise/ThreeSunrise'
+import { ThreeSunriseApplet } from './js/applets/General/threejs/ThreeSunrise/ThreeSunriseApplet'
 
 let applets = [
 	{	name:"Enso",      		cls: EnsoApplet			},

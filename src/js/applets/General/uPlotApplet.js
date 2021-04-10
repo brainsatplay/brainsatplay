@@ -4,9 +4,6 @@ import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
 import {eegmath} from '../../bciutils/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 
-
-document.head.insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="./_dist_/styles/css/uPlot.min.css" />`);
-
 //Example Applet for integrating with the UI Manager
 export class uPlotApplet {
 
@@ -172,6 +169,10 @@ export class uPlotApplet {
             undefined,          //Can have an onchange function fire when properties change
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
+
+        
+        this.AppletHTML.appendStylesheet("./_dist_/styles/css/uPlot.min.css");
+
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
        

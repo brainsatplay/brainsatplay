@@ -142,4 +142,30 @@ export class DOMFragment {
             this.node = null;
         }
     }
+
+    //Add a scoped stylesheet after begin
+    appendStylesheet(styles="", node=this.node) {
+        if(typeof styles === 'string') {
+            var link = document.createElement('link');
+            link.rel = "stylesheet";
+            link.type = "text/css";
+            link.href = styles;
+
+            node.insertAdjacentElement('afterbegin',link);
+        }
+        else if (Array.isArray(styles)) {
+            styles.forEach((style) => {
+                var link = document.createElement('link');
+                link.rel = "stylesheet";
+                link.type = "text/css";
+                link.href = style;
+
+                node.insertAdjacentElement('afterbegin',link);
+            });
+        }
+        else if (typeof styles === 'function') {
+            let stylehtml = styles();
+            node.insertAdjacentHTML('afterbegin',stylehtml);
+        }
+    }
 }

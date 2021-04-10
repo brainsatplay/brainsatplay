@@ -232,7 +232,6 @@ export class VideoApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
-
         //Add whatever else you need to initialize
         this.initVideo();
     }
