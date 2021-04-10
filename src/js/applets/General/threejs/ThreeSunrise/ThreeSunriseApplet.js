@@ -32,6 +32,8 @@ export class ThreeSunriseApplet {
             //Add whatever else
         };
 
+        this.looping = false;
+
         this.scene,this.renderer,this.camera, this.composer,
         this.points, this.sunMesh, this.sphereMesh,
         this.cloudMesh, this.pointLight, this.redpointLight,
@@ -352,12 +354,14 @@ export class ThreeSunriseApplet {
             this.camera.updateProjectionMatrix();
         }
 
+        this.looping = true;
         this.render();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
                 
+        this.looping = false;
         cancelAnimationFrame(this.threeAnim);
         this.renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
         this.composer = null;
@@ -375,6 +379,8 @@ export class ThreeSunriseApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+        this.looping = false;
+        setTimeout(()=>{this.looping=true; this.render()},100);
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
@@ -396,51 +402,52 @@ export class ThreeSunriseApplet {
 
     render = () => {
 
-        if(this.bci.atlas.settings.heg) {
-            let ct = this.bci.atlas.data.heg[0].count;
-            if(ct >= 2) {
-                let avg = 40; if(ct < avg) { avg = ct; }
-                let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-                this.onData(score);
-                this.draw();
+        if(this.looping) {
+            if(this.bci.atlas.settings.heg) {
+                let ct = this.bci.atlas.data.heg[0].count;
+                if(ct >= 2) {
+                    let avg = 40; if(ct < avg) { avg = ct; }
+                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    this.onData(score);
+                    this.draw();
+                }
             }
+
+            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+                this.threeWidth = this.AppletHTML.node.clientWidth;
+                this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
+                this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
+                this.camera.updateProjectionMatrix();
+            }
+
+            this.ticks -= this.change*1000;
+
+            this.sphereMesh.rotation.y += this.change*0.25;
+            this.cloudMesh.rotation.y = this.sphereMesh.rotation.y;
+            this.points.rotation.y -= this.change;
+
+            var theta = (this.ticks + 2900) * 0.001;
+            this.pointLight.position.x = Math.sin(theta) * 40;
+            //this.pointLight.position.y = Math.cos( time * 7 ) * 3;
+            this.pointLight.position.z = Math.cos(theta) * 40;
+            this.redpointLight.position.x = Math.sin(theta - 0.15) * 40;
+            this.redpointLight.position.z = Math.cos(theta - 0.15) * 40;
+            this.redpointLight2.position.x = Math.sin(theta + 0.15) * 40;
+            this.redpointLight2.position.z = Math.cos(theta + 0.15) * 40;
+            
+            this.sunMesh.position.x = Math.sin(theta) * 40;
+            this.sunMesh.position.z = Math.cos(theta) * 40;
+
+            this.moonMesh.position.x = Math.sin(theta*1.05 + 0.83) * 30;
+            this.moonMesh.position.z = Math.cos(theta*1.05 + 0.83) * 30;
+            
+            this.composer.render();
+            
+            setTimeout(()=>{this.threeAnim = requestAnimationFrame(this.render)},15);
         }
-
-        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
-            this.threeWidth = this.AppletHTML.node.clientWidth;
-            this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
-            this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
-            this.camera.updateProjectionMatrix();
-        }
-
-        this.ticks -= this.change*1000;
-
-        this.sphereMesh.rotation.y += this.change*0.25;
-        this.cloudMesh.rotation.y = this.sphereMesh.rotation.y;
-        this.points.rotation.y -= this.change;
-
-        var theta = (this.ticks + 2900) * 0.001;
-        this.pointLight.position.x = Math.sin(theta) * 40;
-        //this.pointLight.position.y = Math.cos( time * 7 ) * 3;
-        this.pointLight.position.z = Math.cos(theta) * 40;
-        this.redpointLight.position.x = Math.sin(theta - 0.15) * 40;
-        this.redpointLight.position.z = Math.cos(theta - 0.15) * 40;
-        this.redpointLight2.position.x = Math.sin(theta + 0.15) * 40;
-        this.redpointLight2.position.z = Math.cos(theta + 0.15) * 40;
-        
-        this.sunMesh.position.x = Math.sin(theta) * 40;
-        this.sunMesh.position.z = Math.cos(theta) * 40;
-
-        this.moonMesh.position.x = Math.sin(theta*1.05 + 0.83) * 30;
-        this.moonMesh.position.z = Math.cos(theta*1.05 + 0.83) * 30;
-        
-        this.composer.render();
-        
-        setTimeout(()=>{this.threeAnim = requestAnimationFrame(this.render)},15);
-
     }  
 
    
