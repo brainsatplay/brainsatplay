@@ -342,13 +342,18 @@ const getCoherence = (band='alpha1') => {
  * Animate
  */
 const clock = new THREE.Clock()
+let easing = 0.01;
+let currentCoherence = 1
 
 const animate = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    let desiredCoherence = getCoherence()
+    let dCoherence = desiredCoherence - currentCoherence
+    currentCoherence = (currentCoherence + easing*dCoherence)
 
     // Update material
-    material.uniforms.uTime.value += 0.001 + 0.01*getCoherence()
+    material.uniforms.uTime.value += 0.001 + 0.01*currentCoherence
 
     // Update controls
     controls.update()

@@ -442,6 +442,9 @@ function regeneratePlaneGeometry() {
 
 // Animate
 let currentIntersect = null
+let easing = 0.01;
+let currentCoherence = 1
+
 var animate = () => {
 
     // Limit Framerate
@@ -546,7 +549,10 @@ const animateUsers = () => {
     // coherence
     let coherenceLine = scene.getObjectByName('coherenceLine')
     if (coherenceLine) {
-        coherenceLine.material.opacity = getCoherence()
+        let desiredCoherence = getCoherence()
+        let dCoherence = desiredCoherence - currentCoherence
+        currentCoherence = (currentCoherence + easing*dCoherence)    
+        coherenceLine.material.opacity = currentCoherence
     }
 }
 

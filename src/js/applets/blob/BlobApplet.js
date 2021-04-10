@@ -355,7 +355,9 @@ const getCoherence = (band='alpha1') => {
 
 // Animate
 
-let coherence = 0;
+let easing = 0.01;
+let currentCoherence = 1
+
 var animate = () => {
 
     // Limit Framerate
@@ -364,7 +366,11 @@ var animate = () => {
     }, 1000 / 60 );
 
     material.uniforms.uTime.value = Date.now() - tStart
-    material.uniforms.uNoiseIntensity.value = 1-getCoherence()
+
+    let desiredCoherence = getCoherence()
+    let dCoherence = desiredCoherence - currentCoherence
+    currentCoherence = (currentCoherence + easing*dCoherence)    
+    material.uniforms.uNoiseIntensity.value = 1-currentCoherence
     controls.update()
     effectComposer.render()
 };
