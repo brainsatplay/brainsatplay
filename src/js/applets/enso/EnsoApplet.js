@@ -11,7 +11,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
@@ -213,6 +213,10 @@ effectComposer.addPass(renderPass)
 // effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
 // effectComposer.addPass( effectSobel );
 
+// const shaderPass = new ShaderPass(RGBShiftShader)
+// shaderPass.enabled = true
+// effectComposer.addPass(shaderPass)
+
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
 // bloomPass.strength = 0.5
@@ -273,9 +277,9 @@ var materialControls = new function () {
 const material = new THREE.ShaderMaterial({
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
-    transparent: true,
+    // transparent: true,
     // wireframe: true,
-    blending: THREE.AdditiveBlending,
+    // blending: THREE.AdditiveBlending,
     uniforms:
     {
         uTime: { value: 0 },

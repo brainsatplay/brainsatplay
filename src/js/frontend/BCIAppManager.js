@@ -248,9 +248,7 @@ export class BCIAppManager {
             for (var pair of formData.entries()) {
                 formDict[pair[0]] = pair[1];
             } 
-            console.log(this.bcisession.info.auth)
             this.bcisession.setLoginInfo(formDict.username, formDict.password)
-            console.log(this.bcisession.info.auth)
             this.bcisession.login(true)
         }
 
