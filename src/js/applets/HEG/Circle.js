@@ -136,7 +136,7 @@ export class CircleApplet {
         this.looping = false;
         cancelAnimationFrame(this.loop);
         if(this.soundFX !== null){
-        this.soundFX.osc[0].stop(0);
+            this.soundFX.osc[0].stop(0);
         }
 
         this.AppletHTML.deleteNode();

@@ -16,6 +16,8 @@ import { CircleApplet } from './js/applets/HEG/Circle'
 import { AudioApplet } from './js/applets/HEG/AudioApplet'
 import { VideoApplet } from './js/applets/HEG/VideoApplet'
 import { BoidsApplet } from './js/applets/HEG/Boids'
+import { HillClimberApplet } from './js/applets/HEG/HillClimber'
+import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
 
 let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
@@ -29,6 +31,8 @@ let applets = [
 	{   name:"HEGBoids",        cls: BoidsApplet		},
 	{   name:"HEGAudio",        cls: AudioApplet		},
 	{   name:"HEGVideo",		cls: VideoApplet		}, // 
+	{   name:"HillCimber",      cls: HillClimberApplet  },
+	{   name:"TextScroller",    cls: TextScrollerApplet },
 	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 

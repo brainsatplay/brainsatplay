@@ -218,13 +218,13 @@ export class AudioApplet {
         if(this.useVol == true) {
             var newVol = this.audio.gainNode.gain.value + score;
             if(newVol > this.maxVol){
-            newVol = this.maxVol;
+                newVol = this.maxVol;
             }
             if(newVol < 0){
-            newVol = 0;
+             newVol = 0;
             }
             if(this.defaultUI == true) {
-            document.getElementById(this.props.id+"volSlider").value = newVol * 100;
+              document.getElementById(this.props.id+"volSlider").value = newVol * 100;
             }
             this.audio.gainNode.gain.value = newVol;
         }

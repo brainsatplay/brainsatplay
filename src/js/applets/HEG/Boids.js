@@ -110,8 +110,11 @@ export class BoidsApplet {
             if(this.bci.atlas.settings.heg) {
                 let ct = this.bci.atlas.data.heg[0].count;
                 if(ct >= 2) {
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(this.bci.atlas.data.heg[0].ratio.slice(ct-40));
+                    let avg = 40; if(ct < avg) { avg = ct; }
+                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.class.onData(score);
+                    this.draw();
                 }
             }
             setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);
