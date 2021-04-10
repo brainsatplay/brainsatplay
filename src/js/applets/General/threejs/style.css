@@ -50,17 +50,17 @@
     text-align: left;
     height: 100%;
     width: 100%;
-    padding: 10px 50px;
+    padding: 10px 10%;
     color: white;
     z-index: 1;
     pointer-events: none;
-    line-height: 3em;
     font-size: 80%;
     font-weight: bold;
 }
 
 .brainsatplay-threejs-alphacoherence{
     font-weight: normal;
+    margin: 0px;
 }
 
 .brainsatplay-threejs-gameHero {
@@ -79,6 +79,6 @@
 }
 
 .brainsatplay-threejs-container p {
-    font-size: 0.brainsatplay-threejs-8em;
+    font-size: 0.8em;
     width: 100%;
 }

@@ -16,7 +16,12 @@ export class AppletManager {
         
         this.appletClasses = appletClasses;
         this.appletsSpawned = 0;
-        this.maxApplets = 4;
+
+        if (!window.isMobile){
+            this.maxApplets = 4;
+        } else {
+            this.maxApplets = 1;
+        }
         this.applets = Array.from({length: this.maxApplets}, (e,i) => { return {appletIdx: i+1,name:null,classinstance: null}});
 
         this.bcisession=bcisession;
@@ -31,10 +36,12 @@ export class AppletManager {
 
         //this.responsive(); 
     
+        // Set Styling Properly
         let applets = document.getElementById('applets');
         applets.style.display = 'grid'
         applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
         applets.style.width = 'calc(100vw - 75px)'
+        
     }
 
     initUI = () => {}
@@ -127,7 +134,9 @@ export class AppletManager {
 
         // Generate applet selectors
         this.appletSelectIds.forEach((id,i) => {
-            this.addAppletOptions(id,i);
+            if (i < this.maxApplets){
+                this.addAppletOptions(id,i);
+            }
         }) 
     }
 
@@ -258,7 +267,9 @@ export class AppletManager {
             this.responsive();
             console.log("applet added");
             this.appletSelectIds.forEach((id,i) => {
-                this.addAppletOptions(id,i);
+                if (i < this.maxApplets){
+                    this.addAppletOptions(id,i);
+                }            
             }) 
         }
     }
@@ -379,7 +390,6 @@ export class AppletManager {
         innerStrings = innerStrings.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
         }).join(' ')
-        console.log(innerStrings)
         let applets = document.getElementById('applets');
         applets.style.gridTemplateAreas = innerStrings
         applets.style.gridTemplateColumns = `repeat(${gridRows},1fr)`
