@@ -24,6 +24,8 @@ export class VideoApplet {
             //Add whatever else
         };
 
+        this.looping = false;
+
         this.playRate = 1;
         this.alpha = 0;
         this.volume = 0.5;
@@ -232,12 +234,13 @@ export class VideoApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
-        //Add whatever else you need to initialize
+        this.looping = true;
         this.initVideo();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+      this.looping = false;
       this.stopVideo();
       //document.getElementById(this.props.id+"startbutton").removeEventListener('click', this.startVideo);
       //document.getElementById(this.props.id+"stopbutton").removeEventListener('click', this.stopVideo);
@@ -355,22 +358,25 @@ export class VideoApplet {
       }
       
       animateRect = () => {
-        if((this.sliderfocus == false)) {
-          this.timeSlider.value = Math.floor(1000 * this.vidQuery.currentTime / this.vidQuery.duration);
-        }
+        if(this.looping === true) {
+          if((this.sliderfocus == false)) {
+            this.timeSlider.value = Math.floor(1000 * this.vidQuery.currentTime / this.vidQuery.duration);
+          }
 
-        if(this.bci.atlas.settings.heg) {
-          let ct = this.bci.atlas.data.heg[0].count;
-          let avg = 40; if(ct < avg) { avg = ct; }
-          let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-          let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-          this.onData(score);
-        }
+          if(this.bci.atlas.settings.heg) {
+            let ct = this.bci.atlas.data.heg[0].count;
+            let avg = 40; if(ct < avg) { avg = ct; }
+            let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+            let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+            this.onData(score);
+          }
 
-        this.gl.clearColor(0,0,0.1,this.alpha);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        setTimeout(()=>{this.animationId = requestAnimationFrame(this.animateRect);},15); 
+          this.gl.clearColor(0,0,0.1,this.alpha);
+          this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+          setTimeout(()=>{this.animationId = requestAnimationFrame(this.animateRect);},15); 
+        }
       }
+
   
       initVideo() {
             if(this.useVol == true){

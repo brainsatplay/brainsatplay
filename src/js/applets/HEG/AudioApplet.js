@@ -25,6 +25,7 @@ export class AudioApplet {
             //Add whatever else
         };
 
+        this.looping = false;
         this.c = null; 
         this.ctx = null;
         this.gradient = null;
@@ -159,12 +160,14 @@ export class AudioApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
+        this.looping = true;
         this.initVisualizer();
     
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
         this.stopAudio();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
@@ -509,24 +512,26 @@ export class AudioApplet {
     } 
 
     draw = () => {
-        if(this.bci.atlas.settings.heg) {
-            let ct = this.bci.atlas.data.heg[0].count;
-            let avg = 40; if(ct < avg) { avg = ct; }
-            let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-            let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-            this.onData(score);
-        }
+        if(this.looping === true) {
+            if(this.bci.atlas.settings.heg) {
+                let ct = this.bci.atlas.data.heg[0].count;
+                let avg = 40; if(ct < avg) { avg = ct; }
+                let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                this.onData(score);
+            }
 
-        if(this.mode == 0){
-        this.drawMeter(); 
+            if(this.mode == 0){
+            this.drawMeter(); 
+            }
+            else if(this.mode == 1){
+            this.drawLine();
+            }
+            else if(this.mode == 2){
+            this.drawCircle();
+            }
+            setTimeout(()=>{this.animationId = requestAnimationFrame(this.draw)},15);
         }
-        else if(this.mode == 1){
-        this.drawLine();
-        }
-        else if(this.mode == 2){
-        this.drawCircle();
-        }
-        setTimeout(()=>{this.animationId = requestAnimationFrame(this.draw)},15);
     }
     
 } 
