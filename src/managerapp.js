@@ -21,13 +21,14 @@ let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
 	{	name:"uPlot", 			cls: uPlotApplet   		},
-	{	name:"Enso",      		cls: EnsoApplet		},
-	{	name:"Blob",      		cls: BlobApplet		},
+	{	name:"Enso",      		cls: EnsoApplet			},
+	{	name:"Blob",      		cls: BlobApplet			},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
 	{	name:"Nexus",      		cls: NexusApplet		},
 	{   name:"HEGCircle", 		cls: CircleApplet		},
+	{   name:"HEGBoids",        cls: BoidsApplet		},
 	{   name:"HEGAudio",        cls: AudioApplet		},
-	{   name:"HEGVideo",		cls: VideoApplet		}, // {   name:"HEGBoids",        cls: BoidsApplet		},
+	{   name:"HEGVideo",		cls: VideoApplet		}, // 
 	{	name:"Example Applet", 	cls: AppletExample 		},
 ];//sssssymmetry (ღ˘⌣˘ღ)
 

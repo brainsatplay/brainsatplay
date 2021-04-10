@@ -1,5 +1,4 @@
 
-
 export class Particles { //Adapted from this great tutorial: https://modernweb.com/creating-particles-in-html5-canvas/
     constructor(maxParticles = 100, randomSeed = true, canvasId=undefined) {
 
@@ -11,7 +10,6 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
       this.frameRate = 1;
 
       this.randomSeed = randomSeed;
-
       // No longer setting velocites as they will be random
       // Set up object to contain particles and set some default values
       this.particles = [];
@@ -37,25 +35,30 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
       this.seedsX = [];
       this.seedsY = [];
       this.currentAngle = 0;
+      if(this.randomSeed) {
+        this.seedAngles();
+      }
+
+      if(this.canvasId) {
+        this.canvas = document.getElementById(this.canvasId);
+        this.context = this.canvas.getContext("2d");    
+        this.settings.startingX = Math.random()*this.canvas.width;
+        this.settings.startingY = Math.random()*this.canvas.height;
+        this.settings.groundLevel = this.canvas.height*0.999;
+        this.settings.ceilingLevel = this.canvas.height*0.001;
+        this.settings.rightWall = this.canvas.width * 0.999;
+        this.settings.leftWall = this.canvas.height * 0.001;
+      }
 
       // Generate the particles
       if(this.particles.length < this.settings.maxParticles) {
-        for (var i = 0; i < (this.settings.maxParticles - this.particles.length); i++) {
+        while (this.particles.length < this.settings.maxParticles) {
           this.genParticle();
           //console.log(this.particles[i]);
         }
       }
 
       if(canvasId){
-        this.canvas = document.getElementById(this.canvasId);
-        this.context = this.canvas.getContext("2d");    
-        //this.settings.startingX = Math.random()*this.canvas.width;
-        //this.settings.startingY = Math.random()*this.canvas.height;
-        this.settings.groundLevel = this.canvas.height*0.999;
-        this.settings.ceilingLevel = this.canvas.height*0.001;
-        this.settings.rightWall = this.canvas.width * 0.999;
-        this.settings.leftWall = this.canvas.height * 0.001;
-
         this.draw();
       }
 
@@ -167,10 +170,20 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
 
     animate = () => {
         this.draw();
-        setTimeout(() => { this.animationId = requestAnimationFrame(this.draw); }, 16);
+        setTimeout(() => { this.animationId = requestAnimationFrame(this.animate); }, 16);
     }
 
     draw = () => {
+
+  
+      this.settings.startingX = Math.random()*this.canvas.width;
+      this.settings.startingY = Math.random()*this.canvas.height;
+      this.settings.groundLevel = this.canvas.height*0.999;
+      this.settings.ceilingLevel = this.canvas.height*0.001;
+      this.settings.rightWall = this.canvas.width * 0.999;
+      this.settings.leftWall = this.canvas.height * 0.001;
+      
+
       this.lastFrame = this.thisFrame;
       this.thisFrame = performance.now();
       this.frameRate = (this.thisFrame - this.lastFrame) * 0.001; //Framerate in seconds
@@ -186,15 +199,15 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
       this.context.fillRect(0, 0, this.canvas.width, this.settings.ceilingWall);
       
       
-      // Draw the particles
+      // Generate the particles
       if(this.particles.length < this.settings.maxParticles) {
-        for (var i = 0; i < (this.settings.maxParticles - this.particles.length); i++) {
+        while (this.particles.length < this.settings.maxParticles) {
           this.genParticle();
           //console.log(this.particles[i]);
         }
       }
 
-
+      // Draw the particles
       for (var i in this.particles) {
         this.updateParticle( i );
         // Create the shapes
@@ -202,7 +215,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
         //context.fillRect(this.x, this.y, settings.particleSize, settings.particleSize);
         this.context.clearRect(this.settings.leftWall, this.settings.groundLevel, this.canvas.width, this.canvas.height);
         this.context.beginPath();
-        this.context.fillStyle="rgb("+String(Math.abs(this.particles[i].vx)*75)+","+String(Math.abs(this.particles[i].vx)*25)+","+String(255 - Math.abs(this.particles[i].vx)*75)+")";
+        this.context.fillStyle="rgb("+String(Math.abs(this.particles[i].vx)*75)+","+String(Math.abs(this.particles[i].vy)*25)+","+String(255 - Math.abs(this.particles[i].vx)*75)+")";
         // Draws a circle of radius 20 at the coordinates 100,100 on the canvas
         this.context.arc(this.particles[i].x, this.particles[i].y, this.settings.particleSize, 0, Math.PI*2, true); 
         this.context.closePath();
@@ -246,18 +259,35 @@ export class Boids {
       this.frameRate = 0;
 
       this.canvasId = canvasId;
-      this.particleClass = new Particles(boidsCount,true,canvasId);
-      
-      console.log(this.particleClass.particles);
-      if(this.canvasId) {
+      this.particleClass = null;
+
+      this.init();
+    }
+
+    init = () => {
+      this.particleClass = new Particles(this.boidsCount,true,this.canvasId);
+      if(this.canvasId !== undefined) {
+          this.swirlAnchor = [this.particleClass.canvas.width*0.45, this.particleClass.canvas.height*0.5, 0];
+          this.attractorAnchor = this.swirlAnchor;
+
+          for(var i = 0; i < this.boidsCount; i++){
+            this.boidsPos[i] = [this.particleClass.particles[i].x,this.particleClass.particles[i].y,Math.random()]; //Random starting positions;
+            this.boidsVel[i] = [Math.random()*0.01,Math.random()*0.01,Math.random()*0.01]; //Random starting velocities;
+          }
+
           this.particleClass.animate();
           this.animate();
       }
 
     }
 
+    reinit = () => {
+      this.stop();
+      this.init();
+    }
+
     start = () => {
-        if(this.canvasId) {
+        if(this.canvasId !== undefined) {
             this.particleClass.animate();
         }
         this.animate();
@@ -392,6 +422,7 @@ export class Boids {
               if(this.particleClass.animationId === null) this.particleClass.updateParticle(idx);
               //console.log(this.renderer.particles[idx].vx)
             }
+
             this.boidsPos[idx][0] = this.particleClass.particles[idx].x;
             this.boidsPos[idx][1] = this.particleClass.particles[idx].y;
             //console.log(this.renderer.particles[idx].x)

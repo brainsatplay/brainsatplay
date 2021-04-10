@@ -90,6 +90,9 @@ export class BoidsApplet {
         let canvas = document.getElementById(this.props.id+"canvas");
         canvas.width = this.AppletHTML.node.clientWidth;
         canvas.height = this.AppletHTML.node.clientHeight;
+
+        canvas.style.width = this.AppletHTML.node.clientWidth;
+        canvas.style.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -102,7 +105,7 @@ export class BoidsApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
-    updateLoop() {
+    updateLoop = () => {
         if(this.looping){
             if(this.bci.atlas.settings.heg) {
                 let ct = this.bci.atlas.data.heg[0].count;

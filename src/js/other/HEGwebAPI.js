@@ -2169,15 +2169,11 @@ export class boidsJS { //Birdoids Swarm AI. https://en.wikipedia.org/wiki/Boids
 
             for(var i = 0; i < this.boidsCount; i++){
               this.boidsPos.push([Math.random()*this.renderer.canvas.width,Math.random()*this.renderer.canvas.height,Math.random()]); //Random starting positions;
+              this.renderer.particles[idx].x = this.boidsPos[i][0];
+              this.renderer.particles[idx].y = this.boidsPos[i][1];
               this.boidsVel.push([Math.random()*0.01,Math.random()*0.01,Math.random()*0.01]); //Random starting velocities;
             }
 
-            this.boidsPos.forEach((item,idx) => {
-                this.renderer.particles[idx].x = item[0];
-                this.renderer.particles[idx].y = item[1];
-                //console.log(idx);
-              });
-              
             this.animationId = requestAnimationFrame(this.draw);
           }
           else{
