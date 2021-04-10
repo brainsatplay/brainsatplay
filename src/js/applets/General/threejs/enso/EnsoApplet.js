@@ -352,7 +352,22 @@ var animate = () => {
 // ensoContainer.appendChild(stats.dom)
 
     animate();
-    }
+}
+
+    // // Clear Three.js Scene Completely
+    // clearThree(){
+    //     for (let i = this.three.scene.children.length - 1; i >= 0; i--) {
+    //         const object = this.three.scene.children[i];
+    //         if (object.type === 'Mesh') {
+    //             object.geometry.dispose();
+    //             object.material.dispose();
+    //         }
+    //         this.three.scene.remove(object);
+    //     }
+    //     this.three.scene = null;
+    //     this.three.renderer = null;
+    //     this.three.canvas = null;
+    // }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {

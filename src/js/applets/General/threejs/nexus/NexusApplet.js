@@ -45,6 +45,8 @@ export class NexusApplet {
             //Add whatever else
         };
 
+        this.three = {}
+
         //etc..
 
     }
@@ -103,22 +105,20 @@ const loadingBarElement = document.querySelector('.nexus-loading-bar')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
-        this.resizeNexus()
-        canvas.style.display = 'block'
         gsap.delayedCall(3.0,() => 
         {
-        gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
-        loadingBarElement.classList.add('ended')
-        loadingBarElement.style.transform = ''
-        let hero = appletContainer.querySelector(".nexus-gameHero")
-        // Check if Nexus HTML still exists
-        if (hero){
+        if (this.three.canvas != null){
+            this.resizeNexus()
+            this.three.canvas.style.display = 'block'
+            gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
+            loadingBarElement.classList.add('ended')
+            loadingBarElement.style.transform = ''
+            let hero = appletContainer.querySelector(".nexus-gameHero")
             hero.style.opacity = 0;
-            getGeolocation()
+            this.three.getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
                 // Get My Location
-                getGeolocation()
                 glitchPass.enabled = true
                 glitchPass.lastGlitchTime = Date.now();
                 controls.enabled = true;
@@ -132,6 +132,7 @@ const loadingManager = new THREE.LoadingManager(
         loadingBarElement.style.transform = `scaleX(${itemsLoaded/itemsTotal})`
     }
 )
+
 // const gltfLoader = new GLTFLoader(loadingManager)
 // const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
 // Textures
@@ -174,12 +175,12 @@ const displacementMap = textureLoader.load(mapDisp)
  * Canvas
  */
 const appletContainer = document.getElementById(this.props.id)
-let canvas = appletContainer.querySelector('canvas.nexus-webgl')
+this.three.canvas = appletContainer.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene
  */
-const scene = new THREE.Scene()
+this.three.scene = new THREE.Scene()
 // // const light = new THREE.AmbientLight(0x00b3ff);
 // const light = new THREE.AmbientLight(0xffffff);
 // light.position.set(0, 5, 10);
@@ -192,8 +193,8 @@ const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
 camera.position.z = 3
 
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
+this.three.renderer = new THREE.WebGLRenderer({
+    canvas: this.three.canvas,
     alpha: true
 })
 
@@ -235,13 +236,13 @@ const overlayMaterial = new THREE.ShaderMaterial({
 })
 const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
 overlay.position.z = camera.position.z - 0.1;
-scene.add(overlay)
+this.three.scene.add(overlay)
 
 // Renderer
-renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-appletContainer.querySelector('.nexus-renderer-container').appendChild(renderer.domElement)
-canvas.style.display = 'none'
+this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
+this.three.canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
 
@@ -253,7 +254,7 @@ canvas.style.display = 'none'
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.three.renderer.getPixelRatio() === 1 && this.three.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -274,12 +275,12 @@ canvas.style.display = 'none'
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.three.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
  // Passes
-const renderPass = new RenderPass(scene, camera)
+const renderPass = new RenderPass(this.three.scene, camera)
 effectComposer.addPass(renderPass)
 
 // const effectGrayScale = new ShaderPass( LuminosityShader );
@@ -319,7 +320,7 @@ effectComposer.addPass(bloomPass)
 // effectComposer.addPass(customPass)
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.three.renderer.getPixelRatio() === 1 && !this.three.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -328,7 +329,7 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, this.three.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
 controls.enabled = false;
@@ -354,9 +355,7 @@ let points = new Map()
 let diameter = 1e-2/4;
 points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
 points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
-points.set('Somewhere',new UserMarker({latitude: 0, longitude: 0, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
-
-// let la = points.get('Los Angeles')
+// points.set('Somewhere',new UserMarker({latitude: 0, longitude: 0, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
 
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(meshWidth, meshHeight, segmentsX, segmentsX/imageAspect)
@@ -395,7 +394,7 @@ const material = new THREE.ShaderMaterial({
 
 // Mesh
 const plane = new THREE.Mesh(planeGeometry, material)
-scene.add(plane)
+this.three.scene.add(plane)
 
 // Resize
 this.resizeNexus = () => {
@@ -420,9 +419,9 @@ this.resizeNexus = () => {
             }
         }
     })
-    drawCylinder()
-    renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.three.drawCylinder()
+    this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+    this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
@@ -444,20 +443,22 @@ let currentIntersect = null
 
 var animate = () => {
 
-    // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
-    }, 1000 / 60 );
+    if (this.three.canvas != null){
+        // Limit Framerate
+        setTimeout( function() {
+            requestAnimationFrame( animate );
+        }, 1000 / 60 );
 
-    animateUsers()
-    material.uniforms.uTime.value = Date.now() - tStart
-    points.forEach(point => {
-        point.animateLabel(camera,appletContainer)
-    })
-    // stats.update()
-    controls.update()
-    // renderer.render(scene, camera)
-    effectComposer.render()
+        animateUsers()
+        material.uniforms.uTime.value = Date.now() - tStart
+        points.forEach(point => {
+            point.animateLabel(camera,appletContainer)
+        })
+        // stats.update()
+        controls.update()
+        // this.three.renderer.render(this.three.scene, camera)
+        effectComposer.render()
+    }
 };
 
 
@@ -507,16 +508,16 @@ const animateUsers = () => {
         point.prevMarkers.forEach((obj) => {
             obj.geometry.dispose();
             obj.material.dispose();
-            scene.remove( obj );
+            this.three.scene.remove( obj );
         })
 
         point.prevGroups.forEach((group) => {
-            scene.remove( group );
+            this.three.scene.remove( group );
         })
 
         // Add new marker
-        scene.add(point.marker)
-        scene.add(point.neurofeedbackGroup)
+        this.three.scene.add(point.marker)
+        this.three.scene.add(point.neurofeedbackGroup)
         point.neurofeedbackGroup.rotateZ(0.01);
     })
 
@@ -545,7 +546,7 @@ const animateUsers = () => {
     })
 
     // coherence
-    let coherenceLine = scene.getObjectByName('coherenceLine')
+    let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
     let coherence = getCoherence()
     if (coherenceLine) {
         coherenceLine.material.opacity = coherence
@@ -553,12 +554,12 @@ const animateUsers = () => {
     glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
 
-function drawCylinder() {
-    let coherenceLine = scene.getObjectByName('coherenceLine')
+this.three.drawCylinder = () => {
+    let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
     if (coherenceLine) {
         coherenceLine.geometry.dispose()
         coherenceLine.material.dispose()
-        scene.remove(coherenceLine)
+        this.three.scene.remove(coherenceLine)
     }
     const pointPositions = []
     points.forEach(point => {
@@ -581,25 +582,23 @@ function drawCylinder() {
         let edgeCenter = new THREE.Vector3().addVectors( pointPositions[0], direction.multiplyScalar(0.5))
         edge.position.set(edgeCenter.x,edgeCenter.y,edgeCenter.z)
         edge.lookAt(pointPositions[1]);
-        scene.add(edge)
+        this.three.scene.add(edge)
     }
 }
 
 // Geolocation
-function getGeolocation(){
+this.three.getGeolocation = () => {
     navigator.geolocation.getCurrentPosition(
        // Success   
     (pos) => {
-        points.get('me').setGeolocation(pos.coords)
-        let me = points.get('me')
-        // material.uniforms.points.value[0]= {
-        //     position: new THREE.Vector2(me.x,me.y)
-        //  }
-        // draw line
-        drawCylinder()
-         material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
-         controls.target.set(me.x,me.y,me.z)
-         camera.position.set(me.x,me.y)
+        if (this.three.canvas){
+            points.get('me').setGeolocation(pos.coords)
+            let me = points.get('me')
+            this.three.drawCylinder()
+            material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
+            controls.target.set(me.x,me.y,me.z)
+            camera.position.set(me.x,me.y)
+        }
     }, 
     // Error
     (err) => {
@@ -615,9 +614,25 @@ function getGeolocation(){
 animate();
     }
 
+    // Clear Three.js Scene Completely
+    clearThree(){
+        for (let i = this.three.scene.children.length - 1; i >= 0; i--) {
+            const object = this.three.scene.children[i];
+            if (object.type === 'Mesh') {
+                object.geometry.dispose();
+                object.material.dispose();
+            }
+            this.three.scene.remove(object);
+        }
+        this.three.scene = null;
+        this.three.renderer = null;
+        this.three.canvas = null;
+    }
+
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.clearThree()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

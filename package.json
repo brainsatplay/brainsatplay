@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "build": "snowpack build",
     "deploy": "sh deploy.sh",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
