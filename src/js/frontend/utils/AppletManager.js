@@ -345,24 +345,41 @@ export class AppletManager {
         let activeNodes = nodes.filter(n => n.classinstance != null)
         let gridRows = Math.ceil(Math.sqrt(nodes.length))
         let innerStrings = Array.from({length: gridRows}, e => [])
-        nodes.forEach((applet,i,self) => {
-            if (activeNodes.length > 1){
-                if (applet.classinstance != null){
-                    innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
-                } else {
-                    if (Math.floor(i/gridRows) == Math.floor((i+1)/gridRows)){
-                        innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (i+1)));
-                    } else if (Math.floor(i/gridRows) == Math.floor((i-1)/gridRows)){
-                        innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (i-1)));
+
+        let rowAssignments = nodes.map((n,i) => {if (n.classinstance != null) return Math.floor(i/gridRows)}).filter(n => n != undefined)
+        let twoAppletsOnSameRow = rowAssignments.length !== new Set(rowAssignments).size;
+        if (twoAppletsOnSameRow && activeNodes.length == 2){
+            // let colAssignments = nodes.map((n,i) => {if (n.classinstance != null) return i%gridRows}).filter(n => n != undefined)
+            innerStrings.map((arr,i) => {
+                activeNodes.forEach((n) => {
+                    arr.push(String.fromCharCode(97 + (n.appletIdx-1)))
+                })
+            })
+        } else {
+            nodes.forEach((applet,i,self) => {
+                if (activeNodes.length > 1){
+                    let row = Math.floor(i/gridRows)
+                    let col = i%gridRows
+                    if (applet.classinstance != null){
+                        innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
+                    } else {
+                            if (row == Math.floor((i+1)/gridRows)){
+                                innerStrings[row].push(String.fromCharCode(97 + (i+1)));
+                            } else if (row == Math.floor((i-1)/gridRows)){
+                                innerStrings[row].push(String.fromCharCode(97 + (i-1)));
+                            }
                     }
+                } else if (activeNodes.length == 1) {
+                    innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
                 }
-            } else if (activeNodes.length > 0) {
-                innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
-            }
-        });
+            });
+        } 
+
+
         innerStrings = innerStrings.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
         }).join(' ')
+        console.log(innerStrings)
         let applets = document.getElementById('applets');
         applets.style.gridTemplateAreas = innerStrings
         applets.style.gridTemplateColumns = `repeat(${gridRows},1fr)`
@@ -374,7 +391,11 @@ export class AppletManager {
             if (activeNodes.length === 1){
                 appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar
             } else if (activeNodes.length === 2){
-                appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar       
+                if (twoAppletsOnSameRow && activeNodes.length == 2){
+                    appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar     
+                } else {
+                    appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar     
+                }  
             } else {
                 appletDiv.style.maxHeight = `calc(${gridPercent}vh)`; // Must subtract top navigation bar
             }
