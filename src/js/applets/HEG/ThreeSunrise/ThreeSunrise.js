@@ -438,7 +438,8 @@ export class ThreeSunriseApplet {
         this.moonMesh.position.z = Math.cos(theta*1.05 + 0.83) * 30;
         
         this.composer.render();
-        this.threeAnim = requestAnimationFrame(this.render);
+        
+        setTimeout(()=>{this.threeAnim = requestAnimationFrame(this.render)},15);
 
     }  
 
