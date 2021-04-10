@@ -274,6 +274,7 @@ button {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     padding: 15px;
+    filter: invert(1);
 }
 
 /* Topbar */
