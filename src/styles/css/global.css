@@ -10,6 +10,7 @@ body
     height: 100vh;
     font-family: 'Montserrat', sans-serif;
     background: black;
+    color: white;
 }
 
 body {
@@ -119,7 +120,7 @@ button {
     left:0px;
     top:0px;
     height:100vh;
-    background: whitesmoke;
+    background-color: rgb(10,10,10);
     transition: 0.5s;
     border-right: 1px solid rgb(200, 200, 200);
     z-index: 10;
@@ -162,6 +163,7 @@ button {
     border-radius: 5%;
     font-size: 80%;
     background: transparent;
+    color: white;
     border: 1px solid rgb(200, 200, 200);
     text-align: left;
     transition: 0.5s;
@@ -171,7 +173,7 @@ button {
     justify-content: flex-start;
 }
 #sidebar button:hover {
-    background: rgb(230, 230, 230);
+    background-color: rgb(25,25,25);
 }
 
 #sidebar button .img-cont span {
@@ -203,6 +205,7 @@ button {
 #sidebar button img {
     box-sizing: border-box; 
     /* width: 100%; */
+    filter: invert(1);
     width: 40px;
     max-width: 50px;
     padding: 10px;
@@ -247,7 +250,7 @@ button {
     right: 0;
     opacity: 0%;
     overflow: hidden;
-    background-color: #f1f1f1;
+    background-color: rgb(10,10,10);
     z-index: -1;
     transition: 0.5s;
     pointer-events: none;
@@ -261,7 +264,7 @@ button {
 
 .logo-container {
     width: 100%;
-    border-bottom: 1px solid rgb(200, 200, 200);
+    /* border-bottom: 1px solid rgb(200, 200, 200); */
     margin-bottom: 5px;
     display: flex;
     justify-content: center;
@@ -274,13 +277,12 @@ button {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     padding: 15px;
-    filter: invert(1);
 }
 
 /* Topbar */
 
 #topbar {
-    background: whitesmoke;
+    background-color: rgb(10,10,10);
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -299,7 +301,7 @@ select {
     border: 1px solid darkgray;
     border-radius: 5px;
     color: black;
-    font-size: 60%;
+    font-size: 80%;
     margin: 0px 10px;
 }
 
@@ -320,7 +322,7 @@ select {
 /* Login */
 
 form input {
-    width: 100%; height: 100%; padding: 10px 0px; display: flex; align-items: center; justify-content:center; background:transparent; border: transparent; border-bottom: 1px solid darkgray;
+    width: 100%; height: 100%; padding: 10px 0px; display: flex; align-items: center; justify-content:center; background:transparent; border: transparent; border-bottom: 1px solid whitesmoke; color: white;
 }
 input:focus{
     outline: none;
@@ -427,6 +429,6 @@ input:focus{
 }
 
 .device-card:hover {
-    background: rgb(230, 230, 230);
+    background-color: rgb(25,25,25);
 }
 
