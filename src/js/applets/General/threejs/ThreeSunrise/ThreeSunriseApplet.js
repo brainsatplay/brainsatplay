@@ -379,8 +379,6 @@ export class ThreeSunriseApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.looping = false;
-        setTimeout(()=>{this.looping=true; this.render()},100);
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
