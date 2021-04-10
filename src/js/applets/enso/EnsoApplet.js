@@ -60,6 +60,11 @@ export class EnsoApplet {
             <div id='${props.id}' class="enso-wrapper" style='height:${props.height}; width:${props.width};'>
                 <div id="enso-renderer-container"><canvas class="enso-webgl"></canvas></div>
                 <div class="enso-gui-container"></div>
+                <div id="enso-gameHero" class="enso-container">
+                    <div>
+                        <p>Alpha Coherence: <span id="enso-alphacoherence"></span></p>
+                    </div>
+                </div>
             </div>
             `;
             // return `
@@ -333,15 +338,15 @@ const getCoherence = (band='alpha1') => {
     if(this.bci.atlas.settings.coherence) {
         let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
         if(coherenceBuffer.length > 0) {
-            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
 
 // Animate
-let easing = 0.01;
-let currentCoherence = 1
 var animate = () => {
 
     // Limit Framerate
@@ -351,10 +356,10 @@ var animate = () => {
 
     material.uniforms.uTime.value = Date.now() - tStart
 
-    let desiredCoherence = getCoherence()
-    let dCoherence = desiredCoherence - currentCoherence
-    currentCoherence = (currentCoherence + easing*dCoherence)    
-    material.uniforms.uNoiseIntensity.value = 1-currentCoherence
+    let coherence = getCoherence()
+    material.uniforms.uNoiseIntensity.value = 1-coherence
+    document.getElementById('enso-alphacoherence').innerHTML = coherence.toFixed(5)
+
     controls.update()
     effectComposer.render()
 };

@@ -43,18 +43,24 @@
 .blob-container {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-end;
     position: absolute;
     top: 0px;
     box-sizing: border-box;
-    text-align: center;
+    text-align: left;
     height: 100%;
     width: 100%;
-    padding: 50px;
+    padding: 10px 50px;
     color: white;
     z-index: 1;
     pointer-events: none;
     line-height: 3em;
+    font-size: 80%;
+    font-weight: bold;
+}
+
+#blob-alphacoherence{
+    font-weight: normal;
 }
 
 #blob-gameHero {

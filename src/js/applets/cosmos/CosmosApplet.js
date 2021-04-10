@@ -57,6 +57,11 @@ export class CosmosApplet {
             <div id='${props.id}' class="cosmos-wrapper" style='height:${props.height}; width:${props.width};'>
                 <div id="cosmos-renderer-container"><canvas class="cosmos-webgl"></canvas></div>
                 <div class="cosmos-gui-container"></div>
+                <div id="cosmos-gameHero" class="cosmos-container">
+                    <div>
+                        <p>Alpha Coherence: <span id="cosmos-alphacoherence"></span></p>
+                    </div>
+                </div>
             </div>
             `;  
         }
@@ -324,33 +329,33 @@ generateCosmos()
 /**
  * Get Coherence Values
  */
+
 const getCoherence = (band='alpha1') => {
     let coherence = null;
     if(this.bci.atlas.settings.coherence) {
         let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
         if(coherenceBuffer.length > 0) {
-            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
 
 /**
  * Animate
  */
 const clock = new THREE.Clock()
-let easing = 0.01;
-let currentCoherence = 1
 
 const animate = () =>
 {
     const elapsedTime = clock.getElapsedTime()
-    let desiredCoherence = getCoherence()
-    let dCoherence = desiredCoherence - currentCoherence
-    currentCoherence = (currentCoherence + easing*dCoherence)
 
     // Update material
-    material.uniforms.uTime.value += 0.001 + 0.01*currentCoherence
+    let coherence = getCoherence()
+    material.uniforms.uTime.value += 0.001 + 0.01*coherence
+    document.getElementById('cosmos-alphacoherence').innerHTML = coherence.toFixed(5)
 
     // Update controls
     controls.update()

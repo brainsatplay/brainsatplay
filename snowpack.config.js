@@ -6,9 +6,9 @@ module.exports = {
       src: '/_dist_',
       public: {url: "/", static: true, resolve: false}
   },
+  exclude: ['**/node_modules/**/*', '**/src/js/other/old/**/*'],
   plugins: [
     '@snowpack/plugin-dotenv',
-    '@snowpack/plugin-typescript',
     'snowpack-plugin-glslify',
     ["@snowpack/plugin-optimize", {
       minifyJS: true,

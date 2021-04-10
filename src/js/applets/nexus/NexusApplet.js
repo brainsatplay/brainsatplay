@@ -442,8 +442,6 @@ function regeneratePlaneGeometry() {
 
 // Animate
 let currentIntersect = null
-let easing = 0.01;
-let currentCoherence = 1
 
 var animate = () => {
 
@@ -473,10 +471,12 @@ const getCoherence = (band='alpha1') => {
     if(this.bci.atlas.settings.coherence) {
         let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
         if(coherenceBuffer.length > 0) {
-            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
 
 // Draw Shapes
@@ -525,7 +525,6 @@ const animateUsers = () => {
     let atlas = this.bci.atlas
     let channelTags = atlas.data.eegshared.eegChannelTags;
     let scaling = {}
-    let myAlphaCoherence = []
     // init
     me.neurofeedbackDimensions.forEach(key => {
         scaling[key] = []
@@ -549,10 +548,7 @@ const animateUsers = () => {
     // coherence
     let coherenceLine = scene.getObjectByName('coherenceLine')
     if (coherenceLine) {
-        let desiredCoherence = getCoherence()
-        let dCoherence = desiredCoherence - currentCoherence
-        currentCoherence = (currentCoherence + easing*dCoherence)    
-        coherenceLine.material.opacity = currentCoherence
+        coherenceLine.material.opacity = getCoherence()
     }
 }
 

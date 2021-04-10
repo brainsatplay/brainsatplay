@@ -62,6 +62,11 @@ export class BlobApplet {
             <div id='${props.id}' class="blob-wrapper" style='height:${props.height}; width:${props.width};'>
                 <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
                 <div class="blob-gui-container"></div>
+                <div id="blob-gameHero" class="blob-container">
+                    <div>
+                        <p>Alpha Coherence: <span id="blob-alphacoherence"></span></p>
+                    </div>
+                </div>
             </div>
             `;
             // return `
@@ -69,11 +74,11 @@ export class BlobApplet {
             //     <div id="blob-renderer-container"><canvas class="blob-webgl"></canvas></div>
             //     <div class="blob-gui-container"></div>
             //     <div class="blob-mask"></div>
-            //     <div id="blob-gameHero" class="blob-container">
-            //         <div>
-            //             <h1>Blob Study</h1>
-            //         </div>
-            //     </div>
+                // <div id="blob-gameHero" class="blob-container">
+                //     <div>
+                //         <h1>Blob Study</h1>
+                //     </div>
+                // </div>
             // </div>
             // `;
         }
@@ -347,16 +352,15 @@ const getCoherence = (band='alpha1') => {
     if(this.bci.atlas.settings.coherence) {
         let coherenceBuffer = this.bci.atlas.data.coherence[0].means[band]
         if(coherenceBuffer.length > 0) {
-            coherence = 1000*coherenceBuffer[coherenceBuffer.length-1] ?? 1
+            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/10000)/2; // Real or Simulation
+    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
 
 // Animate
-
-let easing = 0.01;
-let currentCoherence = 1
 
 var animate = () => {
 
@@ -365,12 +369,10 @@ var animate = () => {
         requestAnimationFrame( animate );
     }, 1000 / 60 );
 
-    material.uniforms.uTime.value = Date.now() - tStart
-
-    let desiredCoherence = getCoherence()
-    let dCoherence = desiredCoherence - currentCoherence
-    currentCoherence = (currentCoherence + easing*dCoherence)  
-    material.uniforms.uNoiseIntensity.value = 1-currentCoherence
+    material.uniforms.uTime.value = Date.now() - tStart  
+    let coherence = getCoherence()
+    material.uniforms.uNoiseIntensity.value = 1-coherence
+    document.getElementById('blob-alphacoherence').innerHTML = coherence.toFixed(5)
     controls.update()
     effectComposer.render()
 };
