@@ -73,6 +73,11 @@ export class BCIAppManager {
         this.bcisession = bcisession; //brainsatplay class instance
         this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
+        if (window.isMobile){
+            this.appletSelectIds = ['applet1']
+        } else {
+            this.appletSelectIds = ['applet1','applet2','applet3','applet4']
+        }
         this.appletManager;
         this.fs;
         this.useFS = useFS;
@@ -236,6 +241,23 @@ export class BCIAppManager {
             appletselect_template,
             contentChild1
         );
+        this.appletSelectIds.forEach((id,i) => {
+            if (this.appletSelectIds.length > 1){
+                contentChild1.querySelector('.applet-select-container').innerHTML += `
+                <div style="width: 100%; margin: 5px;">
+                    Applet ${i+1}: <select id="${id}"></select>
+                </div>
+                `
+            } else {
+                contentChild1.querySelector('.applet-select-container').innerHTML += `
+                <div style="width: 100%; margin: 5px;">
+                    <select id="${id}"></select>
+                </div>
+                `
+            }
+        })
+
+
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
         
@@ -336,7 +358,7 @@ export class BCIAppManager {
             this.deinitUI,
             this.appletClasses,
             this.appletConfigs,
-            ['applet1','applet2','applet3','applet4'], //defined in the appletselect template
+            this.appletSelectIds,
             this.bcisession
         )
 

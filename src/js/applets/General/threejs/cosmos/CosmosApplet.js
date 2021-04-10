@@ -58,9 +58,11 @@ export class CosmosApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div>
-                        <p>Alpha Coherence: <span class="brainsatplay-threejs-alphacoherence"></span></p>
-                    </div>
+                <div>
+                    <p>Alpha Coherence</p>
+                    <hr>
+                    <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
+                </div>
                 </div>
             </div>
             `;  

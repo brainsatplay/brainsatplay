@@ -64,7 +64,9 @@ export class BlobApplet {
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
                     <div>
-                        <p>Alpha Coherence: <span class="brainsatplay-threejs-alphacoherence"></span></p>
+                        <p>Alpha Coherence</p>
+                        <hr>
+                        <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
                     </div>
                 </div>
             </div>
