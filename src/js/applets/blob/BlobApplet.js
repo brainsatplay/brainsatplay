@@ -144,29 +144,17 @@ const scene = new THREE.Scene()
 // light.intensity = 1.4;
 // scene.add(light);
 
-let sphereDiameter = 100
-
 /**
  * Camera
  */
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
 camera.position.z = 20
+let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
 
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
 })
-
-/**
- * Texture Params
- */
- let imageWidth = 1200
- let imageHeight = 600
- const segmentsX = 400
- const imageAspect = imageWidth/imageHeight
- let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
- let meshWidth = (fov_y  - 1.0)* camera.aspect;
- let meshHeight = meshWidth / imageAspect;
 
 // Renderer
 renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
@@ -264,7 +252,8 @@ controls.enabled = false;
 //controls.addEventListener('change', render)
 
 // Plane
-const sphereGeometry = new THREE.SphereGeometry(sphereDiameter, Math.pow(2,6), Math.pow(2,6) );
+const sphereGeometry = generateGeometry()
+
 let tStart = Date.now()
 
 // const material = new THREE.MeshNormalMaterial( );
@@ -325,8 +314,6 @@ scene.add(blob)
 this.resizeBlob = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
-    meshWidth = (fov_y  - 1.0)* camera.aspect;
-    meshHeight = meshWidth / imageAspect
     regenerateGeometry()
     renderer.setSize(blobContainer.clientWidth, blobContainer.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -338,10 +325,12 @@ this.resizeBlob = () => {
 window.addEventListener('resize', this.resizeBlob, 
 false)
 
+function generateGeometry() {
+    let diameter = (fov_y  - 1.0)* camera.aspect / 8
+    return new THREE.SphereGeometry(diameter,Math.pow(2,6), Math.pow(2,6));
+}
 function regenerateGeometry() {
-    let newGeometry = new THREE.SphereGeometry(
-        5,32,32
-    )
+    let newGeometry = generateGeometry()
     blob.geometry.dispose()
     blob.geometry = newGeometry
 }
