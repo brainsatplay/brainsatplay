@@ -170,7 +170,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
     }
 
     animate = () => {
-        if(this.velocityFunc !== undefined) this.velocityFunc();
+        if(this.settings.velocityFunc !== undefined) this.settings.velocityFunc();
         this.draw();
         setTimeout(() => { this.animationId = requestAnimationFrame(this.animate); }, 16);
     }
