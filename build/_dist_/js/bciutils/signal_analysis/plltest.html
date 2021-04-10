@@ -1,0 +1,581 @@
+<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"></script><link rel="stylesheet" href="/imported-styles.css"/></head><body>F12 to open console and see results<h3 id="string1"></h3>Sine wave in:<div id="sinechart"></div>arachnoid dpll output:<div id="dpllchart"></div><h3 id="string2"></h3>dft pll output:<div id="mixedchart"></div>dft pll Frequency adjustments:<div id="freqchart"></div><script>class Biquad_Filter {
+  constructor(type,freq,sps,Q=Math.sqrt(0.5),dbGain=0) {
+    let types = ['lowpass','highpass','bandpass','notch','peak','lowshelf','highshelf'];
+    if(types.indexOf(type) < 0) { 
+      console.error("Valid types: 'lowpass','highpass','bandpass','notch','peak','lowshelf','highshelf'"); 
+      return false; 
+    }
+    this.type = type;
+
+    this.freq = freq;
+    this.sps = sps;
+    this.Q = Q;
+    this.dbGain = dbGain;
+
+    this.a0 = 0,this.a1 = 0,this.a2 = 0,
+    this.b0 = 0,this.b1 = 0,this.b2 = 0;
+
+    this.x1 = 0,this.x2 = 0,
+    this.y1 = 0,this.y2 = 0;
+
+    let A = Math.pow(10,dbGain/40);
+    let omega = 2*Math.PI*freq/sps;
+    let sn = Math.sin(omega)
+    let cs = Math.cos(omega);
+    let alpha = sn/(2*Q);
+    let beta = Math.sqrt(A+A);
+
+    this[type](A,sn,cs,alpha,beta);
+
+    //scale constants
+    this.b0 /= this.a0;
+    this.b1 /= this.a0;
+    this.b2 /= this.a0;
+    this.a1 /= this.a0;
+    this.a2 /= this.a0;
+    
+  }
+
+  lowpass(A,sn,cs,alpha,beta) {
+    this.b0 = (1-cs)*.5;
+    this.b1 = 1-cs;
+    this.b2 = (1-cs)*.5;
+    this.a0 = 1+alpha;
+    this.a1 = -2*cs;
+    this.a2 = 1-alpha;
+  }
+
+  highpass(A,sn,cs,alpha,beta) {
+    this.b0 = (1+cs)*.5;
+    this.b1 = -1-cs;
+    this.b2 = (1+cs)*.5;
+    this.a0 = 1 + alpha;
+    this.a1 = -2*cs;
+  }
+
+  bandpass(A,sn,cs,alpha,beta) {
+    this.b0 = alpha;
+    this.b1 = 0;
+    this.b2 = -alpha;
+    this.a0 = 1+alpha;
+    this.a1 = -2*cs;
+    this.a2 = 1-alpha;
+  }
+
+  notch(A,sn,cs,alpha,beta) {
+    this.b0 = 1;
+    this.b1 = -2*cs;
+    this.b2 = 1;
+    this.a0 = 1+alpha;
+    this.a1 = -2*cs;
+    this.a2 = 1-alpha;
+  }
+
+  peak(A,sn,cs,alpha,beta) {
+    this.b0 = 1+(alpha*A);
+    this.b1 = -2*cs;
+    this.b2 = 1-(alpha*A);
+    this.a0 = 1+(alpha/A);
+    this.a1 = -2*cs;
+    this.a2 = 1-(alpha/A);
+  }
+
+  lowshelf(A,sn,cs,alpha,beta) {
+    this.b0 = A*((A+1) - (A-1)*cs + beta*sn);
+    this.b1 = 2*A*((A-1)-(A+1)*cs);
+    this.b2 = A*((A+1) - (A-1)*cs - beta*sn);
+    this.a0 = (A+1) + (A+1)*cs + beta*sn;
+    this.a1 = 2*((A-1) + (A+1)*cs);
+    this.a2 = (A+1) + (A-1)*cs - beta*sn;
+  }
+
+  highshelf(A,sn,cs,alpha,beta) {
+    this.b0 = A*((A+1) + (A-1)*cs + beta*sn);
+    this.b1 = 2*A*((A-1) + (A+1)*cs);
+    this.b2 = A*((A+1) - (A-1)*cs - beta*sn);
+    this.a0 = (A+1) - (A+1)*cs - beta*sn;
+    this.a1 = 2*((A-1) - (A+1)*cs);
+    this.a2 = (A+1) - (A-1)*cs - beta*sn;
+  }
+
+  applyFilter(signal_step) {
+    let y = this.b0*signal_step + this.b1*this.x1 + this.b2*this.x2 - this.a1*this.y1 - this.a2*this.y2;
+    this.x2 = this.x1;
+    this.x1 = signal_step;
+    this.y2 = this.y1;
+    this.y1 = y;
+    
+    return y;
+  }
+
+  staticResult(freq) { //Get the amplitude for a particular frequency based on your filter
+    try{
+      let phi = Math.pow((Math.sin(Math.PI*freq*2/(2*this.sps))),2);
+      let result = (Math.pow(this.b0+this.b1+this.b2,2) - 
+                  4*(this.b0*this.b1+4*this.b0*this.b2 + this.b1*this.b2)*phi + 16*this.b0*this.b2*phi*phi) / 
+                  (Math.pow(1+this.a1+this.a2,2) - 4*(this.a1 + 4*this.a2 + this.a1*this.a2)*phi + 16*this.a2*phi*phi)
+      return r;
+    } catch(err) {
+      return -200;
+    }
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    let freq_actual = 1.2;
+    let freq_guess_in = 1.5;
+    let α = 0.05; //Phase offset multiplier
+    let ß = 0.4; //Frequency offset multiplier. Beta is multiplied by alpha squared in the algorithm
+    let fs = 512; //Sample rate (sps)
+    let nSec = 20; //Seconds of sine wave to compute
+    
+    let nsamples = Math.floor(fs*nSec);
+
+    let wave = genSineWave(freq_actual,1,nSec,fs);
+    let wave_amps = wave[1];
+    let wave_t = wave[0];
+
+    let string1 = freq_actual+'Hz sine in, guess '+freq_guess_in+'Hz to start. α='+α+', ß='+ß+'*α^2';
+
+    //console.log(string1);//,//wave)
+    document.getElementById("string1").innerHTML = string1;
+
+    let dftpll_result = DFTpll(wave_amps,fs,nsamples,freq_guess_in,0,α,ß)
+
+    let string2 = "PLL RESULT: Freq_guessed (Hz): "+ dftpll_result.freq_guesses[nsamples-1].toFixed(4)+"Hz, Phase guessed (rad):" + dftpll_result.phase_guesses[nsamples-1].toFixed(4) + ", Phase error: "+dftpll_result.phase_errs[nsamples-1].toFixed(4);
+    //document.getElementById("string2").innerHTML = string2;
+
+    //console.log(string2);
+    console.log("dftpll result: ", dftpll_result)
+
+    let dpll_result = my_dpll(wave_amps,freq_guess_in, α, ß);
+
+    console.log("dpll_result", dpll_result);
+
+
+
+
+
+
+    let apll_result = arachnoidPLL(wave_amps,freq_guess_in,freq_guess_in,freq_actual,fs);
+    console.log("arachnoide example",apll_result)
+
+
+    let spll_result = SPLL();
+    console.log("spll result",spll_result)
+
+
+    let data = [[{
+              x: wave_t,
+              y: wave_amps,
+              type: 'line',
+              marker: {
+                color: "rgba(255,100,100, 1)"
+              },
+              name: "Sine",
+              //xbins: {  size: 0.01  }
+            }],[{
+                x:wave_t,
+                y:dftpll_result.mixed,
+                type: 'line',
+                marker: {
+                    color: "rgba(100,255,100, 1)"
+                },
+                name: 'Mixed',    
+                xbins: {  size: 1  }
+            }],[{
+                x:wave_t,
+                y:dpll_result.estimated,
+                type: 'line',
+                marker: {
+                    color: "rgba(255,155,0, 1)"
+                },
+                name: 'Mixed',    
+                xbins: {  size: 1  }
+            }],[{
+                x:apll_result.times,
+                y:apll_result.amplitudes,
+                type: 'line',
+                marker: {
+                    color: "rgba(255,55,125, 1)"
+                },
+                name: 'Mixed',    
+                xbins: {  size: 1  }
+            }]
+          ];
+
+    let config = { 
+        scrollZoom: true, 
+        responsive: true, 
+    }
+    
+    Plotly.newPlot("sinechart",data[0],undefined,config);
+    Plotly.newPlot("mixedchart",data[1],undefined,config);
+    Plotly.newPlot("freqchart",data[2],undefined,config);
+    Plotly.newPlot("dpllchart",data[3],undefined,config);
+
+
+function genSineWave(freq=20,peakAmp=1,nSec=1,fs=512,freq2=0,peakAmp2=1){
+        var sineWave = [];
+        var t = [];
+        var increment = 1/fs; //x-axis time increment based on sample rate
+        for (var ti = 0; ti < nSec; ti+=increment){
+            var amplitude = Math.sin(2*Math.PI*freq*ti)*peakAmp;
+            amplitude += Math.sin(2*Math.PI*freq2*ti)*peakAmp2; //Add interference
+            sineWave.push(amplitude);
+            t.push(ti);
+        }
+        return [t,sineWave]; // [[times],[amplitudes]]
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//from an arachnoid tutorial https://arachnoid.com/phase_locked_loop/index.html
+function arachnoidPLL(signal,freq_guess,freq_max,freq_actual, sps) {
+  let LP_loop = new Biquad_Filter('lowpass',freq_max,sps); //The notch filter is probably better for filtering signals closer to the cutoff as an additional measure.
+  let LP_lock = new Biquad_Filter('lowpass',freq_max,sps); //let out = applyFilter(signal[i],LP_lock)
+  let pll_integral = 0;
+  let old_ref = 0;
+  let cf = freq_actual;
+  let pll_cf = freq_actual;
+  let pll_loop_gain = 0.00003;
+  let ref_sig = 0;
+  let _sps = 1/sps;
+//  let invsqr2 = 1/Math.sqrt(2); let cutoff = 0.06;
+  let ta=[], da=[], db=[], df=[];
+  let TWO_PI = Math.PI*2
+  //let noise_level = 100;
+  //let duration = 10; //seconds
+  let t = 0; let increment = 1/sps;
+  for (let i = 0; i<signal.length; i++) {
+    let test_sig = Math.sin(TWO_PI*cf*t);
+    let pll_loop_control = test_sig*ref_sig*pll_loop_gain;
+     pll_loop_control = LP_loop.applyFilter(pll_loop_control);
+     pll_integral += pll_loop_control*_sps;
+    ref_sig = Math.sin(TWO_PI*pll_cf*(t+pll_integral));
+    let quad_ref = (ref_sig-old_ref)*sps/(TWO_PI*pll_cf);
+    old_ref = ref_sig;
+    let pll_lock = LP_lock.applyFilter(-quad_ref*test_sig);
+    ta.push(t); db.push(pll_lock*2);
+    t+=increment;
+  }
+  return {times:ta, amplitudes: db}
+}
+
+
+
+
+
+
+//homebrew... This *should* work, and does on one second of data for some reason. But otherwise there's some complex mathemagic I am unaware of 
+function DFTpll(signal=genSineWave(3.3,1,1,512)[1], fs=512, len=512, freq_est=3, dcoffset=0, alpha=0.05, beta=0.5){ //modifed DFT equation for extracting a single frequency mixed with a simulated frequency, trying to minimze error
+    var real = 0;
+    var imag = 0;
+    var real_sim = 0;
+    var imag_sim = 0;
+    var _len = 1/len;
+    var _fs = 1/fs;
+    var freq = freq_est;
+
+    var α = alpha;
+    var ß = beta*α*α;
+    const TWO_PI = 2*Math.PI;
+    //var shared = TWO_PI*freq*_len;
+    var phase_out = 0;
+    var mixed_signal = new Array(len).fill(0);
+    var freq_guesses = new Array(len).fill(0);
+    var phase_guesses = new Array(len).fill(0);
+    var phase_err_results = new Array(len).fill(0);
+
+    for(var i = 0; i<len; i++){
+      var sharedi =TWO_PI*freq*_fs*i; //complex exponent component
+      real = real+(signal[i]-dcoffset)*Math.cos(sharedi); //complex exponent operations to convert the signal to an amplitude based on the input frequency
+      imag = imag-(signal[i]-dcoffset)*Math.sin(sharedi);
+
+      var simulated = Math.sin(sharedi + phase_out); //Generate sine amplitude with the modulating parameters
+      real_sim = real_sim+(simulated)*Math.cos(sharedi + phase_out);
+      imag_sim = imag_sim-(simulated)*Math.sin(sharedi + phase_out);
+
+      //Complex multiplication (mixing the signals)
+      let re = real*real_sim - imag*imag_sim; //conjugated imag_sim.
+      let im = real*imag_sim + imag*real_sim; //conjugated imag_sim.
+      let phase_err = 0;
+      if(re !== 0 ){
+        phase_err = Math.atan(im/re);//complex argument
+      }
+      else if (im < 0) {
+        phase_err = -Math.PI/2;
+      }
+      else if (im > 0) {
+        phase_err = Math.PI/2;
+      }
+      else {
+        phase_err = 0;
+      }
+
+      freq += phase_err * ß; //ß
+      phase_out += phase_err * α; //α
+      if(phase_out > TWO_PI)
+      {
+          phase_out -= TWO_PI;
+      }
+      else if (phase_out < 0) {
+        phase_out += TWO_PI;
+      }
+
+
+      var mag = Math.sqrt(real_sim*real_sim+imag_sim*imag_sim);
+
+      mixed_signal[i] = mag*_len;
+      freq_guesses[i] = freq;
+      phase_guesses[i] = phase_out;
+      phase_err_results[i] = phase_err;
+      
+    }
+
+    return {mixed:mixed_signal, freq_guesses:freq_guesses, phase_guesses:phase_guesses, phase_errs:phase_err_results}; //mag(real,imag)
+
+}
+
+function my_dpll(signal_in, expectedFreq=4, alpha=0.05, beta=0.01) {
+  let α = alpha;    //Phase modulation scalar
+  let ß = beta;    //Frequency modulation scalar
+  var phase_out = 0;
+  var freq=expectedFreq,
+      peakAmp=Math.max(...signal_in),
+      floor=Math.min(...signal_in),
+      fs=512;
+  var sineWave = [];
+  var t = 0;
+  var increment = 1/fs; //x-axis time increment based on sample rate
+  let phase_err = 0;
+  var im = 0;
+  for(var i = 0; i < signal_in.length; i++) {
+      t=increment*i;
+      var simulated = Math.sin(2*Math.PI*freq*t + phase_out); //Generate sine amplitude with the modulating parameters
+      mag = Math.sqrt(simulated*simulated + im*im); //; convert re, im to polar (mag, phi)
+      phi = Math.atan2(im, simulated);
+      mag = mag * peakAmp;      //; apply factor `scale` to magnitude
+      im = mag * Math.sin(phi);
+      var cmulr = signal_in[i]*simulated; //throwing out the multiplication of the signal in imaginary number as we set it to 0
+      var cmuli = signal_in[i]*im;
+      if(cmulr === 0) { 
+          phase_err = 0.0;
+      } else { 
+          phase_err = Math.atan(cmuli/cmulr);
+      }
+      phase_out += α*phase_err; //Correct parameters by the error
+      freq += ß*phase_err;
+      //console.log(simulated,phi,im,phase_err,phase_out,freq);
+      sineWave.push(simulated);
+  }
+  return {estimated:sineWave,phase_err:phase_err,freq_est:freq,phase_est:phase_out};
+}
+
+
+
+//https://github.com/DanielRanis/SPLL/blob/master/spll.m
+function SPLL(){
+  let A = 3.3;
+  let phi = Math.PI;
+  let f = 10;
+  let fs=512;
+  let T=50/f;
+  let Ts=1/fs;
+  let bit=19;
+
+  let Bn=fs*.01;
+  let D=0.707;
+  let K0=1,Kd=0.5,
+  Kp=(1/(Kd*K0))*(4*D/(D+(1/(4*D))))*(Bn/fs);
+  Ki=(1/(Kd*K0))*(4/(D+((1/4*D))**2))*((Bn/fs)**2);
+
+  let t = []
+  let signalin_sim = [];
+  for(let i = 0; i<T; i+=1/512) {
+    t.push(i);
+    signalin_sim.push(A*Math.sin(2*Math.PI*i*f + phi));
+  }
+
+  let ef = new Array(signalin_sim.length).fill(0);
+  let dphiOut = new Array(signalin_sim.length).fill(0);
+  let phi2Out = new Array(signalin_sim.length).fill(0);
+  let OUT = new Array(signalin_sim.length).fill(0);
+  let phi_err = new Array(signalin_sim.length).fill(0);
+
+  let NCO = 0;
+  let phi2 = 0;
+  let t1=0,t2=0,t3=0,t4=0;
+  let fc=5;
+  let RC=1/(fc*2*Math.PI);
+  let dt=Ts;
+  let a = dt/(RC+dt);
+  for(let k = 0; k<signalin_sim.length; k++) {
+    
+    let ed=Kd*NCO*signalin_sim[k];
+    
+    //low pass
+    let y0=a*ed+(1-a)*t4;
+    ed = y0;
+    dphiOut[k]=ed;
+    
+    //Filter output;
+    let ef2=Ki*ed+t1;
+    ef[k]=Kp*ed+ef2;
+
+    //NCO Output
+    phi2=t2+K0+t3;
+    phi2Out[k]=phi2;
+    NCO=-Math.sin(2*Math.PI*f*t[k]+phi2); //How to modulate f?
+    OUT[k]=NCO;
+
+    //Phase error
+    phi_err[k]=phi-Math.abs(phi2);
+
+    t1=ef2;
+    t2=phi2;
+    t3=ef[k];
+    t3=y0;
+
+  }
+
+  return { dphiOut:dphiOut, phi2Out:phi2Out, OUT:OUT, phi_err:phi_err }
+
+}
+
+
+
+/* //how do I process a signal into this?
+function PLL4thOrder(
+  fc, //Cutoff Frequency 
+  pm, //Phase margin (deg)
+  kphi, //charge pump gain in Amps per radian
+  kvco, //vco tuning sensitivity in Hz/V
+  N, //loop multiplication ratio
+  gamma=1.115, //optimization factor
+  t31=0.107, //Ratio of T3 to T1
+  t43=0.107)//Ratio of T4 to T3
+
+  { 
+    
+    //T1
+    function getT1(fc,pm,gamma,t31,t43,nIters = 100){
+
+      function T1Func(x,fc,pm,t31,t43,gamma) {
+        let omega_c = 2*Math.PI*fc;
+        let phi = pm*Math.PI/180;
+        let val = Math.atan(gamma/(omega_c*x*(1+t31))) -
+          Math.atan(omega_c*x) - Math.atan(omega_c*x*t31) -
+          Math.atan(omega_c*x*t31*t43) - phi;
+        return val;
+      }
+      let a = 1e-15;
+      let b = 1.0;
+      let fa = T1Func(a,fc,pm,t31,t43,gamma);
+      let fb = T1Func(b,fc,pm,t31,t43,gamma);
+      for(let i = 0; i < nIters; i++) {
+        let guess = (a+b)/2;
+        if(T1Func(guess,fc,pm,t31,t43,gamma) < 0) b = guess;
+        else a = guess;
+      }
+      return guess;
+    }
+
+    function getA0(kphi,kvco,N,fc,t1,t2,t3,t4) {
+      let omega_c = 2*Math.PI*fc;
+      let k1 = kphi*kvco/((omega_c*omega_c)*N)
+      let k2 = Math.sqrt((1+Math.pow(omega_c*t2,2))/((1+Math.pow(omega_c*t1,2))*(1+Math.pow(omega_c*t3,2))*(1+Math.pow(omega_c*t4,2))));
+      return k1*k2;
+    }
+
+    function getC1R3(a0,t1,t2,tpole){
+      let a1_t = a0*(t1+tpole);
+      let a2_t = a0*t1*tpole;
+      let c1_t = (a2_t/(t2*t2))*(1+Math.sqrt(1+(t2/a2_t)*(t2*a0-a1_t)));
+      let c3_t = (-1*(t2*t2)*(c1_t*c1_t)+t2*a1_t*c1_t - a2_t*a0)/((t2*t2)*c1_t - a2_t);
+      let r3_t = a2_t/(c1_t*c3_t*t2);
+      return [c1_t,r3_t];
+    }
+
+    function getC2C3(a0,a1,a2,a3,t2,r3,c1) {
+      let k0 = (a2/a3) - 1/t2 - 1/(c1*r3) - (a0-c1)*t2*t3*c1/a3;
+      let k1 = a1-t2*a0-a3/(t2*r3*c1) - (a0-c1)*r3*c1;
+      let a = a3/((t2*c1)*(t2*c1));
+      let b = t2 + r3*(c1-a0) + (a3/(t2*c1))*((1/t2)-k0);
+      let c = k1 - (k0*a3)/t2;
+      let c2 = (-b + Math.sqrt(b*b-4*a*c))/(2*a);
+      let c3 = (t2*a3*c1)/(r3*(k0*t2*a3*c1-c2*(a3-r3*((t2*c1)*(t2*c1)))));
+      return [c2,c3];
+    }
+
+
+    let d = {};
+    let omega_c = 2*Math.PI*fc;
+    
+    d.t1 = getT1(fc,pm,gamma,t31,t43);
+    d.t3 = d.t1*t31;
+    d.t4 = d.t1*t31*t43;
+    d.t2 = gamma/((omega_c*omega_c)*(d.t1+d.t3+d.t4));
+    d.a0 = getA0(kphi,kvco,N,fc,d.t1,d.t2,d.t3,d.t4);
+
+    d.a1 = d.a0*(d.t1+d.t3+d.t4);
+    d.a2 = d.a0*(d.t1*d.t3+d.t1*d.t4+d.t3*d.t4);
+    d.a3 = d.a0*d.t1*d.t3*d.t4;
+
+    let [c1_t3, r3_tr] = getC1R3(d.a0,d.t1,d.t2,d.t3);
+    let [c1_t4, r3_t4] = getC1R3(d.a0,d.t1,d.t2,d.t4);
+
+    d.c1 = (c1_t3+c1_t4)/2;
+    d.r3 = (r3_t3 + r3_t4)/2;
+    [d.c2, d.c3] = getC2C3(d.a0,d.a1,d.a3,d.t2,d.r3,d.c1);
+    d.c4 = d.a0-d.c1-d.c2-d.c3;
+    d.r2 = d.t2/d.c2;
+    d.r4 = d.a3/(d.t2*d.r3*d.c1*d.c3*d.c4);
+
+    return d;
+   
+  }
+
+
+  function testPLL4thOrder(fc) {
+    let pm = 45;
+    let kphi = 5e-3;
+    let kvc0 = 1e3;
+    let N = 2;;
+    let fstart = 1;
+    let fstop = 100e6;
+    let ptsPerDec = 100;
+    let R = 1;
+
+    let d_test = PLL4thOrder(fc,pm,kphi,kvco,N);
+  }
+*/</script></body></html>

@@ -1,0 +1,1 @@
+export class geolocateJS{constructor(){navigator.geolocation||alert("Geolocation not supported in this browser!"),this.locationData=[]}showPosition(o){return this.locationData.push(new Date().toISOString()+","+o.coords.latitude+","+o.coords.longitude),o}getPosition(){navigator.geolocation.getCurrentPosition(this.showPosition)}}

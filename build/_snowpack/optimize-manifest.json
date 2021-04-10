@@ -1,0 +1,166 @@
+{
+  "imports": {
+    "/_dist_/js/applets/General/threejs/nexus/index.html": {
+      "entry": [],
+      "css": [
+        "/_dist_/js/applets/General/threejs/nexus/favicon.ico"
+      ],
+      "js": []
+    },
+    "/_dist_/js/bciutils/signal_analysis/biquad_test.html": {
+      "entry": [],
+      "css": [],
+      "js": [
+        "https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"
+      ]
+    },
+    "/_dist_/js/bciutils/signal_analysis/iir_filters.html": {
+      "entry": [],
+      "css": [],
+      "js": [
+        "https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"
+      ]
+    },
+    "/_dist_/js/bciutils/signal_analysis/plltest.html": {
+      "entry": [],
+      "css": [],
+      "js": [
+        "https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"
+      ]
+    },
+    "/_dist_/js/other/testplot.html": {
+      "entry": [
+        "/_dist_/js/other/js/utils/chroma.min.js",
+        "/_dist_/js/other/js/utils/uPlot.iife.min.js"
+      ],
+      "css": [
+        "/_dist_/js/other/css/uPlot.min.css"
+      ],
+      "js": [
+        "/_dist_/js/other/js/utils/chroma.min.js",
+        "/_dist_/js/other/js/utils/uPlot.iife.min.js"
+      ]
+    },
+    "/_dist_/py/templates/index.html": {
+      "entry": [
+        "/_dist_/py/templates/{{ url_for('static', filename='broadcast.js') }}"
+      ],
+      "css": [],
+      "js": [
+        "/_dist_/py/templates/{{ url_for('static', filename='broadcast.js') }}"
+      ]
+    },
+    "/index.html": {
+      "entry": [
+        "/_dist_/index.js"
+      ],
+      "css": [
+        "/_dist_/styles/css/global.css",
+        "/favicon.ico",
+        "/logo192.png",
+        "/manifest.webmanifest",
+        "https://fonts.googleapis.com/css?family=Montserrat"
+      ],
+      "js": [
+        "/_dist_/assets/csv_noun.svg.proxy.js",
+        "/_dist_/assets/file_noun.svg.proxy.js",
+        "/_dist_/assets/logo512.png.proxy.js",
+        "/_dist_/assets/menu.svg.proxy.js",
+        "/_dist_/assets/menuX.svg.proxy.js",
+        "/_dist_/index.js",
+        "/_dist_/js/applets/AppletExample.js",
+        "/_dist_/js/applets/EEG/BrainMapApplet.js",
+        "/_dist_/js/applets/EEG/SmoothieApplet.js",
+        "/_dist_/js/applets/EEG/SpectrogramApplet.js",
+        "/_dist_/js/applets/General/threejs/blob/BlobApplet.js",
+        "/_dist_/js/applets/General/threejs/blob/img/dummyTexture.jpeg.proxy.js",
+        "/_dist_/js/applets/General/threejs/blob/shaders/blob/fragment.js",
+        "/_dist_/js/applets/General/threejs/blob/shaders/blob/vertex.js",
+        "/_dist_/js/applets/General/threejs/cosmos/CosmosApplet.js",
+        "/_dist_/js/applets/General/threejs/cosmos/img/dummyTexture.jpeg.proxy.js",
+        "/_dist_/js/applets/General/threejs/cosmos/shaders/cosmos/fragment.js",
+        "/_dist_/js/applets/General/threejs/cosmos/shaders/cosmos/vertex.js",
+        "/_dist_/js/applets/General/threejs/enso/EnsoApplet.js",
+        "/_dist_/js/applets/General/threejs/enso/img/dummyTexture.jpeg.proxy.js",
+        "/_dist_/js/applets/General/threejs/enso/shaders/enso/fragment.js",
+        "/_dist_/js/applets/General/threejs/enso/shaders/enso/vertex.js",
+        "/_dist_/js/applets/General/threejs/nexus/img/mapDisplacement.jpeg.proxy.js",
+        "/_dist_/js/applets/General/threejs/nexus/img/mapTexture.jpeg.proxy.js",
+        "/_dist_/js/applets/General/threejs/nexus/NexusApplet.js",
+        "/_dist_/js/applets/General/threejs/nexus/postprocessing/CustomGlitchPass.js",
+        "/_dist_/js/applets/General/threejs/nexus/shaders/map/fragment.js",
+        "/_dist_/js/applets/General/threejs/nexus/shaders/map/vertex.js",
+        "/_dist_/js/applets/General/threejs/nexus/style.css.proxy.js",
+        "/_dist_/js/applets/General/threejs/nexus/UserMarker.js",
+        "/_dist_/js/applets/General/threejs/style.css.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/textures/8k_earth_daymap.jpg.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/textures/8k_earth_nightmap.jpg.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/textures/8k_earth_specular_map.tif.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/textures/clouds_8k.jpg.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/textures/moon_4k.jpg.proxy.js",
+        "/_dist_/js/applets/General/threejs/ThreeSunrise/ThreeSunriseApplet.js",
+        "/_dist_/js/applets/General/uPlotApplet.js",
+        "/_dist_/js/applets/HEG/AudioApplet.js",
+        "/_dist_/js/applets/HEG/Boids.js",
+        "/_dist_/js/applets/HEG/Circle.js",
+        "/_dist_/js/applets/HEG/HillClimber.js",
+        "/_dist_/js/applets/HEG/TextScroller.js",
+        "/_dist_/js/applets/HEG/VideoApplet.js",
+        "/_dist_/js/bciutils/DataAtlas.js",
+        "/_dist_/js/bciutils/devicePlugins/cyton.js",
+        "/_dist_/js/bciutils/devicePlugins/cytonPlugin.js",
+        "/_dist_/js/bciutils/devicePlugins/freeeeg32Plugin.js",
+        "/_dist_/js/bciutils/devicePlugins/hegduinoPlugin.js",
+        "/_dist_/js/bciutils/devicePlugins/musePlugin.js",
+        "/_dist_/js/bciutils/devicePlugins/webgazerPlugin.js",
+        "/_dist_/js/bciutils/eeg32.js",
+        "/_dist_/js/bciutils/eegmath.js",
+        "/_dist_/js/bciutils/hegduino.js",
+        "/_dist_/js/bciutils/signal_analysis/BiquadFilters.js",
+        "/_dist_/js/bciutils/visuals/eegvisuals.js",
+        "/_dist_/js/bciutils/visuals/webgl-heatmap.js",
+        "/_dist_/js/brainsatplay.js",
+        "/_dist_/js/frontend/BCIAppManager.js",
+        "/_dist_/js/frontend/menus/selectTemplates.js",
+        "/_dist_/js/frontend/menus/UITemplates.js",
+        "/_dist_/js/frontend/utils/AppletManager.js",
+        "/_dist_/js/frontend/utils/DOMFragment.js",
+        "/_dist_/js/frontend/utils/ObjectListener.js",
+        "/_dist_/js/frontend/utils/StateManager.js",
+        "/_dist_/js/frontend/UX/Particles.js",
+        "/_dist_/js/frontend/UX/Sound.js",
+        "/_dist_/js/general/csv.js",
+        "/_dist_/managerapp.js",
+        "/_snowpack/pkg/browserfs.js",
+        "/_snowpack/pkg/common/_commonjsHelpers-4f955397.js",
+        "/_snowpack/pkg/common/CopyShader-c0a4c94f.js",
+        "/_snowpack/pkg/common/DigitalGlitch-2b3e1210.js",
+        "/_snowpack/pkg/common/Pass-35d0974f.js",
+        "/_snowpack/pkg/common/ShaderPass-0dccb253.js",
+        "/_snowpack/pkg/common/three.module-f256b224.js",
+        "/_snowpack/pkg/gsap.js",
+        "/_snowpack/pkg/muse-js.js",
+        "/_snowpack/pkg/postprocessing.js",
+        "/_snowpack/pkg/regenerator-runtime/runtime.js",
+        "/_snowpack/pkg/smoothie.js",
+        "/_snowpack/pkg/three.js",
+        "/_snowpack/pkg/three/examples/jsm/controls/OrbitControls.js",
+        "/_snowpack/pkg/three/examples/jsm/libs/dat.gui.module.js",
+        "/_snowpack/pkg/three/examples/jsm/libs/stats.module.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/EffectComposer.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/GlitchPass.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/RenderPass.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/ShaderPass.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/SMAAPass.js",
+        "/_snowpack/pkg/three/examples/jsm/postprocessing/UnrealBloomPass.js",
+        "/_snowpack/pkg/three/examples/jsm/shaders/DigitalGlitch.js",
+        "/_snowpack/pkg/three/examples/jsm/shaders/RGBShiftShader.js",
+        "/_snowpack/pkg/three/examples/jsm/shaders/SobelOperatorShader.js",
+        "/_snowpack/pkg/uplot.js"
+      ]
+    }
+  },
+  "generated": {
+    "preloadedCSS": "/imported-styles.css"
+  }
+}

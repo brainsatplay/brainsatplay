@@ -1,0 +1,1 @@
+import{brainsatplay as t}from"./js/brainsatplay.js";import{uPlotApplet as o}from"./js/applets/General/uPlotApplet.js";let e=new o(document.body,new t);e.bci.makeConnectOptions(document.body,()=>{e.responsive()}),e.init(),e.responsive();

@@ -1,0 +1,25 @@
+{
+  "imports": {
+    "browserfs": "./browserfs.js",
+    "gpu.js": "./gpujs.js",
+    "gsap": "./gsap.js",
+    "muse-js": "./muse-js.js",
+    "postprocessing": "./postprocessing.js",
+    "regenerator-runtime/runtime": "./regenerator-runtime/runtime.js",
+    "smoothie": "./smoothie.js",
+    "three": "./three.js",
+    "three/examples/jsm/controls/OrbitControls.js": "./three/examples/jsm/controls/OrbitControls.js",
+    "three/examples/jsm/libs/dat.gui.module": "./three/examples/jsm/libs/dat.gui.module.js",
+    "three/examples/jsm/libs/stats.module": "./three/examples/jsm/libs/stats.module.js",
+    "three/examples/jsm/postprocessing/EffectComposer": "./three/examples/jsm/postprocessing/EffectComposer.js",
+    "three/examples/jsm/postprocessing/GlitchPass": "./three/examples/jsm/postprocessing/GlitchPass.js",
+    "three/examples/jsm/postprocessing/RenderPass": "./three/examples/jsm/postprocessing/RenderPass.js",
+    "three/examples/jsm/postprocessing/SMAAPass": "./three/examples/jsm/postprocessing/SMAAPass.js",
+    "three/examples/jsm/postprocessing/ShaderPass": "./three/examples/jsm/postprocessing/ShaderPass.js",
+    "three/examples/jsm/postprocessing/UnrealBloomPass": "./three/examples/jsm/postprocessing/UnrealBloomPass.js",
+    "three/examples/jsm/shaders/DigitalGlitch.js": "./three/examples/jsm/shaders/DigitalGlitch.js",
+    "three/examples/jsm/shaders/RGBShiftShader": "./three/examples/jsm/shaders/RGBShiftShader.js",
+    "three/examples/jsm/shaders/SobelOperatorShader": "./three/examples/jsm/shaders/SobelOperatorShader.js",
+    "uplot": "./uplot.js"
+  }
+}
