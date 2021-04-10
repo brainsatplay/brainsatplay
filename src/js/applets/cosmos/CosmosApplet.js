@@ -93,7 +93,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(0.1,() => 
         {
             canvas.style.opacity = '1'
-            resizeCosmos()
+            this.resizeCosmos()
         })
     }, 
     // Progress
@@ -225,7 +225,7 @@ const generateCosmos = () =>
 // gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
 // gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
 
-let resizeCosmos = () => {
+this.resizeCosmos = () => {
     // Update camera
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
@@ -241,7 +241,7 @@ let resizeCosmos = () => {
 
 window.addEventListener('resize', () =>
 {
-    resizeCosmos()
+    this.resizeCosmos()
 })
 
 /**
@@ -355,8 +355,9 @@ const animate = () =>
     // Update material
     let coherence = getCoherence()
     material.uniforms.uTime.value += 0.001 + 0.01*coherence
-    document.getElementById('cosmos-alphacoherence').innerHTML = coherence.toFixed(5)
-
+    let coherenceReadout = document.getElementById('cosmos-alphacoherence')
+    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+    
     // Update controls
     controls.update()
 
@@ -379,7 +380,7 @@ animate()
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        // this.resizeCosmos()
+        this.resizeCosmos()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

@@ -358,7 +358,8 @@ var animate = () => {
 
     let coherence = getCoherence()
     material.uniforms.uNoiseIntensity.value = 1-coherence
-    document.getElementById('enso-alphacoherence').innerHTML = coherence.toFixed(5)
+    let coherenceReadout = document.getElementById('enso-alphacoherence')
+    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
 
     controls.update()
     effectComposer.render()

@@ -372,7 +372,9 @@ var animate = () => {
     material.uniforms.uTime.value = Date.now() - tStart  
     let coherence = getCoherence()
     material.uniforms.uNoiseIntensity.value = 1-coherence
-    document.getElementById('blob-alphacoherence').innerHTML = coherence.toFixed(5)
+    let coherenceReadout = document.getElementById('blob-alphacoherence')
+    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+    
     controls.update()
     effectComposer.render()
 };

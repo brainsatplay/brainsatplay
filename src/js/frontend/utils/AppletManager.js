@@ -257,6 +257,9 @@ export class AppletManager {
             this.appletsSpawned++;
             this.responsive();
             console.log("applet added");
+            this.appletSelectIds.forEach((id,i) => {
+                this.addAppletOptions(id,i);
+            }) 
         }
     }
 
@@ -316,7 +319,9 @@ export class AppletManager {
                     newhtml += `<option value='`+classObj.name+`' selected="selected">`+this.appletClasses[i].name+`</option>`;
                 }
                 else{
-                    newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
+                    if (this.applets.find(applet => applet.name === classObj.name) == undefined){ // No duplicate applets
+                        newhtml += `<option value='`+classObj.name+`'>`+this.appletClasses[i].name+`</option>`;
+                    }
                 }
             }
         });
@@ -338,12 +343,13 @@ export class AppletManager {
 
     responsive(nodes=this.applets) {
 
+        console.log('responding')
+
         // Create grid subdivisions based on applet count
         let activeNodes = nodes.filter(n => n.classinstance != null)
         let gridRows = Math.ceil(Math.sqrt(nodes.length))
         let innerStrings = Array.from({length: gridRows}, e => [])
         nodes.forEach((applet,i,self) => {
-            if (applet.classinstance != null){
             if (activeNodes.length > 1){
                 if (applet.classinstance != null){
                     innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
@@ -354,10 +360,9 @@ export class AppletManager {
                         innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (i-1)));
                     }
                 }
-            } else {
+            } else if (activeNodes.length > 0) {
                 innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
             }
-        }
         });
         innerStrings = innerStrings.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
@@ -369,16 +374,15 @@ export class AppletManager {
 
         activeNodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
-            let gridPercent = 100/(Math.ceil(Math.sqrt(nodes.length)));
-            if (nodes.length === 1){
+            let gridPercent = 100/(Math.ceil(Math.sqrt(activeNodes.length)));
+            if (activeNodes.length === 1){
                 appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar
-            } else if (nodes.length === 2){
+            } else if (activeNodes.length === 2){
                 appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar       
             } else {
                 appletDiv.style.maxHeight = `calc(${gridPercent}vh)`; // Must subtract top navigation bar
             }
-        });
-        
+        });        
 
         activeNodes.forEach((applet,i) => {
             applet.classinstance.responsive();
