@@ -120,9 +120,9 @@ button {
     left:0px;
     top:0px;
     height:100vh;
-    background-color: rgb(10,10,10);
+    background-color: rgb(15,15,15);
     transition: 0.5s;
-    border-right: 1px solid rgb(200, 200, 200);
+    /* border-right: 1px solid rgb(200, 200, 200); */
     z-index: 10;
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
@@ -173,7 +173,7 @@ button {
     justify-content: flex-start;
 }
 #sidebar button:hover {
-    background-color: rgb(25,25,25);
+    background-color: rgb(35,35,35);
 }
 
 #sidebar button .img-cont span {
@@ -250,7 +250,7 @@ button {
     right: 0;
     opacity: 0%;
     overflow: hidden;
-    background-color: rgb(10,10,10);
+    background-color: rgb(15,15,15);
     z-index: -1;
     transition: 0.5s;
     pointer-events: none;
@@ -282,7 +282,7 @@ button {
 /* Topbar */
 
 #topbar {
-    background-color: rgb(10,10,10);
+    background-color: rgb(15,15,15);
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -300,7 +300,8 @@ select {
     padding: 5px;
     border: 1px solid darkgray;
     border-radius: 5px;
-    color: black;
+    background: transparent;
+    color: white;
     font-size: 80%;
     margin: 0px 10px;
 }
@@ -429,6 +430,6 @@ input:focus{
 }
 
 .device-card:hover {
-    background-color: rgb(25,25,25);
+    background-color: rgb(35,35,35);
 }
 
