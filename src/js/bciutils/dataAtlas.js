@@ -563,7 +563,13 @@ export class DataAtlas {
 		return score;
 	}
 
-	//Calculate the latest theta beta ratio from bandpower averages
+	//Get alpha2/alpha1 ratio from latest bandpower averages
+	getAlphaRatio(eeg_data) {
+		let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
+		return ratio;
+	}
+
+	//Calculate the latest theta beta ratio from latest bandpower averages
 	getThetaBetaRatio(eeg_data) {
 		let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
 		return ratio;
