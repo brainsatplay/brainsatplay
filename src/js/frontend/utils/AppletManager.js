@@ -106,9 +106,8 @@ export class AppletManager {
         currentApplets.forEach((className,i) => {
             let applet = this.appletClasses.filter(applet => applet.name == className)[0]
             let compatible = false;
-            if (applet != undefined){
-                compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-            }
+            if (applet != undefined) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+            else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
             
             // Replace incompatible applets
             if (!compatible){

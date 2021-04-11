@@ -306,8 +306,8 @@ select {
     border-radius: 5px;
     background: black;
     color: white;
-    font-size: 80%;
-    margin: 0px 10px;
+    font-size: 64%;
+    /* margin: 0px 10px; */
 }
 
 
