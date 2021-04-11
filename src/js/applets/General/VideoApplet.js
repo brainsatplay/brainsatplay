@@ -258,11 +258,8 @@ export class VideoApplet {
         this.c.width = this.AppletHTML.node.clientWidth;
         this.c.height = this.AppletHTML.node.clientHeight;
 
-        if(this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
-          this.coh_ref_ch = this.bci.atlas.getCoherenceByTag('FP2_FP1');
-          if(this.coh_ref_ch === undefined) { this.bci.atlas.getCoherenceByTag('FP1_FP2'); }
-          else if (this.coh_ref_ch === undefined) { this.bci.atlas.getCoherenceByTag('AF7_AF8'); }
-          else if (this.coh_ref_ch === undefined) { this.bci.atlas.getCoherenceByTag('AF8_AF7'); }
+        if(this.bci.atlas.settings.coherence) {
+          this.coh_ref_ch = this.bci.atlas.getFrontalCoherenceData();
         }
     }
 
