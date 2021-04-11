@@ -1,6 +1,3 @@
-
-import {eegmath} from './eegmath'
-
 //relies on eegworker (see implementation in public/index.html)
 
 //-------------------------------------------------------------------------------------------------------
@@ -584,42 +581,42 @@ export class DataAtlas {
 				if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 					var scp = fft.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 					o.slices.scp.push(scp);
-					o.means.scp.push(eegmath.mean(scp));
+					o.means.scp.push(this.mean(scp));
 				}
 				if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 					var delta = fft.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 					o.slices.delta.push(delta);
-					o.means.delta.push(eegmath.mean(delta));
+					o.means.delta.push(this.mean(delta));
 				}
 				if(this.data.eegshared.bandFreqs.theta[1].length > 0){
 					var theta = fft.slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 					o.slices.theta.push(theta);
-					o.means.theta.push(eegmath.mean(theta));
+					o.means.theta.push(this.mean(theta));
 				}
 				if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
 					var alpha1 = fft.slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 					o.slices.alpha1.push(alpha1);
-					o.means.alpha1.push(eegmath.mean(alpha1));
+					o.means.alpha1.push(this.mean(alpha1));
 				}
 				if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
 					var alpha2 = fft.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 					o.slices.alpha2.push(alpha2);
-					o.means.alpha2.push(eegmath.mean(alpha2));
+					o.means.alpha2.push(this.mean(alpha2));
 				}
 				if(this.data.eegshared.bandFreqs.beta[1].length > 0){
 					var beta  = fft.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 					o.slices.beta.push(beta);
-					o.means.beta.push(eegmath.mean(beta));
+					o.means.beta.push(this.mean(beta));
 				}
 				if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
 					var lowgamma = fft.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 					o.slices.lowgamma.push(lowgamma);
-					o.means.lowgamma.push(eegmath.mean(lowgamma));
+					o.means.lowgamma.push(this.mean(lowgamma));
 				}
 				if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
 					var highgamma = fft.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 					o.slices.highgamma.push(highgamma);
-					o.means.highgamma.push(eegmath.mean(highgamma));
+					o.means.highgamma.push(this.mean(highgamma));
 				}
 				//console.timeEnd("slicing bands");
 				return true;
@@ -636,42 +633,42 @@ export class DataAtlas {
 		if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 		  var scp = row.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 		  this.data.coherence[i].slices.scp.push(scp);
-		  this.data.coherence[i].means.scp.push(eegmath.mean(scp));
+		  this.data.coherence[i].means.scp.push(this.mean(scp));
 		}
 		if(this.data.eegshared.bandFreqs.delta[1].length > 0){
 		  var delta = row.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 		  this.data.coherence[i].slices.delta.push(delta);
-		  this.data.coherence[i].means.delta.push(eegmath.mean(delta));
+		  this.data.coherence[i].means.delta.push(this.mean(delta));
 		}
 		if(this.data.eegshared.bandFreqs.theta[1].length > 0){
 		  var theta = row.slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 		  this.data.coherence[i].slices.theta.push(theta);
-		  this.data.coherence[i].means.theta.push(eegmath.mean(theta));
+		  this.data.coherence[i].means.theta.push(this.mean(theta));
 		}
 		if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
 		  var alpha1 = row.slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha1.push(alpha1);
-		  this.data.coherence[i].means.alpha1.push(eegmath.mean(alpha1));
+		  this.data.coherence[i].means.alpha1.push(this.mean(alpha1));
 		}
 		if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
 		  var alpha2 = row.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha2.push(alpha2);
-		  this.data.coherence[i].means.alpha2.push(eegmath.mean(alpha2));
+		  this.data.coherence[i].means.alpha2.push(this.mean(alpha2));
 		}
 		if(this.data.eegshared.bandFreqs.beta[1].length > 0){
 		  var beta = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 		  this.data.coherence[i].slices.beta.push(beta);
-		  this.data.coherence[i].means.beta.push(eegmath.mean(beta));
+		  this.data.coherence[i].means.beta.push(this.mean(beta));
 		}
 		if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
 		  var lowgamma = row.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.lowgamma.push(lowgamma);
-		  this.data.coherence[i].means.lowgamma.push(eegmath.mean(lowgamma));
+		  this.data.coherence[i].means.lowgamma.push(this.mean(lowgamma));
 		}
 		if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
 		  var highgamma = row.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.highgamma.push(highgamma);
-		  this.data.coherence[i].means.highgamma.push(eegmath.mean(highgamma));
+		  this.data.coherence[i].means.highgamma.push(this.mean(highgamma));
 		}
 	  });
 	}
