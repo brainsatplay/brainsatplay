@@ -575,6 +575,11 @@ export class DataAtlas {
 		return ratio;
 	}
 
+	getAlphaBetaRatio(eeg_data) {
+		let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
+		return ratio;
+	}
+
 	//Get highest peak near 40Hz (38-42Hz)
 	get40HzGamma(eeg_data) {
 		let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
