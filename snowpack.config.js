@@ -26,7 +26,7 @@ module.exports = {
     port:1234
   },
   buildOptions: {
-    out: 'build',
+    out: 'dist',
     clean: true,
     sourcemap: true,
     htmlFragments: true
