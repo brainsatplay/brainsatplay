@@ -61,7 +61,7 @@ export class DataAtlas {
 
         Object.assign(this.data,initialData);
 
-		this.rolloverLimit = 51200; //Max samples allowed in arrays before rollover kicks in
+		this.rolloverLimit = 5121*6*5; //Max samples allowed in arrays before rollover kicks in
 
         if(config === '10_20') {
 			
@@ -707,7 +707,7 @@ export class DataAtlas {
 		});
 		
 		if(to === 'end') { to = datums[0].count; }
-
+		if(datums[0].count < from) { from = from - 5120; }
 		for(let i = from; i<to; i++){
 			let line=[];
 			line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
@@ -860,13 +860,13 @@ export class DataAtlas {
 							if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //e.g. {slices:{alpha1:[...]}}
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
-										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*0.10));} //shave off 10% of the values
+										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,5120);}
 									}
 								}
 							}
 							else if(Array.isArray(row[p])) { // e.g. {ffts:[...] fftCount:x}
 								if(row[p].length > this.rolloverLimit) {
-									row[p].splice(0,Math.floor(this.rolloverLimit*.1));
+									row[p].splice(0,5120);
 									if(p === 'ffts') { //adjust counters
 										row.fftCount = row[p].length;
 										row.lastReadFFT = row[p].length;
@@ -890,12 +890,22 @@ export class DataAtlas {
 						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
-									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,Math.floor(this.rolloverLimit*.1));}
+									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,5120);}
 								}
 							}
 						}
 						else if(Array.isArray(row[p])) { //arrays
-							if(row[p].length > this.rolloverLimit) {row[p].splice(0,Math.floor(this.rolloverLimit*.1));}
+							if(row[p].length > this.rolloverLimit) {
+								row[p].splice(0,5120);
+								if(p === 'ffts') { //adjust counters
+									row.fftCount = row[p].length;
+									row.lastReadFFT = row[p].length;
+								}
+								else if (p === 'times') {
+									row.count = row[p].length;
+									row.lastRead = row[p].length;
+								}
+							}
 						}
 					}
 				});
