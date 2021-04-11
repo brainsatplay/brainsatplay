@@ -98,8 +98,8 @@ export function appletselect_template(props={}) {
     <hr>
     <div style="margin: 10px 10px 0px 10px;">
         <select id="config-selector" style="width: 100%;">
-            <option value='Custom' selected="selected">Custom</option>
-            <option value='EEG Neurofeedback'>EEG Neurofeedback</option>
+            <option value='EEG Neurofeedback' selected="selected">EEG Neurofeedback</option>
+            <option value='HEG Neurofeedback'>HEG Neurofeedback</option>
         </select>
     </div>
     <div class="applet-select-container" style="display: flex; flex-wrap: wrap;">
