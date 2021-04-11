@@ -553,12 +553,13 @@ const animateUsers = () => {
     })
 
     // coherence
+    console.log(this.three)
     let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
     let coherence = getCoherence()
     if (coherenceLine) {
         coherenceLine.material.opacity = coherence
     }
-    glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
+    // glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
 
 this.three.drawCylinder = () => {
