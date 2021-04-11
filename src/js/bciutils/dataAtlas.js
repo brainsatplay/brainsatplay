@@ -706,16 +706,16 @@ export class DataAtlas {
 		});
 		
 		if(to === 'end') { to = datums[0].count; }
-		if(datums[0].count < from) { from = from - 2000; }
+		if(datums[0].count < from) { from = this.atlas.rolloverLimit - 2000; }
 		for(let i = from; i<to; i++){
 			let line=[];
 			line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 			//first get the raw/filtered
 			datums.forEach((row,j) => {
 				if(from === 0) { header.push(row.tag); }
-				if(row.filtered.length > 0) {
+				if(row.filtered.length > i) {
 					line.push(row.filtered[i].toFixed(0));
-				} else if (row.raw.length > 0) {
+				} else if (row.raw.length > i) {
 					line.push(row.raw[i].toFixed(0));
 				}
 			});
