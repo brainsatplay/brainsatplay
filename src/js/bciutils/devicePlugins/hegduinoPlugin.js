@@ -86,7 +86,7 @@ export class hegduinoPlugin {
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
                 {hegshared:{sps:info.sps}},
-                config,true,true,
+                config,false,true,
                 info.analysis
                 );
 
