@@ -446,31 +446,39 @@ export class BCIAppManager {
                                 let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
-                                        console.log(row.count, this.state.data.saveCounter);
+                                        //console.log(row.count, this.state.data.saveCounter);
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
-                                            autoSaveEEGChunk();
+                                            autoSaveEEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
                                         }
                                     });
 
                                     document.getElementById("saveBCISession").onclick = () => {
-                                        autoSaveEEGChunk();
+                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
+                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
+                                            autoSaveEEGChunk(this.state.data.saveCounter);
+                                            this.state.data.saveCounter = row.count;
+                                        }
                                     }
                                     
                                     document.getElementById("newBCISession").onclick = () => {
                                         newSession();
                                     }
+
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
                                         //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
-                                            autoSaveHEGChunk();
+                                            autoSaveHEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
-                                        autoSaveHEGChunk();
+                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                            autoSaveHEGChunk(this.state.data.saveCounter);
+                                            this.state.data.saveCounter = row.count;
+                                        }
                                     }
                                     
                                     document.getElementById("newBCISession").onclick = () => {

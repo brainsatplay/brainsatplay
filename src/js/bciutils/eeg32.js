@@ -41,7 +41,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
 		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
 
-		this.maxBufferedSamples = this.sps*60*5; //max samples in buffer this.sps*60*nMinutes = max minutes of data
+		this.maxBufferedSamples = this.sps*60*2; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 		
 		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
 			count: 0,
