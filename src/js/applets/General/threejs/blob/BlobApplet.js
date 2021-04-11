@@ -88,8 +88,7 @@ export class BlobApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
-
+        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-threejs-gameHero'))
 
 /**
  * Blob
@@ -319,16 +318,10 @@ function regenerateGeometry() {
 }
 
 // Coherence
-const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
+const getCoherence = (band='alpha1') => {
     let coherence = null;
     if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.data.coherence.filter((dict) => {
-            let flag = false;
-            channels.forEach(channelPairs => {
-                if (dict.tag.includes(channelPairs[0]) && dict.tag.includes(channelPairs[1])) flag = true;
-            })
-            return flag
-        })[0].means[band]
+        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData().means[band]
         if(coherenceBuffer.length > 0) {
             let samplesToSmooth = Math.min(20,coherenceBuffer.length);
             let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
@@ -347,12 +340,14 @@ var animate = () => {
         requestAnimationFrame( animate );
     }, 1000 / 60 );
 
-    material.uniforms.uTime.value = Date.now() - tStart  
+    material.uniforms.uTime.value = Date.now() - tStart
+    console.log(this.bci.atlas.getNeurofeedback())  
     let coherence = getCoherence()
-    material.uniforms.uNoiseIntensity.value = 1-coherence
-    let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-    
+    if (coherence){
+        material.uniforms.uNoiseIntensity.value = 1-coherence
+        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+    }
     controls.update()
     effectComposer.render()
 };

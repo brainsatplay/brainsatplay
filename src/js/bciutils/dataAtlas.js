@@ -154,7 +154,6 @@ export class DataAtlas {
 			arr1.forEach((el,i) => {
 				midpoint.push(0.5*(el+arr2[i]));
 			});
-			console.log(midpoint)
 			return midpoint;
 		}
 
@@ -517,10 +516,7 @@ export class DataAtlas {
 	getFrontalCoherenceData() {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
-            coh_ref_ch = this.getCoherenceByTag('FP2_FP1');
-            if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('FP1_FP2'); }
-            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF7_AF8'); }
-            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF8_AF7'); }
+            coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
         }
 		return coh_ref_ch;
 	}
@@ -1070,5 +1066,39 @@ export class DataAtlas {
 			});
 			setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 		}	
+	}
+
+
+	// Default Options Generation
+
+	/**
+     * @method makeFeedbackOptions
+     * @description Generate {@link DOMFragment} with a selector for available feedback options.
+	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
+	 */
+
+	makeFeedbackOptions = (parentNode=document.body) => {
+		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
+		let feedbackOptions = [
+			{name: 'Frontal Coherence', function: this.getFrontalCoherenceData},
+			// {name: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
+			{name: 'Alpha Ratio', function: this.getAlphaRatio},
+			{name: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
+			{name: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
+		]
+		let html = `<div><select id="${id}-neurofeedbackselector">`;
+
+		html+= `<option value="default" disabled selected>Select your neurofeedback</option>`;
+		feedbackOptions.forEach((o,i) => {
+			html+= `
+			<option value=${o.function.name}>${o.name}</option>`;
+		});
+		html += `</select></div>`;
+
+		this.getNeurofeedback = feedbackOptions[0].function
+		parentNode.insertAdjacentHTML('afterbegin',html);
+		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
+			this.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
+		}
 	}
 }

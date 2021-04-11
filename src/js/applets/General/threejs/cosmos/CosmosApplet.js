@@ -331,16 +331,10 @@ generateCosmos()
 /**
  * Get Coherence Values
  */
-const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
+const getCoherence = (band='alpha1') => {
     let coherence = null;
     if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.data.coherence.filter((dict) => {
-            let flag = false;
-            channels.forEach(channelPairs => {
-                if (dict.tag.includes(channelPairs[0]) && dict.tag.includes(channelPairs[1])) flag = true;
-            })
-            return flag
-        })[0].means[band]
+        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData()
         if(coherenceBuffer.length > 0) {
             let samplesToSmooth = Math.min(20,coherenceBuffer.length);
             let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
@@ -349,6 +343,7 @@ const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
     }
     return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
 }
+
 /**
  * Animate
  */
