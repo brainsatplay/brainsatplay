@@ -100,6 +100,8 @@ export class gpuUtils {
     this.listdft2D = makeKrnl(this.gpu, krnl.listdft2DKern);
     this.listdft1D = makeKrnl(this.gpu, krnl.listdft1DKern);
     this.listdft1D_windowed = makeKrnl(this.gpu, krnl.listdft1D_windowedKern);
+    this.listfft1D = makeKrnl(this.gpu, krnl.listfft1DKern);
+    this.listfft1D_windowed = makeKrnl(this.gpu, krnl.listfft1D_windowedKern);
     this.listidft1D_windowed = makeKrnl(this.gpu, krnl.listidft1D_windowedKern);
     this.bulkArrayMul = makeKrnl(this.gpu, krnl.bulkArrayMulKern);
     this.multiConv2D = makeKrnl(this.gpu, krnl.multiImgConv2DKern);
@@ -278,6 +280,102 @@ export class gpuUtils {
     this.listdft1D_windowed.setLoopMaxIterations(nSamplesPerChannel); //Set loop size to the length of one signal (assuming all are uniform length)
         
     var outputTex = this.listdft1D_windowed(signalBufferProcessed,sampleRate,freqStart,freqEnd_nyquist, scalar);
+    if(texOut === true) { return outputTex; }
+    
+    signalBufferProcessed = outputTex.toArray();
+    outputTex.delete();
+
+    //console.log(signalBufferProcessed)
+    //TODO: Optimize for SPEEEEEEED.. or just pass it str8 to a shader
+    var freqDist = this.bandPassWindow(freqStart,freqEnd,sampleRate);
+    return [freqDist, this.orderBPMagnitudes(signalBufferProcessed,nSeconds,sampleRate,nSamplesPerChannel)]; //Returns x (frequencies) and y axis (magnitudes)
+  
+  }
+
+  
+  //Input array buffer and the number of seconds of data
+  gpuFFT(signalBuffer, nSeconds, scalar=1, texOut = false){
+
+    var nSamples = signalBuffer.length;
+    var sampleRate = nSamples/nSeconds;
+
+    this.fft.setOutput([signalBuffer.length]);
+    this.fft.setLoopMaxIterations(nSamples);
+
+    var outputTex = this.fft(signalBuffer, nSamples, scalar, DCoffset);
+    var output = null;
+    if(texOut === false){
+      var freqDist = this.makeFrequencyDistribution(nSamples, sampleRate);
+      var signalBufferProcessed = outputTex.toArray();
+      //console.log(signalBufferProcessed);
+      outputTex.delete();
+      return [freqDist,this.orderMagnitudes(signalBufferProcessed)]; //Returns x (frequencies) and y axis (magnitudes)
+    }
+    else {
+      var tex = outputTex; 
+      outputTex.delete(); 
+      return tex;
+    }
+  }
+
+  //Input array of array buffers of the same length and the number of seconds recorded
+  MultiChannelFFT(signalBuffer, nSeconds, scalar=1, texOut=false) {
+    
+    var signalBufferProcessed = [];
+      
+    signalBuffer.forEach((row) => {
+      signalBufferProcessed.push(...row);
+    });
+    //console.log(signalBufferProcessed);
+  
+    var nSamplesPerChannel = signalBuffer[0].length;
+    var sampleRate = nSamplesPerChannel/nSeconds
+
+    this.listfft1D.setOutput([signalBufferProcessed.length]); //Set output to length of list of signals
+    this.listfft1D.setLoopMaxIterations(nSamplesPerChannel); //Set loop size to the length of one signal (assuming all are uniform length)
+        
+    var outputTex = this.listfft1D(signalBufferProcessed,nSamplesPerChannel, scalar);
+    if(texOut === false){
+      var orderedMagsList = [];
+
+      var freqDist = this.makeFrequencyDistribution(nSamplesPerChannel, sampleRate);
+      signalBufferProcessed = outputTex.toArray();
+      //console.log(signalBufferProcessed);
+
+      for(var i = 0; i < signalBufferProcessed.length; i+=nSamplesPerChannel){
+        orderedMagsList.push(this.orderMagnitudes([...signalBufferProcessed.slice(i,i+nSamplesPerChannel)]));
+      }
+      //Now slice up the big buffer into individual arrays for each signal
+
+      outputTex.delete();
+      return [freqDist,orderedMagsList]; //Returns x (frequencies) and y axis (magnitudes)
+    }
+    else {
+      var tex = outputTex; 
+      outputTex.delete(); 
+      return tex;
+    }
+  }
+
+      
+  //Input buffer of signals [[channel 0],[channel 1],...,[channel n]] with the same number of samples for each signal. Returns arrays of the positive DFT results in the given window.
+  MultiChannelFFT_Bandpass(signalBuffer=[],nSeconds,freqStart,freqEnd, scalar=1, texOut = false) {
+
+    var signalBufferProcessed = [];
+      
+    signalBuffer.forEach((row) => {
+      signalBufferProcessed.push(...row);
+    });
+    //console.log(signalBufferProcessed);
+
+    var freqEnd_nyquist = freqEnd*2;
+    var nSamplesPerChannel = signalBuffer[0].length;
+    var sampleRate = nSamplesPerChannel/nSeconds;
+    
+    this.listfft1D_windowed.setOutput([signalBufferProcessed.length]); //Set output to length of list of signals
+    this.listfft1D_windowed.setLoopMaxIterations(nSamplesPerChannel); //Set loop size to the length of one signal (assuming all are uniform length)
+        
+    var outputTex = this.listfft1D_windowed(signalBufferProcessed,sampleRate,freqStart,freqEnd_nyquist, scalar);
     if(texOut === true) { return outputTex; }
     
     signalBufferProcessed = outputTex.toArray();

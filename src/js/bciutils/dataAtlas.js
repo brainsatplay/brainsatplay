@@ -74,7 +74,6 @@ export class DataAtlas {
 			this.data.eeg = this.genMuseAtlas();// this.genBigAtlas();
 		}
 		else if (config === 'big') {
-			
 			this.settings.eeg = true;
 			this.data.eeg = this.genBigAtlas();
 		}
@@ -861,13 +860,13 @@ export class DataAtlas {
 							if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //e.g. {slices:{alpha1:[...]}}
 								for(const pz in row[p]) {
 									if(Array.isArray(row[p][pz])) {
-										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,2000);}
+										if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,(row[p][pz].length-this.rolloverLimit)-2000);}
 									}
 								}
 							}
 							else if(Array.isArray(row[p])) { // e.g. {ffts:[...] fftCount:x}
 								if(row[p].length > this.rolloverLimit) {
-									row[p].splice(0,2000);
+									row[p].splice(0,(row[p].length-this.rolloverLimit)-2000);
 									if(p === 'ffts') { //adjust counters
 										row.fftCount = row[p].length;
 										row.lastReadFFT = row[p].length;
@@ -891,13 +890,13 @@ export class DataAtlas {
 						if((!Array.isArray(row[p])) && typeof row[p] === 'object') { //nested object with arrays
 							for(const pz in row[p]) {
 								if(Array.isArray(row[p][pz])) {
-									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,2000);}
+									if(row[p][pz].length > this.rolloverLimit) {row[p][pz].splice(0,(row[p][pz].length-this.rolloverLimit)-2000);}
 								}
 							}
 						}
 						else if(Array.isArray(row[p])) { //arrays
 							if(row[p].length > this.rolloverLimit) {
-								row[p].splice(0,2000);
+								row[p].splice(0,(row[p].length-this.rolloverLimit)-2000);
 								if(p === 'ffts') { //adjust counters
 									row.fftCount = row[p].length;
 									row.lastReadFFT = row[p].length;

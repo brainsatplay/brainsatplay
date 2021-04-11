@@ -44,6 +44,21 @@ onmessage = (e) => {
       if(e.data.input[4] !== undefined) scalar = e.data.input[4];
       output = gpu.MultiChannelDFT_Bandpass(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],scalar);
       break;
+    case "fft": // Takes 1 1D array and the number of seconds, and an optional scalar value
+      var scalar = 1;
+      if(e.data.input[2] !== undefined) scalar = e.data.input[2];
+      output = gpu.gpuFFT(e.data.input[0],e.data.input[1],scalar);
+      break;
+    case "multifft": //Takes 1 2D array with equal width rows, and the number of seconds of data being given
+      var scalar = 1;
+      if(e.data.input[2] !== undefined) scalar = e.data.input[2];
+      output = gpu.MultiChannelFFT(e.data.input[0],e.data.input[1],scalar);
+      break;
+    case "multifftbandpass": //Accepts 1 2D array of equal width, number of seconds of data, beginning frequency, ending frequency
+      var scalar = 1;
+      if(e.data.input[4] !== undefined) scalar = e.data.input[4];
+      output = gpu.MultiChannelFFT_Bandpass(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],scalar);
+      break;
     case "gpucoh":
       const coher = gpu.gpuCoherence(e.data.input[0],e.data.input[1],e.data.input[2],e.data.input[3],e.data.input[4]);
       output = coher;

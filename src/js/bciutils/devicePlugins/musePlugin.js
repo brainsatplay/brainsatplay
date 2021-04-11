@@ -87,8 +87,8 @@ export class musePlugin {
                 coord.times.push(...time);
                 coord.raw.push(...o.samples);
                 coord.count += o.samples.length;
-                let latestFiltered = new Array(o.samples.length).fill(0);
-                if(this.info.useFilters === true) {
+                if(this.info.useFilters === true) {                
+                    let latestFiltered = new Array(o.samples.length).fill(0);
                     if(this.filters[o.electrode] !== undefined) {
                         o.samples.forEach((sample,k) => { 
                             latestFiltered[k] = this.filters[o.electrode].apply(sample); 
