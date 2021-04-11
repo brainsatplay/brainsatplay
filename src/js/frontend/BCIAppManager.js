@@ -277,6 +277,10 @@ export class BCIAppManager {
         </div>
         `
 
+        document.getElementById('layout-selector').onchange = () => {
+            this.appletManager.responsive()
+        }
+
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
         

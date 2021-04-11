@@ -341,7 +341,7 @@ var animate = () => {
 
     // let coherence = getCoherence()
     let coherence = this.bci.atlas.getNeurofeedback()
-    console.log(coherence)  
+    // console.log(coherence)  
     if (coherence){
         material.uniforms.uNoiseIntensity.value = 1-coherence
         let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')
