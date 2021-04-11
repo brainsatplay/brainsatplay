@@ -63,10 +63,7 @@ export class BlobApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div>
-                        <p>Alpha Coherence</p>
-                        <hr>
-                        <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
+                    <div class="brainsatplay-neurofeedback-container">
                     </div>
                 </div>
             </div>
@@ -88,7 +85,7 @@ export class BlobApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-threejs-gameHero'))
+        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 /**
  * Blob
@@ -328,7 +325,7 @@ const getCoherence = (band='alpha1') => {
             coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
         }
     }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
+    return coherence
 }
 
 // Animate
@@ -341,11 +338,13 @@ var animate = () => {
     }, 1000 / 60 );
 
     material.uniforms.uTime.value = Date.now() - tStart
-    console.log(this.bci.atlas.getNeurofeedback())  
-    let coherence = getCoherence()
+
+    // let coherence = getCoherence()
+    let coherence = this.bci.atlas.getNeurofeedback()
+    console.log(coherence)  
     if (coherence){
         material.uniforms.uNoiseIntensity.value = 1-coherence
-        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')
         if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
     }
     controls.update()

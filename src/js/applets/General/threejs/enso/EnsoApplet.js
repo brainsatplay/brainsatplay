@@ -43,8 +43,6 @@ export class EnsoApplet {
             //Add whatever else
         };
 
-        //etc..
-
     }
 
     //---------------------------------
@@ -61,10 +59,7 @@ export class EnsoApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div>
-                        <p>Alpha Coherence</p>
-                        <hr>
-                        <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
+                    <div class="brainsatplay-neurofeedback-container">
                     </div>
                 </div>
             </div>
@@ -86,7 +81,7 @@ export class EnsoApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
+        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 
 /**
@@ -339,7 +334,8 @@ var animate = () => {
 
     material.uniforms.uTime.value = Date.now() - tStart
 
-    let coherence = getCoherence()
+    // let coherence = getCoherence()
+    let coherence = this.bci.atlas.getNeurofeedback()
     material.uniforms.uNoiseIntensity.value = 1-coherence
     let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)

@@ -39,9 +39,6 @@ export class CosmosApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        //etc..
-
     }
 
     //---------------------------------
@@ -58,11 +55,8 @@ export class CosmosApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                <div>
-                    <p>Alpha Coherence</p>
-                    <hr>
-                    <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
-                </div>
+                    <div class="brainsatplay-neurofeedback-container">
+                    </div>
                 </div>
             </div>
             `;  
@@ -83,6 +77,7 @@ export class CosmosApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 
 
@@ -359,7 +354,8 @@ const animate = () =>
     }, 1000 / 60 );    
 
     // Update material
-    let coherence = getCoherence()
+    // let coherence = getCoherence()
+    let coherence = this.bci.atlas.getNeurofeedback()
     material.uniforms.uTime.value += 0.001 + 0.01*coherence
     let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)

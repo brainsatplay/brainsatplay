@@ -1095,8 +1095,8 @@ export class DataAtlas {
 		});
 		html += `</select></div>`;
 
-		this.getNeurofeedback = feedbackOptions[0].function
-		parentNode.insertAdjacentHTML('afterbegin',html);
+		this.getNeurofeedback = () => {return 0.5 + Math.sin(Date.now()/1000)/2}
+		parentNode.innerHTML += html;
 		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
 			this.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
 		}
