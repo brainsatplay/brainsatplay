@@ -519,8 +519,8 @@ export class DataAtlas {
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('FP2_FP1');
             if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('FP1_FP2'); }
-            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF7_AF8'); }
-            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF8_AF7'); }
+            if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF7_AF8'); }
+            if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF8_AF7'); }
         }
 		return coh_ref_ch;
 	}
