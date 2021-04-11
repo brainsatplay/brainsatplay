@@ -61,7 +61,7 @@ export class DataAtlas {
 
         Object.assign(this.data,initialData);
 
-		this.rolloverLimit = 5121*6*5; //Max samples allowed in arrays before rollover kicks in
+		this.rolloverLimit = 5121*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
         if(config === '10_20') {
 			
