@@ -556,59 +556,79 @@ export class DataAtlas {
 
 	//Compare moving average to current data for simple scoring
 	getAlpha1CoherenceScore(coh_data) {
-		let ct = coh_data.fftCount;
-		let avg = 20; if(ct < avg) { avg = ct; }
-		let slice = coh_data.means.alpha1.slice(ct-avg);
-		let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
-		return score;
+		if(coh_data.fftCount > 0) {
+			let ct = coh_data.fftCount;
+			let avg = 20; if(ct < avg) { avg = ct; }
+			let slice = coh_data.means.alpha1.slice(ct-avg);
+			let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
+			return score;
+		}
+		else return 0;
 	}
 
 	//Get alpha2/alpha1 ratio from bandpower averages
 	getAlphaRatio(eeg_data) {
-		let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
-		return ratio;
+		if(eeg_data.fftCount < 0) {
+			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
+			return ratio;
+		}
+		else return 0;
 	}
 
 	//Calculate the latest theta beta ratio from bandpower averages
 	getThetaBetaRatio(eeg_data) {
-		let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
-		return ratio;
+		if(eeg_data.fftCount < 0) {
+			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
+			return ratio;
+		} else return 0;
 	}
 
 	//Calculate the latest alpha beta ratio from bandpower averages
 	getAlphaBetaRatio(eeg_data) {
-		let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
-		return ratio;
+		if(eeg_data.fftCount < 0) {
+			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
+			return ratio;
+		}
+		else return 0;
 	}
 
 	//Get highest peak near 40Hz (38-42Hz)
 	get40HzGamma(eeg_data) {
-		let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
-		let centered = [];
-		lowgamma.forEach((val,i) => {
-			if(this.eegshared.freqBins.lowgamma[i] > 38 && this.eegshared.freqBins.lowgamma[i] < 42) {
-				centered.push(val);
-			}
-		});
+		if(eeg_data.fftCount < 0) {
+			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
+			let centered = [];
+			lowgamma.forEach((val,i) => {
+				if(this.eegshared.freqBins.lowgamma[i] > 38 && this.eegshared.freqBins.lowgamma[i] < 42) {
+					centered.push(val);
+				}
+			});
 
-		return this.max(...centered);
+			return this.max(...centered);
+		}
+		else return 0;
 	}
 
 	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
 	getLowGammaScore(eeg_data) {
-		let ct = eeg_data.fftCount;
-		let avg = 20; if(ct < avg) { avg = ct; }
-		let slice = eeg_data.means.lowgamma.slice(ct-avg);
-		let score = eeg_data.means.lowgamma[ct-1] - this.mean(slice);
-		return score
+		if(eeg_data.fftCount < 0) {
+			let ct = eeg_data.fftCount;
+			let avg = 20; if(ct < avg) { avg = ct; }
+			let slice = eeg_data.means.lowgamma.slice(ct-avg);
+			let score = eeg_data.means.lowgamma[ct-1] - this.mean(slice);
+			return score;
+		}
+		else return 0;
 	}
 
 	getHEGRatioScore(heg_ch) {
-		let ct = heg_ch.count;
-		let avg = 40; if(ct < avg) { avg = ct; }
-		let slice = heg_ch.ratio.slice(ct-avg);
-		let score = heg_ch.ratio[ct-1] - this.mean(slice);
-		return score;
+		if(heg_ch.count > 0) {
+			let ct = heg_ch.count;
+			let avg = 40; if(ct < avg) { avg = ct; }
+			let slice = heg_ch.ratio.slice(ct-avg);
+			let score = heg_ch.ratio[ct-1] - this.mean(slice);
+			return score;
+		}
+		else return 0;
 	}
 
     setDefaultTags() {
