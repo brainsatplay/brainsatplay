@@ -753,6 +753,7 @@ export class DataAtlas {
 			//console.log(data)
 			return [header.join(",")+"\n",data.join("\n")];	
 		}
+		else return undefined;
 	}
 
 	readyHEGDataForWriting = (from=0,to='end',hegIdx=0) => {
