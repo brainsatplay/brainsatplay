@@ -384,7 +384,7 @@ export class VideoApplet {
             let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
             this.onData(score);
           }
-          else if (this.bci.atlas.settings.coherence) {
+          else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
             let ct = this.coh_ref_ch.fftCount;
             let avg = 20; if(ct < avg) { avg = ct; }
             let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
