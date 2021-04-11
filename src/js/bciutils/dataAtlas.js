@@ -869,11 +869,15 @@ export class DataAtlas {
 									row[p].splice(0,(row[p].length-this.rolloverLimit)-2000);
 									if(p === 'ffts') { //adjust counters
 										row.fftCount = row[p].length;
-										row.lastReadFFT = row[p].length;
+										if(row.lastReadFFT > row[p].length) {
+											row.lastReadFFT = row[p].length;
+										}
 									}
 									else if (p === 'times') {
 										row.count = row[p].length;
-										row.lastRead = row[p].length;
+										if(row.lastRead > row[p].length) {
+											row.lastRead = row[p].length;
+										}
 									}
 								}
 							}
