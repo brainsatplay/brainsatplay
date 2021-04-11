@@ -548,18 +548,47 @@ export class DataAtlas {
 		return cns_data;
 	}
 
+	//get the average of an array
 	mean(arr){
 		var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
 	}
 
 	//Compare moving average to current data for simple scoring
-	getAlpha1CoherenceScore(coh_ref_ch) {
-		let ct = coh_ref_ch.fftCount;
+	getAlpha1CoherenceScore(coh_data) {
+		let ct = coh_data.fftCount;
 		let avg = 20; if(ct < avg) { avg = ct; }
-		let slice = coh_ref_ch.means.alpha1.slice(ct-avg);
-		let score = coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+		let slice = coh_data.means.alpha1.slice(ct-avg);
+		let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
 		return score;
+	}
+
+	//Calculate the latest theta beta ratio from bandpower averages
+	getThetaBetaRatio(eeg_data) {
+		let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
+		return ratio;
+	}
+
+	//Get highest peak near 40Hz (38-42Hz)
+	get40HzGamma(eeg_data) {
+		let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
+		let centered = [];
+		lowgamma.forEach((val,i) => {
+			if(this.eegshared.freqBins.lowgamma[i] > 38 && this.eegshared.freqBins.lowgamma[i] < 42) {
+				centered.push(val);
+			}
+		});
+
+		return this.max(...centered);
+	}
+
+	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
+	getLowGammaScore(eeg_data) {
+		let ct = eeg_data.fftCount;
+		let avg = 20; if(ct < avg) { avg = ct; }
+		let slice = eeg_data.means.lowgamma.slice(ct-avg);
+		let score = eeg_data.means.lowgamma[ct-1] - this.mean(slice);
+		return score
 	}
 
 	getHEGRatioScore(heg_ch) {
@@ -601,13 +630,13 @@ export class DataAtlas {
 			else if((item > 10) && (item <= 12)){
 				alpha2Freqs[0].push(item); alpha2Freqs[1].push(idx);
 			}
-			else if((item > 12) && (item <= 35)){
+			else if((item > 12) && (item <= 30)){
 				betaFreqs[0].push(item); betaFreqs[1].push(idx);
 			}
-			else if((item > 35) && (item <= 48)) {
+			else if((item > 30) && (item <= 45)) {
 				lowgammaFreqs[0].push(item); lowgammaFreqs[1].push(idx);
 			}
-			else if(item > 48) {
+			else if(item > 45) {
 				highgammaFreqs[0].push(item); highgammaFreqs[1].push(idx);
 			}
 		});
