@@ -495,6 +495,25 @@ export class DataAtlas {
 		return dat;
 	}
 
+	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
+	getFPData() {
+		let fp_data = undefined;
+		if(this.settings.eeg) {
+            let fp1 = this.getEEGDataByTag('FP1');
+			let fp2 = this.getEEGDataByTag('FP2');
+			if(!fp1 || !fp2) {
+				fp1 = this.getEEGDataByTag('AF7');
+				fp2 = this.getEEGDataByTag('AF8');
+			}
+			if(fp1 && fp2) {
+				fp_data = [fp1,fp2];
+			}
+        }
+		return fp_data;
+	}
+
+
+	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
 	getFrontalCoherenceData() {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
@@ -504,6 +523,29 @@ export class DataAtlas {
             else if (coh_ref_ch === undefined) { this.getCoherenceByTag('AF8_AF7'); }
         }
 		return coh_ref_ch;
+	}
+
+	//C3_C4 coherence data (cranial nervs)
+	getCNCoherenceData() {
+		let coh_ref_ch = undefined;
+		if(this.settings.coherence) {
+            coh_ref_ch = this.getCoherenceByTag('C3_C4');
+            if(coh_ref_ch === undefined) { this.getCoherenceByTag('C4_C3'); }
+        }
+		return coh_ref_ch;
+	}
+
+	//Get raw/bandpower data for cranial nerves
+	getCNData() {
+		let cns_data = undefined;
+		if(this.settings.eeg) {
+			let c3 = this.getEEGDataByTag('C3');
+			let c4 = this.getEEGDataByTag('C4');
+			if(c3 && c4) {
+				cns_data = [c3,c4];
+			}
+		}
+		return cns_data;
 	}
 
 	mean(arr){
