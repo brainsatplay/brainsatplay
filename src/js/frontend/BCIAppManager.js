@@ -279,6 +279,7 @@ export class BCIAppManager {
 
         document.getElementById('layout-selector').onchange = () => {
             this.appletManager.responsive()
+            this.appletManager.enforceLayout()
         }
 
 
@@ -319,7 +320,7 @@ export class BCIAppManager {
 
 		document.getElementById("config-selector").onchange = () => {
             this.appletManager.deinitApplets()       
-            this.appletManager.initAddApplets()       
+            this.appletManager.initAddApplets()   
          }
     }
 
