@@ -713,6 +713,7 @@ export class DataAtlas {
 			line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 			//first get the raw/filtered
 			datums.forEach((row,j) => {
+				if(i === 0) { header.push(row.tag); }
 				if(row.filtered.length > 0) {
 					line.push(row.filtered[i].toFixed(0));
 				} else if (row.raw.length > 0) {
