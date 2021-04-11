@@ -498,6 +498,39 @@ export class DataAtlas {
 		return dat;
 	}
 
+	getFrontalCoherenceData() {
+		let coh_ref_ch = undefined;
+		if(this.settings.coherence) {
+            coh_ref_ch = this.getCoherenceByTag('FP2_FP1');
+            if(coh_ref_ch === undefined) { this.getCoherenceByTag('FP1_FP2'); }
+            else if (coh_ref_ch === undefined) { this.getCoherenceByTag('AF7_AF8'); }
+            else if (coh_ref_ch === undefined) { this.getCoherenceByTag('AF8_AF7'); }
+        }
+		return coh_ref_ch;
+	}
+
+	mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
+
+	//Compare moving average to current data for simple scoring
+	getAlpha1CoherenceScore(coh_ref_ch) {
+		let ct = coh_ref_ch.fftCount;
+		let avg = 20; if(ct < avg) { avg = ct; }
+		let slice = coh_ref_ch.means.alpha1.slice(ct-avg);
+		let score = coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+		return score;
+	}
+
+	getHEGRatioScore(heg_ch) {
+		let ct = heg_ch.count;
+		let avg = 40; if(ct < avg) { avg = ct; }
+		let slice = heg_ch.ratio.slice(ct-avg);
+		let score = heg_ch.ratio[ct-1] - this.mean(slice);
+		return score;
+	}
+
     setDefaultTags() {
 		return [
 			{ch: 0, tag: null},{ch: 1, tag: null},{ch: 2, tag: null},{ch: 3, tag: null},
