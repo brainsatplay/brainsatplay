@@ -518,9 +518,9 @@ export class DataAtlas {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('FP2_FP1');
-            if(coh_ref_ch === undefined) { this.getCoherenceByTag('FP1_FP2'); }
-            else if (coh_ref_ch === undefined) { this.getCoherenceByTag('AF7_AF8'); }
-            else if (coh_ref_ch === undefined) { this.getCoherenceByTag('AF8_AF7'); }
+            if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('FP1_FP2'); }
+            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF7_AF8'); }
+            else if (coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('AF8_AF7'); }
         }
 		return coh_ref_ch;
 	}
@@ -530,7 +530,7 @@ export class DataAtlas {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('C3_C4');
-            if(coh_ref_ch === undefined) { this.getCoherenceByTag('C4_C3'); }
+            if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('C4_C3'); }
         }
 		return coh_ref_ch;
 	}
