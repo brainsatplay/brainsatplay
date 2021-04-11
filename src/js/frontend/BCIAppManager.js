@@ -60,7 +60,7 @@ export class BCIAppManager {
         this.state = new StateManager({
             sessionName:'',
             saveChunkSize:0,
-            saveChunkSize:5120,
+            saveChunkSize:2000,
             sessionChunks:0,
             saveCounter:0,
             newSessionCt:0,
@@ -447,7 +447,7 @@ export class BCIAppManager {
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
                                         //console.log(row.count, this.state.data.saveCounter);
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
+                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
@@ -455,7 +455,7 @@ export class BCIAppManager {
                                     });
 
                                     document.getElementById("saveBCISession").onclick = () => {
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
+                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
@@ -468,7 +468,7 @@ export class BCIAppManager {
 
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
-                                        //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
+                                        //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveHEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
@@ -501,7 +501,7 @@ export class BCIAppManager {
                 }
                 this.state.data.sessionName = sessionName;
                 this.state.data.sessionChunks = 0;
-                this.state.data.saveChunkSize = 5120;
+                this.state.data.saveChunkSize = 2000;
                 this.state.data.newSessionCt++;
                 fs.appendFile('/data/'+sessionName,"", (e) => {
                     if(e) throw e;
