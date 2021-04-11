@@ -379,13 +379,15 @@ export class brainsatplay {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
-		if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
-			atlasDataProp = 'eeg';	
-			if(atlasTag === 'shared') { atlasTag = 'eeghared'; }
-		}
-		else if (deviceName.indexOf('heg') > -1) {
-			atlasDataProp = 'heg';
-			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
+		if(typeof atlasTag === 'string') {
+			if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
+				atlasDataProp = 'eeg';	
+				if(atlasTag === 'shared') { atlasTag = 'eeghared'; }
+			}
+			else if (deviceName.indexOf('heg') > -1) {
+				atlasDataProp = 'heg';
+				if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
+			}
 		}
 		if(atlasDataProp !== null) { 
 			let device = this.devices.find((o,i) => {
