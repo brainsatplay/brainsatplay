@@ -61,7 +61,8 @@ export class BCIAppManager {
             sessionName:'',
             saveChunkSize:0,
             saveChunkSize:5120,
-            saveIdx:0,
+            sessionChunks:0,
+            saveCounter:0,
             newSessionCt:0,
             fileSizeLimitMb: 250
         });
@@ -439,13 +440,13 @@ export class BCIAppManager {
                         //configure autosaving when the device is connected
                         this.bcisession.state.data.info = this.bcisession.info;
                         
-                        console.log(this.bcisession.state.data.info);
+                        //console.log(this.bcisession.state.data.info);
                         let sub = this.bcisession.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
                                 let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
-                                        console.log(this.bcisession.devices[info.nDevices-1].info);
+                                        console.log(row.count, this.state.data.saveCounter);
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk();
@@ -462,7 +463,7 @@ export class BCIAppManager {
                                     }
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
+                                        //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveHEGChunk();
                                             this.state.data.saveCounter = row.count;
@@ -534,10 +535,27 @@ export class BCIAppManager {
                 });
             }
 
+            function toISOLocal(d) {
+                var z  = n =>  ('0' + n).slice(-2);
+                var zz = n => ('00' + n).slice(-3);
+                var off = d.getTimezoneOffset();
+                var sign = off < 0? '+' : '-';
+                off = Math.abs(off);
+              
+                return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
+                       + z(d.getMonth()+1) + '-' +
+                       z(d.getDate()) + 'T' +
+                       z(d.getHours()) + ':'  + 
+                       z(d.getMinutes()) + ':' +
+                       z(d.getSeconds()) + '.' +
+                       zz(d.getMilliseconds()) + 
+                       "(UTC" + sign + z(off/60|0) + ':00)'
+            }
+
             const autoSaveEEGChunk = (startidx=0,to='end') => {
+                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_eeg";}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
-    
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
@@ -558,6 +576,7 @@ export class BCIAppManager {
             }
 
             const autoSaveHEGChunk = (startidx=0,to='end') => {
+                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_heg";}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);

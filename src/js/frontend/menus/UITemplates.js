@@ -145,8 +145,8 @@ export function filemenu_template(props={}) {
 export function file_template(props={id:Math.random()}) {
     return `
     <div id="`+props.id+`">
-        <p id="`+props.id+`filename">`+props.id+`</p><button id="`+props.id+`delete">X</button>
-        <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:60px;width:60px;">
+        <p id="`+props.id+`filename" style='color:white'>`+props.id+`</p><button id="`+props.id+`delete">X</button>
+        <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:60px;width:60px; fill:white;">
     </div>
     `;
 }

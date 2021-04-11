@@ -721,7 +721,7 @@ export class DataAtlas {
 			});
 			//then get the fft/coherence data
 			datums.forEach((row,j) => {
-				if(row.times[i] === row.fftTimes[mapidx]) {
+				if(datums[0].times[i] === row.fftTimes[mapidx]) {
 					if(from === 0) {
 						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
 							header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
@@ -734,11 +734,11 @@ export class DataAtlas {
 					let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
 					header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 				}
-				if(row.times[i] === row.fftTimes[mapidx]) {
+				if(datums[0].times[i] === row.fftTimes[mapidx]) {
 					line.push(row.ffts[mapidx]);
 				}
 			});
-			if(row.fftTimes[mapidx] === this.datum[0].times[i]){
+			if(datums[0].fftTimes[mapidx] === datums[0].times[i]){
 				mapidx++;
 			}
 			data.push(line.join(","));

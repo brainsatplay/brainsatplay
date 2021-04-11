@@ -378,22 +378,21 @@ export class brainsatplay {
 	subscribe = (deviceName='eeg',tag='FP1',prop=null,onData=(newData)=>{}) => {
 		let sub = undefined;
 		let atlasTag = tag;
-		let atlasDataProp = null; //Atlas has an object of named properties based on device or if there is shared data
-		if(typeof atlasTag === 'string') {
-			if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
-				atlasDataProp = 'eeg';	
-				if(atlasTag === 'shared') { atlasTag = 'eeghared'; }
-			}
-			else if (deviceName.indexOf('heg') > -1) {
-				atlasDataProp = 'heg';
-				if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
-			}
+		let atlasDataProp = null;
+		if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
+			atlasDataProp = 'eeg';	
+			if(atlasTag === 'shared') { atlasTag = 'eeghared'; }
 		}
+		else if (deviceName.indexOf('heg') > -1) {
+			atlasDataProp = 'heg';
+			if(atlasTag === 'shared') { atlasTag = 'hegshared'; }
+		}
+		
 		if(atlasDataProp !== null) { 
 			let device = this.devices.find((o,i) => {
 				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
-					if(atlasTag.indexOf('shared') > -1 ) coord = o.atlas.getDeviceDataByTag(atlasTag,null);
+					if(typeof atlasTag === 'string') {if(atlasTag.indexOf('shared') > -1 ) coord = o.atlas.getDeviceDataByTag(atlasTag,null);}
 					else if (atlasTag === null || atlasTag === 'all') { coord = o.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
 					else coord = o.atlas.getDeviceDataByTag(atlasDataProp,atlasTag);
 					
