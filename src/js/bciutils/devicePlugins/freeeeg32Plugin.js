@@ -163,12 +163,12 @@ export class eeg32Plugin {
 
         }
 
-        this.ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
+        //this.ui = new DOMFragment(
+        //    template,
+        //    parentNode,
+        //    undefined,
+        //    setup
+        //);
         
     }
 

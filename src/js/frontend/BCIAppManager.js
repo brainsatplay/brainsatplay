@@ -297,16 +297,18 @@ export class BCIAppManager {
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
         this.bcisession.onconnected = () => {
-
+            try{
             let contentChild = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
 
             //console.log(this.bcisession.info.nDevices,this.bcisession.devices[this.bcisession.info.nDevices-1])
             if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
             this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
-
+            
             //this.appletManager.reinitApplets();
             // this.appletManager.deinitApplets();
             this.appletManager.initAddApplets();
+            }
+            catch (err) { console.error(err); }
             this.appletManager.responsive();
         }
 
@@ -438,9 +440,11 @@ export class BCIAppManager {
                         this.bcisession.state.data.info = this.bcisession.info;
                         this.bcisession.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
+                                console.log(info);
                                 let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
-                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {
+                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
+                                        console.log(this.bcisession.devices[info.nDevices-1].info);
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 5120; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk();

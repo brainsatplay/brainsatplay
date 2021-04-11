@@ -218,10 +218,10 @@ export class brainsatplay {
      * @description Generate {@link DOMFragment} with a selector for available devices.
 	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
 	 * @param {callback} onconnect Callback function on device connection. 
-	 * @param {callback} onconnect Callback function on device disconnection. 
+	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode=document.body,onconnect=()=>{},ondisconnect=()=>{}) {
+	makeConnectOptions(parentNode=document.body, onconnect=()=>{}, ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"devicemenu";
 		let html = `<div><span style="font-size: 80%;">Device Selection</span><hr></div><div class="device-gallery">`;
 	
@@ -1029,9 +1029,9 @@ class deviceStream {
 	}
 
 	//Generic handlers to be called by devices, you can stage further processing and UI/State handling here
-	onconnect(msg="") {}
+	onconnect() {}
 
-	ondisconnect(msg="") {}
+	ondisconnect() {}
 
 	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
