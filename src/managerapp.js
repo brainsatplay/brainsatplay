@@ -22,12 +22,12 @@ import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
 import { ThreeSunriseApplet } from './js/applets/General/threejs/ThreeSunrise/ThreeSunriseApplet'
 
 let applets = [
-	{	name:"Enso",      		cls: EnsoApplet			},
 	{	name:"Blob",      		cls: BlobApplet			},
+	{	name:"Cosmos",      	cls: CosmosApplet		},
 	{	name:"uPlot", 			cls: uPlotApplet   		},
 	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
-	{	name:"Cosmos",      	cls: CosmosApplet		},
 	{	name:"Nexus",      		cls: NexusApplet		},
+	{	name:"Enso",      		cls: EnsoApplet			},
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
 	{   name:"HEGCircle", 		cls: CircleApplet		},
