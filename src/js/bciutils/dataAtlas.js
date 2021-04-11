@@ -575,6 +575,7 @@ export class DataAtlas {
 		return ratio;
 	}
 
+	//Calculate the latest alpha beta ratio from latest bandpower averages
 	getAlphaBetaRatio(eeg_data) {
 		let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
 		return ratio;
