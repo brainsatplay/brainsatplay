@@ -388,7 +388,7 @@ export class uPlotApplet {
               ];
                 atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
                   atlas.data.eeg.find((o,j) => {
-                    if(o.tag == row.tag || o.tag === o.ch) {
+                    if(o.tag == row.tag || o.tag === row.ch) {
                       if(o.filtered.length > 0) {
                         this.class.uPlotData.push(o.filtered.slice(o.count - nsamples));
                       } else {
@@ -535,7 +535,7 @@ export class uPlotApplet {
               atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
                 if(view === 'All' || row.ch === ch) {  
                   atlas.data.eeg.find((o,j) => {
-                    if(o.tag == row.tag || o.tag === o.ch) {
+                    if(o.tag == row.tag || o.tag === row.ch) {
                       if(o.filtered.length > 0) {
                         this.class.uPlotData.push(o.filtered.slice(o.count - nsamples));
                       } else {
