@@ -263,8 +263,8 @@ export class AppletManager {
             });
         }
         });
+        this.enforceLayout();
         this.responsive();
-        this.enforceLayout()
     }
 
     addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
@@ -291,8 +291,8 @@ export class AppletManager {
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
+            this.enforceLayout();
             this.responsive();
-            this.enforceLayout()
         }
     }
 
@@ -306,8 +306,8 @@ export class AppletManager {
                 }
                 this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};
                 this.appletsSpawned--;
+                this.enforceLayout();
                 this.responsive();
-                this.enforceLayout()
                 return true;
             }
         });
@@ -359,79 +359,77 @@ export class AppletManager {
 
     enforceLayout(nodes=this.applets) {
 
-        console.log('enforce layout')
-
-        // Create grid subdivisions based on applet count
-        let activeNodes = nodes.filter(n => n.classinstance != null)
-        let gridRows = Math.ceil(Math.sqrt(nodes.length))
-        let innerStrings = Array.from({length: gridRows}, e => [])
-
-        let rowAssignments = nodes.map((n,i) => {if (n.classinstance != null) return Math.floor(i/gridRows)}).filter(n => n != undefined)
-        let twoAppletsOnSameRow = rowAssignments.length !== new Set(rowAssignments).size;
-        if (twoAppletsOnSameRow && activeNodes.length == 2){
-            // let colAssignments = nodes.map((n,i) => {if (n.classinstance != null) return i%gridRows}).filter(n => n != undefined)
-            innerStrings.map((arr,i) => {
-                activeNodes.forEach((n) => {
-                    arr.push(String.fromCharCode(97 + (n.appletIdx-1)))
-                })
-            })
-        } else {
-            nodes.forEach((applet,i,self) => {
-                if (activeNodes.length > 1){
-                    let row = Math.floor(i/gridRows)
-                    let col = i%gridRows
-                    if (applet.classinstance != null){
-                        innerStrings[Math.floor(i/Math.ceil(Math.sqrt(self.length)))].push(String.fromCharCode(97 + i));
-                    } else {
-                            if (row == Math.floor((i+1)/gridRows)){
-                                innerStrings[row].push(String.fromCharCode(97 + (i+1)));
-                            } else if (row == Math.floor((i-1)/gridRows)){
-                                innerStrings[row].push(String.fromCharCode(97 + (i-1)));
-                            }
-                    }
-                } else if (activeNodes.length == 1) {
-                    innerStrings[Math.floor(i/gridRows)].push(String.fromCharCode(97 + (activeNodes[0].appletIdx-1)));
-                }
-            });
-        } 
         let layoutSelector = document.getElementById('layout-selector')
-        let selectedLayout;
-        if (layoutSelector.value === "Grid"){
-            selectedLayout = innerStrings
-        } else {
-            selectedLayout = this.layoutTemplates[layoutSelector.value]
+        let responsiveLayout = this.layoutTemplates[layoutSelector.value]
+        let layoutRows = responsiveLayout.length
+        let layoutColumns = responsiveLayout[0].length
+        let activeNodes = nodes.filter(n => n.classinstance != null)
+        let nodeLabels = {
+            active: [],
+            inactive: []
+        }
+        this.applets.forEach((app,i) => {
+            if (app.classinstance != null){
+                nodeLabels.active.push(String.fromCharCode(97 + i))
+            } else {
+                nodeLabels.inactive.push(String.fromCharCode(97 + i))
+            }
+        })
+
+        let getReplacementLabel = ({active,inactive},baseLayout,i,j) => {
+            console.log(active)
+            if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
+            if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j-1]
+            if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][0]
+            if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][0]
+            if (active[0] !== null) {
+                return active[0]
+            }
         }
 
-        innerStrings = selectedLayout.map((stringArray) => {
-            return '"' + stringArray.join(' ') + '"'
-        }).join(' ')
-        let applets = document.getElementById('applets');
-        applets.style.gridTemplateAreas = innerStrings
-        applets.style.gridTemplateColumns = `repeat(${gridRows},1fr)`
-        applets.style.gridTemplateRows =  `repeat(${gridRows},1fr)`
-
-        activeNodes.forEach((appnode,i) => {
-            let availableRows = selectedLayout.length
-            let availableCols = selectedLayout[0].length
-            let foundIn = new Set();
-            selectedLayout.forEach((row,j) => {
-                row.forEach((col,k) => {
-                    if (col.includes(String.fromCharCode(97 + i))) foundIn.add(j)
+        // Finalize Layout
+        let toReplace = []
+        nodeLabels.inactive.forEach((l) => {
+            responsiveLayout = responsiveLayout.map((row,i) => {
+                return row.map((val,j) => {
+                    if (val === l) { // Replace inactive applets
+                        console.log(nodeLabels)
+                        return getReplacementLabel(nodeLabels,responsiveLayout,i,j)
+                    }
+                    else return val
                 })
             })
+        })
+        console.log(responsiveLayout)
+
+        // Get Row Assignments
+        let rowAssignmentArray = Array.from({length: nodes.length}, e => new Set())
+        responsiveLayout.forEach((row,j) => {
+            row.forEach((col,k) => {
+                if (col != null) rowAssignmentArray[col.charCodeAt(0) - 97].add(j)
+            })
+        })
+
+        console.log(responsiveLayout)
+        console.log(nodeLabels)
+        console.log(layoutRows)
+        console.log(layoutColumns)
+
+        let innerStrings = responsiveLayout.map((stringArray) => {
+            return '"' + stringArray.join(' ') + '"'
+        }).join(' ')
+        console.log(innerStrings)
+
+        let applets = document.getElementById('applets');
+        applets.style.gridTemplateAreas = innerStrings
+        applets.style.gridTemplateColumns = `repeat(${layoutRows},1fr)`
+        applets.style.gridTemplateRows =  `repeat(${layoutColumns},1fr)`
+
+        // Set Applet Heights
+        activeNodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
-            let gridPercent = 100 * foundIn.size/availableRows;
-            if (activeNodes.length === 1){
-                appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar
-            } else if (activeNodes.length === 2){
-                if (twoAppletsOnSameRow && activeNodes.length == 2){
-                    appletDiv.style.maxHeight = `calc(${100}vh)`; // Must subtract top navigation bar     
-                } else {
-                    appletDiv.style.maxHeight = `calc(${50}vh)`; // Must subtract top navigation bar     
-                }  
-            } else {
-                appletDiv.style.maxHeight = `calc(${gridPercent}vh)`; // Must subtract top navigation bar
-            }
+            let gridPercent = 100 * rowAssignmentArray[i].size/layoutRows;
+            appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
         });  
     }
 

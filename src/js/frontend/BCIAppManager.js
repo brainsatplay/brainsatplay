@@ -278,8 +278,8 @@ export class BCIAppManager {
         `
 
         document.getElementById('layout-selector').onchange = () => {
-            this.appletManager.responsive()
             this.appletManager.enforceLayout()
+            this.appletManager.responsive()
         }
 
 
