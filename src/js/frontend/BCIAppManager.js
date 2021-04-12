@@ -261,7 +261,7 @@ export class BCIAppManager {
                 `
             }
         })
-
+        
         // Layout Selector
         contentChild1.innerHTML += `
         <br>
@@ -270,12 +270,18 @@ export class BCIAppManager {
         <hr>
         <div style="margin: 10px 10px 0px 10px;">
             <select id="layout-selector" style="width: 100%;">
-            <option value='Default' selected="selected">Default</option>
-            <option value='Focus'>Focus</option>
+            <option value='Focus' selected="selected">Focus</option>
+            <option value='Grid'>Grid</option>
             </select>
         </div>
         </div>
         `
+
+        document.getElementById('layout-selector').onchange = () => {
+            this.appletManager.responsive()
+            this.appletManager.enforceLayout()
+        }
+
 
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
@@ -311,6 +317,11 @@ export class BCIAppManager {
                 styleInlineText:''
             }
         );
+
+		document.getElementById("config-selector").onchange = () => {
+            this.appletManager.deinitApplets()       
+            this.appletManager.initAddApplets()   
+         }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
