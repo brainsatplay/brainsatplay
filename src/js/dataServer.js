@@ -16,8 +16,9 @@ class DataServer {
     constructor(appnames=[]) {
 		this.userData=new Map();
 		this.serverInstances=appnames;
-		this.userSubscriptions=[];
-		this.gameSubscriptions=[];
+		this.userSubscriptions=[]; //User to user data subscriptions
+		this.gameSubscriptions=[]; //Synchronous games (all players receive each other's data)
+        this.hostSubscriptions=[]; //Asynchronous games (host receives all users data data, users receive host data only)
         this.subUpdateInterval = 0; //ms
         this.serverTimeout = 60*60*1000; //min*s*ms
         this.mongodb;
@@ -111,6 +112,20 @@ class DataServer {
                 return true;
             }
         });
+
+        if(!found) {
+            let sub = this.hostSubscriptions.find((o,i) => {
+                if(o.id === id) {
+                    let uidx = o.usernames.indexOf(username);
+                    if(uidx > -1) o.usernames.splice(uidx,1);
+                    let sidx = o.spectators.indexOf(username);
+                    if(sidx > -1) o.spectators.splice(sidx,1);
+                    found = true;
+                    return true;
+                }
+            });
+        }
+
         return found;
     }
 
@@ -220,12 +235,42 @@ class DataServer {
                 u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
             }
         }
+        else if (commands[0] === 'getHostGames') { //List games with the app name
+            let subs = this.getHostSubscriptions(commands[1]);
+            if(subs === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGamesResult',appname:commands[1],gameInfo:subs}));
+            }
+        }
+        else if (commands[0] === 'getHostGameInfo') { //List the game info for the particular ID
+            let sub = this.getHostSubscription(commands[1]);
+            if(sub === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
+            }
+        }
+        else if (commands[0] === 'getHostGameData') {
+            let gameData = this.getHostGameData(commands[1]);
+            if(gameData === undefined) {
+                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+            }
+            else {
+                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
+            }
+        }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
             if(command[2]) this.streamBetweenUsers(username,commands[1],commands[2]);
             else this.streamBetweenUsers(username,commands[1]);
         }
         else if(commands[0] === 'subscribeToGame') { //Join game
             this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
+        }
+        else if(commands[0] === 'subscribeToHostGame') { //Join game
+            this.subscribeUserToHostGame(username,commands[1],commands[2],command[3]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
@@ -279,6 +324,12 @@ class DataServer {
             });
 
             this.gameSubscriptions.forEach((o,i) => {
+                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
+                    o.updatedUsers.push(data.username);
+                }
+            });
+
+            this.hostSubscriptions.forEach((o,i) => {
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
                 }
@@ -376,15 +427,17 @@ class DataServer {
                 };
                 
                 sub.usernames.forEach((user,j) => { //get current relevant data for all players in game
-                    if(sub.spectators.indexOf(user) < -1){
+                    if(sub.spectators.indexOf(user) < 0){
                         let userObj = {
                             username:user
                         }
                         let listener = this.userData.get(user);
-                        sub.propnames.forEach((prop,k) => {
-                            userObj[prop] = listener.props[prop];
-                        });
-                        updateObj.userData.push(userObj);
+                        if(listener) {
+                            sub.propnames.forEach((prop,k) => {
+                                userObj[prop] = listener.props[prop];
+                            });
+                            updateObj.userData.push(userObj);
+                        }
                     }
                     else {
                         spectators.push(user);
@@ -412,6 +465,112 @@ class DataServer {
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
 			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames}));
+		}
+		else {
+			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
+		}
+	}
+
+    createHostSubscription(appname='',devices=[],propnames=[], hostname='', hostprops=[]) {
+        this.hostSubscriptions.push({
+            appname:appname,
+            devices:devices,
+            id:appname+"_"+Math.floor(Math.random()*10000000),
+            hostname:hostname,
+            hostprops:hostprops,
+            usernames:[],
+            updatedUsers:[], //users with new data available (clears when read from subcription)
+            newUsers:[], //indicates users that just joined and have received no data yet
+            spectators:[], //usernames of spectators
+            propnames:propnames,
+            lastTransmit:Date.now()
+        });
+    }
+
+    getHostSubscriptions(appname='') {
+		let g = this.hostSubscriptions.filter((o) => {
+            if(o.appname === appname) return true;
+        })
+        if(g.length === 0) return undefined;
+		else return g;
+	}
+
+    getHostSubscription(id='') {
+		let g = this.hostSubscriptions.find((o,i) => {
+			if(o.id === id) {
+				return true;
+			}
+		});
+        return g;
+	}
+
+    getHostGameData(id='') {
+        let gameData = undefined;
+        let s = this.gameSubscriptions.find((sub,i) => {
+            if(sub.id === id) {
+                let updateObj = {
+                    msg:'gameData',
+                    appname:sub.appname,
+                    devices:sub.devices,
+                    id:sub.id,
+                    hostname:sub.hostname,
+                    hostprops:sub.hostprops,
+                    propnames:sub.propnames,
+                    usernames:sub.usernames,
+                    updatedUsers:sub.updatedUsers,
+                    newUsers:sub.newUsers,
+                    hostData:{},
+                    userData:[],
+                    spectators:[]
+                };
+                
+                sub.usernames.forEach((user,j) => { //get current relevant data for all players in game
+                    if(sub.spectators.indexOf(user) < 0){
+                        let userObj = {
+                            username:user
+                        }
+                        let listener = this.userData.get(user);
+                        if(listener) {
+                            sub.propnames.forEach((prop,k) => {
+                                userObj[prop] = listener.props[prop];
+                            });
+                            updateObj.userData.push(userObj);
+                        }
+                    }
+                    else {
+                        spectators.push(user);
+                    }
+                });
+
+                let host = this.userData.get(sub.hostname);
+                if(host) {
+                    sub.hostprops.forEach((prop,j) => {
+                        updateObj.hostData[prop] = host.props[prop];
+                    })
+                }
+
+                gameData = updateObj;
+                return true;
+            }
+        });
+        return gameData;
+    }
+
+	subscribeUserToHostGame(username,id,spectating=false) {
+		let g = this.getHostSubscription(id);
+        let u = this.userData.get(username);
+		if(g !== undefined && u !== undefined) {
+            if( g.usernames.indexOf(username) < 0) { 
+                g.usernames.push(username);
+                if(spectating === true) g.spectators.push(username);
+                g.newUsers.push(username);
+            }
+			
+			g.propnames.forEach((prop,j) => {
+				if(!(prop in u.props)) u.props[prop] = '';
+			});
+			//Now send to the user which props are expected from their client to the server on successful subscription
+			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
 		}
 		else {
 			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
@@ -474,11 +633,12 @@ class DataServer {
                                 username:user
                             }
                             let listener = this.userData.get(user);
-
-                            sub.propnames.forEach((prop,k) => {
-                                userObj[prop] = listener.props[prop];
-                            });
-                            updateObj.userData.push(userObj);
+                            if(listener) {
+                                sub.propnames.forEach((prop,k) => {
+                                    userObj[prop] = listener.props[prop];
+                                });
+                                updateObj.userData.push(userObj);
+                            }
                         }
                     });
 
@@ -492,11 +652,12 @@ class DataServer {
                                     username:user
                                 }
                                 let listener = this.userData.get(user);
-    
-                                sub.propnames.forEach((prop,k) => {
-                                    userObj[prop] = listener.props[prop];
-                                });
-                                fullUserData.push(userObj);
+                                if(listener){ 
+                                    sub.propnames.forEach((prop,k) => {
+                                        userObj[prop] = listener.props[prop];
+                                    });
+                                    fullUserData.push(userObj);
+                                }
                             }
                         });
 
@@ -516,10 +677,8 @@ class DataServer {
                             }
                         });
 
-                        sub.newUsers = [];
                     }
 
-                    sub.updatedUsers = [];
 
                     sub.usernames.forEach((user,j) => {
                         if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
@@ -536,8 +695,100 @@ class DataServer {
                         }
                     });
 
-                    
+                    sub.updatedUsers = [];
+                    sub.newUsers = [];
                 }
+            }
+            sub.lastTransmit = time;
+		});
+
+         //optimized to only send updated data
+		this.hostSubscriptions.forEach((sub,i) => {
+            if(time - sub.lastTransmit > this.subUpdateInterval){
+                
+                //let t = this.userData.get('guest');
+                //if(t!== undefined) t.socket.send(JSON.stringify(sub));
+
+                let updateObj = {
+                    msg:'gameData',
+                    appname:sub.appname,
+                    devices:sub.devices,
+                    id:sub.id,
+                    hostname:sub.hostname,
+                    hostprops:sub.hostprops,
+                    propnames:sub.propnames,
+                    usernames:sub.usernames,
+                    spectators:sub.spectators,
+                    updatedUsers:sub.updatedUsers,
+                    newUsers:sub.newUsers,
+                    hostData:{},
+                    userData:[],
+                };
+
+                
+                let hostUpdateObj = Object.assign({},updateObj);
+
+                let host = this.userData.get(sub.hostname);
+                if(host) {
+                    sub.hostprops.forEach((prop,j) => {
+                        updateObj.hostData[prop] = host.props[prop];
+                    })
+                }
+
+                if(host) {
+                    if(sub.updatedUsers.length > 0) { //only send data if there are updates
+                        sub.updatedUsers.forEach((user,j) => {
+                            if(sub.spectators.indexOf(user) < 0 && sub.newUsers.indexOf(user) < 0){
+                                let userObj = {
+                                    username:user
+                                }
+                                let listener = this.userData.get(user);
+                                if(listener) {
+                                    sub.propnames.forEach((prop,k) => {
+                                        userObj[prop] = listener.props[prop];
+                                    });
+                                    hostUpdateObj.userData.push(userObj);
+                                }
+                            }
+                        });
+                    }
+
+                    sub.newUsers.forEach((user,j) => {
+                        if(sub.spectators.indexOf(user) < 0){
+                            let userObj = {
+                                username:user
+                            }
+                            let listener = this.userData.get(user);
+                            if(listener) {
+                                sub.propnames.forEach((prop,k) => {
+                                    userObj[prop] = listener.props[prop];
+                                });
+                                hostUpdateObj.userData.push(userObj);
+                            }
+                        }
+                    });
+
+                    host.socket.send(JSON.stringify(hostUpdateObj));
+                }
+
+
+                    //send latest host data to users
+                    sub.usernames.forEach((user,j) => {
+                        let u = this.userData.get(user);
+                        if(u !== undefined) {
+                            u.socket.send(JSON.stringify(updateObj));
+                            u.lastUpdate = time; //prevents timing out for long spectator sessions
+                        } else {
+                            sub.usernames.splice(sub.usernames.indexOf(user),1);
+                            if(sub.spectators.indexOf(user) > -1) {
+                                sub.spectators.splice(sub.spectators.indexOf(user),1);
+                            }
+                        }
+                    });
+
+                    sub.updatedUsers = [];
+                    sub.newUsers = [];
+                
             }
             sub.lastTransmit = time;
 		});
