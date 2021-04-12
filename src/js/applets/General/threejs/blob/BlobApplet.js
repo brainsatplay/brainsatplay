@@ -125,9 +125,9 @@ const scene = new THREE.Scene()
 /**
  * Camera
  */
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
-camera.position.z = 20
-let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
+let baseCameraPos = new THREE.Vector3(0,0,20)
+const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.01, 1000)
+camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
 
 this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
@@ -266,7 +266,6 @@ const material = new THREE.ShaderMaterial({
     uniforms:
     {
         uTime: { value: 0 },
-        aspectRatio: {value: window.innerWidth / window.innerHeight},
         uColor: {value: [materialControls.rPower,materialControls.gPower,materialControls.bPower,materialControls.alpha] },
         uNoiseIntensity: {value: materialControls.noiseIntensity}
     }
@@ -289,21 +288,21 @@ scene.add(mesh)
 
 // Resize
 this.resizeMesh = () => {
-    camera.aspect = window.innerWidth / window.innerHeight
+    camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
     camera.updateProjectionMatrix()
-    regenerateGeometry()
+    // regenerateGeometry()
+    camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
     this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
-
 }
 
 window.addEventListener('resize', this.resizeMesh, 
 false)
 
 function generateGeometry() {
-    let diameter = (fov_y  - 1.0)* camera.aspect / 8
+    let diameter = 7
     return new THREE.SphereGeometry(diameter,Math.pow(2,6), Math.pow(2,6));
 }
 function regenerateGeometry() {
