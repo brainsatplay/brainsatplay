@@ -292,6 +292,7 @@ export class AppletManager {
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
             this.enforceLayout();
+            console.log('add applet')
             this.responsive();
         }
     }
@@ -307,6 +308,7 @@ export class AppletManager {
                 this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};
                 this.appletsSpawned--;
                 this.enforceLayout();
+                console.log('remove applet')
                 this.responsive();
                 return true;
             }
@@ -344,7 +346,7 @@ export class AppletManager {
         });
         select.innerHTML = newhtml;
 
-        select.addEventListener('change', (e)=>{
+        select.onchange = (e) => {
             this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
                 let found = this.appletClasses.find((o,i)=>{
@@ -354,7 +356,7 @@ export class AppletManager {
                     }
                 });
             }
-        })
+        }
     }
 
     enforceLayout(nodes=this.applets) {
@@ -377,14 +379,13 @@ export class AppletManager {
         })
 
         let getReplacementLabel = ({active,inactive},baseLayout,i,j) => {
-            console.log(active)
             if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
-            if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j-1]
+            if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j+1]
             if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][0]
             if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][0]
-            if (active[0] !== null) {
-                return active[0]
-            }
+            // if (active[0] !== null) {
+            //     return active[0]
+            // }
         }
 
         // Finalize Layout
@@ -393,14 +394,12 @@ export class AppletManager {
             responsiveLayout = responsiveLayout.map((row,i) => {
                 return row.map((val,j) => {
                     if (val === l) { // Replace inactive applets
-                        console.log(nodeLabels)
-                        return getReplacementLabel(nodeLabels,responsiveLayout,i,j)
+                        return getReplacementLabel(nodeLabels,responsiveLayout,i,j) ?? val
                     }
                     else return val
                 })
             })
         })
-        console.log(responsiveLayout)
 
         // Get Row Assignments
         let rowAssignmentArray = Array.from({length: nodes.length}, e => new Set())
@@ -410,15 +409,9 @@ export class AppletManager {
             })
         })
 
-        console.log(responsiveLayout)
-        console.log(nodeLabels)
-        console.log(layoutRows)
-        console.log(layoutColumns)
-
         let innerStrings = responsiveLayout.map((stringArray) => {
             return '"' + stringArray.join(' ') + '"'
         }).join(' ')
-        console.log(innerStrings)
 
         let applets = document.getElementById('applets');
         applets.style.gridTemplateAreas = innerStrings
