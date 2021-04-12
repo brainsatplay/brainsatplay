@@ -205,8 +205,8 @@ class DataServer {
             }
         }
         else if (commands[0] === 'createGame') {
-            this.createGameSubscription(commands[1],commands[2],commands[3]);
-            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[this.gameSubscriptions.length-1]}));
+            let i = this.createGameSubscription(commands[1],commands[2],commands[3]);
+            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[i]}));
         }
         else if (commands[0] === 'getGames') { //List games with the app name
             let subs = this.getGameSubscriptions(commands[1]);
@@ -234,6 +234,10 @@ class DataServer {
             else {
                 u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
             }
+        }
+        else if (commands[0] === 'createHostedGame') {
+            let i = this.createHostSubscription(commands[1],commands[2],commands[3],commands[4],commands[5]);
+            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.hostSubscriptions[i]}));
         }
         else if (commands[0] === 'getHostGames') { //List games with the app name
             let subs = this.getHostSubscriptions(commands[1]);
@@ -270,7 +274,7 @@ class DataServer {
             this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
         }
         else if(commands[0] === 'subscribeToHostGame') { //Join game
-            this.subscribeUserToHostGame(username,commands[1],commands[2],command[3]);
+            this.subscribeUserToHostGame(username,commands[1],commands[2],command[3],command[4]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
@@ -341,9 +345,12 @@ class DataServer {
 	}
 
 	streamBetweenUsers(listenerUser,sourceUser,propnames=[]) {
+        let idx = undefined;
         let sub = this.userSubscriptions.find((o,i) => {
             if(o.listener === listenerUser && o.source === sourceUser) {
+                idx = i;
                 o.propnames = propnames;
+                return true;
             }
         });
         if(sub === undefined) {
@@ -364,11 +371,15 @@ class DataServer {
                     lastTransmit:0
                 });
                 u.socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
+                return this.userSubscriptions[this.userSubscriptions.length-1];
             }
             else {
                 u.socket.send(JSON.stringify({msg:'userNotFound', username:sourceUser}));
             }
-           
+            
+        }
+        else { 
+            return idx;
         }
 	}
 
@@ -390,6 +401,8 @@ class DataServer {
             //     console.log('error: game not configured.')
             // }
         // });
+
+        return this.gameSubscriptions.length - 1;
 	}
 
 	getGameSubscriptions(appname='') {
@@ -485,6 +498,8 @@ class DataServer {
             propnames:propnames,
             lastTransmit:Date.now()
         });
+
+        return this.hostSubscriptions.length-1;
     }
 
     getHostSubscriptions(appname='') {
@@ -556,7 +571,7 @@ class DataServer {
         return gameData;
     }
 
-	subscribeUserToHostGame(username,id,spectating=false) {
+	subscribeUserToHostGame(username,id,spectating=false,hosting=false) {
 		let g = this.getHostSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
@@ -565,6 +580,8 @@ class DataServer {
                 if(spectating === true) g.spectators.push(username);
                 g.newUsers.push(username);
             }
+
+            if(hosting === true) g.hostname = username;
 			
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';

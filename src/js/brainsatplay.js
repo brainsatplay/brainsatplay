@@ -813,37 +813,156 @@ export class brainsatplay {
 		}
 	}
 
+	createGame = (appname='', devices=[], propnames=[], onsuccess=()=>{}) => {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send({cmd:['createGame',appname,devices,propnames],username:this.info.auth.username})
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(newResult.msg === 'gameCreated' && newResult.appname === appname) {
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
+				}
+			});
+		}
+	} 
+
+	
+	getHostedGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getHostGames',gameid]}));
+			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {
+						console.log(newResult.gameInfo);
+						onsuccess(newResult); //list games, then subscrie to game by id
+						this.state.unsubscribe('commandResult',sub);
+					}
+				}
+				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+					this.state.unsubscribe('commandResult',sub);
+					console.log("Game not found: ", appname);
+				}
+			});
+		}
+	}
+
+	//connect to async game using the unique id of the subscription
+	subscribeToHostedGame(gameid='',spectating=false, hosting=false, onsuccess=(newResult)=>{}) {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getHostGameInfo',gameid]}));
+			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getGameInfoResult' && newResult.gameInfo.id === gameid) {
+						let configured = true;
+						if(spectating === false) {
+							//check that this user has the correct streaming configuration with the correct connected device
+							let streamParams = [];
+							newResult.gameInfo.propnames.forEach((prop) => {
+								console.log(prop);
+								streamParams.push(prop.split("_"));
+							});
+							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
+						}
+						if(configured === true) {
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating,hosting]}));
+							if(hosting === true) {
+								newResult.gameInfo.usernames.forEach((user) => {
+									newResult.gameInfo.propnames.forEach((prop) => {
+										this.state.data[newResult.gameInfo.id+"_"+user+"_"+prop] = null;
+									});
+								});
+							} else {
+								newResult.gameInfo.hostprops.forEach((prop) => {
+									this.state.data[newResult.gameInfo.id+"_"+newResult.gameInfo.hostname+"_"+prop] = null;
+								});
+							}
+							onsuccess(newResult);
+						}
+						this.state.unsubscribe('commandResult',sub);
+					}
+					else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+						this.state.unsubscribe('commandResult',sub);
+						console.log("Game not found: ", appname);
+					}
+				}
+			});
+		}
+	}
+
+
+	createHostedGame = (appname='', devices=[], propnames=[], hostname='', hostprops=[], onsuccess=()=>{}) => {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.socket.send({cmd:['createHostedGame',appname,devices,propnames,hostname,hostprops],username:this.info.auth.username})
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(newResult.msg === 'gameCreated' && newResult.appname === appname) {
+					this.state.data[newResult.gameInfo.id+"_host"] = hostname;
+					onsuccess(newResult);
+					this.state.unsubscribe('commandResult',sub);
+				}
+			});
+		}
+	} 
+
 	//Browse multiplayer instances for an app
-	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
+	makeGameBrowser = (appname, parentNode, hosted=false, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
 		let id = Math.floor(Math.random()*1000000)+appname;
 		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
 		parentNode.insertAdjacentHTML('afterbegin',html);
 
 		document.getElementById(id+'search').onclick = () => {
-			this.getGames(appname, (result) => {
-				let tablehtml = '';
-				result.gameInfo.forEach((g) => {
-					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
+			if(hosted) {
+				this.getHostedGames(appname, (result) => {
+					let tablehtml = '';
+					result.gameInfo.forEach((g) => {
+						tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'>Host:<input id='`+id+`host' type='checkbox'></td></td></tr>`
+					});
+	
+					document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
+	
+					result.gameInfo.forEach((g) => { 
+						document.getElementById(g.id+'connect').onclick = () => {
+							this.subscribeToHostedGame(g.id,document.getElementById(id+'spectate').checked,document.getElementById(id+'host').checked,(subresult) => {
+								onjoined(g);
+								document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
+								document.getElementById(id+'disconnect').onclick = () => {
+									this.unsubscribeFromGame(g.id,()=>{
+										onleave(g);
+										let node = document.getElementById(id+'disconnect');
+										node.parentNode.removeChild(node);
+									});
+								}
+							});
+						}
+					});
 				});
-
-				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
-
-				result.gameInfo.forEach((g) => { 
-					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
-							onjoined(g);
-							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
-							document.getElementById(id+'disconnect').onclick = () => {
-								this.unsubscribeFromGame(g.id,()=>{
-									onleave(g);
-									let node = document.getElementById(id+'disconnect');
-									node.parentNode.removeChild(node);
-								});
-							}
-						});
-					}
+			}
+			else {
+				this.getGames(appname, (result) => {
+					let tablehtml = '';
+					result.gameInfo.forEach((g) => {
+						tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
+					});
+	
+					document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
+	
+					result.gameInfo.forEach((g) => { 
+						document.getElementById(g.id+'connect').onclick = () => {
+							this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
+								onjoined(g);
+								document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
+								document.getElementById(id+'disconnect').onclick = () => {
+									this.unsubscribeFromGame(g.id,()=>{
+										onleave(g);
+										let node = document.getElementById(id+'disconnect');
+										node.parentNode.removeChild(node);
+									});
+								}
+							});
+						}
+					});
 				});
-			});
+			}
 		}
 	}
 
