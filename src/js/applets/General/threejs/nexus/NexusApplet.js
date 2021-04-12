@@ -443,22 +443,19 @@ let currentIntersect = null
 
 var animate = () => {
 
-    if (this.three.canvas != null){
-        // Limit Framerate
-        setTimeout( function() {
-            requestAnimationFrame( animate );
-        }, 1000 / 60 );
-
-        animateUsers()
-        material.uniforms.uTime.value = Date.now() - tStart
-        points.forEach(point => {
-            point.animateLabel(camera,appletContainer)
-        })
-        // stats.update()
-        controls.update()
-        // this.three.renderer.render(this.three.scene, camera)
-        effectComposer.render()
-    }
+    setTimeout( () => {
+        if (this.three.canvas != null){
+                animateUsers()
+                material.uniforms.uTime.value = Date.now() - tStart
+                points.forEach(point => {
+                    point.animateLabel(camera,appletContainer)
+                })
+                // stats.update()
+                controls.update()
+                // this.three.renderer.render(this.three.scene, camera)
+                effectComposer.render()
+        }
+    }, 1000 / 60 );
 };
 
 
@@ -612,8 +609,8 @@ this.three.getGeolocation = () => {
         maximumAge: 0
     });
 }
-animate();
-    }
+this.three.renderer.setAnimationLoop( animate )
+}
 
     // Clear Three.js Scene Completely
     clearThree(){
@@ -633,6 +630,7 @@ animate();
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }

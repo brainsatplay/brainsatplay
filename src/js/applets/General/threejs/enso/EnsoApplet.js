@@ -129,7 +129,7 @@ let diameter = 100
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
 camera.position.z = diameter*2
 
-const renderer = new THREE.WebGLRenderer({
+this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
 })
@@ -146,9 +146,9 @@ const renderer = new THREE.WebGLRenderer({
  let meshHeight = meshWidth / imageAspect;
 
 // Renderer
-renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
+this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
@@ -162,7 +162,7 @@ ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendCh
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.renderer.getPixelRatio() === 1 && this.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -183,22 +183,13 @@ ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendCh
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
-
-// const effectSobel = new ShaderPass( SobelOperatorShader );
-// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
-// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
-// effectComposer.addPass( effectSobel );
-
-// const shaderPass = new ShaderPass(RGBShiftShader)
-// shaderPass.enabled = true
-// effectComposer.addPass(shaderPass)
 
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
@@ -209,7 +200,7 @@ effectComposer.addPass(bloomPass)
 
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -218,7 +209,7 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, this.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
 controls.enabled = false;
@@ -294,8 +285,8 @@ this.resizeEnso = () => {
     meshWidth = (fov_y  - 1.0)* camera.aspect;
     meshHeight = meshWidth / imageAspect
     regenerateGeometry()
-    renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
@@ -310,38 +301,20 @@ function regenerateGeometry() {
     enso.geometry = newGeometry
 }
 
-// Coherence
-const getCoherence = (band='alpha1') => {
-    let coherence = null;
-    if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData().means[band]
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
-}
-
 // Animate
 var animate = () => {
 
     // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
+    setTimeout( () => {
+        material.uniforms.uTime.value = Date.now() - tStart
+        let coherence = this.bci.atlas.getNeurofeedback()
+        material.uniforms.uNoiseIntensity.value = 1-coherence
+        let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+
+        controls.update()
+        effectComposer.render()
     }, 1000 / 60 );
-
-    material.uniforms.uTime.value = Date.now() - tStart
-
-    // let coherence = getCoherence()
-    let coherence = this.bci.atlas.getNeurofeedback()
-    material.uniforms.uNoiseIntensity.value = 1-coherence
-    let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-
-    controls.update()
-    effectComposer.render()
 };
 
 
@@ -349,7 +322,7 @@ var animate = () => {
 // const stats = Stats()
 // ensoContainer.appendChild(stats.dom)
 
-    animate();
+this.renderer.setAnimationLoop( animate );
 }
 
     // // Clear Three.js Scene Completely
@@ -370,6 +343,7 @@ var animate = () => {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.renderer.setAnimationLoop( null );
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

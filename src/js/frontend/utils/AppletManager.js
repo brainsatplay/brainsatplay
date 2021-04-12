@@ -23,6 +23,7 @@ export class AppletManager {
         } else {
             this.maxApplets = 1;
         }
+
         this.layoutTemplates = {
             'Focus': {generate: (labels) => {
                     let rows = 3
@@ -344,6 +345,7 @@ export class AppletManager {
             if(o.appletIdx === appletIdx && o.classinstance != null) {
                 stateIdx = i;  
                 if (this.applets[stateIdx].classinstance != null){
+                    console.log('deiniting applet' + this.applets[stateIdx].name)
                     this.applets[stateIdx].classinstance.deinit();
                 }
                 this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};

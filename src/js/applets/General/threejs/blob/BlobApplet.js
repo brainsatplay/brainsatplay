@@ -131,15 +131,15 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.z = 20
 let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
 
-const renderer = new THREE.WebGLRenderer({
+this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
 })
 
 // Renderer
-renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
+this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
@@ -153,7 +153,7 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.renderer.getPixelRatio() === 1 && this.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -174,7 +174,7 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
@@ -214,7 +214,7 @@ effectComposer.addPass(bloomPass)
 // effectComposer.addPass(customPass)
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -223,7 +223,7 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, this.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
 controls.enabled = false;
@@ -294,8 +294,8 @@ this.resizeMesh = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     regenerateGeometry()
-    renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
@@ -330,25 +330,23 @@ const getCoherence = (band='alpha1') => {
 
 // Animate
 
+
 var animate = () => {
 
     // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
+    setTimeout( () => {
+        material.uniforms.uTime.value = Date.now() - tStart
+
+        // let coherence = getCoherence()
+        let coherence = this.bci.atlas.getNeurofeedback()
+        if (coherence){
+            material.uniforms.uNoiseIntensity.value = 1-coherence
+            let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')
+            if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+        }
+        controls.update()
+        effectComposer.render()
     }, 1000 / 60 );
-
-    material.uniforms.uTime.value = Date.now() - tStart
-
-    // let coherence = getCoherence()
-    let coherence = this.bci.atlas.getNeurofeedback()
-    // console.log(coherence)  
-    if (coherence){
-        material.uniforms.uNoiseIntensity.value = 1-coherence
-        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')
-        if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-    }
-    controls.update()
-    effectComposer.render()
 };
 
 
@@ -356,12 +354,13 @@ var animate = () => {
 // const stats = Stats()
 // appletContainer.appendChild(stats.dom)
 
-    animate();
+this.renderer.setAnimationLoop( animate );
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.renderer.setAnimationLoop( null );
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

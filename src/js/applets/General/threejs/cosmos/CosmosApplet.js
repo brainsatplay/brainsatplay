@@ -201,7 +201,7 @@ const generateCosmos = () =>
         uniforms:
         {
             uTime: { value: 0 },
-            uSize: { value: 30 * renderer.getPixelRatio() }
+            uSize: { value: 30 * this.renderer.getPixelRatio() }
         },    
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
@@ -228,8 +228,9 @@ this.resizeCosmos = () => {
     camera.updateProjectionMatrix()
 
     // Update renderer
-    renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    console.log(this)
+    this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     // Update effect composer
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -259,11 +260,11 @@ controls.enabled = false;
 /**
  * Renderer
  */
-const renderer = new THREE.WebGLRenderer({
+this.renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
-renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /** 
  * Postprocessing 
@@ -273,7 +274,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.renderer.getPixelRatio() === 1 && this.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -294,7 +295,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
 
@@ -311,7 +312,7 @@ effectComposer.addPass(renderPass)
 
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -324,37 +325,16 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 generateCosmos()
 
 /**
- * Get Coherence Values
- */
-const getCoherence = (band='alpha1') => {
-    let coherence = null;
-    if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData()
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
-}
-
-/**
  * Animate
  */
 const clock = new THREE.Clock()
 
 const animate = () =>
 {
+    setTimeout( () => {
     const elapsedTime = clock.getElapsedTime()
 
-    // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
-    }, 1000 / 60 );    
-
     // Update material
-    // let coherence = getCoherence()
     let coherence = this.bci.atlas.getNeurofeedback()
     material.uniforms.uTime.value += 0.001 + 0.01*coherence
     let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
@@ -364,16 +344,18 @@ const animate = () =>
     controls.update()
 
     // Render
-    // renderer.render(scene, camera)
+    // this.renderer.render(scene, camera)
     effectComposer.render()
+    }, 1000 / 60 );    
 }
 
-animate()
+this.renderer.setAnimationLoop( animate );
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.renderer.setAnimationLoop( null );
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
