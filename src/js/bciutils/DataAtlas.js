@@ -518,7 +518,6 @@ export class DataAtlas {
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
 		}
-		console.log(coh_ref_ch)
 		return coh_ref_ch;
 	}
 
@@ -1080,26 +1079,29 @@ export class DataAtlas {
 
 	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
-		
-		// Custom Feedback Functions
-		let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
+		let html = '';
+		let feedbackOptions;
+		console.log(this.settings)
+		if (this.settings.analyzing){
+			// Custom Feedback Functions
+			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
 
-		// Option Declaration
-		let feedbackOptions = [
-			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-			{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-		]
-		let html = `<div><select id="${id}-neurofeedbackselector">`;
+			// Option Declaration
+			feedbackOptions = [
+				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
+				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+			]
+			html = `<div><select id="${id}-neurofeedbackselector">`;
 
-		feedbackOptions.forEach((o,i) => {
-			if (i === 0) html += `<option value=${o.function.name} disabled selected>${o.label}</option>`
-			else html += `<option value=${o.function.name}>${o.label}</option>`;
-			if (i === feedbackOptions.length - 1) html += `</select></div>`
-		});
-		parentNode.innerHTML = html;
-		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
-			applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
+			feedbackOptions.forEach((o,i) => {
+				if (i === 0) html += `<option value=${o.function.name} disabled selected>${o.label}</option>`
+				else html += `<option value=${o.function.name}>${o.label}</option>`;
+				if (i === feedbackOptions.length - 1) html += `</select></div>`
+			});
 		}
+		parentNode.innerHTML = html;
+		let neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`)
+		if (neurofeedbackSelector != null) neurofeedbackSelector.onchange = (e) => {applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function}
 	}
 }
 
