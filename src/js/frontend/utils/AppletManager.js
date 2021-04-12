@@ -23,10 +23,51 @@ export class AppletManager {
         } else {
             this.maxApplets = 1;
         }
-        let layoutValues = Array.from({length: this.maxApplets}).map((val,i) => String.fromCharCode(97 + i))
         this.layoutTemplates = {
-            'Focus': [[layoutValues[0],layoutValues[0],layoutValues[0]],[layoutValues[0],layoutValues[0],layoutValues[0]],[layoutValues[1],layoutValues[2],layoutValues[3]]],
-            'Grid': [[layoutValues[0],layoutValues[1]],[layoutValues[2],layoutValues[3]]],
+            'Focus': {generate: (labels) => {
+                    let rows = 3
+                    let bottomCols = labels.active.length - 1
+                    return Array.from({length: rows},e=>[]).map((a,i) => {
+                        if (bottomCols > 0){
+                            if (i < rows-1){
+                                for (let j = 0; j < bottomCols; j++) a.push(labels.active[0])
+                            } else {
+                                for (let j = 0; j < bottomCols; j++) a.push(labels.active[j+1])
+                            }
+                        } else {
+                            a.push(labels.active[0])
+                        }
+                        return a
+                    })
+                }},
+            'Grid': {generate: (labels) => {
+                    let rows = Math.ceil(Math.sqrt(labels.active.length))
+                    let cols = rows;
+
+                    let layout = Array.from({length: rows},e=>[]).map((a,i) => {
+                        for (let j = 0; j < rows; j++) {
+                            a.push(labels.all[rows*(i)+j])
+                        }
+                        return a
+                    })
+
+                    let getReplacementLabel = ({active, inactive, all},baseLayout,i,j) => {
+                        if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
+                        if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j+1]
+                        if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][j]
+                        if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][j]
+                    }
+                    
+                        layout = layout.map((row,i) => {
+                            return row.map((val,j) => {
+                                if (labels.inactive.includes(val)) { // Replace inactive applets
+                                    return getReplacementLabel(labels,layout,i,j) ?? val
+                                }
+                                else return val
+                            })
+                        })
+                    return layout
+            }}
         }
 
         this.appletPresets = {
@@ -362,13 +403,10 @@ export class AppletManager {
     enforceLayout(nodes=this.applets) {
 
         let layoutSelector = document.getElementById('layout-selector')
-        let responsiveLayout = this.layoutTemplates[layoutSelector.value]
-        let layoutRows = responsiveLayout.length
-        let layoutColumns = responsiveLayout[0].length
-        let activeNodes = nodes.filter(n => n.classinstance != null)
         let nodeLabels = {
             active: [],
-            inactive: []
+            inactive: [],
+            all: []
         }
         this.applets.forEach((app,i) => {
             if (app.classinstance != null){
@@ -376,30 +414,12 @@ export class AppletManager {
             } else {
                 nodeLabels.inactive.push(String.fromCharCode(97 + i))
             }
+            nodeLabels.all.push(String.fromCharCode(97 + i))
         })
-
-        let getReplacementLabel = ({active,inactive},baseLayout,i,j) => {
-            if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
-            if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j+1]
-            if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][0]
-            if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][0]
-            // if (active[0] !== null) {
-            //     return active[0]
-            // }
-        }
-
-        // Finalize Layout
-        let toReplace = []
-        nodeLabels.inactive.forEach((l) => {
-            responsiveLayout = responsiveLayout.map((row,i) => {
-                return row.map((val,j) => {
-                    if (val === l) { // Replace inactive applets
-                        return getReplacementLabel(nodeLabels,responsiveLayout,i,j) ?? val
-                    }
-                    else return val
-                })
-            })
-        })
+        let responsiveLayout = this.layoutTemplates[layoutSelector.value].generate(nodeLabels)
+        let layoutRows = responsiveLayout.length
+        let layoutColumns = responsiveLayout[0].length
+        let activeNodes = nodes.filter(n => n.classinstance != null)
 
         // Get Row Assignments
         let rowAssignmentArray = Array.from({length: nodes.length}, e => new Set())
@@ -415,13 +435,13 @@ export class AppletManager {
 
         let applets = document.getElementById('applets');
         applets.style.gridTemplateAreas = innerStrings
-        applets.style.gridTemplateColumns = `repeat(${layoutRows},1fr)`
-        applets.style.gridTemplateRows =  `repeat(${layoutColumns},1fr)`
+        applets.style.gridTemplateColumns = `repeat(${layoutColumns},1fr)`
+        applets.style.gridTemplateRows =  `repeat(${layoutRows},1fr)`
 
         // Set Applet Heights
         activeNodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
-            let gridPercent = 100 * rowAssignmentArray[i].size/layoutRows;
+            let gridPercent = 100 * rowAssignmentArray[appnode.appletIdx-1].size/layoutRows;
             appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
         });  
     }
