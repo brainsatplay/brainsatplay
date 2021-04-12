@@ -905,36 +905,64 @@ export class brainsatplay {
 	} 
 
 	//Browse multiplayer instances for an app
-	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
+	makeGameBrowser = (appname, parentNode, hosted=false, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
 		let id = Math.floor(Math.random()*1000000)+appname;
 		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
 		parentNode.insertAdjacentHTML('afterbegin',html);
 
 		document.getElementById(id+'search').onclick = () => {
-			this.getGames(appname, (result) => {
-				let tablehtml = '';
-				result.gameInfo.forEach((g) => {
-					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
+			if(hosted) {
+				this.getHostedGames(appname, (result) => {
+					let tablehtml = '';
+					result.gameInfo.forEach((g) => {
+						tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'>Host:<input id='`+id+`host' type='checkbox'></td></td></tr>`
+					});
+	
+					document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
+	
+					result.gameInfo.forEach((g) => { 
+						document.getElementById(g.id+'connect').onclick = () => {
+							this.subscribeToHostedGame(g.id,document.getElementById(id+'spectate').checked,document.getElementById(id+'host').checked,(subresult) => {
+								onjoined(g);
+								document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
+								document.getElementById(id+'disconnect').onclick = () => {
+									this.unsubscribeFromGame(g.id,()=>{
+										onleave(g);
+										let node = document.getElementById(id+'disconnect');
+										node.parentNode.removeChild(node);
+									});
+								}
+							});
+						}
+					});
 				});
-
-				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
-
-				result.gameInfo.forEach((g) => { 
-					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
-							onjoined(g);
-							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
-							document.getElementById(id+'disconnect').onclick = () => {
-								this.unsubscribeFromGame(g.id,()=>{
-									onleave(g);
-									let node = document.getElementById(id+'disconnect');
-									node.parentNode.removeChild(node);
-								});
-							}
-						});
-					}
+			}
+			else {
+				this.getGames(appname, (result) => {
+					let tablehtml = '';
+					result.gameInfo.forEach((g) => {
+						tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
+					});
+	
+					document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
+	
+					result.gameInfo.forEach((g) => { 
+						document.getElementById(g.id+'connect').onclick = () => {
+							this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
+								onjoined(g);
+								document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
+								document.getElementById(id+'disconnect').onclick = () => {
+									this.unsubscribeFromGame(g.id,()=>{
+										onleave(g);
+										let node = document.getElementById(id+'disconnect');
+										node.parentNode.removeChild(node);
+									});
+								}
+							});
+						}
+					});
 				});
-			});
+			}
 		}
 	}
 
