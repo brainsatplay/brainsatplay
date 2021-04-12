@@ -19,9 +19,6 @@ import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
 
-// import * as p5 from 'p5'
-// console.log(p5.noise)
-
 //Example Applet for integrating with the UI Manager
 export class BlobApplet {
 
@@ -45,8 +42,9 @@ export class BlobApplet {
             //Add whatever else
         };
 
-        //etc..
-
+        // Setup Neurofeedback
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback
     }
 
     //---------------------------------
@@ -85,7 +83,7 @@ export class BlobApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
+        this.bci.atlas.makeFeedbackOptions(this)
 
 /**
  * Blob
@@ -338,7 +336,7 @@ var animate = () => {
         material.uniforms.uTime.value = Date.now() - tStart
 
         // let coherence = getCoherence()
-        let coherence = this.bci.atlas.getNeurofeedback()
+        let coherence = this.getNeurofeedback()
         if (coherence){
             material.uniforms.uNoiseIntensity.value = 1-coherence
             let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')

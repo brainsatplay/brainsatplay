@@ -270,7 +270,7 @@ export class BCIAppManager {
         <hr>
         <div style="margin: 10px 10px 0px 10px;">
             <select id="layout-selector" style="width: 100%;">
-            <option value='Focus' selected="selected">Focus</option>
+            <option value='Focus'>Focus</option>
             <option value='Grid'>Grid</option>
             </select>
         </div>

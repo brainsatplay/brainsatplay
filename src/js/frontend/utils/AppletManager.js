@@ -43,8 +43,6 @@ export class AppletManager {
                 }},
             'Grid': {generate: (labels) => {
                     let rows = Math.ceil(Math.sqrt(labels.active.length))
-                    let cols = rows;
-
                     let layout = Array.from({length: rows},e=>[]).map((a,i) => {
                         for (let j = 0; j < rows; j++) {
                             a.push(labels.all[rows*(i)+j])
@@ -71,20 +69,34 @@ export class AppletManager {
             }}
         }
 
-        this.appletPresets = {
-            "EEG Neurofeedback": [
-                "Blob",
-                "uPlot",
-                "Spectrogram",
-                "Brain Map"
-            ],
-            "HEG Neurofeedback": [
-                "Sunrise",
-                "HEGBoids",
-                "HEGCircle",
-                "HEGAudio"
-            ]
-        }
+        this.appletPresets = [
+            {
+                value: 'eeg_nf',
+                name: "EEG Neurofeedback",
+                applets: [
+                    "Blob",
+                    "uPlot",
+                    "Spectrogram",
+                    "Brain Map"
+                ]
+            },
+            {
+                value: 'heg_nf',
+                name: "HEG Neurofeedback",
+                applets: [
+                    "Sunrise",
+                    "HEGBoids",
+                    "HEGCircle",
+                    "HEGAudio"
+                ]
+            }
+        ]
+
+        this.appletPresets.forEach((obj,i) => {
+            document.getElementById("config-selector").innerHTML += `
+            <option value=${obj.value}>${obj.name}</option>
+            `
+        })
 
         // Other
         this.applets = Array.from({length: this.maxApplets}, (e,i) => { return {appletIdx: i+1,name:null,classinstance: null}});
@@ -157,7 +169,7 @@ export class AppletManager {
             });
         }
 
-        let appletNames = this.appletPresets[document.getElementById("config-selector").value]
+        let appletNames = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value).applets
 
         // Collect a list of unused applets
         let currentApplets = this.applets.map(applet => applet.name)

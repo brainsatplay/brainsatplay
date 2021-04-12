@@ -116,8 +116,6 @@ export class DataAtlas {
 			window.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
-
-		this.getNeurofeedback = () => {} // default neurofeedback function
     }
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){
@@ -1079,29 +1077,27 @@ export class DataAtlas {
 	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
 	 */
 
-	makeFeedbackOptions = (parentNode=document.body) => {
+	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
+		
 		let feedbackOptions = [
-			{name: 'Frontal Coherence', function: this.getFrontalCoherenceData},
-			// {name: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
-			{name: 'Alpha Ratio', function: this.getAlphaRatio},
-			{name: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
-			{name: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
+			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
+			{label: 'Frontal Coherence', function: this.getFrontalCoherenceData},
+			{label: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
+			{label: 'Alpha Ratio', function: this.getAlphaRatio},
+			{label: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
+			{label: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
 		]
 		let html = `<div><select id="${id}-neurofeedbackselector">`;
 
-		html+= `<option value="default" disabled selected>Select your neurofeedback</option>`;
 		feedbackOptions.forEach((o,i) => {
-			html+= `
-			<option value=${o.function.name}>${o.name}</option>`;
+			if (i === 0) html += `<option value=${o.function.name} disabled selected>${o.label}</option>`
+			else html += `<option value=${o.function.name}>${o.label}</option>`;
+			if (i === feedbackOptions.length - 1) html += `</select></div>`
 		});
-		html += `</select></div>`;
-
 		parentNode.innerHTML += html;
 		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
-			console.log(this.getNeurofeedback)
-			this.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
-			console.log(this.getNeurofeedback)
+			applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
 		}
 	}
 }

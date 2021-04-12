@@ -39,6 +39,8 @@ export class CosmosApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback   
     }
 
     //---------------------------------
@@ -77,7 +79,7 @@ export class CosmosApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
+        this.bci.atlas.makeFeedbackOptions(this,document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 
 
@@ -335,7 +337,8 @@ const animate = () =>
     const elapsedTime = clock.getElapsedTime()
 
     // Update material
-    let coherence = this.bci.atlas.getNeurofeedback()
+    console.log(this.getNeurofeedback)
+    let coherence = this.getNeurofeedback()
     material.uniforms.uTime.value += 0.001 + 0.01*coherence
     let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
     if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
