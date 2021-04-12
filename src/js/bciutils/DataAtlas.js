@@ -495,7 +495,7 @@ export class DataAtlas {
 	}
 
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
-	getFPData() {
+	getFPData = () => {
 		let fp_data = undefined;
 		if(this.settings.eeg) {
             let fp1 = this.getEEGDataByTag('FP1');
@@ -513,16 +513,16 @@ export class DataAtlas {
 
 
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
-	getFrontalCoherenceData() {
+	getFrontalCoherenceData = () => {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
-        }
+		}
 		return coh_ref_ch;
 	}
 
 	//C3_C4 coherence data (cranial nervs)
-	getCNCoherenceData() {
+	getCNCoherenceData = () => {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('C3_C4');
@@ -532,7 +532,7 @@ export class DataAtlas {
 	}
 
 	//Get raw/bandpower data for cranial nerves
-	getCNData() {
+	getCNData = () => {
 		let cns_data = undefined;
 		if(this.settings.eeg) {
 			let c3 = this.getEEGDataByTag('C3');
@@ -551,7 +551,7 @@ export class DataAtlas {
 	}
 
 	//Compare moving average to current data for simple scoring
-	getAlpha1CoherenceScore(coh_data) {
+	getAlpha1CoherenceScore = (coh_data) => {
 		if(coh_data.fftCount > 0) {
 			let ct = coh_data.fftCount;
 			let avg = 20; if(ct < avg) { avg = ct; }
@@ -563,7 +563,7 @@ export class DataAtlas {
 	}
 
 	//Get alpha2/alpha1 ratio from bandpower averages
-	getAlphaRatio(eeg_data) {
+	getAlphaRatio = (eeg_data) => {
 		if(eeg_data.fftCount < 0) {
 			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
 			return ratio;
@@ -572,7 +572,7 @@ export class DataAtlas {
 	}
 
 	//Calculate the latest theta beta ratio from bandpower averages
-	getThetaBetaRatio(eeg_data) {
+	getThetaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount < 0) {
 			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
 			return ratio;
@@ -580,7 +580,7 @@ export class DataAtlas {
 	}
 
 	//Calculate the latest alpha beta ratio from bandpower averages
-	getAlphaBetaRatio(eeg_data) {
+	getAlphaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount < 0) {
 			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
 			return ratio;
@@ -589,7 +589,7 @@ export class DataAtlas {
 	}
 
 	//Get highest peak near 40Hz (38-42Hz)
-	get40HzGamma(eeg_data) {
+	get40HzGamma = (eeg_data) => {
 		if(eeg_data.fftCount < 0) {
 			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
 			let centered = [];
@@ -605,7 +605,7 @@ export class DataAtlas {
 	}
 
 	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
-	getLowGammaScore(eeg_data) {
+	getLowGammaScore = (eeg_data) => {
 		if(eeg_data.fftCount < 0) {
 			let ct = eeg_data.fftCount;
 			let avg = 20; if(ct < avg) { avg = ct; }
@@ -616,7 +616,7 @@ export class DataAtlas {
 		else return 0;
 	}
 
-	getHEGRatioScore(heg_ch) {
+	getHEGRatioScore = (heg_ch) => {
 		if(heg_ch.count > 0) {
 			let ct = heg_ch.count;
 			let avg = 40; if(ct < avg) { avg = ct; }
@@ -1082,11 +1082,11 @@ export class DataAtlas {
 		
 		let feedbackOptions = [
 			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-			{label: 'Frontal Coherence', function: ()=>{this.getFrontalCoherenceData}},
-			{label: 'Alpha Coherence', function: ()=>{this.getAlpha1CoherenceScore}},
-			{label: 'Alpha Ratio', function: ()=>{this.getAlphaRatio}},
-			{label: 'Alpha/Beta Ratio', function: ()=>{this.getAlphaBetaRatio}},
-			{label: 'Theta/Beta Ratio', function: ()=>{this.getThetaBetaRatio}},
+			{label: 'Frontal Coherence', function: this.getFrontalCoherenceData},
+			{label: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
+			{label: 'Alpha Ratio', function: this.getAlphaRatio},
+			{label: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
+			{label: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
 		]
 		let html = `<div><select id="${id}-neurofeedbackselector">`;
 
@@ -1101,3 +1101,4 @@ export class DataAtlas {
 		}
 	}
 }
+
