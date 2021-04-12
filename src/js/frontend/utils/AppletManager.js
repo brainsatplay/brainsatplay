@@ -175,12 +175,11 @@ export class AppletManager {
         currentApplets.forEach((className,i) => {
             let applet = this.appletClasses.filter(applet => applet.name == className)[0]
             let compatible = false;
-            if (applet != undefined) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-            else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
+            if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+            // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
             
             // Replace incompatible applets
             if (!compatible){
-
                 // Deinit old applet
                 if (this.applets[i].classinstance != null){
                     this.deinitApplet(this.applets[i].appletIdx);
@@ -410,6 +409,7 @@ export class AppletManager {
             inactive: [],
             all: []
         }
+
         this.applets.forEach((app,i) => {
             if (app.classinstance != null){
                 nodeLabels.active.push(String.fromCharCode(97 + i))
@@ -440,11 +440,15 @@ export class AppletManager {
         applets.style.gridTemplateColumns = `repeat(${layoutColumns},1fr)`
         applets.style.gridTemplateRows =  `repeat(${layoutRows},1fr)`
 
-        // Set Applet Heights
         activeNodes.forEach((appnode,i) => {
             let appletDiv =  appnode.classinstance.AppletHTML.node;
             let gridPercent = 100 * rowAssignmentArray[appnode.appletIdx-1].size/layoutRows;
+            
+            // Set Applet Heights
             appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
+
+            // Set Applet Overflow
+            appletDiv.style.overflow = `hidden`;
         });  
     }
 

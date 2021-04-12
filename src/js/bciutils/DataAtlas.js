@@ -116,6 +116,8 @@ export class DataAtlas {
 			window.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
+
+		this.getNeurofeedback = () => {} // default neurofeedback function
     }
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){
@@ -1095,10 +1097,11 @@ export class DataAtlas {
 		});
 		html += `</select></div>`;
 
-		this.getNeurofeedback = () => {return 0.5 + Math.sin(Date.now()/1000)/2}
 		parentNode.innerHTML += html;
 		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
+			console.log(this.getNeurofeedback)
 			this.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
+			console.log(this.getNeurofeedback)
 		}
 	}
 }
