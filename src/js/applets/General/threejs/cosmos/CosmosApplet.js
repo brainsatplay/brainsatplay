@@ -39,9 +39,8 @@ export class CosmosApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        //etc..
-
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback   
     }
 
     //---------------------------------
@@ -58,11 +57,8 @@ export class CosmosApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                <div>
-                    <p>Alpha Coherence</p>
-                    <hr>
-                    <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
-                </div>
+                    <div class="brainsatplay-neurofeedback-container">
+                    </div>
                 </div>
             </div>
             `;  
@@ -83,6 +79,7 @@ export class CosmosApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        this.bci.atlas.makeFeedbackOptions(this,document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 
 
@@ -206,7 +203,7 @@ const generateCosmos = () =>
         uniforms:
         {
             uTime: { value: 0 },
-            uSize: { value: 30 * renderer.getPixelRatio() }
+            uSize: { value: 30 * this.renderer.getPixelRatio() }
         },    
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
@@ -233,8 +230,9 @@ this.resizeCosmos = () => {
     camera.updateProjectionMatrix()
 
     // Update renderer
-    renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    console.log(this)
+    this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     // Update effect composer
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -264,11 +262,11 @@ controls.enabled = false;
 /**
  * Renderer
  */
-const renderer = new THREE.WebGLRenderer({
+this.renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
-renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /** 
  * Postprocessing 
@@ -278,7 +276,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.renderer.getPixelRatio() === 1 && this.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -299,7 +297,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
 
@@ -316,7 +314,7 @@ effectComposer.addPass(renderPass)
 
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -329,66 +327,45 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 generateCosmos()
 
 /**
- * Get Coherence Values
- */
-const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
-    let coherence = null;
-    if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.data.coherence.filter((dict) => {
-            let flag = false;
-            channels.forEach(channelPairs => {
-                if (dict.tag.includes(channelPairs[0]) && dict.tag.includes(channelPairs[1])) flag = true;
-            })
-            return flag
-        })[0].means[band]
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
-}
-/**
  * Animate
  */
 const clock = new THREE.Clock()
 
 const animate = () =>
 {
+    setTimeout( () => {
     const elapsedTime = clock.getElapsedTime()
 
-    // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
-    }, 1000 / 60 );    
-
     // Update material
-    let coherence = getCoherence()
-    material.uniforms.uTime.value += 0.001 + 0.01*coherence
-    let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-    
+    let neurofeedback = this.getNeurofeedback()
+    if (neurofeedback){
+        material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
+        let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
+    }
     // Update controls
     controls.update()
 
     // Render
-    // renderer.render(scene, camera)
+    // this.renderer.render(scene, camera)
     effectComposer.render()
+    }, 1000 / 60 );    
 }
 
-animate()
+this.renderer.setAnimationLoop( animate );
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.renderer.setAnimationLoop( null );
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeCosmos()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

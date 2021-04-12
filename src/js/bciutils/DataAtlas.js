@@ -1,6 +1,3 @@
-
-import {eegmath} from './eegmath'
-
 //relies on eegworker (see implementation in public/index.html)
 
 //-------------------------------------------------------------------------------------------------------
@@ -157,7 +154,6 @@ export class DataAtlas {
 			arr1.forEach((el,i) => {
 				midpoint.push(0.5*(el+arr2[i]));
 			});
-			console.log(midpoint)
 			return midpoint;
 		}
 
@@ -366,7 +362,7 @@ export class DataAtlas {
 
 	//also do ecg,emg,eyetracker
 
-	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
+	getDeviceDataByTag = (device='eeg',tag='FP1') => { //put eegshared for device to get shared info
 		var found = undefined;
 		if(typeof tag === 'number' && device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
@@ -403,7 +399,7 @@ export class DataAtlas {
 		}
 	}
 
-	getEEGDataByChannel(ch=0) {
+	getEEGDataByChannel = (ch=0) => {
 		let found = undefined;
 		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
@@ -420,7 +416,7 @@ export class DataAtlas {
 	}
 
     //Return the object corresponding to the atlas tag
-	getEEGDataByTag(tag="FP1"){
+	getEEGDataByTag = (tag="FP1") => {
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
@@ -433,7 +429,7 @@ export class DataAtlas {
 
 
     //Return the object corresponding to the atlas tag
-	getCoherenceByTag(tag="FP1_FZ"){
+	getCoherenceByTag = (tag="FP1_FZ") => {
 		var found = undefined;
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
@@ -454,7 +450,7 @@ export class DataAtlas {
 	}
 
     //Get the latest data pushed to tagged channels
-	getLatestFFTData() {
+	getLatestFFTData = () => {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			if(r.analyze === true) {
@@ -482,7 +478,7 @@ export class DataAtlas {
 		return dat;
 	}
 
-	getLatestCoherenceData() {
+	getLatestCoherenceData = () => {
 		let dat = [];
 		this.data.coherence.forEach((row,i) => {
 			let lastIndex = row.fftCount - 1;
@@ -496,6 +492,139 @@ export class DataAtlas {
 			});
 		});
 		return dat;
+	}
+
+	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
+	getFPData = () => {
+		let fp_data = undefined;
+		if(this.settings.eeg) {
+            let fp1 = this.getEEGDataByTag('FP1');
+			let fp2 = this.getEEGDataByTag('FP2');
+			if(!fp1 || !fp2) {
+				fp1 = this.getEEGDataByTag('AF7');
+				fp2 = this.getEEGDataByTag('AF8');
+			}
+			if(fp1 && fp2) {
+				fp_data = [fp1,fp2];
+			}
+        }
+		return fp_data;
+	}
+
+
+	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
+	getFrontalCoherenceData = () => {
+		let coh_ref_ch = undefined;
+		if(this.settings.coherence) {
+            coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
+		}
+		return coh_ref_ch;
+	}
+
+	//C3_C4 coherence data (cranial nervs)
+	getCNCoherenceData = () => {
+		let coh_ref_ch = undefined;
+		if(this.settings.coherence) {
+            coh_ref_ch = this.getCoherenceByTag('C3_C4');
+            if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('C4_C3'); }
+        }
+		return coh_ref_ch;
+	}
+
+	//Get raw/bandpower data for cranial nerves
+	getCNData = () => {
+		let cns_data = undefined;
+		if(this.settings.eeg) {
+			let c3 = this.getEEGDataByTag('C3');
+			let c4 = this.getEEGDataByTag('C4');
+			if(c3 && c4) {
+				cns_data = [c3,c4];
+			}
+		}
+		return cns_data;
+	}
+
+	//get the average of an array
+	mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
+
+	//Compare moving average to current data for simple scoring
+	getCoherenceScore = (coh_data,band='alpha1') => {
+		if(coh_data.fftCount > 0) {
+			let ct = coh_data.fftCount;
+			let avg = Math.min(20,ct)
+			let slice = coh_data.means[band].slice(ct-avg);
+			// let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
+			return this.mean(slice);
+		}
+		else return 0;
+	}
+
+	//Get alpha2/alpha1 ratio from bandpower averages
+	getAlphaRatio = (eeg_data) => {
+		if(eeg_data.fftCount < 0) {
+			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
+			return ratio;
+		}
+		else return 0;
+	}
+
+	//Calculate the latest theta beta ratio from bandpower averages
+	getThetaBetaRatio = (eeg_data) => {
+		if(eeg_data.fftCount < 0) {
+			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
+			return ratio;
+		} else return 0;
+	}
+
+	//Calculate the latest alpha beta ratio from bandpower averages
+	getAlphaBetaRatio = (eeg_data) => {
+		if(eeg_data.fftCount < 0) {
+			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
+			return ratio;
+		}
+		else return 0;
+	}
+
+	//Get highest peak near 40Hz (38-42Hz)
+	get40HzGamma = (eeg_data) => {
+		if(eeg_data.fftCount < 0) {
+			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
+			let centered = [];
+			lowgamma.forEach((val,i) => {
+				if(this.eegshared.freqBins.lowgamma[i] > 38 && this.eegshared.freqBins.lowgamma[i] < 42) {
+					centered.push(val);
+				}
+			});
+
+			return this.max(...centered);
+		}
+		else return 0;
+	}
+
+	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
+	getLowGammaScore = (eeg_data) => {
+		if(eeg_data.fftCount < 0) {
+			let ct = eeg_data.fftCount;
+			let avg = 20; if(ct < avg) { avg = ct; }
+			let slice = eeg_data.means.lowgamma.slice(ct-avg);
+			let score = eeg_data.means.lowgamma[ct-1] - this.mean(slice);
+			return score;
+		}
+		else return 0;
+	}
+
+	getHEGRatioScore = (heg_ch) => {
+		if(heg_ch.count > 0) {
+			let ct = heg_ch.count;
+			let avg = 40; if(ct < avg) { avg = ct; }
+			let slice = heg_ch.ratio.slice(ct-avg);
+			let score = heg_ch.ratio[ct-1] - this.mean(slice);
+			return score;
+		}
+		else return 0;
 	}
 
     setDefaultTags() {
@@ -529,13 +658,13 @@ export class DataAtlas {
 			else if((item > 10) && (item <= 12)){
 				alpha2Freqs[0].push(item); alpha2Freqs[1].push(idx);
 			}
-			else if((item > 12) && (item <= 35)){
+			else if((item > 12) && (item <= 30)){
 				betaFreqs[0].push(item); betaFreqs[1].push(idx);
 			}
-			else if((item > 35) && (item <= 48)) {
+			else if((item > 30) && (item <= 45)) {
 				lowgammaFreqs[0].push(item); lowgammaFreqs[1].push(idx);
 			}
-			else if(item > 48) {
+			else if(item > 45) {
 				highgammaFreqs[0].push(item); highgammaFreqs[1].push(idx);
 			}
 		});
@@ -551,42 +680,42 @@ export class DataAtlas {
 				if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 					var scp = fft.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 					o.slices.scp.push(scp);
-					o.means.scp.push(eegmath.mean(scp));
+					o.means.scp.push(this.mean(scp));
 				}
 				if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 					var delta = fft.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 					o.slices.delta.push(delta);
-					o.means.delta.push(eegmath.mean(delta));
+					o.means.delta.push(this.mean(delta));
 				}
 				if(this.data.eegshared.bandFreqs.theta[1].length > 0){
 					var theta = fft.slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 					o.slices.theta.push(theta);
-					o.means.theta.push(eegmath.mean(theta));
+					o.means.theta.push(this.mean(theta));
 				}
 				if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
 					var alpha1 = fft.slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 					o.slices.alpha1.push(alpha1);
-					o.means.alpha1.push(eegmath.mean(alpha1));
+					o.means.alpha1.push(this.mean(alpha1));
 				}
 				if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
 					var alpha2 = fft.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 					o.slices.alpha2.push(alpha2);
-					o.means.alpha2.push(eegmath.mean(alpha2));
+					o.means.alpha2.push(this.mean(alpha2));
 				}
 				if(this.data.eegshared.bandFreqs.beta[1].length > 0){
 					var beta  = fft.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 					o.slices.beta.push(beta);
-					o.means.beta.push(eegmath.mean(beta));
+					o.means.beta.push(this.mean(beta));
 				}
 				if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
 					var lowgamma = fft.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 					o.slices.lowgamma.push(lowgamma);
-					o.means.lowgamma.push(eegmath.mean(lowgamma));
+					o.means.lowgamma.push(this.mean(lowgamma));
 				}
 				if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
 					var highgamma = fft.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 					o.slices.highgamma.push(highgamma);
-					o.means.highgamma.push(eegmath.mean(highgamma));
+					o.means.highgamma.push(this.mean(highgamma));
 				}
 				//console.timeEnd("slicing bands");
 				return true;
@@ -603,42 +732,42 @@ export class DataAtlas {
 		if(this.data.eegshared.bandFreqs.scp[1].length > 0){
 		  var scp = row.slice( this.data.eegshared.bandFreqs.scp[1][0], this.data.eegshared.bandFreqs.scp[1][this.data.eegshared.bandFreqs.scp[1].length-1]+1);
 		  this.data.coherence[i].slices.scp.push(scp);
-		  this.data.coherence[i].means.scp.push(eegmath.mean(scp));
+		  this.data.coherence[i].means.scp.push(this.mean(scp));
 		}
 		if(this.data.eegshared.bandFreqs.delta[1].length > 0){
 		  var delta = row.slice( this.data.eegshared.bandFreqs.delta[1][0], this.data.eegshared.bandFreqs.delta[1][this.data.eegshared.bandFreqs.delta[1].length-1]+1);
 		  this.data.coherence[i].slices.delta.push(delta);
-		  this.data.coherence[i].means.delta.push(eegmath.mean(delta));
+		  this.data.coherence[i].means.delta.push(this.mean(delta));
 		}
 		if(this.data.eegshared.bandFreqs.theta[1].length > 0){
 		  var theta = row.slice( this.data.eegshared.bandFreqs.theta[1][0], this.data.eegshared.bandFreqs.theta[1][this.data.eegshared.bandFreqs.theta[1].length-1]+1);
 		  this.data.coherence[i].slices.theta.push(theta);
-		  this.data.coherence[i].means.theta.push(eegmath.mean(theta));
+		  this.data.coherence[i].means.theta.push(this.mean(theta));
 		}
 		if(this.data.eegshared.bandFreqs.alpha1[1].length > 0){
 		  var alpha1 = row.slice( this.data.eegshared.bandFreqs.alpha1[1][0], this.data.eegshared.bandFreqs.alpha1[1][this.data.eegshared.bandFreqs.alpha1[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha1.push(alpha1);
-		  this.data.coherence[i].means.alpha1.push(eegmath.mean(alpha1));
+		  this.data.coherence[i].means.alpha1.push(this.mean(alpha1));
 		}
 		if(this.data.eegshared.bandFreqs.alpha2[1].length > 0){
 		  var alpha2 = row.slice( this.data.eegshared.bandFreqs.alpha2[1][0], this.data.eegshared.bandFreqs.alpha2[1][this.data.eegshared.bandFreqs.alpha2[1].length-1]+1);
 		  this.data.coherence[i].slices.alpha2.push(alpha2);
-		  this.data.coherence[i].means.alpha2.push(eegmath.mean(alpha2));
+		  this.data.coherence[i].means.alpha2.push(this.mean(alpha2));
 		}
 		if(this.data.eegshared.bandFreqs.beta[1].length > 0){
 		  var beta = row.slice( this.data.eegshared.bandFreqs.beta[1][0],  this.data.eegshared.bandFreqs.beta[1][this.data.eegshared.bandFreqs.beta[1].length-1]+1);
 		  this.data.coherence[i].slices.beta.push(beta);
-		  this.data.coherence[i].means.beta.push(eegmath.mean(beta));
+		  this.data.coherence[i].means.beta.push(this.mean(beta));
 		}
 		if(this.data.eegshared.bandFreqs.lowgamma[1].length > 0){
 		  var lowgamma = row.slice( this.data.eegshared.bandFreqs.lowgamma[1][0], this.data.eegshared.bandFreqs.lowgamma[1][this.data.eegshared.bandFreqs.lowgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.lowgamma.push(lowgamma);
-		  this.data.coherence[i].means.lowgamma.push(eegmath.mean(lowgamma));
+		  this.data.coherence[i].means.lowgamma.push(this.mean(lowgamma));
 		}
 		if(this.data.eegshared.bandFreqs.highgamma[1].length > 0){
 		  var highgamma = row.slice( this.data.eegshared.bandFreqs.highgamma[1][0], this.data.eegshared.bandFreqs.highgamma[1][this.data.eegshared.bandFreqs.highgamma[1].length-1]+1);
 		  this.data.coherence[i].slices.highgamma.push(highgamma);
-		  this.data.coherence[i].means.highgamma.push(eegmath.mean(highgamma));
+		  this.data.coherence[i].means.highgamma.push(this.mean(highgamma));
 		}
 	  });
 	}
@@ -938,4 +1067,41 @@ export class DataAtlas {
 			setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 		}	
 	}
+
+
+	// Default Options Generation
+
+	/**
+     * @method makeFeedbackOptions
+     * @description Generate {@link DOMFragment} with a selector for available feedback options.
+	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
+	 */
+
+	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
+		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
+		let html = '';
+		let feedbackOptions;
+		console.log(this.settings)
+		if (this.settings.analyzing){
+			// Custom Feedback Functions
+			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
+
+			// Option Declaration
+			feedbackOptions = [
+				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
+				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+			]
+			html = `<div><select id="${id}-neurofeedbackselector">`;
+
+			feedbackOptions.forEach((o,i) => {
+				if (i === 0) html += `<option value=${o.function.name} disabled selected>${o.label}</option>`
+				else html += `<option value=${o.function.name}>${o.label}</option>`;
+				if (i === feedbackOptions.length - 1) html += `</select></div>`
+			});
+		}
+		parentNode.innerHTML = html;
+		let neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`)
+		if (neurofeedbackSelector != null) neurofeedbackSelector.onchange = (e) => {applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function}
+	}
 }
+

@@ -46,9 +46,8 @@ export class NexusApplet {
         };
 
         this.three = {}
-
-        //etc..
-
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback   
     }
 
     //---------------------------------
@@ -443,22 +442,19 @@ let currentIntersect = null
 
 var animate = () => {
 
-    if (this.three.canvas != null){
-        // Limit Framerate
-        setTimeout( function() {
-            requestAnimationFrame( animate );
-        }, 1000 / 60 );
-
-        animateUsers()
-        material.uniforms.uTime.value = Date.now() - tStart
-        points.forEach(point => {
-            point.animateLabel(camera,appletContainer)
-        })
-        // stats.update()
-        controls.update()
-        // this.three.renderer.render(this.three.scene, camera)
-        effectComposer.render()
-    }
+    setTimeout( () => {
+        if (this.three.canvas != null){
+                animateUsers()
+                material.uniforms.uTime.value = Date.now() - tStart
+                points.forEach(point => {
+                    point.animateLabel(camera,appletContainer)
+                })
+                // stats.update()
+                controls.update()
+                // this.three.renderer.render(this.three.scene, camera)
+                effectComposer.render()
+        }
+    }, 1000 / 60 );
 };
 
 
@@ -467,16 +463,10 @@ var animate = () => {
 // document.body.appendChild(stats.dom)
 
 // Coherence
-const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
+const getCoherence = (band='alpha1') => {
     let coherence = null;
     if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.data.coherence.filter((dict) => {
-            let flag = false;
-            channels.forEach(channelPairs => {
-                if (dict.tag.includes(channelPairs[0]) && dict.tag.includes(channelPairs[1])) flag = true;
-            })
-            return flag
-        })[0].means[band]
+        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData().means[band]
         if(coherenceBuffer.length > 0) {
             let samplesToSmooth = Math.min(20,coherenceBuffer.length);
             let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
@@ -558,7 +548,7 @@ const animateUsers = () => {
     if (coherenceLine) {
         coherenceLine.material.opacity = coherence
     }
-    glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
+    // glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
 
 this.three.drawCylinder = () => {
@@ -618,8 +608,8 @@ this.three.getGeolocation = () => {
         maximumAge: 0
     });
 }
-animate();
-    }
+this.three.renderer.setAnimationLoop( animate )
+}
 
     // Clear Three.js Scene Completely
     clearThree(){
@@ -639,6 +629,7 @@ animate();
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }

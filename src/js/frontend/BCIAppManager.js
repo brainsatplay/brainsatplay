@@ -242,21 +242,45 @@ export class BCIAppManager {
             appletselect_template,
             contentChild1
         );
+
         this.appletSelectIds.forEach((id,i) => {
             if (this.appletSelectIds.length > 1){
                 contentChild1.querySelector('.applet-select-container').innerHTML += `
-                <div style="width: 100%; margin: 5px;">
-                    Applet ${i+1}: <select id="${id}"></select>
+                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
+                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
+                    <select id="${id}" style="width: 100%;"></select>
                 </div>
                 `
             } else {
                 contentChild1.querySelector('.applet-select-container').innerHTML += `
-                <div style="width: 100%; margin: 5px;">
-                    <select id="${id}"></select>
+                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
+                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
+                    <select id="${id}" style="width: 100%;"></select>
+                    <div></div>
                 </div>
                 `
             }
         })
+        
+        // Layout Selector
+        contentChild1.innerHTML += `
+        <br>
+        <div>
+        <span style="font-size: 80%;">Layout</span>
+        <hr>
+        <div style="margin: 10px 10px 0px 10px;">
+            <select id="layout-selector" style="width: 100%;">
+            <option value='Focus'>Focus</option>
+            <option value='Grid'>Grid</option>
+            </select>
+        </div>
+        </div>
+        `
+
+        document.getElementById('layout-selector').onchange = () => {
+            this.appletManager.enforceLayout()
+            this.appletManager.responsive()
+        }
 
 
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
@@ -293,6 +317,11 @@ export class BCIAppManager {
                 styleInlineText:''
             }
         );
+
+		document.getElementById("config-selector").onchange = () => {
+            this.appletManager.deinitApplets()       
+            this.appletManager.initAddApplets()   
+         }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

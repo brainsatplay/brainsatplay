@@ -49,6 +49,8 @@ export class VideoApplet {
         this.sliderfocus = false;
         this.hidden = false;
 
+        this.coh_ref_ch = null; //for getting coherence
+
     }
 
     //---------------------------------
@@ -255,6 +257,10 @@ export class VideoApplet {
         this.vidQuery.height = this.AppletHTML.node.clientHeight;
         this.c.width = this.AppletHTML.node.clientWidth;
         this.c.height = this.AppletHTML.node.clientHeight;
+
+        if(this.bci.atlas.settings.coherence) {
+          this.coh_ref_ch = this.bci.atlas.getFrontalCoherenceData();
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -266,6 +272,11 @@ export class VideoApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+
+    mean(arr){
+      var sum = arr.reduce((prev,curr)=> curr += prev);
+      return sum / arr.length;
+    }
 
     
     startVideo = () => {
@@ -368,6 +379,13 @@ export class VideoApplet {
             let avg = 40; if(ct < avg) { avg = ct; }
             let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
             let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+            this.onData(score);
+          }
+          else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+            let ct = this.coh_ref_ch.fftCount;
+            let avg = 20; if(ct < avg) { avg = ct; }
+            let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+            let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
             this.onData(score);
           }
 

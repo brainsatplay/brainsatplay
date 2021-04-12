@@ -42,9 +42,8 @@ export class EnsoApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        //etc..
-
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback   
     }
 
     //---------------------------------
@@ -61,10 +60,7 @@ export class EnsoApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div>
-                        <p>Alpha Coherence</p>
-                        <hr>
-                        <p><span class="brainsatplay-threejs-alphacoherence"></span></p>
+                    <div class="brainsatplay-neurofeedback-container">
                     </div>
                 </div>
             </div>
@@ -86,7 +82,7 @@ export class EnsoApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
+        this.bci.atlas.makeFeedbackOptions(this)
 
 
 /**
@@ -134,7 +130,7 @@ let diameter = 100
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
 camera.position.z = diameter*2
 
-const renderer = new THREE.WebGLRenderer({
+this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
 })
@@ -151,9 +147,9 @@ const renderer = new THREE.WebGLRenderer({
  let meshHeight = meshWidth / imageAspect;
 
 // Renderer
-renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(renderer.domElement)
+this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
@@ -167,7 +163,7 @@ ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendCh
 
  let RenderTargetClass = null
 
- if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
+ if(this.renderer.getPixelRatio() === 1 && this.renderer.capabilities.isWebGL2)
  {
      RenderTargetClass = THREE.WebGLMultisampleRenderTarget
  }
@@ -188,22 +184,13 @@ ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendCh
  )
 
  // Composer
-const effectComposer = new EffectComposer(renderer,renderTarget)
+const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
-
-// const effectSobel = new ShaderPass( SobelOperatorShader );
-// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
-// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
-// effectComposer.addPass( effectSobel );
-
-// const shaderPass = new ShaderPass(RGBShiftShader)
-// shaderPass.enabled = true
-// effectComposer.addPass(shaderPass)
 
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
@@ -214,7 +201,7 @@ effectComposer.addPass(bloomPass)
 
 
 // Antialiasing
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 {
     const smaaPass = new SMAAPass()
     effectComposer.addPass(smaaPass)
@@ -223,7 +210,7 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, this.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
 controls.enabled = false;
@@ -299,8 +286,8 @@ this.resizeEnso = () => {
     meshWidth = (fov_y  - 1.0)* camera.aspect;
     meshHeight = meshWidth / imageAspect
     regenerateGeometry()
-    renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
 
@@ -315,43 +302,21 @@ function regenerateGeometry() {
     enso.geometry = newGeometry
 }
 
-// Coherence
-const getCoherence = (band='alpha1',channels=[['AF7','AF8'],['FP1','FP2']]) => {
-    let coherence = null;
-    if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.data.coherence.filter((dict) => {
-            let flag = false;
-            channels.forEach(channelPairs => {
-                if (dict.tag.includes(channelPairs[0]) && dict.tag.includes(channelPairs[1])) flag = true;
-            })
-            return flag
-        })[0].means[band]
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
-}
-
 // Animate
 var animate = () => {
 
     // Limit Framerate
-    setTimeout( function() {
-        requestAnimationFrame( animate );
+    setTimeout( () => {
+        material.uniforms.uTime.value = Date.now() - tStart
+        let neurofeedback = this.getNeurofeedback()
+        if (neurofeedback){
+            material.uniforms.uNoiseIntensity.value = 1-neurofeedback
+            let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+            if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
+        }
+        controls.update()
+        effectComposer.render()
     }, 1000 / 60 );
-
-    material.uniforms.uTime.value = Date.now() - tStart
-
-    let coherence = getCoherence()
-    material.uniforms.uNoiseIntensity.value = 1-coherence
-    let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-
-    controls.update()
-    effectComposer.render()
 };
 
 
@@ -359,7 +324,7 @@ var animate = () => {
 // const stats = Stats()
 // ensoContainer.appendChild(stats.dom)
 
-    animate();
+this.renderer.setAnimationLoop( animate );
 }
 
     // // Clear Three.js Scene Completely
@@ -380,12 +345,14 @@ var animate = () => {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.renderer.setAnimationLoop( null );
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeEnso()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

@@ -59,6 +59,8 @@ export class AudioApplet {
         this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
         
         this.mode = 2;
+
+        this.coh_ref_ch = undefined;
     }
 
     //---------------------------------
@@ -177,6 +179,10 @@ export class AudioApplet {
     responsive() {
         this.c.width = this.AppletHTML.node.clientWidth;
         this.c.height = this.AppletHTML.node.clientHeight;
+
+        if(this.bci.atlas.settings.coherence) {
+            this.coh_ref_ch = this.bci.atlas.getFrontalCoherenceData();
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -189,6 +195,10 @@ export class AudioApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
     
     stopAudio(){
         //stop the previous sound if any
@@ -518,6 +528,13 @@ export class AudioApplet {
                 let avg = 40; if(ct < avg) { avg = ct; }
                 let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
                 let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                this.onData(score);
+            }
+            else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+                let ct = this.coh_ref_ch.fftCount;
+                let avg = 20; if(ct < avg) { avg = ct; }
+                let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+                let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
                 this.onData(score);
             }
 
