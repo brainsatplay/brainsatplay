@@ -1082,11 +1082,11 @@ export class DataAtlas {
 		
 		let feedbackOptions = [
 			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-			{label: 'Frontal Coherence', function: this.getFrontalCoherenceData},
-			{label: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
-			{label: 'Alpha Ratio', function: this.getAlphaRatio},
-			{label: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
-			{label: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
+			{label: 'Frontal Coherence', function: ()=>{this.getFrontalCoherenceData}},
+			{label: 'Alpha Coherence', function: ()=>{this.getAlpha1CoherenceScore}},
+			{label: 'Alpha Ratio', function: ()=>{this.getAlphaRatio}},
+			{label: 'Alpha/Beta Ratio', function: ()=>{this.getAlphaBetaRatio}},
+			{label: 'Theta/Beta Ratio', function: ()=>{this.getThetaBetaRatio}},
 		]
 		let html = `<div><select id="${id}-neurofeedbackselector">`;
 
