@@ -362,7 +362,7 @@ export class DataAtlas {
 
 	//also do ecg,emg,eyetracker
 
-	getDeviceDataByTag(device='eeg',tag='FP1') { //put eegshared for device to get shared info
+	getDeviceDataByTag = (device='eeg',tag='FP1') => { //put eegshared for device to get shared info
 		var found = undefined;
 		if(typeof tag === 'number' && device === 'eeg') {
 			let r = this.data[device+"shared"][device+"ChannelTags"].find((o,i) => {
@@ -399,7 +399,7 @@ export class DataAtlas {
 		}
 	}
 
-	getEEGDataByChannel(ch=0) {
+	getEEGDataByChannel = (ch=0) => {
 		let found = undefined;
 		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
@@ -416,7 +416,7 @@ export class DataAtlas {
 	}
 
     //Return the object corresponding to the atlas tag
-	getEEGDataByTag(tag="FP1"){
+	getEEGDataByTag = (tag="FP1") => {
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
 			if(o.tag === tag){
@@ -429,7 +429,7 @@ export class DataAtlas {
 
 
     //Return the object corresponding to the atlas tag
-	getCoherenceByTag(tag="FP1_FZ"){
+	getCoherenceByTag = (tag="FP1_FZ") => {
 		var found = undefined;
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
@@ -450,7 +450,7 @@ export class DataAtlas {
 	}
 
     //Get the latest data pushed to tagged channels
-	getLatestFFTData() {
+	getLatestFFTData = () => {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			if(r.analyze === true) {
@@ -478,7 +478,7 @@ export class DataAtlas {
 		return dat;
 	}
 
-	getLatestCoherenceData() {
+	getLatestCoherenceData = () => {
 		let dat = [];
 		this.data.coherence.forEach((row,i) => {
 			let lastIndex = row.fftCount - 1;
