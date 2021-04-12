@@ -518,6 +518,7 @@ export class DataAtlas {
 		if(this.settings.coherence) {
             coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
 		}
+		console.log(coh_ref_ch)
 		return coh_ref_ch;
 	}
 
@@ -554,9 +555,9 @@ export class DataAtlas {
 	getAlpha1CoherenceScore = (coh_data) => {
 		if(coh_data.fftCount > 0) {
 			let ct = coh_data.fftCount;
-			let avg = 20; if(ct < avg) { avg = ct; }
+			let avg = Math.min(20,ct)
 			let slice = coh_data.means.alpha1.slice(ct-avg);
-			let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
+			let score = this.mean(slice);
 			return score;
 		}
 		else return 0;
@@ -1080,13 +1081,13 @@ export class DataAtlas {
 	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		
+		// Custom Feedback Functions
+		let getFrontalAlphaCoherence = () => {return this.getAlpha1CoherenceScore(this.getFrontalCoherenceData())}
+		
+		// Option Declaration
 		let feedbackOptions = [
 			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-			{label: 'Frontal Coherence', function: this.getFrontalCoherenceData},
-			{label: 'Alpha Coherence', function: this.getAlpha1CoherenceScore},
-			{label: 'Alpha Ratio', function: this.getAlphaRatio},
-			{label: 'Alpha/Beta Ratio', function: this.getAlphaBetaRatio},
-			{label: 'Theta/Beta Ratio', function: this.getThetaBetaRatio},
+			{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
 		]
 		let html = `<div><select id="${id}-neurofeedbackselector">`;
 
@@ -1095,7 +1096,7 @@ export class DataAtlas {
 			else html += `<option value=${o.function.name}>${o.label}</option>`;
 			if (i === feedbackOptions.length - 1) html += `</select></div>`
 		});
-		parentNode.innerHTML += html;
+		parentNode.innerHTML = html;
 		document.getElementById(`${id}-neurofeedbackselector`).onchange = (e) => {
 			applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function
 		}

@@ -365,6 +365,7 @@ this.renderer.setAnimationLoop( animate );
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeMesh()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
