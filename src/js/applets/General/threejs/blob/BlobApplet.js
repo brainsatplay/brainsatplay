@@ -335,12 +335,11 @@ var animate = () => {
     setTimeout( () => {
         material.uniforms.uTime.value = Date.now() - tStart
 
-        // let coherence = getCoherence()
-        let coherence = this.getNeurofeedback()
-        if (coherence){
-            material.uniforms.uNoiseIntensity.value = 1-coherence
+        let neurofeedback = this.getNeurofeedback()
+        if (neurofeedback){
+            material.uniforms.uNoiseIntensity.value = 1-neurofeedback
             let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-neurofeedback')
-            if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
+            if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
         }
         controls.update()
         effectComposer.render()

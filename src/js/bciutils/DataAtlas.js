@@ -552,13 +552,13 @@ export class DataAtlas {
 	}
 
 	//Compare moving average to current data for simple scoring
-	getAlpha1CoherenceScore = (coh_data) => {
+	getCoherenceScore = (coh_data,band='alpha1') => {
 		if(coh_data.fftCount > 0) {
 			let ct = coh_data.fftCount;
 			let avg = Math.min(20,ct)
-			let slice = coh_data.means.alpha1.slice(ct-avg);
-			let score = this.mean(slice);
-			return score;
+			let slice = coh_data.means[band].slice(ct-avg);
+			// let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
+			return this.mean(slice);
 		}
 		else return 0;
 	}
@@ -1082,8 +1082,8 @@ export class DataAtlas {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		
 		// Custom Feedback Functions
-		let getFrontalAlphaCoherence = () => {return this.getAlpha1CoherenceScore(this.getFrontalCoherenceData())}
-		
+		let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
+
 		// Option Declaration
 		let feedbackOptions = [
 			{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},

@@ -337,12 +337,12 @@ const animate = () =>
     const elapsedTime = clock.getElapsedTime()
 
     // Update material
-    console.log(this.getNeurofeedback)
-    let coherence = this.getNeurofeedback()
-    material.uniforms.uTime.value += 0.001 + 0.01*coherence
-    let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-    if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-    
+    let neurofeedback = this.getNeurofeedback()
+    if (neurofeedback){
+        material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
+        let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
+    }
     // Update controls
     controls.update()
 
@@ -365,6 +365,7 @@ this.renderer.setAnimationLoop( animate );
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeCosmos()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

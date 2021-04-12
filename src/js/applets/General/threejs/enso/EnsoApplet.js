@@ -82,7 +82,7 @@ export class EnsoApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
+        this.bci.atlas.makeFeedbackOptions(this)
 
 
 /**
@@ -308,11 +308,12 @@ var animate = () => {
     // Limit Framerate
     setTimeout( () => {
         material.uniforms.uTime.value = Date.now() - tStart
-        let coherence = this.bci.atlas.getNeurofeedback()
-        material.uniforms.uNoiseIntensity.value = 1-coherence
-        let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-        if (coherenceReadout) coherenceReadout.innerHTML = coherence.toFixed(5)
-
+        let neurofeedback = this.getNeurofeedback()
+        if (neurofeedback){
+            material.uniforms.uNoiseIntensity.value = 1-neurofeedback
+            let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+            if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
+        }
         controls.update()
         effectComposer.render()
     }, 1000 / 60 );
@@ -351,6 +352,7 @@ this.renderer.setAnimationLoop( animate );
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeEnso()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
