@@ -108,8 +108,8 @@ textureLoader.load(dummyTexture)
 //  const gui = new GUI()
 
  // Canvas
- const cosmosContainer = document.getElementById(this.props.id)
- const canvas = cosmosContainer.querySelector('canvas.brainsatplay-threejs-webgl')
+ const appletContainer = document.getElementById(this.props.id)
+ const canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
  
 
 // Scene
@@ -203,7 +203,7 @@ const generateCosmos = () =>
         uniforms:
         {
             uTime: { value: 0 },
-            uSize: { value: 30 * this.renderer.getPixelRatio() }
+            uSize: { value: 20*camera.position.z * this.renderer.getPixelRatio() }
         },    
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
@@ -226,17 +226,19 @@ const generateCosmos = () =>
 
 this.resizeCosmos = () => {
     // Update camera
-    camera.aspect = window.innerWidth / window.innerHeight
+    camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
     camera.updateProjectionMatrix()
+    // camera.position.x = baseCameraPos.x * camera.aspect
+    // camera.position.y = baseCameraPos.y * camera.aspect
+    // camera.position.z = baseCameraPos.z * camera.aspect
 
     // Update renderer
-    console.log(this)
-    this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+    this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     // Update effect composer
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 }
 
 window.addEventListener('resize', () =>
@@ -248,10 +250,11 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
-camera.position.x = 3
-camera.position.y = 3
-camera.position.z = 3
+let baseCameraPos = new THREE.Vector3(0.4,0.4,0.4)
+const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.1, 100)
+camera.position.x = baseCameraPos.x * camera.aspect
+camera.position.y = baseCameraPos.y * camera.aspect
+camera.position.z = baseCameraPos.z * camera.aspect
 scene.add(camera)
 
 // Controls
@@ -265,7 +268,7 @@ controls.enabled = false;
 this.renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
-this.renderer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /** 
@@ -299,7 +302,7 @@ this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  // Composer
 const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(cosmosContainer.clientWidth, cosmosContainer.clientHeight)
+effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
@@ -340,7 +343,7 @@ const animate = () =>
     let neurofeedback = this.getNeurofeedback()
     if (neurofeedback){
         material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
-        let coherenceReadout = cosmosContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
         if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
     }
     // Update controls

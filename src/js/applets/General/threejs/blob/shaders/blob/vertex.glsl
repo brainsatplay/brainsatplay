@@ -1,4 +1,3 @@
-uniform float aspectRatio;
 uniform float uTime;
 uniform float uNoiseScaling;
 uniform float uNoiseIntensity;

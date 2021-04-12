@@ -53,7 +53,7 @@
     padding: 25px 25px;
     color: white;
     z-index: 1;
-    /* pointer-events: none; */
+    pointer-events: none;
     font-size: 80%;
     font-weight: bold;
 }

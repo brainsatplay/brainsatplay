@@ -109,8 +109,8 @@ textureLoader.load(dummyTexture)
 /**
  * Canvas
  */
-const ensoContainer = document.getElementById(this.props.id)
-let canvas = ensoContainer.querySelector('canvas.brainsatplay-threejs-webgl')
+const appletContainer = document.getElementById(this.props.id)
+let canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
 
 /**
  * Scene
@@ -127,33 +127,23 @@ let diameter = 100
 /**
  * Camera
  */
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
-camera.position.z = diameter*2
+let baseCameraPos = new THREE.Vector3(0,0,diameter*2)
+const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.01, 1000)
+camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
 
 this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
 })
 
-/**
- * Texture Params
- */
- let imageWidth = 1200
- let imageHeight = 600
- const segmentsX = 400
- const imageAspect = imageWidth/imageHeight
- let fov_y = camera.position.z * camera.getFilmHeight() / camera.getFocalLength();
- let meshWidth = (fov_y  - 1.0)* camera.aspect;
- let meshHeight = meshWidth / imageAspect;
-
 // Renderer
-this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
+appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
-// ensoContainer.querySelector('.gui-container').appendChild(gui.domElement);
+// appletContainer.querySelector('.gui-container').appendChild(gui.domElement);
 
 /** 
  * Postprocessing 
@@ -186,7 +176,7 @@ ensoContainer.querySelector('.brainsatplay-threejs-renderer-container').appendCh
  // Composer
 const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
+effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
@@ -258,7 +248,6 @@ const material = new THREE.ShaderMaterial({
     uniforms:
     {
         uTime: { value: 0 },
-        aspectRatio: {value: window.innerWidth / window.innerHeight},
         uColor: {value: [materialControls.rPower,materialControls.gPower,materialControls.bPower,materialControls.alpha] },
         uNoiseIntensity: {value: materialControls.noiseIntensity}
     }
@@ -281,15 +270,13 @@ scene.add(enso)
 
 // Resize
 this.resizeEnso = () => {
-    camera.aspect = window.innerWidth / window.innerHeight
+    camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
     camera.updateProjectionMatrix()
-    meshWidth = (fov_y  - 1.0)* camera.aspect;
-    meshHeight = meshWidth / imageAspect
-    regenerateGeometry()
-    this.renderer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight);
+    camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
+    this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(ensoContainer.clientWidth, ensoContainer.clientHeight)
+    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 
 }
 
@@ -311,7 +298,7 @@ var animate = () => {
         let neurofeedback = this.getNeurofeedback()
         if (neurofeedback){
             material.uniforms.uNoiseIntensity.value = 1-neurofeedback
-            let coherenceReadout = ensoContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+            let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
             if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
         }
         controls.update()
@@ -322,7 +309,7 @@ var animate = () => {
 
 // // Stats
 // const stats = Stats()
-// ensoContainer.appendChild(stats.dom)
+// appletContainer.appendChild(stats.dom)
 
 this.renderer.setAnimationLoop( animate );
 }
