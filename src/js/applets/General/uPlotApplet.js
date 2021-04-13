@@ -357,26 +357,32 @@ export class uPlotApplet {
               var band = document.getElementById(this.props.id+"bandview").value
               
               var count = atlas.data.coherence[0].fftCount;
-              if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
-                this.class.uPlotData[0].shift();
+              var window = 20;
+              if(count < window) {
+                window = count;
               }
-              //console.log(EEG.sps*this.xrange)
-              //console.log(this.class.uPlotData[0].length)
-              this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
-              
-              atlas.data.coherence.forEach((row,i) => {
-                if(view === 'All') {
-                  this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-                  if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-                    this.class.uPlotData[i+1].shift();
-                  }
-                } else if (row.tag === view) {
-                  this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-                  if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-                    this.class.uPlotData[i+1].shift();
-                  }
+
+                if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
+                  this.class.uPlotData[0].shift();
                 }
-              });
+                //console.log(EEG.sps*this.xrange)
+                //console.log(this.class.uPlotData[0].length)
+                this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
+                
+                atlas.data.coherence.forEach((row,i) => {
+                  if(view === 'All') {
+                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                      this.class.uPlotData[i+1].shift();
+                    }
+                  } else if (row.tag === view) {
+                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                      this.class.uPlotData[i+1].shift();
+                    }
+                  }
+                });
+              
             }
           }
         }
