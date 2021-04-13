@@ -38,6 +38,88 @@ button {
     display: hidden;
 }
 
+/* Tutorial */
+
+.tutorial{
+    position: absolute;
+    left: 0;
+    top:0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    width: 100vw;
+    height: 100vh;
+    padding: 50px;
+    color: white;
+    transition: opacity 0.5s ease-out;
+    z-index: 100;
+    background: black;
+}
+
+.tutorial h1 {
+    font-family: Poppins, sans-serif;
+    text-transform: uppercase;
+}
+
+.tutorial-content {
+    width: 100%;
+    height: 50%;
+}
+
+.tutorial button {
+    box-sizing: border-box; 
+    /* min-width: 50px; */
+    min-height: 50px;
+    flex-grow: 1;
+    width: 200px;
+    max-width: 48%;
+    position: relative;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 80%;
+    background: transparent;
+    color: white;
+    border: 1px solid rgb(200, 200, 200);
+    text-align: left;
+    transition: 0.5s;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tutorial-dynamic-text {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.tutorial-dynamic-text .next{
+    position: absolute; 
+    right: 0;
+    bottom: 0;
+}
+
+.tutorial-dynamic-text .previous{
+    position: absolute; 
+    right: 0;
+    bottom: 0;
+    transform: translateX(-108%)
+}
+
+
+.tutorial button:hover {
+    background-color: rgb(35,35,35);
+}
+
+.tutorial .close {
+    position: absolute;
+    right: 25px;
+    bottom: 25px;
+    width: 200px;
+}
+
 /* Loader */
 
 .loader-mask {
@@ -57,7 +139,7 @@ button {
 }
 
 .loader{
-    position: relative;
+    position: absolute;
     left: 0;
     top:0;
     display: flex;
@@ -164,7 +246,7 @@ button {
     position: relative;
     padding: 5px;
     margin: 5px 0px;
-    border-radius: 5%;
+    border-radius: 5px;
     font-size: 80%;
     background: transparent;
     color: white;
@@ -186,7 +268,7 @@ button {
     /* width: calc(10px); */
     text-align: left;
     padding: 5px 0;
-    border-radius: 6px;
+    border-radius: 5px;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -237,6 +319,18 @@ button {
     justify-content: center;
 }
 
+.collapsible-content-label{
+    font-size: 80%;
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: inherit;
+    padding-top: 25px;
+    padding-bottom: 5px;
+    z-index: 10;
+}
+
 #sidebar .collapsible-container{
     width: 100%;
     box-sizing: border-box; 
@@ -246,7 +340,7 @@ button {
   /* Style the collapsible content. Note: hidden by default */
   .content {
     position: absolute;
-    padding: 25px;
+    padding: 0px 25px 25px 25px;
     width: calc((100vw - 250px)/2);
     max-width: calc(100vw - 250px);
     box-sizing: border-box;
@@ -428,7 +522,7 @@ input:focus{
     cursor: pointer;
     transition: 0.5s;
     border: 1px solid rgb(200, 200, 200);
-    border-radius: 5%;
+    border-radius: 5px;
     font-size: 80%;
     margin: 5px;
 }

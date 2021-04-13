@@ -94,8 +94,10 @@ export function menudropdown_template(props={}) {
 export function appletselect_template(props={}) {
     return `
     <div>
-    <span style="font-size: 80%; margin: auto;">Applets</span>
-    <hr>
+    <div class="collapsible-content-label">
+        <span>Applets</span>
+        <hr>
+    </div>
     <div style="margin: 10px 10px 0px 10px;">
         <select id="config-selector" style="width: 100%;">
         </select>

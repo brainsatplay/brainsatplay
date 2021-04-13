@@ -22,6 +22,7 @@ import {AppletManager} from './utils/AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from './utils/StateManager';
 import { DOMFragment } from './utils/DOMFragment';
+import { TutorialManager } from './utils/TutorialManager';
 
 import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
@@ -87,6 +88,7 @@ export class BCIAppManager {
             this.initFS();
         } else { this.init(); }
 
+        this.tutorialManager = new TutorialManager();
     }
 
     setupUITemplates = () => {
@@ -109,7 +111,7 @@ export class BCIAppManager {
                     <div class="content">
                     </div>
                 </div>
-                <div class="collapsible-container">
+                <div id="file-menu" class="collapsible-container">
                     <button class="collapsible">
                     <div class="img-cont">
                     <img src="./_dist_/assets/folder-solid.svg">
@@ -117,27 +119,40 @@ export class BCIAppManager {
                     </div>
                     </button>
                     <div id="filecontainer" class="content">
-                    <span style="font-size: 80%;">File Manager</span>
-                    <hr>
+                        <div class="collapsible-content-label">
+                            <span>File Manager</span>
+                            <hr>
+                        </div>
                     </div>
                 </div>
                 <div id="profile-menu" class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/user-solid.svg"><span>Profile</span></div></button>
                     <div class="content">
-                    <span style="font-size: 80%;">Profile</span>
-                    <hr>
+                    <div class="collapsible-content-label">
+                        <span>Profile</span>
+                        <hr>
+                    </div>
                     </div>
                 </div>
                 <div class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
                     <div class="content">
-                        <span style="font-size: 80%;">Server</span>
+                        <div class="collapsible-content-label">
+                        <span>Server</span>
                         <hr>
+                    </div>
                         <button id='ping'>Send Ping</button>
                         <button id='getusers'>Get Users</button>
                         <button id='createGame'>Make Game session</button>
                         <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
                         <button id='subscribeToSelf'>Subscribe to self</button>
+
+                        <div class="collapsible-content-label">
+                            <span>Other</span>
+                            <hr>
+                        </div>
+                        <button id='enableTutorial'>Enable Tutorial</button>
+
                     </div>
                 </div>
             </div>
@@ -206,6 +221,13 @@ export class BCIAppManager {
                 content.style.opacity = "1";
                 content.style.right = `-${content.clientWidth}px`;
                 content.style.pointerEvents = 'auto'
+                let currentHeight = content.clientHeight
+                let positionY = content.getBoundingClientRect().top
+                let extraBottomMargin = 50 // px
+                let maxHeight = window.innerHeight - positionY - extraBottomMargin
+                content.style.maxHeight = `${maxHeight}px`;
+                if ( content.clientHeight >= maxHeight) content.style.height = content.style.maxHeight;
+                content.style.overflowY = 'scroll'
                 closeAllOpenCollapsibles(content)
             } else {
                 content.style.opacity = "0";
@@ -214,6 +236,7 @@ export class BCIAppManager {
             }
           });
           coll[i].nextElementSibling.addEventListener('mouseleave', function() {
+            this.classList.toggle("active");
             this.style.opacity = "0";
             this.style.right = "0";
             this.style.pointerEvents = 'none'
@@ -266,8 +289,10 @@ export class BCIAppManager {
         contentChild1.innerHTML += `
         <br>
         <div>
-        <span style="font-size: 80%;">Layout</span>
-        <hr>
+        <div class="collapsible-content-label">
+            <span>Layout</span>
+            <hr>
+        </div>        
         <div style="margin: 10px 10px 0px 10px;">
             <select id="layout-selector" style="width: 100%;">
             <option value='Focus'>Focus</option>
@@ -322,6 +347,13 @@ export class BCIAppManager {
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }
+
+         document.getElementById('enableTutorial').onclick = () => {
+            this.tutorialManager.setTutorialDefault(true)
+            this.tutorialManager.openTutorial()
+            this.tutorialManager.updateTutorialContent(0,0)
+         }
+
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
@@ -397,6 +429,7 @@ export class BCIAppManager {
         // Remove overlay
         document.body.querySelector('.app').style.display = 'block';
         document.body.querySelector('.loader').style.opacity = 0;
+        this.tutorialManager.initializeTutorial()
     }
 
     setApps( //set the apps and create a new UI or recreate the original
