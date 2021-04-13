@@ -4,6 +4,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
 
       this.canvasId = canvasId;
       this.canvas = null; this.context = null; this.animationId = null;
+      this.animating = false;
   
       this.lastFrame = 0;
       this.thisFrame = 0;
@@ -166,13 +167,21 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
     }
 
     stop() {
-        cancelAnimationFrame(this.animationId);
+      this.animating = false;
+      cancelAnimationFrame(this.animationId);
+    }
+
+    start() {
+      this.animating = true;
+      this.animate();
     }
 
     animate = () => {
+      if(this.animating) {
         if(this.settings.velocityFunc !== undefined) this.settings.velocityFunc();
         this.draw();
         setTimeout(() => { this.animationId = requestAnimationFrame(this.animate); }, 16);
+      }
     }
 
     draw = () => {
@@ -255,6 +264,7 @@ export class Boids {
 
       //Could add: leaders (negate cohesion and alignment), predators (negate separation), goals (some trig or averaging to bias velocity toward goal post)
 
+      this.animating = false;
       this.animationId = null;
       this.lastFrame = 0;
       this.thisFrame = 0;
@@ -277,8 +287,7 @@ export class Boids {
             this.boidsVel[i] = [Math.random()*0.01,Math.random()*0.01,Math.random()*0.01]; //Random starting velocities;
           }
 
-          this.particleClass.animate();
-          this.animate();
+          this.start();
       }
 
     }
@@ -290,14 +299,16 @@ export class Boids {
 
     start = () => {
         if(this.canvasId !== undefined) {
-            this.particleClass.animate();
+            this.particleClass.start();
         }
+        this.animating = true;
         this.animate();
     }
 
     stop = () => {
-        cancelAnimationFrame(this.animationId);
-        this.particleClass.stop();
+      this.animating = false;
+      cancelAnimationFrame(this.animationId);
+      this.particleClass.stop();
     }
 
     //Run a boids calculation to update velocities
@@ -398,8 +409,10 @@ export class Boids {
     }
 
     animate = () => {
+      if(this.animating) {
         this.updateParticles();
         setTimeout(()=>{this.animationId = requestAnimationFrame(this.animate);},20);
+      }
     }
 
     updateParticles = () => {
