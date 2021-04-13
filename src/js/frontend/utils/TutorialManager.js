@@ -21,7 +21,7 @@ export class TutorialManager {
             <div>
                 <h2>0.3</i>
                 <h1>Let's Begin.</h1>
-                <p>Click here to explore the platform.</p>
+                <p>Click below to enter the platform.</p>
             </div>
             `,
         ]
