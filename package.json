@@ -56,6 +56,7 @@
     "postprocessing": "^6.17.4",
     "script-loader": "^0.7.2",
     "serve-favicon": "^2.5.0",
+    "serverless-http": "^2.7.0",
     "smoothie": "^1.35.0",
     "snowpack": "^3.0.13",
     "src": "^1.1.2",

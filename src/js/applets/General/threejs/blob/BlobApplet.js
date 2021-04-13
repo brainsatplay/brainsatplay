@@ -305,6 +305,7 @@ function generateGeometry() {
     let diameter = 7
     return new THREE.SphereGeometry(diameter,Math.pow(2,6), Math.pow(2,6));
 }
+
 function regenerateGeometry() {
     let newGeometry = generateGeometry()
     mesh.geometry.dispose()
