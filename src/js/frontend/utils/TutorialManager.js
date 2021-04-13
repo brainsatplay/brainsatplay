@@ -1,7 +1,7 @@
 export class TutorialManager {
     constructor() {
 
-        this.tutorialComponents = [
+        this.standaloneTutorialWindows = [
             `
             <div>
                 <h2>0.1</i>
@@ -26,6 +26,15 @@ export class TutorialManager {
             `,
         ]
 
+        this.overlayTutorialSettings = [
+            {
+                target: '#device-menu',
+                content: `
+                <p>This is where you connect your brain-sensing device.</p>
+                `
+            }
+        ]
+
         this.tutorialState = 0
 
         this.tutorialContainer = document.body.querySelector('.tutorial')
@@ -48,7 +57,7 @@ export class TutorialManager {
         let toShow = this.getTutorialDefault()
         if (toShow) { // || toShow == null) {
             this.setTutorialDefault(true)
-            this.updateTutorialContent(0)
+            this.updateStandaloneTutorialContent(0)
         }
         else {
             this.closeTutorial();
@@ -56,8 +65,10 @@ export class TutorialManager {
     }
 
     closeTutorial = () => {
+        // this.tutorialContainer.innerHTML = ''
         this.tutorialContainer.style.opacity = 0;
         this.tutorialContainer.style.pointerEvents = 'none';
+        this.removeOverlayTooltip()
     };
 
     setTutorialDefault = (value) => {
@@ -73,31 +84,74 @@ export class TutorialManager {
         this.tutorialContainer.style.pointerEvents = 'auto';
     }
 
-    updateTutorialContent = (dx,start=null) => {
-        console.log(this.tutorialState)
+    updateStandaloneTutorialContent = (dx=0,start=null) => {
         this.tutorialState = start != null ? start+dx : this.tutorialState+dx
-        console.log(this.tutorialState)
-        let html = this.tutorialComponents[this.tutorialState]
+        let html = this.standaloneTutorialWindows[this.tutorialState]
         html += `<div style="display:flex; justify-content:space-between;">`
         if (this.tutorialState != 0) html += `<button class="previous">Previous</button>`
-        if (this.tutorialState != this.tutorialComponents.length-1) html += `<button class="next">Next</button>`
-        if (this.tutorialState === this.tutorialComponents.length-1) html += `<button class="next">Continue to App</button>`
+        if (this.tutorialState != this.standaloneTutorialWindows.length-1) html += `<button class="next">Next</button>`
+        if (this.tutorialState === this.standaloneTutorialWindows.length-1) html += `<button class="next">Continue to App</button>`
         html += `</div>`
 
         this.dynamicTutorialText.innerHTML = html
         let prevButton = this.dynamicTutorialText.querySelector('.previous')
-        if (prevButton) prevButton.onclick = () => {this.updateTutorialContent(-1)}
+        if (prevButton) prevButton.onclick = () => {this.updateStandaloneTutorialContent(-1)}
         let nextButton = this.dynamicTutorialText.querySelector('.next') 
         if (nextButton) {
 
-            // Continue to app
-            if (this.tutorialState === this.tutorialComponents.length-1) nextButton.onclick = () => {
-                this.closeTutorial() 
-                this.setTutorialDefault(false)
+            // Continue to overlay tutorial
+            if (this.tutorialState === this.standaloneTutorialWindows.length-1) nextButton.onclick = () => {
+                this.tutorialState = 0;
+                this.tutorialContainer.innerHTML = ''
+                this.tutorialContainer.style.opacity = 0.5;
+                this.tutorialContainer.style.pointerEvents = 'none';
+                this.initializeOverlayTutorial()
             }
 
             // Default next button
-            else nextButton.onclick = () => {this.updateTutorialContent(1)}
+            else nextButton.onclick = () => {this.updateStandaloneTutorialContent(1)}
+        }
+    }
+
+    initializeOverlayTutorial = () => {
+        this.updateOverlayTutorial()
+    }
+
+    updateOverlayTutorial = (dx=0,start=null) => {
+        this.removeOverlayTooltip()
+        this.tutorialState = start != null ? start+dx : this.tutorialState+dx
+        let target = document.body.querySelector(this.overlayTutorialSettings[this.tutorialState].target)
+        let lastState = this.tutorialState === this.overlayTutorialSettings.length - 1
+        let advanceLabel = (!lastState) ? "Next" : "End Tutorial"
+        let buttonInlineStyle = "display:block; background: black; margin: 5px; min-height: 25px; text-align: center; padding: 5px;"
+        target.innerHTML += `
+        <div class='tutorial-tooltip'>
+            ${this.overlayTutorialSettings[this.tutorialState].content}
+            <div style="display:flex; justify-content:space-between;">
+                <button class="skip-tutorial" style="${buttonInlineStyle}" onclick="${this.closeTutorial}">Skip Tutorial</button>
+                <button class="advance-tutorial" style="${buttonInlineStyle}" onclick="${this.advance}">${advanceLabel}</button>
+            </div>
+        </div>
+        `
+        target.querySelector(".skip-tutorial").onclick = () => {this.closeTutorial()}
+        target.querySelector(".advance-tutorial").onclick = () => {
+            if (!lastState) this.updateOverlayTutorial(1)
+            else this.closeTutorial()
+        }
+        this.overlayTutorialSettings[this.tutorialState].zIndex = target.style.zIndex
+        this.overlayTutorialSettings[this.tutorialState].position = target.style.position
+        target.style.zIndex = '10000'
+        target.style.position = 'relative'
+        target.querySelector(".tutorial-tooltip").style.opacity = '1'
+    }
+
+    removeOverlayTooltip = () => {
+        document.body.querySelector('.tutorial-tooltip')?.remove()
+        let currentSettings = this.overlayTutorialSettings[this.tutorialState]
+        let prevTarget = document.body.querySelector(currentSettings.target)
+        if(prevTarget != null) {
+            prevTarget.style.zIndex = currentSettings.zIndex
+            prevTarget.style.position = currentSettings.position
         }
     }
 }
