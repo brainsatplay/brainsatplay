@@ -49,11 +49,11 @@ export class uPlotApplet {
                 <div id='`+props.id+`menu' style='position:absolute; float:right; z-index:4;'>
                   <table style='position:absolute; transform:translateX(40px);'>
                     <tr>
-                      <td>
+                      <td style='color:black;'>
                         Channel:
                         <select id="`+props.id+`channel" style='width:80px'></select>
                       </td> 
-                      <td>  
+                      <td style='color:black;'>  
                         Graph:
                         <select id='`+props.id+`mode' style='width:98px'>
                           <option value="FFT" selected="selected">FFTs</option>
@@ -63,21 +63,21 @@ export class uPlotApplet {
                           <option value="Stacked">Stacked Raw</option>
                         </select>
                       </td>
-                      <td id='`+props.id+`yrangetd' style='width:98px'>
-                        Y scale <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(21px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
+                      <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>
+                        Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(21px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
                       </td>
-                      <td id='`+props.id+`xrangetd' style='width:98px'>
+                      <td id='`+props.id+`xrangetd' style='width:98px; color:black;'>
                         Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(30px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
                       </td>
                       
                     </tr>
                     <tr>
-                    <td colSpan=2 style='display:table-row;' id='`+props.id+`legend'></td>
+                      <td colSpan=1 style='display:table-row; font-size:12px;' id='`+props.id+`legend'></td>
                       <td>
                       `+genBandviewSelect(props.id+'bandview')+`
                       </td>
                       <td colSpan=2>
-                        <div id='`+props.id+`title' style='font-weight:bold; width:200px;'>Fast Fourier Transforms</div>
+                        <div id='`+props.id+`title' style='font-weight:bold; color:black; font-size:8px;'>Fast Fourier Transforms</div>
                       </td>
                     </tr>
                   </table>
