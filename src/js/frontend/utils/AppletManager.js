@@ -184,6 +184,7 @@ export class AppletManager {
         })
 
         // Check the compatibility of current applets with connected devices
+        this.appletsSpawned = 0;
         currentApplets.forEach((className,i) => {
             let applet = this.appletClasses.filter(applet => applet.name == className)[0]
             let compatible = false;
