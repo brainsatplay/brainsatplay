@@ -51,11 +51,11 @@ export class uPlotApplet {
                     <tr>
                       <td style='color:black;'>
                         Channel:
-                        <select id="`+props.id+`channel" style='width:80px'></select>
+                        <select id="`+props.id+`channel" style='width:80px;'></select>
                       </td> 
                       <td style='color:black;'>  
                         Graph:
-                        <select id='`+props.id+`mode' style='width:98px'>
+                        <select id='`+props.id+`mode' style='width:98px;'>
                           <option value="FFT" selected="selected">FFTs</option>
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
@@ -64,15 +64,15 @@ export class uPlotApplet {
                         </select>
                       </td>
                       <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>
-                        Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(21px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
+                        Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(3px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
                       </td>
                       <td id='`+props.id+`xrangetd' style='width:98px; color:black;'>
-                        Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(30px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
+                        Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(10px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
                       </td>
                       
                     </tr>
                     <tr>
-                      <td colSpan=1 style='display:table-row; font-size:12px;' id='`+props.id+`legend'></td>
+                      <td colSpan=1 style='display:table-row; font-weight:bold; font-size:12px;' id='`+props.id+`legend'></td>
                       <td>
                       `+genBandviewSelect(props.id+'bandview')+`
                       </td>
