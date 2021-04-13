@@ -730,11 +730,11 @@ export class uPlotApplet {
           var count = atlas.data.coherence[0].count-1;
           //console.log(ATLAS.coherenceMap.map[0].data.times[count-1])
           if(count > 1) {
-            while(atlas.data.coherence[0].times[atlas.data.coherence[0].count-1]-atlas.data.coherence[0].times[count-1] < this.xrange*1000 && count > 0) {
+            while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].count-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
               count-=1;
             }
 
-            this.class.uPlotData = [atlas.data.coherence[0].times.slice(count, atlas.data.coherence[0].count)];
+            this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].count)];
 
             atlas.data.coherence.forEach((row,i) => {
               if(view === 'All' || row.tag === view) {
