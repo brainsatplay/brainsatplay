@@ -1093,14 +1093,18 @@ export class DataAtlas {
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 
 			feedbackOptions.forEach((o,i) => {
-				if (i === 0) html += `<option value=${o.function.name} disabled selected>${o.label}</option>`
+				if (i === 0) html += `<option value=${o.function.name} disabled>${o.label}</option>`
+				else if (i === 1) html += `<option value=${o.function.name} selected>${o.label}</option>`
 				else html += `<option value=${o.function.name}>${o.label}</option>`;
 				if (i === feedbackOptions.length - 1) html += `</select></div>`
 			});
 		}
 		parentNode.innerHTML = html;
 		let neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`)
-		if (neurofeedbackSelector != null) neurofeedbackSelector.onchange = (e) => {applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function}
+		if (neurofeedbackSelector != null) {
+			applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == neurofeedbackSelector.value).function;
+			neurofeedbackSelector.onchange = (e) => {applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function}
+		}
 	}
 }
 
