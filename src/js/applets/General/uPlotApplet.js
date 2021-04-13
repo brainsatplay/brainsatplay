@@ -727,14 +727,14 @@ export class uPlotApplet {
           if(atlas.settings.coherence){
           var band = document.getElementById(this.props.id+"bandview").value;
           
-          var count = atlas.data.coherence[0].count-1;
+          var count = atlas.data.coherence[0].fftCount-1;
           //console.log(ATLAS.coherenceMap.map[0].data.times[count-1])
           if(count > 1) {
-            while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].count-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
+            while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].fftCount-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
               count-=1;
             }
 
-            this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].count)];
+            this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].fftCount)];
 
             atlas.data.coherence.forEach((row,i) => {
               if(view === 'All' || row.tag === view) {
@@ -743,7 +743,7 @@ export class uPlotApplet {
                   value: (u, v) => v == null ? "-" : v.toFixed(1),
                   stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
                 });
-                this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].count),20));
+                this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
               }
             });
             //console.log(this.class.uPlotData)
