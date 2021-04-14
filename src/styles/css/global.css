@@ -322,7 +322,7 @@ button {
     opacity: 1;
 }
 
-#sidebar img {
+#sidebar .collapsible-container img {
     box-sizing: border-box; 
     /* width: 100%; */
     filter: invert(1);
