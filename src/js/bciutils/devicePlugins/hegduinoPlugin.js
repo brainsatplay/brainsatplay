@@ -81,8 +81,8 @@ export class hegduinoPlugin {
                                         if(coord.beat_detect.beats[coord.beat_detect.beats.length-1].t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t)
                                             coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
                                     } else {
-                                        if(coord.beat_detect.beats.t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t)
-                                            coord.beat_detect.beats[coord.beat_detect.beats.length-1].push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                        if(coord.beat_detect.beats[coord.beat_detect.beats.length-1].t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t)
+                                            coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
                                     }
                                 }
                                 
