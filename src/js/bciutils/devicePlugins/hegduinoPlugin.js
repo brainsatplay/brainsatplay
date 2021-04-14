@@ -64,6 +64,7 @@ export class hegduinoPlugin {
                             coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] = this.mean(coord.beat_detect.drir_dt.slice(coord.beat_detect.drir_dt.length-window)); //filter with SMA
                         }
                         if(coord.beat_detect.drir_dt.length>10) {
+                            //Find local maxima and local minima.
                             if(coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-7] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-6] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-5] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-4] <= 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-3] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-2] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length] > 0) {
                                 coord.beat_detect.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:coord.beat_detect.rir[coord.count-5], val1:coord.beat_detect.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
                             }
@@ -72,11 +73,16 @@ export class hegduinoPlugin {
                             }
 
                             if(coord.beat_detect.localmins.length > 1 && coord.beat_detect.localmaxs.length > 1) {
-                                if(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { while(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { coord.beat_detect.localmins.splice(coord.beat_detect.localmins.length-2,1); } }
+                                
+                                //Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
+                                if(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { while(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { coord.beat_detect.localmins.splice(coord.beat_detect.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
                                 else if (coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) { while(coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) {coord.beat_detect.localmaxs.splice(coord.beat_detect.localmins.length-2,1); } }
+                                
                                 coord.beat_detect.peak_dists.push({dt:(coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0-coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-2].us),t:coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0});
                                 coord.beat_detect.val_dists.push({dt:(coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0-coord.beat_detect.localmins[coord.beat_detect.localmins.length-2].us),t:coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0});
+                                //Found a peak and valley to average together (for accuracy)
                                 if(coord.beat_detect.peak_dists.length > 1 && coord.beat_detect.val_dists.length > 1) {
+                                    //Make sure you are using the leading valley
                                     if(coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].t > coord.beat_detect.val_dists[coord.beat_detect.peak_dists.length-1].t) {
                                         if(coord.beat_detect.beats[coord.beat_detect.beats.length-1].t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t)
                                             coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
