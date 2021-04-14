@@ -321,7 +321,7 @@ export class DataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],HR:[],lastRead:0, startTime:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],rir:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[]},lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -891,6 +891,7 @@ export class DataAtlas {
 		let row = this.data.heg[hegIdx];
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
+			let t = row.times[i];
 			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
 		};
 		return [header.join(',')+"\n",data.join('\n')];

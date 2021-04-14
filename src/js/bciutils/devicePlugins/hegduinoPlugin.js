@@ -4,6 +4,7 @@ import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import {DataAtlas} from '../DataAtlas'
 import {hegduino} from '../hegduino'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import InMemoryFileSystem from 'browserfs/dist/node/backend/InMemory';
 
 export class hegduinoPlugin {
     constructor(mode='hegduinousb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -19,9 +20,19 @@ export class hegduinoPlugin {
        
     }
 
+    	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
+
+    mean(arr){
+        var sum = arr.reduce((prev,curr)=> curr += prev);
+        return sum / arr.length;
+    }
+
     init = (info,pipeToAtlas) => {
-		info.sps = Math.floor(2048/3);
+		info.sps = 32;
         info.deviceType = 'heg';
+
+        let window = Math.floor(info.sps/4);
+
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
                 let data = newline.split("|");
@@ -35,6 +46,7 @@ export class hegduinoPlugin {
                         coord.red.push(parseFloat(data[0]));
                         coord.ir.push(parseFloat(data[1]));
                         coord.ratio.push(parseFloat(data[2]));
+                        //ignore the rest for now
                     } else { 
                         coord.times.push(Date.now()); //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
                         coord.red.push(parseFloat(data[1]));
@@ -43,10 +55,52 @@ export class hegduinoPlugin {
                         coord.ambient.push(parseFloat(data[4]));
                         //ignore the rest for now
                     }
+
+                    //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
+                    let bt = coord.beat_detect;
+                    bt.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
+                    if(coord.count > 1) {
+                        bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
+                        if(bt.drir_dt.length>window) {
+                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window)); //filter with SMA
+                        }
+                        if(bt.drir_dt.length>10) {
+                            //Find local maxima and local minima.
+                            if(bt.drir_dt[bt.drir_dt.length-7] < 0 && bt.drir_dt[bt.drir_dt.length-6] < 0 && bt.drir_dt[bt.drir_dt.length-5] < 0 && bt.drir_dt[bt.drir_dt.length-4] <= 0 && bt.drir_dt[bt.drir_dt.length-3] > 0 && bt.drir_dt[bt.drir_dt.length-2] > 0 && bt.drir_dt[bt.drir_dt.length-1] > 0 && bt.drir_dt[bt.drir_dt.length] > 0) {
+                                bt.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-5], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            }
+                            else if(bt.drir_dt[bt.drir_dt.length-7] > 0 && bt.drir_dt[bt.drir_dt.length-6] > 0 && bt.drir_dt[bt.drir_dt.length-5] > 0 && bt.drir_dt[bt.drir_dt.length-4] >= 0 && bt.drir_dt[bt.drir_dt.length-3] < 0 && bt.drir_dt[bt.drir_dt.length-2] < 0 && bt.drir_dt[bt.drir_dt.length-1] < 0 && bt.drir_dt[bt.drir_dt.length] < 0) {
+                                bt.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-4], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            }
+
+                            if(bt.localmins.length > 1 && bt.localmaxs.length > 1) {
+                                
+                                //Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
+                                if(bt.localmins.length > bt.localmaxs.length+2) { while(bt.localmins.length > bt.localmaxs.length+2) { bt.localmins.splice(bt.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
+                                else if (bt.localmaxs.length > bt.localmins.length+2) { while(bt.localmaxs.length > bt.localmins.length+2) {bt.localmaxs.splice(bt.localmins.length-2,1); } }
+                                
+                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].us0-bt.localmaxs[bt.localmaxs.length-2].us),t:bt.localmaxs[bt.localmaxs.length-1].us0});
+                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].us0-bt.localmins[bt.localmins.length-2].us),t:bt.localmins[bt.localmins.length-1].us0});
+                                //Found a peak and valley to average together (for accuracy)
+                                if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
+                                    //Make sure you are using the leading valley
+                                    if(bt.val_dists[bt.val_dists.length-1].t > bt.val_dists[bt.peak_dists.length-1].t) {
+                                        if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t)
+                                            bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+                                    } else {
+                                        if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
+                                            bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+                                    }
+                                }
+                                
+                            }
+                        }
+                    }
                 }
             } else {console.log("HEGDUINO: ", newline); }
         }
         if(this.mode === 'hegduinowifi' || this.mode === 'hegduinosse') {
+            info.sps = 20; //20sps incoming rate fixed for wifi
             this.device = new hegduino('wifi',ondata,
             ()=>{
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {

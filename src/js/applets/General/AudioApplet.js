@@ -75,16 +75,16 @@ export class AudioApplet {
             return `
             <div id='`+props.id+`'> 
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2;'> 
+                    <div id='`+props.id+`fileWrapper' style='font-size:10px;'> 
+                        <div id='`+props.id+`fileinfo'></div> 
+                        <input type="file" id='`+props.id+`uploadedFile'></input> 
+                    </div> 
                     <table id='`+props.id+`table' style='color:white;'>
                         <tr><td>Feedback: </td></tr> 
                         <tr><td><button id='`+props.id+`useVol'>Volume</button></td></tr> 
                         <tr><td><button id='`+props.id+`modebutton'>Mode</button></td></tr> 
                     </table>
                     <input type="range" id='`+props.id+`volSlider' min="0" max="100" value='`+(this.maxVol*100)+`'> 
-                    <div id='`+props.id+`fileWrapper'> 
-                        <div id='`+props.id+`fileinfo'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile'></input> 
-                    </div> 
                 </div> 
                 <button id='`+props.id+`showhide' style='float:right; z-index:2'>Hide UI</button> 
                 <canvas id='`+props.id+`canvas' style='z-index:1'></canvas> 
@@ -251,10 +251,13 @@ export class AudioApplet {
         };
         this.status = 0;
         var text = 'Song ended...';
-        document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
-        document.getElementById(this.props.id+'fileinfo').innerHTML = text;
-        this.info = text;
-        document.getElementById(this.props.id+'uploadedFile').value = '';
+        let div = document.getElementById(this.props.id+'fileWrapper');
+        if(div){
+            document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
+            document.getElementById(this.props.id+'fileinfo').innerHTML = text;
+            this.info = text;
+            document.getElementById(this.props.id+'uploadedFile').value = '';
+        }
     }
 
     updateInfo(text, processing) {
@@ -530,7 +533,7 @@ export class AudioApplet {
                 let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                 this.onData(score);
             }
-            else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+            else if (this.bci.atlas.analyzing && this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
                 let ct = this.coh_ref_ch.fftCount;
                 let avg = 20; if(ct < avg) { avg = ct; }
                 let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);

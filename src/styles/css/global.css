@@ -120,6 +120,39 @@ button {
     width: 200px;
 }
 
+.tutorial-tooltip {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 200px;
+    /* max-width: 200px; */
+    font-size: 80%;
+    /* font-family: Arial, Helvetica, sans-serif; */
+    font-weight: normal;
+    text-align: left;
+    transform: translate(calc(100% + 25px),-50%);
+    padding: 5px 25px;
+    border-style: 1px solid;
+    border-color: rgb(29, 29, 29);
+    border-radius: 4px;
+    background-color: ghostwhite;
+    color: black;
+    opacity: 0;
+    transition: opacity 1.0s;
+    z-index: 1000;
+}
+
+.tutorial-tooltip::after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent ghostwhite transparent transparent;
+  }
+
 /* Loader */
 
 .loader-mask {
@@ -227,7 +260,7 @@ button {
     width: 100vw;
     height: 100vh;
     opacity: 0%;
-    transition: 0.5s;
+    transition: opacity 0.5s;
     pointer-events: none;
     z-index: 8;
 }

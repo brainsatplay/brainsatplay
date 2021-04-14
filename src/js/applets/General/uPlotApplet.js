@@ -49,13 +49,13 @@ export class uPlotApplet {
                 <div id='`+props.id+`menu' style='position:absolute; float:right; z-index:4;'>
                   <table style='position:absolute; transform:translateX(40px);'>
                     <tr>
-                      <td>
+                      <td style='color:black;'>
                         Channel:
-                        <select id="`+props.id+`channel" style='width:80px'></select>
+                        <select id="`+props.id+`channel" style='width:80px;'></select>
                       </td> 
-                      <td>  
+                      <td style='color:black;'>  
                         Graph:
-                        <select id='`+props.id+`mode' style='width:98px'>
+                        <select id='`+props.id+`mode' style='width:98px;'>
                           <option value="FFT" selected="selected">FFTs</option>
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
@@ -63,21 +63,21 @@ export class uPlotApplet {
                           <option value="Stacked">Stacked Raw</option>
                         </select>
                       </td>
-                      <td id='`+props.id+`yrangetd' style='width:98px'>
-                        Y scale <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(21px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
+                      <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>
+                        Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(3px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
                       </td>
-                      <td id='`+props.id+`xrangetd' style='width:98px'>
-                        Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(30px); height:13px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
+                      <td id='`+props.id+`xrangetd' style='width:98px; color:black;'>
+                        Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(10px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
                       </td>
                       
                     </tr>
                     <tr>
-                    <td colSpan=2 style='display:table-row;' id='`+props.id+`legend'></td>
+                      <td colSpan=1 style='display:table-row; font-weight:bold; font-size:12px;' id='`+props.id+`legend'></td>
                       <td>
                       `+genBandviewSelect(props.id+'bandview')+`
                       </td>
                       <td colSpan=2>
-                        <div id='`+props.id+`title' style='font-weight:bold; width:200px;'>Fast Fourier Transforms</div>
+                        <div id='`+props.id+`title' style='font-weight:bold; color:black; font-size:8px;'>Fast Fourier Transforms</div>
                       </td>
                     </tr>
                   </table>
@@ -357,26 +357,32 @@ export class uPlotApplet {
               var band = document.getElementById(this.props.id+"bandview").value
               
               var count = atlas.data.coherence[0].fftCount;
-              if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
-                this.class.uPlotData[0].shift();
+              var window = 20;
+              if(count < window) {
+                window = count;
               }
-              //console.log(EEG.sps*this.xrange)
-              //console.log(this.class.uPlotData[0].length)
-              this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
-              
-              atlas.data.coherence.forEach((row,i) => {
-                if(view === 'All') {
-                  this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-                  if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-                    this.class.uPlotData[i+1].shift();
-                  }
-                } else if (row.tag === view) {
-                  this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-20, atlas.data.coherence[0].count),20)[19]);
-                  if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
-                    this.class.uPlotData[i+1].shift();
-                  }
+
+                if(this.class.uPlotData[0][this.class.uPlotData[0].length-1]-this.class.uPlotData[0][0] >= this.xrange*1000) {
+                  this.class.uPlotData[0].shift();
                 }
-              });
+                //console.log(EEG.sps*this.xrange)
+                //console.log(this.class.uPlotData[0].length)
+                this.class.uPlotData[0].push(atlas.data.coherence[0].fftTimes[count-1]);// = [ATLAS.coherenceMap.map[0].data.times.slice(count, ATLAS.coherenceMap.map[0].data.count)];
+                
+                atlas.data.coherence.forEach((row,i) => {
+                  if(view === 'All') {
+                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                      this.class.uPlotData[i+1].shift();
+                    }
+                  } else if (row.tag === view) {
+                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
+                      this.class.uPlotData[i+1].shift();
+                    }
+                  }
+                });
+              
             }
           }
         }
@@ -727,14 +733,14 @@ export class uPlotApplet {
           if(atlas.settings.coherence){
           var band = document.getElementById(this.props.id+"bandview").value;
           
-          var count = atlas.data.coherence[0].count-1;
+          var count = atlas.data.coherence[0].fftCount-1;
           //console.log(ATLAS.coherenceMap.map[0].data.times[count-1])
           if(count > 1) {
-            while(atlas.data.coherence[0].times[atlas.data.coherence[0].count-1]-atlas.data.coherence[0].times[count-1] < this.xrange*1000 && count > 0) {
+            while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].fftCount-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
               count-=1;
             }
 
-            this.class.uPlotData = [atlas.data.coherence[0].times.slice(count, atlas.data.coherence[0].count)];
+            this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].fftCount)];
 
             atlas.data.coherence.forEach((row,i) => {
               if(view === 'All' || row.tag === view) {
@@ -743,7 +749,7 @@ export class uPlotApplet {
                   value: (u, v) => v == null ? "-" : v.toFixed(1),
                   stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
                 });
-                this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].count),20));
+                this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
               }
             });
             //console.log(this.class.uPlotData)

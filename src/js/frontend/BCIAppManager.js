@@ -351,9 +351,8 @@ export class BCIAppManager {
          document.getElementById('enableTutorial').onclick = () => {
             this.tutorialManager.setTutorialDefault(true)
             this.tutorialManager.openTutorial()
-            this.tutorialManager.updateTutorialContent(0,0)
+            this.tutorialManager.updateStandaloneTutorialContent(0,0)
          }
-
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

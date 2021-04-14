@@ -13,6 +13,9 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+
+
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
@@ -270,6 +273,13 @@ this.renderer = new THREE.WebGLRenderer({
 })
 this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+this.renderer.xr.enabled = true;
+
+/**
+ * VR
+ */
+appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+
 
 /** 
  * Postprocessing 
