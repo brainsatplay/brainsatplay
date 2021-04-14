@@ -871,15 +871,17 @@ export class DataAtlas {
 						line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
 					}
 				});
-				this.data.coherence.forEach((row,i) => {
-					if(i===0) {
-						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
-						header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
-					}
-					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
-					}
-				});
+				if(this.settings.coherence) {
+					this.data.coherence.forEach((row,i) => {
+						if(i===0) {
+							let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+							header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+						}
+						if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
+							line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
+						}
+					});
+				}
 				if(datums[0].fftTimes[mapidx] === datums[0].times[i]){
 					mapidx++;
 				}
