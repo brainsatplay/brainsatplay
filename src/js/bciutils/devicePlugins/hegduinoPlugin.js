@@ -57,38 +57,39 @@ export class hegduinoPlugin {
                     }
 
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
-                    coord.beat_detect.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
+                    let bt = coord.beat_detect;
+                    bt.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
                     if(coord.count > 1) {
-                        coord.beat_detect.drir_dt.push((coord.beat_detect.rir[coord.count-1]-coord.beat_detect.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
-                        if(coord.beat_detect.drir_dt.length>window) {
-                            coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] = this.mean(coord.beat_detect.drir_dt.slice(coord.beat_detect.drir_dt.length-window)); //filter with SMA
+                        bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
+                        if(bt.drir_dt.length>window) {
+                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window)); //filter with SMA
                         }
-                        if(coord.beat_detect.drir_dt.length>10) {
+                        if(bt.drir_dt.length>10) {
                             //Find local maxima and local minima.
-                            if(coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-7] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-6] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-5] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-4] <= 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-3] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-2] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length] > 0) {
-                                coord.beat_detect.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:coord.beat_detect.rir[coord.count-5], val1:coord.beat_detect.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            if(bt.drir_dt[bt.drir_dt.length-7] < 0 && bt.drir_dt[bt.drir_dt.length-6] < 0 && bt.drir_dt[bt.drir_dt.length-5] < 0 && bt.drir_dt[bt.drir_dt.length-4] <= 0 && bt.drir_dt[bt.drir_dt.length-3] > 0 && bt.drir_dt[bt.drir_dt.length-2] > 0 && bt.drir_dt[bt.drir_dt.length-1] > 0 && bt.drir_dt[bt.drir_dt.length] > 0) {
+                                bt.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-5], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
                             }
-                            else if(coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-7] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-6] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-5] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-4] >= 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-3] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-2] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length] < 0) {
-                                coord.beat_detect.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:coord.beat_detect.rir[coord.count-4], val1:coord.beat_detect.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            else if(bt.drir_dt[bt.drir_dt.length-7] > 0 && bt.drir_dt[bt.drir_dt.length-6] > 0 && bt.drir_dt[bt.drir_dt.length-5] > 0 && bt.drir_dt[bt.drir_dt.length-4] >= 0 && bt.drir_dt[bt.drir_dt.length-3] < 0 && bt.drir_dt[bt.drir_dt.length-2] < 0 && bt.drir_dt[bt.drir_dt.length-1] < 0 && bt.drir_dt[bt.drir_dt.length] < 0) {
+                                bt.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-4], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
                             }
 
-                            if(coord.beat_detect.localmins.length > 1 && coord.beat_detect.localmaxs.length > 1) {
+                            if(bt.localmins.length > 1 && bt.localmaxs.length > 1) {
                                 
                                 //Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
-                                if(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { while(coord.beat_detect.localmins.length > coord.beat_detect.localmaxs.length+2) { coord.beat_detect.localmins.splice(coord.beat_detect.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
-                                else if (coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) { while(coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) {coord.beat_detect.localmaxs.splice(coord.beat_detect.localmins.length-2,1); } }
+                                if(bt.localmins.length > bt.localmaxs.length+2) { while(bt.localmins.length > bt.localmaxs.length+2) { bt.localmins.splice(bt.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
+                                else if (bt.localmaxs.length > bt.localmins.length+2) { while(bt.localmaxs.length > bt.localmins.length+2) {bt.localmaxs.splice(bt.localmins.length-2,1); } }
                                 
-                                coord.beat_detect.peak_dists.push({dt:(coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0-coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-2].us),t:coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0});
-                                coord.beat_detect.val_dists.push({dt:(coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0-coord.beat_detect.localmins[coord.beat_detect.localmins.length-2].us),t:coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0});
+                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].us0-bt.localmaxs[bt.localmaxs.length-2].us),t:bt.localmaxs[bt.localmaxs.length-1].us0});
+                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].us0-bt.localmins[bt.localmins.length-2].us),t:bt.localmins[bt.localmins.length-1].us0});
                                 //Found a peak and valley to average together (for accuracy)
-                                if(coord.beat_detect.peak_dists.length > 1 && coord.beat_detect.val_dists.length > 1) {
+                                if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
                                     //Make sure you are using the leading valley
-                                    if(coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].t > coord.beat_detect.val_dists[coord.beat_detect.peak_dists.length-1].t) {
-                                        if(coord.beat_detect.beats[coord.beat_detect.beats.length-1].t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t)
-                                            coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                    if(bt.val_dists[bt.val_dists.length-1].t > bt.val_dists[bt.peak_dists.length-1].t) {
+                                        if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t)
+                                            bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
                                     } else {
-                                        if(coord.beat_detect.beats[coord.beat_detect.beats.length-1].t !== coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t)
-                                            coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                        if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
+                                            bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
                                     }
                                 }
                                 
