@@ -16,6 +16,7 @@ body
     color: white;
     overflow-x: hidden;
     overflow-y: hidden;
+    margin: 0;
 }
 
 body {
@@ -321,7 +322,7 @@ button {
     opacity: 1;
 }
 
-#sidebar button img {
+#sidebar img {
     box-sizing: border-box; 
     /* width: 100%; */
     filter: invert(1);
