@@ -129,6 +129,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 			indices.push(i);
 		}
 		//console.log(indices);
+		console.log(indices);
 		if(indices.length >= 2){
 			for(let k = 1; k < indices.length; k++) {
 				if(indices[k] - indices[k-1] === 32) {
@@ -212,8 +213,9 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 
 	onReceive(value){
 		this.buffer.push(...value);
-
+		console.log(this.buffer);
 		let newLines = this.decode(this.buffer);
+		console.log(newlines, this.data);
 		//console.log(this.data)
 		//console.log("decoding... ", this.buffer.length)
 		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
