@@ -59,15 +59,15 @@ export class hegduinoPlugin {
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
                     coord.beat_detect.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
                     if(coord.count > 1) {
-                        coord.beat_detect.dirdt.push((coord.beat_detect.rir[coord.count-1]-coord.beat_detect.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
-                        if(coord.beat_detect.dirdt.length>window) {
-                            coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-1] = this.mean(coord.beat_detect.dirdt.slice(coord.beat_detect.dirdt.length-window)); //filter with SMA
+                        coord.beat_detect.drir_dt.push((coord.beat_detect.rir[coord.count-1]-coord.beat_detect.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
+                        if(coord.beat_detect.drir_dt.length>window) {
+                            coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] = this.mean(coord.beat_detect.drir_dt.slice(coord.beat_detect.drir_dt.length-window)); //filter with SMA
                         }
-                        if(coord.beat_detect.dirdt.length>10) {
-                            if(coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-7] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-6] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-5] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-4] <= 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-3] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-2] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-1] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length] > 0) {
+                        if(coord.beat_detect.drir_dt.length>10) {
+                            if(coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-7] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-6] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-5] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-4] <= 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-3] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-2] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length] > 0) {
                                 coord.beat_detect.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:coord.beat_detect.rir[coord.count-5], val1:coord.beat_detect.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
                             }
-                            else if(coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-7] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-6] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-5] > 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-4] >= 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-3] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-2] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length-1] < 0 && coord.beat_detect.dirdt[coord.beat_detect.dirdt.length] < 0) {
+                            else if(coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-7] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-6] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-5] > 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-4] >= 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-3] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-2] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length-1] < 0 && coord.beat_detect.drir_dt[coord.beat_detect.drir_dt.length] < 0) {
                                 coord.beat_detect.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:coord.beat_detect.rir[coord.count-4], val1:coord.beat_detect.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
                             }
 
