@@ -857,11 +857,18 @@ export class DataAtlas {
 				//then get the fft/coherence data
 				datums.forEach((row,j) => {
 					if(i === 0) {
-						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
-						header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+						let found = this.data.eegshared.eegChannelTags.find((o,k) => {
+							if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
+								return true;
+							}
+						});
+						if(!found){ //don't add headers for rows not being analyzed
+							let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+							header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+						}
 					}
 					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push(row.ffts[mapidx]);
+						line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
 					}
 				});
 				this.data.coherence.forEach((row,i) => {
@@ -870,7 +877,7 @@ export class DataAtlas {
 						header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 					}
 					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push(row.ffts[mapidx]);
+						line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
 					}
 				});
 				if(datums[0].fftTimes[mapidx] === datums[0].times[i]){

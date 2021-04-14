@@ -49,7 +49,7 @@ export class VideoApplet {
         this.sliderfocus = false;
         this.hidden = false;
 
-        this.coh_ref_ch = null; //for getting coherence
+        this.coh_ref_ch = undefined; //for getting coherence
 
     }
 
