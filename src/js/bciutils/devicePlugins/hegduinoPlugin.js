@@ -55,7 +55,8 @@ export class hegduinoPlugin {
                         coord.ambient.push(parseFloat(data[4]));
                         //ignore the rest for now
                     }
-                    //Simple beat detection
+
+                    //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
                     coord.beat_detect.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
                     if(coord.count > 1) {
                         coord.beat_detect.dirdt.push((coord.beat_detect.rir[coord.count-1]-coord.beat_detect.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
