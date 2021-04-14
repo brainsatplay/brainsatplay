@@ -76,7 +76,12 @@ export class hegduinoPlugin {
                                 else if (coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) { while(coord.beat_detect.localmaxs.length > coord.beat_detect.localmins.length+2) {coord.beat_detect.localmaxs.splice(coord.beat_detect.localmins.length-2,1); } }
                                 coord.beat_detect.peak_dists.push({dt:(coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0-coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-2].us),t:coord.beat_detect.localmaxs[coord.beat_detect.localmaxs.length-1].us0});
                                 coord.beat_detect.val_dists.push({dt:(coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0-coord.beat_detect.localmins[coord.beat_detect.localmins.length-2].us),t:coord.beat_detect.localmins[coord.beat_detect.localmins.length-1].us0});
-                                coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                if(coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].t > coord.beat_detect.val_dists[coord.beat_detect.peak_dists.length-1].t) {
+                                    coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-1].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                } else {
+                                    coord.beat_detect.beats.push({t:coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].t,bpm:60*(coord.beat_detect.peak_dists[coord.beat_detect.peak_dists.length-2].dt + coord.beat_detect.val_dists[coord.beat_detect.val_dists.length-1].dt)/2000});
+                                }
+                                
                             }
                         }
                     }
