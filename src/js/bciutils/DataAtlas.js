@@ -891,6 +891,7 @@ export class DataAtlas {
 		let row = this.data.heg[hegIdx];
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
+			let t = row.times[i];
 			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
 		};
 		return [header.join(',')+"\n",data.join('\n')];

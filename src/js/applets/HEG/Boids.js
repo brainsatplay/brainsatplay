@@ -105,6 +105,11 @@ export class BoidsApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
+
     updateLoop = () => {
         if(this.looping){
             if(this.bci.atlas.settings.heg) {
@@ -114,7 +119,6 @@ export class BoidsApplet {
                     let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
                     let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.class.onData(score);
-                    this.draw();
                 }
             }
             setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);
