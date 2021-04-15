@@ -235,7 +235,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	}
 
 	async sendMsg(msg) {
-		//msg+="\n";
+		msg+="\n";
         var encodedString = unescape(encodeURIComponent(msg));
         var bytes = new Uint8Array(encodedString.length);
 		const writer = this.port.writable.getWriter();
