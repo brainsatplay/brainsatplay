@@ -114,7 +114,7 @@ export class hegduinoPlugin {
         let mid = Math.round(pw*.5);
         //breathing detect smoothing window and midpoint
         let window2 = Math.floor(info.sps*3);
-        let pw2 = window; if(pw2%2 === 0) {pw2+=1} 
+        let pw2 = window2; if(pw2%2 === 0) {pw2+=1} 
         let mid2 = Math.round(pw2*.5);
 
         let ondata = (newline) => {
