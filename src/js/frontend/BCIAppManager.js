@@ -390,13 +390,13 @@ export class BCIAppManager {
 
     getConfigsFromHashes() {
         let hashes = window.location.hash;
-        if(hashes === "") { return [] }
+        if(hashes === "") { return []; }
         let hasharr = hashes.split('#');
-        hashes.shift();
-    
+        hasharr.shift();
         var appletConfigs = [];
         hasharr.forEach((hash,i) => {
-            var cfg = JSON.parse(hash); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            console.log(hash)
+            var cfg = JSON.parse(JSON.stringify(hash)); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
             appletConfigs.push(cfg);
         });
         return appletConfigs;    
