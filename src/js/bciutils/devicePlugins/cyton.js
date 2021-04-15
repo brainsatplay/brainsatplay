@@ -235,7 +235,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	}
 
 	async sendMsg(msg) {
-		msg+="\n";
+		//msg+="\n";
         var encodedString = unescape(encodeURIComponent(msg));
         var bytes = new Uint8Array(encodedString.length);
 		const writer = this.port.writable.getWriter();
@@ -251,7 +251,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					this.onConnectedCallback();
 					this.connected = true;
 					this.subscribed = true;
-					//this.sendMsg('b');
+					this.sendMsg('v');
+					this.sendMsg('b');
 					this.subscribe(port);//this.subscribeSafe(port);
 				},1000);
 		
@@ -262,7 +263,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					this.onConnectedCallback();
 					this.connected = true;
 					this.subscribed = true;
-					//this.sendMsg('b');
+					this.sendMsg('v');
+					this.sendMsg('b');
 					this.subscribe(port);//this.subscribeSafe(port);
 				},1000);
 			}

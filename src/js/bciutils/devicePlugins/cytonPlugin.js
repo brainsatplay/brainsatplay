@@ -16,7 +16,7 @@ export class cytonPlugin {
         
     }
 
-    init = (info,pipeToAtlas) => { //info and pipeToAtlas passed by reference from deviceStream class
+    init = (info={sps:null,deviceType:null,eegChannelTags:null,analysis:['eegfft'],useAtlas:undefined},pipeToAtlas=true) => { //info and pipeToAtlas passed by reference from deviceStream class
         info.sps = 250;
         info.deviceType = 'eeg';
 
