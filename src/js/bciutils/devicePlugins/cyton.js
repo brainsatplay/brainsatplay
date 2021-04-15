@@ -101,15 +101,28 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	}
 
     bytesToInt16(x0,x1){
-		return x0 * 256 + x1;
+		let int16 = ((0xFF & x1) << 8) | (0xFF & x2);
+		if((int16 & 0x00800000) > 0) {
+			int16 |= 0xFFFF0000;
+		} else {
+			int16 &= 0x0000FFFF;
+		}
+		return int16;
     }
 
     int16ToBytes(y){ //Turns a 24 bit int into a 3 byte sequence
         return [y & 0xFF , (y >> 8) & 0xFF];
     }
 
+	//cyton uses signed ints
     bytesToInt24(x0,x1,x2){ //Turns a 3 byte sequence into a 24 bit int
-        return x0 * 65536 + x1 * 256 + x2;
+        let int24 = ((0xFF & x0) << 16) | ((0xFF & x1) << 8) | (0xFF & x2);
+		if((int24 & 0x00800000) > 0) {
+			int24 |= 0xFF000000;
+		} else {
+			int24 &= 0x00FFFFFF;
+		}
+		return int24;
     }
 
     int24ToBytes(y){ //Turns a 24 bit int into a 3 byte sequence
@@ -155,7 +168,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					for(var i = 3; i < 27; i+=3) {
 						let channel;
 						if(this.mode === 'daisy') {
-							if(lines[2] % 2 !== 0) {
+							if(line[2] % 2 !== 0) {
 								channel = "A"+(i-3)/3;
 							} else { channel = "A"+(8+(i-3)/3); }
 						}
@@ -221,10 +234,20 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
 	}
 
+	async sendMsg(msg) {
+		msg+="\n";
+        var encodedString = unescape(encodeURIComponent(msg));
+        var bytes = new Uint8Array(encodedString.length);
+		const writer = this.port.writable.getWriter();
+        await writer.write(bytes.buffer);
+        writer.releaseLock();
+	}
+
 	async onPortSelected(port,baud=this.baudrate) {
 		try{
 			try {
 				await port.open({ baudRate: baud, bufferSize: this.readBufferSize });
+				this.sendMsg('b');
 				this.onConnectedCallback();
 				this.connected = true;
 				this.subscribed = true;
@@ -233,6 +256,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 			} //API inconsistency in syntax between linux and windows
 			catch {
 				await port.open({ baudrate: baud, buffersize: this.readBufferSize });
+				this.sendMsg('b');
 				this.onConnectedCallback();
 				this.connected = true;
 				this.subscribed = true;
@@ -321,6 +345,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		//if(this.reader) {this.reader.releaseLock();}
 		if(this.port){
 			this.subscribed = false;
+			this.sendMsg('s');
 			setTimeout(async () => {
 				if (this.reader) {
 					this.reader = null;
