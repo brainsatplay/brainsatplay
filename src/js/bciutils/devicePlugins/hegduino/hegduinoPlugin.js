@@ -173,13 +173,13 @@ export class hegduinoPlugin {
                                 
                             }
                         }
-                        if(bt.drir_dt.length>window2) {
-                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window2)); //filter with SMA
+                        if(bt.rir.length>window2) {
+                            bt.rir[bt.rir.length-1] = this.mean(bt.rir.slice(bt.rir.length-window2)); //filter with SMA
                             //Find local maxima and local minima.
-                            if(this.isExtrema(bt.drir_dt.slice(bt.drir_dt.length-window2),'valley')) {
+                            if(this.isExtrema(bt.rir.slice(bt.rir.length-window2),'valley')) {
                                 bt.localmins2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
-                            else if(this.isExtrema(bt.drir_dt.slice(bt.drir_dt.length-window2),'peak')) {
+                            else if(this.isExtrema(bt.rir.slice(bt.rir.length-window2),'peak')) {
                                 bt.localmaxs2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
 
