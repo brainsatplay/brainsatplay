@@ -226,10 +226,10 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 
 	onReceive(value){
 		this.buffer.push(...value);
-		console.log(this.buffer);
+		// console.log(this.buffer);
 		//console.log("decoding... ", this.buffer.length)
 		let newLines = this.decode(this.buffer);
-		console.log(newLines, this.data);
+		// console.log(newLines, this.data);
 		//console.log(this.data)
 		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
 	}
@@ -280,7 +280,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 			this.reader = port.readable.getReader();
 			const streamData = async () => {
 				try {
-					console.log('stream loop', this.subscribed)
+					// console.log('stream loop', this.subscribed)
 					const { value, done } = await this.reader.read();
 					if (done || this.subscribed === false) {
 						// Allow the serial port to be closed later.

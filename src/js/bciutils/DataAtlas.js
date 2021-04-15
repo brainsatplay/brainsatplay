@@ -61,9 +61,8 @@ export class DataAtlas {
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
         if(config === '10_20') {
-			
 			this.settings.eeg = true;
-            this.data.eeg = this.gen10_20Atlas();//this.genBigAtlas();//
+			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);//this.genBigAtlas();//
         }
 		else if (config === 'muse') {
 			
@@ -72,7 +71,7 @@ export class DataAtlas {
 		}
 		else if (config === 'big') {
 			this.settings.eeg = true;
-			this.data.eeg = this.genBigAtlas();
+			this.data.eeg = this.gen10_20Atlas();
 		}
 		else if (config === 'hegduino') {
 			this.addHEGCoord(this.data.heg.length,0,60,60);
@@ -172,29 +171,7 @@ export class DataAtlas {
         return eegmap;
 	}
 
-    gen10_20Atlas() { //19 channel EEG
-        let eegmap = [];
-        let tags = ["FP1","FP2","FPZ","F3","F4","F7","F8",
-                    "CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
-        let coords=[[-21.5,70.2,-0.1],[28.4,69.1,-0.4], //MNI coordinates
-                    [0.6,40.9,53.9],[-35.5,49.4,32.4],
-                    [40.2,47.6,32.1],[-54.8,33.9,-3.5],
-                    [56.6,30.8,-4.1],[0.8,-14.7,73.9],
-                    [-52.2,-16.4,57.8],[54.1,-18.0,57.5],
-                    [-70.2,-21.3,-10.7],[71.9,-25.2,-8.2],
-                    [-61.5,-65.3,1.1],[59.3,-67.6,3.8],
-                    [0.2,-62.1,64.5],[-39.4,-76.3,47.4],
-                    [36.8,-74.9,49.2],[-26.8,-100.2,12.8],
-                    [24.1,-100.5,14.1]];
-
-        tags.forEach((tag,i) => {
-            eegmap.push(this.genEEGCoordinateStruct(tag,coords[i][0],coords[i][1],coords[i][2]));
-        });
-
-        return eegmap;
-    }
-
-	genBigAtlas() {
+	gen10_20Atlas(channelDicts) {
 
 		const eegCoordinates = {
 
@@ -272,10 +249,14 @@ export class DataAtlas {
 		}
 
 		let eegmap = [];
-		for(const prop in eegCoordinates) {
-			eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
-		}
-
+		if (channelDicts == null){
+			for(const prop in eegCoordinates) eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
+		} else {
+			
+			channelDicts.forEach(channelDict => {
+				let tag = channelDict.tag
+				eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))})
+			}
 		return eegmap;
 	}
 
@@ -307,7 +288,7 @@ export class DataAtlas {
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
-
+				console.log(this.data.eeg)
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;
