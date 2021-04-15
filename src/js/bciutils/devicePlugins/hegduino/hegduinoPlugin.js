@@ -139,6 +139,11 @@ export class hegduinoPlugin {
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
                     let bt = coord.beat_detect;
                     bt.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
+                    if(bt.rir.length > window2) {
+                        bt.rir2.push(this.mean(bt.rir.slice(bt.rir.length-window2))); //filter with SMA
+                    } else {
+                        bt.rir2.push(this.mean(bt.rir));
+                    }
                     if(coord.count > 1) {
                         bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
                         if(bt.drir_dt.length>window) {
@@ -173,13 +178,12 @@ export class hegduinoPlugin {
                                 
                             }
                         }
-                        if(bt.rir.length>window2) {
-                            bt.rir[bt.rir.length-1] = this.mean(bt.rir.slice(bt.rir.length-window2)); //filter with SMA
+                        if(bt.rir2.length>window2) {
                             //Find local maxima and local minima.
-                            if(this.isExtrema(bt.rir.slice(bt.rir.length-window2),'valley')) {
+                            if(this.isExtrema(bt.rir2.slice(bt.rir2.length-window2),'valley')) {
                                 bt.localmins2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
-                            else if(this.isExtrema(bt.rir.slice(bt.rir.length-window2),'peak')) {
+                            else if(this.isExtrema(bt.rir2.slice(bt.rir2.length-window2),'peak')) {
                                 bt.localmaxs2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
 

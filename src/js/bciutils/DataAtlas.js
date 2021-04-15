@@ -321,7 +321,7 @@ export class DataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],breaths:[],rir:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],breaths:[],rir:[],rir2:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
