@@ -10,7 +10,6 @@ export class cytonPlugin {
     constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
-        this.info;
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -33,7 +32,7 @@ export class cytonPlugin {
                             });
                         }
                     });
-                    if(this.info.useAtlas === true) {
+                    if(info.useAtlas === true) {
                         let coord;
                         if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
                         else { coord = this.atlas.getEEGDataByChannel(o.ch); }
@@ -44,7 +43,7 @@ export class cytonPlugin {
                     }
                 }
                 else {
-                    if(this.info.useAtlas === true) {
+                    if(info.useAtlas === true) {
                         let coord = this.atlas.getEEGDataByChannel(o.ch); 
                         coord.count += newLinesInt;
                         coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
@@ -56,7 +55,7 @@ export class cytonPlugin {
 
         let onConnect = () => {
             () => {
-                if(this.info.useAtlas === true){			
+                if(info.useAtlas === true){			
                     this.atlas.data.eegshared.startTime = Date.now();
                     if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                         this.atlas.settings.analyzing = true;
@@ -165,7 +164,6 @@ export class cytonPlugin {
 			}
         }
 
-        this.info = info
     }
 
     connect = async () => {
