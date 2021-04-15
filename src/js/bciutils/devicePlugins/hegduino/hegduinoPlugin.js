@@ -26,6 +26,46 @@ export class hegduinoPlugin {
         return sum / arr.length;
     }
 
+    isCriticalPoint(arr,critical='peak') { //Checks if the middle of the array is a critical point. options: 'peak','valley','tangent'
+        let ref = [...arr];
+        let results = [];
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < ref.length*.5 && val <= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val > 0) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < ref.length*.5 && val >= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val < 0) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < ref.length*.5 && val >= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val < 0)) {
+                        pass = false;
+                    }
+                }
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i < ref.length*.5 && val <= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val > 0)) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
     init = (info,pipeToAtlas) => {
 		info.sps = 32;
         info.deviceType = 'heg';
@@ -65,11 +105,11 @@ export class hegduinoPlugin {
                         }
                         if(bt.drir_dt.length>10) {
                             //Find local maxima and local minima.
-                            if(bt.drir_dt[bt.drir_dt.length-7] < 0 && bt.drir_dt[bt.drir_dt.length-6] < 0 && bt.drir_dt[bt.drir_dt.length-5] < 0 && bt.drir_dt[bt.drir_dt.length-4] <= 0 && bt.drir_dt[bt.drir_dt.length-3] > 0 && bt.drir_dt[bt.drir_dt.length-2] > 0 && bt.drir_dt[bt.drir_dt.length-1] > 0 && bt.drir_dt[bt.drir_dt.length] > 0) {
-                                bt.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-5], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-9),'valley')) {
+                                bt.localmins.push({idx:coord.count-5, val:bt.rir[coord.count-5], t:us[coord.count-5] });
                             }
-                            else if(bt.drir_dt[bt.drir_dt.length-7] > 0 && bt.drir_dt[bt.drir_dt.length-6] > 0 && bt.drir_dt[bt.drir_dt.length-5] > 0 && bt.drir_dt[bt.drir_dt.length-4] >= 0 && bt.drir_dt[bt.drir_dt.length-3] < 0 && bt.drir_dt[bt.drir_dt.length-2] < 0 && bt.drir_dt[bt.drir_dt.length-1] < 0 && bt.drir_dt[bt.drir_dt.length] < 0) {
-                                bt.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-4], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-9),'peak')) {
+                                bt.localmaxs.push({idx:coord.count-5, val:bt.rir[coord.count-5], t:us[coord.count-5] });
                             }
 
                             if(bt.localmins.length > 1 && bt.localmaxs.length > 1) {
@@ -78,8 +118,8 @@ export class hegduinoPlugin {
                                 if(bt.localmins.length > bt.localmaxs.length+2) { while(bt.localmins.length > bt.localmaxs.length+2) { bt.localmins.splice(bt.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
                                 else if (bt.localmaxs.length > bt.localmins.length+2) { while(bt.localmaxs.length > bt.localmins.length+2) {bt.localmaxs.splice(bt.localmins.length-2,1); } }
                                 
-                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].us0-bt.localmaxs[bt.localmaxs.length-2].us),t:bt.localmaxs[bt.localmaxs.length-1].us0});
-                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].us0-bt.localmins[bt.localmins.length-2].us),t:bt.localmins[bt.localmins.length-1].us0});
+                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].t-bt.localmaxs[bt.localmaxs.length-2].t),t:bt.localmaxs[bt.localmaxs.length-1].t});
+                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].t-bt.localmins[bt.localmins.length-2].t),t:bt.localmins[bt.localmins.length-1].t});
                                 //Found a peak and valley to average together (for accuracy)
                                 if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
                                     //Make sure you are using the leading valley

@@ -64,19 +64,67 @@ document.getElementById("load").onclick = () => {
         ddLED_dt2 = sma(dLED_dt,w);
 
         //console.log(ddLED_dt2);
+        function isCriticalPoint(arr,critical='peak') { //Checks if the middle of the array is a critical point. options: 'peak','valley','tangent'
+            let ref = [...arr];
+            let results = [];
+            if(arr.length > 1) { 
+                let pass = true;
+                ref.forEach((val,i) => {
+                    if(critical === 'peak') { //search first derivative
+                        if(i < ref.length*.5 && val <= 0 ) {
+                            pass = false;
+                        } else if (i > ref.length*.5 && val > 0) {
+                            pass = false;
+                        }
+                    } else if (critical === 'valley') { //search first derivative
+                        if(i < ref.length*.5 && val >= 0 ) {
+                            pass = false;
+                        } else if (i > ref.length*.5 && val < 0) {
+                            pass = false;
+                        }
+                    } else { //look for tangents (best with 2nd derivative usually)
+                        if((i < ref.length*.5 && val >= 0 )) {
+                            pass = false;
+                        } else if ((i > ref.length*.5 && val < 0)) {
+                            pass = false;
+                        }
+                    } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
+                });
+                if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                    pass = true;
+                    ref.forEach((val,i) => { 
+                        if((i < ref.length*.5 && val <= 0 )) {
+                            pass = false;
+                        } else if ((i > ref.length*.5 && val > 0)) {
+                            pass = false;
+                        }
+                    });
+                }
+                return pass;
+            }
+        }
 
         dat.forEach((row,i) => {
             //Find peaks/valleys
             if(i>11) {
-                if(dLED_dt[i-8] < 0 && dLED_dt[i-7] < 0 && dLED_dt[i-6] < 0 && dLED_dt[i-5] <= 0 && dLED_dt[i-4] > 0 && dLED_dt[i-3] > 0 && dLED_dt[i-2] > 0 && dLED_dt[i-1] > 0) {
-                    localmins.push({idx0:i-5, idx1:i-4, val0:RIR[i-5], val1:RIR[i-4], us0:us[i-5], us1:us[i-4] });
+                console.log(dLED_dt.slice(i-9,i))
+                if(isCriticalPoint(dLED_dt.slice(i-9,i),'valley')) {
+                    localmins.push({idx0:i-5, val0:RIR[i-5], us0:us[i-5] });
+                } else if (isCriticalPoint(dLED_dt.slice(i-9,i),'peak')) {
+                    localmaxs.push({idx0:i-5, val0:RIR[i-5], us0:us[i-5] });
+                }  
+                if(isCriticalPoint(ddLED_dt2.slice(i-9,i),'tangent')) {
+                    tangents.push({idx0:i-5,  val0:RIR[i-5], us0:us[i-5] });
                 }
-                else if(dLED_dt[i-8] > 0 && dLED_dt[i-7] > 0 && dLED_dt[i-6] > 0 && dLED_dt[i-5] >= 0 && dLED_dt[i-4] < 0 && dLED_dt[i-3] < 0 && dLED_dt[i-2] < 0 && dLED_dt[i-1] < 0) {
-                    localmaxs.push({idx0:i-5, idx1:i-4, val0:RIR[i-5], val1:RIR[i-4], us0:us[i-5], us1:us[i-4] });
-                }
-                if((ddLED_dt2[i-6] < 0 && ddLED_dt2[i-5] < 0 && ddLED_dt2[i-4] <= 0 && ddLED_dt2[i-3] > 0 && ddLED_dt2[i-2] > 0 && ddLED_dt2[i-1] > 0) || (ddLED_dt2[i-6] > 0 && ddLED_dt2[i-5] > 0 && ddLED_dt2[i-4] >= 0 && ddLED_dt2[i-3] < 0 && ddLED_dt2[i-2] < 0 && ddLED_dt2[i-1] < 0)) {
-                    tangents.push({idx0:i-4, idx1:i-3, val0:RIR[i-4], val1:RIR[i-3], us0:us[i-4], us1:us[i-3] });
-                }
+                // if(dLED_dt[i-8] < 0 && dLED_dt[i-7] < 0 && dLED_dt[i-6] < 0 && dLED_dt[i-5] <= 0 && dLED_dt[i-4] > 0 && dLED_dt[i-3] > 0 && dLED_dt[i-2] > 0 && dLED_dt[i-1] > 0) {
+                //     localmins.push({idx0:i-5, idx1:i-4, val0:RIR[i-5], val1:RIR[i-4], us0:us[i-5], us1:us[i-4] });
+                // }
+                // else if(dLED_dt[i-8] > 0 && dLED_dt[i-7] > 0 && dLED_dt[i-6] > 0 && dLED_dt[i-5] >= 0 && dLED_dt[i-4] < 0 && dLED_dt[i-3] < 0 && dLED_dt[i-2] < 0 && dLED_dt[i-1] < 0) {
+                //     localmaxs.push({idx0:i-5, idx1:i-4, val0:RIR[i-5], val1:RIR[i-4], us0:us[i-5], us1:us[i-4] });
+                // }
+                // if((ddLED_dt2[i-6] < 0 && ddLED_dt2[i-5] < 0 && ddLED_dt2[i-4] <= 0 && ddLED_dt2[i-3] > 0 && ddLED_dt2[i-2] > 0 && ddLED_dt2[i-1] > 0) || (ddLED_dt2[i-6] > 0 && ddLED_dt2[i-5] > 0 && ddLED_dt2[i-4] >= 0 && ddLED_dt2[i-3] < 0 && ddLED_dt2[i-2] < 0 && ddLED_dt2[i-1] < 0)) {
+                //     tangents.push({idx0:i-4, idx1:i-3, val0:RIR[i-4], val1:RIR[i-3], us0:us[i-4], us1:us[i-3] });
+                // }
             }
         })
 
