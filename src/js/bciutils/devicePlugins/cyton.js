@@ -24,8 +24,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.connected = false;
 		this.subscribed = false;
         this.buffer = [];
-        this.startByte = 0xA0; // Start byte value
-		this.stopByte = 0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
+        this.startByte = 160//0xA0; // Start byte value
+		this.stopByte = 192//0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
 		this.searchString = new Uint8Array([this.stopByte,this.startByte]); //Byte search string
 		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
@@ -214,11 +214,11 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 	onReceive(value){
 		this.buffer.push(...value);
 		console.log(this.buffer);
-		//let newLines = this.decode(this.buffer);
-		//console.log(newLines, this.data);
-		//console.log(this.data)
 		//console.log("decoding... ", this.buffer.length)
-		//if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
+		let newLines = this.decode(this.buffer);
+		console.log(newLines, this.data);
+		//console.log(this.data)
+		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
 	}
 
 	async onPortSelected(port,baud=this.baudrate) {
