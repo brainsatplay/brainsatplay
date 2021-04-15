@@ -218,7 +218,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		console.log(newLines, this.data);
 		//console.log(this.data)
 		//console.log("decoding... ", this.buffer.length)
-		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
+		//if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
 	}
 
 	async onPortSelected(port,baud=this.baudrate) {
