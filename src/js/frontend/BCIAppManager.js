@@ -396,6 +396,7 @@ export class BCIAppManager {
         var appletConfigs = [];
         hasharr.forEach((hash,i) => {
             let rep = hash.replaceAll('%22','"');
+            rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
             var cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
             console.log(cfg)
             appletConfigs.push(cfg);
