@@ -194,7 +194,7 @@ export class eegmath {
 	}
 
 	//Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
-	interpolateArray(data, fitCount) {
+	static interpolateArray(data, fitCount) {
 
 		var norm = this.canvas.height/data.length;
 
@@ -215,5 +215,83 @@ export class eegmath {
 		newData[fitCount - 1] = data[data.length - 1]; // for new allocation
 		return newData;
 	};
+
+	static isExtrema(arr,critical='peak') { //Checks if the middle of the array is a local extrema. options: 'peak','valley','tangent'
+        let ref = [...arr];
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
+    static isCriticalPoint(arr,critical='peak') { //Checks if the middle of the array is a critical point (used on derivatives). options: 'peak','valley','tangent'
+        let ref = [...arr];
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < ref.length*.5 && val <= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val > 0) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < ref.length*.5 && val >= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val < 0) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < ref.length*.5 && val >= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val < 0)) {
+                        pass = false;
+                    }
+                }
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i < ref.length*.5 && val <= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val > 0)) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
 
 }
