@@ -247,20 +247,24 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		try{
 			try {
 				await port.open({ baudRate: baud, bufferSize: this.readBufferSize });
-				this.sendMsg('b');
-				this.onConnectedCallback();
-				this.connected = true;
-				this.subscribed = true;
-				this.subscribe(port);//this.subscribeSafe(port);
+				setTimeout(()=> {
+					this.onConnectedCallback();
+					this.connected = true;
+					this.subscribed = true;
+					this.sendMsg('b');
+					this.subscribe(port);//this.subscribeSafe(port);
+				},1000);
 		
 			} //API inconsistency in syntax between linux and windows
 			catch {
 				await port.open({ baudrate: baud, buffersize: this.readBufferSize });
-				this.sendMsg('b');
-				this.onConnectedCallback();
-				this.connected = true;
-				this.subscribed = true;
-				this.subscribe(port);//this.subscribeSafe(port);
+				setTimeout(()=> {
+					this.onConnectedCallback();
+					this.connected = true;
+					this.subscribed = true;
+					this.sendMsg('b');
+					this.subscribe(port);//this.subscribeSafe(port);
+				},1000);
 			}
 		}
 		catch(err){
