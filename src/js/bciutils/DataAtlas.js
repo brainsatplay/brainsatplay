@@ -289,7 +289,6 @@ export class DataAtlas {
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
-				console.log(this.data.eeg)
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;

@@ -130,8 +130,6 @@ export class cytonPlugin {
 
         info.eegChannelTags = eegChannelTags;
 
-        console.log(info.eegChannelTags)
-
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
             this.atlas = new DataAtlas(
