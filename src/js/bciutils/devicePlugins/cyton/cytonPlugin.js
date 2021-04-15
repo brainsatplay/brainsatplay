@@ -13,7 +13,9 @@ export class cytonPlugin {
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
-        
+
+        this.onconnect = onconnect;
+        this.ondisconnect = ondisconnect;
     }
 
     init = (info={sps:null,deviceType:null,eegChannelTags:null,analysis:['eegfft'],useAtlas:undefined},pipeToAtlas=true) => { //info and pipeToAtlas passed by reference from deviceStream class
@@ -60,8 +62,8 @@ export class cytonPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
-                this.onconnect();
-            } 
+            }
+            this.onconnect(); 
         }
 
         let onDisconnect = () => {
