@@ -108,13 +108,13 @@ export class SpectrogramApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let a = this.bci.atlas.data;
+        let a = this.bci.atlas;
         if(this.bci.atlas.settings.eeg) {
             if(document.getElementById(this.props.id+"mode").value === "FFT"){
-                addChannelOptions(this.props.id+"channel",a.eegshared.eegChannelTags);
+                addChannelOptions(this.props.id+"channel",a.data.eegshared.eegChannelTags);
             }
-            else if(document.getElementById(this.props.id+"mode").value === "Coherence"){
-                addCoherenceOptions(this.props.id+"channel",a.coherence);
+            else if(a.settings.coherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
+                addCoherenceOptions(this.props.id+"channel",a.data.coherence);
             }
         }
 
@@ -165,7 +165,7 @@ export class SpectrogramApplet {
             }
           });
         }
-        else if(graphmode === "Coherence"){
+        else if(a.settings.coherence === true && graphmode === "Coherence"){
           a.data.coherence.find((o,i) => {
             if(o.tag === view){
               let coord = o;

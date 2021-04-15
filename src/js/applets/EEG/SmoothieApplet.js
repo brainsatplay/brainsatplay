@@ -213,7 +213,7 @@ export class SmoothieApplet {
             }
           }
         }
-        else if (graphmode === "coherence") {
+        else if (a.settings.coherence === true && graphmode === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             if(i < this.class.series.length - 1){
               this.class.series[i].append(Date.now(), Math.max(...row.slices.alpha1[row.slices.alpha1.length-1]));
@@ -235,7 +235,7 @@ export class SmoothieApplet {
             }
           });
         }
-        else if(val === "coherence") {
+        else if(a.settings.coherence === true && val === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             htmlToAppend += `<div style='display:table-row; color:`+this.class.seriesColors[i]+`'>`+row.tag+`</div>`;
           });
