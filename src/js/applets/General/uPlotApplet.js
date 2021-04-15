@@ -110,11 +110,16 @@ export class uPlotApplet {
                 document.getElementById(props.id+'channeltd').style.display = '';
                 addChannelOptions(props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
               }
+              
               if (document.getElementById(props.id+'mode').value === "CoherenceTimeSeries") {
                 document.getElementById(props.id+'xrangetd').style.display = "";
                 document.getElementById(props.id+"bandview").style.display="";
               }
               else if(document.getElementById(props.id+'mode').value==="TimeSeries") { 
+                document.getElementById(props.id+'xrangetd').style.display = "";
+                document.getElementById(props.id+"bandview").style.display="none";
+              }
+              else if(document.getElementById(props.id+'mode').value==="HEG") { 
                 document.getElementById(props.id+'xrangetd').style.display = "";
                 document.getElementById(props.id+"bandview").style.display="none";
               }
