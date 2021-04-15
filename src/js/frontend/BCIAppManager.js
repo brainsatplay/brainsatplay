@@ -398,7 +398,7 @@ export class BCIAppManager {
             let rep = hash.replaceAll('%22','"');
             rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
             let cfg;
-            if(cfg.indexOf('{') > -1) //parse if its an object
+            if(rep.indexOf('{') > -1) //parse if its an object
                 cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
             else cfg = rep; //otherwise its just a string
             console.log(cfg)
