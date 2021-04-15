@@ -108,10 +108,14 @@ export class hegduinoPlugin {
 		info.sps = 32;
         info.deviceType = 'heg';
 
+        //beat detect smoothing window and midpoint
         let window = Math.floor(info.sps/4);
-        let mid = Math.round(window*.5);
+        let pw = window; if(pw%2 === 0) {pw+=1} //make sure the peak window is an odd number
+        let mid = Math.round(pw*.5);
+        //breathing detect smoothing window and midpoint
         let window2 = Math.floor(info.sps*3);
-        let mid2 = Math.round(window2*.5);
+        let pw2 = window; if(pw2%2 === 0) {pw2+=1} 
+        let mid2 = Math.round(pw2*.5);
 
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
@@ -139,20 +143,20 @@ export class hegduinoPlugin {
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
                     let bt = coord.beat_detect;
                     bt.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
-                    if(bt.rir.length > window2) {
-                        bt.rir2.push(this.mean(bt.rir.slice(bt.rir.length-window2))); //filter with SMA
+                    if(bt.rir.length > pw2) {
+                        bt.rir2.push(this.mean(bt.rir.slice(bt.rir.length-pw2))); //filter with SMA
                     } else {
                         bt.rir2.push(this.mean(bt.rir));
                     }
                     if(coord.count > 1) {
                         bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
-                        if(bt.drir_dt.length>window) {
-                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window)); //filter with SMA
+                        if(bt.drir_dt.length>pw) {
+                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-pw)); //filter with SMA
                             //Find local maxima and local minima.
-                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-window),'valley')) {
+                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-pw),'valley')) {
                                 bt.localmins.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
-                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-window),'peak')) {
+                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-pw),'peak')) {
                                 bt.localmaxs.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
 
@@ -178,12 +182,12 @@ export class hegduinoPlugin {
                                 
                             }
                         }
-                        if(bt.rir2.length>window2) {
+                        if(bt.rir2.length>pw2) {
                             //Find local maxima and local minima.
-                            if(this.isExtrema(bt.rir2.slice(bt.rir2.length-window2),'valley')) {
+                            if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'valley')) {
                                 bt.localmins2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
-                            else if(this.isExtrema(bt.rir2.slice(bt.rir2.length-window2),'peak')) {
+                            else if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'peak')) {
                                 bt.localmaxs2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
                             }
 
