@@ -157,7 +157,7 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-
+    console.log(appletConfigs)
         // Load Config
         let config = undefined;
         if(appletConfigs.length !== 0) {
