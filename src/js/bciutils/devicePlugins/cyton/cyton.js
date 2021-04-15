@@ -252,11 +252,11 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					this.onConnectedCallback();
 					this.connected = true;
 					this.subscribed = true;
-					var encodedString = unescape(encodeURIComponent('v'));
+					var encodedString = unescape(encodeURIComponent('v\n'));
 					var bytes = new Uint8Array(encodedString.length);
 					const writer = this.port.writable.getWriter();
 					await writer.write(bytes.buffer);
-					encodedString = unescape(encodeURIComponent('b'));
+					encodedString = unescape(encodeURIComponent('b\n'));
 					bytes = new Uint8Array(encodedString.length)
 					await writer.write(bytes.buffer);
 					writer.releaseLock();
