@@ -123,7 +123,7 @@ export class SpectrogramApplet {
         this.class.canvas.style.width = this.AppletHTML.node.clientWidth;
         this.class.canvas.style.height = this.AppletHTML.node.clientHeight;
 
-        //this.class.init();
+        this.class.init();
 
     }
 

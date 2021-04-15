@@ -253,11 +253,12 @@ export class DataAtlas {
 		if (channelDicts == null){
 			for(const prop in eegCoordinates) eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
 		} else {
-			
 			channelDicts.forEach(channelDict => {
 				let tag = channelDict.tag
-				eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))})
-			}
+				if(eegCoordinates[tag])
+					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
+			})
+		}
 		return eegmap;
 	}
 
@@ -811,7 +812,9 @@ export class DataAtlas {
 		let data = [];
 		let mapidx = 0;
 		let datums = [];
+		let ref_ch = null;
 		this.data.eegshared.eegChannelTags.forEach((row,j) => {
+			if(eeg_ch === null && row.tag !== 'other') this.getEEGDataByChannel(row.ch)
 			datums.push(this.getEEGDataByChannel(row.ch));
 		});
 
@@ -849,17 +852,20 @@ export class DataAtlas {
 						}
 					}
 					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
+						line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
 					}
 				});
 				if(this.settings.coherence) {
-					this.data.coherence.forEach((row,i) => {
+					this.data.coherence.forEach((row,j) => {
 						if(i===0) {
-							let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
+							let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
 							header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 						}
 						if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
-							line.push([...row.ffts[mapidx]].map((x,i) => x = x.toFixed(3)));
+							try{
+								line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
+							}
+							catch(err) { console.log(err, mapidx, row); }
 						}
 					});
 				}
