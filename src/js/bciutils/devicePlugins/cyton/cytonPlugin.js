@@ -89,9 +89,8 @@ export class cytonPlugin {
             ];
             this.device = new cyton(
                 onDecoded,onConnect,onDisconnect,
-                'daisy'
+                'single'
             );
-
         } else {
             eegChannelTags = [
                 {ch: 0, tag: "FP1", analyze:true},
@@ -113,7 +112,7 @@ export class cytonPlugin {
             ];
             this.device = new cyton(
                 onDecoded,onConnect,onDisconnect,
-                'single'
+                'daisy'
             );
         }
 
