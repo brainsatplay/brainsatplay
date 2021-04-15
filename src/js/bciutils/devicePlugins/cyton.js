@@ -142,10 +142,9 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 			indices.push(i);
 		}
 		//console.log(indices);
-		console.log(indices);
 		if(indices.length >= 2){
 			for(let k = 1; k < indices.length; k++) {
-				if(indices[k] - indices[k-1] === 32) {
+				if(indices[k] - indices[k-1] === 33) {
 					var line = buffer.slice(indices[k-1],indices[k]+1); //Slice out this line to be decoded
 					
 					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
