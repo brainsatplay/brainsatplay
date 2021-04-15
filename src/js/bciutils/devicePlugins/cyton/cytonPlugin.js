@@ -1,10 +1,10 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 
-import {DataAtlas} from '../DataAtlas'
+import {DataAtlas} from '../../DataAtlas'
 import {cyton} from './cyton'
-import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
-import { DOMFragment } from '../../frontend/utils/DOMFragment';
+import {BiquadChannelFilterer} from '../../signal_analysis/BiquadFilters'
+import { DOMFragment } from '../../../frontend/utils/DOMFragment';
 
 export class cytonPlugin {
     constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
