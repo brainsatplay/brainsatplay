@@ -49,10 +49,6 @@ export class uPlotApplet {
                 <div id='`+props.id+`menu' style='position:absolute; float:right; z-index:4;'>
                   <table style='position:absolute; transform:translateX(40px);'>
                     <tr>
-                      <td style='color:black;'>
-                        Channel:
-                        <select id="`+props.id+`channel" style='width:80px;'></select>
-                      </td> 
                       <td style='color:black;'>  
                         Graph:
                         <select id='`+props.id+`mode' style='width:98px;'>
@@ -60,16 +56,19 @@ export class uPlotApplet {
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
                           <option value="TimeSeries">Raw</option>
-                          <option value="Stacked" selected="selected">Stacked Raw</option>
+                          <option value="Stacked">Stacked Raw</option>
                         </select>
                       </td>
+                      <td id='`+props.id+`channeltd' style='color:black;'>
+                        Channel:
+                        <select id="`+props.id+`channel" style='width:80px;'></select>
+                      </td> 
                       <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>
                         Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(3px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
                       </td>
                       <td id='`+props.id+`xrangetd' style='width:98px; color:black;'>
                         Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(10px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
                       </td>
-                      
                     </tr>
                     <tr>
                       <td colSpan=1 style='display:table-row; font-weight:bold; font-size:12px;' id='`+props.id+`legend'></td>
@@ -91,17 +90,24 @@ export class uPlotApplet {
         let setupHTML = (props=this.props) => {
             document.getElementById(props.id+"bandview").style.display="none";
             document.getElementById(props.id+'xrangetd').style.display = "none";
+            document.getElementById(props.id+'mode').value="Stacked";
             document.getElementById(props.id+'mode').onchange = () => {
               
               let atlas = this.bci.atlas;
               this.yrange = true;
               if(document.getElementById(props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(props.id+'mode').value === "Coherence"){
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addCoherenceOptions(props.id+'channel',atlas.data.coherence,true,['All']);
               }
               else if (document.getElementById(props.id+'mode').value === "TimeSeries" || document.getElementById(props.id+'mode').value === "Stacked"){
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addChannelOptions(props.id+'channel',atlas.data.eegshared.eegChannelTags,false,['All']);
               }
+              else if (document.getElementById(props.id+'mode').value === "HEG") {
+                document.getElementById(props.id+'channeltd').style.display = 'none';
+              }
               else {
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addChannelOptions(props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
               }
               if (document.getElementById(props.id+'mode').value === "CoherenceTimeSeries") {
@@ -209,24 +215,28 @@ export class uPlotApplet {
           else {
             addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
           }
+        } 
+      }
+      if(atlas.settings.heg) {
+        let opts = [];
+        let sel = document.getElementById(this.props.id+"mode");
+        for (var i=0, n=sel.options.length; i<n; i++) { // looping over the options
+          if (sel.options[i].value) opts.push(sel.options[i].value);
         }
-        if(atlas.settings.heg) {
-          let opts = [];
-          let sel = document.getElementById(this.props.id+"mode");
-          for (var i=0, n=sel.options.length; i<n; i++) { // looping over the options
-            if (sel.options[i].value) opts.push(sel.options[i].value);
-          }
-          if(opts.indexOf("HEG") < 0) {
+        if(opts.indexOf("HEG") < 0) {
+          if(!atlas.settings.eeg) {
             sel.innerHTML = `
-              <option value="HEG" selected="selected">HEG</option>
-              <option value="FFT">FFTs</option>
-              <option value="Coherence">Coherence</option>
-              <option value="CoherenceTimeSeries">Mean Coherence</option>
-              <option value="TimeSeries">Raw</option>
-              <option value="Stacked">Stacked Raw</option>
+            <option value="HEG">HEG</option>
+          `;
+          }
+          else {
+            sel.innerHTML += `
+              <option value="HEG">HEG</option>
             `;
           }
-        } 
+          sel.value="HEG";
+          sel.onchange();
+        }
       }
 
       this.setPlotDims(); 

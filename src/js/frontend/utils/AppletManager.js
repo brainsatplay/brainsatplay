@@ -76,19 +76,19 @@ export class AppletManager {
                 name: "EEG Neurofeedback",
                 applets: [
                     "Blob",
-                    "uPlot",
+                    "Brain Map",
                     "Spectrogram",
-                    "Brain Map"
+                    "uPlot",
                 ]
             },
             {
                 value: 'heg_nf',
                 name: "HEG Neurofeedback",
                 applets: [
-                    "Sunrise",
                     "HEGBoids",
                     "HEGCircle",
-                    "HEGAudio"
+                    "HEGAudio",
+                    "uPlot",
                 ]
             }
         ]
@@ -157,7 +157,7 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-    console.log(appletConfigs)
+        console.log(appletConfigs)
         // Load Config
         let config = undefined;
         if(appletConfigs.length !== 0) {
@@ -170,7 +170,14 @@ export class AppletManager {
             });
         }
 
-        let appletNames = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value).applets
+        let preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+        let appletNames = preset.applets
+        if(preset.value.includes('heg')) {
+            if(this.bcisession.atlas.settings.heg === false) {
+                this.bcisession.atlas.addHEGCoord(0);
+                this.bcisession.atlas.settings.heg = true;
+            }
+        }
         let configApplets = []
 
         // Collect a list of unused applets
