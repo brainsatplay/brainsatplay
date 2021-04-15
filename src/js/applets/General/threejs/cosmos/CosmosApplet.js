@@ -273,11 +273,11 @@ this.renderer = new THREE.WebGLRenderer({
 })
 this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-this.renderer.xr.enabled = true;
 
 /**
  * VR
  */
+this.renderer.xr.enabled = true;
 appletContainer.appendChild( VRButton.createButton( this.renderer ) );
 
 
