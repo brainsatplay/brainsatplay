@@ -55,25 +55,19 @@ export class cytonPlugin {
         }
 
         let onConnect = () => {
-            () => {
-                console.log('connecting')
-                if(info.useAtlas === true){			
-                    this.atlas.data.eegshared.startTime = Date.now();
-                    console.log(this.atlas.settings)
-                    if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
-                        this.atlas.settings.analyzing = true;
-                        setTimeout(() => {this.atlas.analyzer();},1200);		
-                    }
-                    this.onconnect();
+            if(info.useAtlas === true){			
+                this.atlas.data.eegshared.startTime = Date.now();
+                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                    this.atlas.settings.analyzing = true;
+                    setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
-            }
+                this.onconnect();
+            } 
         }
 
         let onDisconnect = () => {
-            () => {
-                this.atlas.settings.analyzing = false;
-                this.ondisconnect();
-            }
+            this.atlas.settings.analyzing = false;
+            this.ondisconnect();   
         }
 
         let eegChannelTags = [];
