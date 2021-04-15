@@ -109,6 +109,9 @@ export class hegduinoPlugin {
         info.deviceType = 'heg';
 
         let window = Math.floor(info.sps/4);
+        let mid = Math.round(window*.5);
+        let window2 = Math.floor(info.sps*3);
+        let mid2 = Math.round(window2*.5);
 
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
@@ -140,14 +143,12 @@ export class hegduinoPlugin {
                         bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
                         if(bt.drir_dt.length>window) {
                             bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window)); //filter with SMA
-                        }
-                        if(bt.drir_dt.length>10) {
                             //Find local maxima and local minima.
-                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-9),'valley')) {
-                                bt.localmins.push({idx:coord.count-5, val:bt.rir[coord.count-5], t:us[coord.count-5] });
+                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-window),'valley')) {
+                                bt.localmins.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
-                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-9),'peak')) {
-                                bt.localmaxs.push({idx:coord.count-5, val:bt.rir[coord.count-5], t:us[coord.count-5] });
+                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-window),'peak')) {
+                                bt.localmaxs.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
 
                             if(bt.localmins.length > 1 && bt.localmaxs.length > 1) {
@@ -167,6 +168,38 @@ export class hegduinoPlugin {
                                     } else {
                                         if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
                                             bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+                                    }
+                                }
+                                
+                            }
+                        }
+                        if(bt.drir_dt.length>window2) {
+                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window2)); //filter with SMA
+                            //Find local maxima and local minima.
+                            if(this.isExtrema(bt.drir_dt.slice(bt.drir_dt.length-window2),'valley')) {
+                                bt.localmins2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
+                            }
+                            else if(this.isExtrema(bt.drir_dt.slice(bt.drir_dt.length-window2),'peak')) {
+                                bt.localmaxs2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
+                            }
+
+                            if(bt.localmins2.length > 1 && bt.localmaxs2.length > 1) {
+                                
+                                //Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
+                                if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
+                                else if (bt.localmaxs.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
+                                
+                                bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t});
+                                bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t});
+                                //Found a peak and valley to average together (for accuracy)
+                                if(bt.peak_dists2.length > 1 && bt.val_dists2.length > 1) {
+                                    //Make sure you are using the leading valley
+                                    if(bt.val_dists2[bt.val_dists2.length-1].t > bt.val_dists2[bt.peak_dists2.length-1].t) {
+                                        if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-1].t)
+                                            bt.breaths.push({t:bt.peak_dists[bt.peak_dists2.length-1].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
+                                    } else {
+                                        if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-2].t)
+                                            bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
                                     }
                                 }
                                 
