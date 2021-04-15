@@ -277,8 +277,14 @@ this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * VR
  */
-this.renderer.xr.enabled = true;
-appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+const supportsVR = 'getVRDisplays' in navigator;
+
+if (supportsVR) {
+    navigator.getVRDisplays().then(function(displays) {
+        his.renderer.xr.enabled = true;
+        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    });
+}
 
 
 /** 

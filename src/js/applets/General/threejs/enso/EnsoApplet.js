@@ -145,8 +145,14 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 /**
  * VR
  */
-this.renderer.xr.enabled = true;
-appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+const supportsVR = 'getVRDisplays' in navigator;
+
+if (supportsVR) {
+    navigator.getVRDisplays().then(function(displays) {
+        his.renderer.xr.enabled = true;
+        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    });
+}
 
 // GUI
 // const gui = new GUI({ autoPlace: false });
