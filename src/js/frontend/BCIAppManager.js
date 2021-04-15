@@ -1,5 +1,6 @@
 //summon the web bci app browser/launcher/manager from here
 
+//By Joshua Brewster, Garrett Flynn (GPL)
 
 //Setup State
 //Setup Templates & UI Logic i.e. applet and file selection menus, and general BCI control menus

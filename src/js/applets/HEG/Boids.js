@@ -2,7 +2,6 @@ import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {Boids} from '../../frontend/UX/Particles'
 
-//Example Applet for integrating with the UI Manager
 export class BoidsApplet {
 
     static devices = ['heg']

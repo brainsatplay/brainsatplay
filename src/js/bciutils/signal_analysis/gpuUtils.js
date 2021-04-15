@@ -1,6 +1,8 @@
 import { GPU } from 'gpu.js'
 import { addGpuFunctions, createGpuKernels as krnl } from './gpuUtils-functs';
 
+//By Joshua Brewster, Dovydas Stirpeika (MIT License)
+
 function makeKrnl(gpu, f, opts = {
   setDynamicOutput: true,
   setDynamicArguments: true,

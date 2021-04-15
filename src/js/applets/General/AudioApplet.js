@@ -2,7 +2,6 @@ import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {SoundJS} from '../../frontend/UX/Sound'
 
-//Example Applet for integrating with the UI Manager
 export class AudioApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }

@@ -1,7 +1,6 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
-//Example Applet for integrating with the UI Manager
 export class VideoApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }

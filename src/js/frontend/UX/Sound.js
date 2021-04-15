@@ -1,3 +1,5 @@
+
+//By Joshua Brewster (GPL)
 export class SoundJS { //Only one Audio context at a time!
     constructor(){
       window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;

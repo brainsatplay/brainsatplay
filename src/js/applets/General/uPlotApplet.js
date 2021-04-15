@@ -4,7 +4,7 @@ import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
 import {eegmath} from '../../bciutils/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 
-//Example Applet for integrating with the UI Manager
+//Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
     static devices = ['eeg','heg']

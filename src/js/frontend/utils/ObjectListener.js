@@ -14,6 +14,7 @@ x.y = 2;
 
 */
 
+//By Joshua Brewster (MIT)
 
 //Create instance and then call instance.addListener(listenerName,objectToListenTo,propToListenTo,onchange,interval).
 //name, propToListenTo, onchange, and interval are optional (leave or set as undefined). Onchange is a custom callback just like for other event listeners. Set a name to make it easier to start and stop or edit each listener.

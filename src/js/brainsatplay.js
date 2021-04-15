@@ -1,5 +1,7 @@
 /*
+//By Joshua Brewster, Garrett Flynn (GPL)
 
+Stack notes:
 Data Streams
 - Local hardware
   -- Serial

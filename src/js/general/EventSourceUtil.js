@@ -1,3 +1,4 @@
+//By Joshua Brewster (MIT License)
 export class EventSourceUtil {
     constructor(hostUrl='http://192.168.4.1/events', onOpen=this.onOpen, onError=this.onError, onMsg=this.onMsg, customCallbacks=[]) { //Add custom callbacks like [{tag:'heg',callback:(e) => {console.log(e.data);}}]
         this.hostUrl = hostUrl;

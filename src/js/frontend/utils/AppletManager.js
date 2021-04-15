@@ -1,6 +1,7 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 
+//By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
     /**

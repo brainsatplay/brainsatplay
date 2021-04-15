@@ -1,4 +1,4 @@
-
+//By Joshua Brewster (GPL)
 export class eegmath {
 	constructor() {
 

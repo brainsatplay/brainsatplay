@@ -1,3 +1,5 @@
+
+//By Joshua Brewster (MIT License)
 export class CSV { //data=["1|2","11|22"], or data=[[1,2,"xyz"],[2,3,"abc"],etc]
     constructor(onOpen=this.onOpen, saveButtonId=null, openButtonId=null) {
 

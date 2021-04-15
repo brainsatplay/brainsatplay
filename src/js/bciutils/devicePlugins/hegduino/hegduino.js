@@ -1,3 +1,5 @@
+//Joshua Brewster, MIT License
+
 import 'regenerator-runtime/runtime' //for async calls
 
 export class hegduino {

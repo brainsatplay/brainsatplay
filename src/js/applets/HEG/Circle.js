@@ -3,7 +3,6 @@ import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
 import { SoundJS } from '../../frontend/UX/Sound';
 
-//Example Applet for integrating with the UI Manager
 export class CircleApplet {
 
     static devices = ['heg']
