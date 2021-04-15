@@ -109,7 +109,7 @@ export class SpectrogramApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         let a = this.bci.atlas;
-        if(this.bci.atlas.settings.eeg) {
+        if(a.settings.eeg) {
             if(document.getElementById(this.props.id+"mode").value === "FFT"){
                 addChannelOptions(this.props.id+"channel",a.data.eegshared.eegChannelTags);
             }

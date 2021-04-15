@@ -31,9 +31,25 @@ export class eeg32Plugin {
         }
         else if (this.mode === 'freeeeg32_19') {
             info.eegChannelTags = [
-                {ch: 4, tag: "FP2", analyze:true},
-                {ch: 24, tag: "FP1", analyze:true},
-                {ch: 8, tag: "other", analyze:false}
+                {ch: 4,  tag: "FP2",  analyze:true},
+                {ch: 24, tag: "FP1",  analyze:true},
+                {ch: 0,  tag: "O2",   analyze:true},
+                {ch: 1,  tag: "T6",   analyze:true},
+                {ch: 2,  tag: "T4",   analyze:true},
+                {ch: 3,  tag: "F8",   analyze:true},
+                {ch: 5,  tag: "F4",   analyze:true},
+                {ch: 6,  tag: "C4",   analyze:true},
+                {ch: 7,  tag: "P4",   analyze:true},
+                {ch: 25, tag: "F3",   analyze:true},
+                {ch: 26, tag: "C3",   analyze:true},
+                {ch: 27, tag: "P3",   analyze:true},
+                {ch: 28, tag: "O1",   analyze:true},
+                {ch: 29, tag: "T5",   analyze:true},
+                {ch: 30, tag: "T3",   analyze:true},
+                {ch: 31, tag: "F7",   analyze:true},
+                {ch: 16, tag: "FZ",   analyze:true},
+                {ch: 12, tag: "PZ",   analyze:true},
+                {ch: 8,  tag: "other",analyze:false}
             ];
         }
         else {
