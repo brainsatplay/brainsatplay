@@ -1080,6 +1080,7 @@ export class DataAtlas {
 			feedbackOptions = [
 				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
 				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+				{label: 'Focus', function: 1/getThetaBetaRatio}
 			]
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 

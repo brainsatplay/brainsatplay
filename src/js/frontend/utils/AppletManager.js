@@ -211,7 +211,6 @@ export class AppletManager {
                     classinstance: new classObj.cls("applets",this.bcisession,config)
                 }
 
-                console.log(configApplets)
                 configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
             }
             this.appletsSpawned++;
