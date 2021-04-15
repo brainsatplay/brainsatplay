@@ -59,7 +59,7 @@ document.getElementById("load").onclick = () => {
         let sps = 32;
         let w = Math.floor(sps/4);//*3);///4); //240bpm max (usually) so sma cuts off there (4 beats per sec)
         let pw = Math.floor(sps/4);//*3);///4);
-        //if(pw % 2 === 0) { pw+=1; }
+        if(pw % 2 === 0) { pw+=1; }
         let mid = Math.round(pw*.5);
 
         RIR = sma(RIR,w);
