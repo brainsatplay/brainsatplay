@@ -345,17 +345,19 @@ export class ThreeSunriseApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     
-        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
-            this.threeWidth = this.AppletHTML.node.clientWidth;
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-            this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
-            this.camera.updateProjectionMatrix();
-        }
+        setTimeout(()=> {
+            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+                this.threeWidth = this.AppletHTML.node.clientWidth;
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
+                this.camera.updateProjectionMatrix();
+            }
 
-        this.looping = true;
-        this.render();
+            this.looping = true;
+            this.render();
+        },333);
     }
 
     //Delete all event listeners and loops here and delete the HTML block
