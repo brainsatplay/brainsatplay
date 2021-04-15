@@ -393,11 +393,14 @@ export class BCIAppManager {
         if(hashes === "") { return []; }
         let hasharr = hashes.split('#');
         hasharr.shift();
-        var appletConfigs = [];
+        let appletConfigs = [];
         hasharr.forEach((hash,i) => {
             let rep = hash.replaceAll('%22','"');
             rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
-            var cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            let cfg;
+            if(cfg.indexOf('{') > -1) //parse if its an object
+                cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            else cfg = rep; //otherwise its just a string
             console.log(cfg)
             appletConfigs.push(cfg);
         });
