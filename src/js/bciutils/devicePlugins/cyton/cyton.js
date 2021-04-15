@@ -253,7 +253,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					this.connected = true;
 					this.subscribed = true;
 					await this.sendMsg('vb');
-					await this.sendMsg('b');
+					//await this.sendMsg('b');
 					this.subscribe(port);//this.subscribeSafe(port);
 				},1000);
 		
@@ -264,8 +264,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					this.onConnectedCallback();
 					this.connected = true;
 					this.subscribed = true;
-					await this.sendMsg('v');
-					await this.sendMsg('b');
+					await this.sendMsg('vb');
+					//await this.sendMsg('b');
 					this.subscribe(port);//this.subscribeSafe(port);
 				},1000);
 			}
