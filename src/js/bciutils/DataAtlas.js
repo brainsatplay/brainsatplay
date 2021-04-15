@@ -1073,6 +1073,7 @@ export class DataAtlas {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		let html = '';
 		let feedbackOptions;
+		console.log(this.settings)
 		if (this.settings.analyzing){
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}

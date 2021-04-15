@@ -81,21 +81,6 @@ export class cytonPlugin {
                 {ch: 5, tag: "P8", analyze:true},
                 {ch: 6, tag: "O1", analyze:true},
                 {ch: 7, tag: "O2", analyze:true},
-            ];
-            this.device = new cyton(
-                onDecoded,onConnect,onDisconnect,
-                'single'
-            );
-        } else {
-            eegChannelTags = [
-                {ch: 0, tag: "FP1", analyze:true},
-                {ch: 1, tag: "FP2", analyze:true},
-                {ch: 2, tag: "C3", analyze:true},
-                {ch: 3, tag: "C4", analyze:true},
-                {ch: 4, tag: "P7", analyze:true},
-                {ch: 5, tag: "P8", analyze:true},
-                {ch: 6, tag: "O1", analyze:true},
-                {ch: 7, tag: "O2", analyze:true},
                 {ch: 8, tag: "F7", analyze:true},
                 {ch: 9, tag: "F8", analyze:true},
                 {ch: 10, tag: "F3", analyze:true},
@@ -108,6 +93,21 @@ export class cytonPlugin {
             this.device = new cyton(
                 onDecoded,onConnect,onDisconnect,
                 'daisy'
+            );
+        } else {
+            eegChannelTags = [      
+                {ch: 0, tag: "FP1", analyze:true},
+                {ch: 1, tag: "FP2", analyze:true},
+                {ch: 2, tag: "C3", analyze:true},
+                {ch: 3, tag: "C4", analyze:true},
+                {ch: 4, tag: "P7", analyze:true},
+                {ch: 5, tag: "P8", analyze:true},
+                {ch: 6, tag: "O1", analyze:true},
+                {ch: 7, tag: "O2", analyze:true},
+            ];
+            this.device = new cyton(
+                onDecoded,onConnect,onDisconnect,
+                'single'
             );
         }
 
