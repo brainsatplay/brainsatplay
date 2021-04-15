@@ -78,7 +78,7 @@ export class cytonPlugin {
         if(this.mode.indexOf('daisy') > -1 ) {
             eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
-                {ch: 24, tag: "FP1", analyze:true},
+                {ch: 1, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
             this.device = new cyton(
@@ -89,7 +89,7 @@ export class cytonPlugin {
         } else {
             eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
-                {ch: 24, tag: "FP1", analyze:true},
+                {ch: 1, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
             this.device = new cyton(
