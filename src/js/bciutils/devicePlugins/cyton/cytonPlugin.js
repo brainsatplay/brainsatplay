@@ -10,6 +10,7 @@ export class cytonPlugin {
     constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
+        this.info;
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -77,9 +78,14 @@ export class cytonPlugin {
 
         if(this.mode.indexOf('daisy') > -1 ) {
             eegChannelTags = [
-                {ch: 4, tag: "FP2", analyze:true},
-                {ch: 1, tag: "FP1", analyze:true},
-                {ch: 8, tag: "other", analyze:false}
+                {ch: 0, tag: "FP1", analyze:true},
+                {ch: 1, tag: "FP2", analyze:true},
+                {ch: 2, tag: "C3", analyze:true},
+                {ch: 3, tag: "C4", analyze:true},
+                {ch: 4, tag: "P7", analyze:true},
+                {ch: 5, tag: "P8", analyze:true},
+                {ch: 6, tag: "O1", analyze:true},
+                {ch: 7, tag: "O2", analyze:true},
             ];
             this.device = new cyton(
                 onDecoded,onConnect,onDisconnect,
@@ -88,9 +94,22 @@ export class cytonPlugin {
 
         } else {
             eegChannelTags = [
-                {ch: 4, tag: "FP2", analyze:true},
-                {ch: 1, tag: "FP1", analyze:true},
-                {ch: 8, tag: "other", analyze:false}
+                {ch: 0, tag: "FP1", analyze:true},
+                {ch: 1, tag: "FP2", analyze:true},
+                {ch: 2, tag: "C3", analyze:true},
+                {ch: 3, tag: "C4", analyze:true},
+                {ch: 4, tag: "P7", analyze:true},
+                {ch: 5, tag: "P8", analyze:true},
+                {ch: 6, tag: "O1", analyze:true},
+                {ch: 7, tag: "O2", analyze:true},
+                {ch: 8, tag: "F7", analyze:true},
+                {ch: 9, tag: "F8", analyze:true},
+                {ch: 10, tag: "F3", analyze:true},
+                {ch: 11, tag: "F4", analyze:true},
+                {ch: 12, tag: "T7", analyze:true},
+                {ch: 13, tag: "T8", analyze:true},
+                {ch: 14, tag: "P3", analyze:true},
+                {ch: 15, tag: "P4", analyze:true},
             ];
             this.device = new cyton(
                 onDecoded,onConnect,onDisconnect,
@@ -111,6 +130,7 @@ export class cytonPlugin {
 
         info.eegChannelTags = eegChannelTags;
 
+        console.log(info.eegChannelTags)
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
@@ -146,8 +166,9 @@ export class cytonPlugin {
                     this.atlas.analyzer();
                 }
 			}
-		}
+        }
 
+        this.info = info
     }
 
     connect = async () => {
