@@ -207,8 +207,8 @@ document.getElementById("load").onclick = () => {
                     break;
                 }
             }   
-            beatavg.push(60/(val_dists[lastidx].bps + dist.bps / 2));
-            //beatavg.push(60*(val_dists[lastidx].bps + dist.bps) / 2);
+            //beatavg.push(60/(val_dists[lastidx].bps + dist.bps / 2));
+            beatavg.push(60*(val_dists[lastidx].bps + dist.bps) / 2);
             beatts.push(dist.t);
         });
 
