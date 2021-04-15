@@ -81,7 +81,7 @@ export class ThreeSunriseApplet {
     
             
             this.renderer = new THREE.WebGLRenderer();
-            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.shadowMap.enabled = true;
             //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             //Add whatever else you need to initialize
@@ -347,7 +347,7 @@ export class ThreeSunriseApplet {
     
         if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
             this.threeWidth = this.AppletHTML.node.clientWidth;
-            this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
@@ -381,7 +381,7 @@ export class ThreeSunriseApplet {
     responsive() {
         if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
             this.threeWidth = this.AppletHTML.node.clientWidth;
-            this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
