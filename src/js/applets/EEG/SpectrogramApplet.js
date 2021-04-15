@@ -62,18 +62,18 @@ export class SpectrogramApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let a = this.bci.atlas.data;
-            addChannelOptions(props.id+'channel',a.eegshared.eegChannelTags);
+            let a = this.bci.atlas;
+            addChannelOptions(props.id+'channel',a.data.eegshared.eegChannelTags);
             document.getElementById(props.id+'channel').onchange = () => {
               this.class.clear();
             }
             document.getElementById(props.id+"mode").onchange = () => {
                 this.class.clear();
                 if(document.getElementById(props.id+"mode").value === "FFT"){
-                  addChannelOptions(props.id+"channel",a.eegshared.eegChannelTags);
+                  addChannelOptions(props.id+"channel",a.data.eegshared.eegChannelTags);
                 }
-                else if(document.getElementById(props.id+"mode").value === "Coherence"){
-                  addCoherenceOptions(props.id+"channel",a.coherence);
+                else if(a.settings.coherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
+                  addCoherenceOptions(props.id+"channel",a.data.coherence);
                 }
             }
         }
