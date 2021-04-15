@@ -21,34 +21,36 @@ export class cytonPlugin {
         info.deviceType = 'eeg';
 
         let onDecoded = (newLinesInt) => {
-            let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
-                    let latestFiltered = new Array(latest.length).fill(0);
-                    if(o.tag !== "other" && info.useFilters === true) { 
-                        this.filters.forEach((f,j) => {
-                            if(f.channel === o.ch) {
-                                latest.forEach((sample,k) => { 
-                                    latestFiltered[k] = f.apply(sample); 
-                                });
-                            }
-                        });
-                        if(this.info.useAtlas === true) {
-                            let coord;
-                            if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
-                            else { coord = this.atlas.getEEGDataByChannel(o.ch); }
-                            coord.count += newLinesInt;
-                            coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
-                            coord.filtered.push(...latestFiltered);
-                            coord.raw.push(...latest);
+            this.atlas.data.eegshared.eegChannelTags.forEach((o,i) => {
+                let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
+                let latestFiltered = new Array(latest.length).fill(0);
+                if(o.tag !== "other" && info.useFilters === true) { 
+                    this.filters.forEach((f,j) => {
+                        if(f.channel === o.ch) {
+                            latest.forEach((sample,k) => { 
+                                latestFiltered[k] = f.apply(sample); 
+                            });
                         }
+                    });
+                    if(this.info.useAtlas === true) {
+                        let coord;
+                        if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
+                        else { coord = this.atlas.getEEGDataByChannel(o.ch); }
+                        coord.count += newLinesInt;
+                        coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
+                        coord.filtered.push(...latestFiltered);
+                        coord.raw.push(...latest);
                     }
-                    else {
-                        if(this.info.useAtlas === true) {
-                            let coord = this.atlas.getEEGDataByChannel(o.ch); 
-                            coord.count += newLinesInt;
-                            coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
-                            coord.raw.push(...latest);
-                        }
+                }
+                else {
+                    if(this.info.useAtlas === true) {
+                        let coord = this.atlas.getEEGDataByChannel(o.ch); 
+                        coord.count += newLinesInt;
+                        coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
+                        coord.raw.push(...latest);
                     }
+                }
+            });
         }
 
         let onConnect = () => {

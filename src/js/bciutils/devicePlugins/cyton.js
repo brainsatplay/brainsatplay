@@ -100,6 +100,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		}
 	}
 
+	//cyton uses signed ints
     bytesToInt16(x0,x1){
 		let int16 = ((0xFF & x0) << 8) | (0xFF & x1);
 		if((int16 & 0x00800000) > 0) {
