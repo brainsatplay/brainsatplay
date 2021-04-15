@@ -21,6 +21,7 @@ export class cytonPlugin {
         info.deviceType = 'eeg';
 
         let onDecoded = (newLinesInt) => {
+            console.log(this.atlas.settings)
             this.atlas.data.eegshared.eegChannelTags.forEach((o,i) => {
                 let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
                 let latestFiltered = new Array(latest.length).fill(0);
@@ -55,8 +56,10 @@ export class cytonPlugin {
 
         let onConnect = () => {
             () => {
+                console.log('connecting')
                 if(info.useAtlas === true){			
                     this.atlas.data.eegshared.startTime = Date.now();
+                    console.log(this.atlas.settings)
                     if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                         this.atlas.settings.analyzing = true;
                         setTimeout(() => {this.atlas.analyzer();},1200);		
