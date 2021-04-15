@@ -57,8 +57,8 @@ document.getElementById("load").onclick = () => {
         });
 
         let sps = 32;
-        let w = Math.floor(sps*3);///4); //240bpm max (usually) so sma cuts off there (4 beats per sec)
-        let pw = Math.floor(sps*3);///4);
+        let w = Math.floor(sps/4);//*3);///4); //240bpm max (usually) so sma cuts off there (4 beats per sec)
+        let pw = Math.floor(sps/4);//*3);///4);
         if(pw % 2 === 0) { pw+=1; }
         let mid = Math.round(pw*.5);
 
@@ -152,18 +152,18 @@ document.getElementById("load").onclick = () => {
         dat.forEach((row,i) => {
             //Find peaks/valleys
             if(i>pw) {
-                console.log(RIR.slice(i-pw,i))
-                if(isExtrema(RIR.slice(i-pw,i),'valley')) {
-                    localmins.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
-                } else if (isExtrema(RIR.slice(i-pw,i),'peak')) {
-                    localmaxs.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
-                }  
-                
-                // if(isCriticalPoint(dLED_dt.slice(i-pw,i),'valley')) {
+                // console.log(RIR.slice(i-pw,i))
+                // if(isExtrema(RIR.slice(i-pw,i),'valley')) {
                 //     localmins.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
-                // } else if (isCriticalPoint(dLED_dt.slice(i-pw,i),'peak')) {
+                // } else if (isExtrema(RIR.slice(i-pw,i),'peak')) {
                 //     localmaxs.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
                 // }  
+                
+                if(isCriticalPoint(dLED_dt.slice(i-pw,i),'valley')) {
+                    localmins.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
+                } else if (isCriticalPoint(dLED_dt.slice(i-pw,i),'peak')) {
+                    localmaxs.push({idx0:i-mid, val0:RIR[i-mid], us0:us[i-mid] });
+                }  
                 
                 if(isCriticalPoint(ddLED_dt2.slice(i-pw,i),'tangent')) {
                     tangents.push({idx0:i-mid,  val0:RIR[i-mid], us0:us[i-mid] });
