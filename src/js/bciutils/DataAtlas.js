@@ -545,7 +545,7 @@ export class DataAtlas {
 
 	//Get alpha2/alpha1 ratio from bandpower averages
 	getAlphaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
 			return ratio;
 		}
@@ -554,7 +554,7 @@ export class DataAtlas {
 
 	//Calculate the latest theta beta ratio from bandpower averages
 	getThetaBetaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
 			return ratio;
 		} else return 0;
@@ -562,7 +562,7 @@ export class DataAtlas {
 
 	//Calculate the latest alpha beta ratio from bandpower averages
 	getAlphaBetaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
 			return ratio;
 		}
@@ -571,7 +571,7 @@ export class DataAtlas {
 
 	//Get highest peak near 40Hz (38-42Hz)
 	get40HzGamma = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
 			let centered = [];
 			lowgamma.forEach((val,i) => {
@@ -587,7 +587,7 @@ export class DataAtlas {
 
 	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
 	getLowGammaScore = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ct = eeg_data.fftCount;
 			let avg = 20; if(ct < avg) { avg = ct; }
 			let slice = eeg_data.means.lowgamma.slice(ct-avg);
@@ -937,6 +937,7 @@ export class DataAtlas {
 
 	addDefaultAnalyzerFuncs() {
 		this.analyzerOpts.push('eegfft','eegcoherence');
+
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
