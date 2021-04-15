@@ -395,7 +395,8 @@ export class BCIAppManager {
         hasharr.shift();
         var appletConfigs = [];
         hasharr.forEach((hash,i) => {
-            var cfg = JSON.parse(JSON.stringify(hash)); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            let rep = hash.replaceAll('%22','"');
+            var cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
             console.log(cfg)
             appletConfigs.push(cfg);
         });
