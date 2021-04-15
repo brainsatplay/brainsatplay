@@ -3,6 +3,7 @@ import { SmoothieChart, TimeSeries } from "smoothie";
 import './webgl-heatmap'
 //import TimeChart from '../timechart/dist/timechart.module';
 
+//By Joshua Brewster (GPL)
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
 //-------------------------------EEG Visual Classes--------------------------------

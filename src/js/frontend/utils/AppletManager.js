@@ -1,6 +1,7 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 
+//By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
     /**
@@ -156,7 +157,7 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-
+    console.log(appletConfigs)
         // Load Config
         let config = undefined;
         if(appletConfigs.length !== 0) {
@@ -170,6 +171,7 @@ export class AppletManager {
         }
 
         let appletNames = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value).applets
+        let configApplets = []
 
         // Collect a list of unused applets
         let currentApplets = this.applets.map(applet => applet.name)
@@ -181,6 +183,10 @@ export class AppletManager {
                     if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
                 }
             }
+        })
+
+        appletNames.forEach(name => {
+            configApplets.push(this.appletClasses.find(applet =>applet.name === name))
         })
 
         // Check the compatibility of current applets with connected devices
@@ -199,13 +205,14 @@ export class AppletManager {
                 }
 
                 // Add new applet
-                let classObj = unusedAppletClasses[0]
+                let classObj = configApplets[0] //unusedAppletClasses[0]
                 this.applets[i] = {
                     appletIdx: i+1,
                     name:classObj.name,
                     classinstance: new classObj.cls("applets",this.bcisession,config)
                 }
-                unusedAppletClasses.splice(0,1)
+
+                configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
             }
             this.appletsSpawned++;
         })

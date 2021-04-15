@@ -1,10 +1,9 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
-import {DataAtlas} from '../DataAtlas'
-import {hegduino} from '../hegduino'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import InMemoryFileSystem from 'browserfs/dist/node/backend/InMemory';
+import {BiquadChannelFilterer} from '../../signal_analysis/BiquadFilters'
+import {DataAtlas} from '../../DataAtlas'
+import {hegduino} from './hegduino'
+import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 
 export class hegduinoPlugin {
     constructor(mode='hegduinousb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -27,11 +26,96 @@ export class hegduinoPlugin {
         return sum / arr.length;
     }
 
+    isExtrema(arr,critical='peak') { //Checks if the middle of the array is a local extrema. options: 'peak','valley','tangent'
+        let ref = [...arr];
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
+    isCriticalPoint(arr,critical='peak') { //Checks if the middle of the array is a critical point. options: 'peak','valley','tangent'
+        let ref = [...arr];
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < ref.length*.5 && val <= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val > 0) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < ref.length*.5 && val >= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val < 0) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < ref.length*.5 && val >= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val < 0)) {
+                        pass = false;
+                    }
+                }
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i < ref.length*.5 && val <= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val > 0)) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
     init = (info,pipeToAtlas) => {
 		info.sps = 32;
         info.deviceType = 'heg';
 
+        //beat detect smoothing window and midpoint
         let window = Math.floor(info.sps/4);
+        let pw = window; if(pw%2 === 0) {pw+=1} //make sure the peak window is an odd number
+        let mid = Math.round(pw*.5);
+        //breathing detect smoothing window and midpoint
+        let window2 = Math.floor(info.sps*3);
+        let pw2 = window2; if(pw2%2 === 0) {pw2+=1} 
+        let mid2 = Math.round(pw2*.5);
 
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
@@ -59,18 +143,21 @@ export class hegduinoPlugin {
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
                     let bt = coord.beat_detect;
                     bt.rir.push(coord.red[coord.count-1]+coord.ir[coord.count-1]);
+                    if(bt.rir.length > pw2) {
+                        bt.rir2.push(this.mean(bt.rir.slice(bt.rir.length-pw2))); //filter with SMA
+                    } else {
+                        bt.rir2.push(this.mean(bt.rir));
+                    }
                     if(coord.count > 1) {
                         bt.drir_dt.push((bt.rir[coord.count-1]-bt.rir[coord.count-2])/(coord.times[coord.count-1]-coord.times[coord.count-2]));
-                        if(bt.drir_dt.length>window) {
-                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-window)); //filter with SMA
-                        }
-                        if(bt.drir_dt.length>10) {
+                        if(bt.drir_dt.length>pw) {
+                            bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-pw)); //filter with SMA
                             //Find local maxima and local minima.
-                            if(bt.drir_dt[bt.drir_dt.length-7] < 0 && bt.drir_dt[bt.drir_dt.length-6] < 0 && bt.drir_dt[bt.drir_dt.length-5] < 0 && bt.drir_dt[bt.drir_dt.length-4] <= 0 && bt.drir_dt[bt.drir_dt.length-3] > 0 && bt.drir_dt[bt.drir_dt.length-2] > 0 && bt.drir_dt[bt.drir_dt.length-1] > 0 && bt.drir_dt[bt.drir_dt.length] > 0) {
-                                bt.localmins.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-5], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-pw),'valley')) {
+                                bt.localmins.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
-                            else if(bt.drir_dt[bt.drir_dt.length-7] > 0 && bt.drir_dt[bt.drir_dt.length-6] > 0 && bt.drir_dt[bt.drir_dt.length-5] > 0 && bt.drir_dt[bt.drir_dt.length-4] >= 0 && bt.drir_dt[bt.drir_dt.length-3] < 0 && bt.drir_dt[bt.drir_dt.length-2] < 0 && bt.drir_dt[bt.drir_dt.length-1] < 0 && bt.drir_dt[bt.drir_dt.length] < 0) {
-                                bt.localmaxs.push({idx0:coord.count-5, idx1:coord.count-4, val0:bt.rir[coord.count-4], val1:bt.rir[coord.count-4], us0:us[coord.count-5], us1:us[coord.count-4] });
+                            else if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-pw),'peak')) {
+                                bt.localmaxs.push({idx:coord.count-mid, val:bt.rir[coord.count-mid], t:us[coord.count-mid] });
                             }
 
                             if(bt.localmins.length > 1 && bt.localmaxs.length > 1) {
@@ -79,8 +166,8 @@ export class hegduinoPlugin {
                                 if(bt.localmins.length > bt.localmaxs.length+2) { while(bt.localmins.length > bt.localmaxs.length+2) { bt.localmins.splice(bt.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
                                 else if (bt.localmaxs.length > bt.localmins.length+2) { while(bt.localmaxs.length > bt.localmins.length+2) {bt.localmaxs.splice(bt.localmins.length-2,1); } }
                                 
-                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].us0-bt.localmaxs[bt.localmaxs.length-2].us),t:bt.localmaxs[bt.localmaxs.length-1].us0});
-                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].us0-bt.localmins[bt.localmins.length-2].us),t:bt.localmins[bt.localmins.length-1].us0});
+                                bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].t-bt.localmaxs[bt.localmaxs.length-2].t),t:bt.localmaxs[bt.localmaxs.length-1].t});
+                                bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].t-bt.localmins[bt.localmins.length-2].t),t:bt.localmins[bt.localmins.length-1].t});
                                 //Found a peak and valley to average together (for accuracy)
                                 if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
                                     //Make sure you are using the leading valley
@@ -90,6 +177,37 @@ export class hegduinoPlugin {
                                     } else {
                                         if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
                                             bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+                                    }
+                                }
+                                
+                            }
+                        }
+                        if(bt.rir2.length>pw2) {
+                            //Find local maxima and local minima.
+                            if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'valley')) {
+                                bt.localmins2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
+                            }
+                            else if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'peak')) {
+                                bt.localmaxs2.push({idx:coord.count-mid2, val:bt.rir[coord.count-mid2], t:us[coord.count-mid2] });
+                            }
+
+                            if(bt.localmins2.length > 1 && bt.localmaxs2.length > 1) {
+                                
+                                //Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
+                                if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
+                                else if (bt.localmaxs.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
+                                
+                                bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t});
+                                bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t});
+                                //Found a peak and valley to average together (for accuracy)
+                                if(bt.peak_dists2.length > 1 && bt.val_dists2.length > 1) {
+                                    //Make sure you are using the leading valley
+                                    if(bt.val_dists2[bt.val_dists2.length-1].t > bt.val_dists2[bt.peak_dists2.length-1].t) {
+                                        if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-1].t)
+                                            bt.breaths.push({t:bt.peak_dists[bt.peak_dists2.length-1].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
+                                    } else {
+                                        if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-2].t)
+                                            bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
                                     }
                                 }
                                 

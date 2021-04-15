@@ -147,9 +147,11 @@ export class BrainMapApplet {
         let hscalar = 0.05; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { hscalar = 10;}
         this.class.updateHeatmapFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
 
-        if(this.bci.atlas.data.coherence[0].fftCount > 0){
-            let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10; }
-            this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+        if(this.bci.atlas.settings.coherence) {
+            if(this.bci.atlas.data.coherence[0].fftCount > 0){
+                let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10; }
+                this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+            }
         }
     }
 
@@ -158,8 +160,13 @@ export class BrainMapApplet {
         this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
         let hscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { hscalar = 10;}
         this.class.updateHeatmapFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
-        let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10;}
-        this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+        
+        if(this.bci.atlas.settings.coherence) {
+            if(this.bci.atlas.data.coherence[0].fftCount > 0){
+                let cscalar = 0.1; if(this.bci.devices[0] && this.bci.devices[0].info.useFilters === false) { cscalar = 10;}
+                this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+            }
+        }
     }
 
    

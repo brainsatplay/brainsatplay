@@ -1,5 +1,7 @@
 /*
+//By Joshua Brewster, Garrett Flynn (GPL)
 
+Stack notes:
 Data Streams
 - Local hardware
   -- Serial
@@ -37,10 +39,10 @@ import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 import {StateManager} from './frontend/utils/StateManager'
 import {DataAtlas} from './bciutils/DataAtlas'
 
-import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32Plugin';
+import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32/freeeeg32Plugin';
 import { musePlugin } from './bciutils/devicePlugins/musePlugin';
-import { hegduinoPlugin } from './bciutils/devicePlugins/hegduinoPlugin';
-import { cytonPlugin } from './bciutils/devicePlugins/cytonPlugin';
+import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin';
+import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
 import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 
 /** @module brainsatplay 

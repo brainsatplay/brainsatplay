@@ -81,7 +81,7 @@ export class ThreeSunriseApplet {
     
             
             this.renderer = new THREE.WebGLRenderer();
-            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.shadowMap.enabled = true;
             //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             //Add whatever else you need to initialize
@@ -345,17 +345,19 @@ export class ThreeSunriseApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     
-        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
-            this.threeWidth = this.AppletHTML.node.clientWidth;
-            this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
-            this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-            this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
-            this.camera.updateProjectionMatrix();
-        }
+        setTimeout(()=> {
+            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+                this.threeWidth = this.AppletHTML.node.clientWidth;
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+                this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
+                this.camera.updateProjectionMatrix();
+            }
 
-        this.looping = true;
-        this.render();
+            this.looping = true;
+            this.render();
+        },333);
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -379,9 +381,14 @@ export class ThreeSunriseApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+            this.threeWidth = this.AppletHTML.node.clientWidth;
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+            this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
+            this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
+            this.camera.updateProjectionMatrix();
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -410,15 +417,6 @@ export class ThreeSunriseApplet {
                     this.onData(score);
                     this.draw();
                 }
-            }
-
-            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
-                this.threeWidth = this.AppletHTML.node.clientWidth;
-                this.renderer.setPixelRatio(this.threeWidth / this.AppletHTML.node.clientHeight);
-                this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-                this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
-                this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
-                this.camera.updateProjectionMatrix();
             }
 
             this.ticks -= this.change*1000;

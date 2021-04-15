@@ -1,4 +1,5 @@
 
+//By Joshua Brewster (GPL)
 export class Particles { //Adapted from this great tutorial: https://modernweb.com/creating-particles-in-html5-canvas/
     constructor(maxParticles = 100, randomSeed = true, canvasId=undefined, velocityFunc = undefined) { //custom velocity function is allowed
 

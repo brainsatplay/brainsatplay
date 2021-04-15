@@ -1,3 +1,5 @@
+//Joshua Brewster, MIT License
+
 import 'regenerator-runtime/runtime' //for async calls
 
 export class hegduino {
@@ -46,8 +48,7 @@ export class hegduino {
 
     sendCommand(command='') {
         if(this.mode === 'usb' || this.mode === 'serial') {
-            if(navigator.serial) this.interface.sendMessageAsync(command);
-            else this.interface.sendMessage(command);
+            this.interface.sendMessage(command);
         }
         else if(this.mode === 'ble' || this.mode === 'bt') {
             this.interface.sendMessage(command);

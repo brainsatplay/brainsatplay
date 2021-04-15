@@ -16,6 +16,7 @@ body
     color: white;
     overflow-x: hidden;
     overflow-y: hidden;
+    margin: 0;
 }
 
 body {
@@ -321,10 +322,11 @@ button {
     opacity: 1;
 }
 
-#sidebar button img {
+#sidebar .collapsible-container img {
     box-sizing: border-box; 
     /* width: 100%; */
     filter: invert(1);
+    cursor: pointer;
     width: 40px;
     max-width: 50px;
     padding: 10px;

@@ -24,8 +24,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.connected = false;
 		this.subscribed = false;
         this.buffer = [];
-        this.startByte = 0xA0; // Start byte value
-		this.stopByte = 0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
+        this.startByte = 160//0xA0; // Start byte value
+		this.stopByte = 192//0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
 		this.searchString = new Uint8Array([this.stopByte,this.startByte]); //Byte search string
 		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
@@ -100,16 +100,30 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		}
 	}
 
+	//cyton uses signed ints
     bytesToInt16(x0,x1){
-		return x0 * 256 + x1;
+		let int16 = ((0xFF & x0) << 8) | (0xFF & x1);
+		if((int16 & 0x00800000) > 0) {
+			int16 |= 0xFFFF0000;
+		} else {
+			int16 &= 0x0000FFFF;
+		}
+		return int16;
     }
 
     int16ToBytes(y){ //Turns a 24 bit int into a 3 byte sequence
         return [y & 0xFF , (y >> 8) & 0xFF];
     }
 
+	//cyton uses signed ints
     bytesToInt24(x0,x1,x2){ //Turns a 3 byte sequence into a 24 bit int
-        return x0 * 65536 + x1 * 256 + x2;
+        let int24 = ((0xFF & x0) << 16) | ((0xFF & x1) << 8) | (0xFF & x2);
+		if((int24 & 0x00800000) > 0) {
+			int24 |= 0xFF000000;
+		} else {
+			int24 &= 0x00FFFFFF;
+		}
+		return int24;
     }
 
     int24ToBytes(y){ //Turns a 24 bit int into a 3 byte sequence
@@ -131,7 +145,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		//console.log(indices);
 		if(indices.length >= 2){
 			for(let k = 1; k < indices.length; k++) {
-				if(indices[k] - indices[k-1] === 32) {
+				if(indices[k] - indices[k-1] === 33) {
 					var line = buffer.slice(indices[k-1],indices[k]+1); //Slice out this line to be decoded
 					
 					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
@@ -154,7 +168,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					for(var i = 3; i < 27; i+=3) {
 						let channel;
 						if(this.mode === 'daisy') {
-							if(lines[2] % 2 !== 0) {
+							if(line[2] % 2 !== 0) {
 								channel = "A"+(i-3)/3;
 							} else { channel = "A"+(8+(i-3)/3); }
 						}
@@ -212,29 +226,46 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 
 	onReceive(value){
 		this.buffer.push(...value);
-
-		let newLines = this.decode(this.buffer);
-		//console.log(this.data)
+		//console.log(this.buffer);
 		//console.log("decoding... ", this.buffer.length)
+		let newLines = this.decode(this.buffer);
+		//console.log(newLines, this.data);
+		//console.log(this.data)
 		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
+	}
+
+	async sendMsg(msg) {
+		msg+="\n";
+        var encodedString = unescape(encodeURIComponent(msg));
+        var bytes = new Uint8Array(encodedString.length);
+		const writer = this.port.writable.getWriter();
+        await writer.write(bytes.buffer);
+        writer.releaseLock();
+		return true;
 	}
 
 	async onPortSelected(port,baud=this.baudrate) {
 		try{
 			try {
 				await port.open({ baudRate: baud, bufferSize: this.readBufferSize });
-				this.onConnectedCallback();
-				this.connected = true;
-				this.subscribed = true;
-				this.subscribe(port);//this.subscribeSafe(port);
+				setTimeout(()=> {
+					this.onConnectedCallback();
+					this.connected = true;
+					this.subscribed = true;
+					this.sendMsg('b');
+					this.subscribe(port);//this.subscribeSafe(port);
+				},500);
 		
 			} //API inconsistency in syntax between linux and windows
 			catch {
 				await port.open({ baudrate: baud, buffersize: this.readBufferSize });
-				this.onConnectedCallback();
-				this.connected = true;
-				this.subscribed = true;
-				this.subscribe(port);//this.subscribeSafe(port);
+				setTimeout(()=> {
+					this.onConnectedCallback();
+					this.connected = true;
+					this.subscribed = true;
+					this.sendMsg('b');
+					this.subscribe(port);//this.subscribeSafe(port);
+				},500);
 			}
 		}
 		catch(err){
@@ -318,6 +349,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		//if(this.reader) {this.reader.releaseLock();}
 		if(this.port){
 			this.subscribed = false;
+			this.sendMsg('s');
 			setTimeout(async () => {
 				if (this.reader) {
 					this.reader = null;

@@ -4,6 +4,7 @@ Security - e.g. regex control so scripts can't be pumped in
 Data capping. This needs to be implemented Clientside as well so the socket doesnt get used at all for overly large data. Test limits, consider server costs
 Maybe buffer new data instead (up to a few hundred samples maybe) and instead of a newData call use a counter to know how much data to send to each subscription. That way no data is lost if updates
     are faster than subscriptions. 
+    //By Joshua Brewster, Garrett Flynn (GPL)
 */
 
 class DataServer { 

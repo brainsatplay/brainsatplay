@@ -1,6 +1,6 @@
 //A bunch of untested utilities for WebGL render prep. Contains 3D math, graphnodes, a physics system, and camera matrics. For super optimal matrix math use glMatrix (https://github.com/toji/gl-matrix) or some other math utility
 //TODO: lighting, quick geometry buffering functions, demonstrate physics, maybe scrap the 2D matrix math for typical quicker 1D array based matrix math.
-
+//By Joshua Brewster (MIT License)
 class Math3D { //some stuff for doing math in 3D
     constructor() {
 

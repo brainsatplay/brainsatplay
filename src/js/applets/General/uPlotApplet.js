@@ -4,7 +4,7 @@ import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
 import {eegmath} from '../../bciutils/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 
-//Example Applet for integrating with the UI Manager
+//Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
     static devices = ['eeg','heg']
@@ -56,11 +56,11 @@ export class uPlotApplet {
                       <td style='color:black;'>  
                         Graph:
                         <select id='`+props.id+`mode' style='width:98px;'>
-                          <option value="FFT" selected="selected">FFTs</option>
+                          <option value="FFT">FFTs</option>
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
                           <option value="TimeSeries">Raw</option>
-                          <option value="Stacked">Stacked Raw</option>
+                          <option value="Stacked" selected="selected">Stacked Raw</option>
                         </select>
                       </td>
                       <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>

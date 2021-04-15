@@ -62,18 +62,18 @@ export class SpectrogramApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let a = this.bci.atlas.data;
-            addChannelOptions(props.id+'channel',a.eegshared.eegChannelTags);
+            let a = this.bci.atlas;
+            addChannelOptions(props.id+'channel',a.data.eegshared.eegChannelTags);
             document.getElementById(props.id+'channel').onchange = () => {
               this.class.clear();
             }
             document.getElementById(props.id+"mode").onchange = () => {
                 this.class.clear();
                 if(document.getElementById(props.id+"mode").value === "FFT"){
-                  addChannelOptions(props.id+"channel",a.eegshared.eegChannelTags);
+                  addChannelOptions(props.id+"channel",a.data.eegshared.eegChannelTags);
                 }
-                else if(document.getElementById(props.id+"mode").value === "Coherence"){
-                  addCoherenceOptions(props.id+"channel",a.coherence);
+                else if(a.settings.coherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
+                  addCoherenceOptions(props.id+"channel",a.data.coherence);
                 }
             }
         }
@@ -108,13 +108,13 @@ export class SpectrogramApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let a = this.bci.atlas.data;
-        if(this.bci.atlas.settings.eeg) {
+        let a = this.bci.atlas;
+        if(a.settings.eeg) {
             if(document.getElementById(this.props.id+"mode").value === "FFT"){
-                addChannelOptions(this.props.id+"channel",a.eegshared.eegChannelTags);
+                addChannelOptions(this.props.id+"channel",a.data.eegshared.eegChannelTags);
             }
-            else if(document.getElementById(this.props.id+"mode").value === "Coherence"){
-                addCoherenceOptions(this.props.id+"channel",a.coherence);
+            else if(a.settings.coherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
+                addCoherenceOptions(this.props.id+"channel",a.data.coherence);
             }
         }
 
@@ -123,7 +123,7 @@ export class SpectrogramApplet {
         this.class.canvas.style.width = this.AppletHTML.node.clientWidth;
         this.class.canvas.style.height = this.AppletHTML.node.clientHeight;
 
-        //this.class.init();
+        this.class.init();
 
     }
 
@@ -165,7 +165,7 @@ export class SpectrogramApplet {
             }
           });
         }
-        else if(graphmode === "Coherence"){
+        else if(a.settings.coherence === true && graphmode === "Coherence"){
           a.data.coherence.find((o,i) => {
             if(o.tag === view){
               let coord = o;

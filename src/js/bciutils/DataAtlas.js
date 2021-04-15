@@ -1,4 +1,5 @@
 //relies on eegworker (see implementation in public/index.html)
+//Joshua Brewster, Garrett Flynn GPL (copyleft)
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -61,9 +62,8 @@ export class DataAtlas {
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
         if(config === '10_20') {
-			
 			this.settings.eeg = true;
-            this.data.eeg = this.gen10_20Atlas();//this.genBigAtlas();//
+			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);//this.genBigAtlas();//
         }
 		else if (config === 'muse') {
 			
@@ -72,7 +72,7 @@ export class DataAtlas {
 		}
 		else if (config === 'big') {
 			this.settings.eeg = true;
-			this.data.eeg = this.genBigAtlas();
+			this.data.eeg = this.gen10_20Atlas();
 		}
 		else if (config === 'hegduino') {
 			this.addHEGCoord(this.data.heg.length,0,60,60);
@@ -172,29 +172,7 @@ export class DataAtlas {
         return eegmap;
 	}
 
-    gen10_20Atlas() { //19 channel EEG
-        let eegmap = [];
-        let tags = ["FP1","FP2","FPZ","F3","F4","F7","F8",
-                    "CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
-        let coords=[[-21.5,70.2,-0.1],[28.4,69.1,-0.4], //MNI coordinates
-                    [0.6,40.9,53.9],[-35.5,49.4,32.4],
-                    [40.2,47.6,32.1],[-54.8,33.9,-3.5],
-                    [56.6,30.8,-4.1],[0.8,-14.7,73.9],
-                    [-52.2,-16.4,57.8],[54.1,-18.0,57.5],
-                    [-70.2,-21.3,-10.7],[71.9,-25.2,-8.2],
-                    [-61.5,-65.3,1.1],[59.3,-67.6,3.8],
-                    [0.2,-62.1,64.5],[-39.4,-76.3,47.4],
-                    [36.8,-74.9,49.2],[-26.8,-100.2,12.8],
-                    [24.1,-100.5,14.1]];
-
-        tags.forEach((tag,i) => {
-            eegmap.push(this.genEEGCoordinateStruct(tag,coords[i][0],coords[i][1],coords[i][2]));
-        });
-
-        return eegmap;
-    }
-
-	genBigAtlas() {
+	gen10_20Atlas(channelDicts) {
 
 		const eegCoordinates = {
 
@@ -272,10 +250,15 @@ export class DataAtlas {
 		}
 
 		let eegmap = [];
-		for(const prop in eegCoordinates) {
-			eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
+		if (channelDicts == null){
+			for(const prop in eegCoordinates) eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
+		} else {
+			channelDicts.forEach(channelDict => {
+				let tag = channelDict.tag
+				if(eegCoordinates[tag])
+					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
+			})
 		}
-
 		return eegmap;
 	}
 
@@ -307,7 +290,6 @@ export class DataAtlas {
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
-
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;
@@ -321,7 +303,7 @@ export class DataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],rir:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[]},lastRead:0, startTime:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],breaths:[],rir:[],rir2:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -495,7 +477,7 @@ export class DataAtlas {
 	}
 
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
-	getFPData = () => {
+	getFrontalData = () => {
 		let fp_data = undefined;
 		if(this.settings.eeg) {
             let fp1 = this.getEEGDataByTag('FP1');
@@ -564,7 +546,7 @@ export class DataAtlas {
 
 	//Get alpha2/alpha1 ratio from bandpower averages
 	getAlphaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
 			return ratio;
 		}
@@ -573,15 +555,15 @@ export class DataAtlas {
 
 	//Calculate the latest theta beta ratio from bandpower averages
 	getThetaBetaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
-			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
+		if(eeg_data.fftCount > 0) {
+			let ratio = eeg_data.means.theta[eeg_data.fftCount-1] / eeg_data.means.beta[eeg_data.fftCount-1];
 			return ratio;
 		} else return 0;
 	}
 
 	//Calculate the latest alpha beta ratio from bandpower averages
 	getAlphaBetaRatio = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
 			return ratio;
 		}
@@ -590,7 +572,7 @@ export class DataAtlas {
 
 	//Get highest peak near 40Hz (38-42Hz)
 	get40HzGamma = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
 			let centered = [];
 			lowgamma.forEach((val,i) => {
@@ -606,7 +588,7 @@ export class DataAtlas {
 
 	//Calculate a score for the change in bandpower for low gamma (32-45Hz)
 	getLowGammaScore = (eeg_data) => {
-		if(eeg_data.fftCount < 0) {
+		if(eeg_data.fftCount > 0) {
 			let ct = eeg_data.fftCount;
 			let avg = 20; if(ct < avg) { avg = ct; }
 			let slice = eeg_data.means.lowgamma.slice(ct-avg);
@@ -830,7 +812,9 @@ export class DataAtlas {
 		let data = [];
 		let mapidx = 0;
 		let datums = [];
+		let fft_ref_ch = null;
 		this.data.eegshared.eegChannelTags.forEach((row,j) => {
+			if(fft_ref_ch === null && row.tag !== 'other' && row.analyze === true) fft_ref_ch = this.getEEGDataByChannel(row.ch)
 			datums.push(this.getEEGDataByChannel(row.ch));
 		});
 
@@ -838,7 +822,7 @@ export class DataAtlas {
 			if(to === 'end') { to = datums[0].count; }
 			if(datums[0].count < from) { from = this.atlas.rolloverLimit - 2000; }
 			if(from!==0) { 
-				while (datums[0].fftTimes[mapidx] < datums[0].times[from]) {
+				while (fft_ref_ch.fftTimes[mapidx] < datums[0].times[from]) {
 					mapidx++;
 				}
 			}
@@ -847,7 +831,7 @@ export class DataAtlas {
 				line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 				//first get the raw/filtered
 				datums.forEach((row,j) => {
-					if(from === 0) { header.push(row.tag); }
+					if(i === 0) { header.push(row.tag); }
 					if(row.filtered.length > i) {
 						line.push(row.filtered[i].toFixed(0));
 					} else if (row.raw.length > i) {
@@ -855,26 +839,38 @@ export class DataAtlas {
 					}
 				});
 				//then get the fft/coherence data
-				datums.forEach((row,j) => {
-					if(i === 0) {
-						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
-						header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+				if(fft_ref_ch.fftCount >= mapidx && fft_ref_ch.fftTimes[mapidx] === datums[0].times[i]) {
+					datums.forEach((row,j) => {
+						if(mapidx === 0) {
+							let found = this.data.eegshared.eegChannelTags.find((o,k) => {
+								if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
+									return true;
+								}
+							});
+							if(!found){ //don't add headers for rows not being analyzed
+								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+							}
+						}
+						if(datums[0].times[i] === row.fftTimes[mapidx]) {
+							line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
+						}
+					});
+					if(this.settings.coherence) {
+						this.data.coherence.forEach((row,j) => {
+							if(mapidx===0) {
+								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+							}
+							if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
+								try{
+									line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
+								}
+								catch(err) { console.log(err, mapidx, row); }
+							}
+						});
 					}
-					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push(row.ffts[mapidx]);
-					}
-				});
-				this.data.coherence.forEach((row,i) => {
-					if(i===0) {
-						let bpfreqs = [...this.data.eegshared.frequencies].map((x,i) => x = x.toFixed(3));
-						header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
-					}
-					if(datums[0].times[i] === row.fftTimes[mapidx]) {
-						line.push(row.ffts[mapidx]);
-					}
-				});
-				if(datums[0].fftTimes[mapidx] === datums[0].times[i]){
-					mapidx++;
+					mapidx++;	
 				}
 				data.push(line.join(","));
 			}
@@ -947,6 +943,7 @@ export class DataAtlas {
 
 	addDefaultAnalyzerFuncs() {
 		this.analyzerOpts.push('eegfft','eegcoherence');
+
 		let fftFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
@@ -1085,11 +1082,20 @@ export class DataAtlas {
 		if (this.settings.analyzing){
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
+			let getFocus = () => {
+				let frontalData = this.getFrontalData()
+				let thetaBetaArray = []
+				frontalData.forEach(data => {
+					thetaBetaArray.push(this.getThetaBetaRatio(data))
+				})
+				return Math.min(1/(thetaBetaArray.reduce((tot,curr) => {tot + curr})/thetaBetaArray.length),1) // clamp focus at 1
+			}
 
 			// Option Declaration
 			feedbackOptions = [
 				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
 				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+				{label: 'Focus', function: getFocus}
 			]
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 

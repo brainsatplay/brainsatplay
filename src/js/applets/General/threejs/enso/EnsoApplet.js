@@ -141,6 +141,19 @@ this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
+
+/**
+ * VR
+ */
+const supportsVR = 'getVRDisplays' in navigator;
+
+if (supportsVR) {
+    navigator.getVRDisplays().then(function(displays) {
+        his.renderer.xr.enabled = true;
+        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    });
+}
+
 // GUI
 // const gui = new GUI({ autoPlace: false });
 // appletContainer.querySelector('.gui-container').appendChild(gui.domElement);

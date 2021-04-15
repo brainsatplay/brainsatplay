@@ -1,7 +1,6 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 
-//Example Applet for integrating with the UI Manager
 export class VideoApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
@@ -49,7 +48,7 @@ export class VideoApplet {
         this.sliderfocus = false;
         this.hidden = false;
 
-        this.coh_ref_ch = null; //for getting coherence
+        this.coh_ref_ch = undefined; //for getting coherence
 
     }
 

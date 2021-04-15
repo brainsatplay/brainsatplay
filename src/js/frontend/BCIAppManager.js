@@ -1,5 +1,6 @@
 //summon the web bci app browser/launcher/manager from here
 
+//By Joshua Brewster, Garrett Flynn (GPL)
 
 //Setup State
 //Setup Templates & UI Logic i.e. applet and file selection menus, and general BCI control menus
@@ -389,13 +390,18 @@ export class BCIAppManager {
 
     getConfigsFromHashes() {
         let hashes = window.location.hash;
-        if(hashes === "") { return [] }
+        if(hashes === "") { return []; }
         let hasharr = hashes.split('#');
-        hashes.shift();
-    
-        var appletConfigs = [];
+        hasharr.shift();
+        let appletConfigs = [];
         hasharr.forEach((hash,i) => {
-            var cfg = JSON.parse(hash); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            let rep = hash.replaceAll('%22','"');
+            rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
+            let cfg;
+            if(rep.indexOf('{') > -1) //parse if its an object
+                cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
+            else cfg = rep; //otherwise its just a string
+            console.log(cfg)
             appletConfigs.push(cfg);
         });
         return appletConfigs;    
@@ -411,7 +417,7 @@ export class BCIAppManager {
             }
         }
         let configs = this.getConfigsFromHashes(); //overrides old settings
-        if(configs.length === null){
+        if(configs.length > 0){
             this.appletConfigs = configs;
         }
         // -------------------------------------
