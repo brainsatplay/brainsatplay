@@ -476,7 +476,7 @@ export class DataAtlas {
 	}
 
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
-	getFPData = () => {
+	getFrontalData = () => {
 		let fp_data = undefined;
 		if(this.settings.eeg) {
             let fp1 = this.getEEGDataByTag('FP1');
@@ -555,7 +555,7 @@ export class DataAtlas {
 	//Calculate the latest theta beta ratio from bandpower averages
 	getThetaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
-			let ratio = eeg_data.means.theta[eeg_ch.fftCount-1] / eeg_data.means.beta[eeg_ch.fftCount-1];
+			let ratio = eeg_data.means.theta[eeg_data.fftCount-1] / eeg_data.means.beta[eeg_data.fftCount-1];
 			return ratio;
 		} else return 0;
 	}
@@ -1073,16 +1073,23 @@ export class DataAtlas {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		let html = '';
 		let feedbackOptions;
-		console.log(this.settings)
 		if (this.settings.analyzing){
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
+			let getFocus = () => {
+				let frontalData = this.getFrontalData()
+				let thetaBetaArray = []
+				frontalData.forEach(data => {
+					thetaBetaArray.push(this.getThetaBetaRatio(data))
+				})
+				return Math.min(1/(thetaBetaArray.reduce((tot,curr) => {tot + curr})/thetaBetaArray.length),1) // clamp focus at 1
+			}
 
 			// Option Declaration
 			feedbackOptions = [
 				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
 				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-				{label: 'Focus', function: 1/getThetaBetaRatio}
+				{label: 'Focus', function: getFocus}
 			]
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 
