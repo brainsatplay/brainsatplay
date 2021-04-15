@@ -215,7 +215,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.buffer.push(...value);
 		console.log(this.buffer);
 		//let newLines = this.decode(this.buffer);
-		console.log(newLines, this.data);
+		//console.log(newLines, this.data);
 		//console.log(this.data)
 		//console.log("decoding... ", this.buffer.length)
 		//if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
