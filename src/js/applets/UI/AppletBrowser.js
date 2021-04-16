@@ -93,15 +93,11 @@ export class AppletBrowser {
             `
 
         let presetSelections = []
-        let html = `
-            <h1>Layouts</h1>
-            <hr>
-            ${sectionContainer}
-        `
+        let layoutHTML = ``
 
         presets.forEach(preset => {
             if (preset.name != 'Applet Browser'){
-                html += `
+                layoutHTML += `
                 <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
                     <img src="${preset.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
@@ -112,17 +108,14 @@ export class AppletBrowser {
                 presetSelections.push(preset.value)
             }
         })
-        html += `</div>`
 
-        html += `
-        <h1>Applets</h1>
-        <hr>
-        ${sectionContainer}
-        `
+        let generalHTML = ``
+        let eegHTML = ``
+        let hegHTML = ``
 
         applets.forEach(applet => {
             if (applet.name != 'Applet Browser'){
-                html += `
+                let html = `
                 <div id="${this.props.id}-${applet.name}" class='browser-card' style="${appletStyle};">
                     <img src="${applet.cls.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
@@ -130,10 +123,38 @@ export class AppletBrowser {
                         <p>${applet.cls.description}</p>
                     </div>
                 </div>`
+                if (applet.cls.devices.length > 1){
+                    generalHTML += html
+                } else if (applet.cls.devices[0] == 'eeg'){
+                    eegHTML += html
+                } else if (applet.cls.devices[0] == 'heg'){
+                    hegHTML += html
+                }
             }
         })
-        html += `</div>`
-        container.innerHTML += html
+
+        container.innerHTML += `
+        <h1>Layouts</h1>
+        <hr>
+        ${sectionContainer}
+        ${layoutHTML}
+        </div>
+        <h1>General Applets</h1>
+        <hr>
+        ${sectionContainer}
+        ${generalHTML}
+        </div>
+        <h1>EEG Applets</h1>
+        <hr>
+        ${sectionContainer}
+        ${eegHTML}
+        </div>
+        <h1>HEG Applets</h1>
+        <hr>
+        ${sectionContainer}
+        ${hegHTML}
+        </div>
+        `
         
 
         const appletCards = container.querySelectorAll('.browser-card')
