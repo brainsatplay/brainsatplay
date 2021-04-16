@@ -49,8 +49,9 @@ export class BoidsApplet {
                     <table id='`+props.id+`table' style='z-index:99; display:none;'>
                         <tr><td>Cohesion:</td><td><input type='range' id='`+props.id+`cohesion' min="0" max="0.1" value="0.0001" step="0.0001"></td><td><button id='`+props.id+`cohesionreset'>Reset</button></td></tr>
                         <tr><td>Separation:</td><td><input type='range' id='`+props.id+`separation' min="0" max="10" value="1" step="0.1"></td><td><button id='`+props.id+`separationreset'>Reset</button></td></tr>
-                        <tr><td>Alignment:</td><td><input type='range' id='`+props.id+`align' min="0" max="2" value="0.5" step="0.01"></td><td><button id='`+props.id+`alignreset'>Reset</button></td></tr>
+                        <tr><td>Alignment:</td><td><input type='range' id='`+props.id+`align' min="0" max="0.9" value="0.5" step="0.01"></td><td><button id='`+props.id+`alignreset'>Reset</button></td></tr>
                         <tr><td>Swirl:</td><td><input type='range' id='`+props.id+`swirl' min="0" max="0.01" value="0.0001" step="0.0001" ></td><td><button id='`+props.id+`swirlreset'>Reset</button></td></tr>
+                        <tr><td>Anchor:</td><td><input type='range' id='`+props.id+`anchor' min="0" max="0.05" value="0.003" step="0.001" ></td><td><button id='`+props.id+`anchorreset'>Reset</button></td></tr>
                         <tr><td>Max Speed:</td><td><input type='range' id='`+props.id+`speed' min="0" max="10" value="1" step="0.1" ></td><td><button id='`+props.id+`speedreset'>Reset</button></td></tr>
                         <tr><td>Gravity:</td><td><input type='range' id='`+props.id+`gravity' min="0" max="10" value="0" step="0.1"></td><td><button id='`+props.id+`gravityreset'>Reset</button></td></tr>
                     </table>
@@ -111,6 +112,13 @@ export class BoidsApplet {
             document.getElementById(props.id+'swirlreset').onclick = () => {
                 this.class.swirlMul = 0.0001;
                 document.getElementById(props.id+'swirl').value = 0.0001;
+            }
+            document.getElementById(props.id+'anchor').onchange = () => {
+                this.class.attractorMul = document.getElementById(props.id+'anchor').value;
+            }
+            document.getElementById(props.id+'anchorreset').onclick = () => {
+                this.class.attractorMul = 0.003;
+                document.getElementById(props.id+'anchor').value = 0.003;
             }
             document.getElementById(props.id+'speed').onchange = () => {
                 this.class.particleClass.settings.maxSpeed = document.getElementById(props.id+'speed').value;
