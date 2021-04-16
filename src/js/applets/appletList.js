@@ -135,19 +135,19 @@ let presets = [
             "Spectrogram",
             "uPlot",
         ],
-        description: "Train your brain.",
+        description: "Bandpower training, coherence, and more.",
         image: placeholderImg	  	
     },
     {
         value: 'heg',
-        name: "HEG Neurofeedback",
+        name: "HEG Biofeedback",
         applets: [
             "HEG Boids",
             "HEG Circle",
             "HEG Audio",
             "uPlot",
         ],
-        description: "Train your brain.",
+        description: "Brain blood flow training!",
         image: placeholderImg	
     }
 ]

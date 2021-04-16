@@ -142,18 +142,18 @@ export class AppletBrowser {
         })
 
         container.innerHTML += `
+        <h1>Neurofeedback</h1>
+        <hr>
+        ${sectionContainer}
+        ${presetHTML}
+        </div>
+        <br>
         <h1>Applets</h1>
         <hr>
         ${sectionContainer}
         ${generalHTML}
         ${eegHTML}
         ${hegHTML}
-        </div>
-        <br>
-        <h1>Presets</h1>
-        <hr>
-        ${sectionContainer}
-        ${presetHTML}
         </div>
         `
         
