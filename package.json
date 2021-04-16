@@ -39,6 +39,7 @@
     "dotenv": "^8.2.0",
     "esbuild": "^0.9.6",
     "express": "^4.17.1",
+    "fs": "^0.0.1-security",
     "ganglion-ble": "^1.0.0",
     "gl-matrix": "^3.3.0",
     "gpu.js": "^2.11.2",

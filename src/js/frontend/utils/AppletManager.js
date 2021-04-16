@@ -72,6 +72,13 @@ export class AppletManager {
 
         this.appletPresets = [
             {
+                value: 'browser',
+                name: "Applet Browser",
+                applets: [
+                    "Applet Browser",
+                ]
+            },
+            {
                 value: 'eeg_nf',
                 name: "EEG Neurofeedback",
                 applets: [
@@ -85,9 +92,9 @@ export class AppletManager {
                 value: 'heg_nf',
                 name: "HEG Neurofeedback",
                 applets: [
-                    "HEGBoids",
-                    "HEGCircle",
-                    "HEGAudio",
+                    "HEG Boids",
+                    "HEG Circle",
+                    "HEG Audio",
                     "uPlot",
                 ]
             }
@@ -157,8 +164,8 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-        console.log(appletConfigs)
         // Load Config
+        console.log(appletConfigs)
         let preset = undefined;
         let config = undefined;
         if(appletConfigs.length !== 0) {
@@ -187,6 +194,10 @@ export class AppletManager {
             if(this.bcisession.atlas.settings.heg === false) {
                 this.bcisession.atlas.addHEGCoord(0);
                 this.bcisession.atlas.settings.heg = true;
+            }
+        } else if (preset.value.includes('eeg')) {
+            if(this.bcisession.atlas.settings.eeg === false) {
+                this.bcisession.atlas.settings.eeg = true;
             }
         }
         let configApplets = []
@@ -224,15 +235,19 @@ export class AppletManager {
 
                 // Add new applet
                 let classObj = configApplets[0] //unusedAppletClasses[0]
-                this.applets[i] = {
-                    appletIdx: i+1,
-                    name:classObj.name,
-                    classinstance: new classObj.cls("applets",this.bcisession,config)
-                }
+                if (classObj){
+                    this.applets[i] = {
+                        appletIdx: i+1,
+                        name:classObj.name,
+                        classinstance: new classObj.cls("applets",this.bcisession,config)
+                    }
 
-                configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
+                    configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
+                    this.appletsSpawned++;
+                }
+            } else {
+                this.appletsSpawned++;
             }
-            this.appletsSpawned++;
         })
 
         this.initApplets();
@@ -247,7 +262,7 @@ export class AppletManager {
 
     appletDivSettings = (appletDiv, appletIdx) => {
         appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
-        appletDiv.style.overflow = 'hidden'
+        if (appletDiv.style.overflow == 'auto'){console.log('setting hidden'); appletDiv.style.overflow = `hidden`;}
         // appletDiv.draggable = true
         // appletDiv.style.cursor = 'move'
         // Fullscreen Functionality
@@ -277,8 +292,6 @@ export class AppletManager {
             if (applet.classinstance != null){
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
-            appletDiv.style.gridArea = String.fromCharCode(97 + i);
-            appletDiv.style.overflow = 'hidden'
             appletDiv.name = applet.name
 
             // Drag functionality
@@ -368,7 +381,6 @@ export class AppletManager {
             this.applets[pos].classinstance.init();
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            this.appletDivSettings(appletDiv, pos);
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
             // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
@@ -442,7 +454,7 @@ export class AppletManager {
     }
 
     enforceLayout(nodes=this.applets) {
-
+    
         let layoutSelector = document.getElementById('layout-selector')
         let nodeLabels = {
             active: [],
@@ -487,8 +499,8 @@ export class AppletManager {
             // Set Applet Heights
             appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
 
-            // Set Applet Overflow
-            appletDiv.style.overflow = `hidden`;
+            // Set Other Applet Settings
+            this.appletDivSettings(appletDiv, i);
         });  
     }
 

@@ -3,6 +3,9 @@ import {brainsatplay} from './js/brainsatplay'
 import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
 
+
+import { AppletBrowser } from './js/applets/UI/AppletBrowser'
+
 import {AppletExample} from './js/applets/AppletExample'
 import {uPlotApplet} from './js/applets/General/uPlotApplet'
 import {SpectrogramApplet} from './js/applets/EEG/SpectrogramApplet'
@@ -24,6 +27,7 @@ import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
 import { ThreeSunriseApplet } from './js/applets/General/threejs/ThreeSunrise/ThreeSunriseApplet'
 
 let applets = [
+	{	name:"Applet Browser",  cls: AppletBrowser		},
 	{	name:"Blob",      		cls: BlobApplet			},
 	{	name:"Cosmos",      	cls: CosmosApplet		},
 	{	name:"uPlot", 			cls: uPlotApplet   		},
@@ -33,14 +37,14 @@ let applets = [
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
 	{   name:"HEG Circle", 		cls: CircleApplet		},
-	{   name:"HEG Boids",        cls: BoidsApplet		},
-	{   name:"HEG Audio",        cls: AudioApplet		},
+	{   name:"HEG Boids",       cls: BoidsApplet		},
+	{   name:"HEG Audio",       cls: AudioApplet		},
 	{   name:"HEG Video",		cls: VideoApplet		}, // 
 	{   name:"Sunrise",         cls: ThreeSunriseApplet },
-	{   name:"Hill Cimber",      cls: HillClimberApplet  },
-	{   name:"Text Scroller",    cls: TextScrollerApplet },
-	{	name:"Blink",      		cls: BlinkApplet			},
-	{	name:"Band Ring",      		cls: BandRingApplet			},
+	{   name:"Hill Cimber",     cls: HillClimberApplet  },
+	{   name:"Text Scroller",   cls: TextScrollerApplet },
+	{	name:"Blink",      		cls: BlinkApplet		},
+	{	name:"Band Ring",       cls: BandRingApplet  	},
 
 ];//sssssymmetry (ღ˘⌣˘ღ)
 

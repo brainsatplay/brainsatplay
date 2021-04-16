@@ -250,9 +250,6 @@ export class BCIAppManager {
             closeAllOpenCollapsibles()
         })
 
-        document.body.style.overflow = "hidden";
-
-
         this.uiFragments.page = new DOMFragment(
             page_template,
             app
