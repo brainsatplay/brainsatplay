@@ -129,7 +129,7 @@ let presets = [
     },
     {
         value: 'eeg',
-        name: "Neurofeedback",
+        name: "EEG Neurofeedback",
         applets: [
             "Blob",
             "Brain Map",
@@ -142,7 +142,7 @@ let presets = [
     },
     {
         value: 'heg',
-        name: "Biofeedback",
+        name: "HEG Biofeedback",
         applets: [
             "Boids",
             "Circle",
