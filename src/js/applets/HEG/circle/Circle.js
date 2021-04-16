@@ -8,6 +8,7 @@ export class CircleApplet {
 
     static devices = ['heg']
     static description = "Increase your HEG ratio!"
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

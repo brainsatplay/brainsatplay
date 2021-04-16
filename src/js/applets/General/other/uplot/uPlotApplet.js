@@ -10,6 +10,7 @@ export class uPlotApplet {
 
     static devices = ['eeg','heg']
     static description = "View live data."
+    static categories = ['data'];
     static image=featureImg
 
     constructor(

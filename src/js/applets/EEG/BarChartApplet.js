@@ -7,6 +7,7 @@ export class AppletTemplate {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "See your brain."
+    static categories = ['data'];
     static image=featureImg
 
     constructor(

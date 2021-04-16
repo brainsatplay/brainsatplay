@@ -9,6 +9,7 @@ export class SpectrogramApplet {
 
     static devices = ['eeg']
     static description = "Bandpower and coherence visualizer."
+    static categories = ['data'];
     static image=featureImg
 
     constructor(

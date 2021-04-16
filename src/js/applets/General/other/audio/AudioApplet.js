@@ -7,6 +7,7 @@ export class AudioApplet {
 
     static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "HEG ratio and EEG Coherence feedback."
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

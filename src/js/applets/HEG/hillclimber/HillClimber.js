@@ -7,6 +7,7 @@ export class HillClimberApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Increase HEG ratio, go up." 
+    static categories = ['feedback'];
     static image=featureImg
     
     constructor(

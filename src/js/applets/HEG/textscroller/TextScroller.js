@@ -6,6 +6,7 @@ export class TextScrollerApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Words of affirmation." 
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

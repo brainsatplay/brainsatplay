@@ -26,6 +26,7 @@ export class BlobApplet {
 
     static devices = ['eeg'] //,heg
     static description = "Calm the blob!"
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

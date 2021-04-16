@@ -17,6 +17,7 @@ export class ThreeSunriseApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Spin the Earth!"
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

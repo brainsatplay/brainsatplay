@@ -7,6 +7,7 @@ export class BoidsApplet {
 
     static devices = ['heg']
     static description = "Play with swarm intelligence! Your HEG ratio creates swirls."
+    static categories = ['feedback'];
     static image=featureImg
     
     constructor(

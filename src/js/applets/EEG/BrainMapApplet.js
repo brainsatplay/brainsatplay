@@ -9,6 +9,7 @@ export class BrainMapApplet {
 
     static devices = ['eeg']
     static description = "Bandpower and coherence mapping."
+    static categories = ['data'];
     static image=featureImg
 
     constructor(

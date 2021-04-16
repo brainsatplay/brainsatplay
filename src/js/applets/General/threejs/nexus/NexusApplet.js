@@ -26,6 +26,7 @@ export class NexusApplet {
 
     static devices = ['eeg'] //,heg
     static description = "Connect your brain with others!"
+    static categories = ['feedback','multiplayer'];
     static image=featureImg
 
     constructor(

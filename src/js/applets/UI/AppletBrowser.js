@@ -8,6 +8,7 @@ export class AppletBrowser {
 
     static devices = []; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Select applets to view."
+    static categories = ['ux'];
     static image=featureImg
 
     constructor(

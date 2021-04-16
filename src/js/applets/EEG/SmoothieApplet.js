@@ -9,6 +9,7 @@ export class SmoothieApplet {
 
     static devices = ['eeg']
     static description = "Simple real time bandpower and coherence plot."
+    static categories = ['data'];
     static image=featureImg
 
     constructor(

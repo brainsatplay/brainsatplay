@@ -26,6 +26,7 @@ export class CosmosApplet {
 
     static devices = ['eeg'] //,heg
     static description = "Spin the galaxy!"
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

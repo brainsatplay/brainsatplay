@@ -9,6 +9,7 @@ export class BandRingApplet {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Bandpower visualizer."
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(

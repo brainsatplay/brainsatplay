@@ -26,6 +26,7 @@ export class EnsoApplet {
 
     static devices = ['eeg'] //,heg
     static description = "Calm the ring!"
+    static categories = ['feedback'];
     static image=featureImg
 
     constructor(
