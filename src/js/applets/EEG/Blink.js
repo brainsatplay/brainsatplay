@@ -83,38 +83,40 @@ export class BlinkApplet {
         this.updateAnimation = () => {
             let leftEye = document.getElementById(this.props.id+"-left")
             let rightEye = document.getElementById(this.props.id+"-right")
-            let blink = this.bci.atlas.getBlink()
-            let leftOpacity = 1-(blink[0]? 1 : 0)
-            let rightOpacity = 1-(blink[1]? 1 : 0)
-            let newcolor = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
-            if(!blink[0]) { 
-                this.leftred-=0.5;    
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-            } else {
-                document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
+            if(leftEye && rightEye) {
+                let blink = this.bci.atlas.getBlink()
+                let leftOpacity = 1-(blink[0]? 1 : 0)
+                let rightOpacity = 1-(blink[1]? 1 : 0)
+                let newcolor = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
+                if(!blink[0]) { 
+                    this.leftred-=0.5;    
+                    leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                } else {
+                    document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
+                }
+                if(this.leftred <= 50) {
+                    this.leftred = 255;
+                    leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
+                    document.getElementById(this.props.id+"-leftiris").style.background = newcolor;      
+                    leftOpacity = 0;
+                }
+                if(!blink[1]) {
+                    this.rightred-=0.5;
+                    rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
+                } else {
+                    document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
+                } 
+                if(this.rightred <= 50){
+                    this.rightred = 255;
+                    leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                    document.getElementById(this.props.id+"-rightiris").style.background = newcolor;
+                    rightOpacity = 0;
+                }
+                leftEye.style.opacity = leftOpacity;
+                rightEye.style.opacity = rightOpacity;
+                
+                setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},60);
             }
-            if(this.leftred <= 50) {
-                this.leftred = 255;
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
-                document.getElementById(this.props.id+"-leftiris").style.background = newcolor;      
-                leftOpacity = 0;
-            }
-            if(!blink[1]) {
-                this.rightred-=0.5;
-                rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
-            } else {
-                document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
-            } 
-            if(this.rightred <= 50){
-                this.rightred = 255;
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-                document.getElementById(this.props.id+"-rightiris").style.background = newcolor;
-                rightOpacity = 0;
-            }
-            if (leftEye) leftEye.style.opacity = leftOpacity;
-            if (rightEye) rightEye.style.opacity = rightOpacity;
-            
-            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},60);
         }
         this.updateAnimation()
     }
