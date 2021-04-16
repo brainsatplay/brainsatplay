@@ -3,6 +3,7 @@ import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
 import * as THREE from 'three'
 import * as POSTPROCESSING from 'postprocessing'
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 import texUrl from './textures/8k_earth_daymap.jpg'
 import cloudtexUrl from './textures/clouds_8k.jpg'
@@ -85,6 +86,18 @@ export class ThreeSunriseApplet {
             this.renderer.shadowMap.enabled = true;
             //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             //Add whatever else you need to initialize
+
+            /**
+             * VR
+             */
+            if (navigator.xr) {
+                navigator.getVRDisplays().then(function(displays) {
+                    his.renderer.xr.enabled = true;
+                    appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+                });
+            }
+
+
             
             document.getElementById(props.id+"threeContainer").appendChild(this.renderer.domElement);
             
@@ -442,7 +455,8 @@ export class ThreeSunriseApplet {
             
             this.composer.render();
             
-            setTimeout(()=>{this.threeAnim = requestAnimationFrame(this.render)},15);
+            setTimeout(()=>{this.threeAnim = 
+                this.renderer.setAnimationLoop( this.render )},15);
         }
     }  
 

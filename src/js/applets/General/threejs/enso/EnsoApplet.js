@@ -145,9 +145,7 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 /**
  * VR
  */
-const supportsVR = 'getVRDisplays' in navigator;
-
-if (supportsVR) {
+if (navigator.xr) {
     navigator.getVRDisplays().then(function(displays) {
         his.renderer.xr.enabled = true;
         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
