@@ -42,7 +42,7 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:${props.height}; 
             width:${props.width}; 
-            overflow: scroll;
+            overflow-y: scroll;
             padding: 50px;
             ' 
             >
