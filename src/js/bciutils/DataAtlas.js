@@ -613,7 +613,7 @@ export class DataAtlas {
 	getBlink() {
         let sideChannels = [['AF7','FP1'],['AF8','FP2']]
 		let blinks = [false,false]
-		if (this.data.blink == null) this.blink = {
+		if (this.data.blink == null) this.data.blink = {
 			blinkDuration: this.data.eegshared.sps, // One second
 			blinkThreshold: 500, // uV
 			lastBlink: Date.now()
