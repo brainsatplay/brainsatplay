@@ -2,14 +2,14 @@ import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 import p5 from 'p5';
 import {Ring} from './Ring';
-import placeholderImg from './../../../../assets/placeholderImg.png'
+import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
 export class BandRingApplet {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Bandpower visualizer."  	
-    static image=placeholderImg
+    static description = "Bandpower visualizer."
+    static image=featureImg
 
     constructor(
         parent=document.body,

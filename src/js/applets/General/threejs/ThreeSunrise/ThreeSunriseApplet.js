@@ -11,14 +11,14 @@ import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
 import metalUrl from './textures/8k_earth_specular_map.tif'
 
-import placeholderImg from './../../../../../assets/placeholderImg.png'
+import featureImg from './img/feature.png'
 
 export class ThreeSunriseApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Your HEG ratio turns the Earth!"
-    static image=placeholderImg
-    
+    static description = "Spin the Earth!"
+    static image=featureImg
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

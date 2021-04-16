@@ -1,13 +1,13 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import {SoundJS} from '../../frontend/UX/Sound'
-import placeholderImg from './../../../assets/placeholderImg.png'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import {SoundJS} from '../../../../frontend/UX/Sound'
+import featureImg from './../../../../../assets/features/placeholder.png'
 
 export class AudioApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "HEG ratio and EEG Coherence feedback."
-    static image=placeholderImg
+    static image=featureImg
 
     constructor(
         parent=document.body,

@@ -1,12 +1,13 @@
 import {brainsatplay} from '../brainsatplay'
 import {DOMFragment} from '../frontend/utils/DOMFragment'
+import featureImg from './../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
 export class AppletTemplate {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "See your brain."
-    static image=placeholderImg
+    static image=featureImg
 
     constructor(
         parent=document.body,

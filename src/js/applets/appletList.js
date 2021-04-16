@@ -1,7 +1,7 @@
 import { AppletBrowser } from './UI/AppletBrowser'
 
 import {AppletExample} from './AppletExample'
-import {uPlotApplet} from './General/uPlotApplet'
+import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/BrainMapApplet'
 import { SmoothieApplet } from './EEG/SmoothieApplet'
@@ -9,18 +9,19 @@ import { NexusApplet } from './General/threejs/nexus/NexusApplet'
 import { BlobApplet } from './General/threejs/blob/BlobApplet'
 import { EnsoApplet } from './General/threejs/enso/EnsoApplet'
 import { CosmosApplet } from './General/threejs/cosmos/CosmosApplet'
-import { BlinkApplet } from './EEG/Blink'
+import { BlinkApplet } from './EEG/blink/Blink'
 import { BandRingApplet } from './EEG/bandring/BandRing'
 
-import { CircleApplet } from './HEG/Circle'
-import { AudioApplet } from './General/AudioApplet'
-import { VideoApplet } from './General/VideoApplet'
-import { BoidsApplet } from './HEG/Boids'
-import { HillClimberApplet } from './HEG/HillClimber'
-import { TextScrollerApplet } from './HEG/TextScroller'
+import { CircleApplet } from './HEG/circle/Circle'
+import { AudioApplet } from './General/other/audio/AudioApplet'
+import { VideoApplet } from './General/other/video/VideoApplet'
+import { BoidsApplet } from './HEG/boids/Boids'
+import { HillClimberApplet } from './HEG/hillclimber/HillClimber'
+import { TextScrollerApplet } from './HEG/textscroller/TextScroller'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
 
-import placeholderImg from './../../assets/placeholderImg.png'
+import placeholderImg from './../../assets/features/placeholder.png'
+import eegNFImage from './../../assets/features/eegNF.png'
 
 
 let applets = [
@@ -128,7 +129,7 @@ let presets = [
     },
     {
         value: 'eeg',
-        name: "EEG Neurofeedback",
+        name: "Neurofeedback",
         applets: [
             "Blob",
             "Brain Map",
@@ -136,11 +137,12 @@ let presets = [
             "uPlot",
         ],
         description: "Bandpower training, coherence, and more.",
-        image: placeholderImg	  	
+        type: "EEG",
+        image: eegNFImage	  	
     },
     {
         value: 'heg',
-        name: "HEG Biofeedback",
+        name: "Biofeedback",
         applets: [
             "HEG Boids",
             "HEG Circle",
@@ -148,6 +150,7 @@ let presets = [
             "uPlot",
         ],
         description: "Brain blood flow training!",
+        type: "HEG",
         image: placeholderImg	
     }
 ]

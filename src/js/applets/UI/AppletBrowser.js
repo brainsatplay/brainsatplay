@@ -1,14 +1,14 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import { applets , presets} from './../appletList'
-import placeholderImg from './../../../assets/placeholderImg.png'
+import featureImg from './../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
 
     static devices = []; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Select applets to view."
-    static image=placeholderImg
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -100,8 +100,9 @@ export class AppletBrowser {
                 <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
                     <img src="${preset.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
-                        <h2>${preset.name}</h2>
-                        <p>${preset.description}</p>
+                    <h2 style="margin-bottom: 0px;">${preset.name}</h2>
+                    <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
+                    <p style="font-size: 80%;margin-top: 5px;">${preset.description}</p>
                     </div>
                 </div>`
                 presetSelections.push(preset.value)
@@ -128,7 +129,7 @@ export class AppletBrowser {
                     <div style="padding: 0px 25px 10px 25px; position: relative;">
                         <h2 style="margin-bottom: 0px;">${applet.name}</h2>
                         <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                        <p>${applet.cls.description}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${applet.cls.description}</p>
                     </div>
                 </div>`
                 if (applet.cls.devices.length > 1){
@@ -142,12 +143,6 @@ export class AppletBrowser {
         })
 
         container.innerHTML += `
-        <h1>Neurofeedback</h1>
-        <hr>
-        ${sectionContainer}
-        ${presetHTML}
-        </div>
-        <br>
         <h1>Applets</h1>
         <hr>
         ${sectionContainer}
@@ -155,8 +150,12 @@ export class AppletBrowser {
         ${eegHTML}
         ${hegHTML}
         </div>
+        <h1>Presets</h1>
+        <hr>
+        ${sectionContainer}
+        ${presetHTML}
+        </div>
         `
-        
 
         const appletCards = container.querySelectorAll('.browser-card')
         for (let div of appletCards){

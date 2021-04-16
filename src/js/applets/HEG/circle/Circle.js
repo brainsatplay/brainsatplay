@@ -1,15 +1,15 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../brainsatplay'
+import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 
-import { SoundJS } from '../../frontend/UX/Sound';
-import placeholderImg from './../../../assets/placeholderImg.png'
+import { SoundJS } from '../../../frontend/UX/Sound';
+import featureImg from './img/feature.png'
 
 export class CircleApplet {
 
     static devices = ['heg']
     static description = "Increase your HEG ratio!"
-    static image=placeholderImg
-    
+    static image=featureImg
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

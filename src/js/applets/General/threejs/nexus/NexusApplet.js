@@ -19,14 +19,14 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import mapTexture from "./img/mapTexture.jpeg"
 import mapDisp from "./img/mapDisplacement.jpeg"
-import placeholderImg from './../../../../../assets/placeholderImg.png'
+import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
 
     static devices = ['eeg'] //,heg
     static description = "Connect your brain with others!"
-    static image=placeholderImg
+    static image=featureImg
 
     constructor(
         parent=document.body,
