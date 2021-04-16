@@ -9,7 +9,7 @@ import featureImg from './../../../../../assets/features/placeholder.png'
 export class uPlotApplet {
 
     static devices = ['eeg','heg']
-    static description = "View live data"
+    static description = "View live data."
     static image=featureImg
 
     constructor(

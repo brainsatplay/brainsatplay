@@ -87,7 +87,7 @@ export class AppletBrowser {
             <div style='
             display: flex;
             flex-wrap: wrap; 
-            align-items: center; 
+            align-items: stretch; 
             justify-content: center;'>
             `
 
