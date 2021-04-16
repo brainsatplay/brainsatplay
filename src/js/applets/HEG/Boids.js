@@ -95,7 +95,7 @@ export class BoidsApplet {
             document.getElementById(props.id+'separation').onchange = () => {
                 this.class.separationMul = document.getElementById(props.id+'separation').value;
             }
-            document.getElementById(props.id+'cohesionreset').onclick = () => {
+            document.getElementById(props.id+'separationreset').onclick = () => {
                 this.class.separationMul = 1;
                 document.getElementById(props.id+'separation').value = 1;
             }
