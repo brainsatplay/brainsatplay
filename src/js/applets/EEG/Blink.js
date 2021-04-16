@@ -74,23 +74,24 @@ export class BlinkApplet {
         //Add whatever else you need to initialize
         this.responsive()
 
-        let animate = () => {
+        this.updateAnimation = () => {
             let leftEye = document.getElementById(this.props.id+"-left")
             let rightEye = document.getElementById(this.props.id+"-right")
             let blink = this.bci.atlas.getBlink()
             let leftOpacity = 1-(blink[0]? 1 : 0)
             let rightOpacity = 1-(blink[1]? 1 : 0)
-            leftEye.style.opacity = leftOpacity
-            rightEye.style.opacity = rightOpacity
+            if (leftEye) leftEye.style.opacity = leftOpacity
+            if (rightEye) rightEye.style.opacity = rightOpacity
 
-            setTimeout(() => {requestAnimationFrame(animate);},60);
+            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},60);
         }
-        animate()
+        this.updateAnimation()
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        cancelAnimationFrame(this.animate);
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
