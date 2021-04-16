@@ -21,7 +21,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
         particleSize: 5,
         startingX: Math.random()*100, 
         startingY: Math.random()*100,
-        maxSpeed: 3, 
+        maxSpeed: 1, 
         xBounce: -1,
         yBounce: -1,
         gravity: 0.0,
@@ -155,7 +155,7 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
       }
 
       // Adjust for gravity
-      this.particles[i].vy += this.settings.gravity;
+      this.particles[i].vy += this.settings.gravity*this.frameRate;
 
       // Age the particle
       this.particles[i].life++;
@@ -227,7 +227,14 @@ export class Particles { //Adapted from this great tutorial: https://modernweb.c
         //context.fillRect(this.x, this.y, settings.particleSize, settings.particleSize);
         this.context.clearRect(this.settings.leftWall, this.settings.groundLevel, this.canvas.width, this.canvas.height);
         this.context.beginPath();
-        this.context.fillStyle="rgb("+String(Math.abs(this.particles[i].vx)*75)+","+String(Math.abs(this.particles[i].vy)*25)+","+String(255 - Math.abs(this.particles[i].vx)*75)+")";
+        let magnitude = Math.sqrt(this.particles[i].vx*this.particles[i].vx + this.particles[i].vy*this.particles[i].vy)
+        let red,green,blue;
+
+        red = Math.sin(magnitude+this.particles[i].vx)*255;
+        green = 10*(1-magnitude);
+        blue = Math.cos(magnitude+this.particles[i].vy)*125+75;
+
+        this.context.fillStyle="rgb("+red+","+green+","+blue+")";
         // Draws a circle of radius 20 at the coordinates 100,100 on the canvas
         this.context.arc(this.particles[i].x, this.particles[i].y, this.settings.particleSize, 0, Math.PI*2, true); 
         this.context.closePath();
@@ -249,11 +256,11 @@ export class Boids {
 
       this.boidsMul = 1; // Global modifier on boids velocity change for particles. 
 
-      this.dragMul = 0.1;
-      this.cohesionMul = 0.01; //Force toward mean position of group
+      this.dragMul = 0.033;
+      this.cohesionMul = 0.001; //Force toward mean position of group
       this.alignmentMul = 0.5; //Force perpendicular to mean direction of group
-      this.separationMul = 3; //Force away from other boids group members, multiplied by closeness.
-      this.swirlMul = 0.0005; //Positive = Clockwise rotation about an anchor point
+      this.separationMul = 1; //Force away from other boids group members, multiplied by closeness.
+      this.swirlMul = 0.0001; //Positive = Clockwise rotation about an anchor point
       this.attractorMul = 0.003;
 
       this.useAttractor = true;
@@ -404,7 +411,7 @@ export class Boids {
         if(this.swirlMul < 0) {
           this.swirlMul = 0;
         }
-        else if(this.swirlMul > 0.001){
+        else if(this.swirlMul > 0.01){
           this.swirlMul = 0.01;
         }
     }

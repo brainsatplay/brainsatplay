@@ -29,6 +29,8 @@ export class BoidsApplet {
         this.looping = false;
         this.loop = null;
 
+        this.hidden = true;
+
     }
 
     //---------------------------------
@@ -42,8 +44,15 @@ export class BoidsApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id=`+props.id+`>
-                <div id='`+props.id+`menu' style='position:absolute; z-index:3; '>
-                    <table id='`+props.id+`table' style='z-index:99;'>
+                <div id='`+props.id+`menu' height='100%' width='100%' style='position:absolute; z-index:3; '>
+                    <button id='`+props.id+`showhide' style='opacity:0.2; z-index:2;'>Show UI</button><br>
+                    <table id='`+props.id+`table' style='z-index:99; display:none;'>
+                        <tr><td>Cohesion:</td><td><input type='range' id='`+props.id+`cohesion' min="0" max="0.1" value="0.0001" step="0.0001"></td><td><button id='`+props.id+`cohesionreset'>Reset</button></td></tr>
+                        <tr><td>Separation:</td><td><input type='range' id='`+props.id+`separation' min="0" max="10" value="1" step="0.1"></td><td><button id='`+props.id+`separationreset'>Reset</button></td></tr>
+                        <tr><td>Alignment:</td><td><input type='range' id='`+props.id+`align' min="0" max="2" value="0.5" step="0.01"></td><td><button id='`+props.id+`alignreset'>Reset</button></td></tr>
+                        <tr><td>Swirl:</td><td><input type='range' id='`+props.id+`swirl' min="0" max="0.01" value="0.0001" step="0.0001" ></td><td><button id='`+props.id+`swirlreset'>Reset</button></td></tr>
+                        <tr><td>Max Speed:</td><td><input type='range' id='`+props.id+`speed' min="0" max="10" value="1" step="0.1" ></td><td><button id='`+props.id+`speedreset'>Reset</button></td></tr>
+                        <tr><td>Gravity:</td><td><input type='range' id='`+props.id+`gravity' min="0" max="10" value="0" step="0.1"></td><td><button id='`+props.id+`gravityreset'>Reset</button></td></tr>
                     </table>
                 </div>
                 <canvas id='`+props.id+`canvas' height='100%' width='100%' style='width:100%; height:100%;'></canvas>
@@ -53,7 +62,70 @@ export class BoidsApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            let showhide = document.getElementById(props.id+'showhide');
+            let table = document.getElementById(props.id+'table');
+            showhide.onclick = () => {
+                if(this.hidden === false) {
+                    table.style.display = 'none';
+                    showhide.innerHTML = "Show UI";
+                    this.hidden = true;
+                }
+                else {
+                    table.style.display = '';
+                    showhide.innerHTML = "Hide UI";
+                    this.hidden = false;
+                }
+            }
+
+            showhide.onmouseover = () => {
+                showhide.style.opacity = 1.0;
+            }
+            showhide.onmouseleave = () => {
+                showhide.style.opacity = 0.2;
+            }
+
+            document.getElementById(props.id+'cohesion').onchange = () => {
+                this.class.cohesionMul = document.getElementById(props.id+'cohesion').value;
+            }
+            document.getElementById(props.id+'cohesionreset').onclick = () => {
+                this.class.cohesionMul = 0.001;
+                document.getElementById(props.id+'cohesion').value = 0.001;
+            }
+            document.getElementById(props.id+'separation').onchange = () => {
+                this.class.separationMul = document.getElementById(props.id+'separation').value;
+            }
+            document.getElementById(props.id+'cohesionreset').onclick = () => {
+                this.class.separationMul = 1;
+                document.getElementById(props.id+'separation').value = 1;
+            }
+            document.getElementById(props.id+'align').onchange = () => {
+                this.class.alignmentMul = document.getElementById(props.id+'align').value;
+            }
+            document.getElementById(props.id+'alignreset').onclick = () => {
+                this.class.alignmentMul = 0.5;
+                document.getElementById(props.id+'align').value = 0.5;
+            }
+            document.getElementById(props.id+'swirl').onchange = () => {
+                this.class.swirlMul = document.getElementById(props.id+'swirl').value;
+            }
+            document.getElementById(props.id+'swirlreset').onclick = () => {
+                this.class.swirlMul = 0.0001;
+                document.getElementById(props.id+'swirl').value = 0.0001;
+            }
+            document.getElementById(props.id+'speed').onchange = () => {
+                this.class.particleClass.settings.maxSpeed = document.getElementById(props.id+'speed').value;
+            }
+            document.getElementById(props.id+'speedreset').onclick = () => {
+                this.class.particleClass.settings.maxSpeed = 1;
+                document.getElementById(props.id+'speed').value = 1;
+            }
+            document.getElementById(props.id+'gravity').onchange = () => {
+                this.class.particleClass.settings.gravity = document.getElementById(props.id+'gravity').value;
+            }
+            document.getElementById(props.id+'gravityreset').onclick = () => {
+                this.class.particleClass.settings.gravity = 0;
+                document.getElementById(props.id+'gravity').value = 0;
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

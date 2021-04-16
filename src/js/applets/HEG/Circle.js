@@ -52,12 +52,12 @@ export class CircleApplet {
             return `
             <div id=`+props.id+`>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:3; '>
+                    <button id='`+props.id+`showhide' style='opacity:0.1;'>Hide UI</button>
                     <table id='`+props.id+`table' style='z-index:99;'>
                         <td><button id='`+props.id+`audio'>Tone</button></td>
                     </table>
-                    <button id='`+props.id+`showhide' style='opacity:0.3;'>Hide UI</button>
                 </div>
-                <canvas id='`+props.id+`canvas' height='100%' width='100%' style='width:100%; height:100%;'></canvas>
+                <canvas id='`+props.id+`canvas' style='z-index:1;'></canvas>
             </div>
             `;
         }
@@ -104,7 +104,7 @@ export class CircleApplet {
                 showhide.style.opacity = 1.0;
             }
             showhide.onmouseleave = () => {
-                showhide.style.opacity = 0.2;
+                showhide.style.opacity = 0.1;
             }
 
             this.canvas = document.getElementById(props.id+"canvas");
