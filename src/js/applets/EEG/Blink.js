@@ -26,6 +26,9 @@ export class BlinkApplet {
 
         //etc..
         this.sub1 = undefined;
+        
+        this.leftred = 255;
+        this.rightred = 255;
     }
 
     //---------------------------------
@@ -40,14 +43,14 @@ export class BlinkApplet {
             let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
             return `
                 <div id='${props.id}' style='height:${props.height}; width:${props.width}; display: flex; align-items: center; justify-content: center;'>
-                    <div id="${props.id}-left" style="margin: 25px; border-radius: 50%; background: white; transition: opacity 0.12s;">
-                        <div id="${props.id}-left" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
-                        <div id="${props.id}-left" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
+                    <div id="${props.id}-left" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
+                        <div id="${props.id}-leftiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
+                        <div id="${props.id}-leftpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
                         </div>
                     </div>
-                    <div id="${props.id}-right" style="margin: 25px; border-radius: 50%; background: white; transition: opacity 0.12s;">
-                        <div id="${props.id}-left" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
-                        <div id="${props.id}-left" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
+                    <div id="${props.id}-right" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
+                        <div id="${props.id}-rightiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
+                        <div id="${props.id}-rightpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
                         </div>
                     </div> 
                 </div>
@@ -80,10 +83,34 @@ export class BlinkApplet {
             let blink = this.bci.atlas.getBlink()
             let leftOpacity = 1-(blink[0]? 1 : 0)
             let rightOpacity = 1-(blink[1]? 1 : 0)
+            if(!blink[0]) { 
+                this.leftred-=1;    
+                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+            } else {
+                document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
+            }
+            if(this.leftred <= 50) {
+                this.leftred = 255;
+                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
+                document.getElementById(this.props.id+"-leftiris").style.background = 'purple';           
+                leftOpacity = 0;
+            }
+            if(!blink[1]) {
+                this.rightred-=1;
+                rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
+            } else {
+                document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
+            } 
+            if(this.rightred <= 50){
+                this.rightred = 255;
+                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                document.getElementById(this.props.id+"-rightiris").style.background = 'purple';
+                rightOpacity = 0;
+            }
             if (leftEye) leftEye.style.opacity = leftOpacity
             if (rightEye) rightEye.style.opacity = rightOpacity
 
-            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},60);
+            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},150);
         }
         this.updateAnimation()
     }
