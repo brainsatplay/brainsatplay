@@ -16,7 +16,15 @@ export class hegduinoPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-       
+        this.setIndicator = (on=true) => {
+            if (on){
+                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
+                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
+            } else {
+                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
+                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
+            }
+        }
     }
 
     	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
@@ -284,10 +292,13 @@ export class hegduinoPlugin {
 
     connect = () => {
         this.device.connect();
+        this.setIndicator(true)
     }
 
     disconnect = () => {
         this.device.disconnect();
+        this.setIndicator(false)
+
     }
 
     //externally set callbacks

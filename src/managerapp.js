@@ -13,6 +13,7 @@ import { BlobApplet } from './js/applets/General/threejs/blob/BlobApplet'
 import { EnsoApplet } from './js/applets/General/threejs/enso/EnsoApplet'
 import { CosmosApplet } from './js/applets/General/threejs/cosmos/CosmosApplet'
 import { BlinkApplet } from './js/applets/EEG/Blink'
+import { BandRingApplet } from './js/applets/EEG/bandring/BandRing'
 
 import { CircleApplet } from './js/applets/HEG/Circle'
 import { AudioApplet } from './js/applets/General/AudioApplet'
@@ -31,14 +32,15 @@ let applets = [
 	{	name:"Enso",      		cls: EnsoApplet			},
 	{	name:"Smooth",         	cls: SmoothieApplet		},
 	{	name:"Brain Map",      	cls: BrainMapApplet		},
-	{   name:"HEGCircle", 		cls: CircleApplet		},
-	{   name:"HEGBoids",        cls: BoidsApplet		},
-	{   name:"HEGAudio",        cls: AudioApplet		},
-	{   name:"HEGVideo",		cls: VideoApplet		}, // 
+	{   name:"HEG Circle", 		cls: CircleApplet		},
+	{   name:"HEG Boids",        cls: BoidsApplet		},
+	{   name:"HEG Audio",        cls: AudioApplet		},
+	{   name:"HEG Video",		cls: VideoApplet		}, // 
 	{   name:"Sunrise",         cls: ThreeSunriseApplet },
-	{   name:"HillCimber",      cls: HillClimberApplet  },
-	{   name:"TextScroller",    cls: TextScrollerApplet },
+	{   name:"Hill Cimber",      cls: HillClimberApplet  },
+	{   name:"Text Scroller",    cls: TextScrollerApplet },
 	{	name:"Blink",      		cls: BlinkApplet			},
+	{	name:"Band Ring",      		cls: BandRingApplet			},
 
 ];//sssssymmetry (ღ˘⌣˘ღ)
 
