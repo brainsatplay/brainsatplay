@@ -1,11 +1,14 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import { applets , presets} from './../appletList'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
 
     static devices = []; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Select applets to view."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,
@@ -99,7 +102,7 @@ export class AppletBrowser {
         presets.forEach(preset => {
             if (preset.name != 'Applet Browser'){
                 html += `
-                <div id="${this.props.id}-${preset.value}" style="${appletStyle};">
+                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
                     <img src="${preset.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
                         <h3>${preset.name}</h3>
@@ -119,9 +122,8 @@ export class AppletBrowser {
 
         applets.forEach(applet => {
             if (applet.name != 'Applet Browser'){
-                console.log(applet.cls)
                 html += `
-                <div id="${this.props.id}-${applet.name}" style="${appletStyle};">
+                <div id="${this.props.id}-${applet.name}" class='browser-card' style="${appletStyle};">
                     <img src="${applet.cls.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
                         <h3>${applet.name}</h3>
@@ -134,17 +136,18 @@ export class AppletBrowser {
         container.innerHTML += html
         
 
-        const appletDivs = container.getElementsByTagName('div')
-        for (let div of appletDivs){
+        const appletCards = container.querySelectorAll('.browser-card')
+        for (let div of appletCards){
             if (presetSelections.includes(div.id.split('-')[1])){
                 div.onclick = (e) => {
-                    window.location.href = `${window.location.origin}/#${e.target.id.split('-')[1]}`;
+                    window.location.href = `${window.location.origin}/#${div.id.split('-')[1]}`;
                     location.reload();
                 }
             } else {
                 div.onclick = (e) => {
+                    console.log(div.id)
                     let selector = document.getElementById('applet1')
-                    selector.value = e.target.id.split('-')[1]
+                    selector.value = div.id.split('-')[1]
                     selector.onchange()
                 }
                 }

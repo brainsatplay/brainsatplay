@@ -5,9 +5,9 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class TextScrollerApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Select applets to view."
+    static description = "Train your brain."
     static image=placeholderImg
-    
+
     constructor(
         parent=document.body,
         bci=new brainsatplay(),
