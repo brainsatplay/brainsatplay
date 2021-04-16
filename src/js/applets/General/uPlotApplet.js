@@ -577,7 +577,7 @@ export class uPlotApplet {
                 if(view === 'All' || row.ch === parseInt(view)) {
                   //console.log("gotcha")
                   this.class.uPlotData.push([...atlas.data.eegshared.frequencies]);
-                  console.log(this.class.uPlotData)
+                  //console.log(this.class.uPlotData)
                 }
               });
             
@@ -795,7 +795,7 @@ export class uPlotApplet {
     setLegend = () => {
       document.getElementById(this.props.id+"legend").innerHTML = "";
       let htmlToAppend = ``;
-      console.log(this.class.plot.series)
+      //console.log(this.class.plot.series)
       this.class.plot.series.forEach((ser,i) => {
         if(i>0){
           htmlToAppend += `<div id='`+this.props.id+ser.label+`' style='color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</div>`;
