@@ -613,20 +613,20 @@ export class DataAtlas {
 	getBlink() {
         let sideChannels = [['AF7','FP1'],['AF8','FP2']]
 		let blinks = [false,false]
-		if (this.blink == null) this.blink = {
+		if (this.data.blink == null) this.blink = {
 			blinkDuration: this.data.eegshared.sps, // One second
 			blinkThreshold: 500, // uV
 			lastBlink: Date.now()
 		}
         // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
-        if (Date.now() - this.blink.lastBlink > 2*this.blink.blinkDuration){
+        if (Date.now() - this.data.blink.lastBlink > 2*this.data.blink.blinkDuration){
         sideChannels.forEach((channels,ind) => {
 				let data = this.getEEGDataByTag(channels[0]) ?? this.getEEGDataByTag(channels[1])
-				let blinkRange = data.filtered.slice(data.filtered.length-this.blink.blinkDuration)
-				let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-				blinks[ind] = (max > this.blink.blinkThreshold)
+				let blinkRange = data.filtered.slice(data.filtered.length-this.data.blink.blinkDuration)
+				let max = Math.max(...blinkRange.map(v => v)) //Math.abs(v)
+				blinks[ind] = (max > this.data.blink.blinkThreshold)
             })
-            this.blink.lastBlink = Date.now()
+            this.data.blink.lastBlink = Date.now()
         }
         
         return blinks

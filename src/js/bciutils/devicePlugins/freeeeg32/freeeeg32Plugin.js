@@ -115,6 +115,8 @@ export class eeg32Plugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,this.device.uVperStep)); 
                 }
+                this.filters[this.filters.length-1].useScaling = true;
+                this.filters[this.filters.length-1].useBp1 = true;
             });
         }
 
