@@ -41,7 +41,7 @@ let applets = [
 	{   name:"HEG Audio",       cls: AudioApplet		},
 	{   name:"HEG Video",		cls: VideoApplet		}, // 
 	{   name:"Sunrise",         cls: ThreeSunriseApplet },
-	{   name:"Hill Cimber",     cls: HillClimberApplet  },
+	{   name:"Hill Climber",     cls: HillClimberApplet  },
 	{   name:"Text Scroller",   cls: TextScrollerApplet },
 	{	name:"Blink",      		cls: BlinkApplet		},
 	{	name:"Band Ring",       cls: BandRingApplet  	},

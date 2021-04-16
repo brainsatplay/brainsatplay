@@ -100,7 +100,7 @@ export class AppletBrowser {
                 <p>Train your brain.</p>
                 </div>
                 <div id="${props.id}-Blink" style="${appletStyle};">
-                <h3>uPlot</h3>
+                <h3>Blink</h3>
                 <p>Play with your brain.</p>
                 </div>
                 <div id="${props.id}-uPlot" style="${appletStyle};">
