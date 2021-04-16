@@ -88,8 +88,7 @@ export class AppletBrowser {
             display: flex;
             flex-wrap: wrap; 
             align-items: center; 
-            justify-content: center;
-            overflow: scroll;'>
+            justify-content: center;'>
             `
 
         let presetSelections = []
