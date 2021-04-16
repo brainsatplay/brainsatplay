@@ -144,9 +144,9 @@ let presets = [
         value: 'heg',
         name: "Biofeedback",
         applets: [
-            "HEG Boids",
-            "HEG Circle",
-            "HEG Audio",
+            "Boids",
+            "Circle",
+            "Audio",
             "uPlot",
         ],
         description: "Brain blood flow training!",
