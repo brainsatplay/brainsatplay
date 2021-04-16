@@ -85,7 +85,7 @@ export class BlinkApplet {
             let rightOpacity = 1-(blink[1]? 1 : 0)
             let newcolor = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
             if(!blink[0]) { 
-                this.leftred-=1;    
+                this.leftred-=0.5;    
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
             } else {
                 document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
@@ -97,7 +97,7 @@ export class BlinkApplet {
                 leftOpacity = 0;
             }
             if(!blink[1]) {
-                this.rightred-=1;
+                this.rightred-=0.5;
                 rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
             } else {
                 document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
@@ -108,10 +108,10 @@ export class BlinkApplet {
                 document.getElementById(this.props.id+"-rightiris").style.background = newcolor;
                 rightOpacity = 0;
             }
-            if (leftEye) leftEye.style.opacity = leftOpacity
-            if (rightEye) rightEye.style.opacity = rightOpacity
-
-            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},150);
+            if (leftEye) leftEye.style.opacity = leftOpacity;
+            if (rightEye) rightEye.style.opacity = rightOpacity;
+            
+            setTimeout(() => {this.animate = requestAnimationFrame(this.updateAnimation);},60);
         }
         this.updateAnimation()
     }
