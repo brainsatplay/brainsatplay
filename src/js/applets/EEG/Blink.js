@@ -83,6 +83,7 @@ export class BlinkApplet {
             let blink = this.bci.atlas.getBlink()
             let leftOpacity = 1-(blink[0]? 1 : 0)
             let rightOpacity = 1-(blink[1]? 1 : 0)
+            let newcolor = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
             if(!blink[0]) { 
                 this.leftred-=1;    
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
@@ -92,7 +93,7 @@ export class BlinkApplet {
             if(this.leftred <= 50) {
                 this.leftred = 255;
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
-                document.getElementById(this.props.id+"-leftiris").style.background = 'purple';           
+                document.getElementById(this.props.id+"-leftiris").style.background = newcolor;      
                 leftOpacity = 0;
             }
             if(!blink[1]) {
@@ -104,7 +105,7 @@ export class BlinkApplet {
             if(this.rightred <= 50){
                 this.rightred = 255;
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-                document.getElementById(this.props.id+"-rightiris").style.background = 'purple';
+                document.getElementById(this.props.id+"-rightiris").style.background = newcolor;
                 rightOpacity = 0;
             }
             if (leftEye) leftEye.style.opacity = leftOpacity
