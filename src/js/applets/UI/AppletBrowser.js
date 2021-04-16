@@ -64,31 +64,31 @@ export class AppletBrowser {
                 <h3>HEG Neurofeedback</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-blob" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-Blob" style="${appletStyle};">
                 <h3>Blob</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-enso" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-Enso" style="${appletStyle};">
                 <h3>Enso</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-cosmos" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-Cosmos" style="${appletStyle};">
                 <h3>Cosmos</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-nexus" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-Nexus" style="${appletStyle};">
                 <h3>Nexus</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-uplot" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-uplot" style="${appletStyle};">
                 <h3>uPlot</h3>
                 <p>See your brain.</p>
                 </div>
-                <div id="${props.id}-spectrogram" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-spectrogram" style="${appletStyle};">
                 <h3>Spectrogram</h3>
                 <p>See your brain.</p>
                 </div>
-                <div id="${props.id}-smooth" style="${appletStyle}; opacity: 0.5;">
+                <div id="${props.id}-smooth" style="${appletStyle};">
                 <h3>Smooth</h3>
                 <p>See your brain.</p>
                 </div>
@@ -116,18 +116,22 @@ export class AppletBrowser {
         // Applet Browser
         const container = document.getElementById(this.props.id)
         const appletDivs = container.getElementsByTagName('div')
+        const presets = ['heg','eeg']
         for (let div of appletDivs){
-            console.log(div.style.opacity)
-            if (div.style.opacity != '0.5'){
+            if (presets.includes(div.id.split('-')[1])){
                 div.onclick = (e) => {
-                    window.location.href += `#${e.target.id.split(this.props.id + '-')[1]}`;
+                    window.location.href = `${window.location.origin}/#${e.target.id.split('-')[1]}`;
                     location.reload();
                 }
             } else {
-                div.style.cursor = 'auto'
+                div.onclick = (e) => {
+                    let selector = document.getElementById('applet1')
+                    selector.value = e.target.id.split('-')[1]
+                    selector.onchange()
+                }
                 }
             }
-            
+
         //Add whatever else you need to initialize
         this.responsive()
     }

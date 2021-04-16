@@ -427,7 +427,7 @@ export class AppletManager {
     addAppletOptions = (selectId,appletIdx) => {
         var select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None' selected="selected">None</option>`;
+        var newhtml = `<option value='None'>None</option>`;
         this.appletClasses.forEach((classObj,i) => {
             if (this.checkCompatibility(classObj.cls)){
                 if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
@@ -441,6 +441,7 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = (e) => {
+            console.log('changed')
             this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
                 let found = this.appletClasses.find((o,i)=>{
