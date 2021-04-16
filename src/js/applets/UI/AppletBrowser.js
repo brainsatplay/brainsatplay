@@ -1,5 +1,6 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import * as BrowserFS from 'browserfs'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -174,6 +175,18 @@ export class AppletBrowser {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
+
+        const fs = BrowserFS.BFSRequire('fs')
+        const listFiles = () => {
+            console.log('reading files')
+            fs.readdir('/', (e, files) => {
+                if(e) return;
+                files.forEach(file => {
+                  console.log(file);
+                });
+              });
+        }
+        listFiles()
 
         // Applet Browser
         const container = document.getElementById(this.props.id)
