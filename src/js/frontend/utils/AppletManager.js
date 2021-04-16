@@ -165,7 +165,6 @@ export class AppletManager {
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
         // Load Config
-        console.log(appletConfigs)
         let preset = undefined;
         let config = undefined;
         if(appletConfigs.length !== 0) {
@@ -262,7 +261,7 @@ export class AppletManager {
 
     appletDivSettings = (appletDiv, appletIdx) => {
         appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
-        if (appletDiv.style.overflow == 'auto'){console.log('setting hidden'); appletDiv.style.overflow = `hidden`;}
+        if (appletDiv.style.overflow == 'auto'){appletDiv.style.overflow = `hidden`;}
         // appletDiv.draggable = true
         // appletDiv.style.cursor = 'move'
         // Fullscreen Functionality
@@ -382,10 +381,8 @@ export class AppletManager {
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
-            // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
             this.appletsSpawned++;
             this.enforceLayout();
-            console.log('add applet')
             this.responsive();
         }
     }
@@ -396,13 +393,11 @@ export class AppletManager {
             if(o.appletIdx === appletIdx && o.classinstance != null) {
                 stateIdx = i;  
                 if (this.applets[stateIdx].classinstance != null){
-                    console.log('deiniting applet' + this.applets[stateIdx].name)
                     this.applets[stateIdx].classinstance.deinit();
                 }
                 this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};
                 this.appletsSpawned--;
                 this.enforceLayout();
-                console.log('remove applet')
                 this.responsive();
                 return true;
             }
@@ -441,7 +436,6 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = (e) => {
-            console.log('changed')
             this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
                 let found = this.appletClasses.find((o,i)=>{
@@ -506,8 +500,6 @@ export class AppletManager {
     }
 
     responsive(nodes=this.applets) {      
-
-        console.log('responsive')
         let activeNodes = nodes.filter(n => n.classinstance != null)
         activeNodes.forEach((applet,i) => {
             applet.classinstance.responsive();
