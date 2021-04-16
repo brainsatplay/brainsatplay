@@ -5,7 +5,7 @@ import featureImg from './../../../../../assets/features/placeholder.png'
 
 export class AudioApplet {
 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "HEG ratio and EEG Coherence feedback."
     static image=featureImg
 
