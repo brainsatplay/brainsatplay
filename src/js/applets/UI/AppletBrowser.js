@@ -50,12 +50,18 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:${props.height}; 
             width:${props.width}; 
+            overflow: scroll;
+            padding: 50px;
+            ' 
+            >
+            <h1>Layouts</h1>
+            <hr>
+            <div style='
             display: flex;
             flex-wrap: wrap; 
             align-items: center; 
             justify-content: center;
-            overflow: scroll;' 
-            >
+            overflow: scroll;'>
                 <div id="${props.id}-eeg" style="${appletStyle}">
                 <h3>EEG Neurofeedback</h3>
                 <p>Train your brain.</p>
@@ -64,6 +70,15 @@ export class AppletBrowser {
                 <h3>HEG Neurofeedback</h3>
                 <p>Train your brain.</p>
                 </div>
+            </div>
+            <h1>EEG Applets</h1>
+            <hr>
+            <div style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: center;
+            overflow: scroll;'>
                 <div id="${props.id}-Blob" style="${appletStyle};">
                 <h3>Blob</h3>
                 <p>Train your brain.</p>
@@ -80,18 +95,65 @@ export class AppletBrowser {
                 <h3>Nexus</h3>
                 <p>Train your brain.</p>
                 </div>
-                <div id="${props.id}-uplot" style="${appletStyle};">
+                <div id="${props.id}-Band Ring" style="${appletStyle};">
+                <h3>Band Ring</h3>
+                <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-Blink" style="${appletStyle};">
+                <h3>uPlot</h3>
+                <p>Play with your brain.</p>
+                </div>
+                <div id="${props.id}-uPlot" style="${appletStyle};">
                 <h3>uPlot</h3>
                 <p>See your brain.</p>
                 </div>
-                <div id="${props.id}-spectrogram" style="${appletStyle};">
+                <div id="${props.id}-Spectrogram" style="${appletStyle};">
                 <h3>Spectrogram</h3>
                 <p>See your brain.</p>
                 </div>
-                <div id="${props.id}-smooth" style="${appletStyle};">
+                <div id="${props.id}-Smooth" style="${appletStyle};">
                 <h3>Smooth</h3>
                 <p>See your brain.</p>
                 </div>
+            </div>
+            <h1>HEG Applets</h1>
+            <hr>
+            <div style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: center;
+            overflow: scroll;'>
+                <div id="${props.id}-HEG Boids" style="${appletStyle};">
+                    <h3>Boids</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-HEG Circle" style="${appletStyle};">
+                    <h3>Circle</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-HEG Audio" style="${appletStyle};">
+                    <h3>Audio</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-HEG Video" style="${appletStyle};">
+                    <h3>Video</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-Hill Climber" style="${appletStyle};">
+                    <h3>Hill Climber</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-Sunrise" style="${appletStyle};">
+                    <h3>Sunrise</h3>
+                    <p>Train your brain.</p>
+                </div>
+                <div id="${props.id}-Text Scroller" style="${appletStyle};">
+                    <h3>Text Scroller</h3>
+                    <p>Train your brain.</p>
+                </div>
+            </div>
+            </div>
             </div>
             `;
         }
