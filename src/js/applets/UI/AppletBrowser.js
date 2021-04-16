@@ -92,15 +92,15 @@ export class AppletBrowser {
             `
 
         let presetSelections = []
-        let layoutHTML = ``
+        let presetHTML = ``
 
         presets.forEach(preset => {
             if (preset.name != 'Applet Browser'){
-                layoutHTML += `
+                presetHTML += `
                 <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
                     <img src="${preset.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px;">
-                        <h3>${preset.name}</h3>
+                        <h2>${preset.name}</h2>
                         <p>${preset.description}</p>
                     </div>
                 </div>`
@@ -114,11 +114,20 @@ export class AppletBrowser {
 
         applets.forEach(applet => {
             if (applet.name != 'Applet Browser'){
+                let type;
+                if (applet.cls.devices.length > 1){
+                    type = 'All'
+                } else if (applet.cls.devices[0] == 'eeg'){
+                    type = 'EEG'
+                } else if (applet.cls.devices[0] == 'heg'){
+                    type = 'HEG'
+                }
                 let html = `
                 <div id="${this.props.id}-${applet.name}" class='browser-card' style="${appletStyle};">
                     <img src="${applet.cls.image}" style="width: 100%;">
-                    <div style="padding: 0px 25px 10px 25px;">
-                        <h3>${applet.name}</h3>
+                    <div style="padding: 0px 25px 10px 25px; position: relative;">
+                        <h2 style="margin-bottom: 0px;">${applet.name}</h2>
+                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
                         <p>${applet.cls.description}</p>
                     </div>
                 </div>`
@@ -133,25 +142,18 @@ export class AppletBrowser {
         })
 
         container.innerHTML += `
-        <h1>Layouts</h1>
-        <hr>
-        ${sectionContainer}
-        ${layoutHTML}
-        </div>
-        <h1>General Applets</h1>
+        <h1>Applets</h1>
         <hr>
         ${sectionContainer}
         ${generalHTML}
-        </div>
-        <h1>EEG Applets</h1>
-        <hr>
-        ${sectionContainer}
         ${eegHTML}
+        ${hegHTML}
         </div>
-        <h1>HEG Applets</h1>
+        <br>
+        <h1>Presets</h1>
         <hr>
         ${sectionContainer}
-        ${hegHTML}
+        ${presetHTML}
         </div>
         `
         
