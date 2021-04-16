@@ -144,10 +144,8 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
  * VR
  */
 if (navigator.xr) {
-    navigator.getVRDisplays().then(function(displays) {
-        his.renderer.xr.enabled = true;
-        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    });
+    this.renderer.xr.enabled = true;
+    appletContainer.appendChild( VRButton.createButton( this.renderer ) );
 }
 
 

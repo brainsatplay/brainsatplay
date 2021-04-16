@@ -91,10 +91,9 @@ export class ThreeSunriseApplet {
              * VR
              */
             if (navigator.xr) {
-                navigator.getVRDisplays().then(function(displays) {
-                    his.renderer.xr.enabled = true;
-                    appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-                });
+                this.renderer.xr.enabled = true;
+                document.getElementById(props.id+"threeContainer").style.position = 'relative'
+                document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
             }
 
 
