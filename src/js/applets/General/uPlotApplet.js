@@ -75,7 +75,7 @@ export class uPlotApplet {
                       <td>
                       `+genBandviewSelect(props.id+'bandview')+`
                       </td>
-                      <td colSpan=2>
+                      <td colSpan=2 style='vertical-align:top;'>
                         <div id='`+props.id+`title' style='font-weight:bold; color:black; font-size:8px;'>Fast Fourier Transforms</div>
                       </td>
                     </tr>
