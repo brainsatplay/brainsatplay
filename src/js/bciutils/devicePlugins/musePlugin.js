@@ -4,6 +4,7 @@ import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
 import {DataAtlas} from '../DataAtlas'
 import {MuseClient} from 'muse-js'
 import { DOMFragment } from '../../frontend/utils/DOMFragment';
+import { TimeSeries } from 'smoothie';
 
 export class musePlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -47,6 +48,7 @@ export class musePlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
                 }
+                this.filters[this.filters.length-1].useBp1 = true;
             });
         }
 

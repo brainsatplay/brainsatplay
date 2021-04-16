@@ -17,6 +17,7 @@ export class AppletManager {
         
         this.appletClasses = appletClasses;
         this.appletsSpawned = 0;
+        this.appletConfigs = appletConfigs;
 
         // Layout Constraints
         if (!window.isMobile){
@@ -147,20 +148,16 @@ export class AppletManager {
                         return true;
                     }
                 });
-            }
-            else {
-                appletConfigs.forEach((cfg,i)=> {
-                    this.appletClasses.find((o,j) => {
-                        if(cfg.name === o.name) {
-                            config = cfg.settings;
-                        }
-                    });
-                });
+                this.appletConfigs = [preset.value];
             }
         } 
-        if(!preset) preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+        if(!preset) {
+            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+            this.appletConfigs = [preset.value];
+        }
         
-        let appletNames = preset.applets
+        let appletNames = preset.applets;
+        //this.appletConfigs = preset.applets;
         if(preset.value.includes('heg')) {
             if(this.bcisession.atlas.settings.heg === false) {
                 this.bcisession.atlas.addHEGCoord(0);

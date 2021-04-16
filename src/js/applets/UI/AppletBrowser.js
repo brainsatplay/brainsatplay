@@ -123,6 +123,8 @@ export class AppletBrowser {
                     type = 'EEG'
                 } else if (applet.cls.devices[0] == 'heg'){
                     type = 'HEG'
+                } else {
+                    type = "Other"
                 }
                 let html = `
                 <div id="${this.props.id}-${applet.name}" class='browser-card' style="${appletStyle};">
