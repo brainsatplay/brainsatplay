@@ -117,27 +117,17 @@ export class AppletBrowser {
         const container = document.getElementById(this.props.id)
         const appletDivs = container.getElementsByTagName('div')
         for (let div of appletDivs){
-            div.onclick = (e) => {
-                window.location.href += `#${e.target.id.split(this.props.id + '-')[1]}`;
-                location.reload();
+            console.log(div.style.opacity)
+            if (div.style.opacity != '0.5'){
+                div.onclick = (e) => {
+                    window.location.href += `#${e.target.id.split(this.props.id + '-')[1]}`;
+                    location.reload();
+                }
+            } else {
+                div.style.cursor = 'auto'
+                }
             }
-        }
-        // //joining path of directory 
-        // console.log(__dirname)
-        // const directoryPath = path.join(__dirname, 'Documents');
-        // //passsing directoryPath and callback function
-        // fs.readdir(directoryPath, function (err, files) {
-        //     //handling error
-        //     if (err) {
-        //         return console.log('Unable to scan directory: ' + err);
-        //     } 
-        //     //listing all files using forEach
-        //     files.forEach(function (file) {
-        //         // Do whatever you want to do with the file
-        //         console.log(file); 
-        //     });
-        // })
-
+            
         //Add whatever else you need to initialize
         this.responsive()
     }
