@@ -364,14 +364,14 @@ export class ThreeSunriseApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     
         setTimeout(()=> {
-            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+            
                 this.threeWidth = this.AppletHTML.node.clientWidth;
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
                 this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
                 this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
                 this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
                 this.camera.updateProjectionMatrix();
-            }
+            
 
             this.looping = true;
             this.render();
@@ -399,14 +399,14 @@ export class ThreeSunriseApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+       
             this.threeWidth = this.AppletHTML.node.clientWidth;
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
             this.camera.updateProjectionMatrix();
-        }
+        
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
