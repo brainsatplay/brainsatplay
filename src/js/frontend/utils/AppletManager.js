@@ -344,7 +344,7 @@ export class AppletManager {
         this.enforceLayout();
         setTimeout(()=>{
             this.responsive();
-        },300)
+        },100)
     }
 
     addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
