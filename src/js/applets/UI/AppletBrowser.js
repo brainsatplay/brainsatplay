@@ -143,7 +143,7 @@ export class AppletBrowser {
         })
 
         container.innerHTML += `
-        <h1>Presets</h1>
+        <h1>Feedback Presets</h1>
         <hr>
         ${sectionContainer}
         ${presetHTML}
