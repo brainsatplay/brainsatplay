@@ -6,7 +6,7 @@ import featureImg from './../../../../assets/features/placeholder.png'
 export class HillClimberApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Increase HEG ratio, go up" 
+    static description = "Increase HEG ratio, go up." 
     static image=featureImg
     
     constructor(
