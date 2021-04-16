@@ -185,8 +185,10 @@ export class AppletManager {
             }
         })
 
+        let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         appletNames.forEach(name => {
-            configApplets.push(this.appletClasses.find(applet =>applet.name === name))
+            // Include an exception for applet browser when using applet layouts
+            if (name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name))
         })
 
         // Check the compatibility of current applets with connected devices
