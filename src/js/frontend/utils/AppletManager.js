@@ -165,6 +165,7 @@ export class AppletManager {
             if(typeof appletConfigs[0] === 'string') {
                 preset = this.appletPresets.find((p) => {
                     if(p.value.indexOf(appletConfigs[0]) > -1) {
+                        document.getElementById("config-selector").value = p.value;
                         return true;
                     }
                 });
