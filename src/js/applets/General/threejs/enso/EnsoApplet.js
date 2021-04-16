@@ -142,13 +142,17 @@ this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 
+
 /**
  * VR
  */
-if (navigator.xr) {
-    this.renderer.xr.enabled = true;
-    appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-}
+navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+    if (isSupported){
+        this.renderer.xr.enabled = true;
+        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    }
+})
+
 
 // GUI
 // const gui = new GUI({ autoPlace: false });

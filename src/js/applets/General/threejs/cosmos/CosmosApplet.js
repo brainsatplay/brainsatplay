@@ -274,13 +274,16 @@ this.renderer = new THREE.WebGLRenderer({
 this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+
 /**
  * VR
  */
-if (navigator.xr) {
-    this.renderer.xr.enabled = true;
-    appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-}
+navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+    if (isSupported){
+        this.renderer.xr.enabled = true;
+        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    }
+})
 
 
 /** 

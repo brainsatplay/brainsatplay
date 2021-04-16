@@ -87,15 +87,17 @@ export class ThreeSunriseApplet {
             //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             //Add whatever else you need to initialize
 
+
             /**
              * VR
              */
-            if (navigator.xr) {
-                this.renderer.xr.enabled = true;
-                document.getElementById(props.id+"threeContainer").style.position = 'relative'
-                document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
-            }
-
+            navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+                if (isSupported){
+                    this.renderer.xr.enabled = true;
+                    document.getElementById(props.id+"threeContainer").style.position = 'relative'
+                    document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
+                }
+            })
 
             
             document.getElementById(props.id+"threeContainer").appendChild(this.renderer.domElement);
