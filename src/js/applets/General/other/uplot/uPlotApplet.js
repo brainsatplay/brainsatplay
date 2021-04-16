@@ -247,20 +247,25 @@ export class uPlotApplet {
         }
       }
 
-      this.setPlotDims(); 
-      if(this.plotWidth === 0 || this.plotHeight === 0) {
-        setTimeout(() => { //wait for screen to resize
-          this.setPlotDims();         
-          if(this.plotWidth === 0 || this.plotHeight === 0) {
-            this.plotWidth = 400; this.plotHeight = 300;
-          }
+      if(this.class){
+        this.setPlotDims(); 
+        if(this.plotWidth === 0 || this.plotHeight === 0) {
+          setTimeout(() => { //wait for screen to resize
+            
+          if(this.class){
+              this.setPlotDims();         
+              if(this.plotWidth === 0 || this.plotHeight === 0) {
+                this.plotWidth = 400; this.plotHeight = 300;
+              }
+              this.setuPlot();
+              if(!this.looping) this.start();
+            }
+          }, 100);
+        }
+        else {
           this.setuPlot();
           if(!this.looping) this.start();
-        }, 100);
-      }
-      else {
-        this.setuPlot();
-        if(!this.looping) this.start();
+        }
       }
     }
 
