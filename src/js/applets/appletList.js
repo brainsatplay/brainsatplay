@@ -69,22 +69,22 @@ let applets = [
         description: "See your brain."		
     },
 	{   
-        name:"HEG Circle", 		
+        name:"Circle", 		
         cls: CircleApplet,
         description: "Train your brain."		
     },
 	{   
-        name:"HEG Boids",       
+        name:"Boids",       
         cls: BoidsApplet,
         description: "Train your brain."		
     },
 	{   
-        name:"HEG Audio",       
+        name:"Audio",       
         cls: AudioApplet	,
         description: "Train your brain."	
     },
 	{   
-        name:"HEG Video",		
+        name:"Video",		
         cls: VideoApplet,
         description: "Train your brain."		
     },
