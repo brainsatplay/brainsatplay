@@ -25,7 +25,7 @@ import placeholderImg from './../../../../../assets/placeholderImg.png'
 export class CosmosApplet {
 
     static devices = ['eeg'] //,heg
-    static description = "Train your brain."
+    static description = "Evolve the galaxy!"
     static image=placeholderImg
 
     constructor(

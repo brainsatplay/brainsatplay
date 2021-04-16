@@ -5,7 +5,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class TextScrollerApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Train your brain."
+    static description = "HEG text reader idea" 
     static image=placeholderImg
 
     constructor(

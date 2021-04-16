@@ -7,7 +7,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class CircleApplet {
 
     static devices = ['heg']
-    static description = "Train your brain."
+    static description = "Increase your HEG ratio!"
     static image=placeholderImg
     
     constructor(

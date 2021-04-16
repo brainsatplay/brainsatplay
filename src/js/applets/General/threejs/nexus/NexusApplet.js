@@ -25,7 +25,7 @@ import placeholderImg from './../../../../../assets/placeholderImg.png'
 export class NexusApplet {
 
     static devices = ['eeg'] //,heg
-    static description = "Train your brain."
+    static description = "Connect your brain with others!"
     static image=placeholderImg
 
     constructor(

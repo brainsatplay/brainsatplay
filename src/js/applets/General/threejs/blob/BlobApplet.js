@@ -25,7 +25,7 @@ import placeholderImg from './../../../../../assets/placeholderImg.png'
 export class BlobApplet {
 
     static devices = ['eeg'] //,heg
-    static description = "Train your brain."
+    static description = "Calm the blob!"
     static image=placeholderImg
 
     constructor(

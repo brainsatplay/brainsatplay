@@ -9,7 +9,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class uPlotApplet {
 
     static devices = ['eeg','heg']
-    static description = "See your brain."
+    static description = "Live data plotter"
     static image=placeholderImg
 
     constructor(

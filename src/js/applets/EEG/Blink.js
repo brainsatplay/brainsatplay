@@ -6,7 +6,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class BlinkApplet {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Play with your brain."
+    static description = "Blink detect/staring contest :P"	
     static image=placeholderImg
 
     constructor(

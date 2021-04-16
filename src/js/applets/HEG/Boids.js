@@ -6,7 +6,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class BoidsApplet {
 
     static devices = ['heg']
-    static description = "Train your brain."
+    static description = "Play with swarm intelligence! Your HEG ratio creates swirls!"
     static image=placeholderImg
     
     constructor(

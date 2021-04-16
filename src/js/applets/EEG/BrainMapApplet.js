@@ -8,7 +8,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class BrainMapApplet {
 
     static devices = ['eeg']
-    static description = "See your brain."
+    static description = "Bandpower and coherence mapping."
     static image=placeholderImg
 
     constructor(

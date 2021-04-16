@@ -6,7 +6,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class HillClimberApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Train your brain."
+    static description = "Increase HEG ratio, go up" 
     static image=placeholderImg
     
     constructor(

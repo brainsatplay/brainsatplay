@@ -8,7 +8,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class SmoothieApplet {
 
     static devices = ['eeg']
-    static description = "See your brain."
+    static description = "Simple real time bandpower and coherence plot."
     static image=placeholderImg
 
     constructor(

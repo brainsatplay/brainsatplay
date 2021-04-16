@@ -8,7 +8,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class SpectrogramApplet {
 
     static devices = ['eeg']
-    static description = "See your brain."
+    static description = "Bandpower and coherence visualizer."
     static image=placeholderImg
 
     constructor(

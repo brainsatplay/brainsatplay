@@ -31,87 +31,87 @@ let applets = [
     },
 	{
         name:"Blob",
-        description: "Train your brain.",
-        cls: BlobApplet			
+        cls: BlobApplet,
+        description: "Calm the blob!",
     },
 	{
         name:"Cosmos",
-        description: "Train your brain.",
-        cls: CosmosApplet		
+        cls: CosmosApplet,	
+        description: "Evolve the galaxy!",
     },
     {	
         name:"uPlot", 	
-        description: "See your brain.",		
+        description: "Live data plotter",		
         cls: uPlotApplet
     },
     {	
         name:"Spectrogram",    	
         cls: SpectrogramApplet,
-        description: "See your brain.",
+        description: "Bandpower and coherence visualizer.",
     },
     {	
         name:"Nexus",      		
         cls: NexusApplet,		
-        description: "Train your brain.",
+        description: "Connect your brain with others!",
     },
     {	
         name:"Enso",      		
         cls: EnsoApplet,
-        description: "Train your brain.",	
+        description: "Calm the ring!",	
     },
     {	name:"Smooth",
         cls: SmoothieApplet,
-        description: "See your brain.",	
+        description: "Simple real time bandpower and coherence plot.",	
     },
 	{	
         name:"Brain Map",      	
         cls: BrainMapApplet,
-        description: "See your brain."		
+        description: "Bandpower and coherence mapping."		
     },
 	{   
         name:"Circle", 		
         cls: CircleApplet,
-        description: "Train your brain."		
+        description: "Increase your HEG ratio!"		
     },
 	{   
         name:"Boids",       
         cls: BoidsApplet,
-        description: "Train your brain."		
+        description: "Play with swarm intelligence! Your HEG ratio creates swirls!"		
     },
 	{   
         name:"Audio",       
         cls: AudioApplet	,
-        description: "Train your brain."	
+        description: "HEG ratio and EEG Coherence feedback."	
     },
 	{   
         name:"Video",		
         cls: VideoApplet,
-        description: "Train your brain."		
+        description: "HEG ratio and EEG Coherence feedback."		
     },
 	{   
         name:"Sunrise",         
         cls: ThreeSunriseApplet,
-        description: "Train your brain." 
+        description: "Your HEG ratio turns the Earth!" 
     },
 	{   
         name:"Hill Climber",     
         cls: HillClimberApplet,
-        description: "Train your brain." 
+        description: "Increase HEG ratio, go up" 
     },
 	{   
         name:"Text Scroller",   
         cls: TextScrollerApplet,
-        description: "Train your brain." 
+        description: "HEG text reader idea" 
     },
 	{	
         name:"Blink",      		
         cls: BlinkApplet,
-        description: "Play with your brain."		
+        description: "Blink detect/staring contest :P"		
     },
 	{	
         name:"Band Ring",       
         cls: BandRingApplet,
-        description: "Train your brain."  	
+        description: "Bandpower visualizer."  	
     },
 
 ];

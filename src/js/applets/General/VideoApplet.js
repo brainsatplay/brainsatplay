@@ -5,7 +5,7 @@ import placeholderImg from './../../../assets/placeholderImg.png'
 export class VideoApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Train your brain."
+    static description = "HEG ratio and EEG Coherence feedback."
     static image=placeholderImg
 
     constructor(

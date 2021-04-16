@@ -8,7 +8,7 @@ import placeholderImg from './../../../../assets/placeholderImg.png'
 export class BandRingApplet {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "See your brain."
+    static description = "Bandpower visualizer."  	
     static image=placeholderImg
 
     constructor(

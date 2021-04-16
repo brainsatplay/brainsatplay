@@ -16,7 +16,7 @@ import placeholderImg from './../../../../../assets/placeholderImg.png'
 export class ThreeSunriseApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Train your brain."
+    static description = "Your HEG ratio turns the Earth!"
     static image=placeholderImg
     
     constructor(
