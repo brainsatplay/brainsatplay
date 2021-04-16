@@ -374,7 +374,6 @@ this.renderer.setAnimationLoop( animate );
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeMesh()
-        console.log('resize')
         this.bci.atlas.makeFeedbackOptions(this)
     }
 

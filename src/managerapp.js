@@ -12,6 +12,7 @@ import { NexusApplet } from './js/applets/General/threejs/nexus/NexusApplet'
 import { BlobApplet } from './js/applets/General/threejs/blob/BlobApplet'
 import { EnsoApplet } from './js/applets/General/threejs/enso/EnsoApplet'
 import { CosmosApplet } from './js/applets/General/threejs/cosmos/CosmosApplet'
+import { BlinkApplet } from './js/applets/EEG/Blink'
 
 import { CircleApplet } from './js/applets/HEG/Circle'
 import { AudioApplet } from './js/applets/General/AudioApplet'
@@ -37,6 +38,8 @@ let applets = [
 	{   name:"Sunrise",         cls: ThreeSunriseApplet },
 	{   name:"HillCimber",      cls: HillClimberApplet  },
 	{   name:"TextScroller",    cls: TextScrollerApplet },
+	{	name:"Blink",      		cls: BlinkApplet			},
+
 ];//sssssymmetry (ღ˘⌣˘ღ)
 
 window.isMobile = false;
