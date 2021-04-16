@@ -16,6 +16,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
+import placeholderImg from './../../../../../assets/placeholderImg.png'
 
 // import * as p5 from 'p5'
 // console.log(p5.noise)
@@ -24,6 +25,8 @@ import dummyTexture from "./img/dummyTexture.jpeg"
 export class EnsoApplet {
 
     static devices = ['eeg'] //,heg
+    static description = "Train your brain."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,

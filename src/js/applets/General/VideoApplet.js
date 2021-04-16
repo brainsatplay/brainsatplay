@@ -1,9 +1,12 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 export class VideoApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Train your brain."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,

@@ -2,51 +2,9 @@
 import {brainsatplay} from './js/brainsatplay'
 import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
+import { applets } from './js/applets/appletList'
 
-
-import { AppletBrowser } from './js/applets/UI/AppletBrowser'
-
-import {AppletExample} from './js/applets/AppletExample'
-import {uPlotApplet} from './js/applets/General/uPlotApplet'
-import {SpectrogramApplet} from './js/applets/EEG/SpectrogramApplet'
-import { BrainMapApplet } from './js/applets/EEG/BrainMapApplet'
-import { SmoothieApplet } from './js/applets/EEG/SmoothieApplet'
-import { NexusApplet } from './js/applets/General/threejs/nexus/NexusApplet'
-import { BlobApplet } from './js/applets/General/threejs/blob/BlobApplet'
-import { EnsoApplet } from './js/applets/General/threejs/enso/EnsoApplet'
-import { CosmosApplet } from './js/applets/General/threejs/cosmos/CosmosApplet'
-import { BlinkApplet } from './js/applets/EEG/Blink'
-import { BandRingApplet } from './js/applets/EEG/bandring/BandRing'
-
-import { CircleApplet } from './js/applets/HEG/Circle'
-import { AudioApplet } from './js/applets/General/AudioApplet'
-import { VideoApplet } from './js/applets/General/VideoApplet'
-import { BoidsApplet } from './js/applets/HEG/Boids'
-import { HillClimberApplet } from './js/applets/HEG/HillClimber'
-import { TextScrollerApplet } from './js/applets/HEG/TextScroller'
-import { ThreeSunriseApplet } from './js/applets/General/threejs/ThreeSunrise/ThreeSunriseApplet'
-
-let applets = [
-	{	name:"Applet Browser",  cls: AppletBrowser		},
-	{	name:"Blob",      		cls: BlobApplet			},
-	{	name:"Cosmos",      	cls: CosmosApplet		},
-	{	name:"uPlot", 			cls: uPlotApplet   		},
-	{	name:"Spectrogram",    	cls: SpectrogramApplet	},
-	{	name:"Nexus",      		cls: NexusApplet		},
-	{	name:"Enso",      		cls: EnsoApplet			},
-	{	name:"Smooth",         	cls: SmoothieApplet		},
-	{	name:"Brain Map",      	cls: BrainMapApplet		},
-	{   name:"HEG Circle", 		cls: CircleApplet		},
-	{   name:"HEG Boids",       cls: BoidsApplet		},
-	{   name:"HEG Audio",       cls: AudioApplet		},
-	{   name:"HEG Video",		cls: VideoApplet		}, // 
-	{   name:"Sunrise",         cls: ThreeSunriseApplet },
-	{   name:"Hill Climber",     cls: HillClimberApplet  },
-	{   name:"Text Scroller",   cls: TextScrollerApplet },
-	{	name:"Blink",      		cls: BlinkApplet		},
-	{	name:"Band Ring",       cls: BandRingApplet  	},
-
-];//sssssymmetry (ღ˘⌣˘ღ)
+//sssssymmetry (ღ˘⌣˘ღ)
 
 window.isMobile = false;
 if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) 

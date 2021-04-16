@@ -1,10 +1,13 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 //Example Applet for integrating with the UI Manager
 export class BlinkApplet {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Play with your brain."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,

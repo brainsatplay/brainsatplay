@@ -5,6 +5,8 @@ import {DOMFragment} from '../frontend/utils/DOMFragment'
 export class AppletTemplate {
 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "See your brain."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,

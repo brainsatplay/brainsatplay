@@ -1,6 +1,6 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
-
+import { presets } from "./../../applets/appletList"
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -70,35 +70,7 @@ export class AppletManager {
             }}
         }
 
-        this.appletPresets = [
-            {
-                value: 'browser',
-                name: "Applet Browser",
-                applets: [
-                    "Applet Browser",
-                ]
-            },
-            {
-                value: 'eeg_nf',
-                name: "EEG Neurofeedback",
-                applets: [
-                    "Blob",
-                    "Brain Map",
-                    "Spectrogram",
-                    "uPlot",
-                ]
-            },
-            {
-                value: 'heg_nf',
-                name: "HEG Neurofeedback",
-                applets: [
-                    "HEG Boids",
-                    "HEG Circle",
-                    "HEG Audio",
-                    "uPlot",
-                ]
-            }
-        ]
+        this.appletPresets = presets
 
         this.appletPresets.forEach((obj,i) => {
             document.getElementById("config-selector").innerHTML += `

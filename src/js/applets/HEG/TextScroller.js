@@ -1,10 +1,13 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 export class TextScrollerApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-
+    static description = "Select applets to view."
+    static image=placeholderImg
+    
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

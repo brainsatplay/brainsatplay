@@ -1,11 +1,14 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {SoundJS} from '../../frontend/UX/Sound'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 export class HillClimberApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-
+    static description = "Train your brain."
+    static image=placeholderImg
+    
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

@@ -11,10 +11,14 @@ import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
 import metalUrl from './textures/8k_earth_specular_map.tif'
 
+import placeholderImg from './../../../../../assets/placeholderImg.png'
+
 export class ThreeSunriseApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-
+    static description = "Train your brain."
+    static image=placeholderImg
+    
     constructor(
         parent=document.body,
         bci=new brainsatplay(),

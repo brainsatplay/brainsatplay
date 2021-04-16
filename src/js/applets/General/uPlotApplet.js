@@ -3,11 +3,14 @@ import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
 import {eegmath} from '../../bciutils/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
+import placeholderImg from './../../../assets/placeholderImg.png'
 
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
     static devices = ['eeg','heg']
+    static description = "See your brain."
+    static image=placeholderImg
 
     constructor(
         parent=document.body,

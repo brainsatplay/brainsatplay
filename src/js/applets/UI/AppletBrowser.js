@@ -1,6 +1,6 @@
 import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import * as BrowserFS from 'browserfs'
+import { applets , presets} from './../appletList'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -35,18 +35,6 @@ export class AppletBrowser {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let appletStyle = `
-            width: 200px; 
-            height: 200px; 
-            padding: 25px;
-            cursor: pointer;
-            transition: 0.5s;
-            border: 1px solid rgb(200, 200, 200);
-            border-radius: 5px;
-            margin: 25px;
-            position: relative;     
-            font-size: 80%;
-            `
             return `
             <div id='${props.id}' style='
             height:${props.height}; 
@@ -55,106 +43,6 @@ export class AppletBrowser {
             padding: 50px;
             ' 
             >
-            <h1>Layouts</h1>
-            <hr>
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: center; 
-            justify-content: center;
-            overflow: scroll;'>
-                <div id="${props.id}-eeg" style="${appletStyle}">
-                <h3>EEG Neurofeedback</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-heg" style="${appletStyle}">
-                <h3>HEG Neurofeedback</h3>
-                <p>Train your brain.</p>
-                </div>
-            </div>
-            <h1>EEG Applets</h1>
-            <hr>
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: center; 
-            justify-content: center;
-            overflow: scroll;'>
-                <div id="${props.id}-Blob" style="${appletStyle};">
-                <h3>Blob</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Enso" style="${appletStyle};">
-                <h3>Enso</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Cosmos" style="${appletStyle};">
-                <h3>Cosmos</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Nexus" style="${appletStyle};">
-                <h3>Nexus</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Band Ring" style="${appletStyle};">
-                <h3>Band Ring</h3>
-                <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Blink" style="${appletStyle};">
-                <h3>Blink</h3>
-                <p>Play with your brain.</p>
-                </div>
-                <div id="${props.id}-uPlot" style="${appletStyle};">
-                <h3>uPlot</h3>
-                <p>See your brain.</p>
-                </div>
-                <div id="${props.id}-Spectrogram" style="${appletStyle};">
-                <h3>Spectrogram</h3>
-                <p>See your brain.</p>
-                </div>
-                <div id="${props.id}-Smooth" style="${appletStyle};">
-                <h3>Smooth</h3>
-                <p>See your brain.</p>
-                </div>
-            </div>
-            <h1>HEG Applets</h1>
-            <hr>
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: center; 
-            justify-content: center;
-            overflow: scroll;'>
-                <div id="${props.id}-HEG Boids" style="${appletStyle};">
-                    <h3>Boids</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-HEG Circle" style="${appletStyle};">
-                    <h3>Circle</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-HEG Audio" style="${appletStyle};">
-                    <h3>Audio</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-HEG Video" style="${appletStyle};">
-                    <h3>Video</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Hill Climber" style="${appletStyle};">
-                    <h3>Hill Climber</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Sunrise" style="${appletStyle};">
-                    <h3>Sunrise</h3>
-                    <p>Train your brain.</p>
-                </div>
-                <div id="${props.id}-Text Scroller" style="${appletStyle};">
-                    <h3>Text Scroller</h3>
-                    <p>Train your brain.</p>
-                </div>
-            </div>
-            </div>
             </div>
             `;
         }
@@ -175,25 +63,80 @@ export class AppletBrowser {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
-
-        const fs = BrowserFS.BFSRequire('fs')
-        const listFiles = () => {
-            console.log('reading files')
-            fs.readdir('/', (e, files) => {
-                if(e) return;
-                files.forEach(file => {
-                  console.log(file);
-                });
-              });
-        }
-        listFiles()
+        
 
         // Applet Browser
         const container = document.getElementById(this.props.id)
+
+
+        let appletStyle = `
+            width: 200px; 
+            cursor: pointer;
+            transition: 0.5s;
+            border-radius: 5px;
+            margin: 25px;
+            position: relative;  
+            background: rgb(25,25,25);
+            font-size: 80%;
+            `
+        
+        let sectionContainer = `
+            <div style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: center;
+            overflow: scroll;'>
+            `
+
+        let presetSelections = []
+        let html = `
+            <h1>Layouts</h1>
+            <hr>
+            ${sectionContainer}
+        `
+
+        presets.forEach(preset => {
+            if (preset.name != 'Applet Browser'){
+                html += `
+                <div id="${this.props.id}-${preset.value}" style="${appletStyle};">
+                    <img src="${preset.image}" style="width: 100%;">
+                    <div style="padding: 0px 25px 10px 25px;">
+                        <h3>${preset.name}</h3>
+                        <p>${preset.description}</p>
+                    </div>
+                </div>`
+                presetSelections.push(preset.value)
+            }
+        })
+        html += `</div>`
+
+        html += `
+        <h1>Applets</h1>
+        <hr>
+        ${sectionContainer}
+        `
+
+        applets.forEach(applet => {
+            if (applet.name != 'Applet Browser'){
+                console.log(applet.cls)
+                html += `
+                <div id="${this.props.id}-${applet.name}" style="${appletStyle};">
+                    <img src="${applet.cls.image}" style="width: 100%;">
+                    <div style="padding: 0px 25px 10px 25px;">
+                        <h3>${applet.name}</h3>
+                        <p>${applet.cls.description}</p>
+                    </div>
+                </div>`
+            }
+        })
+        html += `</div>`
+        container.innerHTML += html
+        
+
         const appletDivs = container.getElementsByTagName('div')
-        const presets = ['heg','eeg']
         for (let div of appletDivs){
-            if (presets.includes(div.id.split('-')[1])){
+            if (presetSelections.includes(div.id.split('-')[1])){
                 div.onclick = (e) => {
                     window.location.href = `${window.location.origin}/#${e.target.id.split('-')[1]}`;
                     location.reload();
