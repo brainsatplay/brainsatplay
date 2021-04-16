@@ -371,7 +371,8 @@ export class BCIAppManager {
                 this.appletManager.initAddApplets();
             }
             catch (err) { console.error(err); }
-            this.appletManager.responsive();
+
+            this.appletManager.responsive();    
         }
 
         this.bcisession.ondisconnected = () => {

@@ -159,18 +159,28 @@ export class AppletManager {
     initAddApplets = (appletConfigs=[]) => {
         console.log(appletConfigs)
         // Load Config
+        let preset = undefined;
         let config = undefined;
         if(appletConfigs.length !== 0) {
-            appletConfigs.forEach((cfg,i)=> {
-                this.appletClasses.find((o,j) => {
-                    if(cfg.name === o.name) {
-                        config = cfg.settings;
+            if(typeof appletConfigs[0] === 'string') {
+                preset = this.appletPresets.find((p) => {
+                    if(p.value.indexOf(appletConfigs[0]) > -1) {
+                        return true;
                     }
                 });
-            });
-        }
-
-        let preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+            }
+            else {
+                appletConfigs.forEach((cfg,i)=> {
+                    this.appletClasses.find((o,j) => {
+                        if(cfg.name === o.name) {
+                            config = cfg.settings;
+                        }
+                    });
+                });
+            }
+        } 
+        if(!preset) preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+        
         let appletNames = preset.applets
         if(preset.value.includes('heg')) {
             if(this.bcisession.atlas.settings.heg === false) {
@@ -332,7 +342,9 @@ export class AppletManager {
         }
         });
         this.enforceLayout();
-        this.responsive();
+        setTimeout(()=>{
+            this.responsive();
+        },300)
     }
 
     addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
