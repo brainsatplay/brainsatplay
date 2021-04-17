@@ -273,6 +273,10 @@ export class uPlotApplet {
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
           if(i === 0) {
+            if(cmd === 'HEG' && !this.bci.atlas.settings.heg) {
+              this.bci.atlas.addHEGCoord(0);
+              this.bci.atlas.settings.heg = true;
+            }
             if(typeof cmd === 'string') {
               let found = Array.from(document.getElementById(this.props.id+'mode').options).find(opt => opt.value === cmd);
               if(found) {
