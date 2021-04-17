@@ -33,6 +33,59 @@ export class BrainArtApplet {
 
         this.ring = null;
         this.sketch = null;
+
+
+        this.generatorFuncs = [
+            {
+                name: 'Ring',
+                start: (p) => {
+                    p.setup = () => {
+                        const containerElement = document.getElementById(this.props.id);
+                        p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                        p.noFill()
+                        this.ring = new Ring(p)
+                        p.background(0);
+                    };
+        
+                    p.draw = () => {
+                        this.ring.setBrainData(this.bci.atlas.data.eeg)
+                        // if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
+                            this.ring.drawShape()
+                            this.ring.lastDraw = Date.now()
+                        // }
+                    };
+                },
+                stop: () => {
+
+                }
+            },
+            {
+                name: 'Circle',
+                start: (p) => {
+                    const containerElement = document.getElementById(this.props.id);
+                    p.setup = () => {
+                        p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                        p.background(0);
+                    };
+        
+                    p.draw = () => {
+                        p.background(0);
+                        p.noFill()
+                        p.stroke(p.color(255,255,255,100))
+                        p.strokeWeight(Math.min(p.windowWidth,p.windowHeight)/300);
+                        let scalingFactor = 0.5 + 0.5*Math.sin(Date.now()/1000)
+                        let minDiameter = 50; // px
+                        let maxDiameter = Math.min(5*p.windowWidth/6,5*p.windowHeight/6) // px
+                        p.ellipse(p.windowWidth/2, p.windowHeight/2, minDiameter + (scalingFactor*(maxDiameter-minDiameter)))
+                    };
+                },
+                stop: () => {
+
+                }
+            },
+        ]
+
+
     }
 
     //---------------------------------
@@ -45,7 +98,7 @@ export class BrainArtApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
 
-            let buttonStyle = `
+            this.buttonStyle = `
             box-sizing: border-box; 
             min-height: 50px;
             flex-grow: 1;
@@ -70,13 +123,12 @@ export class BrainArtApplet {
             return `
                 <div id='${props.id}' style='height:${props.height}; width:${props.width}; position:relative; '>
                     <div style="position:absolute; bottom: 25px; right: 25px;">
-                        <button id='${props.id}-reset' style="${buttonStyle}">Reset</button>
+                        <button id='${props.id}-reset' style="${this.buttonStyle}">Reset</button>
                     </div>
 
                     <div style="position:absolute; top: 25px; left: 25px;">
                         <select>
                             <option value='default' disabled>Select your art style</option>
-                            <option value="Ring">Ring</option>
                         </select>
                         <p style="font-size: 80%;">Press CTRL + SHIFT + s to take a screenshot.
                     </div>
@@ -103,25 +155,19 @@ export class BrainArtApplet {
 
         //Add whatever else you need to initialize        
         const containerElement = document.getElementById(this.props.id);
+        const selector = containerElement.querySelector('select')
 
+        this.generatorFuncs.forEach((dict,i) => {
+            selector.innerHTML += `<option value='${i}'>${dict.name}</option>` //option
+        })
 
-        const sketch = (p) => {
-            p.setup = () => {
-                p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring = new Ring(p)
-                p.background(0);
-            };
-
-            p.draw = () => {
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
-                // if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
-                    this.ring.drawShape()
-                    this.ring.lastDraw = Date.now()
-                // }
-            };
-        };
-
-        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
+        this.generatorFunction = this.generatorFuncs[selector.value]
+        this.sketch = new p5(this.generatorFunction.start, containerElement)
+        selector.onchange = (e) => {
+            this.sketch.remove()
+            this.generatorFunction = this.generatorFuncs[e.target.value]
+            this.sketch = new p5(this.generatorFunction.start, containerElement)
+        }
 
         document.getElementById(`${this.props.id}-reset`).onclick = () => {
             this.sketch.background(0)
@@ -145,5 +191,9 @@ export class BrainArtApplet {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
+    }
+
+    changeSketch(){
+
     }
 } 
