@@ -140,32 +140,32 @@ export class AppletManager {
         // Load Config
         let preset = undefined;
         let config = undefined;
-        if(appletConfigs.length !== 0) {
-            if(typeof appletConfigs[0] === 'string') {
-                preset = this.appletPresets.find((p) => {
-                    if(p.value.indexOf(appletConfigs[0]) > -1) {
-                        document.getElementById("config-selector").value = p.value;
-                        return true;
-                    }
-                });
-                this.appletConfigs = [preset.value];
-            }
-        } 
-        if(!preset) {
-            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
-            this.appletConfigs = [preset.value];
+        if(appletConfigs.length === 1) {
+            preset = this.appletPresets.find((p) => {
+                if(p.value.indexOf(appletConfigs[0]) > -1) {
+                    document.getElementById("config-selector").value = p.value;
+                    this.appletConfigs = p.applets;
+                    return true;
+                }
+            });   
+            
         }
-        
-        let appletNames = preset.applets;
-        //this.appletConfigs = preset.applets;
-        if(preset.value.includes('heg')) {
-            if(this.bcisession.atlas.settings.heg === false) {
-                this.bcisession.atlas.addHEGCoord(0);
-                this.bcisession.atlas.settings.heg = true;
-            }
-        } else if (preset.value.includes('eeg')) {
-            if(this.bcisession.atlas.settings.eeg === false) {
-                this.bcisession.atlas.settings.eeg = true;
+        else if(appletConfigs.length === 0) {
+            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+            this.appletConfigs = preset.applets;
+        }
+
+        let appletNames = this.appletConfigs;
+        if(preset) {
+            if(preset.value.includes('heg')) {
+                if(this.bcisession.atlas.settings.heg === false) {
+                    this.bcisession.atlas.addHEGCoord(0);
+                    this.bcisession.atlas.settings.heg = true;
+                }
+            } else if (preset.value.includes('eeg')) {
+                if(this.bcisession.atlas.settings.eeg === false) {
+                    this.bcisession.atlas.settings.eeg = true;
+                }
             }
         }
         let configApplets = []
@@ -352,6 +352,13 @@ export class AppletManager {
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
+
+            this.appletConfigs = [];
+            this.applets.forEach((applet) => {
+                if(applet.name !== null) {
+                    this.appletConfigs.push(applet.name);
+                }
+            })
             this.appletsSpawned++;
             this.enforceLayout();
             this.responsive();
