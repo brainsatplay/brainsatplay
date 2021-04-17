@@ -2,7 +2,7 @@ import { AppletBrowser } from './UI/AppletBrowser'
 
 import {AppletExample} from './AppletExample'
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
-import {SpectrogramApplet} from './EEG/SpectrogramApplet'
+import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/BrainMapApplet'
 import { SmoothieApplet } from './EEG/smoothie/SmoothieApplet'
 import { NexusApplet } from './General/threejs/nexus/NexusApplet'
