@@ -1,8 +1,7 @@
 import {brainsatplay} from '../../../../brainsatplay'
 import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 import {SoundJS} from '../../../../frontend/UX/Sound'
-import featureImg from './../../../../../assets/features/placeholder.png'
-
+import featureImg from './img/feature.png'
 export class AudioApplet {
 
     static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
