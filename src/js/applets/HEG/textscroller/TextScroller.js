@@ -4,6 +4,7 @@ import featureImg from './img/feature.png'
 
 export class TextScrollerApplet {
 
+    static name = "Text Scroller"; 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Words of affirmation." 
     static categories = ['feedback'];

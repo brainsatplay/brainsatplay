@@ -4,6 +4,7 @@ import featureImg from './img/feature.png'
 
 export class VideoApplet {
 
+  static name = "Video"; 
     static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "HEG ratio and EEG Coherence feedback."
     static categories = ['feedback'];

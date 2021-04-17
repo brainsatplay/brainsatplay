@@ -6,6 +6,7 @@ import featureImg from './img/feature.png'
 
 export class CircleApplet {
 
+    static name = "Circle"; 
     static devices = ['heg']
     static description = "Increase your HEG ratio!"
     static categories = ['feedback'];

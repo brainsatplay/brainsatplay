@@ -24,6 +24,7 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
 
+    static name = "Nexus"; 
     static devices = ['eeg'] //,heg
     static description = "Connect your brain with others!"
     static categories = ['feedback','multiplayer'];

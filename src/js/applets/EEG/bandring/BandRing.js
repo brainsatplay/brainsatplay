@@ -7,6 +7,7 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class BandRingApplet {
 
+    static name = "Band Ring"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Bandpower visualizer."
     static categories = ['feedback'];

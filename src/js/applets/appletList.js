@@ -25,105 +25,88 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
-let applets = [
-    {
-        name:"Applet Browser",
-        description: "Select an applet.",
-        cls: AppletBrowser		
-    },
-	{
-        name:"Blob",
-        cls: BlobApplet,
-        description: "Calm the blob!",
-    },
-	{
-        name:"Cosmos",
-        cls: CosmosApplet,	
-        description: "Evolve the galaxy!",
-    },
-    {	
-        name:"uPlot", 	
-        description: "Live data plotter",		
-        cls: uPlotApplet
-    },
-    {	
-        name:"Spectrogram",    	
-        cls: SpectrogramApplet,
-        description: "Bandpower and coherence visualizer.",
-    },
-    {	
-        name:"Nexus",      		
-        cls: NexusApplet,		
-        description: "Connect your brain with others!",
-    },
-    {	
-        name:"Enso",      		
-        cls: EnsoApplet,
-        description: "Calm the ring!",	
-    },
-    {	name:"Smooth",
-        cls: SmoothieApplet,
-        description: "Simple real time bandpower and coherence plot.",	
-    },
-	{	
-        name:"Brain Map",      	
-        cls: BrainMapApplet,
-        description: "Bandpower and coherence mapping."		
-    },
-	{   
-        name:"Circle", 		
-        cls: CircleApplet,
-        description: "Increase your HEG ratio!"		
-    },
-	{   
-        name:"Boids",       
-        cls: BoidsApplet,
-        description: "Play with swarm intelligence! Your HEG ratio creates swirls!"		
-    },
-	{   
-        name:"Audio",       
-        cls: AudioApplet	,
-        description: "HEG ratio and EEG Coherence feedback."	
-    },
-	{   
-        name:"Video",		
-        cls: VideoApplet,
-        description: "HEG ratio and EEG Coherence feedback."		
-    },
-	{   
-        name:"Sunrise",         
-        cls: ThreeSunriseApplet,
-        description: "Your HEG ratio turns the Earth!" 
-    },
-	{   
-        name:"Hill Climber",     
-        cls: HillClimberApplet,
-        description: "Increase HEG ratio, go up" 
-    },
-	{   
-        name:"Text Scroller",   
-        cls: TextScrollerApplet,
-        description: "HEG text reader idea" 
-    },
-	{	
-        name:"Blink",      		
-        cls: BlinkApplet,
-        description: "Blink detect/staring contest :P"		
-    },
-	{	
-        name:"Band Ring",       
-        cls: BandRingApplet,
-        description: "Bandpower visualizer."  	
-    },
+let applets = new Map([
+    [
+        AppletBrowser.name,
+        AppletBrowser		
+    ],
+	[
+        BlobApplet.name,
+        BlobApplet,
+    ],
+	[
+        CosmosApplet.name,
+        CosmosApplet,	
+    ],
+    [	
+        uPlotApplet.name, 	
+        uPlotApplet
+    ],
+    [	
+        SpectrogramApplet.name,    	
+        SpectrogramApplet,
+    ],
+    [	
+        NexusApplet.name,      		
+        NexusApplet,		
+    ],
+    [	
+        EnsoApplet.name,      		
+        EnsoApplet,
+    ],
+    [	SmoothieApplet.name,
+        SmoothieApplet,
+    ],
+	[	
+        BrainMapApplet.name,      	
+        BrainMapApplet,
+    ],
+	[   
+        CircleApplet.name, 		
+        CircleApplet,
+    ],
+	[   
+        BoidsApplet.name,       
+        BoidsApplet,
+    ],
+	[   
+        AudioApplet.name,       
+        AudioApplet	,
+    ],
+	[   
+        VideoApplet.name,		
+        VideoApplet,
+    ],
+	[   
+        ThreeSunriseApplet.name,         
+        ThreeSunriseApplet,
+    ],
+	[   
+        HillClimberApplet.name,     
+        HillClimberApplet,
+    ],
+	[   
+        TextScrollerApplet.name,   
+        TextScrollerApplet,
+    ],
+	[	
+        BlinkApplet.name,      		
+        BlinkApplet,
+    ],
+	[	
+        BandRingApplet.name,       
+        BandRingApplet,
+    ],
 
-];
+]);
 
 let presets = [
     {
         value: 'browser',
         name: "Applet Browser",
         applets: [
-            "Applet Browser",
+            // "Applet Browser"
+            AppletBrowser,
         ],
         description: "Choose an applet.",
         image: placeholderImg	
@@ -132,10 +115,14 @@ let presets = [
         value: 'eeg',
         name: "EEG Neurofeedback",
         applets: [
-            "Blob",
-            "Brain Map",
-            "Spectrogram",
-            "uPlot",
+            // "Blob",
+            // "Brain Map",
+            // "Spectrogram",
+            // "uPlot"
+            uPlotApplet,
+            uPlotApplet,
+            uPlotApplet,
+            uPlotApplet,
         ],
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
@@ -145,10 +132,14 @@ let presets = [
         value: 'heg',
         name: "HEG Biofeedback",
         applets: [
-            "Boids",
-            "Circle",
-            "Audio",
-            "uPlot",
+            // "Boids",
+            // "Circle",
+            // "Audio",
+            // "uPlot"
+            BoidsApplet,
+            CircleApplet,
+            AudioApplet,
+            uPlotApplet,
         ],
         description: "Brain blood flow training!",
         type: "HEG",

@@ -24,10 +24,11 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class EnsoApplet {
 
-    static devices = ['eeg'] //,heg
+    static name = "Enso"; 
     static description = "Calm the ring!"
-    static categories = ['feedback'];
     static image=featureImg
+    static categories = ['feedback'];
+    static devices = ['eeg'] //,heg
 
     constructor(
         parent=document.body,

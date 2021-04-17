@@ -5,6 +5,7 @@ import featureImg from './img/feature.png'
 
 export class BoidsApplet {
 
+    static name = "Boids"; 
     static devices = ['heg']
     static description = "Play with swarm intelligence! Your HEG ratio creates swirls."
     static categories = ['feedback'];

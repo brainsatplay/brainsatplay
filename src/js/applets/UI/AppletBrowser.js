@@ -6,6 +6,7 @@ import featureImg from './../../../assets/features/placeholder.png'
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
 
+    static name = "Applet Browser"; 
     static devices = []; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Select applets to view."
     static categories = ['ux'];
@@ -114,32 +115,32 @@ export class AppletBrowser {
         let eegHTML = ``
         let hegHTML = ``
 
-        applets.forEach(applet => {
-            if (applet.name != 'Applet Browser'){
+        applets.forEach((cls,name) => {
+            if (name != 'Applet Browser'){
                 let type;
-                if (applet.cls.devices.length > 1){
+                if (cls.devices.length > 1){
                     type = 'All'
-                } else if (applet.cls.devices[0] == 'eeg'){
+                } else if (cls.devices[0] == 'eeg'){
                     type = 'EEG'
-                } else if (applet.cls.devices[0] == 'heg'){
+                } else if (cls.devices[0] == 'heg'){
                     type = 'HEG'
                 } else {
                     type = "Other"
                 }
                 let html = `
-                <div id="${this.props.id}-${applet.name}" class='browser-card' style="${appletStyle};">
-                    <img src="${applet.cls.image}" style="width: 100%;">
+                <div id="${this.props.id}-${name}" class='browser-card' style="${appletStyle};">
+                    <img src="${cls.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px; position: relative;">
-                        <h2 style="margin-bottom: 0px;">${applet.name}</h2>
+                        <h2 style="margin-bottom: 0px;">${name}</h2>
                         <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                        <p style="font-size: 80%;margin-top: 5px;">${applet.cls.description}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${cls.description}</p>
                     </div>
                 </div>`
-                if (applet.cls.devices.length > 1){
+                if (cls.devices.length > 1){
                     generalHTML += html
-                } else if (applet.cls.devices[0] == 'eeg'){
+                } else if (cls.devices[0] == 'eeg'){
                     eegHTML += html
-                } else if (applet.cls.devices[0] == 'heg'){
+                } else if (cls.devices[0] == 'heg'){
                     hegHTML += html
                 }
             }

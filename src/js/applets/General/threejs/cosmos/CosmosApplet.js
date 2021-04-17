@@ -24,10 +24,11 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
 
-    static devices = ['eeg'] //,heg
+    static name = "Cosmos"; 
     static description = "Spin the galaxy!"
-    static categories = ['feedback'];
     static image=featureImg
+    static categories = ['feedback'];
+    static devices = ['eeg'] //,heg
 
     constructor(
         parent=document.body,

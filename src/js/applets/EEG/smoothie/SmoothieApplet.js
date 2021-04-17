@@ -7,6 +7,7 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class SmoothieApplet {
 
+    static name = "Smoothie"; 
     static devices = ['eeg']
     static description = "Simple real time bandpower and coherence plot."
     static categories = ['data'];

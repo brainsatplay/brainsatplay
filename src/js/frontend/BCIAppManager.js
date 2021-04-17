@@ -29,23 +29,6 @@ import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
-
-
-/*
-//Name applets and their template classes with specifications for the UI manager
-//Append these with the applets you write that you want to load into the frontend on the dev build
-export defaultBCIApplets = [ 
-            { name:"uPlot Applet",         cls: uPlotApplet        },
-            { name:"SmoothieJS Applet",    cls: SmoothieApplet     },
-            { name:"BrainMap Applet",      cls: BrainMapApplet     },
-            { name:"Spectrogram Applet",   cls: SpectrogramApplet  },
-            { name:"BarChart Applet",      cls: BarChartApplet     },
-            { name:"MirrorBars Applet",    cls: MirrorBarsApplet   },
-            { name:"TimeCharts Applet",    cls: TimeChartsApplet   }
-        ]; 
-*/
-
-
 export class BCIAppManager {
     /**
      * @constructor
@@ -54,7 +37,7 @@ export class BCIAppManager {
      */
     constructor(
         bcisession=null,
-        appletClasses=[],   //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletClasses=[],   //expects a Map of classes to set available applets in the browser
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
         useFS=false         //launch with browserfs initialized
     ) {
@@ -443,7 +426,7 @@ export class BCIAppManager {
     }
 
     setApps( //set the apps and create a new UI or recreate the original
-        appletClasses=this.appletClasses,  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletClasses=this.appletClasses,  //expects a Map of classes to set available applets in the browser
         appletConfigs=this.appletConfigs   //expects an object array like           [{name:"uPlot Applet",idx:0-3,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
         this.appletClasses = appletClasses;

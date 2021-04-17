@@ -14,14 +14,13 @@ body
     height: 100vh;
     background: black;
     color: white;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    /* overflow-x: hidden;
+    overflow-y: hidden; */
     margin: 0;
 }
 
 body {
     display: flex;
-    box-sizing: 'border-box';
     position: relative;
 }
 

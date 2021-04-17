@@ -4,6 +4,7 @@ import {SoundJS} from '../../../../frontend/UX/Sound'
 import featureImg from './img/feature.png'
 export class AudioApplet {
 
+    static name = "Audio"; 
     static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "HEG ratio and EEG Coherence feedback."
     static categories = ['feedback'];

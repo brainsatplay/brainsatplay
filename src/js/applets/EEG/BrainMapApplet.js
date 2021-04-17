@@ -7,6 +7,7 @@ import featureImg from './../../../assets/features/placeholder.png'
 //Example Applet for integrating with the UI Manager
 export class BrainMapApplet {
 
+    static name = "Brain Map"; 
     static devices = ['eeg']
     static description = "Bandpower and coherence mapping."
     static categories = ['data'];
