@@ -21,7 +21,6 @@ body
 
 body {
     display: flex;
-    box-sizing: 'border-box';
     position: relative;
 }
 
@@ -437,6 +436,7 @@ select {
     color: white;
     font-size: 64%;
     /* margin: 0px 10px; */
+    min-width: 100px;
 }
 
 

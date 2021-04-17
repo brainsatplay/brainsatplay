@@ -1,15 +1,15 @@
 import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 import p5 from 'p5';
-import {Ring} from './Ring';
+import {Connectome} from './Connectome';
 import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
-export class BandRingApplet {
+export class ConnectomeApplet {
 
-    static name = "Band Ring"; 
+    static name = "Connectome"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Bandpower visualizer."
+    static description = "Visualize connection strength between brain regions."
     static categories = ['data'];
     static image=featureImg
 
@@ -31,7 +31,7 @@ export class BandRingApplet {
             buttonOutput: 0 //Add whatever else
         };
 
-        this.ring = null;
+        this.connectome = null;
         this.sketch = null;
     }
 
@@ -74,22 +74,17 @@ export class BandRingApplet {
         const sketch = (p) => {
             p.setup = () => {
                 p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring = new Ring(p)
+                this.connectome = new Connectome(p)
+                this.connectome.setGraph(this.bci.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
             };
 
             p.draw = () => {
                 p.background(0);
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
-                this.ring.drawShape()
+                this.connectome.setConnectionStrength(this.bci.atlas.data.coherence)
+                this.connectome.draw()
             };
-
-            p.windowResized = () => {
-                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring.setMaxRadius()
-            }
         };
-
-        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
+        this.sketch = new p5(sketch, containerElement)
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -100,7 +95,9 @@ export class BandRingApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let container = document.getElementById(this.props.id)
+        let containerElement = document.getElementById(this.props.id)
+        this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
+        if (this.connectome != null) this.connectome.setGraph(this.bci.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;

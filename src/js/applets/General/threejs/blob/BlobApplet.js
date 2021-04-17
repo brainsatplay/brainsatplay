@@ -24,6 +24,7 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class BlobApplet {
 
+    static name = "Blob"; 
     static devices = ['eeg'] //,heg
     static description = "Calm the blob!"
     static categories = ['feedback'];

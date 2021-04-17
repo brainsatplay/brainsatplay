@@ -5,6 +5,7 @@ import {DOMFragment} from '../frontend/utils/DOMFragment'
 //Example Applet for integrating with the UI Manager
 export class AppletExample {
 
+    static name = "Example"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Example"
     static categories = ['feedback']; //data,game,multiplayer,meditation,etc

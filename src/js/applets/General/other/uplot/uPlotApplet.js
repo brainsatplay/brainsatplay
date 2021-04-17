@@ -8,6 +8,7 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
+    static name = "uPlot"; 
     static devices = ['eeg','heg']
     static description = "View live data."
     static categories = ['data'];

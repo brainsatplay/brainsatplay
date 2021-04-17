@@ -15,6 +15,7 @@ import featureImg from './img/feature.png'
 
 export class ThreeSunriseApplet {
 
+    static name = "Sunrise"; 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Spin the Earth!"
     static categories = ['feedback'];

@@ -29,23 +29,6 @@ import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
-
-
-/*
-//Name applets and their template classes with specifications for the UI manager
-//Append these with the applets you write that you want to load into the frontend on the dev build
-export defaultBCIApplets = [ 
-            { name:"uPlot Applet",         cls: uPlotApplet        },
-            { name:"SmoothieJS Applet",    cls: SmoothieApplet     },
-            { name:"BrainMap Applet",      cls: BrainMapApplet     },
-            { name:"Spectrogram Applet",   cls: SpectrogramApplet  },
-            { name:"BarChart Applet",      cls: BarChartApplet     },
-            { name:"MirrorBars Applet",    cls: MirrorBarsApplet   },
-            { name:"TimeCharts Applet",    cls: TimeChartsApplet   }
-        ]; 
-*/
-
-
 export class BCIAppManager {
     /**
      * @constructor
@@ -54,7 +37,7 @@ export class BCIAppManager {
      */
     constructor(
         bcisession=null,
-        appletClasses=[],   //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletClasses=[],   //expects a Map of classes to set available applets in the browser
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
         useFS=false         //launch with browserfs initialized
     ) {
@@ -347,7 +330,9 @@ export class BCIAppManager {
             }
         );
 
-		document.getElementById("config-selector").onchange = () => {
+        let configSelector = document.getElementById("config-selector")
+		configSelector.onchange = (e) => {
+            window.location.href = `${window.location.origin}/#${configSelector.value}`;
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }
@@ -357,6 +342,19 @@ export class BCIAppManager {
             this.tutorialManager.openTutorial()
             this.tutorialManager.updateStandaloneTutorialContent(0,0)
          }
+
+         // Keyboard Shortcuts
+         document.onkeyup = (e) => {
+
+            // Screenshot all canvases
+            if (e.ctrlKey && e.shiftKey && e.which == 83) { // CTRL + SHIFT + s
+                this.downloadImages()
+            } 
+            // Screenshot all canvases as feature images
+            else if (e.ctrlKey && e.shiftKey && e.which == 70) { // CTRL + SHIFT + f
+                this.downloadImages(1080,540)
+            }
+        };
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
@@ -405,7 +403,6 @@ export class BCIAppManager {
             if(rep.indexOf('{') > -1) //parse if its an object
                 cfg = JSON.parse(rep); // expects cfg object on end of url like #{name:"",idx:n,settings:["a","b","c"]}#{...}#...
             else cfg = rep; //otherwise its just a string
-            console.log(cfg)
             appletConfigs.push(cfg);
         });
         return appletConfigs;    
@@ -443,7 +440,7 @@ export class BCIAppManager {
     }
 
     setApps( //set the apps and create a new UI or recreate the original
-        appletClasses=this.appletClasses,  //expects an object array formatted like [{name:"uPlot Applet", cls: uPlotApplet},{}] to set available applets in the browser
+        appletClasses=this.appletClasses,  //expects a Map of classes to set available applets in the browser
         appletConfigs=this.appletConfigs   //expects an object array like           [{name:"uPlot Applet",idx:0-3,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
         this.appletClasses = appletClasses;
@@ -769,6 +766,51 @@ export class BCIAppManager {
 
 
         });
+    }
+
+
+
+
+    downloadImages(w,h){
+
+        let canvases = document.querySelectorAll('canvas')
+
+        for (let canvas of canvases){
+            let width = w ?? canvas.width
+            let height = h ?? canvas.height
+            let transformedC = document.createElement('canvas');
+            // Transform Image to Specified Container Size (if necesssary)
+            transformedC.width = width
+            transformedC.height = height
+            let oldAspect = canvas.width/canvas.height
+            let newWidth = Math.min(width,canvas.width)
+            let newHeight = Math.min(height,canvas.height)
+            if (newWidth/newHeight > oldAspect){
+                newWidth = newHeight * oldAspect
+            } else {
+                newHeight = newWidth / oldAspect
+            }
+            let xTransform = (width - newWidth) / 2
+            let yTransform = (height - newHeight) / 2
+
+            // Draw Background
+            let transctx = transformedC.getContext("2d")
+            transctx.fillStyle = 'black';
+            transctx.fillRect(0, 0, width, height);
+
+            // Draw Image
+            transctx.drawImage(
+                canvas, 
+                0,0,canvas.width, canvas.height, 
+                xTransform,yTransform,newWidth, newHeight
+                )
+            let image = transformedC.toDataURL("image/png").replace("image/png", "image/octet-stream")
+            var a = document.createElement('a');
+            a.href = image;
+            a.download = 'screenshot.png';
+            document.body.appendChild(a);
+            a.click();
+        }
     }
 
 }
