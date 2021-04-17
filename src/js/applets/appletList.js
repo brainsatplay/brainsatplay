@@ -22,6 +22,7 @@ import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseA
 
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
+import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
 let applets = [
@@ -151,7 +152,7 @@ let presets = [
         ],
         description: "Brain blood flow training!",
         type: "HEG",
-        image: placeholderImg	
+        image: hegImage	
     }
 ]
 
