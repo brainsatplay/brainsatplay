@@ -9,7 +9,7 @@ import texUrl from './textures/8k_earth_daymap.jpg'
 import cloudtexUrl from './textures/clouds_8k.jpg'
 import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
-import metalUrl from './textures/8k_earth_specular_map.tif'
+import metalUrl from './textures/8k-earth-specular-map.tiff'
 
 import featureImg from './img/feature.png'
 
