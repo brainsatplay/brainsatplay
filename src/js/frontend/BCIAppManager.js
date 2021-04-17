@@ -419,6 +419,7 @@ export class BCIAppManager {
             if(settings.appletConfigs) {
                 this.appletConfigs = settings.appletConfigs;
             }
+            console.log(this.appletConfigs)
         }
         let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length > 0){
@@ -629,7 +630,12 @@ export class BCIAppManager {
 
             
             const saveSettings = () => {
-                this.appletConfigs = this.appletManager.appletConfigs;
+                let configs = [];
+                this.appletManager.applets.forEach((applet) => {
+                    if(applet.name)
+                        configs.push({name:applet.name, settings:applet.classinstance.settings})
+                });
+                this.appletConfigs = configs;
                 let newsettings = JSON.stringify({   
                     time:toISOLocal(new Date()),
                     appletConfigs:this.appletConfigs
