@@ -119,18 +119,13 @@ export class BrainArtApplet {
                     this.ring.lastDraw = Date.now()
                 // }
             };
-
-            p.windowResized = () => {
-                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.sketch.background(0)
-            }
         };
 
         setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
 
         document.getElementById(`${this.props.id}-reset`).onclick = () => {
             this.sketch.background(0)
-        }
+        }       
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -144,9 +139,6 @@ export class BrainArtApplet {
         let containerElement = document.getElementById(this.props.id)
         this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
         this.sketch.background(0)
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
