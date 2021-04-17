@@ -2,7 +2,8 @@ import menusvg from '../../../assets/menu.svg'
 import menuxsvg from '../../../assets/menuX.svg'
 import logo from '../../../assets/logo512.png'
 import filesvg from '../../../assets/file_noun.svg'
-import csvsvg from '../../../assets/csv_noun.svg'
+import csvsvg from '../../../assets/file-csv-solid.svg'
+import deletesvg from '../../../assets/trash-alt-regular.svg'
 
 export function page_template(props={}){
     return `
@@ -151,8 +152,11 @@ export function filemenu_template(props={}) {
 export function file_template(props={id:Math.random()}) {
     return `
     <div id="`+props.id+`">
-        <p id="`+props.id+`filename" style='color:white'>`+props.id+`</p><button id="`+props.id+`delete">X</button>
-        <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:60px;width:60px; fill:white;">
+        <div style="display:flex; align-items: center;">
+        <p id="`+props.id+`filename" style='color:white; font-size: 80%;'>`+props.id+`</p>
+        <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
+        <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
+        </div>
     </div>
     `;
 }

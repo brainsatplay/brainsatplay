@@ -240,6 +240,7 @@ export class brainsatplay {
 			// html+= `<option value='`+o+`'>`+o+`</option>`;
 			html+= `
 			<div id='brainsatplay-${o}' value='${o}' class='device-card'>
+			<div id='brainsatplay-${o}-indicator' class='indicator'></div>
 			${o}
 			</div>`;
 		});

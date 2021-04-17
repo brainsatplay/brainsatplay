@@ -3,6 +3,7 @@ import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 
 import * as THREE from 'three'
 import * as POSTPROCESSING from 'postprocessing'
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 import texUrl from './textures/8k_earth_daymap.jpg'
 import cloudtexUrl from './textures/clouds_8k.jpg'
@@ -10,9 +11,14 @@ import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
 import metalUrl from './textures/8k_earth_specular_map.tif'
 
+import featureImg from './img/feature.png'
+
 export class ThreeSunriseApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Spin the Earth!"
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -42,7 +48,7 @@ export class ThreeSunriseApplet {
        
         this.begin = 0;
         this.ticks = 0;
-        this.change = 0.00015; //Default
+        this.change = 0.00015//0.001//0.00015; //Default
         this.threeAnim;
         this.threeWidth = 100;
 
@@ -85,6 +91,19 @@ export class ThreeSunriseApplet {
             this.renderer.shadowMap.enabled = true;
             //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             //Add whatever else you need to initialize
+
+
+            /**
+             * VR
+             */
+            navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+                if (isSupported){
+                    this.renderer.xr.enabled = true;
+                    document.getElementById(props.id+"threeContainer").style.position = 'relative'
+                    document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
+                }
+            })
+
             
             document.getElementById(props.id+"threeContainer").appendChild(this.renderer.domElement);
             
@@ -329,7 +348,7 @@ export class ThreeSunriseApplet {
     
             this.begin = 0;
             this.ticks = 0;
-            this.change = 0.00015; //Default
+            //this.change = 0.00015; //Default
             this.threeAnim;
     
         }
@@ -346,14 +365,14 @@ export class ThreeSunriseApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     
         setTimeout(()=> {
-            if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+            
                 this.threeWidth = this.AppletHTML.node.clientWidth;
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
                 this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
                 this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
                 this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
                 this.camera.updateProjectionMatrix();
-            }
+            
 
             this.looping = true;
             this.render();
@@ -381,14 +400,14 @@ export class ThreeSunriseApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        if(this.threeWidth !== this.AppletHTML.node.clientWidth) {
+       
             this.threeWidth = this.AppletHTML.node.clientWidth;
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.composer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
             this.camera.aspect = this.threeWidth / this.AppletHTML.node.clientHeight;
             this.camera.updateProjectionMatrix();
-        }
+        
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -437,12 +456,13 @@ export class ThreeSunriseApplet {
             this.sunMesh.position.x = Math.sin(theta) * 40;
             this.sunMesh.position.z = Math.cos(theta) * 40;
 
-            this.moonMesh.position.x = Math.sin(theta*1.05 + 0.83) * 30;
-            this.moonMesh.position.z = Math.cos(theta*1.05 + 0.83) * 30;
+            this.moonMesh.position.x = Math.sin(theta*1.05 + 0.2) * 30;
+            this.moonMesh.position.z = Math.cos(theta*1.05 + 0.2) * 30;
             
             this.composer.render();
             
-            setTimeout(()=>{this.threeAnim = requestAnimationFrame(this.render)},15);
+            setTimeout(()=>{this.threeAnim = 
+                this.renderer.setAnimationLoop( this.render )},15);
         }
     }  
 

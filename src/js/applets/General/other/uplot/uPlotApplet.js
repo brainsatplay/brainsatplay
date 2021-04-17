@@ -1,13 +1,17 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import {uPlotMaker} from '../../bciutils/visuals/eegvisuals'
-import {eegmath} from '../../bciutils/eegmath'
-import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import {uPlotMaker} from '../../../../bciutils/visuals/eegvisuals'
+import {eegmath} from '../../../../bciutils/eegmath'
+import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../../frontend/menus/selectTemplates'
+import featureImg from './../../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
     static devices = ['eeg','heg']
+    static description = "View live data."
+    static categories = ['data'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -49,10 +53,6 @@ export class uPlotApplet {
                 <div id='`+props.id+`menu' style='position:absolute; float:right; z-index:4;'>
                   <table style='position:absolute; transform:translateX(40px);'>
                     <tr>
-                      <td style='color:black;'>
-                        Channel:
-                        <select id="`+props.id+`channel" style='width:80px;'></select>
-                      </td> 
                       <td style='color:black;'>  
                         Graph:
                         <select id='`+props.id+`mode' style='width:98px;'>
@@ -60,23 +60,26 @@ export class uPlotApplet {
                           <option value="Coherence">Coherence</option>
                           <option value="CoherenceTimeSeries">Mean Coherence</option>
                           <option value="TimeSeries">Raw</option>
-                          <option value="Stacked" selected="selected">Stacked Raw</option>
+                          <option value="Stacked">Stacked Raw</option>
                         </select>
                       </td>
+                      <td id='`+props.id+`channeltd' style='color:black;'>
+                        Channel:
+                        <select id="`+props.id+`channel" style='width:80px;'></select>
+                      </td> 
                       <td id='`+props.id+`yrangetd' style='width:98px; color:black;'>
                         Y scale: <button id='`+props.id+`yrangeset' style='position:absolute; transform:translateX(3px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`yrange' placeholder='0,100 or auto' style='width:90px'>
                       </td>
                       <td id='`+props.id+`xrangetd' style='width:98px; color:black;'>
                         Time: <button id='`+props.id+`xrangeset' style='position:absolute; transform:translateX(10px); height:16px;'><div style='transform:translateY(-3px);'>Set</div></button><input type='text' id='`+props.id+`xrange' placeholder='10 (sec)' style='width:90px'>
                       </td>
-                      
                     </tr>
                     <tr>
                       <td colSpan=1 style='display:table-row; font-weight:bold; font-size:12px;' id='`+props.id+`legend'></td>
                       <td>
                       `+genBandviewSelect(props.id+'bandview')+`
                       </td>
-                      <td colSpan=2>
+                      <td colSpan=2 style='vertical-align:top;'>
                         <div id='`+props.id+`title' style='font-weight:bold; color:black; font-size:8px;'>Fast Fourier Transforms</div>
                       </td>
                     </tr>
@@ -91,24 +94,36 @@ export class uPlotApplet {
         let setupHTML = (props=this.props) => {
             document.getElementById(props.id+"bandview").style.display="none";
             document.getElementById(props.id+'xrangetd').style.display = "none";
+            document.getElementById(props.id+'mode').value="Stacked";
             document.getElementById(props.id+'mode').onchange = () => {
-              
+              this.settings[0] = document.getElementById(props.id+'mode').value;
               let atlas = this.bci.atlas;
               this.yrange = true;
               if(document.getElementById(props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(props.id+'mode').value === "Coherence"){
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addCoherenceOptions(props.id+'channel',atlas.data.coherence,true,['All']);
               }
               else if (document.getElementById(props.id+'mode').value === "TimeSeries" || document.getElementById(props.id+'mode').value === "Stacked"){
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addChannelOptions(props.id+'channel',atlas.data.eegshared.eegChannelTags,false,['All']);
               }
+              else if (document.getElementById(props.id+'mode').value === "HEG") {
+                document.getElementById(props.id+'channeltd').style.display = 'none';
+              }
               else {
+                document.getElementById(props.id+'channeltd').style.display = '';
                 addChannelOptions(props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
               }
+              
               if (document.getElementById(props.id+'mode').value === "CoherenceTimeSeries") {
                 document.getElementById(props.id+'xrangetd').style.display = "";
                 document.getElementById(props.id+"bandview").style.display="";
               }
               else if(document.getElementById(props.id+'mode').value==="TimeSeries") { 
+                document.getElementById(props.id+'xrangetd').style.display = "";
+                document.getElementById(props.id+"bandview").style.display="none";
+              }
+              else if(document.getElementById(props.id+'mode').value==="HEG") { 
                 document.getElementById(props.id+'xrangetd').style.display = "";
                 document.getElementById(props.id+"bandview").style.display="none";
               }
@@ -173,17 +188,17 @@ export class uPlotApplet {
         
         this.AppletHTML.appendStylesheet("./_dist_/styles/css/uPlot.min.css");
 
-
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-       
+        
         if(this.bci.atlas.data.eegshared.frequencies.length === 0) {
           this.bci.atlas.data.eegshared.frequencies = this.bci.atlas.bandpassWindow(0,this.bci.atlas.data.eegshared.sps);
         }
        
         this.setPlotDims();
         
-        this.class = new uPlotMaker(this.props.id+'canvas');    
+        this.class = new uPlotMaker(this.props.id+'canvas');  
 
+        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+       
         //Add whatever else you need to initialize  
     }
 
@@ -209,45 +224,71 @@ export class uPlotApplet {
           else {
             addChannelOptions(this.props.id+'channel',atlas.data.eegshared.eegChannelTags,true,['All']);
           }
-        }
-        if(atlas.settings.heg) {
-          let opts = [];
-          let sel = document.getElementById(this.props.id+"mode");
-          for (var i=0, n=sel.options.length; i<n; i++) { // looping over the options
-            if (sel.options[i].value) opts.push(sel.options[i].value);
-          }
-          if(opts.indexOf("HEG") < 0) {
-            sel.innerHTML = `
-              <option value="HEG" selected="selected">HEG</option>
-              <option value="FFT">FFTs</option>
-              <option value="Coherence">Coherence</option>
-              <option value="CoherenceTimeSeries">Mean Coherence</option>
-              <option value="TimeSeries">Raw</option>
-              <option value="Stacked">Stacked Raw</option>
-            `;
-          }
         } 
       }
-
-      this.setPlotDims(); 
-      if(this.plotWidth === 0 || this.plotHeight === 0) {
-        setTimeout(() => { //wait for screen to resize
-          this.setPlotDims();         
-          if(this.plotWidth === 0 || this.plotHeight === 0) {
-            this.plotWidth = 400; this.plotHeight = 300;
+      if(atlas.settings.heg) {
+        let opts = [];
+        let sel = document.getElementById(this.props.id+"mode");
+        for (var i=0, n=sel.options.length; i<n; i++) { // looping over the options
+          if (sel.options[i].value) opts.push(sel.options[i].value);
+        }
+        if(opts.indexOf("HEG") < 0) {
+          if(!atlas.settings.eeg) {
+            sel.innerHTML = `
+            <option value="HEG">HEG</option>
+          `;
           }
+          else {
+            sel.innerHTML += `
+              <option value="HEG">HEG</option>
+            `;
+          }
+          sel.value="HEG";
+          sel.onchange();
+        }
+      }
+
+      if(this.class){
+        this.setPlotDims(); 
+        if(this.plotWidth === 0 || this.plotHeight === 0) {
+          setTimeout(() => { //wait for screen to resize
+            
+          if(this.class){
+              this.setPlotDims();         
+              if(this.plotWidth === 0 || this.plotHeight === 0) {
+                this.plotWidth = 400; this.plotHeight = 300;
+              }
+              this.setuPlot();
+              if(!this.looping) this.start();
+            }
+          }, 100);
+        }
+        else {
           this.setuPlot();
           if(!this.looping) this.start();
-        }, 100);
-      }
-      else {
-        this.setuPlot();
-        if(!this.looping) this.start();
+        }
       }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
+          if(i === 0) {
+            if(cmd === 'HEG' && !this.bci.atlas.settings.heg) {
+              this.bci.atlas.addHEGCoord(0);
+              this.bci.atlas.settings.heg = true;
+            }
+            if(typeof cmd === 'string') {
+              let found = Array.from(document.getElementById(this.props.id+'mode').options).find(opt => opt.value === cmd);
+              if(found) {
+                console.log(cmd);
+                setTimeout(() => { 
+                  document.getElementById(this.props.id+'mode').value = cmd;
+                  document.getElementById(this.props.id+'mode').onchange();
+                },200)
+                
+              }
+            }
+          }
             //if(cmd === 'x'){//doSomething;}
         });
     }
@@ -562,7 +603,7 @@ export class uPlotApplet {
                 if(view === 'All' || row.ch === parseInt(view)) {
                   //console.log("gotcha")
                   this.class.uPlotData.push([...atlas.data.eegshared.frequencies]);
-                  console.log(this.class.uPlotData)
+                  //console.log(this.class.uPlotData)
                 }
               });
             
@@ -717,7 +758,7 @@ export class uPlotApplet {
           //console.log(newSeries);
           //console.log(this.class.uPlotData);
           newSeries[0].label = "Hz";
-          console.log(this.class.uPlotData)
+         // console.log(this.class.uPlotData)
           this.class.makeuPlot(
               newSeries, 
               this.class.uPlotData, 
@@ -731,45 +772,51 @@ export class uPlotApplet {
         }
         else if (graphmode === "CoherenceTimeSeries") {
           if(atlas.settings.coherence){
-          var band = document.getElementById(this.props.id+"bandview").value;
-          
-          var count = atlas.data.coherence[0].fftCount-1;
-          //console.log(ATLAS.coherenceMap.map[0].data.times[count-1])
-          if(count > 1) {
-            while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].fftCount-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
-              count-=1;
-            }
-
-            this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].fftCount)];
-
-            atlas.data.coherence.forEach((row,i) => {
-              if(view === 'All' || row.tag === view) {
-                newSeries.push({
-                  label:row.tag,
-                  value: (u, v) => v == null ? "-" : v.toFixed(1),
-                  stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
-                });
-                this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
+            var band = document.getElementById(this.props.id+"bandview").value;
+            
+            var count = atlas.data.coherence[0].fftCount-1;
+            //console.log(ATLAS.coherenceMap.map[0].data.times[count-1])
+            if(count > 1) {
+              while(atlas.data.coherence[0].fftTimes[atlas.data.coherence[0].fftCount-1]-atlas.data.coherence[0].fftTimes[count-1] < this.xrange*1000 && count > 0) {
+                count-=1;
               }
-            });
-            //console.log(this.class.uPlotData)
-            newSeries[0].label = "t";
-            this.class.makeuPlot(
-                newSeries, 
-                this.class.uPlotData, 
-                this.plotWidth, 
-                this.plotHeight,
-                undefined,
-                this.yrange
-              );
-          }
-          document.getElementById(this.props.id+"title").innerHTML = "Mean Coherence over time";
-          this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
+            }
+            if(atlas.data.coherence[0].fftCount > 20) {
+              this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].fftCount)];
+            } else {
+              this.class.uPlotData = [atlas.data.eegshared.frequencies];
+            }
+              atlas.data.coherence.forEach((row,i) => {
+                if(view === 'All' || row.tag === view) {
+                  newSeries.push({
+                    label:row.tag,
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
+                  });
+                  if(row.fftCount > 20) {
+                    this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
+                  } else { this.class.uPlotData.push(atlas.data.eegshared.frequencies); }
+                }
+              });
+              //console.log(this.class.uPlotData)
+              newSeries[0].label = "t";
+              
+              this.class.makeuPlot(
+                  newSeries, 
+                  this.class.uPlotData, 
+                  this.plotWidth, 
+                  this.plotHeight, 
+                  undefined,
+                  this.yrange
+                );
+              document.getElementById(this.props.id+"title").innerHTML = "Mean Coherence over time";
+              this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
           } 
         }
       }
 
       this.setLegend();
+
       if(this.looping !== true) { 
         this.looping = true;
         this.updateLoop();
@@ -780,6 +827,7 @@ export class uPlotApplet {
     setLegend = () => {
       document.getElementById(this.props.id+"legend").innerHTML = "";
       let htmlToAppend = ``;
+      //console.log(this.class.plot.series)
       this.class.plot.series.forEach((ser,i) => {
         if(i>0){
           htmlToAppend += `<div id='`+this.props.id+ser.label+`' style='color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</div>`;

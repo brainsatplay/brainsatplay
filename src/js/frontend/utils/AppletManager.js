@@ -1,6 +1,6 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
-
+import { presets } from "./../../applets/appletList"
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -17,6 +17,7 @@ export class AppletManager {
         
         this.appletClasses = appletClasses;
         this.appletsSpawned = 0;
+        this.appletConfigs = appletConfigs;
 
         // Layout Constraints
         if (!window.isMobile){
@@ -70,28 +71,7 @@ export class AppletManager {
             }}
         }
 
-        this.appletPresets = [
-            {
-                value: 'eeg_nf',
-                name: "EEG Neurofeedback",
-                applets: [
-                    "Blob",
-                    "uPlot",
-                    "Spectrogram",
-                    "Brain Map"
-                ]
-            },
-            {
-                value: 'heg_nf',
-                name: "HEG Neurofeedback",
-                applets: [
-                    "Sunrise",
-                    "HEGBoids",
-                    "HEGCircle",
-                    "HEGAudio"
-                ]
-            }
-        ]
+        this.appletPresets = presets
 
         this.appletPresets.forEach((obj,i) => {
             document.getElementById("config-selector").innerHTML += `
@@ -157,20 +137,40 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
-    console.log(appletConfigs)
         // Load Config
-        let config = undefined;
-        if(appletConfigs.length !== 0) {
-            appletConfigs.forEach((cfg,i)=> {
-                this.appletClasses.find((o,j) => {
-                    if(cfg.name === o.name) {
-                        config = cfg.settings;
-                    }
-                });
-            });
+        let preset = undefined;
+        if(appletConfigs.length === 1) {
+            preset = this.appletPresets.find((p) => {
+                if(p.value.indexOf(appletConfigs[0]) > -1) {
+                    document.getElementById("config-selector").value = p.value;
+                    this.appletConfigs = p.applets;
+                    return true;
+                }
+            });   
+            
+        }
+        else if(appletConfigs.length === 0) {
+            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
+            this.appletConfigs = preset.applets;
+        }
+        
+
+
+        if(preset) {
+            if(preset.value.includes('heg')) {
+                if(this.bcisession.atlas.settings.heg === false) {
+                    this.bcisession.atlas.addHEGCoord(0);
+                    this.bcisession.atlas.settings.heg = true;
+                }
+            } else if (preset.value.includes('eeg')) {
+                if(this.bcisession.atlas.settings.eeg === false) {
+                    this.bcisession.atlas.settings.eeg = true;
+                }
+            }
         }
 
-        let appletNames = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value).applets
+        
+        let appletNames = this.appletConfigs;
         let configApplets = []
 
         // Collect a list of unused applets
@@ -182,11 +182,27 @@ export class AppletManager {
                     usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
                     if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
                 }
-            }
+            } else if (appletNames.find((n) => {
+                if(typeof n === 'object') {
+                    if(n.name === applet.name) {
+                        return true;
+                    }
+                }
+            })) {
+                if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
+                    usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+                    if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
+                }
+             }
         })
 
+        let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         appletNames.forEach(name => {
-            configApplets.push(this.appletClasses.find(applet =>applet.name === name))
+            // Include an exception for applet browser when using applet layouts
+            if(typeof name === 'object') {
+                if (name.name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name.name))
+            }
+            else if (name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name))
         })
 
         // Check the compatibility of current applets with connected devices
@@ -206,15 +222,24 @@ export class AppletManager {
 
                 // Add new applet
                 let classObj = configApplets[0] //unusedAppletClasses[0]
-                this.applets[i] = {
-                    appletIdx: i+1,
-                    name:classObj.name,
-                    classinstance: new classObj.cls("applets",this.bcisession,config)
-                }
+                if (classObj){
+                    
+                    let config = undefined;
+                    if (typeof this.appletConfigs[i] === 'object') {
+                        config = this.appletConfigs[i].settings;
+                    }
+                    this.applets[i] = {
+                        appletIdx: i+1,
+                        name:classObj.name,
+                        classinstance: new classObj.cls("applets",this.bcisession,config)
+                    }
 
-                configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
+                    configApplets.splice(0,1) // unusedAppletClasses.splice(0,1)
+                    this.appletsSpawned++;
+                }
+            } else {
+                this.appletsSpawned++;
             }
-            this.appletsSpawned++;
         })
 
         this.initApplets();
@@ -229,7 +254,7 @@ export class AppletManager {
 
     appletDivSettings = (appletDiv, appletIdx) => {
         appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
-        appletDiv.style.overflow = 'hidden'
+        if (appletDiv.style.overflow == 'auto'){appletDiv.style.overflow = `hidden`;}
         // appletDiv.draggable = true
         // appletDiv.style.cursor = 'move'
         // Fullscreen Functionality
@@ -252,15 +277,13 @@ export class AppletManager {
     }
 
     //initialize applets added to the list into each container by index
-    initApplets = () => {
+    initApplets = (settings=[]) => {
 
         // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
             if (applet.classinstance != null){
             if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
             let appletDiv =  applet.classinstance.AppletHTML.node;
-            appletDiv.style.gridArea = String.fromCharCode(97 + i);
-            appletDiv.style.overflow = 'hidden'
             appletDiv.name = applet.name
 
             // Drag functionality
@@ -325,7 +348,9 @@ export class AppletManager {
         }
         });
         this.enforceLayout();
-        this.responsive();
+        setTimeout(()=>{
+            this.responsive();
+        },100)
     }
 
     addApplet = (appletClassIdx, appletIdx, settings=undefined) => {
@@ -348,12 +373,16 @@ export class AppletManager {
             this.applets[pos].classinstance.init();
 
             let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
-            this.appletDivSettings(appletDiv, pos);
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
-            // console.log(this.applets[pos].classinstance.AppletHTML.node.style.gridArea)
+
+            this.appletConfigs = [];
+            this.applets.forEach((applet) => {
+                if(applet.name !== null) {
+                    this.appletConfigs.push(applet.name);
+                }
+            })
             this.appletsSpawned++;
             this.enforceLayout();
-            console.log('add applet')
             this.responsive();
         }
     }
@@ -364,13 +393,11 @@ export class AppletManager {
             if(o.appletIdx === appletIdx && o.classinstance != null) {
                 stateIdx = i;  
                 if (this.applets[stateIdx].classinstance != null){
-                    console.log('deiniting applet' + this.applets[stateIdx].name)
                     this.applets[stateIdx].classinstance.deinit();
                 }
                 this.applets[stateIdx] = {appletIdx: stateIdx+1,name:null,classinstance: null};
                 this.appletsSpawned--;
                 this.enforceLayout();
-                console.log('remove applet')
                 this.responsive();
                 return true;
             }
@@ -395,7 +422,7 @@ export class AppletManager {
     addAppletOptions = (selectId,appletIdx) => {
         var select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None' selected="selected">None</option>`;
+        var newhtml = `<option value='None'>None</option>`;
         this.appletClasses.forEach((classObj,i) => {
             if (this.checkCompatibility(classObj.cls)){
                 if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
@@ -422,7 +449,7 @@ export class AppletManager {
     }
 
     enforceLayout(nodes=this.applets) {
-
+    
         let layoutSelector = document.getElementById('layout-selector')
         let nodeLabels = {
             active: [],
@@ -467,14 +494,12 @@ export class AppletManager {
             // Set Applet Heights
             appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
 
-            // Set Applet Overflow
-            appletDiv.style.overflow = `hidden`;
+            // Set Other Applet Settings
+            this.appletDivSettings(appletDiv, i);
         });  
     }
 
     responsive(nodes=this.applets) {      
-
-        console.log('responsive')
         let activeNodes = nodes.filter(n => n.classinstance != null)
         activeNodes.forEach((applet,i) => {
             applet.classinstance.responsive();

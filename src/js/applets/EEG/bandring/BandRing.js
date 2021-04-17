@@ -1,10 +1,16 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import {Boids} from '../../frontend/UX/Particles'
+import {brainsatplay} from '../../../brainsatplay'
+import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import p5 from 'p5';
+import {Ring} from './Ring';
+import featureImg from './img/feature.png'
 
-export class BoidsApplet {
+//Example Applet for integrating with the UI Manager
+export class BandRingApplet {
 
-    static devices = ['heg']
+    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Bandpower visualizer."
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -21,39 +27,31 @@ export class BoidsApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            //Add whatever else
+            buttonOutput: 0 //Add whatever else
         };
 
-        //etc..
-        this.class = null;
-        this.looping = false;
-        this.loop = null;
-
+        this.ring = null;
+        this.sketch = null;
     }
 
     //---------------------------------
     //---Required template functions---
     //---------------------------------
 
-    //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
+     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id=`+props.id+`>
-                <div id='`+props.id+`menu' style='position:absolute; z-index:3; '>
-                    <table id='`+props.id+`table' style='z-index:99;'>
-                    </table>
+                <div id='${props.id}' style='height:${props.height}; width:${props.width}; display: flex; align-items: center; justify-content: center;'>
                 </div>
-                <canvas id='`+props.id+`canvas' height='100%' width='100%' style='width:100%; height:100%;'></canvas>
-            </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            document.getElementById(props.id);   
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -65,33 +63,46 @@ export class BoidsApplet {
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
 
-        //Add whatever else you need to initialize
-        this.class = new Boids(200,this.props.id+'canvas');
-        this.looping = true;
-        this.updateLoop();
+        //Add whatever else you need to initialize        
+        const containerElement = document.getElementById(this.props.id);
+
+
+        const sketch = (p) => {
+            p.setup = () => {
+                p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                this.ring = new Ring(p)
+            };
+
+            p.draw = () => {
+                p.background(0);
+                this.ring.setBrainData(this.bci.atlas.data.eeg)
+                this.ring.drawShape()
+            };
+
+            p.windowResized = () => {
+                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                this.ring.setMaxRadius()
+            }
+        };
+
+        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.looping = false;
-        cancelAnimationFrame(this.loop);
-        this.class.stop();
-        this.class = null;
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let canvas = document.getElementById(this.props.id+"canvas");
-        canvas.width = this.AppletHTML.node.clientWidth;
-        canvas.height = this.AppletHTML.node.clientHeight;
-
-        canvas.style.width = this.AppletHTML.node.clientWidth;
-        canvas.style.height = this.AppletHTML.node.clientHeight;
+        let container = document.getElementById(this.props.id)
+        //let canvas = document.getElementById(this.props.id+"canvas");
+        //canvas.width = this.AppletHTML.node.clientWidth;
+        //canvas.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -104,27 +115,7 @@ export class BoidsApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
-    mean(arr){
-		var sum = arr.reduce((prev,curr)=> curr += prev);
-		return sum / arr.length;
-	}
-
-    updateLoop = () => {
-        if(this.looping){
-            if(this.bci.atlas.settings.heg) {
-                let ct = this.bci.atlas.data.heg[0].count;
-                if(ct >= 2) {
-                    let avg = 40; if(ct < avg) { avg = ct; }
-                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-                    this.class.onData(score);
-                }
-            }
-            setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);
-        }
-    }
-
-
+    //doSomething(){}
 
    
 } 

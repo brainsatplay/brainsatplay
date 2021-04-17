@@ -16,6 +16,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
+import featureImg from './img/feature.png'
 
 // import * as p5 from 'p5'
 // console.log(p5.noise)
@@ -24,6 +25,9 @@ import dummyTexture from "./img/dummyTexture.jpeg"
 export class EnsoApplet {
 
     static devices = ['eeg'] //,heg
+    static description = "Calm the ring!"
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -142,17 +146,17 @@ this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
 
+
 /**
  * VR
  */
-const supportsVR = 'getVRDisplays' in navigator;
-
-if (supportsVR) {
-    navigator.getVRDisplays().then(function(displays) {
-        his.renderer.xr.enabled = true;
+navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+    if (isSupported){
+        this.renderer.xr.enabled = true;
         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    });
-}
+    }
+})
+
 
 // GUI
 // const gui = new GUI({ autoPlace: false });

@@ -609,6 +609,30 @@ export class DataAtlas {
 		else return 0;
 	}
 
+	// Check whether the user is blinking
+	getBlink() {
+        let sideChannels = [['AF7','FP1'],['AF8','FP2']]
+		let blinks = [false,false]
+		if (this.data.blink == null) this.data.blink = {
+			blinkDuration: 1, // One second
+			blinkThreshold: 500, // uV
+			lastBlink: Date.now()
+		}
+        // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
+        if (Date.now() - this.data.blink.lastBlink > this.data.blink.blinkDuration*1000){
+        sideChannels.forEach((channels,ind) => {
+				let data = this.getEEGDataByTag(channels[0]) ?? this.getEEGDataByTag(channels[1])
+				let blinkRange = data.filtered.slice(data.filtered.length-this.data.blink.blinkDuration*this.data.eegshared.sps)
+				let max = Math.max(...blinkRange.map(v => Math.abs(v)))
+				blinks[ind] = (max > this.data.blink.blinkThreshold)
+            })
+            this.data.blink.lastBlink = Date.now()
+        }
+        
+        return blinks
+    }
+
+
     setDefaultTags() {
 		return [
 			{ch: 0, tag: null},{ch: 1, tag: null},{ch: 2, tag: null},{ch: 3, tag: null},

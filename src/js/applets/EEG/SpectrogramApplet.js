@@ -2,11 +2,15 @@ import {brainsatplay} from '../../brainsatplay'
 import {DOMFragment} from '../../frontend/utils/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../frontend/menus/selectTemplates'
 import {Spectrogram} from '../../bciutils/visuals/eegvisuals'
+import featureImg from './../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
 export class SpectrogramApplet {
 
     static devices = ['eeg']
+    static description = "Bandpower and coherence visualizer."
+    static categories = ['data'];
+    static image=featureImg
 
     constructor(
         parent=document.body,

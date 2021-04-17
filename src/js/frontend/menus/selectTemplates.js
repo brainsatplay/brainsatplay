@@ -73,9 +73,9 @@ export function genBandviewSelect(id='bandviewselectid'){
       <option value="theta">Theta (4Hz-8Hz)</option>
       <option value="alpha1" selected="selected">Alpha1 (8Hz-10Hz)</option>
       <option value="alpha2">Alpha2 (10Hz-12Hz)</option>
-      <option value="beta">Beta (12Hz-35Hz)</option>
-      <option value="lowgamma">Low Gamma (35Hz-48Hz)</option>
-      <option value="highgamma">High Gamma (48Hz+)</option>
+      <option value="beta">Beta (12Hz-30Hz)</option>
+      <option value="lowgamma">Low Gamma (30Hz-45Hz)</option>
+      <option value="highgamma">High Gamma (45Hz+)</option>
     </select>`;
   }
 

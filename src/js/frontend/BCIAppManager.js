@@ -61,6 +61,7 @@ export class BCIAppManager {
 
         this.state = new StateManager({
             sessionName:'',
+            autosaving:true,
             saveChunkSize:0,
             saveChunkSize:2000,
             sessionChunks:0,
@@ -122,6 +123,7 @@ export class BCIAppManager {
                     <div id="filecontainer" class="content">
                         <div class="collapsible-content-label">
                             <span>File Manager</span>
+                            <input type='checkbox' id='autosavingfiles' style='float:right;' checked> <span style='float:right;'>Autosave:</span>
                             <hr>
                         </div>
                     </div>
@@ -195,6 +197,10 @@ export class BCIAppManager {
                 this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2']],(res)=>{console.log("subscribed!", res)});
                 //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
             }
+
+            document.getElementById('autosavingfiles').onchange = () => {
+                this.state.autosaving = document.getElementById('autosavingfiles').checked;
+            }
         },
         undefined,
         'NEVER'
@@ -249,9 +255,6 @@ export class BCIAppManager {
         sidebar.addEventListener('mouseleave', function(e) {           
             closeAllOpenCollapsibles()
         })
-
-        document.body.style.overflow = "hidden";
-
 
         this.uiFragments.page = new DOMFragment(
             page_template,
@@ -332,7 +335,7 @@ export class BCIAppManager {
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
                 filemenu_template,
-                'filecontainer'
+                'filecontainer',
             )
         }
         this.uiFragments.appletbox = new DOMFragment(
@@ -371,7 +374,8 @@ export class BCIAppManager {
                 this.appletManager.initAddApplets();
             }
             catch (err) { console.error(err); }
-            this.appletManager.responsive();
+
+            this.appletManager.responsive();    
         }
 
         this.bcisession.ondisconnected = () => {
@@ -395,7 +399,7 @@ export class BCIAppManager {
         hasharr.shift();
         let appletConfigs = [];
         hasharr.forEach((hash,i) => {
-            let rep = hash.replaceAll('%22','"');
+            let rep = decodeURIComponent(hash);
             rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
             let cfg;
             if(rep.indexOf('{') > -1) //parse if its an object
@@ -415,6 +419,7 @@ export class BCIAppManager {
             if(settings.appletConfigs) {
                 this.appletConfigs = settings.appletConfigs;
             }
+            //console.log(this.appletConfigs)
         }
         let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length > 0){
@@ -506,7 +511,12 @@ export class BCIAppManager {
 
                         //configure autosaving when the device is connected
                         this.bcisession.state.data.info = this.bcisession.info;
+
                         
+                        document.getElementById("saveBCISession").onclick = () => {
+                            saveSettings();
+                        }
+                            
                         //console.log(this.bcisession.state.data.info);
                         let sub = this.bcisession.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
@@ -514,14 +524,18 @@ export class BCIAppManager {
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
                                         //console.log(row.count, this.state.data.saveCounter);
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
-                                            autoSaveEEGChunk(this.state.data.saveCounter);
-                                            this.state.data.saveCounter = row.count;
+                                        saveSettings();
+                                        if(this.state.autosaving) {
+                                            if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                            if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
+                                                autoSaveEEGChunk(this.state.data.saveCounter);
+                                                this.state.data.saveCounter = row.count;
+                                            }
                                         }
                                     });
 
                                     document.getElementById("saveBCISession").onclick = () => {
+                                        saveSettings();
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
                                             autoSaveEEGChunk(this.state.data.saveCounter);
@@ -535,13 +549,17 @@ export class BCIAppManager {
 
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
-                                        //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
-                                            autoSaveHEGChunk(this.state.data.saveCounter);
-                                            this.state.data.saveCounter = row.count;
+                                        saveSettings();
+                                        if(this.state.autosaving) {
+                                            //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                            if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                                autoSaveHEGChunk(this.state.data.saveCounter);
+                                                this.state.data.saveCounter = row.count;
+                                            }
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
+                                        saveSettings();
                                         if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveHEGChunk(this.state.data.saveCounter);
                                             this.state.data.saveCounter = row.count;
@@ -607,6 +625,26 @@ export class BCIAppManager {
                             }
                         });
                     }
+                });
+            }
+
+            
+            const saveSettings = () => {
+                let configs = [];
+                this.appletManager.applets.forEach((applet) => {
+                    if(applet.name)
+                        configs.push({name:applet.name, settings:applet.classinstance.settings})
+                });
+                this.appletConfigs = configs;
+                let newsettings = JSON.stringify({   
+                    time:toISOLocal(new Date()),
+                    appletConfigs:this.appletConfigs
+                });
+                fs.writeFile('/data/settings.json',
+                    newsettings, 
+                    (err) => {
+                        if(err) throw err;
+                        console.log("saved settings to /data/settings.json", newsettings);
                 });
             }
 
@@ -729,15 +767,6 @@ export class BCIAppManager {
                 
             }
 
-            const saveSettings = () => {
-                fs.writeFile('/data/settings.json',
-                JSON.stringify({   
-                        appletConfigs:this.appletConfigs
-                    }
-                ), (err) => {
-                    if(err) throw err;
-                });
-            }
 
         });
     }

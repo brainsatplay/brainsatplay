@@ -1,10 +1,14 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
-import {SoundJS} from '../../frontend/UX/Sound'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import {SoundJS} from '../../../../frontend/UX/Sound'
+import featureImg from './../../../../../assets/features/placeholder.png'
 
 export class AudioApplet {
 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "HEG ratio and EEG Coherence feedback."
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -74,6 +78,7 @@ export class AudioApplet {
             return `
             <div id='`+props.id+`'> 
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2;'> 
+                    <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <div id='`+props.id+`fileWrapper' style='font-size:10px;'> 
                         <div id='`+props.id+`fileinfo'></div> 
                         <input type="file" id='`+props.id+`uploadedFile'></input> 
@@ -85,8 +90,7 @@ export class AudioApplet {
                     </table>
                     <input type="range" id='`+props.id+`volSlider' min="0" max="100" value='`+(this.maxVol*100)+`'> 
                 </div> 
-                <button id='`+props.id+`showhide' style='float:right; z-index:2'>Hide UI</button> 
-                <canvas id='`+props.id+`canvas' style='z-index:1'></canvas> 
+                <canvas id='`+props.id+`canvas' style='z-index:1;'></canvas> 
             </div> 
             `;
         }
@@ -116,7 +120,7 @@ export class AudioApplet {
                 else{
                     this.useVol = false;
                     this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                    if(this.audio.gainNode != null) {
+                    if(this.audio !== null) {
                         this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
                     }
                     document.getElementById(props.id+"useVol").style.opacity = "0.3";
@@ -125,7 +129,7 @@ export class AudioApplet {
 
             document.getElementById(props.id+"volSlider").oninput = () => {
                 this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                if(this.audio.gainNode != null) {
+                if(this.audio !== null) {
                     this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
                 }
             }
@@ -136,18 +140,31 @@ export class AudioApplet {
                 else{ this.mode = 0; }
             }
 
-            document.getElementById(props.id+"showhide").onclick = () => {
+            let showhide = document.getElementById(props.id+'showhide');
+            showhide.onclick = () => {
                 if(this.hidden == false) {
                     this.hidden = true;
                     document.getElementById(props.id+"showhide").innerHTML = "Show UI";
-                    document.getElementById(props.id+'menu').style.display = "none";
+                    document.getElementById(props.id+'table').style.display = "none";
+                    document.getElementById(props.id+'volSlider').style.display = "none";
+                    document.getElementById(props.id+'fileWrapper').style.display = "none";
                 }
                 else{
                     this.hidden = false;
                     document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
-                    document.getElementById(props.id+'menu').style.display = "";
+                    document.getElementById(props.id+'table').style.display = "";
+                    document.getElementById(props.id+'volSlider').style.display = "";
+                    document.getElementById(props.id+'fileWrapper').style.display = "";
                 }
             }
+
+            showhide.onmouseover = () => {
+                showhide.style.opacity = 1.0;
+            }
+            showhide.onmouseleave = () => {
+                showhide.style.opacity = 0.2;
+            }
+
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -527,17 +544,21 @@ export class AudioApplet {
         if(this.looping === true) {
             if(this.bci.atlas.settings.heg) {
                 let ct = this.bci.atlas.data.heg[0].count;
-                let avg = 40; if(ct < avg) { avg = ct; }
-                let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-                this.onData(score);
+                if(ct > 1) {
+                    let avg = 40; if(ct < avg) { avg = ct; }
+                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    this.onData(score);
+                }
             }
             else if (this.bci.atlas.analyzing && this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
                 let ct = this.coh_ref_ch.fftCount;
-                let avg = 20; if(ct < avg) { avg = ct; }
-                let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
-                let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
-                this.onData(score);
+                if(ct > 1) {
+                    let avg = 20; if(ct < avg) { avg = ct; }
+                    let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+                    let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+                    this.onData(score);
+                }
             }
 
             if(this.mode == 0){

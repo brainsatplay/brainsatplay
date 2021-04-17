@@ -1,9 +1,13 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import featureImg from './img/feature.png'
 
 export class VideoApplet {
 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static devices = ['heg','eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "HEG ratio and EEG Coherence feedback."
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -64,6 +68,7 @@ export class VideoApplet {
             return `
             <div id="`+props.id+`">
                 <div id="`+props.id+`menu" style='position:absolute; z-index:2;'>
+                    <button id="`+props.id+`showhide" style='' >Hide UI</button>
                     <input id="`+props.id+`fs" type="file" accept="video/*"/>
                     <div id="`+props.id+`timeDiv"><input id="`+props.id+`timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+props.id+`vidbar"><button id="`+props.id+`minus1min">--</button><button id="`+props.id+`minus10sec">-</button><button id="`+props.id+`play">||</button><button id="`+props.id+`plus10sec">+</button><button id="`+props.id+`plus1min">++</button></div></div> 
@@ -75,9 +80,8 @@ export class VideoApplet {
                                 <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
                                 <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
                         </table>
-                    </div> 
-                </div>
-                <button id="`+props.id+`showhide" style='float:right;' >Hide UI</button> 
+                    </div>
+                </div> 
                 <video id="`+props.id+`video" src="https://vjs.zencdn.net/v/oceans.mp4" style="z-index:1;" type="video/mp4" height=100% width=100% autoplay loop muted></video> 
                 <canvas id="`+props.id+`canvas"></canvas>
             </div> 
@@ -375,17 +379,21 @@ export class VideoApplet {
 
           if(this.bci.atlas.settings.heg) {
             let ct = this.bci.atlas.data.heg[0].count;
-            let avg = 40; if(ct < avg) { avg = ct; }
-            let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-            let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-            this.onData(score);
+            if(ct > 1) {
+              let avg = 40; if(ct < avg) { avg = ct; }
+              let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+              let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+              this.onData(score);
+            }
           }
           else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
             let ct = this.coh_ref_ch.fftCount;
-            let avg = 20; if(ct < avg) { avg = ct; }
-            let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
-            let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
-            this.onData(score);
+            if(ct > 1) {
+              let avg = 20; if(ct < avg) { avg = ct; }
+              let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+              let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+              this.onData(score);
+            }
           }
 
           this.gl.clearColor(0,0,0.1,this.alpha);

@@ -1,9 +1,13 @@
-import {brainsatplay} from '../../brainsatplay'
-import {DOMFragment} from '../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../brainsatplay'
+import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import featureImg from './img/feature.png'
 
 export class TextScrollerApplet {
 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static description = "Words of affirmation." 
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,

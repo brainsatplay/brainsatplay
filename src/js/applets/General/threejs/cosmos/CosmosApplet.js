@@ -19,11 +19,15 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
+import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
 
     static devices = ['eeg'] //,heg
+    static description = "Spin the galaxy!"
+    static categories = ['feedback'];
+    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -274,17 +278,16 @@ this.renderer = new THREE.WebGLRenderer({
 this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+
 /**
  * VR
  */
-const supportsVR = 'getVRDisplays' in navigator;
-
-if (supportsVR) {
-    navigator.getVRDisplays().then(function(displays) {
-        his.renderer.xr.enabled = true;
+navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+    if (isSupported){
+        this.renderer.xr.enabled = true;
         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    });
-}
+    }
+})
 
 
 /** 
