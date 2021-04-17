@@ -615,7 +615,7 @@ export class DataAtlas {
 		let blinks = [false,false]
 		if (this.data.blink == null) this.data.blink = {
 			blinkDuration: 1, // One second
-			blinkThreshold: 500, // uV
+			blinkThreshold: 220, // uV
 			lastBlink: Date.now()
 		}
         // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)

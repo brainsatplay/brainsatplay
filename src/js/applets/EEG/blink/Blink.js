@@ -92,6 +92,7 @@ export class BlinkApplet {
                     this.leftred-=0.5;    
                     leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
                 } else {
+                    this.leftred = 255;
                     document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
                 }
                 if(this.leftred <= 50) {
@@ -104,6 +105,7 @@ export class BlinkApplet {
                     this.rightred-=0.5;
                     rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
                 } else {
+                    this.rightred = 255;
                     document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
                 } 
                 if(this.rightred <= 50){
