@@ -89,6 +89,7 @@ export class ConnectomeApplet {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.sketch.remove()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
