@@ -14,8 +14,8 @@ body
     height: 100vh;
     background: black;
     color: white;
-    /* overflow-x: hidden;
-    overflow-y: hidden; */
+    overflow-x: hidden;
+    overflow-y: hidden;
     margin: 0;
 }
 
@@ -436,6 +436,7 @@ select {
     color: white;
     font-size: 64%;
     /* margin: 0px 10px; */
+    min-width: 100px;
 }
 
 

@@ -11,6 +11,7 @@ import { EnsoApplet } from './General/threejs/enso/EnsoApplet'
 import { CosmosApplet } from './General/threejs/cosmos/CosmosApplet'
 import { BlinkApplet } from './EEG/blink/Blink'
 import { BandRingApplet } from './EEG/bandring/BandRing'
+import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
 
 import { CircleApplet } from './HEG/circle/Circle'
 import { AudioApplet } from './General/other/audio/AudioApplet'
@@ -96,6 +97,10 @@ let applets = new Map([
 	[	
         BandRingApplet.name,       
         BandRingApplet,
+    ],
+    [	
+        BrainArtApplet.name,       
+        BrainArtApplet,
     ],
 
 ]);

@@ -100,7 +100,7 @@ export class AppletBrowser {
             if (preset.name != 'Applet Browser'){
                 presetHTML += `
                 <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
-                    <img src="${preset.image}" style="width: 100%;">
+                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2/1">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
                     <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
