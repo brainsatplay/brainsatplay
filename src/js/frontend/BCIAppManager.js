@@ -330,7 +330,9 @@ export class BCIAppManager {
             }
         );
 
-		document.getElementById("config-selector").onchange = () => {
+        let configSelector = document.getElementById("config-selector")
+		configSelector.onchange = (e) => {
+            window.location.href = `${window.location.origin}/#${configSelector.value}`;
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }

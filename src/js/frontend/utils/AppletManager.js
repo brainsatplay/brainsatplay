@@ -78,10 +78,13 @@ export class AppletManager {
 
         this.appletPresets = presets
 
+        document.getElementById("config-selector").innerHTML+= `
+        <option value='default' disabled>Browse presets</option>
+        `
         this.appletPresets.forEach((obj,i) => {
-            document.getElementById("config-selector").innerHTML += `
-            <option value=${obj.value}>${obj.name}</option>
-            `
+            if (i === 0) document.getElementById("config-selector").innerHTML += `<option value=${obj.value} selected>${obj.name}</option>`
+            else document.getElementById("config-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
+
         })
 
         // Other
@@ -150,9 +153,10 @@ export class AppletManager {
                     document.getElementById("config-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
+                } else {
+                    document.getElementById("config-selector").value = 'default';
                 }
             });   
-            
         }
         else if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
@@ -438,7 +442,6 @@ export class AppletManager {
         select.onchange = (e) => {
             this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
-
                 this.addApplet(this.appletClasses.get(select.value),appletIdx+1);
             }
         }

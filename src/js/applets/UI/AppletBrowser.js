@@ -173,6 +173,7 @@ export class AppletBrowser {
                     console.log(div.id)
                     let selector = document.getElementById('applet1')
                     selector.value = div.id.split('-')[1]
+                    window.location.href = `${window.location.origin}/#${selector.value}`;
                     selector.onchange()
                 }
                 }
