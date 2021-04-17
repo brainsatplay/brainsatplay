@@ -311,9 +311,9 @@ export class ThreeSunriseApplet {
                 kernelSize: POSTPROCESSING.KernelSize.SMALL,
                 density: 3,
                 decay: 0.92,
-                weight: 0.5,
+                weight: 0.3,
                 exposure: 0.6,
-                samples: 60,
+                samples: 30,
                 clampMax: 1.0
             });
     
