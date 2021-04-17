@@ -139,7 +139,6 @@ export class AppletManager {
     initAddApplets = (appletConfigs=[]) => {
         // Load Config
         let preset = undefined;
-        let config = undefined;
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0]) > -1) {
@@ -154,8 +153,9 @@ export class AppletManager {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
             this.appletConfigs = preset.applets;
         }
+        
 
-        let appletNames = this.appletConfigs;
+
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {
@@ -168,6 +168,9 @@ export class AppletManager {
                 }
             }
         }
+
+        
+        let appletNames = this.appletConfigs;
         let configApplets = []
 
         // Collect a list of unused applets
@@ -179,13 +182,27 @@ export class AppletManager {
                     usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
                     if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
                 }
-            }
+            } else if (appletNames.find((n) => {
+                if(typeof n === 'object') {
+                    if(n.name === applet.name) {
+                        return true;
+                    }
+                }
+            })) {
+                if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
+                    usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+                    if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
+                }
+             }
         })
 
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         appletNames.forEach(name => {
             // Include an exception for applet browser when using applet layouts
-            if (name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name))
+            if(typeof name === 'object') {
+                if (name.name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name.name))
+            }
+            else if (name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.find(applet =>applet.name === name))
         })
 
         // Check the compatibility of current applets with connected devices
@@ -206,6 +223,11 @@ export class AppletManager {
                 // Add new applet
                 let classObj = configApplets[0] //unusedAppletClasses[0]
                 if (classObj){
+                    
+                    let config = undefined;
+                    if (typeof this.appletConfigs[i] === 'object') {
+                        config = this.appletConfigs[i].settings;
+                    }
                     this.applets[i] = {
                         appletIdx: i+1,
                         name:classObj.name,
@@ -255,7 +277,7 @@ export class AppletManager {
     }
 
     //initialize applets added to the list into each container by index
-    initApplets = () => {
+    initApplets = (settings=[]) => {
 
         // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
