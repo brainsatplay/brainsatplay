@@ -96,7 +96,7 @@ export class uPlotApplet {
             document.getElementById(props.id+'xrangetd').style.display = "none";
             document.getElementById(props.id+'mode').value="Stacked";
             document.getElementById(props.id+'mode').onchange = () => {
-              
+              this.settings[0] = document.getElementById(props.id+'mode').value;
               let atlas = this.bci.atlas;
               this.yrange = true;
               if(document.getElementById(props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(props.id+'mode').value === "Coherence"){
@@ -188,17 +188,17 @@ export class uPlotApplet {
         
         this.AppletHTML.appendStylesheet("./_dist_/styles/css/uPlot.min.css");
 
-
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-       
+        
         if(this.bci.atlas.data.eegshared.frequencies.length === 0) {
           this.bci.atlas.data.eegshared.frequencies = this.bci.atlas.bandpassWindow(0,this.bci.atlas.data.eegshared.sps);
         }
        
         this.setPlotDims();
         
-        this.class = new uPlotMaker(this.props.id+'canvas');    
+        this.class = new uPlotMaker(this.props.id+'canvas');  
 
+        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+       
         //Add whatever else you need to initialize  
     }
 
@@ -272,6 +272,19 @@ export class uPlotApplet {
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
+          if(i === 0) {
+            if(typeof cmd === 'string') {
+              let found = Array.from(document.getElementById(this.props.id+'mode').options).find(opt => opt.value === cmd);
+              if(found) {
+                console.log(cmd);
+                setTimeout(() => { 
+                  document.getElementById(this.props.id+'mode').value = cmd;
+                  document.getElementById(this.props.id+'mode').onchange();
+                },200)
+                
+              }
+            }
+          }
             //if(cmd === 'x'){//doSomething;}
         });
     }
@@ -741,7 +754,7 @@ export class uPlotApplet {
           //console.log(newSeries);
           //console.log(this.class.uPlotData);
           newSeries[0].label = "Hz";
-          console.log(this.class.uPlotData)
+         // console.log(this.class.uPlotData)
           this.class.makeuPlot(
               newSeries, 
               this.class.uPlotData, 
@@ -764,8 +777,11 @@ export class uPlotApplet {
                 count-=1;
               }
             }
+            if(atlas.data.coherence[0].fftCount > 20) {
               this.class.uPlotData = [atlas.data.coherence[0].fftTimes.slice(count, atlas.data.coherence[0].fftCount)];
-
+            } else {
+              this.class.uPlotData = [atlas.data.eegshared.frequencies];
+            }
               atlas.data.coherence.forEach((row,i) => {
                 if(view === 'All' || row.tag === view) {
                   newSeries.push({
@@ -773,11 +789,14 @@ export class uPlotApplet {
                     value: (u, v) => v == null ? "-" : v.toFixed(1),
                     stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
                   });
-                  this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
+                  if(row.fftCount > 20) {
+                    this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
+                  } else { this.class.uPlotData.push(atlas.data.eegshared.frequencies); }
                 }
               });
               //console.log(this.class.uPlotData)
               newSeries[0].label = "t";
+              
               this.class.makeuPlot(
                   newSeries, 
                   this.class.uPlotData, 
@@ -786,8 +805,8 @@ export class uPlotApplet {
                   undefined,
                   this.yrange
                 );
-            document.getElementById(this.props.id+"title").innerHTML = "Mean Coherence over time";
-            this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
+              document.getElementById(this.props.id+"title").innerHTML = "Mean Coherence over time";
+              this.class.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)+"m:"+((v-atlas.data.eegshared.startTime)*.001 - 60*Math.floor((v-atlas.data.eegshared.startTime)*.00001666667)).toFixed(1) + "s");
           } 
         }
       }
