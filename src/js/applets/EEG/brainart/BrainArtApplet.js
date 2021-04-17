@@ -84,16 +84,16 @@ export class BrainArtApplet {
         const sketch = (p) => {
             p.setup = () => {
                 p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                p.background(0);
                 this.ring = new Ring(p)
+                p.background(0);
             };
 
             p.draw = () => {
                 this.ring.setBrainData(this.bci.atlas.data.eeg)
-                if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
+                // if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
                     this.ring.drawShape()
                     this.ring.lastDraw = Date.now()
-                }
+                // }
             };
 
             p.windowResized = () => {
