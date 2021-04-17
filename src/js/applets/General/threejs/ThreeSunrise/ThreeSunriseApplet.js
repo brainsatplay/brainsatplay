@@ -48,7 +48,7 @@ export class ThreeSunriseApplet {
        
         this.begin = 0;
         this.ticks = 0;
-        this.change = 0.00015; //Default
+        this.change = 0.00015//0.001//0.00015; //Default
         this.threeAnim;
         this.threeWidth = 100;
 
@@ -348,7 +348,7 @@ export class ThreeSunriseApplet {
     
             this.begin = 0;
             this.ticks = 0;
-            this.change = 0.00015; //Default
+            //this.change = 0.00015; //Default
             this.threeAnim;
     
         }
@@ -456,8 +456,8 @@ export class ThreeSunriseApplet {
             this.sunMesh.position.x = Math.sin(theta) * 40;
             this.sunMesh.position.z = Math.cos(theta) * 40;
 
-            this.moonMesh.position.x = Math.sin(theta*1.05 + 0.83) * 30;
-            this.moonMesh.position.z = Math.cos(theta*1.05 + 0.83) * 30;
+            this.moonMesh.position.x = Math.sin(theta*1.05 + 0.2) * 30;
+            this.moonMesh.position.z = Math.cos(theta*1.05 + 0.2) * 30;
             
             this.composer.render();
             
