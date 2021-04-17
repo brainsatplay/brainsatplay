@@ -119,9 +119,9 @@ let presets = [
             // "Brain Map",
             // "Spectrogram",
             // "uPlot"
-            uPlotApplet,
-            uPlotApplet,
-            uPlotApplet,
+            BlobApplet,
+            BrainMapApplet,
+            SpectrogramApplet,
             uPlotApplet,
         ],
         description: "Bandpower training, coherence, and more.",

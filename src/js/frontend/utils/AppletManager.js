@@ -44,21 +44,23 @@ export class AppletManager {
                     })
                 }},
             'Grid': {generate: (labels) => {
-                    let rows = Math.ceil(Math.sqrt(labels.active.length))
-                    let layout = Array.from({length: rows},e=>[]).map((a,i) => {
-                        for (let j = 0; j < rows; j++) {
-                            a.push(labels.all[rows*(i)+j])
-                        }
-                        return a
-                    })
+                    if (labels.active.length != 0){
+                        let rows = Math.ceil(Math.sqrt(labels.active.length))
+                        let layout = Array.from({length: rows},e=>[]).map((a,i) => {
+                            for (let j = 0; j < rows; j++) {
+                                a.push(labels.all[rows*(i)+j])
+                            }
+                            return a
+                        })
 
-                    let getReplacementLabel = ({active, inactive, all},baseLayout,i,j) => {
-                        if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
-                        if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j+1]
-                        if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][j]
-                        if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][j]
-                    }
-                    
+                        let getReplacementLabel = ({active, inactive, all},baseLayout,i,j) => {
+                            if (active.includes(baseLayout[i][j-1])) return baseLayout[i][j-1]
+                            if (active.includes(baseLayout[i][j+1])) return baseLayout[i][j+1]
+                            if (baseLayout[i-1] != null && active.includes(baseLayout[i-1][j])) return baseLayout[i-1][j]
+                            if (baseLayout[i+1] != null &&  active.includes(baseLayout[i+1][j])) return baseLayout[i+1][j]
+                            else return labels.active.shift()
+                        }
+                        
                         layout = layout.map((row,i) => {
                             return row.map((val,j) => {
                                 if (labels.inactive.includes(val)) { // Replace inactive applets
@@ -67,7 +69,10 @@ export class AppletManager {
                                 else return val
                             })
                         })
-                    return layout
+                        return layout
+                    } else{
+                        return [[undefined]]
+                    }
             }}
         }
 
@@ -143,7 +148,7 @@ export class AppletManager {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0]) > -1) {
                     document.getElementById("config-selector").value = p.value;
-                    this.appletConfigs = p.applets.map(a => a.name);
+                    this.appletConfigs = p.applets
                     return true;
                 }
             });   
@@ -152,9 +157,7 @@ export class AppletManager {
         else if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
             this.appletConfigs = preset.applets;
-        }
-        
-
+        }        
 
         if(preset) {
             if(preset.value.includes('heg')) {
@@ -203,8 +206,6 @@ export class AppletManager {
             }
             else if (conf.name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.get(conf.name)) // Presets
         })
-
-        console.log(configApplets)
 
         // Check the compatibility of current applets with connected devices
         this.appletsSpawned = 0;
@@ -461,6 +462,7 @@ export class AppletManager {
             nodeLabels.all.push(String.fromCharCode(97 + app.appletIdx-1))
         })
         let responsiveLayout = this.layoutTemplates[layoutSelector.value].generate(nodeLabels)
+
         let layoutRows = responsiveLayout.length
         let layoutColumns = responsiveLayout[0].length
         let activeNodes = nodes.filter(n => n.classinstance != null)
@@ -480,18 +482,12 @@ export class AppletManager {
 
         let applets = document.getElementById('applets');
         applets.style.gridTemplateAreas = innerStrings
-        applets.style.gridTemplateColumns = `repeat(${layoutColumns},1fr)`
-        applets.style.gridTemplateRows =  `repeat(${layoutRows},1fr)`
+        applets.style.gridTemplateColumns = `repeat(${layoutColumns},minmax(0, 1fr))`
+        applets.style.gridTemplateRows =  `repeat(${layoutRows},minmax(0, 1fr))`
 
         activeNodes.forEach((appnode,i) => {
-            let appletDiv =  appnode.classinstance.AppletHTML.node;
-            let gridPercent = 100 * rowAssignmentArray[appnode.appletIdx-1].size/layoutRows;
-            
-            // Set Applet Heights
-            appletDiv.style.maxHeight = `calc(${gridPercent}vh)`;
-
-            // Set Other Applet Settings
-            this.appletDivSettings(appletDiv, appnode.appletIdx-1);
+            // Set Generic Applet Settings
+            this.appletDivSettings(appnode.classinstance.AppletHTML.node, appnode.appletIdx-1);
         });  
     }
 
