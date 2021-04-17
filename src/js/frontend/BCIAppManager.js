@@ -400,6 +400,7 @@ export class BCIAppManager {
         let appletConfigs = [];
         hasharr.forEach((hash,i) => {
             let rep = hash.replaceAll('%22','"');
+            rep = hash.replaceAll('%20',' ');
             rep = rep.replaceAll("'",'"'); //replace single quotes with double quotes
             let cfg;
             if(rep.indexOf('{') > -1) //parse if its an object
