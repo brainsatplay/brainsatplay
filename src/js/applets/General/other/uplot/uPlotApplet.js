@@ -350,7 +350,7 @@ export class uPlotApplet {
               break;
             }
           }
-          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j)];
+          this.class.uPlotData = [heg.times.slice(j),heg.beat_detect.rir.slice(j),heg.beat_detect.rir2.slice(j),heg.ratio.slice(j)];
           if(heg.ambient.length > 0) {
             this.class.uPlotData.push(heg.ambient.slice(j))
           }

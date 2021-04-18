@@ -315,6 +315,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 			this.subscribed = false;
 			setTimeout(async () => {
 				if (this.reader) {
+					await this.reader.releaseLock();
 					this.reader = null;
 				}
 				await port.close();
