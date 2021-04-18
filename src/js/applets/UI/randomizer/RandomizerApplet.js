@@ -33,6 +33,8 @@ export class RandomizerApplet {
         this.applets = applets
         this.currentApplet = null
         this.animation = null
+        this.mode = 'timer' // 'button', 'timer'
+        this.timeLimit = 10; // s
     }
 
     //---------------------------------
@@ -47,7 +49,6 @@ export class RandomizerApplet {
             return `
                 <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
                 <div id='${props.id}-ui' style='position: absolute; top: 0; left: 0; height:100%; width:100%; z-index: 1; pointer-events:none;'>
-                    <button id='${props.id}-randomize' style="pointer-events:auto;position:absolute; top: 25px; left: 25px;">Randomize</button>
                     <div id='${props.id}-mask' style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; opacity: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
                         <img src='${logo}' style="width: 50%;">
                     </div>
@@ -59,9 +60,17 @@ export class RandomizerApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(`${props.id}-randomize`).onclick = () => {
-                this.setNewApplet()
-            };   
+            this.ui = document.getElementById(`${props.id}-ui`)
+
+            if (this.mode == 'button'){
+                this.ui.innerHTML +=   `<button id='${props.id}-randomize' style="pointer-events:auto;position:absolute; top: 25px; right: 25px;">Randomize</button>`
+                document.getElementById(`${props.id}-randomize`).onclick = () => {
+                    this.setNewApplet()
+                };   
+            } else if (this.mode == 'timer'){
+                this.ui.innerHTML += `<h2 id='${props.id}-countdown' style="pointer-events:auto;position:absolute; top: 25px; right: 25px; margin: 0px;">0:00</h2>`
+                this.countdown = document.getElementById(`${props.id}-countdown`)
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -79,7 +88,14 @@ export class RandomizerApplet {
         this.setNewApplet()
 
         let animate = () => {
-            // let timeElapsed = Date.now() - this.currentApplet.tInit
+            if (this.currentApplet != null && this.mode == 'timer'){
+                let timeLeft = this.timeLimit - (Date.now() - this.currentApplet.tInit)/1000
+                this.countdown.innerHTML = timeLeft.toFixed(2)
+                if (timeLeft <= 0){
+                    this.setNewApplet()
+                    this.countdown.innerHTML = (0).toFixed(2)
+                }
+            }
             setTimeout(()=>{this.animation = requestAnimationFrame(animate)},1000/60);
         }
 
