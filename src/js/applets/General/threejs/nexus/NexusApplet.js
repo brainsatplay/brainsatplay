@@ -429,8 +429,6 @@ this.resizeNexus = () => {
 
 }
 
-window.addEventListener('resize', this.resizeNexus, false)
-
 function regeneratePlaneGeometry() {
     let newGeometry = new THREE.PlaneGeometry(
         meshWidth, meshHeight, segmentsX, segmentsX/imageAspect
@@ -445,7 +443,7 @@ let currentIntersect = null
 var animate = () => {
 
     setTimeout( () => {
-        if (this.three.canvas != null && this.three.scene != null && this.three.renderer != null){
+        if (this.three.canvas != null){
                 animateUsers()
                 material.uniforms.uTime.value = Date.now() - tStart
                 points.forEach(point => {
@@ -590,7 +588,7 @@ this.three.getGeolocation = () => {
     navigator.geolocation.getCurrentPosition(
        // Success   
     (pos) => {
-        if (this.three.canvas){
+        if (this.three.canvas != null){
             points.get('me').setGeolocation(pos.coords)
             let me = points.get('me')
             this.three.drawCylinder()
@@ -610,8 +608,7 @@ this.three.getGeolocation = () => {
         maximumAge: 0
     });
 }
-    if(this.three.renderer)
-        this.three.renderer.setAnimationLoop( animate )
+    if(this.three.renderer) this.three.renderer.setAnimationLoop( animate )
 }
 
     // Clear Three.js Scene Completely
@@ -632,7 +629,6 @@ this.three.getGeolocation = () => {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.three.renderer.setAnimationLoop( null );
-        window.removeEventListener('resize', this.resizeNexus)
         this.clearThree()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
@@ -640,8 +636,7 @@ this.three.getGeolocation = () => {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        if(this.renderer)
-            this.resizeNexus()
+        if(this.three.renderer) this.resizeNexus()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
