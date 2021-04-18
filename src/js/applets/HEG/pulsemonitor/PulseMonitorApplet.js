@@ -128,7 +128,7 @@ export class PulseMonitorApplet {
                 let span = document.getElementById(this.props.id+'hr');
                 span.innerHTML = bpm.toFixed(2);
                 if(bpm < 30 || bpm > 200) { span.style.color = 'yellow'; } else if (span.style.color !== 'red') { span.style.color = 'red'; }
-                console.log(bpm);
+                console.log(bpm, hr[hr.length-1]);
             }
             if(breaths.length > this.breathCounter) {
                 this.breathCounter = breaths.length;
@@ -136,7 +136,7 @@ export class PulseMonitorApplet {
                 let span = document.getElementById(this.props.id+'br');
                 span.innerHTML = bpm.toFixed(2);
                 if(bpm < 3 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
-                console.log(bpm);
+                console.log(bpm, breaths[breaths.length-1]);
             }
         }
     }

@@ -721,7 +721,7 @@ export class DataAtlas {
 
 	
 	//Simple beat detection. 
-	//For pulse it applies a 1/4th second moving average and finds zero-crosses on the first derivative of R+IR 
+	//For pulse it applies a 1/4th second moving average and finds zero-crosses on the first derivative of R+IR. Data should be filtered with an IIR/Biquad filter with crystal clear pulse waves
 	//For breathing detection it applies a 3 second moving average and peak finding should work. Run every new sample
 	beatDetection = (hegstruct, sps) => {
 
