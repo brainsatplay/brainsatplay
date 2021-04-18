@@ -34,6 +34,7 @@ export class YoutubeApplet {
         this.player = undefined;
         this.looping = false;
         this.loop = undefined;
+        this.feedback = true;
     }
 
     //---------------------------------
@@ -50,6 +51,7 @@ export class YoutubeApplet {
                 <div id='${props.id}menu' style='position:absolute; top:60px; opacity:0;'> 
                     <input type='text' id='${props.id}videoid' placeholder='Paste id or url' style='width:110px;'>
                     <button id='${props.id}load'>Load</button>
+                    <br> Feedback: <input type='checkbox' id='${props.id}feedback' checked>
                 </div>
                 <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0"></iframe>
             </div>
@@ -69,6 +71,10 @@ export class YoutubeApplet {
             }
             document.getElementById(props.id).onmouseleave = () => {
                 document.getElementById(props.id+'menu').style.opacity = 0;
+            }
+
+            document.getElementById(props.id+'feedback').onchange = () => {
+                this.feedback = document.getElementById(props.id+'feedback').checked;
             }
         }
 
@@ -178,23 +184,26 @@ export class YoutubeApplet {
 
         if(this.looping) {
 
-            if(this.bci.atlas.settings.heg) {
-                let ct = this.bci.atlas.data.heg[0].count;
-                if(ct > 1) {
-                let avg = 40; if(ct < avg) { avg = ct; }
-                let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-                this.onData(score);
+            if(this.feedback) {
+                if(this.bci.atlas.settings.heg) {
+                    let ct = this.bci.atlas.data.heg[0].count;
+                    if(ct > 1) {
+                    let avg = 40; if(ct < avg) { avg = ct; }
+                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    this.onData(score);
+                    }
                 }
-            }
-            else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
-                let ct = this.coh_ref_ch.fftCount;
-                if(ct > 1) {
-                let avg = 20; if(ct < avg) { avg = ct; }
-                let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
-                let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
-                this.onData(score);
+                else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+                    let ct = this.coh_ref_ch.fftCount;
+                    if(ct > 1) {
+                    let avg = 20; if(ct < avg) { avg = ct; }
+                    let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+                    let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+                    this.onData(score);
+                    }
                 }
+
             }
 
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
