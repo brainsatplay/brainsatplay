@@ -721,7 +721,7 @@ export class DataAtlas {
 
 	
 	//Simple beat detection. 
-	//For pulse it applies a 1/4th second moving average and finds zero-crosses on the first derivative of R+IR 
+	//For pulse it applies a 1/4th second moving average and finds zero-crosses on the first derivative of R+IR. Data should be filtered with an IIR/Biquad filter with crystal clear pulse waves
 	//For breathing detection it applies a 3 second moving average and peak finding should work. Run every new sample
 	beatDetection = (hegstruct, sps) => {
 
@@ -751,6 +751,8 @@ export class DataAtlas {
 			if(bt.drir_dt.length>pw) {
 				bt.drir_dt[bt.drir_dt.length-1] = this.mean(bt.drir_dt.slice(bt.drir_dt.length-pw)); //filter with SMA
 				//Find local maxima and local minima.
+
+				let l1=bt.localmins.length, l2=bt.localmaxs.length;
 				if(this.isExtrema(bt.rir.slice(bt.rir.length-pw),'valley')) {
 					//if(this.isCriticalPoint(bt.drir_dt.slice(bt.drir_dt.length-pw),'valley')) {
 					bt.localmins.push({idx:hegstruct.count-mid, val:bt.rir[hegstruct.count-mid], t:hegstruct.times[hegstruct.count-mid] });
@@ -765,21 +767,23 @@ export class DataAtlas {
 					if(bt.localmins.length > bt.localmaxs.length+2) { while(bt.localmins.length > bt.localmaxs.length+2) { bt.localmins.splice(bt.localmins.length-2,1); } } //Keep the last detected max or min if excess detected
 					else if (bt.localmaxs.length > bt.localmins.length+2) { while(bt.localmaxs.length > bt.localmins.length+2) {bt.localmaxs.splice(bt.localmins.length-2,1); } }
 					
-					bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].t-bt.localmaxs[bt.localmaxs.length-2].t),t:bt.localmaxs[bt.localmaxs.length-1].t});
-					bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].t-bt.localmins[bt.localmins.length-2].t),t:bt.localmins[bt.localmins.length-1].t});
-					//Found a peak and valley to average together (for accuracy)
+					if(l1 < bt.localmins.length)
+						bt.val_dists.push({dt:(bt.localmins[bt.localmins.length-1].t-bt.localmins[bt.localmins.length-2].t),t:bt.localmins[bt.localmins.length-1].t, y0:bt.localmins[bt.localmins.length-2].val, y1:bt.localmins[bt.localmins.length-1].val});
+					if(l2 < bt.localmaxs.length)
+						bt.peak_dists.push({dt:(bt.localmaxs[bt.localmaxs.length-1].t-bt.localmaxs[bt.localmaxs.length-2].t),t:bt.localmaxs[bt.localmaxs.length-1].t, y0:bt.localmaxs[bt.localmaxs.length-2].val, y1:bt.localmaxs[bt.localmaxs.length-1].val});
+						//Found a peak and valley to average together (for accuracy)
 					if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
 						//Make sure you are using the leading valley
 						if(bt.val_dists[bt.val_dists.length-1].t > bt.peak_dists[bt.peak_dists.length-1].t) {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
 							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t)
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
 						} else {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 						}
 					}
 					
@@ -798,23 +802,31 @@ export class DataAtlas {
 					
 					//Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
 					if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
-					else if (bt.localmaxs.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
+					else if (bt.localmaxs2.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
 					
-					bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t});
-					bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t});
+					if(l1 < bt.localmins.length)
+						bt.val_dists.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
+					if(l2 < bt.localmaxs.length)
+						bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t, y0:bt.localmaxs2[bt.localmaxs2.length-2].val, y1:bt.localmaxs2[bt.localmaxs2.length-1].val});
+						//Found a peak and valley to average together (for accuracy)
+					
 					//Found a peak and valley to average together (for accuracy)
 					if(bt.peak_dists2.length > 1 && bt.val_dists2.length > 1) {
 						//Make sure you are using the leading valley
 						if(bt.val_dists2[bt.val_dists2.length-1].t > bt.peak_dists2[bt.peak_dists2.length-1].t) {
 							if(bt.breaths.length === 0) { 
-								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
-							} else if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-1].t)
-								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt)/2000});
+								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:2000*60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt), brv:0, height0:bt.peak_dists2[bt.peak_dists2.length-1].y0-bt.val_dists2[bt.val_dists2.length-1].y0,height0:bt.peak_dists2[bt.peak_dists2.length-1].y1-bt.val_dists2[bt.val_dists2.length-1].y1});
+							} else if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-1].t) {
+								let bpm = 2000*60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt);
+								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:bpm,hrv:bt.breaths[bt.breaths.length-1].bpm,brv:Math.abs(bpm-bt.breaths[bt.breaths.length-1].bpm), height0:bt.peak_dists2[bt.peak_dists2.length-1].y0-bt.val_dists2[bt.val_dists2.length-1].y0,height0:bt.peak_dists2[bt.peak_dists2.length-1].y1-bt.val_dists2[bt.val_dists2.length-1].y1});
+							}
 						} else {
 							if(bt.breaths.length === 0) {
-								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:2000*60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-1].dt)});
-							} else if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-2].t)
-								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:2000*60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-1].dt)});
+								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:2000*60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-2].dt), brv:0, height0:bt.peak_dists2[bt.peak_dists2.length-2].y0-bt.val_dists2[bt.val_dists2.length-2].y0,height0:bt.peak_dists2[bt.peak_dists2.length-2].y1-bt.val_dists2[bt.val_dists2.length-2].y1});
+							} else if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-2].t) {
+								let bpm = 2000*60/(bt.peak_dists2[bt.peak_dists2.length-2].dt + bt.val_dists2[bt.val_dists2.length-2].dt);
+								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-2].t,bpm:bpm, brv:Math.abs(bpm-bt.breaths[bt.breaths.length-1].bpm), height0:bt.peak_dists2[bt.peak_dists2.length-2].y0-bt.val_dists2[bt.val_dists2.length-2].y0,height0:bt.peak_dists2[bt.peak_dists2.length-2].y1-bt.val_dists2[bt.val_dists2.length-2].y1});
+							}
 						}
 					}
 					
