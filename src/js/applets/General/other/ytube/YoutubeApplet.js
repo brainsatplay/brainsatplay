@@ -63,8 +63,16 @@ export class YoutubeApplet {
         let setupHTML = (props=this.props) => {
             document.getElementById(props.id+'load').onclick = () => {
                 let id = document.getElementById(props.id+'videoid').value;
-                if(id.indexOf('youtu') > -1) this.player.loadVideoByUrl(id)
-                else this.player.loadVideoById(id);
+                if(id.indexOf('youtu') < 0) this.player.loadVideoById(id)
+                else {
+                    console.log(id)
+                    if(id.indexOf('watch?v=') > -1 ) {
+                        id=id.replace('watch?v=','v/');
+                        console.log(id)
+                    }
+                    this.player.loadVideoByUrl({mediaContentUrl:id,
+                    startSeconds:0});
+                }
             }
 
             document.getElementById(props.id).onmouseover = () => {
