@@ -1,6 +1,6 @@
 import {brainsatplay} from '../../../../brainsatplay'
 import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
-import featureImg from './../../../../../assets/features/placeholder.png'
+import featureImg from './logo.png'
 
 //Example Applet for integrating with the UI Manager
 // Just need an iframe, a search window, and link posting
