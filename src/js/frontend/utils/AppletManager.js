@@ -84,7 +84,6 @@ export class AppletManager {
         this.appletPresets.forEach((obj,i) => {
             if (i === 0) document.getElementById("config-selector").innerHTML += `<option value=${obj.value} selected>${obj.name}</option>`
             else document.getElementById("config-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
-
         })
 
         // Other
@@ -147,10 +146,11 @@ export class AppletManager {
     initAddApplets = (appletConfigs=[]) => {
         // Load Config
         let preset = undefined;
-        console.log(appletConfigs)
+        let showOptions = true;
+
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
-                if(p.value.indexOf(appletConfigs[0]) > -1) {
+                if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
                     document.getElementById("config-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
@@ -174,6 +174,10 @@ export class AppletManager {
                 if(this.bcisession.atlas.settings.eeg === false) {
                     this.bcisession.atlas.settings.eeg = true;
                 }
+            }
+
+            if (preset.lock == true){
+                showOptions = false
             }
         }
 
@@ -205,11 +209,10 @@ export class AppletManager {
 
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         this.appletConfigs.forEach(conf => {
-            // Include an exception for applet browser when using applet layouts
             if(typeof conf === 'string') {
-                if (conf != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.get(conf)) // URL Config
+                if (!currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.get(conf)) // URL Config
             }
-            else if (conf.name != 'Applet Browser' || !currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.get(conf.name)) // Presets
+            else if (!currentApplets.reduce(isAllNull,0)) configApplets.push(conf) // Presets
         })
 
         // Check the compatibility of current applets with connected devices
@@ -252,11 +255,16 @@ export class AppletManager {
         this.initApplets();
 
         // Generate applet selectors
-        this.appletSelectIds.forEach((id,i) => {
-            if (i < this.maxApplets){
-                this.addAppletOptions(id,i);
-            }
-        }) 
+        if (showOptions){
+            document.body.querySelector('.applet-select-container').style.display = 'flex'
+            this.appletSelectIds.forEach((id,i) => {
+                if (i < this.maxApplets){
+                    this.addAppletOptions(id,i);
+                }
+            }) 
+        } else {
+            document.body.querySelector('.applet-select-container').style.display = 'none'
+        }
     }
 
     appletDivSettings = (appletDiv, appletIdx) => {
@@ -427,14 +435,12 @@ export class AppletManager {
         select.innerHTML = "";
         var newhtml = `<option value='None'>None</option>`;
         this.appletClasses.forEach((classObj) => {
-            if (classObj.name != 'Applet Browser'){
-                if (this.checkCompatibility(classObj)){
-                    if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
-                        newhtml += `<option value='`+classObj.name+`' selected="selected">`+classObj.name+`</option>`;
-                    }
-                    else{
-                        newhtml += `<option value='`+classObj.name+`'>`+classObj.name+`</option>`;
-                    }
+            if (this.checkCompatibility(classObj)){
+                if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
+                    newhtml += `<option value='`+classObj.name+`' selected="selected">`+classObj.name+`</option>`;
+                }
+                else{
+                    newhtml += `<option value='`+classObj.name+`'>`+classObj.name+`</option>`;
                 }
             }
         });
@@ -495,7 +501,7 @@ export class AppletManager {
         });  
     }
 
-    responsive(nodes=this.applets) {      
+    responsive(nodes=this.applets) {
         let activeNodes = nodes.filter(n => n.classinstance != null)
         activeNodes.forEach((applet,i) => {
             applet.classinstance.responsive();

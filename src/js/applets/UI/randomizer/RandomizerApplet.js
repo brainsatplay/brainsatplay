@@ -87,34 +87,36 @@ export class RandomizerApplet {
 
         this.setNewApplet()
 
-        let animate = () => {
+        this.animate = () => {
             if (this.currentApplet != null && this.mode == 'timer'){
                 let timeLeft = this.timeLimit - (Date.now() - this.currentApplet.tInit)/1000
-                this.countdown.innerHTML = timeLeft.toFixed(2)
-                if (timeLeft <= 0){
-                    this.setNewApplet()
+                if (this.currentApplet.tUp == false){
+                    this.countdown.innerHTML = Math.max(0, timeLeft).toFixed(2)
+                    if (timeLeft <= 0){
+                        this.currentApplet.tUp = true
+                        this.setNewApplet()
+                    } 
+                } else {
                     this.countdown.innerHTML = (0).toFixed(2)
                 }
             }
-            setTimeout(()=>{this.animation = requestAnimationFrame(animate)},1000/60);
+            setTimeout(()=>{this.animation = requestAnimationFrame(this.animate)},1000/60);
         }
 
-        animate()
+        this.animation = requestAnimationFrame(this.animate)
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        if (this.currentApplet != null) this.currentApplet.instance.deinit();
         cancelAnimationFrame(this.animation);
         this.AppletHTML.deleteNode();
-        this.currentApplet.instance.deinit();
+        this.currentApplet = null
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
         if (this.currentApplet != null) this.currentApplet.instance.responsive();
     }
 
@@ -140,8 +142,10 @@ export class RandomizerApplet {
             this.currentApplet = {
                 tInit: Date.now(),
                 instance: new applet(
-                    document.getElementById(`${this.props.id}-applet`)
-                )
+                    document.getElementById(`${this.props.id}-applet`),
+                    this.bci
+                ),
+                tUp: false
             }
             this.currentApplet.instance.init()
             this.currentApplet.instance.responsive();
@@ -158,8 +162,15 @@ export class RandomizerApplet {
     getNewApplet = () => {
         let appletKeys = Array.from(this.applets.keys())
         let applet = this.applets.get(appletKeys[Math.floor(Math.random() * appletKeys.length)])
-        let prohibitedApplets = ['Randomizer','Applet Browser', 'Pulse Monitor']
-        if (prohibitedApplets.includes(applet.name)) applet = this.getNewApplet()
+        // Check that the chosen applet is not prohibited, compatible with current devices, and not the same applet as last time
+        let prohibitedApplets = ['Randomizer','Applet Browser', 'Sunrise'] // Sunrise takes too long to load
+        let compatible = true
+        let instance;
+        if (this.currentApplet != null) instance = this.currentApplet.instance
+        this.bci.devices.forEach((device) => {
+            if (!applet.devices.includes(device.info.deviceType) && !applet.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
+        })
+        if (prohibitedApplets.includes(applet.name) || !compatible) applet = this.getNewApplet()
         return applet
     }
 

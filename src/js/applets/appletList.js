@@ -32,10 +32,6 @@ import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
 let applets = new Map([
-    [
-        AppletBrowser.name,
-        AppletBrowser		
-    ],
 	[
         BlobApplet.name,
         BlobApplet,
@@ -114,11 +110,7 @@ let applets = new Map([
     [	
         ConnectomeApplet.name,       
         ConnectomeApplet,
-    ],
-    [	
-        RandomizerApplet.name,       
-        RandomizerApplet,
-    ],
+    ]
 ]);
 
 let presets = [
@@ -126,20 +118,16 @@ let presets = [
         value: 'browser',
         name: "Applet Browser",
         applets: [
-            // "Applet Browser"
             AppletBrowser,
         ],
-        description: "Choose an applet.",
-        image: placeholderImg	
+        description: "Choose any applet.",
+        image: placeholderImg,
+        lock: false
     },
     {
         value: 'eeg',
         name: "EEG Neurofeedback",
         applets: [
-            // "Blob",
-            // "Brain Map",
-            // "Spectrogram",
-            // "uPlot"
             BlobApplet,
             BrainMapApplet,
             SpectrogramApplet,
@@ -147,16 +135,13 @@ let presets = [
         ],
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
-        image: eegNFImage	  	
+        image: eegNFImage,
+        lock: false
     },
     {
         value: 'heg',
         name: "HEG Biofeedback",
         applets: [
-            // "Boids",
-            // "Circle",
-            // "Audio",
-            // "uPlot"
             BoidsApplet,
             CircleApplet,
             AudioApplet,
@@ -164,7 +149,19 @@ let presets = [
         ],
         description: "Brain blood flow training!",
         type: "HEG",
-        image: hegImage	
+        image: hegImage,
+        lock: false
+    },
+    {
+        value: 'randomizer',
+        name: "Randomizer",
+        applets: [
+            RandomizerApplet,
+        ],
+        description: "Experience a random applet every 10 seconds!",
+        type: "All",
+        image: placeholderImg,
+        lock: true	
     }
 ]
 

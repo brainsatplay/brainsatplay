@@ -7,7 +7,7 @@ import featureImg from './../../../assets/features/placeholder.png'
 export class AppletBrowser {
 
     static name = "Applet Browser"; 
-    static devices = []; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Select applets to view."
     static categories = ['framework'];
     static image=featureImg

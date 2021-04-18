@@ -362,14 +362,8 @@ export class BCIAppManager {
         this.bcisession.onconnected = () => {
             try{
                 let contentChild = Array.from(document.querySelector('.app').querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
-
-                //console.log(this.bcisession.info.nDevices,this.bcisession.devices[this.bcisession.info.nDevices-1])
                 if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
                 this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
-                
-                //this.appletManager.reinitApplets();
-                // this.appletManager.deinitApplets();
-                this.appletManager.initAddApplets();
             }
             catch (err) { console.error(err); }
 

@@ -429,8 +429,7 @@ this.resizeNexus = () => {
 
 }
 
-window.addEventListener('resize', this.resizeNexus, 
-false)
+window.addEventListener('resize', this.resizeNexus, false)
 
 function regeneratePlaneGeometry() {
     let newGeometry = new THREE.PlaneGeometry(
@@ -446,7 +445,7 @@ let currentIntersect = null
 var animate = () => {
 
     setTimeout( () => {
-        if (this.three.canvas != null){
+        if (this.three.canvas != null && this.three.scene != null && this.three.renderer != null){
                 animateUsers()
                 material.uniforms.uTime.value = Date.now() - tStart
                 points.forEach(point => {
@@ -633,6 +632,7 @@ this.three.getGeolocation = () => {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.three.renderer.setAnimationLoop( null );
+        window.removeEventListener('resize', this.resizeNexus)
         this.clearThree()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
