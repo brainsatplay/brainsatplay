@@ -147,6 +147,7 @@ export class AppletManager {
     initAddApplets = (appletConfigs=[]) => {
         // Load Config
         let preset = undefined;
+        console.log(appletConfigs)
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0]) > -1) {
