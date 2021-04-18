@@ -8,7 +8,7 @@ export class YoutubeApplet {
 
     static name = "Youtube"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Learn why unboxing videos are true cancer."
+    static description = "Learn why unboxing videos are cancer."
     static categories = ['feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
@@ -30,8 +30,10 @@ export class YoutubeApplet {
             //Add whatever else
         };
 
-        //etc..
-
+        
+        this.player = undefined;
+        this.looping = false;
+        this.loop = undefined;
     }
 
     //---------------------------------
@@ -43,12 +45,31 @@ export class YoutubeApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id='${props.id}' style='height:100%; width:100%;'></div>`;
+            return `
+            <div id='${props.id}' style='height:100%; width:100%;'>
+                <div id='${props.id}menu' style='position:absolute; top:60px; opacity:0;'> 
+                    <input type='text' id='${props.id}videoid' placeholder='Paste id or url' style='width:110px;'>
+                    <button id='${props.id}load'>Load</button>
+                </div>
+                <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0"></iframe>
+            </div>
+            `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            document.getElementById(props.id+'load').onclick = () => {
+                let id = document.getElementById(props.id+'videoid').value;
+                if(id.indexOf('youtu') > -1) this.player.loadVideoByUrl(id)
+                else this.player.loadVideoById(id);
+            }
+
+            document.getElementById(props.id).onmouseover = () => {
+                document.getElementById(props.id+'menu').style.opacity = 1;
+            }
+            document.getElementById(props.id).onmouseleave = () => {
+                document.getElementById(props.id+'menu').style.opacity = 0;
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -63,21 +84,79 @@ export class YoutubeApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 
-        //Add whatever else you need to initialize
+        if(!document.getElementById('ytiframeapi')) {
+            var tag = document.createElement('script');
+            tag.id = 'ytiframeapi';
+            tag.src = 'https://www.youtube.com/iframe_api';
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+        window.onYouTubeIframeAPIReady = () => {
+            this.player = new YT.Player(this.props.id+'player', {
+                width: this.AppletHTML.node.clientWidth,
+                height: this.AppletHTML.node.clientWidth,
+                videoId: 'JOEtiCwoHB4',
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+        const onPlayerReady = (event) => {
+            let div = document.getElementById(this.props.id+'player');
+            div.width = this.AppletHTML.node.clientWidth;
+            div.height = this.AppletHTML.node.clientHeight;
+            
+            var embedCode = event.target.getVideoEmbedCode();
+            event.target.playVideo();
+            if (document.getElementById(this.props.id+'player')) {
+                document.getElementById(this.props.id+'player').innerHTML = embedCode;
+            }
+        }
+
+        const changeBorderColor = (playerStatus) => {
+            var color;
+            if (playerStatus == -1) {
+              color = "#37474F"; // unstarted = gray
+            } else if (playerStatus == 0) {
+              color = "#FFFF00"; // ended = yellow
+            } else if (playerStatus == 1) {
+              color = "#33691E"; // playing = green
+            } else if (playerStatus == 2) {
+              color = "#DD2C00"; // paused = red
+            } else if (playerStatus == 3) {
+              color = "#AA00FF"; // buffering = purple
+            } else if (playerStatus == 5) {
+              color = "#FF6DOO"; // video cued = orange
+            }
+            if (color) {
+              document.getElementById(this.props.id+'player').style.borderColor = color;
+            }
+          }
+
+          const onPlayerStateChange = (event) => {
+            changeBorderColor(event.data);
+          }
+
+          this.looping = true;
+          this.updateLoop();
     
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.player.destroy();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        if(this.player) {
+            let div = document.getElementById(this.props.id+'player');
+            div.width = this.AppletHTML.node.clientWidth;
+            div.height = this.AppletHTML.node.clientHeight;
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -90,7 +169,38 @@ export class YoutubeApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
-    //doSomething(){}
+    onData = (score) => {
+        if(this.player)
+            this.player.setVolume(this.player.getVolume()+score);
+    }
+
+    updateLoop = () => {
+
+        if(this.looping) {
+
+            if(this.bci.atlas.settings.heg) {
+                let ct = this.bci.atlas.data.heg[0].count;
+                if(ct > 1) {
+                let avg = 40; if(ct < avg) { avg = ct; }
+                let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
+                let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                this.onData(score);
+                }
+            }
+            else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+                let ct = this.coh_ref_ch.fftCount;
+                if(ct > 1) {
+                let avg = 20; if(ct < avg) { avg = ct; }
+                let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
+                let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
+                this.onData(score);
+                }
+            }
+
+            setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
+
+        }
+    }
 
    
 } 

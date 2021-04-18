@@ -27,6 +27,8 @@ import { TextScrollerApplet } from './HEG/textscroller/TextScroller'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
 import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
 
+import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
+
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
@@ -111,6 +113,10 @@ let applets = new Map([
     [	
         ConnectomeApplet.name,       
         ConnectomeApplet,
+    ],
+    [	
+        YoutubeApplet.name,       
+        YoutubeApplet,
     ],
     // [   
     //     PixiApplet.name,
