@@ -41,7 +41,7 @@ export class ThreeSunriseApplet {
 
         this.looping = false;
 
-        this.scene,this.renderer,this.camera, this.composer,
+        this.scene,this.renderer = undefined,this.camera, this.composer,
         this.points, this.sunMesh, this.sphereMesh,
         this.cloudMesh, this.pointLight, this.redpointLight,
         this.redpointLight2; this.godrayeffect, this.bloomEffect,
@@ -366,7 +366,7 @@ export class ThreeSunriseApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     
         setTimeout(()=> {
-            
+            if(this.renderer) {
                 this.threeWidth = this.AppletHTML.node.clientWidth;
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
                 this.renderer.setSize(this.threeWidth, this.AppletHTML.node.clientHeight);
@@ -375,8 +375,9 @@ export class ThreeSunriseApplet {
                 this.camera.updateProjectionMatrix();
             
 
-            this.looping = true;
-            this.render();
+                this.looping = true;
+                this.render();
+            }
         },333);
     }
 
@@ -386,6 +387,7 @@ export class ThreeSunriseApplet {
         this.looping = false;
         cancelAnimationFrame(this.threeAnim);
         this.renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
+        this.renderer = null;
         this.composer = null;
         this.scene = null;
         this.projector = null;
@@ -462,8 +464,10 @@ export class ThreeSunriseApplet {
             
             this.composer.render();
             
-            setTimeout(()=>{this.threeAnim = 
-                this.renderer.setAnimationLoop( this.render )},15);
+            setTimeout(()=>{
+                if(this.renderer)
+                    this.threeAnim = this.renderer.setAnimationLoop( this.render )
+            },15);
         }
     }  
 

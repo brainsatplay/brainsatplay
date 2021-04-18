@@ -611,7 +611,8 @@ this.three.getGeolocation = () => {
         maximumAge: 0
     });
 }
-this.three.renderer.setAnimationLoop( animate )
+    if(this.three.renderer)
+        this.three.renderer.setAnimationLoop( animate )
 }
 
     // Clear Three.js Scene Completely
@@ -632,14 +633,15 @@ this.three.renderer.setAnimationLoop( animate )
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.three.renderer.setAnimationLoop( null );
-        this.AppletHTML.deleteNode();
         this.clearThree()
+        this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeNexus()
+        if(this.renderer)
+            this.resizeNexus()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
