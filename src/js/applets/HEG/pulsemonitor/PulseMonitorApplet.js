@@ -7,7 +7,7 @@ export class PulseMonitorApplet {
 
     static name = "Pulse Monitor"; 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Example"
+    static description = "See pulse and breathing rate with HEG"
     static categories = ['data']; //data,game,multiplayer,meditation,etc
     static image= featureImg
 
