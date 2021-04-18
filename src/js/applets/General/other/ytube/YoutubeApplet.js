@@ -49,10 +49,11 @@ export class YoutubeApplet {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id='${props.id}menu' style='position:absolute; top:60px; opacity:0;'> 
-                    <input type='text' id='${props.id}videoid' placeholder='Paste id or url' style='width:110px;'>
+                    Psst... Use Adblockers: <a href="https://www.ghostery.com/">Ghostery</a> + <a href="https://adblockplus.org/">Adblock+</a>
+                    <br><input type='text' id='${props.id}videoid' placeholder='Paste id or url' style='width:110px;'>
                     <button id='${props.id}load'>Load</button>
                     <br> Feedback: <input type='checkbox' id='${props.id}feedback' checked>
-                </div>
+                     </div>
                 <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0"></iframe>
             </div>
             `;
@@ -158,11 +159,9 @@ export class YoutubeApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        if(this.player) {
-            let div = document.getElementById(this.props.id+'player');
-            div.width = this.AppletHTML.node.clientWidth;
-            div.height = this.AppletHTML.node.clientHeight;
-        }
+        let div = document.getElementById(this.props.id+'player');
+        div.width = this.AppletHTML.node.clientWidth;
+        div.height = this.AppletHTML.node.clientHeight;
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
