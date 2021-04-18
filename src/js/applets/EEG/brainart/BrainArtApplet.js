@@ -49,10 +49,7 @@ export class BrainArtApplet {
         
                     p.draw = () => {
                         this.ring.setBrainData(this.bci.atlas.data.eeg)
-                        // if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
-                            this.ring.drawShape()
-                            this.ring.lastDraw = Date.now()
-                        // }
+                        this.ring.drawShape()
                     };
                 },
                 stop: () => {
@@ -176,6 +173,7 @@ export class BrainArtApplet {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.sketch.remove()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }

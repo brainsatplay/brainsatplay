@@ -21,6 +21,7 @@ import { BoidsApplet } from './HEG/boids/Boids'
 import { HillClimberApplet } from './HEG/hillclimber/HillClimber'
 import { TextScrollerApplet } from './HEG/textscroller/TextScroller'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
+import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
 
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
@@ -90,6 +91,10 @@ let applets = new Map([
 	[   
         TextScrollerApplet.name,   
         TextScrollerApplet,
+    ],
+    [   
+        PulseMonitorApplet.name,   
+        PulseMonitorApplet,
     ],
 	[	
         BlinkApplet.name,      		
