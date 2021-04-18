@@ -34,6 +34,9 @@ export class PulseMonitorApplet {
         this.breathCounter = 0;
         this.beatCounter = 0;
 
+        this.canvas; this.ctx;
+        this.angle1 = 1.57; this.angle2 = 1.8;
+
     }
 
     //---------------------------------
@@ -58,7 +61,8 @@ export class PulseMonitorApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            this.canvas = document.getElementById(props.id+'canvas');
+            this.ctx = canvas.getContext("2d");
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -134,6 +138,14 @@ export class PulseMonitorApplet {
                 if(bpm < 3 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
                 console.log(bpm);
             }
+        }
+    }
+
+    draw = () => {
+        //just a circle that pulses every beat?
+
+        if(this.angle > 1.57 && this.angle < 3.14){ //generalize
+
         }
     }
 
