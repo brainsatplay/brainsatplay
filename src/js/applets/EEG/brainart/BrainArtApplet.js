@@ -33,6 +33,56 @@ export class BrainArtApplet {
 
         this.ring = null;
         this.sketch = null;
+
+
+        this.generatorFuncs = [
+            {
+                name: 'Ring',
+                start: (p) => {
+                    p.setup = () => {
+                        const containerElement = document.getElementById(this.props.id);
+                        p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                        p.noFill()
+                        this.ring = new Ring(p)
+                        p.background(0);
+                    };
+        
+                    p.draw = () => {
+                        this.ring.setBrainData(this.bci.atlas.data.eeg)
+                        this.ring.drawShape()
+                    };
+                },
+                stop: () => {
+
+                }
+            },
+            {
+                name: 'Circle',
+                start: (p) => {
+                    const containerElement = document.getElementById(this.props.id);
+                    p.setup = () => {
+                        p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                        p.background(0);
+                    };
+        
+                    p.draw = () => {
+                        p.background(0);
+                        p.noFill()
+                        p.stroke(p.color(255,255,255,100))
+                        p.strokeWeight(Math.min(p.windowWidth,p.windowHeight)/300);
+                        let scalingFactor = 0.5 + 0.5*Math.sin(Date.now()/1000)
+                        let minDiameter = 50; // px
+                        let maxDiameter = Math.min(5*p.windowWidth/6,5*p.windowHeight/6) // px
+                        p.ellipse(p.windowWidth/2, p.windowHeight/2, minDiameter + (scalingFactor*(maxDiameter-minDiameter)))
+                    };
+                },
+                stop: () => {
+
+                }
+            },
+        ]
+
+
     }
 
     //---------------------------------
@@ -44,18 +94,41 @@ export class BrainArtApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
+
+            this.buttonStyle = `
+            box-sizing: border-box; 
+            min-height: 50px;
+            flex-grow: 1;
+            width: 200px;
+            position: relative;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 80%;
+            background: transparent;
+            color: white;
+            border: 1px solid rgb(200, 200, 200);
+            text-align: left;
+            transition: 0.5s;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+        `
+
+
             return `
                 <div id='${props.id}' style='height:${props.height}; width:${props.width}; position:relative; '>
-                    <button id='${props.id}-reset' style="position:absolute; bottom: 25px; right: 25px;">Reset</button>
-                    <div style="position:absolute; bottom: 25px; left: 25px;">
-                        <button id='${props.id}-capture'>Capture</button>
-                        <button id='${props.id}-capture-feature'>Capture Feature</button>
+                    <div style="position:absolute; bottom: 25px; right: 25px;">
+                        <button id='${props.id}-reset' style="${this.buttonStyle}">Reset</button>
                     </div>
 
-                    <select style="position:absolute; top: 25px; left: 25px;">
-                        <option value='default' disabled>Select your art style</option>
-                        <option value="Ring">Ring</option>
-                    </select>
+                    <div style="position:absolute; top: 25px; left: 25px;">
+                        <select>
+                            <option value='default' disabled>Select your art style</option>
+                        </select>
+                        <p style="font-size: 80%;">Press CTRL + SHIFT + s to take a screenshot.
+                    </div>
                 </div>
             `;
         }
@@ -79,55 +152,37 @@ export class BrainArtApplet {
 
         //Add whatever else you need to initialize        
         const containerElement = document.getElementById(this.props.id);
+        const selector = containerElement.querySelector('select')
 
+        this.generatorFuncs.forEach((dict,i) => {
+            selector.innerHTML += `<option value='${i}'>${dict.name}</option>` //option
+        })
 
-        const sketch = (p) => {
-            p.setup = () => {
-                p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                p.background(0);
-                this.ring = new Ring(p)
-            };
-
-            p.draw = () => {
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
-                if (Date.now() - this.ring.lastDraw >= this.ring.drawInterval || this.ring.lastDraw == null){
-                    this.ring.drawShape()
-                    this.ring.lastDraw = Date.now()
-                }
-            };
-
-            p.windowResized = () => {
-                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.sketch.background(0)
-            }
-        };
-
-        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
+        this.generatorFunction = this.generatorFuncs[selector.value]
+        this.sketch = new p5(this.generatorFunction.start, containerElement)
+        selector.onchange = (e) => {
+            this.sketch.remove()
+            this.generatorFunction = this.generatorFuncs[e.target.value]
+            this.sketch = new p5(this.generatorFunction.start, containerElement)
+        }
 
         document.getElementById(`${this.props.id}-reset`).onclick = () => {
             this.sketch.background(0)
-        }
-        document.getElementById(`${this.props.id}-capture`).onclick = () => {
-            this.downloadImage(this.sketch.canvas)
-        }
-        document.getElementById(`${this.props.id}-capture-feature`).onclick = () => {
-            this.downloadImage(this.sketch.canvas)
-            this.downloadImage(this.sketch.canvas,1080,540)
-        }
+        }       
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.sketch.remove()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let container = document.getElementById(this.props.id)
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        let containerElement = document.getElementById(this.props.id)
+        this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
+        this.sketch.background(0)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -136,41 +191,7 @@ export class BrainArtApplet {
         });
     }
 
-    downloadImage(canvas,w=canvas.width,h=canvas.height){
-        let transformedC = document.createElement('canvas');
+    changeSketch(){
 
-        // Transform Image to Specified Container Size (if necesssary)
-        transformedC.width = w
-        transformedC.height = h
-        let oldAspect = canvas.width/canvas.height
-        let newWidth = Math.min(w,canvas.width)
-        let newHeight = Math.min(h,canvas.height)
-        if (newWidth/newHeight > oldAspect){
-            newWidth = newHeight * oldAspect
-        } else {
-            newHeight = newWidth / oldAspect
-        }
-        let xTransform = (w - newWidth) / 2
-        let yTransform = (h - newHeight) / 2
-
-        // Draw Background
-        let transctx = transformedC.getContext("2d")
-        transctx.fillStyle = 'black';
-        transctx.fillRect(0, 0, w, h);
-
-        // Draw Image
-        transctx.drawImage(
-            canvas, 
-            0,0,canvas.width, canvas.height, 
-            xTransform,yTransform,newWidth, newHeight
-            )
-        let image = transformedC.toDataURL("image/png").replace("image/png", "image/octet-stream")
-        var a = document.createElement('a');
-        a.href = image;
-        a.download = 'screenshot.png';
-        document.body.appendChild(a);
-        a.click();
     }
-
-   
 } 
