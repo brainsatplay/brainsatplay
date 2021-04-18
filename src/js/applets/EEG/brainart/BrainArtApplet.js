@@ -34,7 +34,6 @@ export class BrainArtApplet {
         this.ring = null;
         this.sketch = null;
 
-
         this.generatorFuncs = [
             {
                 name: 'Ring',
@@ -48,6 +47,7 @@ export class BrainArtApplet {
                     };
         
                     p.draw = () => {
+                        // this.sketch.background(0)
                         this.ring.setBrainData(this.bci.atlas.data.eeg)
                         this.ring.drawShape()
                     };
@@ -69,11 +69,11 @@ export class BrainArtApplet {
                         p.background(0);
                         p.noFill()
                         p.stroke(p.color(255,255,255,100))
-                        p.strokeWeight(Math.min(p.windowWidth,p.windowHeight)/300);
+                        p.strokeWeight(Math.min(p.width,p.height)/300);
                         let scalingFactor = 0.5 + 0.5*Math.sin(Date.now()/1000)
                         let minDiameter = 50; // px
-                        let maxDiameter = Math.min(5*p.windowWidth/6,5*p.windowHeight/6) // px
-                        p.ellipse(p.windowWidth/2, p.windowHeight/2, minDiameter + (scalingFactor*(maxDiameter-minDiameter)))
+                        let maxDiameter = Math.min(5*p.width/6,5*p.height/6) // px
+                        p.ellipse(p.width/2, p.height/2, minDiameter + (scalingFactor*(maxDiameter-minDiameter)))
                     };
                 },
                 stop: () => {
@@ -189,9 +189,5 @@ export class BrainArtApplet {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
-    }
-
-    changeSketch(){
-
     }
 } 

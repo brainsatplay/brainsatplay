@@ -16,6 +16,7 @@ import { BlinkApplet } from './EEG/blink/Blink'
 import { BandRingApplet } from './EEG/bandring/BandRing'
 import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
 import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
+// import { PixiApplet } from './EEG/pixi/PixiApplet'
 
 import { CircleApplet } from './HEG/circle/Circle'
 import { AudioApplet } from './General/other/audio/AudioApplet'
@@ -110,7 +111,11 @@ let applets = new Map([
     [	
         ConnectomeApplet.name,       
         ConnectomeApplet,
-    ]
+    ],
+    // [   
+    //     PixiApplet.name,
+    //     PixiApplet
+    // ]
 ]);
 
 let presets = [
