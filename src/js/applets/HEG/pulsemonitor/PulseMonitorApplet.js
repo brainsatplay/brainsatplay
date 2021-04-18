@@ -62,7 +62,7 @@ export class PulseMonitorApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.canvas = document.getElementById(props.id+'canvas');
-            this.ctx = canvas.getContext("2d");
+            this.ctx = this.canvas.getContext("2d");
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
