@@ -45,7 +45,7 @@ export class ConnectomeApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-                <div id='${props.id}' style='height:${props.height}; width:${props.width}; display: flex; align-items: center; justify-content: center;'>
+                <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                 </div>
             `;
         }

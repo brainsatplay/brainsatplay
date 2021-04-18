@@ -27,7 +27,6 @@ export class AppletBrowser {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            buttonOutput: 0 //Add whatever else
         };
     }
 
@@ -42,8 +41,7 @@ export class AppletBrowser {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='
-            height:${props.height}; 
-            width:${props.width}; 
+            height:100%; width:100%;
             overflow-y: scroll;
             padding: 50px;
             ' 

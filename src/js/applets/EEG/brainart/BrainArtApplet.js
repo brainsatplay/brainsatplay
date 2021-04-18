@@ -118,7 +118,7 @@ export class BrainArtApplet {
 
 
             return `
-                <div id='${props.id}' style='height:${props.height}; width:${props.width}; position:relative; '>
+                <div id='${props.id}' style='height:100%; width:100%; position:relative; '>
                     <div style="position:absolute; bottom: 25px; right: 25px;">
                         <button id='${props.id}-reset' style="${this.buttonStyle}">Reset</button>
                     </div>
@@ -168,7 +168,7 @@ export class BrainArtApplet {
 
         document.getElementById(`${this.props.id}-reset`).onclick = () => {
             this.sketch.background(0)
-        }       
+        } 
     }
 
     //Delete all event listeners and loops here and delete the HTML block

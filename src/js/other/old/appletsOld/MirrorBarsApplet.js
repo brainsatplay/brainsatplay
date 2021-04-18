@@ -28,7 +28,7 @@ export class MirrorBarsApplet {
     //Create HTML template string with dynamic properties set in this.renderProps. Updates to these props will cause updates to the template
     HTMLtemplate(props=this.renderProps) {
         return `
-        <div id='`+props.id+`'>
+        <div id='`+props.id+`' style="height:100%; width:100%;">
             <div id='`+props.id+`visuals' style='position:absolute;width:`+props.width+`px; height:`+props.height+`px;'>
                 <canvas id='`+props.id+`leftbars' style='width:`+(props.width*.5)+`px; height:`+props.height+`px;'></canvas>
                 <canvas id='`+props.id+`rightbars' style='width:`+(props.width)*.5+`px; height:`+props.height+`px;'></canvas>

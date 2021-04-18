@@ -46,7 +46,7 @@ export class BlinkApplet {
         let HTMLtemplate = (props=this.props) => { 
             let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
             return `
-                <div id='${props.id}' style='height:${props.height}; width:${props.width}; display: flex; align-items: center; justify-content: center;'>
+                <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                     <div id="${props.id}-left" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
                         <div id="${props.id}-leftiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
                         <div id="${props.id}-leftpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>

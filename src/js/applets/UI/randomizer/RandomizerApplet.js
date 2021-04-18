@@ -1,13 +1,15 @@
 import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
-import featureImg from './img/feature.png'
+import featureImg from '../../../../assets/features/placeholder.png'
+import logo from '../../../../assets/logo_and_sub(v3).png'
+
 import { applets } from './../../appletList'
 
 export class RandomizerApplet {
 
     static name = "Randomizer"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Grab random applet."
+    static description = "Try out a random applet!"
     static categories = ['framework']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
@@ -26,12 +28,11 @@ export class RandomizerApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            buttonOutput: 0 //Add whatever else
         };
 
         this.applets = applets
-        this.currentApplet = {}
-        this.animation = null;
+        this.currentApplet = null
+        this.animation = null
     }
 
     //---------------------------------
@@ -44,14 +45,23 @@ export class RandomizerApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-                <div id='${props.id}' style='height:${props.height}; width:${props.width};'>
+                <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
+                <div id='${props.id}-ui' style='position: absolute; top: 0; left: 0; height:100%; width:100%; z-index: 1; pointer-events:none;'>
+                    <button id='${props.id}-randomize' style="pointer-events:auto;position:absolute; top: 25px; left: 25px;">Randomize</button>
+                    <div id='${props.id}-mask' style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; opacity: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                        <img src='${logo}' style="width: 50%;">
+                    </div>
+                </div>
+                <div id='${props.id}-applet' style='position: absolute; top: 0; left: 0; height:100%; width:100%; z-index: 0'></div>
                 </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);   
+            document.getElementById(`${props.id}-randomize`).onclick = () => {
+                this.setNewApplet()
+            };   
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -66,18 +76,12 @@ export class RandomizerApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
     
 
-        this.currentApplet = {
-            tInit: Date.now(),
-            instance: this.getNewApplet()
-        }
-
+        this.setNewApplet()
 
         let animate = () => {
-            let timeElapsed = Date.now() - this.currentApplet.tInit
-            console.log(timeElapsed)
+            // let timeElapsed = Date.now() - this.currentApplet.tInit
             setTimeout(()=>{this.animation = requestAnimationFrame(animate)},1000/60);
         }
-
 
         animate()
     }
@@ -95,7 +99,7 @@ export class RandomizerApplet {
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
-        this.currentApplet.instance.responsive();
+        if (this.currentApplet != null) this.currentApplet.instance.responsive();
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -104,12 +108,42 @@ export class RandomizerApplet {
         });
     }
 
+    setNewApplet = () => {
+
+        let mask = document.getElementById(`${this.props.id}-mask`)
+        // Transition
+        mask.style.opacity = 1;
+        mask.style.pointerEvents = 'none';
+        let transitionLength = 500
+        mask.style.transition = `opacity ${transitionLength/1000}s`;
+
+        // Reset
+        setTimeout(()=>{
+            let applet = this.getNewApplet()
+            if (this.currentApplet != null) this.currentApplet.instance.deinit()
+            this.currentApplet = {
+                tInit: Date.now(),
+                instance: new applet(
+                    document.getElementById(`${this.props.id}-applet`)
+                )
+            }
+            this.currentApplet.instance.init()
+            this.currentApplet.instance.responsive();
+        },transitionLength);
+
+        // Display
+        setTimeout(()=>{
+            mask.style.opacity = 0;
+            mask.style.auto = 'auto';
+        },transitionLength+500);
+
+    }
+
     getNewApplet = () => {
-        console.log(this.applets)
         let appletKeys = Array.from(this.applets.keys())
         let applet = this.applets.get(appletKeys[Math.floor(Math.random() * appletKeys.length)])
-
-        if (applet.name == this.name) applet = this.getNewApplet()
+        let prohibitedApplets = ['Randomizer','Applet Browser', 'Pulse Monitor']
+        if (prohibitedApplets.includes(applet.name)) applet = this.getNewApplet()
         return applet
     }
 

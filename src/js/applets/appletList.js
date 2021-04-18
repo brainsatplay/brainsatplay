@@ -1,9 +1,8 @@
 import { AppletBrowser } from './UI/AppletBrowser'
-// import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
+import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
-import {AppletExample} from './AppletExample'
-import {MLApplet} from './EEG/machinelearning/MLApplet'
-
+// import {AppletExample} from './AppletExample'
+// import {MLApplet} from './EEG/machinelearning/MLApplet'
 
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
@@ -116,15 +115,10 @@ let applets = new Map([
         ConnectomeApplet.name,       
         ConnectomeApplet,
     ],
-    [
-        MLApplet.name,
-        MLApplet
-    ]
-    // [	
-    //     RandomizerApplet.name,       
-    //     RandomizerApplet,
-    // ]
-
+    [	
+        RandomizerApplet.name,       
+        RandomizerApplet,
+    ],
 ]);
 
 let presets = [

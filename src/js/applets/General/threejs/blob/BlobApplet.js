@@ -63,7 +63,7 @@ export class BlobApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:${props.height}; width:${props.width};'>
+            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">

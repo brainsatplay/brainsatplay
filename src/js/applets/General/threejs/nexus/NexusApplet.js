@@ -63,7 +63,7 @@ export class NexusApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:${props.height}; width:${props.width};'>
+            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
                 <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
                 <div class="nexus-loading-bar"></div>
                 <div class="nexus-point-container"></div>
@@ -631,8 +631,8 @@ this.three.renderer.setAnimationLoop( animate )
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.AppletHTML.deleteNode();
         this.three.renderer.setAnimationLoop( null );
+        this.AppletHTML.deleteNode();
         this.clearThree()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
