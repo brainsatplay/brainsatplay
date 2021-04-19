@@ -1130,7 +1130,7 @@ export class DataAtlas {
 							noteidx++;
 						}
 					}
-					if(this.data.other.notes[noteidx].time === datums[0].times[i]) {
+					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
 						line.push(this.data.other.notes[noteidx].note); 
 						nodeidx++;
 					}
@@ -1163,7 +1163,7 @@ export class DataAtlas {
 						noteidx++;
 					}
 				}
-				if(this.data.other.notes[noteidx].time === t) {
+				if(this.data.other.notes[noteidx].time <= t) {
 					line.push(this.data.other.notes[noteidx].note); 
 					nodeidx++;
 				}
