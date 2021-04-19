@@ -680,7 +680,7 @@ export class webSerial {
 					console.log(error);// TODO: Handle non-fatal read error.
                     if(error.includes('parity') || error.includes('overflow')) {
                         this.subscribed = false;
-                        setTimeout(()=>{this.subscribe(port)},33); //try to resubscribe 
+                        setTimeout(()=>{this.subscribed = true; this.subscribe(port)},33); //try to resubscribe 
                     } else {
                         this.closePort();	
                     }
