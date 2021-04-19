@@ -414,8 +414,6 @@ export class VideoApplet {
             this.c.width = this.vidQuery.width;
             this.c.height = this.vidQuery.height;
             var rect = this.vidQuery.getBoundingClientRect();
-            this.c.style.top = rect.top + 'px';
-            this.c.style.height = (rect.bottom - rect.top) + 'px';
             this.gl.clearColor(0,0,0.1,0);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     
