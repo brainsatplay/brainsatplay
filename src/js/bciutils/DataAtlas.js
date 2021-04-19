@@ -54,7 +54,8 @@ export class DataAtlas {
 			spo2:[],
 			emg:[],
 			ecg:[],
-			eyetracker:[]
+			eyetracker:[],
+			other:{notes:[],games:{}}
 		};
 
         Object.assign(this.data,initialData);
@@ -350,7 +351,28 @@ export class DataAtlas {
 		this.data.eyetracker.push(this.genEyeTrackerStruct(tag));
 	}
 
-	//also do ecg,emg,eyetracker
+	//also do ecg,emg
+
+	//Makes a note to be saved. Will automatically get the latest timestamp for attached devices if there is one, or just Date.now();
+	makeNote(text='event',timestamp=undefined) {
+		if(timestamp === undefined) {
+			if(this.settings.eeg) {
+				let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
+				timestamp = row.times[row.times.length-1]
+				this.data.other.notes.push({time:timestamp, note:text});
+			}
+			if(this.settings.heg) {
+				timestamp = this.data.heg[0].times[this.data.heg[0].times.length-1];
+				this.data.other.notes.push({time:timestamp, note:text});
+			}
+			else {
+				this.data.other.notes.push({time:Date.now(), note:text});
+			}
+		}
+		else {
+			this.data.other.notes.push({time:timestamp, note:text});
+		}
+	}
 
 	getDeviceDataByTag = (device='eeg',tag='FP1') => { //put eegshared for device to get shared info
 		var found = undefined;
@@ -1038,6 +1060,7 @@ export class DataAtlas {
 		let header = ["TimeStamps","UnixTime"];
 		let data = [];
 		let mapidx = 0;
+		let noteidx = 0;
 		let datums = [];
 		let fft_ref_ch = null;
 		this.data.eegshared.eegChannelTags.forEach((row,j) => {
@@ -1099,6 +1122,21 @@ export class DataAtlas {
 					}
 					mapidx++;	
 				}
+				if(this.data.other.notes.length > 0) {
+					if(i === 0) {
+						header.push('Notes');
+					} else {
+						while(this.data.other.notes[noteidx].time < datums[0].times[i]) {
+							noteidx++;
+						}
+					}
+					if(this.data.other.notes[noteidx].time === datums[0].times[i]) {
+						line.push(this.data.other.notes[noteidx].note); 
+						nodeidx++;
+					}
+				}
+
+
 				data.push(line.join(","));
 			}
 		
@@ -1116,6 +1154,21 @@ export class DataAtlas {
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
+			
+			if(this.data.other.notes.length > 0) {
+				if(i === 0) {
+					header.push('Notes');
+				} else {
+					while(this.data.other.notes[noteidx].time < t) {
+						noteidx++;
+					}
+				}
+				if(this.data.other.notes[noteidx].time === t) {
+					line.push(this.data.other.notes[noteidx].note); 
+					nodeidx++;
+				}
+			}
+
 		};
 		return [header.join(',')+"\n",data.join('\n')];
 	}
