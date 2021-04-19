@@ -1160,7 +1160,7 @@ export class DataAtlas {
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
-			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
+			data.push([t,this.toISOLocal(new Date(t)),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
 			
 			if(this.data.other.notes.length > 0) {
 				if(i === 0) {
@@ -1394,11 +1394,11 @@ export class DataAtlas {
 				let beats = this.data.heg[0].beat_detect[type]
 				let prevBeatLength = this.data.heg[0].beat_detect.prevBeatLength
 				this.data.heg[0].beat_detect.prevBeatLength = beats.length
-				if (prevBeatLength < beats.length) console.log('beat')
+				if (prevBeatLength < beats.length) {console.log('beat'); beats[beats.length - 1].tRead = Date.now()}
 					if (0 < beats.length){
-					let secondsElapsed = (Date.now() - beats[beats.length - 1].t) / 1000
+					let secondsElapsed = (Date.now() - beats[beats.length - 1].tRead) / 1000
 					// let beatProgression = secondsElapsed // 1 s animation
-					let beatProgression = secondsElapsed * 1/(beats[beats.length - 1].bpm/60) // animate based on estimated bpm
+					let beatProgression = secondsElapsed * beats[beats.length - 1].bpm/30 // animate based on estimated bpm
 					if (beatProgression < 1) {
 						let animation = 1 - (0.5 + 0.5*Math.cos(2*Math.PI*beatProgression))
 						return animation
