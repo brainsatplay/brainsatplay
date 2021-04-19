@@ -163,14 +163,16 @@ export class AppletBrowser {
         for (let div of appletCards){
             if (presetSelections.includes(div.id.split('-')[1])){
                 div.onclick = (e) => {
+                    console.log(window.location.href)
+                    window.history.pushState(window.location.href,'')
                     window.location.href = `${window.location.origin}/#${div.id.split('-')[1]}`;
                     location.reload();
                 }
             } else {
                 div.onclick = (e) => {
-                    console.log(div.id)
                     let selector = document.getElementById('applet1')
                     selector.value = div.id.split('-')[1]
+                    window.history.pushState(window.location.href,'')
                     window.location.href = `${window.location.origin}/#${selector.value}`;
                     selector.onchange()
                 }

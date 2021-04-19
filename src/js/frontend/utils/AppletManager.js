@@ -184,29 +184,8 @@ export class AppletManager {
         
         let configApplets = []
 
-        // Collect a list of unused applets
+        // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
-        // let unusedAppletClasses = this.appletClasses.filter(applet => {
-        //     let usable = false;
-        //     if (appletNames.includes(applet.name)){ // Filter applets based on preset selector
-        //         if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
-        //             usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-        //             if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
-        //         }
-        //     } else if (appletNames.find((n) => {
-        //         if(typeof n === 'object') {
-        //             if(n.name === applet.name) {
-        //                 return true;
-        //             }
-        //         }
-        //     })) {
-        //         if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
-        //             usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-        //             if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
-        //         }
-        //      }
-        // })
-
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         this.appletConfigs.forEach(conf => {
             if(typeof conf === 'string') {
@@ -215,55 +194,61 @@ export class AppletManager {
             else if (!currentApplets.reduce(isAllNull,0)) configApplets.push(conf) // Presets
         })
 
-        // Check the compatibility of current applets with connected devices
-        this.appletsSpawned = 0;
-        currentApplets.forEach((className,i) => {
-            let applet = this.appletClasses.get(className)
-            let compatible = false;
-            if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-            // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
-            
-            // Replace incompatible applets
-            if (!compatible){
-                // Deinit old applet
-                if (this.applets[i].classinstance != null){
-                    this.deinitApplet(this.applets[i].appletIdx);
-                }
 
-                // Add new applet
-                let appletCls = configApplets[0]
-                if (appletCls){
-                    
-                    let config = undefined;
-                    if (typeof this.appletConfigs[i] === 'object') {
-                        config = this.appletConfigs[i].settings;
-                    }
-                    this.applets[i] = {
-                        appletIdx: i+1,
-                        name:appletCls.name,
-                        classinstance: new appletCls("applets",this.bcisession,config)
+        // If no applets have been configured, redirect to base URL
+        if (configApplets.every(v => v == null)){
+            window.location.href = `${window.location.origin}`;
+        } else {
+            // Check the compatibility of current applets with connected devices
+            this.appletsSpawned = 0;
+            currentApplets.forEach((className,i) => {
+                let applet = this.appletClasses.get(className)
+                let compatible = false;
+                if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+                // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
+                
+                // Replace incompatible applets
+                if (!compatible){
+                    // Deinit old applet
+                    if (this.applets[i].classinstance != null){
+                        this.deinitApplet(this.applets[i].appletIdx);
                     }
 
-                    configApplets.splice(0,1)
+                    // Add new applet
+                    let appletCls = configApplets[0]
+                    if (appletCls){
+                        
+                        let config = undefined;
+                        if (typeof this.appletConfigs[i] === 'object') {
+                            config = this.appletConfigs[i].settings;
+                        }
+                        this.applets[i] = {
+                            appletIdx: i+1,
+                            name:appletCls.name,
+                            classinstance: new appletCls("applets",this.bcisession,config)
+                        }
+
+                        configApplets.splice(0,1)
+                        this.appletsSpawned++;
+                    }
+                } else {
                     this.appletsSpawned++;
                 }
+            })
+
+            this.initApplets();
+
+            // Generate applet selectors
+            if (showOptions){
+                document.body.querySelector('.applet-select-container').style.display = 'flex'
+                this.appletSelectIds.forEach((id,i) => {
+                    if (i < this.maxApplets){
+                        this.addAppletOptions(id,i);
+                    }
+                }) 
             } else {
-                this.appletsSpawned++;
+                document.body.querySelector('.applet-select-container').style.display = 'none'
             }
-        })
-
-        this.initApplets();
-
-        // Generate applet selectors
-        if (showOptions){
-            document.body.querySelector('.applet-select-container').style.display = 'flex'
-            this.appletSelectIds.forEach((id,i) => {
-                if (i < this.maxApplets){
-                    this.addAppletOptions(id,i);
-                }
-            }) 
-        } else {
-            document.body.querySelector('.applet-select-container').style.display = 'none'
         }
     }
 
