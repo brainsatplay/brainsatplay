@@ -8,7 +8,7 @@ export class YoutubeApplet {
 
     static name = "Youtube"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Learn why unboxing videos are cancer."
+    static description = "Control fade and volume, or learn about your brain on Youtube."
     static categories = ['feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
