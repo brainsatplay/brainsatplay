@@ -59,8 +59,10 @@ export class devicePlugin {
     }
 
     connect = () => {
-        this.onconnect();
-       this.setIndicator(true)
+       this.onconnect();
+       this.setIndicator(true);
+
+       //onconnected: this.atlas.settings.deviceConnected = true;
     }
 
     disconnect = () => {

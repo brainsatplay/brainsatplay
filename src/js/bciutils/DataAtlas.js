@@ -23,6 +23,7 @@ export class DataAtlas {
         this.name = name;
 		this.config = config; 
 		this.settings = { //Denotes active 
+			deviceConnected: false,
 			analyzing: false,
 			analysis: analysis, // ['eegfft']
 			heg:false,

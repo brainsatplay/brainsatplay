@@ -72,6 +72,7 @@ export class cytonPlugin {
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
             }
+            this.atlas.settings.deviceConnected = true;
             this.onconnect(); 
         }
 

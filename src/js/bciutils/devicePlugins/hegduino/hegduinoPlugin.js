@@ -74,6 +74,7 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
@@ -85,6 +86,7 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
@@ -96,6 +98,7 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});

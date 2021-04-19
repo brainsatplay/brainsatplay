@@ -105,6 +105,7 @@ export class eeg32Plugin {
                     this.atlas.data.eegshared.startTime = Date.now();
                     if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                         this.atlas.settings.analyzing = true;
+                        this.atlas.settings.deviceConnected = true;
                         setTimeout(() => {this.atlas.analyzer();},1200);		
                     }
                     this.onconnect();

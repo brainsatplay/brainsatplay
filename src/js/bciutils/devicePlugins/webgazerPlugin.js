@@ -89,6 +89,8 @@ export class webgazerPlugin {
             }
 
         }).begin();
+
+        this.atlas.settings.deviceConnected = true;
         this.onconnect();
         this.setIndicator(true)
     }

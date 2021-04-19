@@ -115,6 +115,7 @@ export class musePlugin {
         // });
         // this.device.accelerometerData.subscribe(accel => {
         // });
+        this.atlas.settings.deviceConnected = true;
         if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
             this.atlas.settings.analyzing = true;
             setTimeout(() => {this.atlas.analyzer();},1200);		
