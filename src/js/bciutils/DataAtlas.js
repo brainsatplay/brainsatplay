@@ -23,6 +23,7 @@ export class DataAtlas {
         this.name = name;
 		this.config = config; 
 		this.settings = { //Denotes active 
+			deviceConnected: false,
 			analyzing: false,
 			analysis: analysis, // ['eegfft']
 			heg:false,
@@ -662,8 +663,9 @@ export class DataAtlas {
         return blinks
     }
 
-	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array array is a local extrema. options: 'peak','valley','tangent'
+	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
             ref.forEach((val,i) => {
@@ -701,8 +703,9 @@ export class DataAtlas {
         }
     }
 
-    isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'
+    isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
             ref.forEach((val,i) => {
@@ -798,21 +801,26 @@ export class DataAtlas {
 						//Make sure you are using the leading valley
 						if(bt.val_dists[bt.val_dists.length-1].t > bt.peak_dists[bt.peak_dists.length-1].t) {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
-							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t)
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t, hrv:0, bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
+							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t) {
+								let bpm = 60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000;
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-1].bpm), bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
+							}
 						} else {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
-							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t)
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t,bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:0, bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
+							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t) {
+							 let bpm = 60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000;
+							 bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-2].bpm) , bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
+							}
 						}
 					}
-					
 				}
 			}
 			if(bt.rir2.length>pw2) {
 				//Find local maxima and local minima.
+				
+				let l3=bt.localmins2.length, l4=bt.localmaxs2.length;
 				if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'valley')) {
 					bt.localmins2.push({idx:hegstruct.count-mid2, val:bt.rir[hegstruct.count-mid2], t:hegstruct.times[hegstruct.count-mid2] });
 				}
@@ -826,12 +834,11 @@ export class DataAtlas {
 					if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
 					else if (bt.localmaxs2.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
 					
-					if(l1 < bt.localmins.length)
-						bt.val_dists.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
-					if(l2 < bt.localmaxs.length)
+					if(l3 < bt.localmins2.length)
+						bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
+					if(l4 < bt.localmaxs2.length)
 						bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t, y0:bt.localmaxs2[bt.localmaxs2.length-2].val, y1:bt.localmaxs2[bt.localmaxs2.length-1].val});
-						//Found a peak and valley to average together (for accuracy)
-					
+			
 					//Found a peak and valley to average together (for accuracy)
 					if(bt.peak_dists2.length > 1 && bt.val_dists2.length > 1) {
 						//Make sure you are using the leading valley
@@ -840,7 +847,7 @@ export class DataAtlas {
 								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:2000*60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt), brv:0, height0:bt.peak_dists2[bt.peak_dists2.length-1].y0-bt.val_dists2[bt.val_dists2.length-1].y0,height0:bt.peak_dists2[bt.peak_dists2.length-1].y1-bt.val_dists2[bt.val_dists2.length-1].y1});
 							} else if(bt.breaths[bt.breaths.length-1].t !== bt.peak_dists2[bt.peak_dists2.length-1].t) {
 								let bpm = 2000*60/(bt.peak_dists2[bt.peak_dists2.length-1].dt + bt.val_dists2[bt.val_dists2.length-1].dt);
-								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:bpm,hrv:bt.breaths[bt.breaths.length-1].bpm,brv:Math.abs(bpm-bt.breaths[bt.breaths.length-1].bpm), height0:bt.peak_dists2[bt.peak_dists2.length-1].y0-bt.val_dists2[bt.val_dists2.length-1].y0,height0:bt.peak_dists2[bt.peak_dists2.length-1].y1-bt.val_dists2[bt.val_dists2.length-1].y1});
+								bt.breaths.push({t:bt.peak_dists2[bt.peak_dists2.length-1].t,bpm:bpm, brv:Math.abs(bpm-bt.breaths[bt.breaths.length-1].bpm), height0:bt.peak_dists2[bt.peak_dists2.length-1].y0-bt.val_dists2[bt.val_dists2.length-1].y0,height0:bt.peak_dists2[bt.peak_dists2.length-1].y1-bt.val_dists2[bt.val_dists2.length-1].y1});
 							}
 						} else {
 							if(bt.breaths.length === 0) {
@@ -1359,7 +1366,7 @@ export class DataAtlas {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		let html = '';
 		let feedbackOptions;
-		if (this.settings.analyzing){
+		if (this.settings.deviceConnected){
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
 			let getFocus = () => {
@@ -1368,15 +1375,68 @@ export class DataAtlas {
 				frontalData.forEach(data => {
 					thetaBetaArray.push(this.getThetaBetaRatio(data))
 				})
-				return Math.min(1/(thetaBetaArray.reduce((tot,curr) => {tot + curr})/thetaBetaArray.length),1) // clamp focus at 1
+				let output = Math.min(1/(thetaBetaArray.reduce((tot,curr) => tot + curr)/thetaBetaArray.length),1) // clamp focus at 1
+				return output
 			}
+
+			let getHEGRatio = () => {
+				let ct = this.data.heg[0].count;
+				if(ct > 1) {
+				let avg = 40; if(ct < avg) { avg = ct; }
+				let slice = this.data.heg[0].ratio.slice(ct-avg);
+				let score = this.data.heg[0].ratio[ct-1] - this.mean(slice);
+				return score
+				}
+			}
+
+			// A custom function to animate heartbeats
+			let animateBeats = (type) => {
+				let beats = this.data.heg[0].beat_detect[type]
+				let prevBeatLength = this.data.heg[0].beat_detect.prevBeatLength
+				this.data.heg[0].beat_detect.prevBeatLength = beats.length
+				if (prevBeatLength < beats.length) console.log('beat')
+					if (0 < beats.length){
+					let secondsElapsed = (Date.now() - beats[beats.length - 1].t) / 1000
+					// let beatProgression = secondsElapsed // 1 s animation
+					let beatProgression = secondsElapsed * 1/(beats[beats.length - 1].bpm/60) // animate based on estimated bpm
+					if (beatProgression < 1) {
+						let animation = 1 - (0.5 + 0.5*Math.cos(2*Math.PI*beatProgression))
+						return animation
+					} else {
+						return 0
+					}
+				}
+				else {
+					return 0
+				}
+			}
+
+			let animateHeartbeats = () => {
+				return animateBeats('beats')
+			}
+
+			let animateBreaths = () => {
+				return animateBeats('breaths')
+			}
+
 
 			// Option Declaration
 			feedbackOptions = [
 				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-				{label: 'Focus', function: getFocus}
 			]
+			if(this.settings.heg) {
+				feedbackOptions.push(
+					{label: 'HEG Ratio', function: getHEGRatio},
+					{label: 'Heartbeat', function: animateHeartbeats},
+					{label: 'Breath', function: animateBreaths},
+				)
+			} 
+			if (this.settings.eeg){
+				feedbackOptions.push(
+					{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+					{label: 'Focus', function: getFocus},
+				)
+			}
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 
 			feedbackOptions.forEach((o,i) => {

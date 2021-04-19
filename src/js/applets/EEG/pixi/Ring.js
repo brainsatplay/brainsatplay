@@ -67,8 +67,8 @@ export class Ring {
       theta.forEach((a,i) => {
         let xoff = this.p5Instance.map(Math.cos(a + this.phase), -1, 1, 0, noiseMax);
         let yoff = this.p5Instance.map(Math.sin(a + this.phase), -1, 1, 0, noiseMax);
-        // let r = this.p5Instance.map(this.p5Instance.noise(xoff, yoff, this.zoff), 0, 1, minRad,maxRad); // Noise 
-        let r = this.p5Instance.map(this.brainData[i], minData, maxData, minRad,maxRad/2); // Brain
+        let r = this.p5Instance.map(this.p5Instance.noise(xoff, yoff, this.zoff), 0, 1, minRad,maxRad); // Noise 
+        // let r = this.p5Instance.map(this.brainData[i], minData, maxData, minRad,maxRad/2); // Brain
         let x = r * Math.cos(a);
         let y = r * Math.sin(a);
         vertices.push([x,y])

@@ -162,7 +162,7 @@ export class SmoothieApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.eeg){
+            if(this.bci.atlas.settings.eeg) {
               if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);

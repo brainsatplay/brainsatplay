@@ -89,12 +89,15 @@ export class webgazerPlugin {
             }
 
         }).begin();
+
+        this.atlas.settings.deviceConnected = true;
         this.onconnect();
         this.setIndicator(true)
     }
 
     disconnect = () => {
         webgazer.end();
+        this.atlas.settings.deviceConnected = false;
         this.ondisconnect();
         this.setIndicator(false)
     }

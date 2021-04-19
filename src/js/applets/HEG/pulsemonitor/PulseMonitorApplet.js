@@ -135,7 +135,7 @@ export class PulseMonitorApplet {
                 let bpm = breaths[breaths.length-1].bpm;
                 let span = document.getElementById(this.props.id+'br');
                 span.innerHTML = bpm.toFixed(2);
-                if(bpm < 3 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
+                if(bpm < 4.5 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
                 console.log(bpm, breaths[breaths.length-1]);
             }
         }

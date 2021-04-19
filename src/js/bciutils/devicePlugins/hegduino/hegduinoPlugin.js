@@ -74,9 +74,10 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
-            ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
+            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
         else if (this.mode === 'hegduinobt' || this.mode === 'hegduinoble') {
             this.device= new hegduino('ble',ondata,
@@ -85,9 +86,10 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
-            ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
+            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
         else if (this.mode === 'hegduinoserial' || this.mode === 'hegduinousb') {
             this.device= new hegduino('usb',ondata,
@@ -96,9 +98,10 @@ export class hegduinoPlugin {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
+                this.atlas.settings.deviceConnected = true;
                 this.onconnect();
             },
-            ()=>{ this.atlas.settings.analyzing = false; this.ondisconnect();});
+            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
 
         

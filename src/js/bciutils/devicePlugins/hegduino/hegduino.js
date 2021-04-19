@@ -669,7 +669,7 @@ export class webSerial {
 							this.onReceiveAsync(value);
                             
 					        if(this.subscribed === true) {
-                                setTimeout(()=>{streamData();}, 10);
+                                setTimeout(()=>{streamData();}, 30);
                             }
 						}
 						catch (err) {console.log(err)}
@@ -678,8 +678,21 @@ export class webSerial {
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-                    this.closePort();	
-				}
+                    if(error.message.includes('parity') || error.message.includes('overflow') || error.message.includes('Parity') || error.message.includes('Overflow') || error.message.includes('break')) {
+                        this.subscribed = false;
+                        setTimeout(async ()=>{
+                            if (this.reader) {
+                                await this.reader.releaseLock();
+                                this.reader = null;
+                            }
+                            this.subscribed = true; 
+                            this.subscribe(port);
+                            //if that fails then close port and reopen it
+                        },30); //try to resubscribe 
+                    } else {
+                        this.closePort();	
+                    }
+                }
 			}
 			streamData();
 		}
@@ -695,7 +708,7 @@ export class webSerial {
 					this.reader = null;
 				}
 				await port.close();
-				this.port = null;
+				//this.port = null;
 				this.connected = false;
 				this.onDisconnectedCallback();
 			}, 100);

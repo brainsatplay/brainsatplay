@@ -3,6 +3,7 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
 // import {AppletExample} from './AppletExample'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
+import { p5WorkshopApplet } from './General/other/p5workshop/p5WorkshopApplet'
 
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
@@ -16,7 +17,7 @@ import { BlinkApplet } from './EEG/blink/Blink'
 import { BandRingApplet } from './EEG/bandring/BandRing'
 import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
 import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
-// import { PixiApplet } from './EEG/pixi/PixiApplet'
+import { PixiApplet } from './EEG/pixi/PixiApplet'
 
 import { CircleApplet } from './HEG/circle/Circle'
 import { AudioApplet } from './General/other/audio/AudioApplet'
@@ -118,10 +119,14 @@ let applets = new Map([
         YoutubeApplet.name,       
         YoutubeApplet,
     ],
-    // [   
-    //     PixiApplet.name,
-    //     PixiApplet
-    // ]
+    [   
+        PixiApplet.name,
+        PixiApplet
+    ], 
+    [
+        p5WorkshopApplet.name,
+        p5WorkshopApplet
+    ]
 ]);
 
 let presets = [

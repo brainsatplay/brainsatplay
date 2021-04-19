@@ -72,11 +72,13 @@ export class cytonPlugin {
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
             }
+            this.atlas.settings.deviceConnected = true;
             this.onconnect(); 
         }
 
         let onDisconnect = () => {
             this.atlas.settings.analyzing = false;
+            this.atlas.settings.deviceConnected = false;
             this.ondisconnect();   
         }
 
