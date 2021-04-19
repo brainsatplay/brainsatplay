@@ -8,7 +8,7 @@ export class YoutubeApplet {
 
     static name = "Youtube"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Learn why unboxing videos are cancer."
+    static description = "Control fade and volume, or learn about your brain on Youtube."
     static categories = ['feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
@@ -35,6 +35,9 @@ export class YoutubeApplet {
         this.looping = false;
         this.loop = undefined;
         this.feedback = true;
+        this.c;
+        this.gl;
+        this.alpha = 0;
     }
 
     //---------------------------------
@@ -48,19 +51,26 @@ export class YoutubeApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
-                <div id='${props.id}menu' style='position:absolute; top:60px; opacity:0;'> 
+                <div id='${props.id}menu' style='position:absolute; top:60px; opacity:0; style='z-index:3;''> 
                     Psst... Use Adblockers: <a href="https://www.ghostery.com/">Ghostery</a> + <a href="https://adblockplus.org/">Adblock+</a>
                     <br><input type='text' id='${props.id}videoid' placeholder='Paste id or url' style='width:110px;'>
                     <button id='${props.id}load'>Load</button>
                     <br> Feedback: <input type='checkbox' id='${props.id}feedback' checked>
-                     </div>
-                <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0"></iframe>
+                </div>
+                <canvas id="`+props.id+`canvas" height=100% width=100% style='position:absolute; z-index:2; pointer-events:none;'></canvas>
+                <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0" style='z-index:1;'></iframe>
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.c = document.getElementById(this.props.id+'canvas');
+            this.gl = this.c.getContext("webgl");
+            
+            this.gl.clearColor(0,0,0.01,0);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
             document.getElementById(props.id+'load').onclick = () => {
                 let id = document.getElementById(props.id+'videoid').value;
                 if(id.indexOf('youtu') < 0) this.player.loadVideoById(id)
@@ -84,6 +94,9 @@ export class YoutubeApplet {
 
             document.getElementById(props.id+'feedback').onchange = () => {
                 this.feedback = document.getElementById(props.id+'feedback').checked;
+                this.alpha = 0;
+                if(this.player)
+                    this.player.setVolume(50);
             }
         }
 
@@ -121,6 +134,8 @@ export class YoutubeApplet {
             let div = document.getElementById(this.props.id+'player');
             div.width = this.AppletHTML.node.clientWidth;
             div.height = this.AppletHTML.node.clientHeight;
+            this.c.width = this.AppletHTML.node.clientWidth;
+            this.c.height = this.AppletHTML.node.clientHeight;
             
             var embedCode = event.target.getVideoEmbedCode();
             event.target.playVideo();
@@ -170,6 +185,9 @@ export class YoutubeApplet {
         let div = document.getElementById(this.props.id+'player');
         div.width = this.AppletHTML.node.clientWidth;
         div.height = this.AppletHTML.node.clientHeight;
+        this.c.width = this.AppletHTML.node.clientWidth;
+        this.c.height = this.AppletHTML.node.clientHeight;
+
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -182,9 +200,20 @@ export class YoutubeApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    mean(arr){
+        var sum = arr.reduce((prev,curr)=> curr += prev);
+        return sum / arr.length;
+    }
+
     onData = (score) => {
         if(this.player)
             this.player.setVolume(this.player.getVolume()+score);
+
+        if(this.alpha >= 0 && this.alpha < 1) {
+            this.alpha-=score;
+            if(this.alpha < 0) this.alpha = 0;
+            if(this.alpha > 1) this.alpha = 1;
+        }
     }
 
     updateLoop = () => {
@@ -210,8 +239,13 @@ export class YoutubeApplet {
                     this.onData(score);
                     }
                 }
+                
+                this.gl.clearColor(0,0,0.01,this.alpha);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
             }
+
+            
 
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
 
