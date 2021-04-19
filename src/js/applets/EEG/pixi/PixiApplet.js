@@ -2,13 +2,21 @@ import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 import * as PIXI from 'pixi.js';
 import featureImg from './img/feature.png'
+import perlinImg from './img/perlin.jpeg'
 
+import vertexSrc from "./shaders/vertex.glsl"
+import fragmentNoiseSrc from "./shaders/perlin/fragment.glsl"
+import fragmentGridSrc from "./shaders/grid/fragment.glsl"
+import fragmentRippleSrc from "./shaders/ripple/fragment.glsl"
+import fragmentWaveSrc from "./shaders/waves/fragment.glsl"
+import fragmentSrc from "./shaders/noiseCircle/fragment.glsl"
+import fragmentCombineSrc from "./shaders/combination/fragment.glsl"
 //Example Applet for integrating with the UI Manager
 export class PixiApplet {
 
     static name = "Pixi"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Bandpower visualizer."
+    static description = "Control a shader with your brain."
     static categories = ['data'];
     static image=featureImg
 
@@ -35,14 +43,14 @@ export class PixiApplet {
     //---Required template functions---
     //---------------------------------
 
-     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
+     //Initalize the this.app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the this.app however otherwise.
     init() {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
                 <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
-                    <canvas id='${this.props.id}-canvas'></canvas>
+                <canvas id='${props.id}-canvas'></canvas>
                 </div>
             `;
         }
@@ -61,59 +69,27 @@ export class PixiApplet {
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
+        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the this.app initialization settings if you want via an array.
 
 
-        //Add whatever else you need to initialize        
-        const containerElement = document.getElementById(this.props.id);
-        const canvas = document.getElementById(`${this.props.id}-canvas`);
+        //Add whatever else you need to initialize     
+        const canvas = document.getElementById(`${this.props.id}-canvas`);   
+        this.app = new PIXI.Application({view: canvas});
 
-        this.app = new PIXI.Application({ 
-            view:canvas,
-            antialias: true
-         });
-        //  this.app.renderer.resize(containerElement.clientWidth,containerElement.clientHeight)
-
-        containerElement.appendChild(this.app.view);
-        
-        let graphics = new PIXI.Graphics()
-
-        // Translate
-        let centerX = this.app.renderer.width / 2
-        let centerY = this.app.renderer.height / 2
-        this.bendStrength = 2;
-        graphics.lineStyle(10,0x00ffff)
-        graphics.beginFill(0xff0000)
-        let n1 = {
-                position: {
-                x:50,
-                y:0
-            }
-        }
-        let n2 = {
-            position: {
-                x:0,
-                y:50
-            }
-        }
-        let ctrlPt1 = [n1.position.x*this.bendStrength, n1.position.y*this.bendStrength]
-        let ctrlPt2 = [n2.position.x*this.bendStrength, n2.position.y*this.bendStrength]
-
-        const bezier = new PIXI.Graphics();
-        bezier.x = centerX
-        bezier.y = centerY
-        bezier.lineStyle(5, 0xAA0000, 1);
-        bezier.bezierCurveTo(ctrlPt1[0],ctrlPt1[1],ctrlPt2[0],ctrlPt2[1],n2.position.x, n2.position.y);
-        bezier.position.x = 50;
-        bezier.position.y = 50;
-        this.app.stage.addChild(bezier);
-
-        let animate = () => {
-
-        }
-
-        this.app.ticker.add(animate);;
-        
+        setTimeout(()=> {
+            const uniforms = {
+                amplitude: 0.75,
+                time: 0,
+                aspect: this.app.renderer.view.width/this.app.renderer.view.height            
+            };
+            this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
+            this.generateShaderElements()
+            let startTime = Date.now();
+            this.app.ticker.add((delta) => {
+                this.shaderQuad.shader.uniforms.time = (Date.now() - startTime)/1000
+                this.app.renderer.render(this.shaderQuad, this.shaderTexture);
+            });
+        }, 100)
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -124,11 +100,57 @@ export class PixiApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let container = document.getElementById(this.props.id)
+        const containerElement = document.getElementById(this.props.id);
+        let w = containerElement.offsetWidth
+        let h = containerElement.offsetHeight
+        this.app.renderer.view.width = w;
+        this.app.renderer.view.height = h;
+        this.app.renderer.view.style.width = w + 'px';
+        this.app.renderer.view.style.height = h + 'px';
+        this.app.renderer.resize(w,h)
+        this.shaderQuad.shader.uniforms.aspect = this.app.renderer.view.width/this.app.renderer.view.height
+        this.generateShaderElements()
+    }
 
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+    generateShaderElements() {
+        const containerElement = document.getElementById(this.props.id);
+        const w = containerElement.offsetWidth
+        const h = containerElement.offsetHeight
+
+        this.geometry = new PIXI.Geometry()
+                .addAttribute('aVertexPosition', // the attribute name
+                    [0, 0, // x, y
+                        Math.min(w,h), 0, // x, y
+                        Math.min(w,h), Math.min(w,h),
+                        0, Math.min(w,h)], // x, y
+                    2) // the size of the attribute
+                .addAttribute('aUvs', // the attribute name
+                    [0, 0, // u, v
+                        1, 0, // u, v
+                        1, 1,
+                        0, 1], // u, v
+                    2) // the size of the attribute
+                .addIndex([0, 1, 2, 0, 2, 3]);
+
+        // if (this.shaderContainer == null) 
+        this.shaderTexture = PIXI.RenderTexture.create(Math.min(w,h),Math.min(w,h));
+        // if (this.shaderQuad == null)  
+        this.shaderQuad = new PIXI.Mesh(this.geometry, this.shader);
+
+        if (this.shaderContainer != null) this.app.stage.removeChild(this.shaderContainer)
+        this.shaderContainer = new PIXI.Container();
+        this.shaderContainer.addChild(this.shaderQuad);
+        this.app.stage.addChild(this.shaderContainer);
+
+        // Final combination pass
+        // const combineUniforms = {
+        //     texNoise: noiseTexture,
+        //     texWave: waveTexture,
+        // };
+        // const combineShader = PIXI.Shader.from(vertexSrc, fragmentCombineSrc, combineUniforms);
+        // const combineQuad = new PIXI.Mesh(this.geometry, combineShader);
+
+        this.shaderContainer.position.set((containerElement.offsetWidth - Math.min(w,h))/2, (containerElement.offsetHeight - Math.min(w,h))/2);
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
