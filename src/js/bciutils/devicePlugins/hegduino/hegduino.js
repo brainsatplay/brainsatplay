@@ -669,7 +669,7 @@ export class webSerial {
 							this.onReceiveAsync(value);
                             
 					        if(this.subscribed === true) {
-                                setTimeout(()=>{streamData();}, 10);
+                                setTimeout(()=>{streamData();}, 33);
                             }
 						}
 						catch (err) {console.log(err)}
@@ -678,8 +678,13 @@ export class webSerial {
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-                    this.closePort();	
-				}
+                    if(error.includes('parity') || error.includes('overflow')) {
+                        this.subscribed = false;
+                        setTimeout(()=>{},33);
+                    } else {
+                        this.closePort();	
+                    }
+                }
 			}
 			streamData();
 		}
