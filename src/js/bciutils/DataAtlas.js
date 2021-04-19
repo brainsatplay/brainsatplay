@@ -835,7 +835,7 @@ export class DataAtlas {
 					
 
 					if(l3 < bt.localmins2.length)
-						bt.val_dists.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
+						bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
 					if(l4 < bt.localmaxs2.length)
 						bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t, y0:bt.localmaxs2[bt.localmaxs2.length-2].val, y1:bt.localmaxs2[bt.localmaxs2.length-1].val});
 						//Found a peak and valley to average together (for accuracy)
