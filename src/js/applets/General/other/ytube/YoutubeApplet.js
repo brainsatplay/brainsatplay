@@ -207,7 +207,7 @@ export class YoutubeApplet {
             this.player.setVolume(this.player.getVolume()+score);
 
         if(this.alpha >= 0 && this.alpha < 1) {
-            this.alpha+=score;
+            this.alpha+=score*0.01;
             if(this.alpha < 0) this.alpha = 0;
             if(this.alpha > 1) this.alpha = 1;
         }
