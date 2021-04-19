@@ -820,15 +820,18 @@ export class DataAtlas {
 					bt.localmaxs2.push({idx:hegstruct.count-mid2, val:bt.rir[hegstruct.count-mid2], t:hegstruct.times[hegstruct.count-mid2] });
 				}
 
+
+				let l3=bt.localmins2.length, l4=bt.localmaxs2.length;
 				if(bt.localmins2.length > 1 && bt.localmaxs2.length > 1) {
 					
 					//Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
 					if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
 					else if (bt.localmaxs2.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
 					
-					if(l1 < bt.localmins.length)
+
+					if(l3 < bt.localmins2.length)
 						bt.val_dists.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
-					if(l2 < bt.localmaxs.length)
+					if(l4 < bt.localmaxs2.length)
 						bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t, y0:bt.localmaxs2[bt.localmaxs2.length-2].val, y1:bt.localmaxs2[bt.localmaxs2.length-1].val});
 						//Found a peak and valley to average together (for accuracy)
 					
