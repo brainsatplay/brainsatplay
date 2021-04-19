@@ -1363,7 +1363,7 @@ export class DataAtlas {
 	 */
 
 	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
-		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
+		let id = applet.props.id
 		let html = '';
 		let feedbackOptions;
 		if (this.settings.deviceConnected){
@@ -1437,18 +1437,19 @@ export class DataAtlas {
 					{label: 'Focus', function: getFocus},
 				)
 			}
-			html = `<div><select id="${id}-neurofeedbackselector">`;
 
-			feedbackOptions.forEach((o,i) => {
-				if (i === 0) html += `<option value=${o.function.name} disabled>${o.label}</option>`
-				else if (i === 1) html += `<option value=${o.function.name} selected>${o.label}</option>`
-				else html += `<option value=${o.function.name}>${o.label}</option>`;
-				if (i === feedbackOptions.length - 1) html += `</select></div>`
-			});
-		}
-		parentNode.innerHTML = html;
-		let neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`)
-		if (neurofeedbackSelector != null) {
+			let neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`)
+			if (neurofeedbackSelector == null) {
+				html = `<div><select id="${id}-neurofeedbackselector">`;
+				feedbackOptions.forEach((o,i) => {
+					if (i === 0) html += `<option value=${o.function.name} disabled>${o.label}</option>`
+					else if (i === 1) html += `<option value=${o.function.name} selected>${o.label}</option>`
+					else html += `<option value=${o.function.name}>${o.label}</option>`;
+					if (i === feedbackOptions.length - 1) html += `</select></div>`
+				});
+				parentNode.innerHTML += html;
+				neurofeedbackSelector = document.getElementById(`${id}-neurofeedbackselector`) 
+			}
 			applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == neurofeedbackSelector.value).function;
 			neurofeedbackSelector.onchange = (e) => {applet.getNeurofeedback = feedbackOptions.find((o) => o.function.name == e.target.value).function}
 		}
