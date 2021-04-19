@@ -123,6 +123,7 @@ export class musePlugin {
 
         this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
             this.atlas.analyzing = false;
+            this.atlas.settings.deviceConnected = false;
             this.ondisconnect();
         });
 

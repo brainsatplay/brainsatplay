@@ -97,6 +97,7 @@ export class webgazerPlugin {
 
     disconnect = () => {
         webgazer.end();
+        this.atlas.settings.deviceConnected = false;
         this.ondisconnect();
         this.setIndicator(false)
     }
