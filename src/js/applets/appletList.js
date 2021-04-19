@@ -3,6 +3,7 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
 // import {AppletExample} from './AppletExample'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
+import { p5WorkshopApplet } from './General/other/p5workshop/p5WorkshopApplet'
 
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
@@ -121,6 +122,10 @@ let applets = new Map([
     [   
         PixiApplet.name,
         PixiApplet
+    ], 
+    [
+        p5WorkshopApplet.name,
+        p5WorkshopApplet
     ]
 ]);
 

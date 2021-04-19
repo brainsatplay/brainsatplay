@@ -1363,7 +1363,7 @@ export class DataAtlas {
 		let id = Math.floor(Math.random()*10000)+"neurofeedbackmenu";
 		let html = '';
 		let feedbackOptions;
-		if (this.settings.analyzing){
+		if (this.settings.deviceConnected){
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
 			let getFocus = () => {
@@ -1372,15 +1372,58 @@ export class DataAtlas {
 				frontalData.forEach(data => {
 					thetaBetaArray.push(this.getThetaBetaRatio(data))
 				})
-				return Math.min(1/(thetaBetaArray.reduce((tot,curr) => {tot + curr})/thetaBetaArray.length),1) // clamp focus at 1
+				let output = Math.min(1/(thetaBetaArray.reduce((tot,curr) => tot + curr)/thetaBetaArray.length),1) // clamp focus at 1
+				return output
 			}
+
+			let getHEGRatio = () => {
+				let ct = this.data.heg[0].count;
+				if(ct > 1) {
+				let avg = 40; if(ct < avg) { avg = ct; }
+				let slice = this.data.heg[0].ratio.slice(ct-avg);
+				let score = this.data.heg[0].ratio[ct-1] - this.mean(slice);
+				return score
+				}
+			}
+
+			// A custom function to animate heartbeats
+			let animateBeats = (beats) => {
+				let prevBeatLength = this.data.heg[0].beat_detect.prevBeatLength
+				this.data.heg[0].beat_detect.prevBeatLength = beats.length
+				if (prevBeatLength < beats.length) console.log('beat')
+					if (0 < beats.length){
+					let secondsElapsed = (Date.now() - beats[beats.length - 1].t) / 1000
+					let beatProgression = secondsElapsed // 1 s animation
+					if (beatProgression < 1) {
+						let animation = 1 - (0.5 + 0.5*Math.cos(2*Math.PI*beatProgression))
+						return animation
+					} else {
+						return 0
+					}
+				}
+				else {
+					return 0
+				}
+			}
+
 
 			// Option Declaration
 			feedbackOptions = [
 				{label: 'Select your neurofeedback', function: applet.defaultNeurofeedback},
-				{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-				{label: 'Focus', function: getFocus}
 			]
+			if(this.settings.heg) {
+				feedbackOptions.push(
+					{label: 'HEG Ratio', function: getHEGRatio},
+					{label: 'Heartbeat', function: () => {return animateBeats(this.data.heg[0].beat_detect.beats)}},
+					{label: 'Breath', function: () => {return animateBeats(this.data.heg[0].beat_detect.breaths)}},
+				)
+			} 
+			if (this.settings.eeg){
+				feedbackOptions.push(
+					{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
+					{label: 'Focus', function: getFocus},
+				)
+			}
 			html = `<div><select id="${id}-neurofeedbackselector">`;
 
 			feedbackOptions.forEach((o,i) => {
