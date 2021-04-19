@@ -76,16 +76,22 @@ export class PixiApplet {
         const canvas = document.getElementById(`${this.props.id}-canvas`);   
         this.app = new PIXI.Application({view: canvas});
 
+        this.colorBuffer = Array.from({length: 5}, e => [1.0,1.0,1.0])
         const uniforms = {
             amplitude: 0.75,
             time: 0,
-            aspect: this.app.renderer.view.width/this.app.renderer.view.height,            
+            aspect: this.app.renderer.view.width/this.app.renderer.view.height,  
+            colors: this.colorBuffer.flat(1)          
         };
         this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
         this.generateShaderElements()
         let startTime = Date.now();
         this.app.ticker.add((delta) => {
             this.shaderQuad.shader.uniforms.time = (Date.now() - startTime)/1000
+            this.colorBuffer.shift()
+            this.colorBuffer.push([0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/1000)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/500)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/200))])
+            this.shaderQuad.shader.uniforms.colors = this.colorBuffer.flat(1) 
+
             this.app.renderer.render(this.shaderQuad, this.shaderTexture);
         });
     }

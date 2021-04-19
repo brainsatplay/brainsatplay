@@ -8,6 +8,7 @@ uniform float amplitude;
 uniform float time;
 uniform float aspect;
 uniform float historyLength;
+uniform vec3 colors[5];
 
 float circle(in vec2 _st, in float _Diameter){
     vec2 dist = _st-vec2(0.5);
@@ -91,8 +92,8 @@ float cnoise(vec3 P){
 }
 
 
-float minDiameter= 0.0;
-float maxDiameter = 0.1;
+float minDiameter= 0.1;
+float maxDiameter = 0.25;
 float noiseIntensity = 5.0;
 float historyInterval = 0.1;
 
@@ -104,18 +105,20 @@ void main()
 
     
     vec4 outColor = vec4(0.);
-    for (float i = 0.0; i < 5.0; i++){
+    for (int i = 0; i < 5; i++){
 
+        float i_float = float(i);
         // Noisy Diameter
-        float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(time-i*historyInterval)));
+        float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(time-i_float*historyInterval)));
         float outerDiameter = innerDiameter + 0.01;
-        float noiseScaling = (0.5 - outerDiameter);
+        float noiseScaling = 0.1;
 
         // Noisy Circle
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity,time-i*historyInterval)));
-        float alpha = 1.0 - i/5.0;
-        outColor += vec4(alpha*vec3(circle(uv,outerDiameter + noise)),alpha); // Outer Diameter
-        outColor -= vec4(alpha*vec3(circle(uv,innerDiameter + noise)),alpha); // Inner Diameter
+        // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(vec2(angle*noiseIntensity),time-i*historyInterval)));
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity,time-i_float*historyInterval)));
+        float alpha = 1.0 - i_float/5.0;
+        outColor += vec4(colors[i]*alpha*vec3(circle(uv,outerDiameter + noise)),alpha); // Outer Diameter
+        outColor -= vec4(colors[i]*alpha*vec3(circle(uv,innerDiameter + noise)),alpha); // Inner Diameter
     }
     // outColor *= cnoise(vec3(uv,time));
     //Simple wavefunctions inversed and with small offsets.
