@@ -7,7 +7,7 @@ export class PulseMonitorApplet {
 
     static name = "Pulse Monitor"; 
     static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Example"
+    static description = "See pulse and breathing rate with HEG"
     static categories = ['data']; //data,game,multiplayer,meditation,etc
     static image= featureImg
 
@@ -62,7 +62,7 @@ export class PulseMonitorApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.canvas = document.getElementById(props.id+'canvas');
-            this.ctx = canvas.getContext("2d");
+            this.ctx = this.canvas.getContext("2d");
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

@@ -1,16 +1,14 @@
 import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
-import p5 from 'p5';
-import {Ring} from './Ring';
-import featureImg from './img/feature.png'
+import featureImg from './../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
-export class BandRingApplet {
+export class MLApplet {
 
-    static name = "Band Ring"; 
+    static name = "Machine Learning"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Bandpower visualizer."
-    static categories = ['data'];
+    static description = "Detect blinks with machine learning!"
+    static categories = ['data']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
     constructor(
@@ -31,8 +29,8 @@ export class BandRingApplet {
             buttonOutput: 0 //Add whatever else
         };
 
-        this.ring = null;
-        this.sketch = null;
+        //etc..
+        this.sub1 = undefined;
     }
 
     //---------------------------------
@@ -45,7 +43,8 @@ export class BandRingApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-                <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
+                <div id='${props.id}' style='height:100%; width:100%;'>
+                    <h1>Detect Blinks</h1>
                 </div>
             `;
         }
@@ -67,40 +66,26 @@ export class BandRingApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
 
-        //Add whatever else you need to initialize        
-        const containerElement = document.getElementById(this.props.id);
+        //Add whatever else you need to initialize
 
+        let animate = () => {
+            console.log(this.bci.atlas.getEEGDataByTag(this.bci.atlas.data.eegshared.eegChannelTags[0].tag).filtered)
+            setTimeout(()=>{this.animation = requestAnimationFrame(animate)},1000/60);
+        }
 
-        const sketch = (p) => {
-            p.setup = () => {
-                p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring = new Ring(p)
-            };
-
-            p.draw = () => {
-                p.background(0);
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
-                this.ring.drawShape()
-            };
-
-            p.windowResized = () => {
-                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring.setMaxRadius()
-            }
-        };
-
-        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
+        animate()
+    
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        cancelAnimationFrame(this.animation);
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let container = document.getElementById(this.props.id)
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
@@ -110,6 +95,19 @@ export class BandRingApplet {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
+    }
+
+    detectBlink(){
+        // get model
+        // pass data through model
+        // output prediction
+    }
+
+    trainBlinkModel(){
+        // get data
+        // separate blink and non-blink trials
+        // train model
+        // set model
     }
 
     //--------------------------------------------

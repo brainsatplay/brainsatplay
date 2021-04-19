@@ -29,7 +29,7 @@ export class SmoothieApplet {
     //Create HTML template string with dynamic properties set in this.renderProps. Updates to these props will cause updates to the template
     HTMLtemplate(props=this.renderProps) {
         return `
-        <div id='`+props.id+`'>
+        <div id='`+props.id+`' style="height:100%; width:100%;">
             <canvas id='`+props.id+`canvas' width=`+props.width+` height=`+props.height+` style='z-index:3; position:absolute; width:`+props.width+`; height:`+props.height+`;'></canvas>
             <table id='`+props.id+`menu' style='position:absolute; z-index:4; color:white;'>
             <tr>

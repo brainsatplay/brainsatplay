@@ -1,6 +1,9 @@
 import { AppletBrowser } from './UI/AppletBrowser'
+import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
-import {AppletExample} from './AppletExample'
+// import {AppletExample} from './AppletExample'
+// import {MLApplet} from './EEG/machinelearning/MLApplet'
+
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/BrainMapApplet'
@@ -13,6 +16,7 @@ import { BlinkApplet } from './EEG/blink/Blink'
 import { BandRingApplet } from './EEG/bandring/BandRing'
 import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
 import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
+// import { PixiApplet } from './EEG/pixi/PixiApplet'
 
 import { CircleApplet } from './HEG/circle/Circle'
 import { AudioApplet } from './General/other/audio/AudioApplet'
@@ -23,16 +27,14 @@ import { TextScrollerApplet } from './HEG/textscroller/TextScroller'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
 import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
 
+import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
+
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
 let applets = new Map([
-    [
-        AppletBrowser.name,
-        AppletBrowser		
-    ],
 	[
         BlobApplet.name,
         BlobApplet,
@@ -112,7 +114,14 @@ let applets = new Map([
         ConnectomeApplet.name,       
         ConnectomeApplet,
     ],
-
+    [	
+        YoutubeApplet.name,       
+        YoutubeApplet,
+    ],
+    // [   
+    //     PixiApplet.name,
+    //     PixiApplet
+    // ]
 ]);
 
 let presets = [
@@ -120,20 +129,16 @@ let presets = [
         value: 'browser',
         name: "Applet Browser",
         applets: [
-            // "Applet Browser"
             AppletBrowser,
         ],
-        description: "Choose an applet.",
-        image: placeholderImg	
+        description: "Choose any applet.",
+        image: placeholderImg,
+        lock: false
     },
     {
         value: 'eeg',
         name: "EEG Neurofeedback",
         applets: [
-            // "Blob",
-            // "Brain Map",
-            // "Spectrogram",
-            // "uPlot"
             BlobApplet,
             BrainMapApplet,
             SpectrogramApplet,
@@ -141,16 +146,13 @@ let presets = [
         ],
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
-        image: eegNFImage	  	
+        image: eegNFImage,
+        lock: false
     },
     {
         value: 'heg',
         name: "HEG Biofeedback",
         applets: [
-            // "Boids",
-            // "Circle",
-            // "Audio",
-            // "uPlot"
             BoidsApplet,
             CircleApplet,
             AudioApplet,
@@ -158,7 +160,19 @@ let presets = [
         ],
         description: "Brain blood flow training!",
         type: "HEG",
-        image: hegImage	
+        image: hegImage,
+        lock: false
+    },
+    {
+        value: 'randomizer',
+        name: "Randomizer",
+        applets: [
+            RandomizerApplet,
+        ],
+        description: "Experience a random applet every 10 seconds!",
+        type: "All",
+        image: placeholderImg,
+        lock: true	
     }
 ]
 

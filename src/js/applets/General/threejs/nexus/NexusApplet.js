@@ -63,7 +63,7 @@ export class NexusApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:${props.height}; width:${props.width};'>
+            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
                 <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
                 <div class="nexus-loading-bar"></div>
                 <div class="nexus-point-container"></div>
@@ -429,9 +429,6 @@ this.resizeNexus = () => {
 
 }
 
-window.addEventListener('resize', this.resizeNexus, 
-false)
-
 function regeneratePlaneGeometry() {
     let newGeometry = new THREE.PlaneGeometry(
         meshWidth, meshHeight, segmentsX, segmentsX/imageAspect
@@ -591,7 +588,7 @@ this.three.getGeolocation = () => {
     navigator.geolocation.getCurrentPosition(
        // Success   
     (pos) => {
-        if (this.three.canvas){
+        if (this.three.canvas != null){
             points.get('me').setGeolocation(pos.coords)
             let me = points.get('me')
             this.three.drawCylinder()
@@ -611,7 +608,7 @@ this.three.getGeolocation = () => {
         maximumAge: 0
     });
 }
-this.three.renderer.setAnimationLoop( animate )
+    if(this.three.renderer) this.three.renderer.setAnimationLoop( animate )
 }
 
     // Clear Three.js Scene Completely
@@ -631,15 +628,15 @@ this.three.renderer.setAnimationLoop( animate )
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.AppletHTML.deleteNode();
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
+        this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeNexus()
+        if(this.three.renderer) this.resizeNexus()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

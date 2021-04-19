@@ -28,7 +28,7 @@ export class SpectrogramApplet {
     //Create HTML template string with dynamic properties set in this.renderProps. Updates to these props will cause updates to the template
     HTMLtemplate(props=this.renderProps) {
         return `
-        <div id='`+props.id+`'>
+        <div id='`+props.id+`' style="height:100%; width:100%;">
             <canvas id='`+props.id+`canvas' height='`+props.height+`' width='`+props.width+`' style='position:absolute; z-index:3;  width:`+props.width+`px; height:`+props.height+`px;'></canvas>
             <div id='`+props.id+`menu' style='position:absolute; z-index:4; color: white;'> 
             Mode

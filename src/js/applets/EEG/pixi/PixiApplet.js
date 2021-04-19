@@ -1,13 +1,12 @@
 import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
-import p5 from 'p5';
-import {Ring} from './Ring';
+import * as PIXI from 'pixi.js';
 import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
-export class BandRingApplet {
+export class PixiApplet {
 
-    static name = "Band Ring"; 
+    static name = "Pixi"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Bandpower visualizer."
     static categories = ['data'];
@@ -28,11 +27,8 @@ export class BandRingApplet {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            buttonOutput: 0 //Add whatever else
         };
 
-        this.ring = null;
-        this.sketch = null;
     }
 
     //---------------------------------
@@ -46,6 +42,7 @@ export class BandRingApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
                 <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
+                    <canvas id='${this.props.id}-canvas'></canvas>
                 </div>
             `;
         }
@@ -69,27 +66,54 @@ export class BandRingApplet {
 
         //Add whatever else you need to initialize        
         const containerElement = document.getElementById(this.props.id);
+        const canvas = document.getElementById(`${this.props.id}-canvas`);
 
+        this.app = new PIXI.Application({ 
+            view:canvas,
+            antialias: true
+         });
+        //  this.app.renderer.resize(containerElement.clientWidth,containerElement.clientHeight)
 
-        const sketch = (p) => {
-            p.setup = () => {
-                p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring = new Ring(p)
-            };
+        containerElement.appendChild(this.app.view);
+        
+        let graphics = new PIXI.Graphics()
 
-            p.draw = () => {
-                p.background(0);
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
-                this.ring.drawShape()
-            };
-
-            p.windowResized = () => {
-                p.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-                this.ring.setMaxRadius()
+        // Translate
+        let centerX = this.app.renderer.width / 2
+        let centerY = this.app.renderer.height / 2
+        this.bendStrength = 2;
+        graphics.lineStyle(10,0x00ffff)
+        graphics.beginFill(0xff0000)
+        let n1 = {
+                position: {
+                x:50,
+                y:0
             }
-        };
+        }
+        let n2 = {
+            position: {
+                x:0,
+                y:50
+            }
+        }
+        let ctrlPt1 = [n1.position.x*this.bendStrength, n1.position.y*this.bendStrength]
+        let ctrlPt2 = [n2.position.x*this.bendStrength, n2.position.y*this.bendStrength]
 
-        setTimeout(() => {this.sketch = new p5(sketch, containerElement)},100);
+        const bezier = new PIXI.Graphics();
+        bezier.x = centerX
+        bezier.y = centerY
+        bezier.lineStyle(5, 0xAA0000, 1);
+        bezier.bezierCurveTo(ctrlPt1[0],ctrlPt1[1],ctrlPt2[0],ctrlPt2[1],n2.position.x, n2.position.y);
+        bezier.position.x = 50;
+        bezier.position.y = 50;
+        this.app.stage.addChild(bezier);
+
+        let animate = () => {
+
+        }
+
+        this.app.ticker.add(animate);;
+        
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -101,6 +125,7 @@ export class BandRingApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         let container = document.getElementById(this.props.id)
+
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;

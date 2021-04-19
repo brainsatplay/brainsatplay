@@ -68,23 +68,23 @@ export class VideoApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id="`+props.id+`">
-                <div id="`+props.id+`menu" style='position:absolute; z-index:2;'>
+                <div id="`+props.id+`menu" style='position:absolute; z-index:4;'>
                     <button id="`+props.id+`showhide" style='' >Hide UI</button>
                     <input id="`+props.id+`fs" type="file" accept="video/*"/>
                     <div id="`+props.id+`timeDiv"><input id="`+props.id+`timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+props.id+`vidbar"><button id="`+props.id+`minus1min">--</button><button id="`+props.id+`minus10sec">-</button><button id="`+props.id+`play">||</button><button id="`+props.id+`plus10sec">+</button><button id="`+props.id+`plus1min">++</button></div></div> 
                     <div id="`+props.id+`vidbuttons">
                         <table> 
-                                <tr><td>Feedback:</td></tr> 
-                                <tr><td><button id="`+props.id+`useAlpha">Fade</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useRate">Speed</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
+                          <tr><td>Feedback:</td></tr> 
+                          <tr><td><button id="`+props.id+`useAlpha">Fade</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useRate">Speed</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
                         </table>
                     </div>
                 </div> 
+                <canvas id="`+props.id+`canvas" height=100% width=100% style='position:absolute; z-index:2;'></canvas>
                 <video id="`+props.id+`video" src="https://vjs.zencdn.net/v/oceans.mp4" style="z-index:1;" type="video/mp4" height=100% width=100% autoplay loop muted></video> 
-                <canvas id="`+props.id+`canvas"></canvas>
             </div> 
           `;
         }
@@ -120,44 +120,44 @@ export class VideoApplet {
             
             document.getElementById(props.id+"useAlpha").onclick = () => {
                 if(this.useAlpha == true){
-                this.useAlpha = false;
-                this.alpha = 0;
-                document.getElementById(props.id+"useAlpha").style.opacity = "0.3";
+                  this.useAlpha = false;
+                  this.alpha = 0;
+                  document.getElementById(props.id+"useAlpha").style.opacity = "0.3";
                 }
                 else{ this.useAlpha = true; document.getElementById(props.id+"useAlpha").style.opacity = "1.0";}
             }
 
             document.getElementById(props.id+"useRate").onclick = () => {
                 if(this.useRate == true){
-                this.useRate = false;
-                this.playRate = 1;
-                this.vidQuery.playbackRate = 1;
-                document.getElementById(props.id+"useRate").style.opacity = "0.3";
+                  this.useRate = false;
+                  this.playRate = 1;
+                  this.vidQuery.playbackRate = 1;
+                  document.getElementById(props.id+"useRate").style.opacity = "0.3";
                 }
                 else{ 
-                this.useTime = false; 
-                this.useRate = true; 
-                this.playRate = 1; 
-                this.vidQuery.playbackRate = 1;
-                document.getElementById(props.id+"useRate").style.opacity = "1.0";
-                document.getElementById(props.id+"useTime").style.opacity = "0.3";
+                  this.useTime = false; 
+                  this.useRate = true; 
+                  this.playRate = 1; 
+                  this.vidQuery.playbackRate = 1;
+                  document.getElementById(props.id+"useRate").style.opacity = "1.0";
+                  document.getElementById(props.id+"useTime").style.opacity = "0.3";
                 }
             }
 
             document.getElementById(props.id+"useVol").onclick = () => {
                 if(this.useVol == true){
-                this.vidQuery.muted = true;
-                this.useVol = false;
-                this.volume = 0;
-                this.vidQuery.volume = 0;
-                document.getElementById(props.id+"useVol").style.opacity = "0.3";
+                  this.vidQuery.muted = true;
+                  this.useVol = false;
+                  this.volume = 0;
+                  this.vidQuery.volume = 0;
+                  document.getElementById(props.id+"useVol").style.opacity = "0.3";
                 }
                 else{ 
-                this.useVol = true; 
-                this.vidQuery.muted = false; 
-                this.volume = 0.5; 
-                this.vidQuery.volume = 0.5;
-                document.getElementById(props.id+"useVol").style.opacity = "1.0";
+                  this.useVol = true; 
+                  this.vidQuery.muted = false; 
+                  this.volume = 0.5; 
+                  this.vidQuery.volume = 0.5;
+                  document.getElementById(props.id+"useVol").style.opacity = "1.0";
                 }
             }
 
@@ -397,7 +397,7 @@ export class VideoApplet {
             }
           }
 
-          this.gl.clearColor(0,0,0.1,this.alpha);
+          this.gl.clearColor(0,0,0.01,this.alpha);
           this.gl.clear(this.gl.COLOR_BUFFER_BIT);
           setTimeout(()=>{this.animationId = requestAnimationFrame(this.animateRect);},15); 
         }

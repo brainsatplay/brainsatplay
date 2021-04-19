@@ -29,7 +29,7 @@ export class BarChartApplet {
     HTMLtemplate(props=this.renderProps) {
         return `
         <div id='`+props.id+`'>
-            <canvas id='`+props.id+`canvas'style='position:absolute; width:`+props.width+`px; height:`+props.height+`px;'></canvas>
+            <canvas id='`+props.id+`canvas'style='position:absolute; height:100%; width:100%;'></canvas>
             Mode:
             <div id='`+props.id+`menu'>
                 <select id='`+props.id+`mode'>

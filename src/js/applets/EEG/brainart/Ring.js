@@ -3,7 +3,7 @@ export class Ring {
       this.p5Instance = p
       this.phase = 0
       this.history = []
-      this.maxHistory = 60
+      this.maxHistory = 100
       this.alpha = 5
       this.controlPoints = 100
       this.drawInterval = 1000/30;
@@ -28,18 +28,32 @@ export class Ring {
         let vertices = this.getVertices(theta)
         let c = this.getColor()
         c.setAlpha(this.alpha)
+
+        // this.history.push({vertices:vertices,color:c})
+        // // Draw Vertices (including History)
+        // this.history.forEach((dict,i) => {
+        //   // if (i % 5 === 0){
+        //         c = dict.color
+        //         // c.setAlpha(155*((i/this.history.length))+50)
+        //         this.p5Instance.stroke(c);
+        //       this.drawVertices(dict.vertices)
+        //   // }
+        // })
         this.p5Instance.stroke(c);
         this.drawVertices(vertices)
 
         // Set values for next iteration
         this.phase += 0.003;
+        // if (this.history.length >= this.maxHistory){
+        //   this.history.shift()
+        // }
     }
     
     getVertices(theta){
       let vertices = []
       let noiseMax = 10;
-      let minRad = Math.min(this.p5Instance.width/100,this.p5Instance.height/100)
-      let maxRad = Math.min(this.p5Instance.width/2,this.p5Instance.height/2)
+      let minRad = Math.min(this.p5Instance.width/100,this.p5Instance.height/100)* (0.75 + 0.25*Math.sin(Date.now()/1000))
+      let maxRad = Math.min(this.p5Instance.width/2,this.p5Instance.height/2)* (0.75 + 0.25*Math.sin(Date.now()/1000))
       let minData = Math.min(...this.brainData) ?? 0
       let maxData = Math.max(...this.brainData) ?? 1
       if (minData == maxData == 1) minData = 0

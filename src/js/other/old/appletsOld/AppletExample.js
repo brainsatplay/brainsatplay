@@ -25,7 +25,7 @@ export class AppletExample { //Filled in Applet class copy (without extending, w
     HTMLtemplate(props=this.renderProps) { //Simply use a template string of the desired HTML to be rendered
         return `
             <div id='`+props.id+`'>
-                <canvas id='`+props.id+`canvas' style='position:absolute;height:`+props.height+`;width:`+props.width+`;'></canvas>
+                <canvas id='`+props.id+`canvas' style='position:absolute;height:100%; width:100%;'></canvas>
                 <div id='`+props.id+`x' style='position:absolute;'>`+State.data.x+`</div>
                 <button id='`+props.id+`button1' style='position:absolute; top:20px;'>+</button> 
             </div>

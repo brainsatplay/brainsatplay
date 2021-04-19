@@ -28,7 +28,7 @@ export class BrainMapApplet {
     //Create HTML template string with dynamic properties set in this.renderProps. Updates to these props will cause updates to the template
     HTMLtemplate(props=this.renderProps) {
         return `
-        <div id='`+props.id+`'>
+        <div id='`+props.id+`' style="height:100%; width:100%;">
             <div id='`+props.id+`canvascontainer'>
                 <canvas id='`+props.id+`canvas' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:1; '></canvas>
                 <canvas id='`+props.id+`points' width='`+props.width+`' height='`+props.height+`' style='position:absolute; width:`+props.height+`px; height:`+props.height+`px; z-index:2; '></canvas>
