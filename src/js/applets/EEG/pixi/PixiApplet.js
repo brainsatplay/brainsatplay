@@ -2,15 +2,15 @@ import {brainsatplay} from '../../../brainsatplay'
 import {DOMFragment} from '../../../frontend/utils/DOMFragment'
 import * as PIXI from 'pixi.js';
 import featureImg from './img/feature.png'
-import perlinImg from './img/perlin.jpeg'
+// import perlinImg from './img/perlin.jpeg'
 
 import vertexSrc from "./shaders/vertex.glsl"
-import fragmentNoiseSrc from "./shaders/perlin/fragment.glsl"
-import fragmentGridSrc from "./shaders/grid/fragment.glsl"
-import fragmentRippleSrc from "./shaders/ripple/fragment.glsl"
-import fragmentWaveSrc from "./shaders/waves/fragment.glsl"
+// import fragmentNoiseSrc from "./shaders/perlin/fragment.glsl"
+// import fragmentGridSrc from "./shaders/grid/fragment.glsl"
+// import fragmentRippleSrc from "./shaders/ripple/fragment.glsl"
+// import fragmentWaveSrc from "./shaders/waves/fragment.glsl"
 import fragmentSrc from "./shaders/noiseCircle/fragment.glsl"
-import fragmentCombineSrc from "./shaders/combination/fragment.glsl"
+// import fragmentCombineSrc from "./shaders/combination/fragment.glsl"
 //Example Applet for integrating with the UI Manager
 export class PixiApplet {
 
