@@ -75,11 +75,11 @@ export class VideoApplet {
                     <div id="`+props.id+`vidbar"><button id="`+props.id+`minus1min">--</button><button id="`+props.id+`minus10sec">-</button><button id="`+props.id+`play">||</button><button id="`+props.id+`plus10sec">+</button><button id="`+props.id+`plus1min">++</button></div></div> 
                     <div id="`+props.id+`vidbuttons">
                         <table> 
-                                <tr><td>Feedback:</td></tr> 
-                                <tr><td><button id="`+props.id+`useAlpha">Fade</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useRate">Speed</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
-                                <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
+                          <tr><td>Feedback:</td></tr> 
+                          <tr><td><button id="`+props.id+`useAlpha">Fade</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useRate">Speed</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
                         </table>
                     </div>
                 </div> 
