@@ -1,4 +1,5 @@
 precision mediump float;
+
 varying vec2 vUvs;
 varying vec2 vTextureCoord;
 varying vec2 resolution;
@@ -6,11 +7,12 @@ varying vec2 resolution;
 uniform float amplitude;
 uniform float time;
 uniform float aspect;
+uniform float historyLength;
 
-float circle(in vec2 _st, in float _radius){
+float circle(in vec2 _st, in float _Diameter){
     vec2 dist = _st-vec2(0.5);
-	return 1.-smoothstep(_radius-(_radius*0.01),
-                         _radius+(_radius*0.01),
+	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
+                         _Diameter+(_Diameter*0.01),
                          dot(dist,dist)*4.0);
 }
 //	Classic Perlin 3D Noise 
@@ -89,20 +91,32 @@ float cnoise(vec3 P){
 }
 
 
-float radius = 0.15;
-float outerRadius = radius + 0.01;
-float noiseScaling = (1.0 - outerRadius)/2.0;
-float noiseIntensity = 10.0;
+float minDiameter= 0.0;
+float maxDiameter = 0.1;
+float noiseIntensity = 5.0;
+float historyInterval = 0.1;
 
 void main()
 {
     //Offset uv so that center is 0,0 and edges are -1,1
     vec2 uv = vUvs;
-    float angle = 100.0*atan(uv.y,uv.x);
+    float angle = atan(uv.y,uv.x);
+
     
-    float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity,time)));
-	vec3 outColor = vec3(circle(uv,outerRadius + noise)); // Outer Radius
-    outColor -= vec3(circle(uv,radius + noise)); // Inner Radius
+    vec4 outColor = vec4(0.);
+    for (float i = 0.0; i < 5.0; i++){
+
+        // Noisy Diameter
+        float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(time-i*historyInterval)));
+        float outerDiameter = innerDiameter + 0.01;
+        float noiseScaling = (0.5 - outerDiameter);
+
+        // Noisy Circle
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity,time-i*historyInterval)));
+        float alpha = 1.0 - i/5.0;
+        outColor += vec4(alpha*vec3(circle(uv,outerDiameter + noise)),alpha); // Outer Diameter
+        outColor -= vec4(alpha*vec3(circle(uv,innerDiameter + noise)),alpha); // Inner Diameter
+    }
     // outColor *= cnoise(vec3(uv,time));
     //Simple wavefunctions inversed and with small offsets.
     // outColor += 5./length(uv.y*200. - 50.0*sin( uv.x*0.25+ time*0.25)*amplitude);
@@ -110,6 +124,6 @@ void main()
     // outColor += 3./length(uv.y*400. - 150.0*sin(uv.x*0.75+time*0.75)*amplitude*1.4);
     // outColor += 2./length(uv.y*500. - 200.0*sin(uv.x+time)*amplitude*1.6);
 
-    gl_FragColor = vec4(outColor,1.0);
+    gl_FragColor = vec4(outColor);
 
 }

@@ -76,20 +76,18 @@ export class PixiApplet {
         const canvas = document.getElementById(`${this.props.id}-canvas`);   
         this.app = new PIXI.Application({view: canvas});
 
-        setTimeout(()=> {
-            const uniforms = {
-                amplitude: 0.75,
-                time: 0,
-                aspect: this.app.renderer.view.width/this.app.renderer.view.height            
-            };
-            this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
-            this.generateShaderElements()
-            let startTime = Date.now();
-            this.app.ticker.add((delta) => {
-                this.shaderQuad.shader.uniforms.time = (Date.now() - startTime)/1000
-                this.app.renderer.render(this.shaderQuad, this.shaderTexture);
-            });
-        }, 100)
+        const uniforms = {
+            amplitude: 0.75,
+            time: 0,
+            aspect: this.app.renderer.view.width/this.app.renderer.view.height,            
+        };
+        this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
+        this.generateShaderElements()
+        let startTime = Date.now();
+        this.app.ticker.add((delta) => {
+            this.shaderQuad.shader.uniforms.time = (Date.now() - startTime)/1000
+            this.app.renderer.render(this.shaderQuad, this.shaderTexture);
+        });
     }
 
     //Delete all event listeners and loops here and delete the HTML block
