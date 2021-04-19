@@ -78,6 +78,7 @@ export class cytonPlugin {
 
         let onDisconnect = () => {
             this.atlas.settings.analyzing = false;
+            this.atlas.settings.deviceConnected = false;
             this.ondisconnect();   
         }
 

@@ -67,7 +67,9 @@ export class devicePlugin {
 
     disconnect = () => {
         this.ondisconnect();
-        this.setIndicator(false)
+        this.setIndicator(false);
+
+        //ondisconnected: this.atlas.settings.deviceConnected = false;
     }
 
     //externally set callbacks
