@@ -1,4 +1,3 @@
-import { AppletBrowser } from './UI/AppletBrowser'
 import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
 // import {AppletExample} from './AppletExample'
@@ -130,16 +129,16 @@ let applets = new Map([
 ]);
 
 let presets = [
-    {
-        value: 'browser',
-        name: "Applet Browser",
-        applets: [
-            AppletBrowser,
-        ],
-        description: "Choose any applet.",
-        image: placeholderImg,
-        lock: false
-    },
+    // {
+    //     value: 'browser',
+    //     name: "Applet Browser",
+    //     applets: [
+    //         AppletBrowser,
+    //     ],
+    //     description: "Choose any applet.",
+    //     image: placeholderImg,
+    //     lock: false
+    // },
     {
         value: 'eeg',
         name: "EEG Neurofeedback",

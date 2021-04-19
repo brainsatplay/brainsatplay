@@ -1,6 +1,8 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 import { presets } from "./../../applets/appletList"
+import { AppletBrowser } from './../../applets/UI/AppletBrowser'
+
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -78,12 +80,12 @@ export class AppletManager {
 
         this.appletPresets = presets
 
-        document.getElementById("config-selector").innerHTML+= `
-        <option value='default' disabled>Browse presets</option>
+        document.getElementById("preset-selector").innerHTML+= `
+        <option value='default' disabled selected>Browse presets</option>
         `
         this.appletPresets.forEach((obj,i) => {
-            if (i === 0) document.getElementById("config-selector").innerHTML += `<option value=${obj.value} selected>${obj.name}</option>`
-            else document.getElementById("config-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
+            if (i === 0) document.getElementById("preset-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
+            else document.getElementById("preset-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
         })
 
         // Other
@@ -151,19 +153,20 @@ export class AppletManager {
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
-                    document.getElementById("config-selector").value = p.value;
+                    document.getElementById("preset-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
                 } else {
-                    document.getElementById("config-selector").value = 'default';
+                    document.getElementById("preset-selector").value = 'default';
                 }
             });   
         }
         else if(appletConfigs.length === 0) {
-            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
-            this.appletConfigs = preset.applets;
-        }        
-
+            preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
+            if (preset != null) this.appletConfigs = preset.applets;
+            else this.appletConfigs = [AppletBrowser]
+        }    
+        
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {
@@ -197,58 +200,60 @@ export class AppletManager {
 
         // If no applets have been configured, redirect to base URL
         if (configApplets.every(v => v == null)){
-            window.location.href = `${window.location.origin}`;
-        } else {
-            // Check the compatibility of current applets with connected devices
-            this.appletsSpawned = 0;
-            currentApplets.forEach((className,i) => {
-                let applet = this.appletClasses.get(className)
-                let compatible = false;
-                if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-                // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
-                
-                // Replace incompatible applets
-                if (!compatible){
-                    // Deinit old applet
-                    if (this.applets[i].classinstance != null){
-                        this.deinitApplet(this.applets[i].appletIdx);
+            configApplets = [AppletBrowser]
+            window.history.replaceState({ additionalInformation: 'Updated Invalid URL' },'',window.location.origin)
+        } 
+        
+        // Check the compatibility of current applets with connected devices
+        this.appletsSpawned = 0;
+        currentApplets.forEach((className,i) => {
+            let applet = this.appletClasses.get(className)
+            let compatible = false;
+            if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+            // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
+            
+            // Replace incompatible applets
+            if (!compatible){
+                // Deinit old applet
+                if (this.applets[i].classinstance != null){
+                    this.deinitApplet(this.applets[i].appletIdx);
+                }
+
+                // Add new applet
+                let appletCls = configApplets[0]
+                if (appletCls){
+                    
+                    let config = undefined;
+                    if (typeof this.appletConfigs[i] === 'object') {
+                        config = this.appletConfigs[i].settings;
+                    }
+                    this.applets[i] = {
+                        appletIdx: i+1,
+                        name:appletCls.name,
+                        classinstance: new appletCls("applets",this.bcisession,config)
                     }
 
-                    // Add new applet
-                    let appletCls = configApplets[0]
-                    if (appletCls){
-                        
-                        let config = undefined;
-                        if (typeof this.appletConfigs[i] === 'object') {
-                            config = this.appletConfigs[i].settings;
-                        }
-                        this.applets[i] = {
-                            appletIdx: i+1,
-                            name:appletCls.name,
-                            classinstance: new appletCls("applets",this.bcisession,config)
-                        }
-
-                        configApplets.splice(0,1)
-                        this.appletsSpawned++;
-                    }
-                } else {
+                    configApplets.splice(0,1)
                     this.appletsSpawned++;
                 }
-            })
-
-            this.initApplets();
-
-            // Generate applet selectors
-            if (showOptions){
-                document.body.querySelector('.applet-select-container').style.display = 'flex'
-                this.appletSelectIds.forEach((id,i) => {
-                    if (i < this.maxApplets){
-                        this.addAppletOptions(id,i);
-                    }
-                }) 
             } else {
-                document.body.querySelector('.applet-select-container').style.display = 'none'
+                this.appletsSpawned++;
             }
+        })
+
+        this.initApplets();
+
+        // Generate applet selectors
+
+        if (showOptions){
+            document.body.querySelector('.applet-select-container').style.display = 'flex'
+            this.appletSelectIds.forEach((id,i) => {
+                if (i < this.maxApplets){
+                    this.addAppletOptions(id,i);
+                }
+            }) 
+        } else {
+            document.body.querySelector('.applet-select-container').style.display = 'none'
         }
     }
 

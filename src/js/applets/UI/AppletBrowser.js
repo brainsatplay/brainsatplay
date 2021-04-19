@@ -161,19 +161,18 @@ export class AppletBrowser {
 
         const appletCards = container.querySelectorAll('.browser-card')
         for (let div of appletCards){
-            if (presetSelections.includes(div.id.split('-')[1])){
+            let choice = div.id.split('-')[1]
+            if (presetSelections.includes(choice)){
                 div.onclick = (e) => {
-                    console.log(window.location.href)
-                    window.history.pushState(window.location.href,'')
-                    window.location.href = `${window.location.origin}/#${div.id.split('-')[1]}`;
-                    location.reload();
+                    let selector = document.getElementById('preset-selector')
+                    selector.value = choice
+                    selector.onchange()
                 }
             } else {
                 div.onclick = (e) => {
                     let selector = document.getElementById('applet1')
-                    selector.value = div.id.split('-')[1]
-                    window.history.pushState(window.location.href,'')
-                    window.location.href = `${window.location.origin}/#${selector.value}`;
+                    selector.value = choice
+                    window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
                     selector.onchange()
                 }
                 }

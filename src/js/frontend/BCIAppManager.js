@@ -248,6 +248,7 @@ export class BCIAppManager {
         //     topbar_template,
         //     document.getElementById('page')
         // );
+        
         let contentChild1 = Array.from(app.querySelector('#applet-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
@@ -295,6 +296,17 @@ export class BCIAppManager {
             this.appletManager.responsive()
         }
 
+        // Applet Browser Button
+        document.getElementById('applet-browser-button').onclick = () => {
+            window.history.pushState({ additionalInformation: 'Updated URL to Applet Browser' },'',`${window.location.origin}`)
+            document.getElementById("preset-selector").value = 'default'
+            this.appletManager.deinitApplets()       
+            this.appletManager.initAddApplets()           
+        }
+
+        window.onpopstate = (e) => {
+            console.log(e)
+        }
 
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
@@ -331,10 +343,9 @@ export class BCIAppManager {
             }
         );
 
-        let configSelector = document.getElementById("config-selector")
-		configSelector.onchange = (e) => {
-            window.history.pushState(window.location.href,'')
-            window.location.href = `${window.location.origin}/#${configSelector.value}`;
+        let presetSelector = document.getElementById("preset-selector")
+		presetSelector.onchange = (e) => {
+            window.history.pushState({ additionalInformation: 'Updated URL based on Preset' },'',`${window.location.origin}/#${presetSelector.value}`)
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }
@@ -357,16 +368,6 @@ export class BCIAppManager {
                 this.downloadImages(1080,540)
             }
         };
-
-        window.onpopstate = (event) => {
-            console.log('popped')
-            if (event.state) { 
-                let state = event.state;
-                window.location.replace(state);
-            } else {
-                window.location.reload();
-            }
-        }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
