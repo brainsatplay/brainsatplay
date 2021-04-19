@@ -507,7 +507,7 @@ export class uPlotApplet {
         document.getElementById(this.props.id+"title").innerHTML = "HEG";
         let tint = this.xrange*1000;
         let heg = atlas.data.heg[0];
-        console.log(heg);
+        //console.log(heg);
         let j = 0;
         if(heg.count > 2) {
           for(let i = heg.count-2; i > 0; i-- ) {
