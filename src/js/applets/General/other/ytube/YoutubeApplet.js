@@ -94,6 +94,9 @@ export class YoutubeApplet {
 
             document.getElementById(props.id+'feedback').onchange = () => {
                 this.feedback = document.getElementById(props.id+'feedback').checked;
+                this.alpha = 0;
+                if(this.player)
+                    this.player.setVolume(50);
             }
         }
 
