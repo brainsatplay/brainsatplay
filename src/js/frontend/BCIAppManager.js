@@ -551,9 +551,9 @@ export class BCIAppManager {
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                        if(this.bcisession.atlas.data.heg[0].count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
                                             autoSaveHEGChunk(this.state.data.saveCounter);
-                                            this.state.data.saveCounter = row.count;
+                                            this.state.data.saveCounter = this.bcisession.atlas.data.heg[0].count;
                                         }
                                     }
                                     
