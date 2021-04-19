@@ -658,7 +658,7 @@ export class BCIAppManager {
             const autoSaveEEGChunk = (startidx=0,to='end') => {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_eeg";}
                 let from = startidx; 
-                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
@@ -681,7 +681,7 @@ export class BCIAppManager {
             const autoSaveHEGChunk = (startidx=0,to='end') => {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_heg";}
                 let from = startidx; 
-                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
