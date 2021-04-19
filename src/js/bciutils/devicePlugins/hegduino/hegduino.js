@@ -669,7 +669,7 @@ export class webSerial {
 							this.onReceiveAsync(value);
                             
 					        if(this.subscribed === true) {
-                                setTimeout(()=>{streamData();}, 33);
+                                setTimeout(()=>{streamData();}, 30);
                             }
 						}
 						catch (err) {console.log(err)}
@@ -688,7 +688,7 @@ export class webSerial {
                             this.subscribed = true; 
                             this.subscribe(port);
                             //if that fails then close port and reopen it
-                        },33); //try to resubscribe 
+                        },30); //try to resubscribe 
                     } else {
                         this.closePort();	
                     }
