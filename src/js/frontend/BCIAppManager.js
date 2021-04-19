@@ -528,10 +528,9 @@ export class BCIAppManager {
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
                                         if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
-                                            autoSaveEEGChunk(this.state.data.saveCounter);
-                                            this.state.data.saveCounter = row.count;
-                                        }
+                                        autoSaveEEGChunk(this.state.data.saveCounter);
+                                        this.state.data.saveCounter = row.count;
+                                        
                                     }
                                     
                                     document.getElementById("newBCISession").onclick = () => {
@@ -551,10 +550,9 @@ export class BCIAppManager {
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
-                                            autoSaveHEGChunk(this.state.data.saveCounter);
-                                            this.state.data.saveCounter = row.count;
-                                        }
+                                        autoSaveHEGChunk(this.state.data.saveCounter);
+                                        this.state.data.saveCounter = this.bcisession.atlas.data.heg[0].count;
+                                        
                                     }
                                     
                                     document.getElementById("newBCISession").onclick = () => {

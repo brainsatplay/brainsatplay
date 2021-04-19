@@ -1160,7 +1160,7 @@ export class DataAtlas {
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
-			data.push([t,this.toISOLocal(t),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
+			data.push([t,this.toISOLocal(new Date(t)),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
 			
 			if(this.data.other.notes.length > 0) {
 				if(i === 0) {
