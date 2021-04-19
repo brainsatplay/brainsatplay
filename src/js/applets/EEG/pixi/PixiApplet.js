@@ -37,6 +37,19 @@ export class PixiApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
+
+        this.brainMetrics = [
+            {name:'delta',label: 'Delta', color: [0,0.5,1]}, // Blue-Cyan
+            {name:'theta',label: 'Theta',color: [1,0,1]}, // Purple
+            {name:'alpha1',label: 'Low Alpha',color:[0,1,0]}, // Green
+            {name:'alpha2',label: 'High Alpha',color: [0,1,0]}, // Green
+            {name:'beta',label: 'Beta',color: [1,1,0]}, // Yellow
+            {name:'lowgamma',label: 'Gamma',color: [1,1,0]} // Red
+          ]
+          this.brainData = []   
+          this.lastColorSwitch=Date.now() 
+
+          this.history = 5
     }
 
     //---------------------------------
@@ -72,26 +85,59 @@ export class PixiApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //you can give the this.app initialization settings if you want via an array.
 
 
-        //Add whatever else you need to initialize     
-        const canvas = document.getElementById(`${this.props.id}-canvas`);   
+        // const containerElement = document.getElementById(this.props.id);
+        const canvas = document.getElementById(`${this.props.id}-canvas`); 
+        
+        // this.mouse = {x:0, y:0}
+        // containerElement.onmousemove = (e) =>{
+        //     this.mouse.x = 2*((e.layerX/containerElement.offsetWidth) - 0.5)*this.responsiveScaling.x
+        //     this.mouse.y = 2*((e.layerY/containerElement.offsetHeight) - 0.5)*this.responsiveScaling.y
+        // }
+        
+
+        
         this.app = new PIXI.Application({view: canvas});
 
-        this.colorBuffer = Array.from({length: 5}, e => [1.0,1.0,1.0])
+        this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
+        this.timeBuffer = Array.from({length: this.history}, e => 0)
+        this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
+
         const uniforms = {
             amplitude: 0.75,
-            time: 0,
+            times: this.timeBuffer,
             aspect: this.app.renderer.view.width/this.app.renderer.view.height,  
-            colors: this.colorBuffer.flat(1)          
+            colors: this.colorBuffer.flat(1),
+            mouse: [0,0], //[this.mouse.x, this.mouse.y],
+            noiseIntensity: this.noiseBuffer
         };
         this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
+        // this.responsive()
         this.generateShaderElements()
         let startTime = Date.now();
         this.app.ticker.add((delta) => {
-            this.shaderQuad.shader.uniforms.time = (Date.now() - startTime)/1000
-            this.colorBuffer.shift()
-            this.colorBuffer.push([0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/1000)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/500)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/200))])
-            this.shaderQuad.shader.uniforms.colors = this.colorBuffer.flat(1) 
 
+            // Organize Brain Data 
+            this.setBrainData(this.bci.atlas.data.eeg)
+
+            // Change Color
+            let c = this.getColor()
+            this.colorBuffer.shift()
+            this.colorBuffer.push(c)
+
+            this.timeBuffer.shift()
+            this.timeBuffer.push((Date.now() - startTime)/1000)
+
+            this.noiseBuffer.shift()
+            this.noiseBuffer.push(5.0 * (0.5 + 0.5*Math.sin(Date.now()/2000)))
+
+            // Set Uniforms
+            this.shaderQuad.shader.uniforms.colors = this.colorBuffer.flat(1) 
+            this.shaderQuad.shader.uniforms.times = this.timeBuffer
+            this.shaderQuad.shader.uniforms.noiseIntensity = this.noiseBuffer
+
+            // this.shaderQuad.shader.uniforms.mouse = [this.mouse.x,this.mouse.y]
+
+            // Draw
             this.app.renderer.render(this.shaderQuad, this.shaderTexture);
         });
     }
@@ -112,7 +158,8 @@ export class PixiApplet {
         this.app.renderer.view.style.width = w + 'px';
         this.app.renderer.view.style.height = h + 'px';
         this.app.renderer.resize(w,h)
-        this.shaderQuad.shader.uniforms.aspect = this.app.renderer.view.width/this.app.renderer.view.height
+        this.aspect = this.app.renderer.view.width/this.app.renderer.view.height
+        this.shaderQuad.shader.uniforms.aspect = this.aspect
         this.generateShaderElements()
     }
 
@@ -120,24 +167,25 @@ export class PixiApplet {
         const containerElement = document.getElementById(this.props.id);
         const w = containerElement.offsetWidth
         const h = containerElement.offsetHeight
+        
 
         this.geometry = new PIXI.Geometry()
                 .addAttribute('aVertexPosition', // the attribute name
                     [0, 0, // x, y
-                        Math.min(w,h), 0, // x, y
-                        Math.min(w,h), Math.min(w,h),
-                        0, Math.min(w,h)], // x, y
+                        w, 0, // x, y
+                        w, h,
+                        0, h], // x, y
                     2) // the size of the attribute
                 .addAttribute('aUvs', // the attribute name
-                    [0, 0, // u, v
-                        1, 0, // u, v
+                    [-1, -1, // u, v
+                        1, -1, // u, v
                         1, 1,
-                        0, 1], // u, v
+                        -1, 1], // u, v
                     2) // the size of the attribute
                 .addIndex([0, 1, 2, 0, 2, 3]);
 
         // if (this.shaderContainer == null) 
-        this.shaderTexture = PIXI.RenderTexture.create(Math.min(w,h),Math.min(w,h));
+        this.shaderTexture = PIXI.RenderTexture.create(w,h);
         // if (this.shaderQuad == null)  
         this.shaderQuad = new PIXI.Mesh(this.geometry, this.shader);
 
@@ -154,8 +202,63 @@ export class PixiApplet {
         // const combineShader = PIXI.Shader.from(vertexSrc, fragmentCombineSrc, combineUniforms);
         // const combineQuad = new PIXI.Mesh(this.geometry, combineShader);
 
-        this.shaderContainer.position.set((containerElement.offsetWidth - Math.min(w,h))/2, (containerElement.offsetHeight - Math.min(w,h))/2);
+        // this.shaderContainer.position.set((containerElement.offsetWidth - Math.min(w,h))/2, (containerElement.offsetHeight - Math.min(w,h))/2);
     }
+
+    setBrainData(eeg_data){
+        this.brainData = []
+        this.brainMetrics.forEach((dict,i) => {
+            this.brainData.push([])
+            eeg_data.forEach((data) => {
+                this.brainData[i] = data.means[dict.name].slice(data.means[dict.name].length-20)
+            })
+        })
+        this.brainData = this.brainData.map(data => {
+            if (data.length > 0) return data.reduce((tot,curr) => tot + curr)
+            else return 1
+        })  
+  }
+
+  getColor(){
+    let currentColor = [0,0,0]
+    let distances = this.brainData
+    let maxDist = Math.max(...distances)
+    if (distances.every(d => d == maxDist)) {
+        currentColor = [0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/1000)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/500)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/200))]
+    } else {
+        // let ind = this.indexOfMax(distances)
+        // if (this.currentColors == null) this.currentColors = [{ind: ind, color: this.brainMetrics[ind].color},{ind: ind, color: this.brainMetrics[ind].color}]
+        // if (ind != this.currentColors[1].ind) {this.currentColors.shift(); this.currentColors.push({ind: ind, color: this.brainMetrics[ind].color}); this.lastColorSwitch=Date.now()}
+        // for (let i = 0; i < 3; i++){
+        //     currentColor[i] = this.currentColors[0].color[i] + (this.currentColors[1].color[i] + this.currentColors[0].color[i]) * Math.min(1,(Date.now() - this.lastColorSwitch)/100000)
+        // }
+        for (let i = 0; i < 3; i++){
+            this.brainMetrics.forEach((dict,ind) => {
+                currentColor[i] += (dict.color[i] * distances[ind]/maxDist)
+            })
+        }
+    }
+    return currentColor
+}
+
+indexOfMax(arr) {
+    if (arr.length === 0) {
+        return -1;
+    }
+
+    var max = arr[0];
+    var maxIndex = 0;
+
+    for (var i = 1; i < arr.length; i++) {
+        if (arr[i] > max) {
+            maxIndex = i;
+            max = arr[i];
+        }
+    }
+
+    return maxIndex;
+}
+
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {

@@ -1,17 +1,18 @@
 precision mediump float;
-
 varying vec2 vUvs;
 varying vec2 vTextureCoord;
 varying vec2 resolution;
 
 uniform float amplitude;
-uniform float time;
-uniform float aspect;
 uniform float historyLength;
+uniform float aspect;
+uniform vec2 mouse;
 uniform vec3 colors[5];
+uniform float times[5];
+uniform float noiseIntensity[5];
 
-float circle(in vec2 _st, in float _Diameter){
-    vec2 dist = _st-vec2(0.5);
+float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
+    vec2 dist = _uv-_center;
 	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
                          _Diameter+(_Diameter*0.01),
                          dot(dist,dist)*4.0);
@@ -92,15 +93,15 @@ float cnoise(vec3 P){
 }
 
 
-float minDiameter= 0.1;
-float maxDiameter = 0.25;
-float noiseIntensity = 5.0;
+float minDiameter= 0.0;
+float maxDiameter = 0.7;
 float historyInterval = 0.1;
 
 void main()
 {
-    //Offset uv so that center is 0,0 and edges are -1,1
-    vec2 uv = vUvs;
+    //Offset uv so that drawn objects are always the same size despite canvas size
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = vUvs*responsiveScaling;
     float angle = atan(uv.y,uv.x);
 
     
@@ -109,16 +110,21 @@ void main()
 
         float i_float = float(i);
         // Noisy Diameter
-        float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(time-i_float*historyInterval)));
-        float outerDiameter = innerDiameter + 0.01;
-        float noiseScaling = 0.1;
+        // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
+        float innerDiameter = 0.3;
+        float outerDiameter = innerDiameter + 0.02;
+        float noiseScaling = (maxDiameter - minDiameter) - (outerDiameter-innerDiameter);
 
         // Noisy Circle
-        // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(vec2(angle*noiseIntensity),time-i*historyInterval)));
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity,time-i_float*historyInterval)));
-        float alpha = 1.0 - i_float/5.0;
-        outColor += vec4(colors[i]*alpha*vec3(circle(uv,outerDiameter + noise)),alpha); // Outer Diameter
-        outColor -= vec4(colors[i]*alpha*vec3(circle(uv,innerDiameter + noise)),alpha); // Inner Diameter
+        float alpha = i_float/5.0;
+        float xoff = cos(angle) + 1.0;
+        float yoff = sin(angle) + 1.0;
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(noiseIntensity[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
+        // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
+        // float noise = 0.0;
+
+        outColor += vec4(colors[i]*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
+        outColor -= vec4(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise)), alpha); // Inner Diameter
     }
     // outColor *= cnoise(vec3(uv,time));
     //Simple wavefunctions inversed and with small offsets.
