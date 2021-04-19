@@ -663,8 +663,9 @@ export class DataAtlas {
         return blinks
     }
 
-	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array array is a local extrema. options: 'peak','valley','tangent'
+	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
             ref.forEach((val,i) => {
@@ -702,8 +703,9 @@ export class DataAtlas {
         }
     }
 
-    isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'
+    isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
             ref.forEach((val,i) => {
@@ -813,7 +815,6 @@ export class DataAtlas {
 							}
 						}
 					}
-					
 				}
 			}
 			if(bt.rir2.length>pw2) {
@@ -833,13 +834,11 @@ export class DataAtlas {
 					if(bt.localmins2.length > bt.localmaxs2.length+2) { while(bt.localmins2.length > bt.localmaxs2.length+2) { bt.localmins2.splice(bt.localmins2.length-2,1); } } //Keep the last detected max or min if excess detected
 					else if (bt.localmaxs2.length > bt.localmins2.length+2) { while(bt.localmaxs2.length > bt.localmins2.length+2) {bt.localmaxs2.splice(bt.localmins2.length-2,1); } }
 					
-
 					if(l3 < bt.localmins2.length)
 						bt.val_dists2.push({dt:(bt.localmins2[bt.localmins2.length-1].t-bt.localmins2[bt.localmins2.length-2].t),t:bt.localmins2[bt.localmins2.length-1].t, y0:bt.localmins2[bt.localmins2.length-2].val, y1:bt.localmins2[bt.localmins2.length-1].val});
 					if(l4 < bt.localmaxs2.length)
 						bt.peak_dists2.push({dt:(bt.localmaxs2[bt.localmaxs2.length-1].t-bt.localmaxs2[bt.localmaxs2.length-2].t),t:bt.localmaxs2[bt.localmaxs2.length-1].t, y0:bt.localmaxs2[bt.localmaxs2.length-2].val, y1:bt.localmaxs2[bt.localmaxs2.length-1].val});
-						//Found a peak and valley to average together (for accuracy)
-					
+			
 					//Found a peak and valley to average together (for accuracy)
 					if(bt.peak_dists2.length > 1 && bt.val_dists2.length > 1) {
 						//Make sure you are using the leading valley
