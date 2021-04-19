@@ -1390,13 +1390,15 @@ export class DataAtlas {
 			}
 
 			// A custom function to animate heartbeats
-			let animateBeats = (beats) => {
+			let animateBeats = (type) => {
+				let beats = this.data.heg[0].beat_detect[type]
 				let prevBeatLength = this.data.heg[0].beat_detect.prevBeatLength
 				this.data.heg[0].beat_detect.prevBeatLength = beats.length
 				if (prevBeatLength < beats.length) console.log('beat')
 					if (0 < beats.length){
 					let secondsElapsed = (Date.now() - beats[beats.length - 1].t) / 1000
-					let beatProgression = secondsElapsed // 1 s animation
+					// let beatProgression = secondsElapsed // 1 s animation
+					let beatProgression = secondsElapsed * 1/(beats[beats.length - 1].bpm/60) // animate based on estimated bpm
 					if (beatProgression < 1) {
 						let animation = 1 - (0.5 + 0.5*Math.cos(2*Math.PI*beatProgression))
 						return animation
@@ -1409,6 +1411,14 @@ export class DataAtlas {
 				}
 			}
 
+			let animateHeartbeats = () => {
+				return animateBeats('beats')
+			}
+
+			let animateBreaths = () => {
+				return animateBeats('breaths')
+			}
+
 
 			// Option Declaration
 			feedbackOptions = [
@@ -1417,8 +1427,8 @@ export class DataAtlas {
 			if(this.settings.heg) {
 				feedbackOptions.push(
 					{label: 'HEG Ratio', function: getHEGRatio},
-					{label: 'Heartbeat', function: () => {return animateBeats(this.data.heg[0].beat_detect.beats)}},
-					{label: 'Breath', function: () => {return animateBeats(this.data.heg[0].beat_detect.breaths)}},
+					{label: 'Heartbeat', function: animateHeartbeats},
+					{label: 'Breath', function: animateBreaths},
 				)
 			} 
 			if (this.settings.eeg){
