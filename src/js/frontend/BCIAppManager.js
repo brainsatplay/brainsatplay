@@ -48,7 +48,8 @@ export class BCIAppManager {
             saveChunkSize:0,
             saveChunkSize:2000,
             sessionChunks:0,
-            saveCounter:0,
+            eegSaveCounter:0,
+            hegSaveCounter:0,
             newSessionCt:0,
             fileSizeLimitMb: 250
         });
@@ -525,22 +526,22 @@ export class BCIAppManager {
                                 let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
-                                        //console.log(row.count, this.state.data.saveCounter);
-                                        if(this.state.autosaving) {
-                                            if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                            if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) { 
+                                        //console.log(row.count, this.state.data.eegSaveCounter);
+                                        if(this.state.data.autosaving) {
+                                            if(this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                            if(row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) { 
                                                 saveSettings();
-                                                autoSaveEEGChunk(this.state.data.saveCounter);
-                                                this.state.data.saveCounter = row.count;
+                                                autoSaveEEGChunk(this.state.data.eegSaveCounter);
+                                                this.state.data.eegSaveCounter = row.count;
                                             }
                                         }
                                     });
 
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                        if(this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                         autoSaveEEGChunk(this.state.data.saveCounter);
-                                        this.state.data.saveCounter = row.count;
+                                        this.state.data.eegSaveCounter = row.count;
                                         
                                     }
                                     
@@ -550,19 +551,19 @@ export class BCIAppManager {
 
                                 } else if (mainDevice === 'heg'){
                                     this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
-                                        if(this.state.autosaving) {
+                                        if(this.state.data.autosaving) {
                                             //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                            if(row.count - this.state.data.saveCounter >= this.state.data.saveChunkSize) {
+                                            if(row.count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
                                                 saveSettings();
-                                                autoSaveHEGChunk(this.state.data.saveCounter);
-                                                this.state.data.saveCounter = row.count;
+                                                autoSaveHEGChunk(this.state.data.hegSaveCounter);
+                                                this.state.data.hegSaveCounter = row.count;
                                             }
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        autoSaveHEGChunk(this.state.data.saveCounter);
-                                        this.state.data.saveCounter = this.bcisession.atlas.data.heg[0].count;
+                                        autoSaveHEGChunk(this.state.data.hegSaveCounter);
+                                        this.state.data.hegSaveCounter = this.bcisession.atlas.data.heg[0].count;
                                         
                                     }
                                     
@@ -668,7 +669,7 @@ export class BCIAppManager {
             const autoSaveEEGChunk = (startidx=0,to='end') => {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_eeg";}
                 let from = startidx; 
-                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
@@ -691,7 +692,7 @@ export class BCIAppManager {
             const autoSaveHEGChunk = (startidx=0,to='end') => {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_heg";}
                 let from = startidx; 
-                if(this.state.data.sessionChunks > 0) { from = this.state.data.saveCounter; }
+                if(this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
