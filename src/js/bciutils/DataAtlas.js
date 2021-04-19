@@ -813,6 +813,8 @@ export class DataAtlas {
 			}
 			if(bt.rir2.length>pw2) {
 				//Find local maxima and local minima.
+				
+				let l3=bt.localmins2.length, l4=bt.localmaxs2.length;
 				if(this.isExtrema(bt.rir2.slice(bt.rir2.length-pw2),'valley')) {
 					bt.localmins2.push({idx:hegstruct.count-mid2, val:bt.rir[hegstruct.count-mid2], t:hegstruct.times[hegstruct.count-mid2] });
 				}
@@ -820,8 +822,6 @@ export class DataAtlas {
 					bt.localmaxs2.push({idx:hegstruct.count-mid2, val:bt.rir[hegstruct.count-mid2], t:hegstruct.times[hegstruct.count-mid2] });
 				}
 
-
-				let l3=bt.localmins2.length, l4=bt.localmaxs2.length;
 				if(bt.localmins2.length > 1 && bt.localmaxs2.length > 1) {
 					
 					//Shouldn't be more than 2 extra samples on the end if we have the correct number of beats.
