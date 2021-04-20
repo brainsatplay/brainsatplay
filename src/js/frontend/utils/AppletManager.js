@@ -188,7 +188,8 @@ export class AppletManager {
 
         
         let configApplets = []
-
+        console.log('initing')
+        console.log(this.appletConfigs)
         // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
