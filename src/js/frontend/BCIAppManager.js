@@ -76,16 +76,28 @@ export class BCIAppManager {
 
         this.tutorialManager = new TutorialManager();
 
+        this.currentState = null
+
+        // Push state on initialization
+        if (this.currentState){
+            this.currentState = window.location.href
+            window.history.pushState({ additionalInformation: 'Updated URL on Initialization'},'',`${window.location.href}`)
+        }
+
         // Set Update on Forward/Back Button
         window.onpopstate = (e) => {
             if (e.state){
                 // this.uiFragments.appletbox.deleteNode();
-                document.getElementById('preset-selector').value = 'default'
-                document.getElementById('layout-selector').value = 'Focus'
+                let presetSelector = document.getElementById('preset-selector')
+                let layoutSelector = document.getElementById('layout-selector')
+                if (presetSelector != null) presetSelector.value = 'default'
+                if (layoutSelector != null) layoutSelector.value = 'Focus'
                 let configs = this.getConfigsFromHashes(); //overrides old settings
-                this.appletManager.deinitApplets()
-                this.appletManager.appletConfigs = configs
-                this.appletManager.initAddApplets(configs)
+                if (this.appletManager != null){
+                    this.appletManager.deinitApplets()
+                    this.appletManager.appletConfigs = configs
+                    this.appletManager.initAddApplets(configs)
+                }
             }
         }
 
