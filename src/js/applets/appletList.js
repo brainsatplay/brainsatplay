@@ -4,6 +4,11 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
 import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
+
+import {MultiplayerAppletTemplate} from './MultiplayerAppletTemplate'
+//import {AppletTemplate} from './AppletTemplate'
+//import {AppletExample} from './AppletExample'
+
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/BrainMapApplet'
@@ -125,6 +130,10 @@ let applets = new Map([
     [
         p5SandboxApplet.name,
         p5SandboxApplet
+    ],
+    [
+        MultiplayerAppletTemplate.name,
+        MultiplayerAppletTemplate
     ]
 ]);
 

@@ -3,12 +3,12 @@ import {DOMFragment} from '../frontend/utils/DOMFragment'
 import featureImg from './../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
-export class AppletTemplate {
+export class MultiplayerAppletTemplate {
 
-    static name = "Example"; 
+    static name = "MultiplayerTemplate"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Example"
-    static categories = ['feedback']; //data,game,multiplayer,meditation,etc
+    static description = "Multiplayer Template"
+    static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
     constructor(
@@ -58,7 +58,7 @@ export class AppletTemplate {
                 this.bcisession.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
-            
+
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
