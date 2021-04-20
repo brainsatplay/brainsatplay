@@ -5,7 +5,7 @@ import featureImg from './../../assets/features/placeholder.png'
 //Example Applet for integrating with the UI Manager
 export class MultiplayerAppletTemplate {
 
-    static name = "MultiplayerTemplate"; 
+    static name = "Multiplayer Template"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Multiplayer Template"
     static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
@@ -18,6 +18,7 @@ export class MultiplayerAppletTemplate {
     ) {
     
         //-------Keep these------- 
+        this.name = this.constructor.name
         this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
@@ -45,8 +46,8 @@ export class MultiplayerAppletTemplate {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
             <button id='${props.id}createGame'>Make Game session</button>
-            <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-            <button id='spectateGame'>Spectate game</button>
+            <button id='${props.id}subscribeToGame'>Subscribe to game session (connect device first)</button>
+            <button id='${props.id}spectateGame'>Spectate game</button>
             </div>`;
         }
 
@@ -56,6 +57,16 @@ export class MultiplayerAppletTemplate {
 
             document.getElementById(props.id+'createGame').onclick = () => {
                 this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
+                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+            }
+
+            document.getElementById(props.id+'subscribeToGame').onclick = () => {
+                this.bci.sendWSCommand(['subscribeToGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
+                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+            }
+
+            document.getElementById(props.id+'subscribeToGame').onclick = () => {
+                this.bci.sendWSCommand(['subscribeToGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
 

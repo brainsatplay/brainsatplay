@@ -31,6 +31,7 @@ class DataServer {
 
         socket = this.setWSBehavior(username, socket)
         
+        console.log(this.userData)
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
@@ -47,6 +48,7 @@ class DataServer {
         }
         else { 
             let u = this.userData.get(username);
+            console.log(u)
             u.lastUpdate = Date.now();
             u.appname = appname;
             if(socket.url !== u.socket.url) { //handle same user on new port
@@ -599,7 +601,7 @@ class DataServer {
 		}
 	}
 
-    updateUserSubsriptions = (time) => {
+    updateUserSubscriptions = (time) => {
         this.userSubscriptions.forEach((sub,i) => {
             //Should create a dispatcher that accumulates all user and game subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
