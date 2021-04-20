@@ -176,13 +176,16 @@ class DataServer {
         //u.socket.send(JSON.stringify({msg:commands}));
         if(commands[0] === 'getUsers') {
             let users = [];
-            this.userData.forEach((o,name) => {
+            this.userData.forEach((o) => {
                 if(commands[1] !== undefined) {
                     if(o.username === commands[1]) {
                         users.push(o);
                     }
                 }
                 else if(u.appname !== '' && o.appname === u.appname) {
+                    users.push(o.username);
+                }
+                else {
                     users.push(o.username);
                 }
             });
@@ -268,20 +271,20 @@ class DataServer {
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
-            if(command[2]) this.streamBetweenUsers(username,commands[1],commands[2]);
-            else this.streamBetweenUsers(username,commands[1]);
+            if(commands[3]) this.streamBetweenUsers(commands[1],commands[2],commands[3]);
+            else this.streamBetweenUsers(commands[1],commands[2]);
         }
         else if(commands[0] === 'subscribeToGame') { //Join game
-            this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
+            this.subscribeUserToGame(commands[1],commands[2],commands[3]);
         }
         else if(commands[0] === 'subscribeToHostGame') { //Join game
-            this.subscribeUserToHostGame(username,commands[1],commands[2],command[3],command[4]);
+            this.subscribeUserToHostGame(commands[1],commands[2],commands[3],commands[4]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
-            if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
-            else found = this.removeUserToUserStream(username,commands[1]);
-            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
+            if(commands[2]) found = this.removeUserToUserStream(commands[1],commands[2],commands[3]);
+            else found = this.removeUserToUserStream(commands[1],commands[2]);
+            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[2],props:commands[3]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if (commands[0] === 'logout') {
@@ -477,11 +480,12 @@ class DataServer {
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
+            u.appname = id;
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames}));
+			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:id,gameInfo:g}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
+			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:id}));
 		}
 	}
 

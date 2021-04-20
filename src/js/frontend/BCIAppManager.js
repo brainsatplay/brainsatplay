@@ -160,6 +160,7 @@ export class BCIAppManager {
                         <button id='getusers'>Get Users</button>
                         <button id='createGame'>Make Game session</button>
                         <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                        <button id='spectateGame'>Spectate game</button>
                         <button id='subscribeToSelf'>Subscribe to self</button>
 
                         <div class="collapsible-content-label">
@@ -197,16 +198,19 @@ export class BCIAppManager {
                 this.bcisession.sendWSCommand(['getUsers']);
             }
             document.getElementById('createGame').onclick = () => {
-                this.bcisession.sendWSCommand(['createGame',this.bcisession.info.auth.appname,['freeeeg32'],['eegch_FP1','eegch_FP2']]);
+                this.bcisession.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
             document.getElementById('subscribeToGame').onclick = () => {
                 this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
             }
+            document.getElementById('spectateGame').onclick = () => {
+                this.bcisession.subscribeToGame(undefined,true,(res)=>{console.log("subscribed!", res)});
+            }
             document.getElementById('subscribeToSelf').onclick = () => {
-                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all']]);
+                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all']]);
                 //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
-                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2']],(res)=>{console.log("subscribed!", res)});
+                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8']],(res)=>{console.log("subscribed!", res)});
                 //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
             }
 
