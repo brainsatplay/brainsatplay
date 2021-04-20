@@ -44,7 +44,7 @@ export class MultiplayerAppletTemplate {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
-            <button id='createGame'>Make Game session</button>
+            <button id='${props.id}createGame'>Make Game session</button>
             <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
             <button id='spectateGame'>Spectate game</button>
             </div>`;
@@ -55,7 +55,7 @@ export class MultiplayerAppletTemplate {
             this.bci.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.bcisession.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
+                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
 

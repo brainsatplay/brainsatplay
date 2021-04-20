@@ -848,6 +848,8 @@ export class brainsatplay {
 	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
 		let id = Math.floor(Math.random()*1000000)+appname;
 		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
+		console.log(parentNode)
+		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
 		parentNode.insertAdjacentHTML('beforeend',html);
 
 		document.getElementById(id+'search').onclick = () => {
