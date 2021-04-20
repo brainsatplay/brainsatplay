@@ -364,7 +364,7 @@ class DataServer {
                     propnames.push(propname);
                 }
             }
-            u = this.userData.get(listenerUser);
+            let u = this.userData.get(listenerUser);
             if(u !== undefined && source !== undefined) {
                 this.userSubscriptions.push({
                     listener:listenerUser,
