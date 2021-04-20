@@ -58,7 +58,7 @@ export class YoutubeApplet {
                     <br> Feedback: <input type='checkbox' id='${props.id}feedback' checked>
                 </div>
                 <canvas id="`+props.id+`canvas" height=100% width=100% style='position:absolute; z-index:2; pointer-events:none;'></canvas>
-                <iframe id="${props.id}player" type="text/html" src="http://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0" style='z-index:1;'></iframe>
+                <iframe id="${props.id}player" type="text/html" src="https://www.youtube.com/embed/JOEtiCwoHB4?enablejsapi=1" frameborder="0" style='z-index:1;'></iframe>
             </div>
             `;
         }
