@@ -4,6 +4,11 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
 import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
+
+import {MultiplayerAppletTemplate} from './MultiplayerAppletTemplate'
+//import {AppletTemplate} from './AppletTemplate'
+//import {AppletExample} from './AppletExample'
+
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/BrainMapApplet'
@@ -32,6 +37,41 @@ import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
+
+
+const uPlotFolder = './General/other/uplot'
+
+const AppletFolderUrls = [
+    uPlotFolder
+]
+
+
+let dynamicImport = async (url) => {
+    let module = await import(url);;
+    return module;
+}
+
+let getAppletSettings = async (AppletFolderUrl) => {
+    let settings = await dynamicImport(AppletFolderUrl+"/settings.json");
+    let image = await dynamicImport(AppletFolderUrl+"/"+settings.image);
+
+    return [settings,image];
+}
+
+export let getApplet = async (AppletFolderUrl) => {
+    
+    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
+    return [module,module.name];
+}
+
+export let generateSettings = async (urls) => {
+    let settings = new Map();
+
+    urls.forEach(async (url) => {
+        let result = await getAppletSettings(url);
+        settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
+    });
+}
 
 
 let applets = new Map([
@@ -125,6 +165,10 @@ let applets = new Map([
     [
         p5SandboxApplet.name,
         p5SandboxApplet
+    ],
+    [
+        MultiplayerAppletTemplate.name,
+        MultiplayerAppletTemplate
     ]
 ]);
 
