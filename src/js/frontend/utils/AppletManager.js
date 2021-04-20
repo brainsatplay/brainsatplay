@@ -146,6 +146,7 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
+
         // Load Config
         let preset = undefined;
         let showOptions = true;
@@ -153,10 +154,12 @@ export class AppletManager {
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
+                    console.log('setting preset here')
                     document.getElementById("preset-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
                 } else {
+                    console.log('setting preset default')
                     document.getElementById("preset-selector").value = 'default';
                 }
             });   
@@ -166,7 +169,6 @@ export class AppletManager {
             if (preset != null) this.appletConfigs = preset.applets;
             else this.appletConfigs = [AppletBrowser]
         }    
-        
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {

@@ -172,7 +172,13 @@ export class AppletBrowser {
                 div.onclick = (e) => {
                     let selector = document.getElementById('applet1')
                     selector.value = choice
-                    window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
+                    window.history.pushState(
+                        {
+                            // applet1: document.getElementById('applet1').value,
+                            // preset: document.getElementById('preset-selector').value,
+                            // layout: document.getElementById('layout-selector').value,
+                            additionalInformation: 'Updated URL from Applet Browser (applet)' 
+                        },'',`${window.location.origin}/#${selector.value}`)
                     selector.onchange()
                 }
                 }
