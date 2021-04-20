@@ -154,6 +154,7 @@ export class AppletManager {
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 console.log(appletConfigs)
+                if (typeof appletConfigs === 'object' && appletConfigs !== null) appletConfigs = appletConfigs.name
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
                     document.getElementById("preset-selector").value = p.value;
                     this.appletConfigs = p.applets
