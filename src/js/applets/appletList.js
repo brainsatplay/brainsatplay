@@ -37,7 +37,6 @@ import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
-import { settings } from '@pixi/settings'
 
 
 const uPlotFolder = './General/other/uplot'
