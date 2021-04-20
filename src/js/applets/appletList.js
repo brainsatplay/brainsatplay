@@ -1,9 +1,8 @@
-import { AppletBrowser } from './UI/AppletBrowser'
 import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
 // import {AppletExample} from './AppletExample'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
-import { p5WorkshopApplet } from './General/other/p5workshop/p5WorkshopApplet'
+import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
@@ -124,22 +123,22 @@ let applets = new Map([
         PixiApplet
     ], 
     [
-        p5WorkshopApplet.name,
-        p5WorkshopApplet
+        p5SandboxApplet.name,
+        p5SandboxApplet
     ]
 ]);
 
 let presets = [
-    {
-        value: 'browser',
-        name: "Applet Browser",
-        applets: [
-            AppletBrowser,
-        ],
-        description: "Choose any applet.",
-        image: placeholderImg,
-        lock: false
-    },
+    // {
+    //     value: 'browser',
+    //     name: "Applet Browser",
+    //     applets: [
+    //         AppletBrowser,
+    //     ],
+    //     description: "Choose any applet.",
+    //     image: placeholderImg,
+    //     lock: false
+    // },
     {
         value: 'eeg',
         name: "EEG Neurofeedback",

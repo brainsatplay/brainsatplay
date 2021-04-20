@@ -3,9 +3,9 @@ import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
 import p5 from 'p5';
 import featureImg from './img/feature.png'
 
-export class p5WorkshopApplet {
+export class p5SandboxApplet {
 
-    static name = "P5 Workshop"; 
+    static name = "P5 Sandbox"; 
     static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Working with brains!"
     static categories = ['feedback'];
@@ -45,22 +45,22 @@ export class p5WorkshopApplet {
                         p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
                         p.background(0);
                     };
-        
+                
                     p.draw = () => {
                         p.background(0);
                         p.noFill()
                         p.stroke(p.color(255,255,255,100))
                         p.strokeWeight(Math.min(p.width,p.height)/300);
-
+                
                         let scalingFactor;
                         let neurofeedback = this.getNeurofeedback()
                         if (neurofeedback != null){
                             scalingFactor = 1-neurofeedback
                         }
-
+                
                         if (scalingFactor != null) scalingFactor = scalingFactor.toFixed(4)
                         document.getElementById(`${this.props.id}-neurofeedback-readout`).innerHTML = scalingFactor
-
+                
                         let minDiameter = 50; // px
                         let maxDiameter = Math.min(5*p.width/6,5*p.height/6) // px
                         p.ellipse(p.width/2, p.height/2, minDiameter + (scalingFactor*(maxDiameter-minDiameter)))
