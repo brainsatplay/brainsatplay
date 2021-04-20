@@ -46,6 +46,7 @@ export class MultiplayerAppletTemplate {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
             <button id='${props.id}createGame'>Make Game session</button>
+            <div id='${props.id}userGrid style="display: grid; "></div
             </div>`;
         }
 

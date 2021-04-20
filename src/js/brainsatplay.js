@@ -788,7 +788,8 @@ export class brainsatplay {
 	}
 
 	//connect using the unique id of the subscription
-	subscribeToGame(gameid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {
+	subscribeToGame(gameid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {		
+		console.log(this.info.auth.username)
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',gameid]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
