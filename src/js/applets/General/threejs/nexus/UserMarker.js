@@ -94,9 +94,9 @@ export class UserMarker {
     let n = this.neurofeedbackDimensions.length
     let radius = 0.01
     let miniSphereGeometry = new THREE.SphereGeometry( this.d/3,10,10)
-    let miniSphereMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000, opacity: 0.5, transparent: true})
     
     for (let i = 0; i < n; i++){
+      let miniSphereMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0.5, transparent: true})
       let miniSphere = new THREE.Mesh(miniSphereGeometry,miniSphereMaterial)
       miniSphere.position.set(radius*Math.sin(i*2*Math.PI/n), radius*Math.cos(i*2*Math.PI/n))
       miniSphere.name = this.neurofeedbackDimensions[i]

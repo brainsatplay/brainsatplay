@@ -51,6 +51,17 @@ export class NexusApplet {
         this.three = {}
         this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
         this.getNeurofeedback = this.defaultNeurofeedback   
+
+        this.neurofeedbackColors = {
+            'scp': [0,0,1],
+            'delta' : [0,0.5,1],
+            'theta' : [1,0,1],
+            'alpha1' : [0,1,0],
+            'alpha2' : [0,1,0],
+            'beta' : [1,1,0],
+            'lowgamma' : [1,0,0],
+            'highgamma' : [1,0,0],
+        }
     }
 
     //---------------------------------
@@ -520,33 +531,43 @@ const animateUsers = () => {
 
     let me = points.get('me')
     let atlas = this.bci.atlas
-    let channelTags = atlas.data.eegshared.eegChannelTags;
-    let scaling = {}
-    // init
-    me.neurofeedbackDimensions.forEach(key => {
-        scaling[key] = []
-    })
+    if (atlas.settings.deviceConnected){
+        let channelTags = atlas.data.eegshared.eegChannelTags;
+        let scaling = {}
+        // init
+        me.neurofeedbackDimensions.forEach(key => {
+            scaling[key] = []
+        })
 
-    // populate
-    channelTags.forEach(row => {
-        let coord = atlas.getEEGDataByTag(row.tag)
-        if (coord){
-            me.neurofeedbackDimensions.forEach(key => {
-                if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
-            })
+        // populate
+        channelTags.forEach(row => {
+            let coord = atlas.getEEGDataByTag(row.tag)
+            if (coord){
+                me.neurofeedbackDimensions.forEach(key => {
+                    if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
+                })
+            }
+        })
+
+        me.neurofeedbackDimensions.forEach(key => {
+            scaling[key] = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
+        })
+
+        let scalingMax = Math.max(...Object.values(scaling))
+        me.neurofeedbackDimensions.forEach(key => {
+            let nfscale = scaling[key]
+            nfscale = nfscale/scalingMax
+            me.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
+            me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
+            material.uniforms.colorThreshold.value = colorReachBase*nfscale
+        })
+
+        // coherence
+        let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
+        let coherence = getCoherence()
+        if (coherenceLine) {
+            coherenceLine.material.opacity = coherence
         }
-    })
-    me.neurofeedbackDimensions.forEach(key => {
-        let nfscale = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
-        me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
-        material.uniforms.colorThreshold.value = colorReachBase*nfscale
-    })
-
-    // coherence
-    let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
-    let coherence = getCoherence()
-    if (coherenceLine) {
-        coherenceLine.material.opacity = coherence
     }
     // glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
