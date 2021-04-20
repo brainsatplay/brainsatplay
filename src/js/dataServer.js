@@ -599,9 +599,7 @@ class DataServer {
 		}
 	}
 
-	subscriptionLoop = () => {
-        let time = Date.now();
-        //Should have delay interval checks for each subscription update for rate limiting
+    updateUserSubsriptions = (time) => {
         this.userSubscriptions.forEach((sub,i) => {
             //Should create a dispatcher that accumulates all user and game subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
@@ -627,9 +625,10 @@ class DataServer {
                 }
             }
 		});
+    } 
 
-        //optimized to only send updated data
-		this.gameSubscriptions.forEach((sub,i) => {
+    updateGameSubscriptions = (time) => {
+        this.gameSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
@@ -723,9 +722,10 @@ class DataServer {
             }
             sub.lastTransmit = time;
 		});
+    }
 
-         //optimized to only send updated data
-		this.hostSubscriptions.forEach((sub,i) => {
+    updateHostGameSubscriptions = (time) => {
+        this.hostSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
@@ -814,6 +814,18 @@ class DataServer {
             }
             sub.lastTransmit = time;
 		});
+    }
+
+	subscriptionLoop = () => {
+        let time = Date.now();
+        //Should have delay interval checks for each subscription update for rate limiting
+        this.updateUserSubscriptions(time);
+
+        //optimized to only send updated data
+		this.updateGameSubscriptions(time);
+
+        //optimized to only send updated data
+		this.updateHostGameSubscriptions(time);
 
         this.userData.forEach((u,i) => {
             if(time - u.lastUpdate > this.serverTimeout) {

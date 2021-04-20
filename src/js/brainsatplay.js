@@ -1158,7 +1158,7 @@ class deviceStream {
 			}
 		}
 
-		let getHEGData = (tag=0,nArrays='all',prop=null) => {
+		let getHEGData = (tag=0,nArrays='all',prop=undefined) => {
 			let get = nArrays;
 			if(this.info.useAtlas === true) {
 				let coord = this.atlas.getDeviceDataByTag('heg',tag);
@@ -1168,7 +1168,7 @@ class deviceStream {
 					if(get <= 0) return undefined;
 				}
 				if(coord !== undefined) {
-					if(prop !== null) {
+					if(prop !== undefined) {
 						let times = coord.times.slice(coord.times.length - get, coord.times.length);
 						let data = coord[prop].slice(coord.ffts.length - get,coord.ffts.length);
 						let obj = {times:times}; obj[prop] = data;

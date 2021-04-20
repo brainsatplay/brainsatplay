@@ -208,9 +208,9 @@ export class BCIAppManager {
                 this.bcisession.subscribeToGame(undefined,true,(res)=>{console.log("subscribed!", res)});
             }
             document.getElementById('subscribeToSelf').onclick = () => {
-                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all']]);
+                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
                 //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
-                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8']],undefined,(res)=>{console.log("subscribed!", res)});
+                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
                 //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
             }
 
