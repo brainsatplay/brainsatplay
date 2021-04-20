@@ -154,12 +154,10 @@ export class AppletManager {
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
-                    console.log('setting preset here')
                     document.getElementById("preset-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
                 } else {
-                    console.log('setting preset default')
                     document.getElementById("preset-selector").value = 'default';
                 }
             });   
@@ -188,8 +186,6 @@ export class AppletManager {
 
         
         let configApplets = []
-        console.log('initing')
-        console.log(this.appletConfigs)
         // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
