@@ -39,6 +39,13 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
+let dynamicImport = async (url) => {
+    let deets = [];
+    let module = await import(url);
+    deets = [ module.name, module ];
+    return deets;
+}
+
 let applets = new Map([
 	[
         BlobApplet.name,
