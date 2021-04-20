@@ -785,7 +785,7 @@ export class brainsatplay {
 	}
 
 	//connect using the unique id of the subscription
-	subscribeToGame(gameid=this.info.auth.appname,spectating=false,onsuccess=(newResult)=>{}) {
+	subscribeToGame(gameid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',gameid]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
@@ -803,7 +803,7 @@ export class brainsatplay {
 							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 						}
 						if(configured === true) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,gameid,spectating]}));
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',userToSubscribe,gameid,spectating]}));
 							newResult.gameInfo.usernames.forEach((user) => {
 								newResult.gameInfo.propnames.forEach((prop) => {
 									this.state.data[newResult.gameInfo.id+"_"+user+"_"+prop] = null;
@@ -858,7 +858,7 @@ export class brainsatplay {
 
 				result.gameInfo.forEach((g) => { 
 					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
+						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,undefined,(subresult) => {
 							onjoined(g);
 							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
 							document.getElementById(id+'disconnect').onclick = () => {

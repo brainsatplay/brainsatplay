@@ -205,7 +205,7 @@ export class BCIAppManager {
                 this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
             }
             document.getElementById('spectateGame').onclick = () => {
-                this.bcisession.subscribeToGame(undefined,true,(res)=>{console.log("subscribed!", res)});
+                this.bcisession.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
             }
             document.getElementById('subscribeToSelf').onclick = () => {
                 this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
