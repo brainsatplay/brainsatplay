@@ -75,6 +75,34 @@ export class BCIAppManager {
         } else { this.init(); }
 
         this.tutorialManager = new TutorialManager();
+
+        // Set Update on Forward/Back Button
+        window.onpopstate = (e) => {
+            if (e.state){
+                // this.uiFragments.appletbox.deleteNode();
+                document.getElementById('preset-selector').value = 'default'
+                document.getElementById('layout-selector').value = 'Focus'
+                let configs = this.getConfigsFromHashes(); //overrides old settings
+                this.appletManager.deinitApplets()
+                this.appletManager.appletConfigs = configs
+                this.appletManager.initAddApplets(configs)
+            }
+        }
+
+        // Keyboard Shortcuts
+        document.onkeyup = (e) => {
+
+        // Screenshot all canvases
+        if (e.ctrlKey && e.shiftKey && e.which == 83) { // CTRL + SHIFT + s
+            this.downloadImages()
+        } 
+        // Screenshot all canvases as feature images
+        else if (e.ctrlKey && e.shiftKey && e.which == 70) { // CTRL + SHIFT + f
+            this.downloadImages(1080,540)
+        }
+    };
+
+
     }
 
     setupUITemplates = () => {
@@ -248,6 +276,7 @@ export class BCIAppManager {
         //     topbar_template,
         //     document.getElementById('page')
         // );
+        
         let contentChild1 = Array.from(app.querySelector('#applet-menu').childNodes).filter(n => n.className==="content")[0]
         this.uiFragments.select = new DOMFragment(
             appletselect_template,
@@ -295,6 +324,19 @@ export class BCIAppManager {
             this.appletManager.responsive()
         }
 
+        // Applet Browser Button
+        document.getElementById('applet-browser-button').onclick = () => {
+            window.history.pushState({ 
+                // applet1: document.getElementById('applet1').value,
+                // preset: document.getElementById('preset-selector').value,
+                // layout: document.getElementById('layout-selector').value,
+                additionalInformation: 'Updated URL to Applet Browser' 
+            },'',`${window.location.origin}`)
+            document.getElementById("preset-selector").value = 'default'
+            this.appletManager.deinitApplets()       
+            this.appletManager.initAddApplets()           
+        }
+
 
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
@@ -331,9 +373,14 @@ export class BCIAppManager {
             }
         );
 
-        let configSelector = document.getElementById("config-selector")
-		configSelector.onchange = (e) => {
-            window.location.href = `${window.location.origin}/#${configSelector.value}`;
+        let presetSelector = document.getElementById("preset-selector")
+		presetSelector.onchange = (e) => {
+            window.history.pushState({ 
+                // applet1: document.getElementById('applet1').value,
+                // preset: document.getElementById('preset-selector').value,
+                // layout: document.getElementById('layout-selector').value,
+                additionalInformation: 'Updated URL based on Preset' 
+            },'',`${window.location.origin}/#${presetSelector.value}`)
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }
@@ -343,19 +390,6 @@ export class BCIAppManager {
             this.tutorialManager.openTutorial()
             this.tutorialManager.updateStandaloneTutorialContent(0,0)
          }
-
-         // Keyboard Shortcuts
-         document.onkeyup = (e) => {
-
-            // Screenshot all canvases
-            if (e.ctrlKey && e.shiftKey && e.which == 83) { // CTRL + SHIFT + s
-                this.downloadImages()
-            } 
-            // Screenshot all canvases as feature images
-            else if (e.ctrlKey && e.shiftKey && e.which == 70) { // CTRL + SHIFT + f
-                this.downloadImages(1080,540)
-            }
-        };
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

@@ -1,6 +1,8 @@
 import { brainsatplay } from "../../brainsatplay";
 import { DOMFragment } from "./DOMFragment";
 import { presets } from "./../../applets/appletList"
+import { AppletBrowser } from './../../applets/UI/AppletBrowser'
+
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -78,12 +80,12 @@ export class AppletManager {
 
         this.appletPresets = presets
 
-        document.getElementById("config-selector").innerHTML+= `
-        <option value='default' disabled>Browse presets</option>
+        document.getElementById("preset-selector").innerHTML+= `
+        <option value='default' disabled selected>Browse presets</option>
         `
         this.appletPresets.forEach((obj,i) => {
-            if (i === 0) document.getElementById("config-selector").innerHTML += `<option value=${obj.value} selected>${obj.name}</option>`
-            else document.getElementById("config-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
+            if (i === 0) document.getElementById("preset-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
+            else document.getElementById("preset-selector").innerHTML += `<option value=${obj.value}>${obj.name}</option>`
         })
 
         // Other
@@ -144,6 +146,7 @@ export class AppletManager {
 
     //add the initial list of applets
     initAddApplets = (appletConfigs=[]) => {
+
         // Load Config
         let preset = undefined;
         let showOptions = true;
@@ -151,19 +154,19 @@ export class AppletManager {
         if(appletConfigs.length === 1) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
-                    document.getElementById("config-selector").value = p.value;
+                    document.getElementById("preset-selector").value = p.value;
                     this.appletConfigs = p.applets
                     return true;
                 } else {
-                    document.getElementById("config-selector").value = 'default';
+                    document.getElementById("preset-selector").value = 'default';
                 }
             });   
         }
         else if(appletConfigs.length === 0) {
-            preset = this.appletPresets.find(preset => preset.value === document.getElementById("config-selector").value);
-            this.appletConfigs = preset.applets;
-        }        
-
+            preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
+            if (preset != null) this.appletConfigs = preset.applets;
+            else this.appletConfigs = [AppletBrowser]
+        }    
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {
@@ -183,30 +186,8 @@ export class AppletManager {
 
         
         let configApplets = []
-
-        // Collect a list of unused applets
+        // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
-        // let unusedAppletClasses = this.appletClasses.filter(applet => {
-        //     let usable = false;
-        //     if (appletNames.includes(applet.name)){ // Filter applets based on preset selector
-        //         if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
-        //             usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-        //             if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
-        //         }
-        //     } else if (appletNames.find((n) => {
-        //         if(typeof n === 'object') {
-        //             if(n.name === applet.name) {
-        //                 return true;
-        //             }
-        //         }
-        //     })) {
-        //         if (!currentApplets.includes(applet.name)){ // Filter currently used applets (no duplicates)
-        //             usable = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-        //             if (usable || this.bcisession.devices.length === 0) return applet // Return if your device is compatible OR no device is connected
-        //         }
-        //      }
-        // })
-
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         this.appletConfigs.forEach(conf => {
             if(typeof conf === 'string') {
@@ -215,6 +196,13 @@ export class AppletManager {
             else if (!currentApplets.reduce(isAllNull,0)) configApplets.push(conf) // Presets
         })
 
+
+        // If no applets have been configured, redirect to base URL
+        if (configApplets.every(v => v == null)){
+            configApplets = [AppletBrowser]
+            window.history.replaceState({ additionalInformation: 'Updated Invalid URL' },'',window.location.origin)
+        } 
+        
         // Check the compatibility of current applets with connected devices
         this.appletsSpawned = 0;
         currentApplets.forEach((className,i) => {
@@ -255,6 +243,7 @@ export class AppletManager {
         this.initApplets();
 
         // Generate applet selectors
+
         if (showOptions){
             document.body.querySelector('.applet-select-container').style.display = 'flex'
             this.appletSelectIds.forEach((id,i) => {
