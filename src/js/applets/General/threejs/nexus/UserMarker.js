@@ -82,7 +82,12 @@ export class UserMarker {
 
     // Create new sphere
     this.neurofeedbackGroup = new THREE.Group()
-    let material = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0.5, transparent: true})
+    let material = new THREE.MeshBasicMaterial( {
+      color: 0xffffff, 
+      opacity: 1.0, 
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+    })
     this.marker = new THREE.Mesh( 
       new THREE.SphereGeometry( this.d,10,10), 
       material 
@@ -96,7 +101,12 @@ export class UserMarker {
     let miniSphereGeometry = new THREE.SphereGeometry( this.d/3,10,10)
     
     for (let i = 0; i < n; i++){
-      let miniSphereMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0.5, transparent: true})
+      let miniSphereMaterial = new THREE.MeshBasicMaterial( {
+        color: 0xffffff, 
+        transparent: true, 
+        opacity: 0.1,
+        blending: THREE.AdditiveBlending,
+      })
       let miniSphere = new THREE.Mesh(miniSphereGeometry,miniSphereMaterial)
       miniSphere.position.set(radius*Math.sin(i*2*Math.PI/n), radius*Math.cos(i*2*Math.PI/n))
       miniSphere.name = this.neurofeedbackDimensions[i]

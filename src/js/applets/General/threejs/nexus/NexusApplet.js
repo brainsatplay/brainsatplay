@@ -557,6 +557,7 @@ const animateUsers = () => {
         me.neurofeedbackDimensions.forEach(key => {
             let nfscale = scaling[key]
             nfscale = nfscale/scalingMax
+            me.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
             me.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
             me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
             material.uniforms.colorThreshold.value = colorReachBase*nfscale
@@ -593,7 +594,7 @@ this.three.drawCylinder = () => {
             color: 0xff00ff,
             transparent: true,
             blending: THREE.AdditiveBlending,
-            opacity:1
+            opacity: 0.1
         } );
         const edge = new THREE.Mesh( lineGeometry, lineMaterial);
         edge.name = 'coherenceLine'
