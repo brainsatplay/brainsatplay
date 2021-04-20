@@ -48,7 +48,7 @@ export class PixiApplet {
             {name:'alpha1',label: 'Low Alpha',color:[0,1,0]}, // Green
             {name:'alpha2',label: 'High Alpha',color: [0,1,0]}, // Green
             {name:'beta',label: 'Beta',color: [1,1,0]}, // Yellow
-            {name:'lowgamma',label: 'Gamma',color: [1,1,0]} // Red
+            {name:'lowgamma',label: 'Gamma',color: [1,0,0]} // Red
           ]
           this.brainData = []   
           this.lastColorSwitch=Date.now() 

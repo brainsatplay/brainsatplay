@@ -5,7 +5,7 @@ import featureImg from './../../assets/features/placeholder.png'
 //Example Applet for integrating with the UI Manager
 export class MultiplayerAppletTemplate {
 
-    static name = "MultiplayerTemplate"; 
+    static name = "Multiplayer Template"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
     static description = "Multiplayer Template"
     static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
@@ -18,6 +18,7 @@ export class MultiplayerAppletTemplate {
     ) {
     
         //-------Keep these------- 
+        this.name = this.constructor.name
         this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
@@ -53,7 +54,7 @@ export class MultiplayerAppletTemplate {
             this.bci.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.bcisession.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
+                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
 

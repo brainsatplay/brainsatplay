@@ -768,7 +768,7 @@ export class brainsatplay {
 
 	getGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',gameid]}));
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',appname]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
@@ -848,6 +848,7 @@ export class brainsatplay {
 	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
 		let id = Math.floor(Math.random()*1000000)+appname;
 		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
+		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
 		parentNode.insertAdjacentHTML('beforeend',html);
 
 		document.getElementById(id+'search').onclick = () => {
