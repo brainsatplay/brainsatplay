@@ -474,7 +474,7 @@ export class brainsatplay {
 			}
 
 			this.addStreamFunc(key,newStreamFunc);
-			this.addStreamParam(['key']);
+			this.addStreamParam([key]);
 		}
 	}
 
