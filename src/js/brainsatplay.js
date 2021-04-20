@@ -828,7 +828,7 @@ export class brainsatplay {
 	unsubscribeFromGame(gameId='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send({cmd:['leaveGame',gameId],username:this.info.auth.username})
+			this.socket.send(JSON.stringify({cmd:['leaveGame',gameId],username:this.info.auth.username}))
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
 					for(const prop in this.state.data) {
