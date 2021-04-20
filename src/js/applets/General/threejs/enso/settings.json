@@ -1,0 +1,8 @@
+{
+    "name": "Enso",
+    "devices": ["eeg"],
+    "description": "Calm the ring!",
+    "categories": ["feedback"],
+    "module": "EnsoApplet",
+    "image": "img/feature.png"
+}

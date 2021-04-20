@@ -1,0 +1,8 @@
+{
+    "name": "Bar Chart",
+    "devices": ["eeg"],
+    "description": "See your brain.",
+    "categories": ["data"],
+    "module": "BarChartApplet",
+    "image": "../../../../assets/features/placeholder.png"
+}

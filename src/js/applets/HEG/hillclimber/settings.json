@@ -1,0 +1,8 @@
+{
+    "name": "Hill Climber",
+    "devices": ["heg"],
+    "description": "Increase HEG ratio, go up.",
+    "categories": ["feedback"],
+    "module": "HillClimberApplet",
+    "image": "../../../../assets/features/placeholder.png"
+}

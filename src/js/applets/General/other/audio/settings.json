@@ -1,0 +1,8 @@
+{
+    "name": "Audio",
+    "devices": ["eeg","heg"],
+    "description": "HEG ratio and EEG Coherence feedback.",
+    "categories": ["feedback"],
+    "module": "YoutubeApplet",
+    "image": "img/feature.png"
+}

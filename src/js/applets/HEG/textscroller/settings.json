@@ -1,0 +1,8 @@
+{
+    "name": "Text Scroller",
+    "devices": ["eeg","heg"],
+    "description": "Words of affirmation.",
+    "categories": ["feedback"],
+    "module": "TextScrollerApplet",
+    "image": "img/feature.png"
+}

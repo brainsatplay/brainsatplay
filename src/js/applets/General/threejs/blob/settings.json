@@ -1,0 +1,8 @@
+{
+    "name": "Blob",
+    "devices": ["eeg","heg"],
+    "description": "Calm the blob!",
+    "categories": ["feedback"],
+    "module": "BlobApplet",
+    "image": "img/feature.png"
+}

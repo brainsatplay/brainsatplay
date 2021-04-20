@@ -1,0 +1,8 @@
+{
+    "name": "Machine Learning",
+    "devices": ["eeg"],
+    "description": "Detect blinks with machine learning!",
+    "categories": ["data"],
+    "module": "MLApplet",
+    "image": "../../../../assets/features/placeholder.png"
+}

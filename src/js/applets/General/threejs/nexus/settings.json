@@ -1,0 +1,8 @@
+{
+    "name": "Nexus",
+    "devices": ["eeg"],
+    "description": "Connect your brain with others!",
+    "categories": ["feedback","multiplayer"],
+    "module": "NexusApplet",
+    "image": "img/feature.png"
+}

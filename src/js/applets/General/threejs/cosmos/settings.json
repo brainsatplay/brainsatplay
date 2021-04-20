@@ -1,0 +1,8 @@
+{
+    "name": "Cosmos",
+    "devices": ["eeg"],
+    "description": "Spin the galaxy!",
+    "categories": ["feedback"],
+    "module": "CosmosApplet",
+    "image": "img/feature.png"
+}

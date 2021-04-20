@@ -11,7 +11,7 @@ import {MultiplayerAppletTemplate} from './MultiplayerAppletTemplate'
 
 import {uPlotApplet} from './General/other/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
-import { BrainMapApplet } from './EEG/BrainMapApplet'
+import { BrainMapApplet } from './EEG/brainmap/BrainMapApplet'
 import { SmoothieApplet } from './EEG/smoothie/SmoothieApplet'
 import { NexusApplet } from './General/threejs/nexus/NexusApplet'
 import { BlobApplet } from './General/threejs/blob/BlobApplet'
@@ -23,12 +23,12 @@ import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
 import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
 import { PixiApplet } from './EEG/pixi/PixiApplet'
 
-import { CircleApplet } from './HEG/circle/Circle'
+import { CircleApplet } from './HEG/circle/CircleApplet'
 import { AudioApplet } from './General/other/audio/AudioApplet'
 import { VideoApplet } from './General/other/video/VideoApplet'
-import { BoidsApplet } from './HEG/boids/Boids'
-import { HillClimberApplet } from './HEG/hillclimber/HillClimber'
-import { TextScrollerApplet } from './HEG/textscroller/TextScroller'
+import { BoidsApplet } from './HEG/boids/BoidsApplet'
+import { HillClimberApplet } from './HEG/hillclimber/HillClimberApplet'
+import { TextScrollerApplet } from './HEG/textscroller/TextScrollerApplet'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
 import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
 
@@ -37,6 +37,7 @@ import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
+import { settings } from '@pixi/settings'
 
 
 const uPlotFolder = './General/other/uplot'
@@ -58,10 +59,10 @@ let getAppletSettings = async (AppletFolderUrl) => {
     return [settings,image];
 }
 
-export let getApplet = async (AppletFolderUrl) => {
+export let getApplet = async (AppletFolderUrl,settings) => {
     
     let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
-    return [module,module.name];
+    return [module[settings.module],module.name];
 }
 
 export let generateSettings = async (urls) => {

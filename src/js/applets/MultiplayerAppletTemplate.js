@@ -44,9 +44,7 @@ export class MultiplayerAppletTemplate {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
-            <button id='createGame'>Make Game session</button>
-            <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-            <button id='spectateGame'>Spectate game</button>
+            <button id='${props.id}createGame'>Make Game session</button>
             </div>`;
         }
 
