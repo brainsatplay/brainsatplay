@@ -41,6 +41,9 @@ import hegImage from './../../assets/features/hegbiofeedback.png'
 
 const uPlotFolder = './General/other/uplot'
 
+const AppletFolderUrls = [
+    uPlotFolder
+]
 
 
 let dynamicImport = async (url) => {
@@ -55,10 +58,19 @@ let getAppletSettings = async (AppletFolderUrl) => {
     return [settings,image];
 }
 
-let getApplet = async (AppletFolderUrl) => {
+export let getApplet = async (AppletFolderUrl) => {
     
     let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
     return [module,module.name];
+}
+
+export let generateSettings = async (urls) => {
+    let settings = new Map();
+
+    urls.forEach(async (url) => {
+        let result = await getAppletSettings(url);
+        settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
+    });
 }
 
 
