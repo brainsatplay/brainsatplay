@@ -37,6 +37,10 @@ export class PixiApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
+        // Setup Neurofeedback
+        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/2000)} // default neurofeedback function
+        this.getNeurofeedback = this.defaultNeurofeedback
+
 
         this.brainMetrics = [
             {name:'delta',label: 'Delta', color: [0,0.5,1]}, // Blue-Cyan
@@ -63,7 +67,12 @@ export class PixiApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
                 <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
-                <canvas id='${props.id}-canvas'></canvas>
+               
+                    <canvas id='${props.id}-canvas'></canvas>
+                    
+                    <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; left: 25px;">
+                    </div>
+
                 </div>
             `;
         }
@@ -128,8 +137,9 @@ export class PixiApplet {
             this.timeBuffer.push((Date.now() - startTime)/1000)
 
             this.noiseBuffer.shift()
-            this.noiseBuffer.push(5.0 * (0.5 + 0.5*Math.sin(Date.now()/2000)))
-
+            let neurofeedback = this.getNeurofeedback()
+            this.noiseBuffer.push(5.0 * neurofeedback)
+                
             // Set Uniforms
             this.shaderQuad.shader.uniforms.colors = this.colorBuffer.flat(1) 
             this.shaderQuad.shader.uniforms.times = this.timeBuffer
@@ -161,6 +171,7 @@ export class PixiApplet {
         this.aspect = this.app.renderer.view.width/this.app.renderer.view.height
         this.shaderQuad.shader.uniforms.aspect = this.aspect
         this.generateShaderElements()
+        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     generateShaderElements() {
