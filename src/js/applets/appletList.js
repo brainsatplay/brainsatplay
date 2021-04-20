@@ -50,11 +50,17 @@ let dynamicImport = async (url) => {
 
 let getAppletSettings = async (AppletFolderUrl) => {
     let settings = await dynamicImport(AppletFolderUrl+"/settings.json");
-    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
     let image = await dynamicImport(AppletFolderUrl+"/"+settings.image);
 
-    return [module,image];
+    return [settings,image];
 }
+
+let getApplet = async (AppletFolderUrl) => {
+    
+    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
+    return [module,module.name];
+}
+
 
 let applets = new Map([
 	[
