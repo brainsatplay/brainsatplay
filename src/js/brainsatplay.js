@@ -495,12 +495,14 @@ export class brainsatplay {
 							d.atlas.data.eegshared.eegChannelTags.find((o) => {
 								if(o.tag === p[1] || o.ch === p[1]) {
 									d.info.streamParams.push(p);
-									if(d.info.streaming === false) d.info.streaming = true;
 									return true;
 								}
 							})
 						}
-						else d.info.streamParams.push(p);
+						else {
+							d.info.streamParams.push(p); 
+						}
+
 						return true;
 					}
 				});
@@ -911,7 +913,6 @@ export class brainsatplay {
 								o.atlas.data.eegshared.eegChannelTags.find((o) => {
 									if(o.tag === p[1] || o.ch === p[1]) {
 										deviceParams.push(p);
-										if(o.info.streaming === false) o.info.streaming = true;
 										return true;
 									}
 								})
@@ -919,13 +920,15 @@ export class brainsatplay {
 							else deviceParams.push(p);
 						}
 					});
-					o.info.streamParams = deviceParams;
-					if(o.info.streaming === false) {
-						o.info.streaming = true;
-						o.streamLoop();
+					if(deviceParams.length > 0) {
+						o.info.streamParams = deviceParams;
+						if(o.info.streaming === false) {
+							o.info.streaming = true;
+							o.streamLoop();
+						}
+						found = true; //at least one device was found (if multiple types allowed)
+						return true;
 					}
-					found = true; //at least one device was found (if multiple types allowed)
-					return true;
 				}
 			});
 		});
