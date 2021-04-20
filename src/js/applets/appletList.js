@@ -39,11 +39,21 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
+const uPlotFolder = './General/other/uplot'
+
+
+
 let dynamicImport = async (url) => {
-    let deets = [];
-    let module = await import(url);
-    deets = [ module.name, module ];
-    return deets;
+    let module = await import(url);;
+    return module;
+}
+
+let getAppletSettings = async (AppletFolderUrl) => {
+    let settings = await dynamicImport(AppletFolderUrl+"/settings.json");
+    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
+    let image = await dynamicImport(AppletFolderUrl+"/"+settings.image);
+
+    return [module,image];
 }
 
 let applets = new Map([
