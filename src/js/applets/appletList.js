@@ -94,9 +94,8 @@ let generateSettings = (urls) => {
 }
 
 let settings = generateSettings(AppletFolderUrls);
-
-console.log(settings)
-
+//while(settings.get('uPlot') === undefined) { /*...awaiting...*/  }
+console.log(settings) //resolves later
 
 
 let applets = new Map([
