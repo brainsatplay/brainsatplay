@@ -611,28 +611,34 @@ export class brainsatplay {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-
-			if(this.state.data[parsed.appname+"_userData"]) {
+			if (this.state.data.multiplayer[parsed.id] == null) this.state.data.multiplayer[parsed.id] = {userData: {}}
+			if(this.state.data.multiplayer[parsed.id].userData) {
 				parsed.userData.forEach((o,i) => {
-					let found = this.state.data[parsed.appname+"_userData"].find((p,j) => {
-						if(p.username === o.username) {
-							for(const prop in o) {
-								o[prop] === p[prop];
+					let user = this.state.data.multiplayer[parsed.id].userData[o.username]
+					if (user != null){
+						for(const prop in o) {
+							if (user.latest[prop] == null) user.latest[prop] = null
+							user.latest[prop] = o[prop];
+							if (o[prop].constructor == Object){
+								Object.keys(o[prop]).forEach(k => {
+									user.history[prop][k].push('pushed')
+								});
 							}
 						}
-					});
-					if(!found) {
-						this.state.data[parsed.appname+"_userData"].push(o);
+					} else {
+						this.state.data.multiplayer[parsed.id].userData[o.username] = {latest: {},history: o}
 					}
 				});
 				//Should check if usernames are still present to splice them off but should do it only on an interval
-				//this.state.data[parsed.appname+"_userData"].forEach((u,i) => {
+				//this.state.data.multiplayer[parsed.id]["userData"].forEach((u,i) => {
 				//	let found = parsed.usernames.find((name) => { if(u.username === name) return true; });
-				//  if(!found) { this.state.data[parsed.appname+"_userData"].splice(i,1); }
+				//  if(!found) { this.state.data.multiplayer[parsed.id]["userData"].splice(i,1); }
 				//});
 			}
-			else { this.state.data[parsed.appname+"_userData"] = parsed.userData; }
-			this.state.data[parsed.appname+"_spectators"] = parsed.spectators;
+			else { this.state.data.multiplayer[parsed.id].userData = {} }
+			this.state.data.multiplayer[parsed.id].spectators = parsed.spectators;
+			this.state.data.multiplayer[parsed.id].usernames = parsed.usernames;
+			this.state.data.multiplayer[parsed.id].t = Date.now();
 		}
 		else if (parsed.msg === 'getUserDataResult') {
 			this.state.data.commandResult = parsed;
@@ -712,7 +718,7 @@ export class brainsatplay {
 		};
 
         socket.onmessage = (msg) => {
-			console.log('Message recieved: ' + msg.data)
+			// console.log('Message recieved: ' + msg.data)
 			this.processSocketMessage(msg.data);
         }
 
@@ -807,18 +813,32 @@ export class brainsatplay {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
 							newResult.gameInfo.propnames.forEach((prop) => {
-								console.log(prop);
+								// console.log(prop);
 								streamParams.push(prop.split("_"));
 							});
 							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 						}
+
 						if(configured === true) {
 							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',userToSubscribe,gameid,spectating]}));
+							let userData = {}
 							newResult.gameInfo.usernames.forEach((user) => {
+								userData[user] = {}
 								newResult.gameInfo.propnames.forEach((prop) => {
-									this.state.data[newResult.gameInfo.id+"_"+user+"_"+prop] = null;
-								});
-							});
+									userData[user][prop] = null
+								})
+							})
+
+							this.state.data.multiplayer = {
+								[newResult.gameInfo.id]: {
+									userData: {
+										usernames: [],
+										spectators: [],
+										userData: userData
+									}
+								}
+							}
+
 							onsuccess(newResult);
 						}
 						this.state.unsubscribe('commandResult',sub);

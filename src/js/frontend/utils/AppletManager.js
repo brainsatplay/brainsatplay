@@ -151,23 +151,28 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
                 
-        console.log(appletConfigs)
-        if(appletConfigs.length === 1 && appletConfigs.constructor != Object) {
-            preset = this.appletPresets.find((p) => {
-                if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
-                    document.getElementById("preset-selector").value = p.value;
-                    this.appletConfigs = p.applets
-                    return true;
-                } else {
-                    document.getElementById("preset-selector").value = 'default';
-                }
-            });   
-        }
-        else if(appletConfigs.length === 0) {
+        if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
             else this.appletConfigs = [AppletBrowser]
-        }    
+        } else {
+            if (appletConfigs[0].constructor == Object){
+                this.appletConfigs = []
+                appletConfigs.forEach(dict => {
+                    this.appletConfigs.push(dict.name)
+                })
+            } else if(appletConfigs.length === 1) {
+                preset = this.appletPresets.find((p) => {
+                    if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
+                        document.getElementById("preset-selector").value = p.value;
+                        this.appletConfigs = p.applets
+                        return true;
+                    } else {
+                        document.getElementById("preset-selector").value = 'default';
+                    }
+                });   
+            }
+        }
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {
