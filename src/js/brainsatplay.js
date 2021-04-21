@@ -44,7 +44,7 @@ import { musePlugin } from './bciutils/devicePlugins/musePlugin';
 import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
 import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
-import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
+// import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
 import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
 
 /** @module brainsatplay 
@@ -1042,7 +1042,7 @@ class deviceStream {
 			{  name:'cyton', 	   cls:cytonPlugin	      },
 			{  name:'webgazer',    cls:webgazerPlugin     },
 			{  name:'ganglion',    cls:ganglionPlugin     },
-			{  name:'simulated_eeg',    cls: simulatedEEGPlugin}
+			// {  name:'simulated_eeg',    cls: simulatedEEGPlugin}
 
 		];
 
