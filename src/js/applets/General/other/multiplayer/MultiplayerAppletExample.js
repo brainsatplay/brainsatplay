@@ -105,30 +105,78 @@ export class MultiplayerAppletExample {
             let streamInfo = data?.multiplayer?.[`${result.appname}`]
             if (streamInfo != null){
                 let gameInfo = this.bci.state.data?.commandResult?.gameInfo
-                let usernames = streamInfo.usernames
-                let spectators = streamInfo.spectators
+                let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
+                let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
                 let t = streamInfo.t ?? gameInfo.lastTransmit
-                
+
                 if ( result.msg != null && this.uiStates.dynamic.msg !== result.msg ){
                     this.uiStates.dynamic.msg = result.msg
                 }
 
-
-                if ( usernames != null && this.uiStates.dynamic.usernames !== usernames ){
+                console.log(spectators)
+                if ( usernames != null) {
+                    if (this.uiStates.dynamic.usernames !== usernames ){
                     spectatorsList.innerHTML = ''
                     playersList.innerHTML = ''
 
                     usernames.forEach((name)=> {
                         if (spectators.includes(name)) {
-                            spectatorsList.innerHTML += `<div id="${this.props.id}-spectator-${this.props.name}" style="width: 100%; min-height: 25px; padding: 5px;">${name}</div>`
+                            spectatorsList.innerHTML += `
+                            <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+                                <h1>${name}</h1>
+                                <div style="font-size: 60%;">
+                                </div>
+                            </div>`
                         }
                         else {
-                            playersList.innerHTML += `<div id="${this.props.id}-player-${this.props.name}" style="width: 100%; min-height: 25px; padding: 5px;">${name}</div>`
+                            playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+                                <h1>${name}</h1>
+                                <div style="font-size: 60%;">
+                                </div>
+                            </div>`
                         }
                     })
                     this.uiStates.dynamic.usernames = usernames
                     this.uiStates.dynamic.spectators = spectators
                 }
+
+                usernames.forEach((name) => {
+                    let type = (spectators.includes(name) ? 'spectator' : 'player')
+                    let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
+                    let userData = streamInfo.userData?.[name]
+                    if (userData != null){
+                        Object.keys(userData).forEach(k1 => {
+                            let div = userCard.querySelector(`.${k1}`)
+                            if (div == null ) {
+                                if (userData[k1].constructor == Object){
+                                    let innerHTML = ``
+                                    innerHTML += `<h3>${k1}</h3>`
+                                    Object.keys(userData[k1]).forEach(k2 => {
+                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
+                                    })
+                                    userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
+                                } else {
+                                    userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
+                                }
+                            }
+                            else {
+                                div.innerHTML = ''
+                                if (userData[k1].constructor == Object){
+                                    let innerHTML = ``
+                                    innerHTML += `<h3>${k1}</h3>`
+                                    Object.keys(userData[k1]).forEach(k2 => {
+                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
+                                    })
+                                    div.innerHTML += innerHTML
+                                } else {
+                                    div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+
 
                 if (gameInfo != null && this.uiStates.static !== gameInfo){
                     Object.keys(gameInfo).forEach((key) => {
