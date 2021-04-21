@@ -692,9 +692,11 @@ export class brainsatplay {
      	   	'password&'+auth.password,
      	   	'appname&'+auth.appname
 		];
-		if (auth.url.protocol === 'http:') {
+		// if (auth.url.protocol === 'http:') {
+		if (location.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
-        } else if (auth.url.protocol === 'https:') {
+		} else if (location.protocol === 'https:') {
+		// if (auth.url.protocol === 'https:') {
             socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
         } else {
             console.log('invalid protocol');

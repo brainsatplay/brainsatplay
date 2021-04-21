@@ -1,9 +1,9 @@
-import {brainsatplay} from './../../../brainsatplay'
-import {DOMFragment} from './../../../frontend/utils/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+import {brainsatplay} from '../../../../brainsatplay'
+import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import featureImg from './../../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
-export class MultiplayerAppletTemplate {
+export class MultiplayerAppletExample {
 
     static name = "Multiplayer Example"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
@@ -46,6 +46,11 @@ export class MultiplayerAppletTemplate {
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
             <button id='${props.id}createGame'>Make Game session</button>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
+            </div>
+            <div id='${props.id}gameInfo' style='position: absolute; top: 0; right: 0; width: 25%; height: 20%; padding: 5px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
+
             </div>`;
         }
 
@@ -71,12 +76,31 @@ export class MultiplayerAppletTemplate {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
-
-        //Add whatever else you need to initialize
+        let applet = document.getElementById(this.props.id)
+        let list = document.getElementById(`${this.props.id}userList`)
+        let info = document.getElementById(`${this.props.id}gameInfo`)
 
         this.animate = () => {
-            let gameInfo = this.bci.state.data?.commandResult?.gameInfo
-            console.log(gameInfo)
+            let result = this.bci.state.data?.commandResult
+
+            console.log(result.msg)
+            if (result.msg === 'subscribedToGame'){
+                let gameInfo = this.bci.state.data?.commandResult?.gameInfo
+                let usernames = gameInfo?.usernames
+
+                list.innerHTML = ''
+                info.innerHTML = ''
+                if ( usernames != null ){
+                    console.log('t')
+                    usernames.forEach((name)=> {
+                        // if (document.getElementById(`${this.props.id}-player-${this.props.name}`) == null) 
+                        list.innerHTML += `<div id="${this.props.id}-player-${this.props.name}" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border: 1px solid white;">${name}</div>`
+                    })
+                    // Object.keys(gameInfo).forEach((key) => {
+                    //     info.innerHTML += `<div style=" font-size: 80%; display: flex; align-items: center; justify-content: center; width: 100%; padding: 5px; border: 1px solid white;">${key} : ${gameInfo[key]}</div>`
+                    // })
+                }
+            }
 
             this.animation = window.requestAnimationFrame(this.animate)
         }

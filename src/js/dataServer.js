@@ -31,7 +31,6 @@ class DataServer {
 
         socket = this.setWSBehavior(username, socket)
         
-        console.log(this.userData)
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
@@ -48,7 +47,6 @@ class DataServer {
         }
         else { 
             let u = this.userData.get(username);
-            console.log(u)
             u.lastUpdate = Date.now();
             u.appname = appname;
             if(socket.url !== u.socket.url) { //handle same user on new port
@@ -68,7 +66,6 @@ class DataServer {
     setWSBehavior(username, socket){
         if (socket != null){
             socket.on('message', (s) => {
-                console.log(s)
                 this.processMessage(s);
             });
 

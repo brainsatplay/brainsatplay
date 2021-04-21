@@ -5,7 +5,7 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
 
-import {MultiplayerAppletTemplate} from './Templates/Multiplayer/MultiplayerAppletTemplate'
+import {MultiplayerAppletExample} from './General/other/multiplayer/MultiplayerAppletExample'
 //import {AppletTemplate} from './AppletTemplate'
 //import {AppletExample} from './AppletExample'
 
@@ -62,7 +62,7 @@ const AppletFolderUrls = [
     './General/threejs/ThreeSunrise',
     './HEG/pulsemonitor',
     './General/other/ytube',
-    './Templates/Multiplayer'
+    './General/other/multiplayer'
 ];
 
 export let dynamicImport = async (url) => {
@@ -192,8 +192,8 @@ let applets = new Map([
         p5SandboxApplet
     ],
     [
-        MultiplayerAppletTemplate.name,
-        MultiplayerAppletTemplate
+        MultiplayerAppletExample.name,
+        MultiplayerAppletExample
     ]
 ]);
 
