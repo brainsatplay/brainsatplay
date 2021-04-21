@@ -3,11 +3,11 @@ import {DOMFragment} from './../../../frontend/utils/DOMFragment'
 import featureImg from './../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
-export class MultiplayerAppletTemplate {
+export class MultiplayerAppletExample {
 
-    static name = "Multiplayer Template"; 
+    static name = "Multiplayer Example"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Multiplayer Template"
+    static description = "Multiplayer Example"
     static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
@@ -44,8 +44,11 @@ export class MultiplayerAppletTemplate {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' style='height:100%; width:100%;'>
+            <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
             <button id='${props.id}createGame'>Make Game session</button>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center;'></div>
+            </div>
             </div>`;
         }
 
@@ -73,12 +76,29 @@ export class MultiplayerAppletTemplate {
 
 
         //Add whatever else you need to initialize
+
+        let applet = document.getElementById(this.props.id)
+        let list = document.getElementById(`${this.props.id}userList`)
+        this.animate = () => {
+            let usernames = this.bci.state.data?.commandResult?.gameInfo?.usernames
+
+            list.innerHTML = ''
+            if ( usernames != null ){
+                usernames.forEach((name)=> {
+                    list.innerHTML += `<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border: 1px solid white;">${name}</div>`
+                })
+            }
+            this.animation = window.requestAnimationFrame(this.animate)
+        }
+
+        this.animate()
     
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        window.cancelAnimationFrame(this.animation)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

@@ -150,11 +150,9 @@ export class AppletManager {
         // Load Config
         let preset = undefined;
         let showOptions = true;
-        
+                
         console.log(appletConfigs)
-        
-        if (appletConfigs.constructor == Object) appletConfigs = appletConfigs.name
-        if(appletConfigs.length === 1) {
+        if(appletConfigs.length === 1 && appletConfigs.constructor != Object) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
                     document.getElementById("preset-selector").value = p.value;
