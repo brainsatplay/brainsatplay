@@ -31,6 +31,7 @@ class DataServer {
 
         socket = this.setWSBehavior(username, socket)
         
+        console.log(this.userData)
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
@@ -47,6 +48,7 @@ class DataServer {
         }
         else { 
             let u = this.userData.get(username);
+            console.log(u)
             u.lastUpdate = Date.now();
             u.appname = appname;
             if(socket.url !== u.socket.url) { //handle same user on new port
@@ -176,13 +178,16 @@ class DataServer {
         //u.socket.send(JSON.stringify({msg:commands}));
         if(commands[0] === 'getUsers') {
             let users = [];
-            this.userData.forEach((o,name) => {
+            this.userData.forEach((o) => {
                 if(commands[1] !== undefined) {
                     if(o.username === commands[1]) {
                         users.push(o);
                     }
                 }
                 else if(u.appname !== '' && o.appname === u.appname) {
+                    users.push(o.username);
+                }
+                else {
                     users.push(o.username);
                 }
             });
@@ -268,20 +273,20 @@ class DataServer {
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
-            if(command[2]) this.streamBetweenUsers(username,commands[1],commands[2]);
-            else this.streamBetweenUsers(username,commands[1]);
+            if(commands[3]) this.streamBetweenUsers(commands[1],commands[2],commands[3]);
+            else this.streamBetweenUsers(commands[1],commands[2]);
         }
         else if(commands[0] === 'subscribeToGame') { //Join game
-            this.subscribeUserToGame(username,commands[1],commands[2],command[3]);
+            this.subscribeUserToGame(commands[1],commands[2],commands[3]);
         }
         else if(commands[0] === 'subscribeToHostGame') { //Join game
-            this.subscribeUserToHostGame(username,commands[1],commands[2],command[3],command[4]);
+            this.subscribeUserToHostGame(commands[1],commands[2],commands[3],commands[4]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
-            if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
-            else found = this.removeUserToUserStream(username,commands[1]);
-            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
+            if(commands[2]) found = this.removeUserToUserStream(commands[1],commands[2],commands[3]);
+            else found = this.removeUserToUserStream(commands[1],commands[2]);
+            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[2],props:commands[3]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if (commands[0] === 'logout') {
@@ -361,7 +366,7 @@ class DataServer {
                     propnames.push(propname);
                 }
             }
-            u = this.userData.get(listenerUser);
+            let u = this.userData.get(listenerUser);
             if(u !== undefined && source !== undefined) {
                 this.userSubscriptions.push({
                     listener:listenerUser,
@@ -477,11 +482,12 @@ class DataServer {
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
+            u.appname = id;
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames}));
+			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:id,gameInfo:g}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
+			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:id}));
 		}
 	}
 
@@ -595,9 +601,7 @@ class DataServer {
 		}
 	}
 
-	subscriptionLoop = () => {
-        let time = Date.now();
-        //Should have delay interval checks for each subscription update for rate limiting
+    updateUserSubscriptions = (time) => {
         this.userSubscriptions.forEach((sub,i) => {
             //Should create a dispatcher that accumulates all user and game subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
@@ -623,9 +627,10 @@ class DataServer {
                 }
             }
 		});
+    } 
 
-        //optimized to only send updated data
-		this.gameSubscriptions.forEach((sub,i) => {
+    updateGameSubscriptions = (time) => {
+        this.gameSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
@@ -719,9 +724,10 @@ class DataServer {
             }
             sub.lastTransmit = time;
 		});
+    }
 
-         //optimized to only send updated data
-		this.hostSubscriptions.forEach((sub,i) => {
+    updateHostGameSubscriptions = (time) => {
+        this.hostSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
@@ -810,6 +816,18 @@ class DataServer {
             }
             sub.lastTransmit = time;
 		});
+    }
+
+	subscriptionLoop = () => {
+        let time = Date.now();
+        //Should have delay interval checks for each subscription update for rate limiting
+        this.updateUserSubscriptions(time);
+
+        //optimized to only send updated data
+		this.updateGameSubscriptions(time);
+
+        //optimized to only send updated data
+		this.updateHostGameSubscriptions(time);
 
         this.userData.forEach((u,i) => {
             if(time - u.lastUpdate > this.serverTimeout) {

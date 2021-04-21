@@ -44,6 +44,8 @@ import { musePlugin } from './bciutils/devicePlugins/musePlugin';
 import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
 import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
+import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
+import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
 
 /** @module brainsatplay 
  * @description Module for server/socket connecting and macro controls for device streaming and data accessibilty.
@@ -233,7 +235,8 @@ export class brainsatplay {
 			'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
-			'cyton','cyton_daisy'
+			'cyton','cyton_daisy', 'ganglion', 
+			'simulated_eeg'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -277,6 +280,10 @@ export class brainsatplay {
 				}
 				else if (o === 'cyton_daisy') {
 					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
+				} else if (o === 'ganglion') {
+					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
+				}  else if (o === 'simulated_eeg') {
+					this.connect('simulated_eeg',['eegfft'],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -474,7 +481,7 @@ export class brainsatplay {
 			}
 
 			this.addStreamFunc(key,newStreamFunc);
-			this.addStreamParam(['key']);
+			this.addStreamParam([key]);
 		}
 	}
 
@@ -486,10 +493,27 @@ export class brainsatplay {
 	}
 
 	//add a parameter to the stream based on available callbacks [['function','arg1','arg2',etc][stream function 2...]]
-	addStreamParam(params=[],idx=0) {
+	addStreamParam(params=[]) {
 		params.forEach((p,i) => {
 			if(Array.isArray(p)) {
-				this.devices[idx].info.streamParams.push(p);
+				this.devices.find((d) => {
+					if(p[0].indexOf(d.info.deviceType) > -1) {
+						if(d.info.deviceType === 'eeg') {
+							d.atlas.data.eegshared.eegChannelTags.find((o) => {
+								if(o.tag === p[1] || o.ch === p[1]) {
+									d.info.streamParams.push(p);
+									return true;
+								}
+							})
+						}
+						else {
+							d.info.streamParams.push(p); 
+						}
+
+						return true;
+					}
+				});
+				
 			}
 		});
 	}
@@ -503,13 +527,15 @@ export class brainsatplay {
 			this.socket = this.setupWebSocket(dict);
 			this.info.auth.authenticated = true;
 			this.subscribed=true;
-			this.info.nDevices++;
+			//this.info.nDevices++;
 		}
 		if(this.socket !== null && this.socket.readyState === 1) {
 			if(beginStream === true) {
-				this.devices.forEach((d,i) => {
-					this.beginStream(i);
-				});
+				if(this.devices.length > 0) {
+					this.devices.forEach((d,i) => {
+						this.beginStream(i);
+					});
+				}
 			}
 		}
 	} 
@@ -623,6 +649,10 @@ export class brainsatplay {
 		else if (parsed.msg === 'getGamesResult') {
 			this.state.data.commandResult = parsed;
 		}
+		else if (parsed.msg === 'gameCreated') {
+			this.state.data.commandResult = parsed;
+			this.info.auth.appname = parsed.gameInfo.id;
+		}
 		else if (parsed.msg === 'subscribedToUser') {
 			this.state.data.commandResult = parsed;
 		}
@@ -691,7 +721,7 @@ export class brainsatplay {
 		return socket;
 	}
 
-	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
+	subscribeToUser(username='',userProps=[],userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getUserData',username]}));
@@ -705,7 +735,9 @@ export class brainsatplay {
 				if(typeof newResult === 'object') {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToUser',username,userProps]})); //resulting data will be available in state
+							this.socket.send(JSON.stringify(
+								{username:this.info.auth.username,cmd:['subscribeToUser',userToSubscribe,username,userProps]}
+							)); //resulting data will be available in state
 						}
 						onsuccess(newResult);
 						this.state.unsubscribe('commandResult',sub);
@@ -719,10 +751,10 @@ export class brainsatplay {
 		}
 	}
 
-	unsubscribeFromUser(username='',userProps=null,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
+	unsubscribeFromUser(username='',userProps=null, userToUnsubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({cmd:['unsubscribeFromUser',username,userProps],username:this.info.auth.username}))
+			this.socket.send(JSON.stringify({cmd:['unsubscribeFromUser',userToUnsubscribe,username,userProps],username:this.info.auth.username}))
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'unsubscribed' && newResult.username === username) {
 					for(const prop in this.state.data) {
@@ -740,7 +772,7 @@ export class brainsatplay {
 
 	getGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',gameid]}));
+			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',appname]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
@@ -760,7 +792,8 @@ export class brainsatplay {
 	}
 
 	//connect using the unique id of the subscription
-	subscribeToGame(gameid='',spectating=false,onsuccess=(newResult)=>{}) {
+	subscribeToGame(gameid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {		
+		console.log(this.info.auth.username)
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',gameid]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
@@ -778,7 +811,7 @@ export class brainsatplay {
 							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 						}
 						if(configured === true) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',this.info.auth.username,appname,spectating]}));
+							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',userToSubscribe,gameid,spectating]}));
 							newResult.gameInfo.usernames.forEach((user) => {
 								newResult.gameInfo.propnames.forEach((prop) => {
 									this.state.data[newResult.gameInfo.id+"_"+user+"_"+prop] = null;
@@ -788,9 +821,9 @@ export class brainsatplay {
 						}
 						this.state.unsubscribe('commandResult',sub);
 					}
-					else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+					else if (newResult.msg === 'gameNotFound' & newResult.appname === gameid) {
 						this.state.unsubscribe('commandResult',sub);
-						console.log("Game not found: ", appname);
+						console.log("Game not found: ", gameid);
 					}
 				}
 			});
@@ -800,7 +833,7 @@ export class brainsatplay {
 	unsubscribeFromGame(gameId='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send({cmd:['leaveGame',gameId],username:this.info.auth.username})
+			this.socket.send(JSON.stringify({cmd:['leaveGame',gameId],username:this.info.auth.username}))
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
 					for(const prop in this.state.data) {
@@ -820,7 +853,8 @@ export class brainsatplay {
 	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
 		let id = Math.floor(Math.random()*1000000)+appname;
 		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
-		parentNode.insertAdjacentHTML('afterbegin',html);
+		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
+		parentNode.insertAdjacentHTML('beforeend',html);
 
 		document.getElementById(id+'search').onclick = () => {
 			this.getGames(appname, (result) => {
@@ -833,7 +867,7 @@ export class brainsatplay {
 
 				result.gameInfo.forEach((g) => { 
 					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,(subresult) => {
+						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,undefined,(subresult) => {
 							onjoined(g);
 							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
 							document.getElementById(id+'disconnect').onclick = () => {
@@ -868,7 +902,7 @@ export class brainsatplay {
 		}
 	}
 
-	configureStreamForGame(deviceNames=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
+	configureStreamForGame(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
 		let params = [];
 		streamParams.forEach((p,i) => {
 			if(p[2] === undefined)
@@ -876,26 +910,38 @@ export class brainsatplay {
 			else params.push([...p]);
 		});
 		let d = undefined;
-		deviceNames.forEach((name,i) => { //configure named device
+		let found = false;
+		deviceTypes.forEach((name,i) => { // configure named device
 			d = this.devices.find((o,j) => {
-				if(o.info.deviceName.indexOf(name) > -1) {
+				if(o.info.deviceType === name) {
 					if(o.socket === null) o.socket = this.socket;
 					let deviceParams = [];
-					params.forEach((p,k) => {
+					params.forEach((p) => {
 						if(p[0].indexOf(o.info.deviceType) > -1) { //stream parameters should have the device type specified (in case multiple devices are involved)
-							deviceParams.push(p);
+							if(o.info.deviceType === 'eeg') {
+								o.atlas.data.eegshared.eegChannelTags.find((o) => {
+									if(o.tag === p[1] || o.ch === p[1]) {
+										deviceParams.push(p);
+										return true;
+									}
+								})
+							}
+							else deviceParams.push(p);
 						}
 					});
-					o.info.streamParams = deviceParams;
-					o.info.streaming = true;
-					if(o.info.streamCt === 0) {
-						o.streamLoop();
+					if(deviceParams.length > 0) {
+						o.info.streamParams = deviceParams;
+						if(o.info.streaming === false) {
+							o.info.streaming = true;
+							o.streamLoop();
+						}
+						found = true; //at least one device was found (if multiple types allowed)
+						return true;
 					}
-					return true;
 				}
 			});
 		});
-		if(d === undefined) {
+		if(!found) {
 			console.error('Compatible device not found');
 			return false;
 		}
@@ -992,7 +1038,10 @@ class deviceStream {
 			{  name:'muse', 	   cls:musePlugin         },
 			{  name:'hegduino',    cls:hegduinoPlugin 	  },
 			{  name:'cyton', 	   cls:cytonPlugin	      },
-			{  name:'webgazer',    cls:webgazerPlugin     }
+			{  name:'webgazer',    cls:webgazerPlugin     },
+			{  name:'ganglion',    cls:ganglionPlugin     },
+			{  name:'simulated_eeg',    cls: simulatedEEGPlugin}
+
 		];
 
 		this.socket = socket;
@@ -1124,7 +1173,7 @@ class deviceStream {
 			}
 		}
 
-		let getHEGData = (tag=0,nArrays='all',prop=null) => {
+		let getHEGData = (tag=0,nArrays='all',prop=undefined) => {
 			let get = nArrays;
 			if(this.info.useAtlas === true) {
 				let coord = this.atlas.getDeviceDataByTag('heg',tag);
@@ -1134,7 +1183,7 @@ class deviceStream {
 					if(get <= 0) return undefined;
 				}
 				if(coord !== undefined) {
-					if(prop !== null) {
+					if(prop !== undefined) {
 						let times = coord.times.slice(coord.times.length - get, coord.times.length);
 						let data = coord[prop].slice(coord.ffts.length - get,coord.ffts.length);
 						let obj = {times:times}; obj[prop] = data;

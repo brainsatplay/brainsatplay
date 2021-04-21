@@ -5,6 +5,10 @@ const cookieParser = require('cookie-parser');
 const cors = require("cors")
 const WebSocket = require('ws');
 const mongodb = require('mongodb');
+const fs = require('fs')
+const cert = fs.readFileSync('./snowpack.crt');
+const key = fs.readFileSync('./snowpack.key');
+var credentials = {key, cert};
 require('dotenv').config();
 
 // New Server Code
@@ -100,8 +104,10 @@ app.set('port', port);
 //
 // Server
 //
-const http = require('http'); 
-let server = http.createServer(app);  
+// const http = require('http'); 
+const https = require('https')
+// let server = http.createServer(app);  
+let server = https.createServer(credentials, app)
 
 // Websocket
 let wss;

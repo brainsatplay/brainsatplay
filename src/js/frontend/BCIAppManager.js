@@ -76,16 +76,28 @@ export class BCIAppManager {
 
         this.tutorialManager = new TutorialManager();
 
+        this.currentState = null
+
+        // Push state on initialization
+        if (this.currentState){
+            this.currentState = window.location.href
+            window.history.pushState({ additionalInformation: 'Updated URL on Initialization'},'',`${window.location.href}`)
+        }
+
         // Set Update on Forward/Back Button
         window.onpopstate = (e) => {
             if (e.state){
                 // this.uiFragments.appletbox.deleteNode();
-                document.getElementById('preset-selector').value = 'default'
-                document.getElementById('layout-selector').value = 'Focus'
+                let presetSelector = document.getElementById('preset-selector')
+                let layoutSelector = document.getElementById('layout-selector')
+                if (presetSelector != null) presetSelector.value = 'default'
+                if (layoutSelector != null) layoutSelector.value = 'Focus'
                 let configs = this.getConfigsFromHashes(); //overrides old settings
-                this.appletManager.deinitApplets()
-                this.appletManager.appletConfigs = configs
-                this.appletManager.initAddApplets(configs)
+                if (this.appletManager != null){
+                    this.appletManager.deinitApplets()
+                    this.appletManager.appletConfigs = configs
+                    this.appletManager.initAddApplets(configs)
+                }
             }
         }
 
@@ -160,6 +172,7 @@ export class BCIAppManager {
                         <button id='getusers'>Get Users</button>
                         <button id='createGame'>Make Game session</button>
                         <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                        <button id='spectateGame'>Spectate game</button>
                         <button id='subscribeToSelf'>Subscribe to self</button>
 
                         <div class="collapsible-content-label">
@@ -197,16 +210,19 @@ export class BCIAppManager {
                 this.bcisession.sendWSCommand(['getUsers']);
             }
             document.getElementById('createGame').onclick = () => {
-                this.bcisession.sendWSCommand(['createGame',this.bcisession.info.auth.appname,['freeeeg32'],['eegch_FP1','eegch_FP2']]);
+                this.bcisession.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             }
             document.getElementById('subscribeToGame').onclick = () => {
                 this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
             }
+            document.getElementById('spectateGame').onclick = () => {
+                this.bcisession.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
+            }
             document.getElementById('subscribeToSelf').onclick = () => {
-                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all']]);
+                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
                 //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
-                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2']],(res)=>{console.log("subscribed!", res)});
+                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
                 //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
             }
 

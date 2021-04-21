@@ -1,6 +1,8 @@
 //relies on eegworker (see implementation in public/index.html)
 //Joshua Brewster, Garrett Flynn GPL (copyleft)
 
+import { StateManager } from "../frontend/utils/StateManager";
+
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -22,7 +24,8 @@ export class DataAtlas {
 	) {
         this.name = name;
 		this.config = config; 
-		this.settings = { //Denotes active 
+
+		this.state = new StateManager({
 			deviceConnected: false,
 			analyzing: false,
 			analysis: analysis, // ['eegfft']
@@ -36,7 +39,9 @@ export class DataAtlas {
 			ecg:false,
 			spo2:false,
 			emg:false
-		};
+		})
+		this.settings = this.state.data;
+		//to subscribe use let sub = this.state.subscribe('deviceConnected',(status) => {});
 
         this.data = {
 			eegshared:{
