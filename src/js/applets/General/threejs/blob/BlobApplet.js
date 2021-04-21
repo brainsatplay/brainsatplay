@@ -132,8 +132,8 @@ const scene = new THREE.Scene()
  * Camera
  */
 let baseCameraPos = new THREE.Vector3(0,0,20)
-const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.01, 1000)
-camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
+const camera = new THREE.PerspectiveCamera(75, appletContainer.offsetWidth / appletContainer.offsetHeight, 0.01, 1000)
+camera.position.z = baseCameraPos.z
 
 this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
@@ -141,7 +141,7 @@ this.renderer = new THREE.WebGLRenderer({
 })
 
 // Renderer
-this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+this.renderer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight);
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
 
@@ -191,7 +191,7 @@ navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
  // Composer
 const effectComposer = new EffectComposer(this.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
+effectComposer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight)
 
  // Passes
 const renderPass = new RenderPass(scene, camera)
@@ -241,7 +241,7 @@ if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 const controls = new OrbitControls(camera, this.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
-controls.enabled = false;
+controls.enabled = true;
 
 //controls.addEventListener('change', render)
 
@@ -305,14 +305,17 @@ scene.add(mesh)
 
 // Resize
 this.resizeMesh = () => {
-    camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
+    camera.aspect = appletContainer.offsetWidth / appletContainer.offsetHeight
     camera.updateProjectionMatrix()
     // regenerateGeometry()
-    camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
-    this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+    // camera.position.z = baseCameraPos.z * Math.min(appletContainer.offsetWidt, window.innerHeight)
+    // camera.position.x = baseCameraPos.x /  Math.min(window.innerWidth, window.innerHeight)*1000
+    // camera.position.y = baseCameraPos.y /  Math.min(window.innerWidth, window.innerHeight)*1000
+    // camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
+    this.renderer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
+    effectComposer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight)
 }
 
 window.addEventListener('resize', this.resizeMesh, 

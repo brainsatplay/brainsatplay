@@ -134,8 +134,7 @@ let diameter = 100
  */
 let baseCameraPos = new THREE.Vector3(0,0,diameter*2)
 const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.01, 1000)
-camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
-
+camera.position.z = baseCameraPos.z
 this.renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true
@@ -221,7 +220,7 @@ if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 const controls = new OrbitControls(camera, this.renderer.domElement)
 controls.screenSpacePanning = true
 controls.enableDamping = true
-controls.enabled = false;
+controls.enabled = true;
 
 //controls.addEventListener('change', render)
 
@@ -290,7 +289,7 @@ scene.add(enso)
 this.resizeEnso = () => {
     camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
     camera.updateProjectionMatrix()
-    camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
+    // camera.position.z = baseCameraPos.z /  Math.min(window.innerWidth, window.innerHeight)*1000
     this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
