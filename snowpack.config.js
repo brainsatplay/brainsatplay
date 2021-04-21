@@ -23,7 +23,8 @@ module.exports = {
     polyfillNode: true
   },
   devOptions: {
-    port:1234
+    port:1234,
+    secure: true,
   },
   buildOptions: {
     out: 'dist',

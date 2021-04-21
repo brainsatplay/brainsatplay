@@ -80,14 +80,19 @@ export class MultiplayerAppletExample {
         let applet = document.getElementById(this.props.id)
         let list = document.getElementById(`${this.props.id}userList`)
         this.animate = () => {
-            let usernames = this.bci.state.data?.commandResult?.gameInfo?.usernames
+            let gameInfo = this.bci.state.data?.commandResult?.gameInfo
+            let usernames = gameInfo?.usernames
 
             list.innerHTML = ''
             if ( usernames != null ){
+                Object.keys(gameInfo).forEach((key) => {
+                    list.innerHTML += `<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 25px; border: 1px solid white;>${key} : ${gameInfo[key]}</div>`
+                })
                 usernames.forEach((name)=> {
                     list.innerHTML += `<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border: 1px solid white;">${name}</div>`
                 })
             }
+
             this.animation = window.requestAnimationFrame(this.animate)
         }
 
