@@ -45,6 +45,7 @@ import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin
 import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
 import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
+import { ganglionPlugin } from './bciutils/devicePlugins/ganglionPlugin';
 
 /** @module brainsatplay 
  * @description Module for server/socket connecting and macro controls for device streaming and data accessibilty.
@@ -234,7 +235,8 @@ export class brainsatplay {
 			'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
-			'cyton','cyton_daisy', 'simulated_eeg'
+			'cyton','cyton_daisy', 'ganglion', 
+			'simulated_eeg'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -278,7 +280,9 @@ export class brainsatplay {
 				}
 				else if (o === 'cyton_daisy') {
 					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
-				} else if (o === 'simulated_eeg') {
+				} else if (o === 'ganglion') {
+					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
+				}  else if (o === 'simulated_eeg') {
 					this.connect('simulated_eeg',['eegfft'],onconnect,ondisconnect);
 				}
 			}
@@ -1035,6 +1039,7 @@ class deviceStream {
 			{  name:'hegduino',    cls:hegduinoPlugin 	  },
 			{  name:'cyton', 	   cls:cytonPlugin	      },
 			{  name:'webgazer',    cls:webgazerPlugin     },
+			{  name:'ganglion',    cls:ganglionPlugin     },
 			{  name:'simulated_eeg',    cls: simulatedEEGPlugin}
 
 		];
