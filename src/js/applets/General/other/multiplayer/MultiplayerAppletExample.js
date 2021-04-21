@@ -32,6 +32,9 @@ export class MultiplayerAppletExample {
 
         //etc..
 
+        this.uiStates = {
+            gameInfo: {}
+        }
     }
 
     //---------------------------------
@@ -47,7 +50,18 @@ export class MultiplayerAppletExample {
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
             <button id='${props.id}createGame'>Make Game session</button>
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
+                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
+                <h2>Players</h2>
+                <hr>
+                <div id='${props.id}userList-players'>
+
+                </div>
+                <h2>Spectators</h2>
+                <hr>
+                <div id='${props.id}userList-spectators'>
+
+                </div>
+                </div>
             </div>
             <div id='${props.id}gameInfo' style='position: absolute; top: 0; right: 0; width: 25%; height: 20%; padding: 5px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
 
@@ -78,27 +92,67 @@ export class MultiplayerAppletExample {
 
         let applet = document.getElementById(this.props.id)
         let list = document.getElementById(`${this.props.id}userList`)
+        let spectatorsList = document.getElementById(`${this.props.id}userList-spectators`)
+        let playersList = document.getElementById(`${this.props.id}userList-players`)
+        playersList.style.display = 'none'
+        spectatorsList.style.display = 'none'
+        
         let info = document.getElementById(`${this.props.id}gameInfo`)
 
         this.animate = () => {
+            let data = this.bci.state.data
             let result = this.bci.state.data?.commandResult
 
-            console.log(result.msg)
-            if (result.msg === 'subscribedToGame'){
+
+            console.log(data)
+            if (['gameData'].includes(result.msg)){    
+                // console.log(result)
+            }
+
+            if (['getGameInfoResult', 'subscribedToGame'].includes(result.msg)){
                 let gameInfo = this.bci.state.data?.commandResult?.gameInfo
                 let usernames = gameInfo?.usernames
+                let spectators = gameInfo?.spectators
 
-                list.innerHTML = ''
-                info.innerHTML = ''
-                if ( usernames != null ){
-                    console.log('t')
-                    usernames.forEach((name)=> {
-                        // if (document.getElementById(`${this.props.id}-player-${this.props.name}`) == null) 
-                        list.innerHTML += `<div id="${this.props.id}-player-${this.props.name}" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border: 1px solid white;">${name}</div>`
+                if ( result.msg != null && this.uiStates.msg !== result.msg ){
+                    this.uiStates.msg = result.msg
+                }
+
+
+                if (gameInfo != null && this.uiStates.gameInfo !== gameInfo){
+                    if ( usernames != null && this.uiStates.gameInfo.usernames !== usernames ){
+                        usernames.forEach((name)=> {
+                            if (spectators.includes(name)) {
+                                spectatorsList.innerHTML += `<div id="${this.props.id}-spectator-${this.props.name}" style="width: 100%; min-height: 25px; padding: 5px;">${name}</div>`
+                            }
+                            else {
+                                playersList.innerHTML += `<div id="${this.props.id}-player-${this.props.name}" style="width: 100%; min-height: 25px; padding: 5px;">${name}</div>`
+                            }
+                        })
+                    }
+
+                    Object.keys(gameInfo).forEach((key) => {
+                        let val = gameInfo[key]
+                        if ( val != null && this.uiStates.gameInfo[key] !== val ){
+                            let el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+                            if (el == null ) {
+                                info.innerHTML += `<div id="${this.props.id}-gameInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
+                                el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+                            }
+                            el.innerHTML = `<h3>${key}</h3>`
+
+                            if (Array.isArray(val)){
+                                val.forEach(v => {
+                                    el.innerHTML += `<p>${v}</p>`
+                                })
+                            } else {
+                                el.innerHTML += `<p>${val}</p>`
+                            }
+                            this.uiStates.gameInfo[key] = val
+                        }
                     })
-                    // Object.keys(gameInfo).forEach((key) => {
-                    //     info.innerHTML += `<div style=" font-size: 80%; display: flex; align-items: center; justify-content: center; width: 100%; padding: 5px; border: 1px solid white;">${key} : ${gameInfo[key]}</div>`
-                    // })
+
+                    this.uiStates.gameInfo = gameInfo
                 }
             }
 
