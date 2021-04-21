@@ -1,7 +1,0 @@
-node_modules
-dist
-.idea/
-npm-debug.log
-.DS_Store
-*/.DS_Store
-package-lock.json
