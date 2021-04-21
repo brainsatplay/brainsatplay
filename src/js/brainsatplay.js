@@ -1177,14 +1177,15 @@ class deviceStream {
 		let getCoherenceData = (tag, nArrays='all') => {
 			let get = nArrays;
 			if(this.info.useAtlas === true) {
+				console.log(tag)
 				let coord = this.atlas.getCoherenceByTag(tag);
-				if(get === 'all') {
-					if(coord.fftCount === 0) return undefined;
-					get = coord.fftCount-coord.lastRead;
-					coord.lastRead = coord.fftCount;
-					if(get === 0) return undefined;
-				}
 				if(coord !== undefined) {
+					if(get === 'all') {
+						if(coord.fftCount === 0) return undefined;
+						get = coord.fftCount-coord.lastRead;
+						coord.lastRead = coord.fftCount;
+						if(get === 0) return undefined;
+					}
 					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
 					let ffts = coord.ffts.slice(coord.ffts.length - get,coord.ffts.length);
 					return {times:cohTimes, ffts:ffts};

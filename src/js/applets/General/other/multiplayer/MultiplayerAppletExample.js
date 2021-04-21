@@ -6,7 +6,7 @@ import featureImg from './../../../../../assets/features/placeholder.png'
 export class MultiplayerAppletExample {
 
     static name = "Multiplayer Example"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
+    static devices = ['eeg','heg']; //{devices:['eeg'], eegcoherenceannelTags:['FP1','FP2']  }
     static description = "Multiplayer Example"
     static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
@@ -74,8 +74,10 @@ export class MultiplayerAppletExample {
             this.bci.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1_all','eegch_FP2_all','eegch_AF7_all','eegch_AF8_all','hegdata']]);
-                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata']
+                // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
+            ]);
+                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
             }
 
         }
@@ -113,7 +115,6 @@ export class MultiplayerAppletExample {
                     this.uiStates.dynamic.msg = result.msg
                 }
 
-                console.log(spectators)
                 if ( usernames != null) {
                     if (this.uiStates.dynamic.usernames !== usernames ){
                     spectatorsList.innerHTML = ''
