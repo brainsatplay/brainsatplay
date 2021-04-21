@@ -192,8 +192,8 @@ let applets = new Map([
         p5SandboxApplet
     ],
     [
-        MultiplayerAppletExample.name,
-        MultiplayerAppletExample
+        MultiplayerAppletTemplate.name,
+        MultiplayerAppletTemplate
     ]
 ]);
 
