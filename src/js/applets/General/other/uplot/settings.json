@@ -1,7 +1,0 @@
-{
-    "name": "uPlot",
-    "devices": ["eeg","heg"],
-    "description": "View live data.",
-    "categories": ["data"],
-    "imageurl": "./img/feature.png"
-}
