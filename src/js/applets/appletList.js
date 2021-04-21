@@ -5,7 +5,7 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
 
-import {MultiplayerAppletTemplate} from './MultiplayerAppletTemplate'
+import {MultiplayerAppletExample} from './MultiplayerAppletExample'
 //import {AppletTemplate} from './AppletTemplate'
 //import {AppletExample} from './AppletExample'
 
@@ -167,8 +167,8 @@ let applets = new Map([
         p5SandboxApplet
     ],
     [
-        MultiplayerAppletTemplate.name,
-        MultiplayerAppletTemplate
+        MultiplayerAppletExample.name,
+        MultiplayerAppletExample
     ]
 ]);
 

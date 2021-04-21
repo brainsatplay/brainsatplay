@@ -151,6 +151,7 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
                 
+        console.log(appletConfigs)
         if(appletConfigs.length === 1 && appletConfigs.constructor != Object) {
             preset = this.appletPresets.find((p) => {
                 if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
