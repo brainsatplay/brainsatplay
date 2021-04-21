@@ -1,14 +1,14 @@
-import {brainsatplay} from '../brainsatplay'
-import {DOMFragment} from '../frontend/utils/DOMFragment'
-import featureImg from './../../assets/features/placeholder.png'
+import {brainsatplay} from './../../../brainsatplay'
+import {DOMFragment} from './../../../frontend/utils/DOMFragment'
+import featureImg from './../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
-export class AppletTemplate {
+export class MultiplayerAppletTemplate {
 
-    static name = "Example"; 
+    static name = "Multiplayer Template"; 
     static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Example"
-    static categories = ['feedback']; //data,game,multiplayer,meditation,etc
+    static description = "Multiplayer Template"
+    static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
     static image=featureImg
 
     constructor(
@@ -18,6 +18,7 @@ export class AppletTemplate {
     ) {
     
         //-------Keep these------- 
+        this.name = this.constructor.name
         this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
@@ -42,12 +43,21 @@ export class AppletTemplate {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id='${props.id}' style='height:100%; width:100%;'></div>`;
+            return `
+            <div id='${props.id}' style='height:100%; width:100%;'>
+            <button id='${props.id}createGame'>Make Game session</button>
+            </div>`;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            this.bci.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
+
+            document.getElementById(props.id+'createGame').onclick = () => {
+                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8','hegdata']]);
+                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+            }
+
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

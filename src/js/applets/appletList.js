@@ -5,7 +5,7 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
 
 
-import {MultiplayerAppletTemplate} from './MultiplayerAppletTemplate'
+import {MultiplayerAppletTemplate} from './Templates/Multiplayer/MultiplayerAppletTemplate'
 //import {AppletTemplate} from './AppletTemplate'
 //import {AppletExample} from './AppletExample'
 
@@ -39,23 +39,41 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
-const uPlotFolder = './General/other/uplot'
-
 const AppletFolderUrls = [
-    uPlotFolder
-]
+    './General/other/uplot',
+    './EEG/spectrogram',
+    './EEG/brainmap',
+    './EEG/smoothie',
+    './General/threejs/nexus',
+    './General/threejs/blob',
+    './General/threejs/enso',
+    './General/threejs/cosmos',
+    './EEG/blink',
+    './EEG/bandring',
+    './EEG/brainart',
+    './EEG/connectome',
+    './EEG/pixi',
+    './HEG/circle',
+    './General/other/audio',
+    './General/other/video',
+    './HEG/boids',
+    './HEG/hillclimber',
+    './HEG/textscroller',
+    './General/threejs/ThreeSunrise',
+    './HEG/pulsemonitor',
+    './General/other/ytube',
+    './Templates/Multiplayer'
+];
 
-
-let dynamicImport = async (url) => {
+export let dynamicImport = async (url) => {
     let module = await import(url);;
     return module;
 }
 
-let getAppletSettings = async (AppletFolderUrl) => {
-    let settings = await dynamicImport(AppletFolderUrl+"/settings.json");
-    let image = await dynamicImport(AppletFolderUrl+"/"+settings.image);
-
-    return [settings,image];
+export let getAppletSettings = async (AppletFolderUrl) => {
+    let config = await dynamicImport(AppletFolderUrl+"/settings.js");
+    //let image = await dynamicImport(AppletFolderUrl+"/"+config.settings.image);
+    return [config.settings,config.settings.image];
 }
 
 export let getApplet = async (AppletFolderUrl,settings) => {
@@ -64,14 +82,21 @@ export let getApplet = async (AppletFolderUrl,settings) => {
     return [module[settings.module],module.name];
 }
 
-export let generateSettings = async (urls) => {
+let generateSettings = (urls) => {
     let settings = new Map();
 
     urls.forEach(async (url) => {
         let result = await getAppletSettings(url);
         settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
     });
+
+    return settings;
 }
+
+let settings = generateSettings(AppletFolderUrls);
+
+console.log(settings)
+
 
 
 let applets = new Map([
