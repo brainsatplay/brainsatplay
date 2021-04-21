@@ -30,6 +30,7 @@ export class ganglionPlugin {
 
         info.sps = 200;
         info.deviceType = 'eeg';
+        let uvPerStep = 15686 / 8388607;
 
         info.eegChannelTags = [
             {ch: 0, tag: "FP1", analyze:true},
@@ -41,10 +42,10 @@ export class ganglionPlugin {
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,uvPerStep));
                 }
                 else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,uvPerStep)); 
                 }
             });
         }
