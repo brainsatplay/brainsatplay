@@ -1,0 +1,37 @@
+{
+  "name": "ganglion-ble",
+  "version": "1.0.0",
+  "description": "WebBluetooth client for the Ganglion EEG board by OpenBCI",
+  "main": "dist/ganglion-ble.umd.js",
+  "lock": false,
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server",
+    "prepublish": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "openbci",
+    "ganglion",
+    "ble",
+    "web",
+    "bluetooth",
+    "eeg"
+  ],
+  "repository": "https://github.com/alexcastillo/ganglion-ble",
+  "author": "Alex Castillo <alex@castillo.io>",
+  "license": "MIT",
+  "dependencies": {
+    "openbci-utilities": "^0.3.2",
+    "rxjs": "^5.5.2"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "webpack": "^3.7.1",
+    "webpack-dev-server": "^2.9.1"
+  }
+}

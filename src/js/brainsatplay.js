@@ -45,7 +45,7 @@ import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin
 import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
 import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
-import { ganglionPlugin } from './bciutils/devicePlugins/ganglionPlugin';
+import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
 
 /** @module brainsatplay 
  * @description Module for server/socket connecting and macro controls for device streaming and data accessibilty.
