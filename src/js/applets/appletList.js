@@ -88,6 +88,7 @@ let generateSettings = (urls) => {
     urls.forEach(async (url) => {
         let result = await getAppletSettings(url);
         settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
+        //Add a card to the applet manager here
     });
 
     return settings;
