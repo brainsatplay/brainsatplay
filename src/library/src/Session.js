@@ -47,12 +47,12 @@ import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 // import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
 import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
 
-/** @module brainsatplay 
- * @description Module for server/socket connecting and macro controls for device streaming and data accessibilty.
+/** @class Session 
+ * @description Class for server/socket connecting and macro controls for device streaming and data accessibilty.
  * 
 */
 
-export class brainsatplay {
+export class Session {
 	constructor(
 		username='',
 		password='',

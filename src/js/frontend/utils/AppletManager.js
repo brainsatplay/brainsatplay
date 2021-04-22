@@ -1,4 +1,4 @@
-import { brainsatplay } from "../../../library/src/brainsatplay.js";
+import { Session } from "../../../library/src/Session";
 import { DOMFragment } from "../../../library/src/frontend/utils/DOMFragment";
 import { presets } from "./../../applets/appletList"
 import { AppletBrowser } from './../../applets/UI/AppletBrowser'
@@ -11,7 +11,7 @@ export class AppletManager {
      * @alias AppletManager
      * @description Main container for WebBCI applets.
      */
-    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new brainsatplay()) {
+    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new Session()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();

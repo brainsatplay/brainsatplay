@@ -1,5 +1,5 @@
 
-import {brainsatplay} from './js/brainsatplay'
+import {Session} from './js/Session'
 import {BCIAppManager} from './js/frontend/BCIAppManager'
 import {DOMFragment} from './js/frontend/utils/DOMFragment'
 import { applets } from './js/applets/appletList'
@@ -15,7 +15,7 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 	console.log('Not on mobile')
 }
 
-let bcisession = new brainsatplay('guest','','game');
+let bcisession = new brainsatplay.Session('guest','','game');
 
 let mgr = new BCIAppManager(bcisession,applets,undefined,true);
 

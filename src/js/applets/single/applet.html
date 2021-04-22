@@ -3,7 +3,7 @@
 <head>
   <title>Brains@Play Platform</title>
   <meta charset="UTF-8" />
-  <script src="../library/dist/brainsatplay.js"></script>
+  <script src="../../../library/dist/brainsatplay.js"></script>
 <!-- <link href="../styles/css/global.css" rel="stylesheet"> -->
 </head>
 <body>
@@ -19,7 +19,7 @@
 // )
 
 console.log(brainsatplay)
-let bci =  new brainsatplay.brainsatplay()
+let bci =  new brainsatplay.Session()
 console.log(bci)
 //Now add some ui elements like to connect to the device
 bci.makeConnectOptions(document.getElementById('sidebar'),()=> {});

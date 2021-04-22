@@ -55,7 +55,7 @@ mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
   app.set('mongoClient', db);
   dataServ.mongodb = app.get('mongoClient')
   console.log('Connected to Database')
-  let b = new brainsatplay.brainsatplay()
+  let b = new brainsatplay.Session()
   console.log(b)
 
 }).catch(err => {

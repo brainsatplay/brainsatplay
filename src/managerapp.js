@@ -1,5 +1,5 @@
 
-const brainsatplay = await import('./library/src/brainsatplay')
+const brainsatplay = await import('./library/src/Session')
 // const brainsatplay = await import('./library/bundler.js');
 console.log(brainsatplay)
 
@@ -17,6 +17,6 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 }
 
 // let bcisession = new brainsatplay('guest','','game');
-let bcisession = new brainsatplay.brainsatplay('guest','','game');
+let bcisession = new brainsatplay.Session('guest','','game');
 
 let mgr = new BCIAppManager(bcisession,applets,undefined,true);

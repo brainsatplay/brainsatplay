@@ -3,5 +3,5 @@
  * 
 */
 
-export {brainsatplay} from './src/brainsatplay.js'
+export {Session} from './src/Session.js'
 export {DOMFragment} from './src/frontend/utils/DOMFragment.js'

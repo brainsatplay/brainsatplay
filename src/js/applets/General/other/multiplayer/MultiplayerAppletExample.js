@@ -1,4 +1,4 @@
-import {brainsatplay} from '../../../../../library/src/brainsatplay'
+import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/frontend/utils/DOMFragment'
 import featureImg from './../../../../../assets/features/placeholder.png'
 
@@ -13,13 +13,13 @@ export class MultiplayerAppletExample {
 
     constructor(
         parent=document.body,
-        bci=new brainsatplay(),
+        bci=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
         this.name = this.constructor.name
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
+        this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
         this.AppletHTML = null;

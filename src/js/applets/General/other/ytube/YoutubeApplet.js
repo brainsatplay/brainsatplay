@@ -1,4 +1,4 @@
-import {brainsatplay} from '../../../../../library/src/brainsatplay'
+import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/frontend/utils/DOMFragment'
 import featureImg from './logo.png'
 
@@ -14,12 +14,12 @@ export class YoutubeApplet {
 
     constructor(
         parent=document.body,
-        bci=new brainsatplay(),
+        bci=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
+        this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
         this.AppletHTML = null;
