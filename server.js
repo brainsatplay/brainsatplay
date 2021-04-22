@@ -10,6 +10,7 @@ const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
 require('dotenv').config();
+const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // New Server Code
 const DataServer = require('./src/js/DataServer.js'); 
@@ -54,6 +55,9 @@ mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
   app.set('mongoClient', db);
   dataServ.mongodb = app.get('mongoClient')
   console.log('Connected to Database')
+  let b = new brainsatplay.Session()
+  console.log(b)
+
 }).catch(err => {
   console.log('Error: ' + err)
 })

@@ -317,7 +317,7 @@ class DataServer {
             let u = this.userData.get(data.username);
 
             for(const prop in data.userData) {
-                u.props[prop] = data[prop];
+                u.props[prop] = data.userData[prop];
             }
 
             let now = Date.now();

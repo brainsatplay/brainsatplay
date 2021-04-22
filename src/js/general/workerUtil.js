@@ -1,7 +1,7 @@
 //By Joshua Brewster (MIT License) Not really sure how to get this to work outside of index.html
 export class WorkerUtil {
 
-    constructor(nThreads=1, workerSrc = './js/utils/eegworker.mjs', onReceivedMsg = this.onReceivedMsg, debug = false) {
+    constructor(nThreads=1, workerSrc = '', onReceivedMsg = this.onReceivedMsg, debug = false) {
         // this.onReceivedMsg = onReceivedMsg || this.onReceivedMsg
 
         // if(!receivedMsg) { this.onReceivedMsg = onReceivedMsg; }
