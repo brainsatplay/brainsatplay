@@ -1,5 +1,5 @@
-import { brainsatplay } from "../../brainsatplay";
-import { DOMFragment } from "./DOMFragment";
+import { brainsatplay } from "../../../library/src/brainsatplay.js";
+import { DOMFragment } from "../../../library/src/frontend/utils/DOMFragment";
 import { presets } from "./../../applets/appletList"
 import { AppletBrowser } from './../../applets/UI/AppletBrowser'
 
@@ -151,17 +151,22 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
                 
+
         if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
             else this.appletConfigs = [AppletBrowser]
         } else {
-            if (appletConfigs[0].constructor == Object){
-                this.appletConfigs = []
-                appletConfigs.forEach(dict => {
-                    this.appletConfigs.push(dict.name)
-                })
-            } else if(appletConfigs.length === 1) {
+            // disabled settings reloading for now
+
+            // if (appletConfigs[0].constructor == Object){
+            //     this.appletConfigs = []
+            //     appletConfigs.forEach(dict => {
+            //         this.appletConfigs.push(dict.name)
+            //     })
+            // } else 
+
+            if(appletConfigs.length === 1) {
                 preset = this.appletPresets.find((p) => {
                     if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
                         document.getElementById("preset-selector").value = p.value;

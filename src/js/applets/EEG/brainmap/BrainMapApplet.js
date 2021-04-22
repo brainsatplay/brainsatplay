@@ -1,6 +1,6 @@
-import {brainsatplay} from '../../../brainsatplay'
-import {DOMFragment} from '../../../frontend/utils/DOMFragment'
-import {BrainMap2D} from '../../../bciutils/visuals/eegvisuals'
+import {brainsatplay} from '../../../../library/src/brainsatplay'
+import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {BrainMap2D} from '../../../../library/src/bciutils/visuals/eegvisuals'
 import {genBandviewSelect} from '../../../frontend/menus/selectTemplates'
 import featureImg from './../../../../assets/features/placeholder.png'
 

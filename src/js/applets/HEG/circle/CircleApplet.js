@@ -1,5 +1,5 @@
-import {brainsatplay} from '../../../brainsatplay'
-import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../library/src/brainsatplay'
+import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
 
 import { SoundJS } from '../../../frontend/UX/Sound';
 import featureImg from './img/feature.png'

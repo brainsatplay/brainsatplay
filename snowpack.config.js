@@ -6,7 +6,7 @@ module.exports = {
       src: '/_dist_',
       public: {url: "/", static: true, resolve: false}
   },
-  exclude: ['**/node_modules/**/*', '**/src/js/other/old/**/*'],
+  exclude: ['**/node_modules/**/*', '**/src/js/other/old/**/*', '**/src/library/**/*'],
   plugins: [
     '@snowpack/plugin-dotenv',
     'snowpack-plugin-glslify',

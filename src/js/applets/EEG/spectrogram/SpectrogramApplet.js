@@ -1,7 +1,7 @@
-import {brainsatplay} from '../../../brainsatplay'
-import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import {brainsatplay} from '../../../../library/src/brainsatplay'
+import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
-import {Spectrogram} from '../../../bciutils/visuals/eegvisuals'
+import {Spectrogram} from '../../../../library/src/bciutils/visuals/eegvisuals'
 import featureImg from './img/feature.jpg'
 
 //Example Applet for integrating with the UI Manager

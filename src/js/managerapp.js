@@ -1,10 +1,9 @@
 
-const brainsatplay = await import('./library/src/brainsatplay')
-// const brainsatplay = await import('./library/bundler.js');
-console.log(brainsatplay)
-
+import {brainsatplay} from './js/brainsatplay'
 import {BCIAppManager} from './js/frontend/BCIAppManager'
+import {DOMFragment} from './js/frontend/utils/DOMFragment'
 import { applets } from './js/applets/appletList'
+
 //sssssymmetry (ღ˘⌣˘ღ)
 
 window.isMobile = false;
@@ -16,7 +15,7 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 	console.log('Not on mobile')
 }
 
-// let bcisession = new brainsatplay('guest','','game');
-let bcisession = new brainsatplay.brainsatplay('guest','','game');
+let bcisession = new brainsatplay('guest','','game');
 
 let mgr = new BCIAppManager(bcisession,applets,undefined,true);
+
