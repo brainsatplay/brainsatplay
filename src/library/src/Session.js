@@ -47,12 +47,18 @@ import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
 // import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
 import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
 
-/** @class Session 
- * @description Class for server/socket connecting and macro controls for device streaming and data accessibilty.
- * 
-*/
 
 export class Session {
+	/**
+     * @constructor 
+     * @alias module:brainsatplay.Session
+     * @description Class for server/socket connecting and macro controls for device streaming and data accessibilty.
+     * @param {string} username Username
+     * @param {string} password Password
+     * @param {string} appname App name
+     * @param {string} remoteHostURL Server URL
+     * @param {string} localHostURL Local URL
+     */
 	constructor(
 		username='',
 		password='',
@@ -86,7 +92,7 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.setLoginInfo
+     * @method module:brainsatplay.Session.setLoginInfo
      * @description Set user information.
      * @param {string} username Username.
      * @param {string} password Password.
@@ -102,8 +108,8 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.setLoginInfo
-     * @description Connect local device and add it. Use [reconnect()]{@link module:brainsatplay.reconnect} if disconnecting and reconnecting device in same session.
+     * @method module:brainsatplay.Session.setLoginInfo
+     * @description Connect local device and add it. Use [reconnect()]{@link module:brainsatplay.Session.reconnect} if disconnecting and reconnecting device in same session.
      * @param {string} device "freeeeg32", "freeeeg32_19", "muse", "notion"
      * @param {array} analysis "eegfft", "eegcoherence", etc
 	 * @param {callback} onconnect Callback function on device connection. Subscribe to device outputs after connection completed.
@@ -191,7 +197,7 @@ export class Session {
 
 
 	/**
-     * @method module:brainsatplay.reconnect
+     * @method module:brainsatplay.Session.reconnect
      * @description Reconnect a device that has already been added.
      * @param {int} deviceIdx Index of device.
 	 * @param {callback} onconnect Callback function on device reconnection. 
@@ -204,7 +210,7 @@ export class Session {
 	}
 	
 	/**
-     * @method module:brainsatplay.disconnect
+     * @method module:brainsatplay.Session.disconnect
      * @description Disconnect local device.
      * @param {int} deviceIdx Index of device.
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
@@ -218,9 +224,9 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.makeConnectOptions
-     * @description Generate {@link DOMFragment} with a selector for available devices.
-	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
+     * @method module:brainsatplay.Session.makeConnectOptions
+     * @description Generate DOM fragment with a selector for available devices.
+	 * @param {HTMLElement} parentNode Parent node to insert fragment into.
 	 * @param {callback} onconnect Callback function on device connection. 
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
