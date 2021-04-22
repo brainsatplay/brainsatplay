@@ -11,19 +11,9 @@
   </div>
 </body>
 <script>
-//  import {uPlotApplet} from './js/applets/General/other/uplot/uPlotApplet'
 
-// let plotter = new uPlotApplet(
-//     document.body,
-//     new brainsatplay()
-// )
-
-console.log(brainsatplay)
-let bci =  new brainsatplay.Session()
-console.log(bci)
-//Now add some ui elements like to connect to the device
-bci.makeConnectOptions(document.getElementById('sidebar'),()=> {});
-// plotter.init();
-// plotter.responsive();
+  let bci =  new brainsatplay.Session()
+  bci.makeConnectOptions(document.getElementById('sidebar'),()=> {});
+  
 </script>
 </html>
