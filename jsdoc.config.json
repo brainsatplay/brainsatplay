@@ -1,11 +1,13 @@
 {
     "source": {
         "includePattern": ".+\\.(js(doc|x)?|mjs)$",   // Only process file ending in .js, .jsdoc or .jsx
-        "include": ["./src","./README.md"],        // Check all folders.
+        "include": ["./src/library","./README.md"],        // Check all folders.
         "exclude": [
             "node_modules",
             "./src/js/bciutils/timechart",
-            "./src/js/other/old"            
+            "./src/js/other/old",
+            "./src/library/src/bciutils/devicePlugins/ganglion/ganglion-ble-master",
+            "./src/library/src/bciutils/devicePlugins/cyton"                
         ]             
     },
     "recurseDepth": 10,                         // Only go 10 levels deep.
@@ -17,7 +19,7 @@
         "default": {
             "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
             "staticFiles": {
-                "paths": ["./screenshots","./public/favicon.ico","./templates/brainstorm/static"]
+                "paths": ["./screenshots/","./public/","./templates/brainstorm/static/"]
             }
         }
     }

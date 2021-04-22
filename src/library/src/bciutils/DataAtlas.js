@@ -1362,9 +1362,9 @@ export class DataAtlas {
 	// Default Options Generation
 
 	/**
-     * @method makeFeedbackOptions
-     * @description Generate {@link DOMFragment} with a selector for available feedback options.
-	 * @param {HTMLElement} parentNode Parent node to insert DOMFragment into.
+     * @method DataAtlas.makeFeedbackOptions
+     * @description Generate DOM fragment with a selector for available feedback options.
+	 * @param {HTMLElement} parentNode Parent node to insert DOM fragment into.
 	 */
 
 	makeFeedbackOptions = (applet,parentNode=document.getElementById(applet.props.id).querySelector('.brainsatplay-neurofeedback-container')) => {
