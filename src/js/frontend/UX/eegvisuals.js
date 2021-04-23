@@ -251,13 +251,10 @@ export class uPlotMaker {
 				sum += 1;
 				k++;
 			}
-			if(mins[mapidx] < 0) {
-				sum += Math.abs(mins[k])/max;
-			}
-			return (t/max) + sum; //+(Math.abs(min)/max); //+0.5
+			return (t/maxs[k]) + k; //+(Math.abs(min)/max); //+0.5
 
 		}
-
+		
 		var uPlotData = [
 			dat[0]
 		];
@@ -309,15 +306,15 @@ export class uPlotMaker {
 		yvalues = (u, splits) => splits.map((v,i) => axmapper(v,i));
 
 		var ax=-1;
-		var axmapper = (v,i) => {
-		  if(v === Math.floor(v)){
-			if(v < newSeries.length){
-			  ax++;
-			  return newSeries[ax].label;
+		const axmapper = (v,i) => {
+			if(v === Math.floor(v)){
+			  if(v < this.plot.series.length){
+				ax++;
+				if(this.plot.series[ax]) return this.plot.series[ax].label;
+			  }
 			}
+			else { return undefined;}
 		  }
-		  else{ return (((v-ax)*(max)+mins[ax])).toFixed(2);}
-		}
 
 
 		let yOpts = {auto:true};
