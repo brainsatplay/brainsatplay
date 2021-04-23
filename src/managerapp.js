@@ -1,6 +1,6 @@
 
 const brainsatplay = await import('./library/src/Session')
-// const brainsatplay = await import('./library/bundler.js');
+// const brainsatplay = await import('./library/brainsatplay.js');
 console.log(brainsatplay)
 
 import {BCIAppManager} from './js/frontend/BCIAppManager'

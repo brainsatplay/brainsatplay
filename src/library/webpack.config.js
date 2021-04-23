@@ -3,7 +3,7 @@ const path = require('path');
 
 console.log(__dirname)
 module.exports = {
-  entry: path.join(__dirname, 'bundler.js'),
+  entry: path.join(__dirname, 'brainsatplay.js'),
   // entry: path.join(__dirname, 'src', 'js','brainsatplay.js'),
   output: {
     filename: 'brainsatplay.js',
