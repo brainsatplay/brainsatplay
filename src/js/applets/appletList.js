@@ -62,7 +62,7 @@ const AppletFolderUrls = [
     './General/threejs/ThreeSunrise',
     './HEG/pulsemonitor',
     './General/ytube',
-    './General/multiplayer'
+    './Templates/Multiplayer'
 ];
 
 export let dynamicImport = async (url) => {
@@ -82,7 +82,7 @@ export let getApplet = async (AppletFolderUrl,settings) => {
     return [module[settings.module],module.name];
 }
 
-export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(urlresult)=>{}) => {
+export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
     let settings = new Map();
     if(to === 'end') to = urls.length;
 
@@ -90,11 +90,11 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
         if(i >= from && i < to) {
             let result = await getAppletSettings(url);
             if(category === undefined)
-                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
             else if (result.settings.categories.indexOf(category) > -1) 
-                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
                 
-            onload(result);
+            onload(url,result);
             //Add a card to the applet manager here
         }
     });
