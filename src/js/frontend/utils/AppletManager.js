@@ -297,8 +297,8 @@ export class AppletManager {
         // Assign applets to proper areas
         this.applets.forEach((applet,i) => {
             if (applet.classinstance != null){
-            if(applet.classinstance.AppletHTML === null) { applet.classinstance.init(); }
-            let appletDiv =  applet.classinstance.AppletHTML.node;
+            if(applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { applet.classinstance.init(); }
+            let appletDiv; if(applet.classinstance.AppletHTML) appletDiv =  applet.classinstance.AppletHTML.node;
             appletDiv.name = applet.name
 
             // Drag functionality
@@ -386,7 +386,7 @@ export class AppletManager {
             
             this.applets[pos].classinstance.init();
 
-            let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
+            //let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
 
             this.appletConfigs = [];
@@ -497,7 +497,8 @@ export class AppletManager {
 
         activeNodes.forEach((appnode,i) => {
             // Set Generic Applet Settings
-            this.appletDivSettings(appnode.classinstance.AppletHTML.node, appnode.appletIdx-1);
+            if(classinstance.AppletHTML)
+                this.appletDivSettings(appnode.classinstance.AppletHTML.node, appnode.appletIdx-1);
         });  
     }
 
