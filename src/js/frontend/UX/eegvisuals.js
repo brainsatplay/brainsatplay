@@ -313,7 +313,7 @@ export class uPlotMaker {
 		  if(v === Math.floor(v)){
 			if(v < newSeries.length){
 			  ax++;
-			  return newSeries[v].label;
+			  return newSeries[ax].label;
 			}
 		  }
 		  else{ return (((v-ax)*(max)+mins[ax])).toFixed(2);}
@@ -383,6 +383,12 @@ export class uPlotMaker {
 
 		var mapidx=0;
 
+		/*
+			let graphscalar = 1/nGraphs
+			let graphrange = Math.abs(min[g]/max[g])
+			
+		*/
+
 		var ymapper = (t,j) => { //Pushes the y values up based on the max peak values of all the previous signals inputted
 			var k = 0;
 			var sum = 0;
@@ -390,10 +396,7 @@ export class uPlotMaker {
 				sum += 1;
 				k++;
 			}
-			if(mins[mapidx] < 0) {
-				sum += Math.abs(mins[k])/max;
-			}
-			return (t/maxs[k]) + sum; //+(Math.abs(min)/max); //+0.5
+			return (t/maxs[k]) + k; //+(Math.abs(min)/max); //+0.5
 
 		}
 
@@ -414,10 +417,10 @@ export class uPlotMaker {
 				if(v === Math.floor(v)){
 				  if(v < this.plot.series.length){
 					ax++;
-					return this.plot.series[v].label;
+					if(this.plot.series[ax]) return this.plot.series[ax].label;
 				  }
 				}
-				else{ return (((v-ax)*(maxs[ax])+mins[ax])).toFixed(2);}
+				else { return undefined;}
 			  }
 			let yvalues = (u, splits) => splits.map((v,i) => axmapper(v,i));
 			this.plot.axes[1].values = yvalues;
