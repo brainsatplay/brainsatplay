@@ -39,7 +39,7 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
-const AppletFolderUrls = [
+export const AppletFolderUrls = [
     './General/uplot',
     './EEG/spectrogram',
     './EEG/brainmap',

@@ -28,24 +28,25 @@ export class ganglionPlugin {
 
     init = (info,pipeToAtlas) => {
 
-        info.sps = 200;
-        info.deviceType = 'eeg';
+        this.info = info
+        this.info.sps = 200;
+        this.info.deviceType = 'eeg';
         let uvPerStep = 15686 / 8388607;
 
-        info.eegChannelTags = [
+        this.info.eegChannelTags = [
             {ch: 0, tag: "FP1", analyze:true},
             {ch: 1, tag: "FP2", analyze:true},
             {ch: 2, tag: "C3",  analyze:true},
             {ch: 3, tag: "C4",  analyze:true}
         ];
 
-        if(info.useFilters === true) {
-            info.eegChannelTags.forEach((row,i) => {
+        if(this.info.useFilters === true) {
+            this.info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,uvPerStep));
+                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,uvPerStep));
                 }
                 else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,uvPerStep)); 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
                 }
             });
         }
@@ -54,19 +55,19 @@ export class ganglionPlugin {
 			let config = '10_20';
             this.atlas = new DataAtlas(
 				location+":"+this.mode,
-				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
+				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
 				config,true,true,
-				info.analysis
+				this.info.analysis
 				);
-			info.useAtlas = true;
+			this.info.useAtlas = true;
 		} else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
 			this.atlas = pipeToAtlas; //External atlas reference
-            this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
-            this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.eegChannelTags = this.info.eegChannelTags;
+            this.atlas.data.eegshared.sps = this.info.sps;
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,this.info.sps*0.5);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.gen10_20Atlas();
-            this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
+            this.atlas.data.coherence = this.atlas.genCoherenceMap(this.info.eegChannelTags);
 
             this.atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
 				if( this.atlas.getEEGDataByTag(row.tag) === undefined ) {
@@ -76,9 +77,9 @@ export class ganglionPlugin {
 
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
-            info.useAtlas = true;
+            this.info.useAtlas = true;
 			if(info.analysis.length > 0 ) {
-				this.atlas.settings.analysis.push(...info.analysis);
+				this.atlas.settings.analysis.push(...this.info.analysis);
                 if(!this.atlas.settings.analyzing) { 
                     this.atlas.settings.analyzing = true;
                     this.atlas.analyzer();
@@ -112,9 +113,9 @@ export class ganglionPlugin {
             }
         });
 
-        if(info.useAtlas === true){			
+        if(this.info.useAtlas === true){			
             this.atlas.data.eegshared.startTime = Date.now();
-            if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+            if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
                 this.atlas.settings.analyzing = true;
                 setTimeout(() => {this.atlas.analyzer();},1200);		
             }
