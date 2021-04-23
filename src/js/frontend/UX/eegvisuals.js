@@ -393,7 +393,7 @@ export class uPlotMaker {
 			if(mins[mapidx] < 0) {
 				sum += Math.abs(mins[k])/max;
 			}
-			return (t/max) + sum; //+(Math.abs(min)/max); //+0.5
+			return (t/maxs[k]) + sum; //+(Math.abs(min)/max); //+0.5
 
 		}
 
@@ -417,7 +417,7 @@ export class uPlotMaker {
 					return this.plot.series[v].label;
 				  }
 				}
-				else{ return (((v-ax)*(max)+mins[ax])).toFixed(2);}
+				else{ return (((v-ax)*(maxs[ax])+mins[ax])).toFixed(2);}
 			  }
 			let yvalues = (u, splits) => splits.map((v,i) => axmapper(v,i));
 			this.plot.axes[1].values = yvalues;
