@@ -1,6 +1,6 @@
 import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
-import { applets , presets} from './../appletList'
+import { applets , presets } from './../appletList'
 import featureImg from './../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
