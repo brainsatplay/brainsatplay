@@ -13,6 +13,8 @@ href="https://opensource.org/licenses/MIT">
 ## Description
 **brainsatplay.js** is full-stack framework for developing web-based brain-computer interface (BCI) applications. This library extends [bci.js](https://bci.js.org/) to remove the networking and data management requirements for developing functional BCI apps hosted on the web.
 
+FYI it's super unfinished. We are reworking a few systems still to be *just* right and then completing documentation and a community website, give it a few weeks :-)
+ 
 # Test for EEG browser PWA
 
 See Web BCI test at https://webbci.netlify.app
