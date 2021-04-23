@@ -1,6 +1,6 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
-import {BrainMap2D} from '../../../../library/src/bciutils/visuals/eegvisuals'
+import {BrainMap2D} from '../../../frontend/utils/eegvisuals'
 import {genBandviewSelect} from '../../../frontend/menus/selectTemplates'
 import featureImg from './../../../../assets/features/placeholder.png'
 

@@ -1,7 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
-import { SmoothieChartMaker } from '../../../../library/src/bciutils/visuals/eegvisuals';
+import { SmoothieChartMaker } from '../../../frontend/utils/eegvisuals';
 import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
