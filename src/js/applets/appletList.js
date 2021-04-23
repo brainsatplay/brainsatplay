@@ -40,7 +40,7 @@ import hegImage from './../../assets/features/hegbiofeedback.png'
 
 
 const AppletFolderUrls = [
-    './General/other/uplot',
+    './General/uplot',
     './EEG/spectrogram',
     './EEG/brainmap',
     './EEG/smoothie',
@@ -54,15 +54,15 @@ const AppletFolderUrls = [
     './EEG/connectome',
     './EEG/pixi',
     './HEG/circle',
-    './General/other/audio',
-    './General/other/video',
+    './General/audio',
+    './General/video',
     './HEG/boids',
     './HEG/hillclimber',
     './HEG/textscroller',
     './General/threejs/ThreeSunrise',
     './HEG/pulsemonitor',
-    './General/other/ytube',
-    './General/other/multiplayer'
+    './General/ytube',
+    './General/multiplayer'
 ];
 
 export let dynamicImport = async (url) => {
