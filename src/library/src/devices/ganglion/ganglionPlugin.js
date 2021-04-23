@@ -48,8 +48,7 @@ export class ganglionPlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
                 }
-                this.filters[this.filters.length-1].notch50.pop();
-                this.filters[this.filters.length-1].notch60.pop();
+                this.filters[this.filters.length-1].useNotch50 = false; this.filters[this.filters.length-1].useNotch60 = false;
             });
         }
 
