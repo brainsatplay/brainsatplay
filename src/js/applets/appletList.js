@@ -79,7 +79,7 @@ export let getAppletSettings = async (AppletFolderUrl) => {
 export let getApplet = async (AppletFolderUrl,settings) => {
     
     let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
-    return [module[settings.module],module.name];
+    return module[settings.module];
 }
 
 export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
