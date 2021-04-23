@@ -13,8 +13,8 @@ require('dotenv').config();
 const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // New Server Code
-const DataServer = require('./src/library/server/DataServer.js'); 
-const auth = require('./src/library/server/auth.js'); 
+const DataServer = require('./src/library/src/server/DataServer.js'); 
+const auth = require('./src/library/src/server/auth.js'); 
 let dataServ = new DataServer();
 
 // Settings
@@ -85,7 +85,7 @@ app.use(function(req, res, next) {
 });
 
 // Set Routes
-const initRoutes = require("./src/js/routes/web.js");
+const initRoutes = require("./src/library/src/server/routes/web.js");
 initRoutes(app);
 
 // development error handler

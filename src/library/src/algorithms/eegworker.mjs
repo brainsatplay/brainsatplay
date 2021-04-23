@@ -2,8 +2,8 @@
 //var localpath = full.substr(0,full.lastIndexOf("/"));
 //var parentpath = localpath.substr(0,localpath.lastIndexOf("/"));
 
-import { gpuUtils } from './algorithms/gpuUtils.js';
-import { eegmath } from './algorithms/eegmath';
+import { gpuUtils } from './gpuUtils.js';
+import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
