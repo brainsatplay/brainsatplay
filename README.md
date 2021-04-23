@@ -1,17 +1,15 @@
 <div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px;">
 <div style="text-align:center; width: 400px;">
-<img src="./logo.png" style="width: 300px;">
+<img src="./logo.png" style="width: 300px;" alt="Brains@Play">
 <p>A full-stack framework for developing brain-responsive web apps with JavaScript</p>
 
-<img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"
-href="https://github.com/brainsatplay/brainsatplay">
-<img src="https://img.shields.io/badge/License-MIT-yellow.svg"
-href="https://opensource.org/licenses/MIT">
+<a href="https://github.com/brainsatplay/brainsatplay-beta"><img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"></a>
+<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
 </div>
 </div>
 
 ## Description
-**brainsatplay.js** is full-stack framework for developing web-based brain-computer interface (BCI) applications. This library abstracts the networking and data management requirements for developing functional BCI apps hosted on the web.
+**brainsatplay.js** is full-stack framework for deploying web-based brain-computer interface (BCI) applications. This library abstracts the networking and data management requirements for developing functional BCI apps hosted on the web.
 
 FYI it's super unfinished. We are reworking a few systems still to be *just* right and then completing documentation and a community website, give it a few weeks :-)
 
@@ -60,4 +58,4 @@ npm start
 The alpha version of Brains@Play's application manager.
 
 ## Support
-If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn (gflynn@usc.edu) or Josh Brewster.
+If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
