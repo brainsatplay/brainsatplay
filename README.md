@@ -58,4 +58,4 @@ npm start
 The alpha version of Brains@Play's application manager.
 
 ## Support
-If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn (gflynn@usc.edu) or Josh Brewster.
+If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
