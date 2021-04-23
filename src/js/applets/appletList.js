@@ -86,8 +86,7 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
     let settings = new Map();
     if(to === 'end') to = urls.length;
 
-    for(let i = from; i < to; i++) {
-        let url = urls[i];
+    urls.forEach(async (url,i) => {
         if(i >= from && i < to) {
             let result = await getAppletSettings(url);
             if(category === undefined)
@@ -98,7 +97,7 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
             onload(result);
             //Add a card to the applet manager here
         }
-    }
+    });
 
     return settings;
 }
