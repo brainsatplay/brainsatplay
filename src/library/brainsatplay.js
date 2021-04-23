@@ -4,3 +4,4 @@
 */
 
 export {Session} from './src/Session.js'
+export * from './src/analysis/eegmath'
