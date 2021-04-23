@@ -48,8 +48,8 @@ export class ganglionPlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
                 }
-                this.filters.notch50.pop();
-                this.filters.notch60.pop();
+                this.filters[this.filters.length-1].notch50.pop();
+                this.filters[this.filters.length-1].notch60.pop();
             });
         }
 
@@ -106,9 +106,9 @@ export class ganglionPlugin {
                     if(this.info.useFilters === true) {                
                         let latestFiltered = 0;
                         if(this.filters[i] !== undefined) {
-                            latestFiltered = this.filters[i].apply(sample); 
+                            latestFiltered = this.filters[i].apply(datum); 
                         }
-                        coord.filtered.push(...latestFiltered);
+                        coord.filtered.push(latestFiltered);
                     }
                 });
                 
