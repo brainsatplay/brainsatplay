@@ -1,5 +1,5 @@
 import {Session} from '../../../library/src/Session.js/index.js'
-import {uPlotApplet} from '../General/other/uplot/uPlotApplet'
+import {uPlotApplet} from './js/applets/General/other/uplot/uPlotApplet'
 
 let plotter = new uPlotApplet(
     document.body,
