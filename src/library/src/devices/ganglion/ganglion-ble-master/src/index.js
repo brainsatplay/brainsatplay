@@ -8,6 +8,8 @@ import { takeUntil } from 'rxjs/operators/takeUntil';
 import { mergeMap } from 'rxjs/operators/mergeMap';
 import { fromEvent } from 'rxjs/observable/fromEvent';
 import k from './openbci_constants'
+import {processRouteSampleData} from './utilities'
+
 import { renameDataProp } from './utils';
 
 import {
@@ -22,7 +24,6 @@ import {
 
 function parseGanglion (o) {
     const byteId = parseInt(o.rawDataPacket[0]);
-    console.log(k)
     if (byteId <= k.OBCIGanglionByteId19Bit.max) {
       return processRouteSampleData(o);
     } else {

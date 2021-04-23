@@ -3,7 +3,7 @@
 import gaussian from 'gaussian';
 import k from './openbci_constants';
 import StreamSearch from 'streamsearch';
-//import { Buffer } from 'buffer/';
+// import { Uint8Array } from 'buffer/';
 
 /** Constants for interpreting the EEG data */
 // Reference voltage for ADC in ADS1299.
@@ -19,7 +19,7 @@ let utilitiesModule = {
 
   /**
    * @typedef {Object} ProcessedBuffer
-   * @property {Buffer|SafeBuffer|Buffer2} buffer The remaining buffer. Can be null.
+   * @property {Uint8Array|SafeBuffer|Buffer2} buffer The remaining buffer. Can be null.
    * @property {Array} rawDataPackets The extracted raw data packets
    */
   /**
@@ -27,7 +27,7 @@ let utilitiesModule = {
    * @property {Array} accelData of floats of accel data. not always present in object.
    * @property {Number} sampleNumber The sample number
    * @property {Array} channelData The extracted channel data
-   * @property {Buffer} rawDataPacket The raw data packet
+   * @property {Uint8Array} rawDataPacket The raw data packet
    * @property {Boolean} valid If the sample is valid
    */
   /**
@@ -38,8 +38,8 @@ let utilitiesModule = {
   /**
    * @typedef {Object} RawDataToSample
    * @property {Array} rawDataPackets - An array of rawDataPackets
-   * @property {Buffer} rawDataPacket - A single raw data packet
-   * @property {Buffer} multiPacketBuffer - This buffer is used to build up multiple messages over ble and emit them at once
+   * @property {Uint8Array} rawDataPacket - A single raw data packet
+   * @property {Uint8Array} multiPacketBuffer - This buffer is used to build up multiple messages over ble and emit them at once
    * @property {Array} channelSettings - The channel settings array
    * @property {Number} timeOffset (optional) for non time stamp use cases i.e. 0xC0 or 0xC1 (default and raw aux)
    * @property {Array} accelArray (optional) for non time stamp use cases
@@ -52,7 +52,7 @@ let utilitiesModule = {
 
   /**
    * @description Used to extract samples out of a buffer of unknown length
-   * @param dataBuffer {Buffer} - A buffer to parse for samples
+   * @param dataBuffer {Uint8Array} - A buffer to parse for samples
    * @returns {ProcessedBuffer} - Object with parsed raw packets and remaining buffer. Calling function shall maintain
    *  the buffer in it's scope.
    * @author AJ Keller (@aj-ptw)
@@ -88,7 +88,7 @@ let utilitiesModule = {
           // this.timeOfPacketArrival = this.time();
           // Grab the raw packet, make a copy of it.
           let rawPacket;
-          rawPacket = Buffer.from(dataBuffer.slice(parsePosition, parsePosition + k.OBCIPacketSize));
+          rawPacket = Uint8Array.from(dataBuffer.slice(parsePosition, parsePosition + k.OBCIPacketSize));
 
           // Emit that buffer
           // this.emit('rawDataPacket', rawPacket);
@@ -98,17 +98,17 @@ let utilitiesModule = {
           // Overwrite the dataBuffer with a new buffer
           let tempBuf;
           if (parsePosition > 0) {
-            tempBuf = Buffer.concat([
-              Buffer.from(dataBuffer.slice(0, parsePosition)),
-              Buffer.from(dataBuffer.slice(parsePosition + k.OBCIPacketSize))
+            tempBuf = Uint8Array.concat([
+              Uint8Array.from(dataBuffer.slice(0, parsePosition)),
+              Uint8Array.from(dataBuffer.slice(parsePosition + k.OBCIPacketSize))
             ]);
           } else {
-            tempBuf = Buffer.from(dataBuffer.slice(k.OBCIPacketSize));
+            tempBuf = Uint8Array.from(dataBuffer.slice(k.OBCIPacketSize));
           }
           if (tempBuf.length === 0) {
             dataBuffer = null;
           } else {
-            dataBuffer = Buffer.from(tempBuf);
+            dataBuffer = Uint8Array.from(tempBuf);
           }
           // Move the parse position up one packet
           parsePosition = -1;
@@ -158,10 +158,10 @@ let utilitiesModule = {
   /**
   * @description Mainly used by the simulator to convert a randomly generated sample into a std OpenBCI V3 Packet
   * @param sample - A sample object
-  * @returns {Buffer}
+  * @returns {Uint8Array}
   */
   convertSampleToPacketStandard: (sample) => {
-    let packetBuffer = new Buffer(k.OBCIPacketSize);
+    let packetBuffer = new Uint8Array(k.OBCIPacketSize);
     packetBuffer.fill(0);
 
     // start byte
@@ -191,11 +191,11 @@ let utilitiesModule = {
   /**
   * @description Mainly used by the simulator to convert a randomly generated sample into a std OpenBCI V3 Packet
   * @param sample - A sample object
-  * @param rawAux {Buffer} - A 6 byte long buffer to insert into raw buffer
-  * @returns {Buffer} - A 33 byte long buffer
+  * @param rawAux {Uint8Array} - A 6 byte long buffer to insert into raw buffer
+  * @returns {Uint8Array} - A 33 byte long buffer
   */
   convertSampleToPacketRawAux: (sample, rawAux) => {
-    let packetBuffer = new Buffer(k.OBCIPacketSize);
+    let packetBuffer = new Uint8Array(k.OBCIPacketSize);
     packetBuffer.fill(0);
 
     // start byte
@@ -221,9 +221,9 @@ let utilitiesModule = {
   },
   /**
   * @description Mainly used by the simulator to convert a randomly generated sample into an accel time sync set buffer
-  * @param sample {Buffer} - A sample object
+  * @param sample {Uint8Array} - A sample object
   * @param time {Number} - The time to inject into the sample.
-  * @returns {Buffer} - A time sync accel packet
+  * @returns {Uint8Array} - A time sync accel packet
   */
   convertSampleToPacketAccelTimeSyncSet: (sample, time) => {
     let buf = convertSampleToPacketAccelTimeSynced(sample, time);
@@ -232,17 +232,17 @@ let utilitiesModule = {
   },
   /**
   * @description Mainly used by the simulator to convert a randomly generated sample into an accel time synced buffer
-  * @param sample {Buffer} - A sample object
+  * @param sample {Uint8Array} - A sample object
   * @param time {Number} - The time to inject into the sample.
-  * @returns {Buffer} - A time sync accel packet
+  * @returns {Uint8Array} - A time sync accel packet
   */
   convertSampleToPacketAccelTimeSynced,
   /**
   * @description Mainly used by the simulator to convert a randomly generated sample into a raw aux time sync set packet
-  * @param sample {Buffer} - A sample object
+  * @param sample {Uint8Array} - A sample object
   * @param time {Number} - The time to inject into the sample.
-  * @param rawAux {Buffer} - 2 byte buffer to inject into sample
-  * @returns {Buffer} - A time sync raw aux packet
+  * @param rawAux {Uint8Array} - 2 byte buffer to inject into sample
+  * @returns {Uint8Array} - A time sync raw aux packet
   */
   convertSampleToPacketRawAuxTimeSyncSet: (sample, time, rawAux) => {
     let buf = convertSampleToPacketRawAuxTimeSynced(sample, time, rawAux);
@@ -553,37 +553,37 @@ let utilitiesModule = {
     return newObj;
   },
   samplePacket: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 0, 0, 1, 0, 2, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 0, 0, 1, 0, 2, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
   },
   samplePacketZero: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
   },
   samplePacketReal: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0x8F, 0xF2, 0x40, 0x8F, 0xDF, 0xF4, 0x90, 0x2B, 0xB6, 0x8F, 0xBF, 0xBF, 0x7F, 0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0x94, 0x25, 0x34, 0x20, 0xB6, 0x7D, 0, 0xE0, 0, 0xE0, 0x0F, 0x70, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0x8F, 0xF2, 0x40, 0x8F, 0xDF, 0xF4, 0x90, 0x2B, 0xB6, 0x8F, 0xBF, 0xBF, 0x7F, 0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0x94, 0x25, 0x34, 0x20, 0xB6, 0x7D, 0, 0xE0, 0, 0xE0, 0x0F, 0x70, makeTailByteFromPacketType(k.OBCIStreamPacketStandardAccel)]);
   },
   samplePacketStandardRawAux: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 2, 3, 4, 5, makeTailByteFromPacketType(k.OBCIStreamPacketStandardRawAux)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 2, 3, 4, 5, makeTailByteFromPacketType(k.OBCIStreamPacketStandardRawAux)]);
   },
   samplePacketAccelTimeSyncSet: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketAccelTimeSyncSet)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketAccelTimeSyncSet)]);
   },
   samplePacketAccelTimeSynced: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketAccelTimeSynced)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 1, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketAccelTimeSynced)]);
   },
   samplePacketRawAuxTimeSyncSet: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0x00, 0x01, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketRawAuxTimeSyncSet)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0x00, 0x01, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketRawAuxTimeSyncSet)]);
   },
   samplePacketRawAuxTimeSynced: sampleNumber => {
-    return new Buffer([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0x00, 0x01, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketRawAuxTimeSynced)]);
+    return new Uint8Array([0xA0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0x00, 0x01, 0, 0, 0, 1, makeTailByteFromPacketType(k.OBCIStreamPacketRawAuxTimeSynced)]);
   },
   samplePacketImpedance: channelNumber => {
-    return new Buffer([0xA0, channelNumber, 54, 52, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, makeTailByteFromPacketType(k.OBCIStreamPacketImpedance)]);
+    return new Uint8Array([0xA0, channelNumber, 54, 52, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, makeTailByteFromPacketType(k.OBCIStreamPacketImpedance)]);
   },
   samplePacketUserDefined: () => {
-    return new Buffer([0xA0, 0x00, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, makeTailByteFromPacketType(k.OBCIStreamPacketUserDefinedType)]);
+    return new Uint8Array([0xA0, 0x00, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, makeTailByteFromPacketType(k.OBCIStreamPacketUserDefinedType)]);
   },
   samplePacketCytonBLE: sampleNumber => {
-    return new Buffer([0xC0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 10, 0, 0, 20, 0, 0, 100, 0, 0, 200]);
+    return new Uint8Array([0xC0, sampleNumberNormalize(sampleNumber), 0, 0, 1, 0, 0, 2, 0, 0, 10, 0, 0, 20, 0, 0, 100, 0, 0, 200]);
   },
   countADSPresent,
   doesBufferHaveEOT,
@@ -649,7 +649,7 @@ let utilitiesModule = {
   decompressDeltas18Bit,
   decompressDeltas19Bit,
   sampleCompressedData: (sampleNumber) => {
-    return new Buffer(
+    return new Uint8Array(
       [
         sampleNumber, // 0
         0b00000000, // 0
@@ -674,37 +674,37 @@ let utilitiesModule = {
       ]);
   },
   sampleBLERaw: () => {
-    return new Buffer([0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4]);
+    return new Uint8Array([0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4]);
   },
   sampleImpedanceChannel1: () => {
-    return new Buffer([k.OBCIGanglionByteIdImpedanceChannel1, 0, 0, 1]);
+    return new Uint8Array([k.OBCIGanglionByteIdImpedanceChannel1, 0, 0, 1]);
   },
   sampleImpedanceChannel2: () => {
-    return new Buffer([k.OBCIGanglionByteIdImpedanceChannel2, 0, 0, 1]);
+    return new Uint8Array([k.OBCIGanglionByteIdImpedanceChannel2, 0, 0, 1]);
   },
   sampleImpedanceChannel3: () => {
-    return new Buffer([k.OBCIGanglionByteIdImpedanceChannel3, 0, 0, 1]);
+    return new Uint8Array([k.OBCIGanglionByteIdImpedanceChannel3, 0, 0, 1]);
   },
   sampleImpedanceChannel4: () => {
-    return new Buffer([k.OBCIGanglionByteIdImpedanceChannel4, 0, 0, 1]);
+    return new Uint8Array([k.OBCIGanglionByteIdImpedanceChannel4, 0, 0, 1]);
   },
   sampleImpedanceChannelReference: () => {
-    return new Buffer([k.OBCIGanglionByteIdImpedanceChannelReference, 0, 0, 1]);
+    return new Uint8Array([k.OBCIGanglionByteIdImpedanceChannelReference, 0, 0, 1]);
   },
   sampleMultiBytePacket: (data) => {
-    const bufPre = new Buffer([k.OBCIGanglionByteIdMultiPacket]);
-    return Buffer.concat([bufPre, data]);
+    const bufPre = new Uint8Array([k.OBCIGanglionByteIdMultiPacket]);
+    return Uint8Array.concat([bufPre, data]);
   },
   sampleMultiBytePacketStop: (data) => {
-    const bufPre = new Buffer([k.OBCIGanglionByteIdMultiPacketStop]);
-    return Buffer.concat([bufPre, data]);
+    const bufPre = new Uint8Array([k.OBCIGanglionByteIdMultiPacketStop]);
+    return Uint8Array.concat([bufPre, data]);
   },
   sampleOtherData: (data) => {
-    const bufPre = new Buffer([255]);
-    return Buffer.concat([bufPre, data]);
+    const bufPre = new Uint8Array([255]);
+    return Uint8Array.concat([bufPre, data]);
   },
   sampleUncompressedData: () => {
-    return new Buffer(
+    return new Uint8Array(
       [
         0b00000000, // 0
         0b00000000, // 1
@@ -862,7 +862,7 @@ function processImpedanceData (o) {
  */
 function processMultiBytePacket (o) {
   if (o.multiPacketBuffer) {
-    o.multiPacketBuffer = Buffer.concat([Buffer.from(o.multiPacketBuffer), Buffer.from(o.rawDataPacket.slice(k.OBCIGanglionPacket19Bit.dataStart, k.OBCIGanglionPacket19Bit.dataStop))]);
+    o.multiPacketBuffer = Uint8Array.concat([Uint8Array.from(o.multiPacketBuffer), Uint8Array.from(o.rawDataPacket.slice(k.OBCIGanglionPacket19Bit.dataStart, k.OBCIGanglionPacket19Bit.dataStop))]);
   } else {
     o.multiPacketBuffer = o.rawDataPacket.slice(k.OBCIGanglionPacket19Bit.dataStart, k.OBCIGanglionPacket19Bit.dataStop);
   }
@@ -923,7 +923,7 @@ function buildSample (sampleNumber, rawData, sendCounts) {
  * @param o {RawDataToSample} - Used to hold data and configuration settings
  * @returns {*}
  */
-function processRouteSampleData (o) {
+export function processRouteSampleData (o) {
   if (parseInt(o.rawDataPacket[0]) === k.OBCIGanglionByteIdUncompressed) {
     return processUncompressedData(o);
   } else {
@@ -953,7 +953,7 @@ function processUncompressedData (o) {
  *  the MSB. Therefore you must not look to the MSB for a sign extension, one
  *  must look to the LSB, and the same rules applies, if it's a 1, then it's a
  *  negative and if it's 0 then it's a positive number.
- * @param threeByteBuffer {Buffer}
+ * @param threeByteBuffer {Uint8Array}
  *  A 3-byte buffer with only 18 bits of actual data.
  * @return {number} A signed integer.
  */
@@ -974,7 +974,7 @@ function convert18bitAsInt32 (threeByteBuffer) {
  *  the MSB. Therefore you must not look to the MSB for a sign extension, one
  *  must look to the LSB, and the same rules applies, if it's a 1, then it's a
  *  negative and if it's 0 then it's a positive number.
- * @param threeByteBuffer {Buffer}
+ * @param threeByteBuffer {Uint8Array}
  *  A 3-byte buffer with only 19 bits of actual data.
  * @return {number} A signed integer.
  */
@@ -991,7 +991,7 @@ function convert19bitAsInt32 (threeByteBuffer) {
 
 /**
  * Called to when a compressed packet is received.
- * @param buffer {Buffer} Just the data portion of the sample. So 18 bytes.
+ * @param buffer {Uint8Array} Just the data portion of the sample. So 18 bytes.
  * @return {Array} - An array of deltas of shape 2x4 (2 samples per packet
  *  and 4 channels per sample.)
  * @private
@@ -1009,7 +1009,7 @@ function decompressDeltas18Bit (buffer) {
   let miniBuf;
 
   // Sample 1 - Channel 1
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[0] >> 6),
       ((buffer[0] & 0x3F) << 2) | (buffer[1] >> 6),
@@ -1019,17 +1019,17 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[0][0] = convert18bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 2
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[2] & 0x3F) >> 4,
       (buffer[2] << 4) | (buffer[3] >> 4),
       (buffer[3] << 4) | (buffer[4] >> 4)
     ]);
-  // miniBuf = new Buffer([(buffer[2] & 0x1F), buffer[3], buffer[4] >> 2]);
+  // miniBuf = new Uint8Array([(buffer[2] & 0x1F), buffer[3], buffer[4] >> 2]);
   receivedDeltas[0][1] = convert18bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 3
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[4] & 0x0F) >> 2,
       (buffer[4] << 6) | (buffer[5] >> 2),
@@ -1038,7 +1038,7 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[0][2] = convert18bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 4
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[6] & 0x03),
       buffer[7],
@@ -1047,7 +1047,7 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[0][3] = convert18bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 1
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[9] >> 6),
       ((buffer[9] & 0x3F) << 2) | (buffer[10] >> 6),
@@ -1056,7 +1056,7 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[1][0] = convert18bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 2
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[11] & 0x3F) >> 4,
       (buffer[11] << 4) | (buffer[12] >> 4),
@@ -1065,7 +1065,7 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[1][1] = convert18bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 3
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[13] & 0x0F) >> 2,
       (buffer[13] << 6) | (buffer[14] >> 2),
@@ -1074,7 +1074,7 @@ function decompressDeltas18Bit (buffer) {
   receivedDeltas[1][2] = convert18bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 4
-  miniBuf = new Buffer([(buffer[15] & 0x03), buffer[16], buffer[17]]);
+  miniBuf = new Uint8Array([(buffer[15] & 0x03), buffer[16], buffer[17]]);
   receivedDeltas[1][3] = convert18bitAsInt32(miniBuf);
 
   return receivedDeltas;
@@ -1082,7 +1082,7 @@ function decompressDeltas18Bit (buffer) {
 
 /**
  * Called to when a compressed packet is received.
- * @param buffer {Buffer} Just the data portion of the sample. So 19 bytes.
+ * @param buffer {Uint8Array} Just the data portion of the sample. So 19 bytes.
  * @return {Array} - An array of deltas of shape 2x4 (2 samples per packet
  *  and 4 channels per sample.)
  * @private
@@ -1100,7 +1100,7 @@ function decompressDeltas19Bit (buffer) {
   let miniBuf;
 
   // Sample 1 - Channel 1
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[0] >> 5),
       ((buffer[0] & 0x1F) << 3) | (buffer[1] >> 5),
@@ -1110,17 +1110,17 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[0][0] = convert19bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 2
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       (buffer[2] & 0x1F) >> 2,
       (buffer[2] << 6) | (buffer[3] >> 2),
       (buffer[3] << 6) | (buffer[4] >> 2)
     ]);
-  // miniBuf = new Buffer([(buffer[2] & 0x1F), buffer[3], buffer[4] >> 2]);
+  // miniBuf = new Uint8Array([(buffer[2] & 0x1F), buffer[3], buffer[4] >> 2]);
   receivedDeltas[0][1] = convert19bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 3
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       ((buffer[4] & 0x03) << 1) | (buffer[5] >> 7),
       ((buffer[5] & 0x7F) << 1) | (buffer[6] >> 7),
@@ -1129,7 +1129,7 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[0][2] = convert19bitAsInt32(miniBuf);
 
   // Sample 1 - Channel 4
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       ((buffer[7] & 0x7F) >> 4),
       ((buffer[7] & 0x0F) << 4) | (buffer[8] >> 4),
@@ -1138,7 +1138,7 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[0][3] = convert19bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 1
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       ((buffer[9] & 0x0F) >> 1),
       (buffer[9] << 7) | (buffer[10] >> 1),
@@ -1147,7 +1147,7 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[1][0] = convert19bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 2
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       ((buffer[11] & 0x01) << 2) | (buffer[12] >> 6),
       (buffer[12] << 2) | (buffer[13] >> 6),
@@ -1156,7 +1156,7 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[1][1] = convert19bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 3
-  miniBuf = new Buffer(
+  miniBuf = new Uint8Array(
     [
       ((buffer[14] & 0x38) >> 3),
       ((buffer[14] & 0x07) << 5) | ((buffer[15] & 0xF8) >> 3),
@@ -1165,7 +1165,7 @@ function decompressDeltas19Bit (buffer) {
   receivedDeltas[1][2] = convert19bitAsInt32(miniBuf);
 
   // Sample 2 - Channel 4
-  miniBuf = new Buffer([(buffer[16] & 0x07), buffer[17], buffer[18]]);
+  miniBuf = new Uint8Array([(buffer[16] & 0x07), buffer[17], buffer[18]]);
   receivedDeltas[1][3] = convert19bitAsInt32(miniBuf);
 
   return receivedDeltas;
@@ -1274,7 +1274,7 @@ function transformRawDataPacketToSample (o) {
 /**
  * Used to convert a ganglions decompressed back into a buffer
  * @param arr {Array} - An array of four numbers
- * @param data {Buffer} - A buffer to store into
+ * @param data {Uint8Array} - A buffer to store into
  */
 function convertGanglionArrayToBuffer (arr, data) {
   for (let i = 0; i < k.OBCINumberOfChannelsGanglion; i++) {
@@ -1286,8 +1286,8 @@ function convertGanglionArrayToBuffer (arr, data) {
 /**
  * @description This function takes a raw data buffer of 4 3-byte signed integers for ganglion
  * @param o {Object} - The input object
- * @param o.data {Buffer} - An allocated and filled buffer of length 12
- * @param o.rawDataPacket {Buffer} - An allocated buffer of length 33
+ * @param o.data {Uint8Array} - An allocated and filled buffer of length 12
+ * @param o.rawDataPacket {Uint8Array} - An allocated buffer of length 33
  * @param o.sampleNumber {Number} - The sample number to load into the `rawDataPacket`
  */
 function ganglionFillRawDataPacket (o) {
@@ -1309,7 +1309,7 @@ function ganglionFillRawDataPacket (o) {
 /**
  * @description This method parses a 33 byte OpenBCI V3 packet and converts to a sample object
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling k.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1335,7 +1335,7 @@ function parsePacketStandardAccel (o) {
   if (o.scale) sampleObject.channelData = getChannelDataArray(o);
   else sampleObject.channelDataCounts = getChannelDataArrayNoScale(o);
 
-  sampleObject.auxData = Buffer.from(o.rawDataPacket.slice(k.OBCIPacketPositionStartAux, k.OBCIPacketPositionStopAux + 1));
+  sampleObject.auxData = Uint8Array.from(o.rawDataPacket.slice(k.OBCIPacketPositionStartAux, k.OBCIPacketPositionStopAux + 1));
 
   // Get the sample number
   sampleObject.sampleNumber = o.rawDataPacket[k.OBCIPacketPositionSampleNumber];
@@ -1355,7 +1355,7 @@ function parsePacketStandardAccel (o) {
 /**
  * @description This method parses a 33 byte OpenBCI V3 packet and converts to a sample object
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling k.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1379,7 +1379,7 @@ function parsePacketStandardRawAux (o) {
   else sampleObject.channelDataCounts = getChannelDataArrayNoScale(o);
 
   // Slice the buffer for the aux data
-  sampleObject.auxData = Buffer.from(o.rawDataPacket.slice(k.OBCIPacketPositionStartAux, k.OBCIPacketPositionStopAux + 1));
+  sampleObject.auxData = Uint8Array.from(o.rawDataPacket.slice(k.OBCIPacketPositionStartAux, k.OBCIPacketPositionStopAux + 1));
 
   // Get the sample number
   sampleObject.sampleNumber = o.rawDataPacket[k.OBCIPacketPositionSampleNumber];
@@ -1402,7 +1402,7 @@ function parsePacketStandardRawAux (o) {
  *      Y axis data is sent with every sampleNumber % 10 === 1
  *      Z axis data is sent with every sampleNumber % 10 === 2
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling OpenBCIConstans.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1460,7 +1460,7 @@ function parsePacketTimeSyncedAccel (o) {
 /**
  * @description Raw aux
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling k.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1513,7 +1513,7 @@ function parsePacketTimeSyncedRawAux (o) {
 /**
  * @description Raw aux
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @returns {Impedance} - An impedance object.
  */
 function parsePacketImpedance (o) {
@@ -1616,7 +1616,7 @@ function setChSetFromADSRegisterQuery (str, channelSettings) {
  *
  * @param o {Object}
  * @param o.channelSettings {Array} - The standard channel settings object
- * @param o.data {Buffer} - The buffer of raw query data
+ * @param o.data {Uint8Array} - The buffer of raw query data
  */
 function syncChannelSettingsWithRawData (o) {
   // Check to make sure data is not null.
@@ -1696,7 +1696,7 @@ function getFromTimePacketTime (dataBuf) {
  *      Z axis data is sent with every sampleNumber % 10 === 9
  * @param o {Object}
  * @param o.accelArray {Array} - A 3 element array that allows us to have inter packet memory of x and y axis data and emit only on the z axis packets.
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @param o.scale {Boolean} - Do you want to scale the results? Default is true
  * @returns {boolean} - A boolean that is true only when the accel array is ready to be emitted... i.e. when this is a Z axis packet
  */
@@ -1727,20 +1727,20 @@ function getFromTimePacketAccel (o) {
 
 /**
 * @description Grabs a raw aux value from a raw but time synced packet.
-* @param dataBuf {Buffer} - The 33byte raw time synced raw aux packet
-* @returns {Buffer|SafeBuffer|Buffer2} - Fulfills a 2 byte buffer
+* @param dataBuf {Uint8Array} - The 33byte raw time synced raw aux packet
+* @returns {Uint8Array|SafeBuffer|Buffer2} - Fulfills a 2 byte buffer
 */
 function getFromTimePacketRawAux (dataBuf) {
   if (dataBuf.byteLength !== k.OBCIPacketSize) {
     throw new Error(k.OBCIErrorInvalidByteLength);
   }
-  return Buffer.from(dataBuf.slice(k.OBCIPacketPositionTimeSyncAuxStart, k.OBCIPacketPositionTimeSyncAuxStop));
+  return Uint8Array.from(dataBuf.slice(k.OBCIPacketPositionTimeSyncAuxStart, k.OBCIPacketPositionTimeSyncAuxStop));
 }
 
 /**
 * @description Takes a buffer filled with 3 16 bit integers from an OpenBCI device and converts based on settings
 *                  of the MPU, values are in ?
-* @param dataBuf - Buffer that is 6 bytes long
+* @param dataBuf - Uint8Array that is 6 bytes long
 * @returns {Array} - Array of floats 3 elements long
 * @author AJ Keller (@aj-ptw)
 */
@@ -1756,7 +1756,7 @@ function getDataArrayAccel (dataBuf) {
 /**
  * @description Takes a buffer filled with 3 16 bit integers from an OpenBCI device and converts based on settings
  *                  to an int
- * @param dataBuf - Buffer that is 6 bytes long
+ * @param dataBuf - Uint8Array that is 6 bytes long
  * @returns {Array} - Array of floats 3 elements long
  * @author AJ Keller (@aj-ptw)
  */
@@ -1774,7 +1774,7 @@ function getDataArrayAccelNoScale (dataBuf) {
  *                  channelSettingsArray[index].gain and converts based on settings of ADS1299... spits out an
  *                  array of floats in VOLTS
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling k.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1842,7 +1842,7 @@ function getChannelDataArray (o) {
 /**
  * @description Takes a buffer filled with 24 bit signed integers from an OpenBCI device converts to array of counts
  * @param o {Object} - The input object
- * @param o.rawDataPacket {Buffer} - The 33byte raw time synced accel packet
+ * @param o.rawDataPacket {Uint8Array} - The 33byte raw time synced accel packet
  * @param o.channelSettings {Array} - An array of channel settings that is an Array that has shape similar to the one
  *                  calling k.channelSettingsArrayInit(). The most important rule here is that it is
  *                  Array of objects that have key-value pair {gain:NUMBER}
@@ -1932,10 +1932,10 @@ function newSampleNoScale (sampleNumber) {
 /**
 * @description Convert float number into three byte buffer. This is the opposite of .interpret24bitAsInt32()
 * @param float - The number you want to convert
-* @returns {Buffer} - 3-byte buffer containing the float
+* @returns {Uint8Array} - 3-byte buffer containing the float
 */
 function floatTo3ByteBuffer (float) {
-  let intBuf = new Buffer(3); // 3 bytes for 24 bits
+  let intBuf = new Uint8Array(3); // 3 bytes for 24 bits
   intBuf.fill(0); // Fill the buffer with 0s
 
   let temp = float / (ADS1299_VREF / 24 / (Math.pow(2, 23) - 1)); // Convert to counts
@@ -1956,7 +1956,7 @@ function floatTo3ByteBuffer (float) {
 * @returns {buffer} - 3-byte buffer containing the float
 */
 function floatTo2ByteBuffer (float) {
-  let intBuf = new Buffer(2); // 2 bytes for 16 bits
+  let intBuf = new Uint8Array(2); // 2 bytes for 16 bits
   intBuf.fill(0); // Fill the buffer with 0s
 
   let temp = float / SCALE_FACTOR_ACCEL; // Convert to counts
@@ -2120,11 +2120,11 @@ function isOdd (a) {
 /**
 * @description Since we know exactly what this input will look like (See the hardware firmware) we can program this
 *      function with prior knowledge.
-* @param dataBuffer {Buffer} - The buffer you want to parse.
+* @param dataBuffer {Uint8Array} - The buffer you want to parse.
 * @return {Number} - The number of "ADS1299" present in the `dataBuffer`
 */
 function countADSPresent (dataBuffer) {
-  const s = new StreamSearch(new Buffer('ADS1299'));
+  const s = new StreamSearch(new Uint8Array('ADS1299'));
 
   // Clear the buffer
   s.reset();
@@ -2146,7 +2146,7 @@ function countADSPresent (dataBuffer) {
 //       of StreamSearch's optimizations; the object should be preserved between chunks,
 //       and only fed the new data.  TODO: also check other uses of StreamSearch
 function doesBufferHaveEOT (dataBuffer) {
-  const s = new StreamSearch(new Buffer(k.OBCIParseEOT));
+  const s = new StreamSearch(new Uint8Array(k.OBCIParseEOT));
 
   // Clear the buffer
   s.reset();
@@ -2179,11 +2179,11 @@ function getFirmware (dataBuffer) {
 
 /**
 * @description Used to parse a buffer for the word `Failure` that is acked back after private radio msg on failure
-* @param dataBuffer {Buffer} - The buffer of some length to parse
+* @param dataBuffer {Uint8Array} - The buffer of some length to parse
 * @returns {boolean} - True if `Failure` was found.
 */
 function isFailureInBuffer (dataBuffer) {
-  const s = new StreamSearch(new Buffer(k.OBCIParseFailure));
+  const s = new StreamSearch(new Uint8Array(k.OBCIParseFailure));
 
   // Clear the buffer
   s.reset();
@@ -2197,11 +2197,11 @@ function isFailureInBuffer (dataBuffer) {
 
 /**
 * @description Used to parse a buffer for the word `Success` that is acked back after private radio msg on success
-* @param dataBuffer {Buffer} - The buffer of some length to parse
+* @param dataBuffer {Uint8Array} - The buffer of some length to parse
 * @returns {boolean} - True if `Success` was found.
 */
 function isSuccessInBuffer (dataBuffer) {
-  const s = new StreamSearch(new Buffer(k.OBCIParseSuccess));
+  const s = new StreamSearch(new Uint8Array(k.OBCIParseSuccess));
 
   // Clear the buffer
   s.reset();
@@ -2215,8 +2215,8 @@ function isSuccessInBuffer (dataBuffer) {
 
 /**
  * @description Used to slice a buffer for the EOT '$$$'.
- * @param dataBuffer {Buffer} - The buffer of some length to parse
- * @returns {Buffer} - The remaining buffer.
+ * @param dataBuffer {Uint8Array} - The buffer of some length to parse
+ * @returns {Uint8Array} - The remaining buffer.
  */
 function stripToEOTBuffer (dataBuffer) {
   let indexOfEOT = dataBuffer.indexOf(k.OBCIParseEOT);
@@ -2227,7 +2227,7 @@ function stripToEOTBuffer (dataBuffer) {
   }
 
   if (indexOfEOT < dataBuffer.byteLength) {
-    return Buffer.from(dataBuffer.slice(indexOfEOT));
+    return Uint8Array.from(dataBuffer.slice(indexOfEOT));
   } else {
     return null;
   }
@@ -2235,7 +2235,7 @@ function stripToEOTBuffer (dataBuffer) {
 
 /**
 * @description Used to parse a buffer for the `,` character that is acked back after a time sync request is sent
-* @param dataBuffer {Buffer} - The buffer of some length to parse
+* @param dataBuffer {Uint8Array} - The buffer of some length to parse
 * @returns {boolean} - True if the `,` was found.
 */
 function isTimeSyncSetConfirmationInBuffer (dataBuffer) {
@@ -2284,11 +2284,11 @@ function isTimeSyncSetConfirmationInBuffer (dataBuffer) {
 * @description Mainly used by the simulator to convert a randomly generated sample into a std OpenBCI V3 Packet
 * @param sample {Object} - A sample object
 * @param time {Number} - The time to inject into the sample.
-* @param rawAux {Buffer} - 2 byte buffer to inject into sample
-* @returns {Buffer} - A time sync raw aux packet
+* @param rawAux {Uint8Array} - 2 byte buffer to inject into sample
+* @returns {Uint8Array} - A time sync raw aux packet
 */
 function convertSampleToPacketRawAuxTimeSynced (sample, time, rawAux) {
-  let packetBuffer = new Buffer(k.OBCIPacketSize);
+  let packetBuffer = new Uint8Array(k.OBCIPacketSize);
   packetBuffer.fill(0);
 
   // start byte
@@ -2320,10 +2320,10 @@ function convertSampleToPacketRawAuxTimeSynced (sample, time, rawAux) {
 * @description Mainly used by the simulator to convert a randomly generated sample into a std OpenBCI V3 Packet
 * @param sample {Object} - A sample object
 * @param time {Number} - The time to inject into the sample.
-* @returns {Buffer} - A time sync accel packet
+* @returns {Uint8Array} - A time sync accel packet
 */
 function convertSampleToPacketAccelTimeSynced (sample, time) {
-  let packetBuffer = new Buffer(k.OBCIPacketSize);
+  let packetBuffer = new Uint8Array(k.OBCIPacketSize);
   packetBuffer.fill(0);
 
   // start byte

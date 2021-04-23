@@ -31,7 +31,7 @@ export class ganglionPlugin {
         this.info = info
         this.info.sps = 200;
         this.info.deviceType = 'eeg';
-        let uvPerStep = 15686 / 8388607;
+        let uvPerStep = 1e6;
 
         this.info.eegChannelTags = [
             {ch: 0, tag: "FP1", analyze:true},
