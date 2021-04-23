@@ -1,5 +1,5 @@
-import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import * as brainsatplay from './../../../../library/brainsatplay'
+import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
 import featureImg from './../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
@@ -13,7 +13,7 @@ export class MultiplayerAppletTemplate {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        bci=new brainsatplay.Session(),
         settings=[]
     ) {
     
