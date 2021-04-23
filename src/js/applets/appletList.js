@@ -90,9 +90,9 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
         if(i >= from && i < to) {
             let result = await getAppletSettings(url);
             if(category === undefined)
-                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
             else if (result.settings.categories.indexOf(category) > -1) 
-                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
                 
             onload(result);
             //Add a card to the applet manager here
