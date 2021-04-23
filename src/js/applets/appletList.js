@@ -82,13 +82,16 @@ export let getApplet = async (AppletFolderUrl,settings) => {
     return [module[settings.module],module.name];
 }
 
-let generateSettings = (urls) => {
+let generateSettings = (urls, from=0, to='end') => {
     let settings = new Map();
+    if(to === 'end') to = urls.length;
 
-    urls.forEach(async (url) => {
-        let result = await getAppletSettings(url);
-        settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
+    urls.forEach(async (url,i) => {
+        if(i >= from && i < to) {
+            let result = await getAppletSettings(url);
+            settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
         //Add a card to the applet manager here
+        }
     });
 
     return settings;

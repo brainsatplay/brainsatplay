@@ -19,7 +19,7 @@ import {
     login_template
 } from './menus/UITemplates'
 
-import {AppletManager} from './utils/AppletManager'
+import {AppletManager} from './AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from '../../library/src/ui/StateManager';
 import { DOMFragment } from '../../library/src/ui/DOMFragment';
