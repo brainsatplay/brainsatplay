@@ -7,7 +7,7 @@ import { filter } from 'rxjs/operators/filter';
 import { takeUntil } from 'rxjs/operators/takeUntil';
 import { mergeMap } from 'rxjs/operators/mergeMap';
 import { fromEvent } from 'rxjs/observable/fromEvent';
-
+import { k } from './openbci_constants'
 import { renameDataProp } from './utils';
 
 import {
