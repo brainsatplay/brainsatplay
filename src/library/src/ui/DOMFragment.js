@@ -29,8 +29,9 @@ const fragment = new DOMFragment(templateStringGen,document.body,htmlprops,onRen
 
 export class DOMFragment {
     /**
+     * @ignore
      * @constructor
-     * @alias module:brainsatplay.DOMFragment
+     * @alias DOMFragment
      * @description Create a DOM fragment.
      * @param {function} templateStringGen - Function to generate template string.
      * @param {HTMLElement} parentNode HTML DOM node to append fragment into.
