@@ -479,7 +479,6 @@ export class BCIAppManager {
         )
 
         // Remove overlay
-        document.body.querySelector('.app').style.display = 'block';
         document.body.querySelector('.loader').style.opacity = 0;
         this.tutorialManager.initializeTutorial()
     }
