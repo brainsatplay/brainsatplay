@@ -73,7 +73,7 @@ export let dynamicImport = async (url) => {
 export let getAppletSettings = async (AppletFolderUrl) => {
     let config = await dynamicImport(AppletFolderUrl+"/settings.js");
     //let image = await dynamicImport(AppletFolderUrl+"/"+config.settings.image);
-    return [config.settings,config.settings.image];
+    return config.settings;
 }
 
 export let getApplet = async (AppletFolderUrl,settings) => {
@@ -82,17 +82,23 @@ export let getApplet = async (AppletFolderUrl,settings) => {
     return [module[settings.module],module.name];
 }
 
-let generateSettings = (urls, from=0, to='end') => {
+export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(urlresult)=>{}) => {
     let settings = new Map();
     if(to === 'end') to = urls.length;
 
-    urls.forEach(async (url,i) => {
+    for(let i = from; i < to; i++) {
+        let url = urls[i];
         if(i >= from && i < to) {
             let result = await getAppletSettings(url);
-            settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
-        //Add a card to the applet manager here
+            if(category === undefined)
+                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+            else if (result.settings.categories.indexOf(category) > -1) 
+                settings.set(result.name,{image:result.settings.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                
+            onload(result);
+            //Add a card to the applet manager here
         }
-    });
+    }
 
     return settings;
 }
