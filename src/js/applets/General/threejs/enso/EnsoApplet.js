@@ -1,5 +1,5 @@
 import {Session} from '../../../../../library/src/Session'
-import {DOMFragment} from '../../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 
 import '../style.css'
 import * as THREE from 'three'

@@ -1,5 +1,5 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
 import {Ring} from './Ring';
 import featureImg from './img/feature.png'

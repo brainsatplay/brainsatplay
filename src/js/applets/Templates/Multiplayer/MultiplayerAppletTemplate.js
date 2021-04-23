@@ -1,5 +1,5 @@
 import {brainsatplay} from './../../../brainsatplay'
-import {DOMFragment} from './../../../frontend/utils/DOMFragment'
+import {DOMFragment} from './../../../ui/DOMFragment'
 import featureImg from './../../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager

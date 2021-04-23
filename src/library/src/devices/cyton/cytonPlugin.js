@@ -3,8 +3,8 @@
 
 import {DataAtlas} from '../../DataAtlas'
 import {cyton} from './cyton'
-import {BiquadChannelFilterer} from '../../signal_analysis/BiquadFilters'
-import { DOMFragment } from '../../../frontend/utils/DOMFragment';
+import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import { DOMFragment } from '../../ui/DOMFragment';
 
 export class cytonPlugin {
     constructor(mode='cyton_daisy', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {

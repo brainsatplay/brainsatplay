@@ -1,7 +1,7 @@
 //relies on eegworker (see implementation in public/index.html)
 //Joshua Brewster, Garrett Flynn GPL (copyleft)
 
-import { StateManager } from "../frontend/utils/StateManager";
+import { StateManager } from "./ui/StateManager";
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------

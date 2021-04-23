@@ -6,8 +6,8 @@
             "node_modules",
             "./src/js/bciutils/timechart",
             "./src/js/other/old",
-            "./src/library/src/bciutils/devicePlugins/ganglion/ganglion-ble-master",
-            "./src/library/src/bciutils/devicePlugins/cyton"                
+            "./src/library/src/devices/ganglion/ganglion-ble-master",
+            "./src/library/src/devices/cyton"                
         ]             
     },
     "recurseDepth": 10,                         // Only go 10 levels deep.

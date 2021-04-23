@@ -21,8 +21,8 @@ import {
 
 import {AppletManager} from './utils/AppletManager'
 import {CSV} from '../general/csv'
-import { StateManager } from '../../library/src/frontend/utils/StateManager';
-import { DOMFragment } from '../../library/src/frontend/utils/DOMFragment';
+import { StateManager } from '../../library/src/ui/StateManager';
+import { DOMFragment } from '../../library/src/ui/DOMFragment';
 import { TutorialManager } from './utils/TutorialManager';
 
 import * as BrowserFS from 'browserfs'

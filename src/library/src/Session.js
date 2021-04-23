@@ -36,16 +36,15 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
-import {StateManager} from './frontend/utils/StateManager'
-import {DataAtlas} from './bciutils/DataAtlas'
+import {StateManager} from './ui/StateManager'
+import {DataAtlas} from './DataAtlas'
 
-import { eeg32Plugin } from './bciutils/devicePlugins/freeeeg32/freeeeg32Plugin';
-import { musePlugin } from './bciutils/devicePlugins/musePlugin';
-import { hegduinoPlugin } from './bciutils/devicePlugins/hegduino/hegduinoPlugin';
-import { cytonPlugin } from './bciutils/devicePlugins/cyton/cytonPlugin';
-import { webgazerPlugin } from './bciutils/devicePlugins/webgazerPlugin'
-// import { simulatedEEGPlugin } from './bciutils/devicePlugins/simulations/simulatedEEGPlugin';
-import { ganglionPlugin } from './bciutils/devicePlugins/ganglion/ganglionPlugin';
+import { eeg32Plugin } from './devices/freeeeg32/freeeeg32Plugin';
+import { musePlugin } from './devices/musePlugin';
+import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
+import { cytonPlugin } from './devices/cyton/cytonPlugin';
+import { webgazerPlugin } from './devices/webgazerPlugin'
+import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 
 
 export class Session {

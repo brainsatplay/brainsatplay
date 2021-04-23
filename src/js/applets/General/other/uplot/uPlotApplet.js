@@ -1,7 +1,7 @@
 import {Session} from '../../../../../library/src/Session'
-import {DOMFragment} from '../../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../../../library/src/bciutils/visuals/eegvisuals'
-import {eegmath} from '../../../../../library/src/bciutils/eegmath'
+import {eegmath} from '../../../../../library/src/algorithms/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../../frontend/menus/selectTemplates'
 import featureImg from './img/feature.png'
 

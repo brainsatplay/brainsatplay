@@ -1,19 +1,17 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {BiquadChannelFilterer} from '../signal_analysis/BiquadFilters'
-import {DataAtlas} from '../DataAtlas'
-import {MuseClient} from 'muse-js'
-import { DOMFragment } from '../../frontend/utils/DOMFragment';
+import { DOMFragment } from '../../ui/DOMFragment';
+import {DataAtlas} from '../../DataAtlas'
+import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {Ganglion} from './ganglion-ble-master/src/index.js'
 
-export class musePlugin {
+export class ganglionPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
-
-        this.info;
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -29,30 +27,31 @@ export class musePlugin {
     }
 
     init = (info,pipeToAtlas) => {
-        info.sps = 256;
+
+        info.sps = 200;
         info.deviceType = 'eeg';
+        let uvPerStep = 15686 / 8388607;
+
         info.eegChannelTags = [
-            {ch: 0, tag: "TP9", analyze:true},
-            {ch: 1, tag: "AF7", analyze:true},
-            {ch: 2, tag: "AF8", analyze:true},
-            {ch: 3, tag: "TP10", analyze:true}
-        ]; // {ch: 4, tag: "other", analyze: false}
-        this.device = new MuseClient();
+            {ch: 0, tag: "FP1", analyze:true},
+            {ch: 1, tag: "FP2", analyze:true},
+            {ch: 2, tag: "C3",  analyze:true},
+            {ch: 3, tag: "C4",  analyze:true}
+        ];
 
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,uvPerStep));
                 }
                 else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,uvPerStep)); 
                 }
-                //this.filters[this.filters.length-1].useBp1 = true;
             });
         }
 
         if(pipeToAtlas === true) { //New Atlas
-			let config = 'muse';
+			let config = '10_20';
             this.atlas = new DataAtlas(
 				location+":"+this.mode,
 				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
@@ -66,8 +65,15 @@ export class musePlugin {
             this.atlas.data.eegshared.sps = info.sps;
             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
-			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
+			this.atlas.data.eeg = this.atlas.gen10_20Atlas();
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
+
+            this.atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+				if( this.atlas.getEEGDataByTag(row.tag) === undefined ) {
+					this.atlas.addEEGCoord(row.ch);
+				}
+			});
+
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
             info.useAtlas = true;
@@ -78,62 +84,57 @@ export class musePlugin {
                     this.atlas.analyzer();
                 }
 			}
-		}
-
-        
-        this.info = info;
+        }
     }
 
     connect = async () => {
-        //connect muse and begin streaming
+        this.device = new Ganglion();
         await this.device.connect();
         await this.device.start();
-        this.device.eegReadings.subscribe(o => {
+
+        this.device.stream.subscribe(sample => {
             if(this.info.useAtlas) {
-                let time = Array(o.samples.length).fill(o.timestamp);
-                time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/10)})	
-                let coord = this.atlas.getEEGDataByChannel(o.electrode);
-                coord.times.push(...time);
-                coord.raw.push(...o.samples);
-                coord.count += o.samples.length;
-                if(this.info.useFilters === true) {                
-                    let latestFiltered = new Array(o.samples.length).fill(0);
-                    if(this.filters[o.electrode] !== undefined) {
-                        o.samples.forEach((sample,k) => { 
-                            latestFiltered[k] = this.filters[o.electrode].apply(sample); 
-                        });
+                let time = sample.timestamp;
+                sample.data.forEach((datum, i) => {
+                    let coord = this.atlas.getEEGDataByChannel(i);
+                    coord.times.push(time);
+                    coord.raw.push(datum);
+                    coord.count++;
+                    if(this.info.useFilters === true) {                
+                        let latestFiltered = 0;
+                        if(this.filters[i] !== undefined) {
+                            latestFiltered = this.filters[i].apply(sample); 
+                        }
+                        coord.filtered.push(...latestFiltered);
                     }
-                    coord.filtered.push(...latestFiltered);
-                }
+                });
+                
             }
         });
 
-        this.atlas.data.eegshared.startTime = Date.now();
-
-        // this.device.telemetryData.subscribe(telemetry => {
-        // });
-        // this.device.accelerometerData.subscribe(accel => {
-        // });
-        this.atlas.settings.deviceConnected = true;
-        if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
-            this.atlas.settings.analyzing = true;
-            setTimeout(() => {this.atlas.analyzer();},1200);		
+        if(info.useAtlas === true){			
+            this.atlas.data.eegshared.startTime = Date.now();
+            if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                this.atlas.settings.analyzing = true;
+                setTimeout(() => {this.atlas.analyzer();},1200);		
+            }
         }
-
-        this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
-            this.atlas.analyzing = false;
-            this.atlas.settings.deviceConnected = false;
-            this.ondisconnect();
-        });
+        this.atlas.settings.deviceConnected = true; 
 
         this.onconnect();
-        this.setIndicator(true)
+        this.setIndicator(true);
 
+        //onconnected: this.atlas.settings.deviceConnected = true;
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.setIndicator(false)
+        this.atlas.settings.analyzing = false;
+        this.atlas.settings.deviceConnected = false;
+        this.ondisconnect();
+        this.setIndicator(false);
+
+        //ondisconnected: this.atlas.settings.deviceConnected = false;
     }
 
     //externally set callbacks
@@ -148,7 +149,7 @@ export class musePlugin {
         }
 
         let setup = () => {
-            
+           
 
         }
 

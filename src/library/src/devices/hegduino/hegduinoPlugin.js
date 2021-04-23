@@ -1,9 +1,9 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {BiquadChannelFilterer} from '../../signal_analysis/BiquadFilters'
+import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
 import {DataAtlas} from '../../DataAtlas'
 import {hegduino} from './hegduino'
-import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import {DOMFragment} from '../../ui/DOMFragment'
 
 export class hegduinoPlugin {
     constructor(mode='hegduinousb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {

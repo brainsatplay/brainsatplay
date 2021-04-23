@@ -1,5 +1,5 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import featureImg from '../../../../assets/features/placeholder.png'
 import logo from '../../../../assets/logo_and_sub(v3).png'
 
