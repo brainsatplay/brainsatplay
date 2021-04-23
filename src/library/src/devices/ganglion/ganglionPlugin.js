@@ -53,7 +53,6 @@ export class ganglionPlugin {
                 this.filters[this.filters.length-1].notch60.pop();
             });
         }
-        this.info.useFilters = false;
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
