@@ -2,14 +2,14 @@ import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
 // import {AppletExample} from './AppletExample'
 // import {MLApplet} from './EEG/machinelearning/MLApplet'
-import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
+import { p5SandboxApplet } from './General/p5sandbox/p5SandboxApplet'
 
 
-import {MultiplayerAppletExample} from './General/other/multiplayer/MultiplayerAppletExample'
+import {MultiplayerAppletTemplate} from './Templates/Multiplayer/MultiplayerAppletTemplate'
 //import {AppletTemplate} from './AppletTemplate'
 //import {AppletExample} from './AppletExample'
 
-import {uPlotApplet} from './General/other/uplot/uPlotApplet'
+import {uPlotApplet} from './General/uplot/uPlotApplet'
 import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
 import { BrainMapApplet } from './EEG/brainmap/BrainMapApplet'
 import { SmoothieApplet } from './EEG/smoothie/SmoothieApplet'
@@ -24,15 +24,15 @@ import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
 import { PixiApplet } from './EEG/pixi/PixiApplet'
 
 import { CircleApplet } from './HEG/circle/CircleApplet'
-import { AudioApplet } from './General/other/audio/AudioApplet'
-import { VideoApplet } from './General/other/video/VideoApplet'
+import { AudioApplet } from './General/audio/AudioApplet'
+import { VideoApplet } from './General/video/VideoApplet'
 import { BoidsApplet } from './HEG/boids/BoidsApplet'
 import { HillClimberApplet } from './HEG/hillclimber/HillClimberApplet'
 import { TextScrollerApplet } from './HEG/textscroller/TextScrollerApplet'
 import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
 import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
 
-import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
+import { YoutubeApplet } from './General/ytube/YoutubeApplet'
 
 import placeholderImg from './../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
@@ -200,8 +200,8 @@ let applets = new Map([
         p5SandboxApplet
     ],
     [
-        MultiplayerAppletExample.name,
-        MultiplayerAppletExample
+        MultiplayerAppletTemplate.name,
+        MultiplayerAppletTemplate
     ]
 ]);
 
