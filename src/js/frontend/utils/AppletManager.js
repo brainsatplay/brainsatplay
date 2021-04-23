@@ -1,5 +1,5 @@
-import { brainsatplay } from "../../brainsatplay";
-import { DOMFragment } from "./DOMFragment";
+import { Session } from "../../../library/src/Session";
+import { DOMFragment } from "../../../library/src/frontend/utils/DOMFragment";
 import { presets } from "./../../applets/appletList"
 import { AppletBrowser } from './../../applets/UI/AppletBrowser'
 
@@ -11,7 +11,7 @@ export class AppletManager {
      * @alias AppletManager
      * @description Main container for WebBCI applets.
      */
-    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new brainsatplay()) {
+    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new Session()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
@@ -151,23 +151,33 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
                 
-        console.log(appletConfigs)
-        if(appletConfigs.length === 1 && appletConfigs.constructor != Object) {
-            preset = this.appletPresets.find((p) => {
-                if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
-                    document.getElementById("preset-selector").value = p.value;
-                    this.appletConfigs = p.applets
-                    return true;
-                } else {
-                    document.getElementById("preset-selector").value = 'default';
-                }
-            });   
-        }
-        else if(appletConfigs.length === 0) {
+
+        if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
             else this.appletConfigs = [AppletBrowser]
-        }    
+        } else {
+            // disabled settings reloading for now
+
+            // if (appletConfigs[0].constructor == Object){
+            //     this.appletConfigs = []
+            //     appletConfigs.forEach(dict => {
+            //         this.appletConfigs.push(dict.name)
+            //     })
+            // } else 
+
+            if(appletConfigs.length === 1) {
+                preset = this.appletPresets.find((p) => {
+                    if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
+                        document.getElementById("preset-selector").value = p.value;
+                        this.appletConfigs = p.applets
+                        return true;
+                    } else {
+                        document.getElementById("preset-selector").value = 'default';
+                    }
+                });   
+            }
+        }
         if(preset) {
             if(preset.value.includes('heg')) {
                 if(this.bcisession.atlas.settings.heg === false) {

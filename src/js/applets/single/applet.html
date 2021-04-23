@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Brains@Play Platform</title>
+  <meta charset="UTF-8" />
+  <script src="../../../library/dist/brainsatplay.js"></script>
+<!-- <link href="../styles/css/global.css" rel="stylesheet"> -->
+</head>
+<body>
+  <div id="sidebar" style="width: 100px; height: 100vh;">
+  </div>
+</body>
+<script>
+
+  let bci =  new brainsatplay.Session()
+  bci.makeConnectOptions(document.getElementById('sidebar'),()=> {});
+  
+</script>
+</html>

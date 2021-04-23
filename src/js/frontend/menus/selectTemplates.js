@@ -1,6 +1,6 @@
 //Templates for select menus. 
 
-import { DOMFragment } from "../utils/DOMFragment";
+import { DOMFragment } from "../../../library/src/frontend/utils/DOMFragment";
 
 export const addChannelOptions = (selectId, channelTags=[], taggedOnly=true, additionalOptions=[]) => {
     var select = document.getElementById(selectId);

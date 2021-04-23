@@ -1,5 +1,5 @@
-import {brainsatplay} from '../../../../brainsatplay'
-import {DOMFragment} from '../../../../frontend/utils/DOMFragment'
+import {Session} from '../../../../../library/src/Session'
+import {DOMFragment} from '../../../../../library/src/frontend/utils/DOMFragment'
 
 import '../style.css'
 import * as THREE from 'three'
@@ -32,14 +32,14 @@ export class CosmosApplet {
 
     constructor(
         parent=document.body,
-        bci=new brainsatplay(),
+        bci=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
+        this.bci = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
@@ -268,7 +268,7 @@ scene.add(camera)
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
-controls.enabled = false;
+controls.enabled = true;
 
 /**
  * Renderer

@@ -1,7 +1,7 @@
-import {brainsatplay} from '../../../brainsatplay'
-import {DOMFragment} from '../../../frontend/utils/DOMFragment'
+import {Session} from '../../../../library/src/Session'
+import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
-import { SmoothieChartMaker } from '../../../bciutils/visuals/eegvisuals';
+import { SmoothieChartMaker } from '../../../../library/src/bciutils/visuals/eegvisuals';
 import featureImg from './img/feature.png'
 
 //Example Applet for integrating with the UI Manager
@@ -15,12 +15,12 @@ export class SmoothieApplet {
 
     constructor(
         parent=document.body,
-        bci=new brainsatplay(),
+        bci=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the brainsatplay session to access data and subscribe
+        this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
         this.AppletHTML = null;
