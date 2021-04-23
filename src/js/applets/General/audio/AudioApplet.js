@@ -1,6 +1,6 @@
-import {Session} from '../../../../../library/src/Session'
-import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
-import {SoundJS} from '../../../../frontend/UX/Sound'
+import {Session} from '../../../../library/src/Session'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import {SoundJS} from '../../../frontend/UX/Sound'
 import featureImg from './img/feature.png'
 export class AudioApplet {
 
