@@ -1,6 +1,6 @@
 import 'regenerator-runtime/runtime'
-import './Platform.js'
-// import './SingleApplet.js'
+// import './Platform.js'
+import './SingleApplet.js'
 
 window.process = { env: {NODE_ENV: 'development' }}
 

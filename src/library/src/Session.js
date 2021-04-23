@@ -241,7 +241,6 @@ export class Session {
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
 			'cyton','cyton_daisy', 'ganglion', 
-			'simulated_eeg'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -287,8 +286,6 @@ export class Session {
 					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
 				} else if (o === 'ganglion') {
 					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
-				}  else if (o === 'simulated_eeg') {
-					this.connect('simulated_eeg',['eegfft'],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -1067,8 +1064,6 @@ class deviceStream {
 			{  name:'cyton', 	   cls:cytonPlugin	      },
 			{  name:'webgazer',    cls:webgazerPlugin     },
 			{  name:'ganglion',    cls:ganglionPlugin     },
-			// {  name:'simulated_eeg',    cls: simulatedEEGPlugin}
-
 		];
 
 		this.socket = socket;
