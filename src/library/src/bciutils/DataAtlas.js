@@ -265,7 +265,7 @@ export class DataAtlas {
 				if(eegCoordinates[tag])
 					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
 			});
-			let tentwenty = ["FP1","FP2","FPZ","F3","F4","F7","F8",
+			let tentwenty = ["FP1","FP2","FZ","F3","F4","F7","F8",
 			"CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
 			tentwenty.forEach((tag,i) => {
 				if(!eegmap.find(row => row.tag === tag)) {
