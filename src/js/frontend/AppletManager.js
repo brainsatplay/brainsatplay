@@ -1,5 +1,5 @@
 import { Session } from "../../library/src/Session";
-import { AppletFolderUrls, getApplet, getAppletSettings, generateSettings, presets } from "../applets/appletList"
+import { getApplet, presets , appletSettings} from "../applets/appletList"
 import { AppletBrowser } from '../applets/UI/AppletBrowser'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
@@ -10,13 +10,11 @@ export class AppletManager {
      * @alias AppletManager
      * @description Main container for WebBCI applets.
      */
-    constructor(initUI = () => {}, deinitUI = () => {}, appletClasses=[], appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new Session()) {
+    constructor(initUI = () => {}, deinitUI = () => {}, appletConfigs=[], appletSelectIds=["applet1","applet2","applet3","applet4"], bcisession=new Session()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
 
-        
-        this.appletClasses = appletClasses;
         this.appletsSpawned = 0;
         this.appletConfigs = appletConfigs;
 
@@ -115,7 +113,7 @@ export class AppletManager {
     deinitUI = () => {}
 
     // Check class compatibility with current devices
-    checkCompatibility = (appletCls, devices=this.bcisession.devices) => {
+    checkDeviceCompatibility = (appletCls, devices=this.bcisession.devices) => {
         let compatible = false
         if (this.bcisession.devices.length === 0) compatible = true
         else {
@@ -149,7 +147,6 @@ export class AppletManager {
         // Load Config
         let preset = undefined;
         let showOptions = true;
-                
 
         if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
@@ -199,9 +196,9 @@ export class AppletManager {
         // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
-        this.appletConfigs.forEach(conf => {
+        this.appletConfigs.forEach(async conf => {
             if(typeof conf === 'string') {
-                if (!currentApplets.reduce(isAllNull,0)) configApplets.push(this.appletClasses.get(conf)) // URL Config
+                if (!currentApplets.reduce(isAllNull,0)) configApplets.push(await getApplet(appletSettings.get(conf))) // URL Config
             }
             else if (!currentApplets.reduce(isAllNull,0)) configApplets.push(conf) // Presets
         })
@@ -215,10 +212,10 @@ export class AppletManager {
         
         // Check the compatibility of current applets with connected devices
         this.appletsSpawned = 0;
-        currentApplets.forEach((className,i) => {
-            let applet = this.appletClasses.get(className)
+        currentApplets.forEach(async (className,i) => {
+            let applet = (className != null) ? await getApplet(appletSettings.get(className)) : null
             let compatible = false;
-            if (applet != null) compatible = this.checkCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+            if (applet != null) compatible = this.checkDeviceCompatibility(applet.cls) // Check if applet is compatible with current device(s)
             // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
             
             // Replace incompatible applets
@@ -303,44 +300,44 @@ export class AppletManager {
             // Drag functionality
             // appletDiv.draggable = true
             // appletDiv.classList.add("draggable")
-            appletDiv.addEventListener('dragstart', () => {
-                appletDiv.classList.add("dragging")
-            })
-            appletDiv.addEventListener('dragend', () => {
-                appletDiv.classList.remove("dragging")
-            })
+            // appletDiv.addEventListener('dragstart', () => {
+            //     appletDiv.classList.add("dragging")
+            // })
+            // appletDiv.addEventListener('dragend', () => {
+            //     appletDiv.classList.remove("dragging")
+            // })
 
-            appletDiv.addEventListener('dragover', (e) => {
-                e.preventDefault()
-                // let dragging = document.querySelector('.dragging')
-                // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                // let htmlString = '<h1>Replaced!</h1>'
-                // appletDiv.innerHTML = htmlString.trim();
-                // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                appletDiv.classList.add('hovered')
-            })
+            // appletDiv.addEventListener('dragover', (e) => {
+            //     e.preventDefault()
+            //     // let dragging = document.querySelector('.dragging')
+            //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+            //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
+            //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
+            //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
+            //     // let htmlString = '<h1>Replaced!</h1>'
+            //     // appletDiv.innerHTML = htmlString.trim();
+            //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
+            //     appletDiv.classList.add('hovered')
+            // })
 
-            appletDiv.addEventListener('dragleave', (e) => {
-                e.preventDefault()
-                // let dragging = document.querySelector('.dragging')
-                // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                // let htmlString = '<h1>Replaced!</h1>'
-                // appletDiv.innerHTML = htmlString.trim();
-                // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                appletDiv.classList.remove('hovered')
-            })
+            // appletDiv.addEventListener('dragleave', (e) => {
+            //     e.preventDefault()
+            //     // let dragging = document.querySelector('.dragging')
+            //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+            //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
+            //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
+            //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
+            //     // let htmlString = '<h1>Replaced!</h1>'
+            //     // appletDiv.innerHTML = htmlString.trim();
+            //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
+            //     appletDiv.classList.remove('hovered')
+            // })
 
-            appletDiv.addEventListener("drop", function(event) {
-                event.preventDefault();
-                let dragging = document.querySelector('.dragging')
-                appletDiv.classList.remove('hovered')
-              }, false);
+            // appletDiv.addEventListener("drop", function(event) {
+            //     event.preventDefault();
+            //     let dragging = document.querySelector('.dragging')
+            //     appletDiv.classList.remove('hovered')
+            //   }, false);
 
             // Fullscreen Functionality
             appletDiv.addEventListener('dblclick', () => {
@@ -433,8 +430,9 @@ export class AppletManager {
         var select = document.getElementById(selectId);
         select.innerHTML = "";
         var newhtml = `<option value='None'>None</option>`;
-        this.appletClasses.forEach((classObj) => {
-            if (this.checkCompatibility(classObj)){
+
+        appletSettings.forEach((classObj) => {
+            if (this.checkDeviceCompatibility(classObj)){
                 if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
                     newhtml += `<option value='`+classObj.name+`' selected="selected">`+classObj.name+`</option>`;
                 }
@@ -445,10 +443,11 @@ export class AppletManager {
         });
         select.innerHTML = newhtml;
 
-        select.onchange = (e) => {
+        select.onchange = async (e) => {
             this.deinitApplet(appletIdx+1);
             if(select.value !== 'None'){
-                this.addApplet(this.appletClasses.get(select.value),appletIdx+1);
+                let appletCls = await getApplet(appletSettings.get(select.value))
+                this.addApplet(appletCls,appletIdx+1);
             }
         }
     }

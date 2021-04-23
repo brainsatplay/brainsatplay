@@ -414,7 +414,7 @@ export class uPlotMaker {
 				if(v === Math.floor(v)){
 				  if(v < this.plot.series.length){
 					ax++;
-					return this.plot.series[v].label;
+					return this.plot.series[v]?.label;
 				  }
 				}
 				else{ return (((v-ax)*(maxs[ax])+mins[ax])).toFixed(2);}

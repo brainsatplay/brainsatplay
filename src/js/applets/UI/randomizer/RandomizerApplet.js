@@ -3,7 +3,7 @@ import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import featureImg from '../../../../assets/features/placeholder.png'
 import logo from '../../../../assets/logo_and_sub(v3).png'
 
-import { applets } from './../../appletList'
+import { getApplet, appletSettings} from "../../appletList"
 
 export class RandomizerApplet {
 
@@ -30,7 +30,6 @@ export class RandomizerApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.applets = applets
         this.currentApplet = null
         this.animation = null
         this.mode = 'timer' // 'button', 'timer'
@@ -136,8 +135,8 @@ export class RandomizerApplet {
         mask.style.transition = `opacity ${transitionLength/1000}s`;
 
         // Reset
-        setTimeout(()=>{
-            let applet = this.getNewApplet()
+        setTimeout(async ()=>{
+            let applet = await this.getNewApplet()
             if (this.currentApplet != null) this.currentApplet.instance.deinit()
             this.currentApplet = {
                 tInit: Date.now(),
@@ -159,19 +158,19 @@ export class RandomizerApplet {
 
     }
 
-    getNewApplet = () => {
-        let appletKeys = Array.from(this.applets.keys())
-        let applet = this.applets.get(appletKeys[Math.floor(Math.random() * appletKeys.length)])
+    getNewApplet = async () => {
+        let appletKeys = Array.from(appletSettings.keys())
+        let settings = appletSettings.get(appletKeys[Math.floor(Math.random() * appletKeys.length)])
         // Check that the chosen applet is not prohibited, compatible with current devices, and not the same applet as last time
         let prohibitedApplets = ['Randomizer','Applet Browser', 'Sunrise'] // Sunrise takes too long to load
         let compatible = true
         let instance;
         if (this.currentApplet != null) instance = this.currentApplet.instance
         this.bci.devices.forEach((device) => {
-            if (!applet.devices.includes(device.info.deviceType) && !applet.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
+            if (!settings.devices.includes(device.info.deviceType) && !settings.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
         })
-        if (prohibitedApplets.includes(applet.name) || !compatible) applet = this.getNewApplet()
-        return applet
+        if (prohibitedApplets.includes(settings.name) || !compatible) settings = this.getNewApplet()
+        return await getApplet(settings)
     }
 
     //--------------------------------------------
