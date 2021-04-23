@@ -1,5 +1,5 @@
 import { Session } from "../../library/src/Session";
-import { presets } from "../applets/appletList"
+import { AppletFolderUrls, getApplet, getAppletSettings, generateSettings, presets } from "../applets/appletList"
 import { AppletBrowser } from '../applets/UI/AppletBrowser'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
