@@ -1,6 +1,6 @@
 import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
-import { applets , presets } from './../appletList'
+import { presets , appletSettings} from "../appletList"
 import featureImg from './../../../assets/features/placeholder.png'
 
 //Example Applet for integrating with the UI Manager
@@ -113,32 +113,32 @@ export class AppletBrowser {
         let eegHTML = ``
         let hegHTML = ``
 
-        applets.forEach((cls,name) => {
-            if (name != 'Applet Browser'){
+        appletSettings.forEach(settings => {
+            if (settings.name != 'Applet Browser'){
                 let type;
-                if (cls.devices.length > 1){
+                if (settings.devices.length > 1){
                     type = 'All'
-                } else if (cls.devices[0] == 'eeg'){
+                } else if (settings.devices[0] == 'eeg'){
                     type = 'EEG'
-                } else if (cls.devices[0] == 'heg'){
+                } else if (settings.devices[0] == 'heg'){
                     type = 'HEG'
                 } else {
                     type = "Other"
                 }
                 let html = `
                 <div id="${this.props.id}-${name}" class='browser-card' style="${appletStyle};">
-                    <img src="${cls.image}" style="width: 100%;">
+                    <img src="${settings.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px; position: relative;">
-                        <h2 style="margin-bottom: 0px;">${name}</h2>
-                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                        <p style="font-size: 80%;margin-top: 5px;">${cls.description}</p>
+                        <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                        <p style="font-size: 80%;margin-top: 5px;">${settings.type}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                     </div>
                 </div>`
-                if (cls.devices.length > 1){
+                if (settings.devices.length > 1){
                     generalHTML += html
-                } else if (cls.devices[0] == 'eeg'){
+                } else if (settings.devices[0] == 'eeg'){
                     eegHTML += html
-                } else if (cls.devices[0] == 'heg'){
+                } else if (settings.devices[0] == 'heg'){
                     hegHTML += html
                 }
             }

@@ -94,7 +94,6 @@ export function menudropdown_template(props={}) {
 
 export function appletselect_template(props={}) {
     return `
-    <div>
     <div class="collapsible-content-label">
         <span>Applets</span>
         <hr>

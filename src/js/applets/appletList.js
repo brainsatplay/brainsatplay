@@ -66,7 +66,7 @@ export const AppletFolderUrls = [
 ];
 
 export let dynamicImport = async (url) => {
-    let module = await import(url);;
+    let module = await import(url);
     return module;
 }
 
@@ -76,9 +76,8 @@ export let getAppletSettings = async (AppletFolderUrl) => {
     return config.settings;
 }
 
-export let getApplet = async (AppletFolderUrl,settings) => {
-    
-    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
+export let getApplet = async (settings) => {
+    let module = await dynamicImport(settings.moduleURL + '.js');
     return module[settings.module];
 }
 
@@ -89,11 +88,12 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
     urls.forEach(async (url,i) => {
         if(i >= from && i < to) {
             let result = await getAppletSettings(url);
+            result.moduleURL = url+"/"+result.module
             if(category === undefined)
-                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,result); // then onclick run getApplet(moduleUrl)
             else if (result.settings.categories.indexOf(category) > -1) 
-                settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
-                
+                settings.set(result.name,result); // then onclick run getApplet(moduleUrl)
+
             onload(url,result);
             //Add a card to the applet manager here
         }
@@ -102,9 +102,8 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
     return settings;
 }
 
-let settings = generateSettings(AppletFolderUrls);
+export let appletSettings = generateSettings(AppletFolderUrls);
 //while(settings.get('uPlot') === undefined) { /*...awaiting...*/  }
-console.log(settings) //resolves later
 
 
 let applets = new Map([

@@ -37,7 +37,6 @@ export class BCIAppManager {
      */
     constructor(
         bcisession=null,
-        appletClasses=[],   //expects a Map of classes to set available applets in the browser
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
         useFS=false         //launch with browserfs initialized
     ) {
@@ -59,7 +58,6 @@ export class BCIAppManager {
         }; //store DOMFragments for the UI here
 
         this.bcisession = bcisession; //brainsatplay class instance
-        this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
         if (window.isMobile){
             this.appletSelectIds = ['applet1']
@@ -472,7 +470,6 @@ export class BCIAppManager {
         this.appletManager = new AppletManager(
             this.initUI,
             this.deinitUI,
-            this.appletClasses,
             this.appletConfigs,
             this.appletSelectIds,
             this.bcisession
@@ -484,10 +481,8 @@ export class BCIAppManager {
     }
 
     setApps( //set the apps and create a new UI or recreate the original
-        appletClasses=this.appletClasses,  //expects a Map of classes to set available applets in the browser
         appletConfigs=this.appletConfigs   //expects an object array like           [{name:"uPlot Applet",idx:0-3,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
     ) {
-        this.appletClasses = appletClasses;
         this.appletConfigs = appletConfigs;
 
         if(this.appletManager === null) {
@@ -506,7 +501,7 @@ export class BCIAppManager {
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
-                this.appletManager = new AppletManager(this.initUI, this.deinitUI, this.appletClasses, configs,undefined,this.bcisession);
+                this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs,undefined,this.bcisession);
                 throw new Error(`?`);
             }
             BrowserFS.initialize(rootForMfs);

@@ -2,7 +2,6 @@
 import * as brainsatplay from './library/src/Session'
 // import * as brainsatplay from './library/brainsatplay'
 import {BCIAppManager} from './js/frontend/BCIManager'
-import { applets } from './js/applets/appletList'
 import { DOMFragment } from './library/src/ui/DOMFragment';
 
 window.isMobile = false;
@@ -24,4 +23,4 @@ let tutorial = new DOMFragment(
 
 let bcisession = new brainsatplay.Session('guest','','game');
 
-let mgr = new BCIAppManager(bcisession,applets,undefined,true);
+let mgr = new BCIAppManager(bcisession,undefined,true);
