@@ -438,7 +438,8 @@ export class uPlotApplet {
               this.class.uPlotData = [
                 ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)
               ];
-                atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+              atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+                if(view === 'All' || row.ch === ch) {  
                   atlas.data.eeg.find((o,j) => {
                     if(o.tag == row.tag || o.tag === row.ch) {
                       if(o.filtered.length > 0) {
@@ -448,7 +449,8 @@ export class uPlotApplet {
                       }
                     }
                   });
-                });
+                } 
+              });
               
             }
             else if (graphmode === "Stacked") {
@@ -573,7 +575,7 @@ export class uPlotApplet {
       }
       else if(atlas.settings.eeg) {
         ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
-      
+        console.log(ch)
         if(graphmode === "TimeSeries"){
           document.getElementById(this.props.id+"title").innerHTML = "ADC signals";
       
@@ -584,19 +586,19 @@ export class uPlotApplet {
             this.class.uPlotData = [
                 ref_ch.times.slice(ref_ch.count - nsamples, ref_ch.count)//.map((x,i) => x = x-EEG.data.ms[0])
             ];
-              atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
-                if(view === 'All' || row.ch === ch) {  
-                  atlas.data.eeg.find((o,j) => {
-                    if(o.tag == row.tag || o.tag === row.ch) {
-                      if(o.filtered.length > 0) {
-                        this.class.uPlotData.push(o.filtered.slice(o.count - nsamples));
-                      } else {
-                        this.class.uPlotData.push(o.raw.slice(o.count - nsamples));
-                      }
+            atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+              if(view === 'All' || row.ch === ch) {  
+                atlas.data.eeg.find((o,j) => {
+                  if(o.tag == row.tag || o.tag === row.ch) {
+                    if(o.filtered.length > 0) {
+                      this.class.uPlotData.push(o.filtered.slice(o.count - nsamples));
+                    } else {
+                      this.class.uPlotData.push(o.raw.slice(o.count - nsamples));
                     }
-                  });
-                } 
-              });
+                  }
+                });
+              } 
+            });
           }
           else {
             this.class.uPlotData = [[...atlas.data.eegshared.frequencies]];
