@@ -497,7 +497,7 @@ export class AppletManager {
 
         activeNodes.forEach((appnode,i) => {
             // Set Generic Applet Settings
-            if(classinstance.AppletHTML)
+            if(appnode.classinstance.AppletHTML)
                 this.appletDivSettings(appnode.classinstance.AppletHTML.node, appnode.appletIdx-1);
         });  
     }
