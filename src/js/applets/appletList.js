@@ -82,7 +82,7 @@ export let getApplet = async (AppletFolderUrl,settings) => {
     return [module[settings.module],module.name];
 }
 
-export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(urlresult)=>{}) => {
+export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
     let settings = new Map();
     if(to === 'end') to = urls.length;
 
@@ -94,7 +94,7 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
             else if (result.settings.categories.indexOf(category) > -1) 
                 settings.set(result.name,{image:result.image,moduleUrl:url+"/"+result.module}); // then onclick run getApplet(moduleUrl)
                 
-            onload(result);
+            onload(url,result);
             //Add a card to the applet manager here
         }
     });
