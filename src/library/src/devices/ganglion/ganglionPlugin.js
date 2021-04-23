@@ -40,6 +40,7 @@ export class ganglionPlugin {
             {ch: 3, tag: "C4",  analyze:true}
         ];
 
+        
         if(this.info.useFilters === true) {
             this.info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
@@ -48,9 +49,10 @@ export class ganglionPlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
                 }
-                this.filters[this.filters.length-1].useNotch50 = false; this.filters[this.filters.length-1].useNotch60 = false;
+                this.filters[this.filters.length-1].useScaling = true; this.filters[this.filters.length-1].useNotch50 = false; this.filters[this.filters.length-1].useNotch60 = false;
             });
         }
+        this.info.useFilters = false;
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
