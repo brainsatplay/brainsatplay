@@ -50,7 +50,6 @@ export class ganglionPlugin {
                     this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
                 }
                 this.filters[this.filters.length-1].useScaling = true; 
-                this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].notch60.pop();
             });
         }
