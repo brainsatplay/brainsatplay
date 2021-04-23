@@ -62,7 +62,7 @@ const AppletFolderUrls = [
     './General/threejs/ThreeSunrise',
     './HEG/pulsemonitor',
     './General/ytube',
-    './General/multiplayer'
+    './Templates/Multiplayer'
 ];
 
 export let dynamicImport = async (url) => {
