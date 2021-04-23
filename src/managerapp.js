@@ -1,8 +1,6 @@
 
-const brainsatplay = await import('./library/src/Session')
+import * as brainsatplay from './library/src/Session'
 // const brainsatplay = await import('./library/brainsatplay.js');
-console.log(brainsatplay)
-
 import {BCIAppManager} from './js/frontend/BCIManager'
 import { applets } from './js/applets/appletList'
 //sssssymmetry (ღ˘⌣˘ღ)

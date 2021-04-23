@@ -10,7 +10,7 @@ const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
 require('dotenv').config();
-const brainsatplay = require('./src/library/dist/brainsatplay')
+// const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // New Server Code
 const DataServer = require('./src/library/src/server/DataServer.js'); 
