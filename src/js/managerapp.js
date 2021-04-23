@@ -1,6 +1,6 @@
 
 import {Session} from './../library/src/Session'
-import {BCIAppManager} from './js/frontend/BCIAppManager'
+import {BCIAppManager} from './js/frontend/BCIManager'
 import { applets } from './js/applets/appletList'
 
 //sssssymmetry (ღ˘⌣˘ღ)

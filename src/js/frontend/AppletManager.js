@@ -1,7 +1,6 @@
-import { Session } from "../../../library/src/Session";
-import { DOMFragment } from "../../../library/src/ui/DOMFragment";
-import { presets } from "./../../applets/appletList"
-import { AppletBrowser } from './../../applets/UI/AppletBrowser'
+import { Session } from "../../library/src/Session";
+import { presets } from "../applets/appletList"
+import { AppletBrowser } from '../applets/UI/AppletBrowser'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
 
