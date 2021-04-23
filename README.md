@@ -5,8 +5,8 @@
 
 <img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"
 href="https://github.com/brainsatplay/brainsatplay">
-<img src="https://img.shields.io/badge/License-MIT-yellow.svg"
-href="https://opensource.org/licenses/MIT">
+<img src="https://img.shields.io/badge/License-GPLv3-blue.svg"
+href="https://www.gnu.org/licenses/gpl-3.0">
 </div>
 </div>
 
