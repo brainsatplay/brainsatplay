@@ -104,7 +104,7 @@ export class UserMarker {
       let miniSphereMaterial = new THREE.MeshBasicMaterial( {
         color: 0xffffff, 
         transparent: true, 
-        opacity: 0.1,
+        opacity: 0.3,
         blending: THREE.AdditiveBlending,
       })
       let miniSphere = new THREE.Mesh(miniSphereGeometry,miniSphereMaterial)

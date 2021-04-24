@@ -1,6 +1,6 @@
 import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
-
+ 
 import './style.css'
 import * as THREE from 'three'
 import {UserMarker} from './UserMarker'
@@ -118,6 +118,7 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(3.0,() => 
         {
         if (this.three.canvas != null){
+            console.log(this)
             this.resizeNexus()
             this.three.canvas.style.display = 'block'
             gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
@@ -361,6 +362,7 @@ appletContainer.addEventListener('click', () => {
 })
 
 // Set Default Users
+this.MAXPOINTS = 25
 let points = new Map()
 let diameter = 1e-2/4;
 points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
@@ -378,6 +380,7 @@ let tStart = Date.now()
 //  pointArr[1] = NaN
 
 let colorReachBase = 0.030;
+console.log(Array.from({length: this.MAXPOINTS}, e => new THREE.Vector2(null,null)))
 const material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
     fragmentShader: mapFragmentShader,
@@ -388,13 +391,14 @@ const material = new THREE.ShaderMaterial({
     {
         // points: { value: pointArr },
         // count: {value: pointArr.length/2 },
-        point: { value: new THREE.Vector2(NaN,NaN) },
+        // point: { value: new THREE.Vector2(NaN,NaN) },
+        points: { value: Array.from({length: this.MAXPOINTS}, e => new THREE.Vector2(null,null))},
         count: {value: 1 },
         uTime: { value: 0 },
         uTexture: { value: texture },
         displacementMap: { value: displacementMap },
-        displacementHeight: { value: 0.04 },
-        colorThreshold: { value: colorReachBase},
+        displacementHeight: { value: 0.025 },
+        colorThresholds: { value: Array.from({length: this.MAXPOINTS}, e => colorReachBase)},
         aspectRatio: {value: window.innerWidth / window.innerHeight}
         // colorThreshold: { value: new THREE.Vector2(0.05*window.innerWidth,0.05*window.innerHeight) },
     }
@@ -413,7 +417,9 @@ this.resizeNexus = () => {
     meshWidth = (fov_y  - 1.0)* camera.aspect;
     meshHeight = meshWidth / imageAspect
     regeneratePlaneGeometry()
-    points.forEach(point => {
+    let pointsUniform = Array.from({length: this.MAXPOINTS}, e => new THREE.Vector2(null,null))
+    let pointIter = 0
+    points.forEach((point,key) => {
         if (point.active){
             point.updateMesh(meshWidth,meshHeight)
             let screenPos = point.marker.position.clone()
@@ -423,12 +429,15 @@ this.resizeNexus = () => {
             let translateY = appletContainer.clientHeight * screenPos.y * 0.5
             point.element.style.transform = `translate(${translateY}px)`
             if (point.name == 'me'){
-                material.uniforms.point.value = new THREE.Vector2(point.x,point.y)
                 material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
                 controls.target.set(point.x,point.y,point.z)
             }
         }
+        pointsUniform[pointIter] = new THREE.Vector2(point.x,point.y)
+        pointIter++
     })
+    console.log(pointsUniform)
+    material.uniforms.points.value = pointsUniform
     this.three.drawCylinder()
     this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -557,7 +566,7 @@ const animateUsers = () => {
             me.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
             me.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
             me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
-            material.uniforms.colorThreshold.value = colorReachBase*nfscale
+            material.uniforms.colorThresholds.value[0] = colorReachBase + colorReachBase*nfscale
         })
 
         // coherence
@@ -591,7 +600,7 @@ this.three.drawCylinder = () => {
             color: 0xff00ff,
             transparent: true,
             blending: THREE.AdditiveBlending,
-            opacity: 0.1
+            opacity: 0.15
         } );
         const edge = new THREE.Mesh( lineGeometry, lineMaterial);
         edge.name = 'coherenceLine'
@@ -611,9 +620,9 @@ this.three.getGeolocation = () => {
             points.get('me').setGeolocation(pos.coords)
             let me = points.get('me')
             this.three.drawCylinder()
-            material.uniforms.point.value = new THREE.Vector2(me.x,me.y)
             controls.target.set(me.x,me.y,me.z)
             camera.position.set(me.x,me.y)
+            this.resizeNexus()
         }
     }, 
     // Error
