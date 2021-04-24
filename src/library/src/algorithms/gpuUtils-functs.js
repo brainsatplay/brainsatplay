@@ -246,6 +246,34 @@ function iFFT(fft, len, freq, sr){ //inverse FFT to return time domain
     return [real/N,imag/N]; //mag(real,imag)
 }
 
+function iFFTlist(signals, len, freq, n, sr) { //Extract a particular frequency from a 1D list of equal sized signal arrays. Uses less samples for lower frequencies closer to nyquist threshold
+    var real = 0;
+    var imag = 0;
+    var _len = 1/len;
+    var shared = 6.28318530718*freq*_len;
+
+    var skip = 1;
+    var N = 0;
+    var factor = sr*.25;
+    if(freq <= factor){
+        while(freq <= factor){
+            factor=factor*.5;
+            skip+=1;
+        }
+    }
+
+    for(var i = 0; i<len; i+=skip){
+        var j = i;
+      if(j > len) { j = len; }
+      var sharedi = shared*j; //this.thread.x is the target frequency
+      real = real+signals[j+(len-1)*n]*Math.cos(sharedi);
+      imag = signals[j+(len-1)*n]*Math.sin(sharedi)-imag;
+      N += 1;  
+    }
+    //var mag = Math.sqrt(real[k]*real[k]+imag[k]*imag[k]);
+    return [real/N,imag/N]; //mag(real,imag)
+}
+
 
 function conv2D(src, width, height, kernel, kernelRadius) {
     const kSize = 2 * kernelRadius + 1;
@@ -454,6 +482,21 @@ function listidft1D_windowedKern(ffts, sampleRate, freqStart, freqEnd, scalar) {
     return mag(result[0]*2,result[1]*2)*scalar; //Multiply result by 2 since we are only getting the positive results and want to estimate the actual amplitudes (positive = half power, reflected in the negative axis)
 }
 
+function listifft1D_windowedKern(ffts, sampleRate, freqStart, freqEnd, scalar) { //Will make a higher resolution DFT for a smaller frequency window.
+    var result = [0, 0];
+    if (this.thread.x < sampleRate) {
+      var freq = ( (this.thread.x/sampleRate) * ( freqEnd - freqStart ) ) + freqStart;
+      result = iFFT(ffts,sampleRate,freq);
+    } else {
+      var n = Math.floor(this.thread.x/sampleRate);
+      var freq = ( ( ( this.thread.x - n * sampleRate) / sampleRate ) * ( freqEnd - freqStart ) ) + freqStart;
+      result = iFFTlist(ffts,sampleRate,freq-n*sampleRate,n);
+    }
+    //var mags = mag(result[0],result[1]);
+
+    return mag(result[0]*2,result[1]*2)*scalar; //Multiply result by 2 since we are only getting the positive results and want to estimate the actual amplitudes (positive = half power, reflected in the negative axis)
+}
+
 //e.g. arrays = [[arr1],[arr2],[arr3],[arr4],[arr5],[arr6]], len = 10, n = 2, scalar=1... return results of [arr1*arr2], [arr3*arr4], [arr5*arr6] as one long array that needs to be split
 function bulkArrayMulKern(arrays, len, n, scalar) {
     var i = n*Math.floor(this.thread.x/len); //Jump forward in array buffer
@@ -499,7 +542,7 @@ Scene drawing:
 export const createGpuKernels = {
     correlogramsKern, correlogramsPCKern, dftKern, idftKern, fftKern, ifftKern,
     dft_windowedKern, idft_windowedKern, fft_windowedKern, ifft_windowedKern, 
-    listdft2DKern, listdft1DKern, listfft1DKern, listfft1D_windowedKern, listdft1D_windowedKern, listidft1D_windowedKern, 
+    listdft2DKern, listdft1DKern, listfft1DKern, listfft1D_windowedKern, listdft1D_windowedKern, listidft1D_windowedKern, listifft1D_windowedKern,
     bulkArrayMulKern, fftKern, ifftKern, multiImgConv2DKern
 }
 
@@ -507,5 +550,6 @@ export const addGpuFunctions = [
     add, sub, mul, div, cadd, csub,
     cmul, cexp, mag, conj, lof, mean, est,
     mse, rms, xcor, softmax, DFT, DFTlist,
-    iDFT, iDFTlist, FFT, iFFT, conv2D
+    iDFT, iDFTlist, FFT, iFFT, iFFTlist, 
+    conv2D
 ];

@@ -296,7 +296,7 @@ export class Session {
 	}
 
 	beginStream(streamParams=null) { //can push app stream parameters here
-		if(this.streamObj.info.streaming ) {
+		if(!this.streamObj.info.streaming) {
 			this.streamObj.info.streaming = true;
 			this.addStreamParam(streamParams);
 			this.streamObj.streamLoop();

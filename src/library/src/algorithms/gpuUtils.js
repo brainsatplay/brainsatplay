@@ -105,6 +105,7 @@ export class gpuUtils {
     this.listfft1D = makeKrnl(this.gpu, krnl.listfft1DKern);
     this.listfft1D_windowed = makeKrnl(this.gpu, krnl.listfft1D_windowedKern);
     this.listidft1D_windowed = makeKrnl(this.gpu, krnl.listidft1D_windowedKern);
+    this.listifft1D_windowed = makeKrnl(this.gpu, krnl.listifft1D_windowedKern);
     this.bulkArrayMul = makeKrnl(this.gpu, krnl.bulkArrayMulKern);
     this.multiConv2D = makeKrnl(this.gpu, krnl.multiImgConv2DKern);
     
@@ -123,7 +124,7 @@ export class gpuUtils {
     
     const signalBandpassMulti = (signals, sampleRate, freqStart, freqEnd, scalar) => {
       var dfts = this.listdft1D_windowed(signals,sampleRate,freqStart,freqEnd,scalar, new Array(Math.ceil(signals/sampleRate)).fill(0));
-      var filtered_signals = this.listidft1D_windowed(dfts,sampleRate,freqStart,freqEnd,scalar);
+      var filtered_signals = this.listifft1D_windowed(dfts,sampleRate,freqStart,freqEnd,scalar);
       return filtered_signals;
     }
 
@@ -132,7 +133,8 @@ export class gpuUtils {
     //TODO: automatic auto/cross correlation and ordering.
     //Input signals like this : [signal1,signal2,autocor1,autocor2,crosscor,...repeat for desired coherence calculations] or any order of that.
     this.gpuCoherence = (signals, sampleRate, freqStart, freqEnd, scalar) => { //Take FFTs of the signals, their autocorrelations, and cross correlation (5 FFTs per coherence), then multiply.
-      var dfts = this.listdft1D_windowed(signals, sampleRate, freqStart, freqEnd, scalar, new Array(Math.ceil(signals/sampleRate)).fill(0) );
+      let xcors = this.correlograms(signals);
+      var dfts = this.listfft1D_windowed(xcors, sampleRate, freqStart, freqEnd, scalar, new Array(Math.ceil(signals/sampleRate)).fill(0) );
       var products = this.bulkArrayMul(dfts, sampleRate, 5, 1);
       return products;
     }
