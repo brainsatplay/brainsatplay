@@ -1270,9 +1270,8 @@ class streamThatShit {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	getDataForSocket = (device=undefined,params=[['prop','tag','arg1']],dataObj={}) => {
+	getDataForSocket = (device=undefined,params=[['prop','tag','arg1']]) => {
 		let userData = {};
-		Object.assign(streamObj.userData,dataObj); //Append any extra data not defined by parameters from the stream table
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
