@@ -161,7 +161,7 @@ export class Session {
 				)
 			);
 
-			if(streamParams[0]) this.addStreamParams(streamParams);
+			if(streamParams[0]) { this.addStreamParams(streamParams); this.beginStream();}
 
 			let i = this.devices.length-1;
 
