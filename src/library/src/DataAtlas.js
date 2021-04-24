@@ -3,6 +3,8 @@
 
 import { StateManager } from "./ui/StateManager";
 
+import {workerResponses, workers, workerThreads, workerThreadrot, addWorker, postToWorker} from '../brainsatplay'
+
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -118,9 +120,9 @@ export class DataAtlas {
 
 		if(useAnalyzer === true) {
 			this.addDefaultAnalyzerFuncs();
-			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
-			//this.workerIdx = window.addWorker(); // add a worker for this DataAtlas analyzer instance
-			window.workerResponses.push(this.workeronmessage);
+			if(!workerResponses) { workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+			//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
+			workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
     }
@@ -1240,8 +1242,7 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-                        //window.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+                        postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
                         this.workerWaiting = true;
                     }
                 }
@@ -1252,7 +1253,8 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+                        postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+                        //postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
                         this.workerWaiting = true;
                     }
                 }

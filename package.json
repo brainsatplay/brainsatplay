@@ -69,6 +69,7 @@
     "tslib": "^2.0.3",
     "uplot": "^1.4.0",
     "utf-8-validate": "^5.0.4",
+    "web-worker": "^1.0.0",
     "webgazer": "^2.0.1",
     "ws": "^7.4.4"
   },
