@@ -4,7 +4,7 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 // { folderUrl:'', name:'', categories:[] }
-export const AppletFolderUrls = [
+export const AppletInfo = [
     { folderUrl:'./UI/browser',       name:'Applet Browser', devices:['eeg','heg'],     categories:['UI']},
     { folderUrl:'./UI/randomizer',    name:'Randomizer',     devices:['eeg','heg'],     categories:['UI']},
     { folderUrl:'./General/uplot',    name:'uPlot',          devices:['eeg','heg'],     categories:['data']},
