@@ -97,7 +97,7 @@ export class MultiplayerAppletTemplate {
 
         let id = this.bci.streamAppData('Multiplayer',this.uiStates.dynamic,(newData) => {
             console.log("New data detected! Will be sent!");
-        })
+        });
 
         //this.bci.state.unsubscribeAll(id);
 

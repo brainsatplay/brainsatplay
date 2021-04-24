@@ -464,29 +464,29 @@ export class Session {
 
 	//Input an object that will be updated with app data along with the device stream.
 	streamAppData(appname='',props={}, onData = (newData) => {}) {
-		if(this.info.nDevices > 0) {
-			let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
 
-			this.state.addToState(id,props,onData);
-			
-			this.state.data[id+"_flag"] = false;
-			let sub = this.state.subscribe(id,()=>{
-				this.state.data[id+"_flag"] = true;
-			})
+		let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
 
-			let newStreamFunc = () => {
-				if(this.state.data[id+"_flag"] === true) {
-					this.state.data[id+"_flag"] = false;
-					return this.state.data[id];
-				}
-				else return undefined;
+		this.state.addToState(id,props,onData);
+		
+		this.state.data[id+"_flag"] = false;
+		let sub = this.state.subscribe(id,()=>{
+			this.state.data[id+"_flag"] = true;
+		})
+
+		let newStreamFunc = () => {
+			if(this.state.data[id+"_flag"] === true) {
+				this.state.data[id+"_flag"] = false;
+				return this.state.data[id];
 			}
-
-			this.addStreamFunc(id,newStreamFunc);
-			this.addStreamParam([id]);
-
-			return id; //this.state.unsubscribeAll(id) when done
+			else return undefined;
 		}
+
+		this.addStreamFunc(id,newStreamFunc);
+		this.addStreamParam([id]);
+
+		return id; //this.state.unsubscribeAll(id) when done
+	
 	}
 
 	//Add functions for gathering data to send to the server
