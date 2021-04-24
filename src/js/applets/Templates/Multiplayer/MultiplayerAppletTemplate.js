@@ -31,6 +31,9 @@ export class MultiplayerAppletTemplate {
             dynamic: {},
             static: {}
         }
+
+        this.stateIds = []
+        this.dynamicProps = {}
     }
 
     //---------------------------------
@@ -95,21 +98,20 @@ export class MultiplayerAppletTemplate {
         
         let info = document.getElementById(`${this.props.id}gameInfo`)
 
-        let id = this.bci.streamAppData('Multiplayer',this.uiStates.dynamic,(newData) => {
-            console.log("New data detected! Will be sent!");
-        });
 
-        //this.bci.state.unsubscribeAll(id);
+        this.stateIds.push(this.session.streamAppData('newStream',this.dynamicProps,(newData) => {
+            console.log("New data detected! Will be sent!");
+        }))
+        this.dynamicProps.location = 'Eau Claire'
 
         this.animate = () => {
             let data = this.session.state.data
             let result = this.session.state.data?.commandResult
 
-            // this.session.streamAppData(this.props.id, {
-            //     location: 1
-            // })
             let streamInfo = data?.multiplayer?.[`${result.appname}`]
             if (streamInfo != null){
+
+                console.log(data)
                 let gameInfo = this.session.state.data?.commandResult?.gameInfo
                 let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
                 let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
@@ -229,6 +231,7 @@ export class MultiplayerAppletTemplate {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.session.state.unsubscribeAll(id);
         this.AppletHTML.deleteNode();
         window.cancelAnimationFrame(this.animation)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
