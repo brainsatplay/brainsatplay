@@ -463,26 +463,28 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(appname='',props={}) {
+	streamAppData(appname='',props={}, onData = (newData) => {}) {
 		if(this.info.nDevices > 0) {
-			let obj = Object.assign({[appname+"newData"]:true},props);
+			let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
 
-			this.state.addToState(appname,obj,(newData) => {
-				if(!this.state.data[appname][appname+"newData"]) this.state.data[appname][appname+"newData"] = true;
-			});
+			this.state.addToState(id,props,onData);
+			this.state.data[id+"_flag"]
+			let sub = this.state.subscribe(id,()=>{
+				this.state.data[id+"_flag"] = true;
+			})
 
 			let newStreamFunc = () => {
-				if(this.state.data[appname][appname+"newData"] === true) {
-					this.state.data[appname][appname+"newData"] = false;
-					return this.state.data[key];
+				if(this.state.data[id+"_flag"] === true) {
+					this.state.data[id+"_flag"] = false;
+					return this.state.data[id];
 				}
-				else {
-					return undefined;
-				}
+				else return undefined;
 			}
 
-			this.addStreamFunc(appname,newStreamFunc);
-			this.addStreamParam([appname]);
+			this.addStreamFunc(id,newStreamFunc);
+			this.addStreamParam([id]);
+
+			return id; //this.state.unsubscribeAll(id) when done
 		}
 	}
 
