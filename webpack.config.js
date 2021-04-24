@@ -1,13 +1,12 @@
 const webpack = require('webpack')
 const path = require('path');
 
-console.log(__dirname)
 module.exports = {
-  entry: path.join(__dirname, 'brainsatplay.js'),
+  entry: path.join(__dirname, 'src', 'library', 'brainsatplay.js'),
   // entry: path.join(__dirname, 'src', 'js','brainsatplay.js'),
   output: {
     filename: 'brainsatplay.js',
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname,'src', 'library','dist'),
     publicPath: '/',
     // library: 'brainsatplay',
     library: {

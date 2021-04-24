@@ -1,11 +1,11 @@
 {
-    "short_name": "Web BCI",
-    "name": "Web BCI",
+    "short_name": "Brains@Play",
+    "name": "Brains@Play",
     "start_url": ".",
     "display": "standalone",
     "theme_color": "#000000",
     "background_color": "#ffffff",
-    "description": "Neurofeedback & Analysis",
+    "description": "Neurotechnology with Everyone",
     "lang": "en-US",
     "icons": [
         {

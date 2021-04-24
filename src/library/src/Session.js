@@ -463,18 +463,17 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(name='',props={}) {
+	streamAppData(appname='',props={}) {
 		if(this.info.nDevices > 0) {
-			let key = name+Math.floor(Math.random()*10000); //Add a little randomization in case you are streaming multiple of the same appname
-			let obj = Object.assign({[key+"newData"]:true},props);
+			let obj = Object.assign({[appname+"newData"]:true},props);
 
-			this.state.addToState(key,obj,(newData) => {
-				if(!this.state.data[key][key+"newData"]) this.state.data[key][key+"newData"] = true;
+			this.state.addToState(appname,obj,(newData) => {
+				if(!this.state.data[appname][appname+"newData"]) this.state.data[appname][appname+"newData"] = true;
 			});
 
 			let newStreamFunc = () => {
-				if(this.state.data[key][key+"newData"] === true) {
-					this.state.data[key][key+"newData"] = false;
+				if(this.state.data[appname][appname+"newData"] === true) {
+					this.state.data[appname][appname+"newData"] = false;
 					return this.state.data[key];
 				}
 				else {
@@ -482,8 +481,8 @@ export class Session {
 				}
 			}
 
-			this.addStreamFunc(key,newStreamFunc);
-			this.addStreamParam([key]);
+			this.addStreamFunc(appname,newStreamFunc);
+			this.addStreamParam([appname]);
 		}
 	}
 
@@ -1233,7 +1232,7 @@ class deviceStream {
 	} 
 
 	addStreamFunc(name = '',callback = () => {}) {
-		this.streamtable.push({prop:name,callback:callback});
+		this.streamTable.push({prop:name,callback:callback});
 	}
 
 	configureStreamParams(params=[['prop','tag']]) { //Simply defines expected data parameters from the user for server-side reference
@@ -1300,7 +1299,12 @@ class deviceStream {
 				//For each tagged channel generate fake data
 				//let sample = Math.sin(i*Math.PI/180);
 			}
-			setTimeout(requestAnimationFrame(this.simulateData),delay);
+
+			if (typeof window === 'undefined') {
+				setTimeout(()=>{this.simulateData}, delay)
+			} else {
+				setTimeout(requestAnimationFrame(this.simulateData),delay);
+			}
 		}
 	}
 

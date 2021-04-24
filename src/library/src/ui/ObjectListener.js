@@ -181,8 +181,12 @@ export class ObjectListenerInstance {
         else {
             this.interval = interval;
         }
-        this.checker = requestAnimationFrame(this.check);
 
+        if (typeof window === 'undefined') {
+            setTimeout(()=>{this.check}, 60)
+        } else {
+            this.checker = requestAnimationFrame(this.check);
+        }
     }
 
     //Main onchange execution
@@ -281,7 +285,11 @@ export class ObjectListenerInstance {
         if(this.running === true) {
             if(this.debug === true) {console.log("checking", this.object, this.propName);}
             if(this.interval === "FRAMERATE"){
-                this.checker = requestAnimationFrame(this.check);
+                if (typeof window === 'undefined') {
+                    setTimeout(()=>{this.check}, 60)
+                } else {
+                    this.checker = requestAnimationFrame(this.check);
+                }
             }
             else {
                 setTimeout(()=>{this.check},this.interval);
@@ -291,7 +299,11 @@ export class ObjectListenerInstance {
 
     start() {
         this.running = true;
-        this.checker = requestAnimationFrame(this.check);
+        if (typeof window === 'undefined') {
+            setTimeout(()=>{this.check}, 60)
+        } else {
+            this.checker = requestAnimationFrame(this.check);
+        }
     }
 
     stop() {

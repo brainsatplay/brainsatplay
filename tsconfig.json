@@ -69,7 +69,7 @@
     //   "./src/**/*"
     // ],
     "include": [
-      "./src/**/*"
+      "./src/**/*", "webpack.config.js"
     ],
     "exclude": [
       "./node_modules",

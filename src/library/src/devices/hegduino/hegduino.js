@@ -440,50 +440,50 @@ export class webSerial {
       
     }
 
-    setupMonitor(parentId) {
+    // setupMonitor(parentId) {
 
-        if(this.monitorData.length > this.monitorSamples){ 
-            this.monitorData.splice(0, this.monitorData.length - this.monitorSamples);
-        }
+    //     if(this.monitorData.length > this.monitorSamples){ 
+    //         this.monitorData.splice(0, this.monitorData.length - this.monitorSamples);
+    //     }
 
-        var div = document.createElement('div');
-        div.setAttribute('id','streamMonitor');
-        this.monitorData.forEach((item,idx)=>{
-            div.innerHTML += '<div id='+this.monitorIdx+'>'+item+'</div>';
-            this.monitorIdx++;
-        });
-        this.newSamples = 0;
-        var frag = document.createDocumentFragment();
-        frag.appendChild(div);
+    //     var div = document.createElement('div');
+    //     div.setAttribute('id','streamMonitor');
+    //     this.monitorData.forEach((item,idx)=>{
+    //         div.innerHTML += '<div id='+this.monitorIdx+'>'+item+'</div>';
+    //         this.monitorIdx++;
+    //     });
+    //     this.newSamples = 0;
+    //     var frag = document.createDocumentFragment();
+    //     frag.appendChild(div);
         
-        document.getElementById(parentId).appendChild(frag);
+    //     document.getElementById(parentId).appendChild(frag);
 
-        var monitorAnim = () => {
-            if(this.newSamples > 0){
-                if(this.monitorData.length > this.monitorSamples){ 
-                    //Remove old samples if over the limit
-                    for(var i = this.monitorIdx - this.monitorSamples - (this.monitorData.length - this.monitorSamples); i > this.monitorIdx - this.monitorSamples; i++){
-                        document.getElementById(i).remove();
-                    }
-                    this.monitorData.splice(0, this.monitorData.length - this.monitorSamples);
-                }
-                //Load new samples
-                for(var i = 0; i < newSamples; i++) {
-                    var newdiv = document.createElement('div');
-                    newdiv.innerHTML = '<div id="'+this.monitorIdx+'">'+this.monitorData[this.monitorData.length - 1 - i]+'</div>';
-                    var frag = document.createDocumentFragment();
-                    frag.appendChild(newdiv);        
-                    document.getElementById(parentId).appendChild(frag);
-                    this.monitorIdx++;
+    //     var monitorAnim = () => {
+    //         if(this.newSamples > 0){
+    //             if(this.monitorData.length > this.monitorSamples){ 
+    //                 //Remove old samples if over the limit
+    //                 for(var i = this.monitorIdx - this.monitorSamples - (this.monitorData.length - this.monitorSamples); i > this.monitorIdx - this.monitorSamples; i++){
+    //                     document.getElementById(i).remove();
+    //                 }
+    //                 this.monitorData.splice(0, this.monitorData.length - this.monitorSamples);
+    //             }
+    //             //Load new samples
+    //             for(var i = 0; i < newSamples; i++) {
+    //                 var newdiv = document.createElement('div');
+    //                 newdiv.innerHTML = '<div id="'+this.monitorIdx+'">'+this.monitorData[this.monitorData.length - 1 - i]+'</div>';
+    //                 var frag = document.createDocumentFragment();
+    //                 frag.appendChild(newdiv);        
+    //                 document.getElementById(parentId).appendChild(frag);
+    //                 this.monitorIdx++;
 
-                    var elem = document.getElementById('streamMonitor');
-                    elem.scrollTop = elem.scrollHeight;
-                }
-                setTimeout(requestAnimationFrame(monitorAnim),15);
-            }
-        }
-        requestAnimationFrame(monitorAnim);
-    }
+    //                 var elem = document.getElementById('streamMonitor');
+    //                 elem.scrollTop = elem.scrollHeight;
+    //             }
+    //             setTimeout(requestAnimationFrame(monitorAnim),15);
+    //         }
+    //     }
+    //     requestAnimationFrame(monitorAnim);
+    // }
 
     onGetDevices = (ports) => { //leftover from chrome.serial
         document.getElementById('serialports').innerHTML = '';

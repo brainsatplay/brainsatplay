@@ -10,13 +10,13 @@ export class MultiplayerAppletTemplate {
 
     constructor(
         parent=document.body,
-        bci=new brainsatplay.Session(),
+        session=new brainsatplay.Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
         this.name = this.constructor.name
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.settings = settings;
         this.AppletHTML = null;
@@ -26,8 +26,6 @@ export class MultiplayerAppletTemplate {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        //etc..
 
         this.uiStates = {
             dynamic: {},
@@ -68,10 +66,10 @@ export class MultiplayerAppletTemplate {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.bci.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
+            this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.bci.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata']
+                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
@@ -98,12 +96,15 @@ export class MultiplayerAppletTemplate {
         let info = document.getElementById(`${this.props.id}gameInfo`)
 
         this.animate = () => {
-            let data = this.bci.state.data
-            let result = this.bci.state.data?.commandResult
+            let data = this.session.state.data
+            let result = this.session.state.data?.commandResult
 
+            // this.session.streamAppData(this.props.id, {
+            //     location: 1
+            // })
             let streamInfo = data?.multiplayer?.[`${result.appname}`]
             if (streamInfo != null){
-                let gameInfo = this.bci.state.data?.commandResult?.gameInfo
+                let gameInfo = this.session.state.data?.commandResult?.gameInfo
                 let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
                 let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
                 let t = streamInfo.t ?? gameInfo.lastTransmit

@@ -269,7 +269,6 @@ export class DataAtlas {
 			"CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
 			tentwenty.forEach((tag,i) => {
 				if(!eegmap.find(row => row.tag === tag)) {
-					console.log('notfound')
 					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
 				}
 			});
@@ -1354,7 +1353,11 @@ export class DataAtlas {
 					}
 				});
 			});
-			setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
+			if (typeof window === 'undefined') {
+				setTimeout(()=>{this.analyzer}, 60)
+			} else {
+				setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
+			}
 		}	
 	}
 
