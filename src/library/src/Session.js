@@ -1071,8 +1071,6 @@ class deviceStream {
 				this.filters = this.device.filters;
 				if(this.atlas !== null) {
 					this.pipeToAtlas = true;
-					this.configureDefaultStreamTable();
-					if(this.info.streaming === true) this.streamLoop();
 				}
 
 				return true;
