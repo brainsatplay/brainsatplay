@@ -12,18 +12,3 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-
-/**
- * gpu.js
- * http://gpu.rocks/
- *
- * GPU Accelerated JavaScript
- *
- * @version 2.11.2
- * @date Tue Jan 19 2021 11:27:02 GMT-0500 (Eastern Standard Time)
- *
- * @license MIT
- * The MIT License
- *
- * Copyright (c) 2021 gpu.js Team
- */

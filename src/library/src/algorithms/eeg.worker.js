@@ -6,11 +6,7 @@ import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
-
-
-export let workerstring = `
-
-onmessage = (e) => {
+addEventListener('message', e => {
   // define gpu instance
   //console.log("worker executing...")
   console.time("worker");
@@ -135,6 +131,4 @@ onmessage = (e) => {
   console.timeEnd("worker");
   
   postMessage({output: output, foo: e.data.foo, origin: e.data.origin});
-},false);
-
-`
+});
