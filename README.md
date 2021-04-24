@@ -62,10 +62,12 @@ If you have any questions (or would just like to chat about this project), reach
 
 
 ## Appendix A: The Brains@Play Ethos
-Everyone has a brain. Why not develop applications inclusive of all of them? Brains@Play is kickstarting a brainstorm to use our brains to function better together.
+Everyone has a brain. So why not develop hardware and applications with all of them in mind? Brains@Play is kickstarting a neurotechnology co-development movement where anyone can *join the brainstorm to collectively imagine how to use our brains to function better together*.
 
-We prioritize web-based application using our **Applet** structure that can be deployed on tbe [Brains@Play Platform](https://app.brainsatplay.com)—though we support standalone applications via our browser library. At the core of each applet is a **Data Atlas** that allows any biosensing hardware to pipe biosignals to the same object for analysis. This object allows for users to **train** in modulating their brainwaves and eventually **play** games. 
+Our technology supports the development of web-based applications structured as an **Applet** (shown in the [Brains@Play Starter Kit](https://github.com/brainsatplay/brainsatplay-starter-kit) repository). At the core of each applet is a **Data Atlas** that processes biosignals streamed over Bluetooth Low Energy (BLE) or Serial in real-time. This allows users to **train** to modulate their brainwaves and, eventually, **play** games. 
 
-Any application built with Brains@Play can take advantage of **The Brainstorm** to allow users from around the world, with varying degrees of motor control, to train and play together. 
+Distributing your applets via tbe [Brains@Play Platform](https://app.brainsatplay.com) is highly encouraged—though we intend to support standalone app development in the browser and Node.js using [the brainsatplay.js NPM library](https://www.npmjs.com/package/brainsatplay). Any application built with brainsatplay.js can stream data to **The Brainstorm** and allow users from around the world, with varying degrees of motor control, to train and play together. 
 
-We hope you join the brainstorm with us!
+In the coming months, our team will announce **BCI Bounties** (i.e. cash prizes and community "karma") to incentivize eager contributors to solve hard problems in the neurotechnology space and make their mark in the community. 
+
+The brainstorm has begun. Will you play a part in it?
