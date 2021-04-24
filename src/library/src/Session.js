@@ -128,7 +128,7 @@ export class Session {
 		onconnect=()=>{},
 		ondisconnect=()=>{}, 
 		streaming=false, 
-		streamParams=[['eegch','FP1','all']], 
+		streamParams=[], // [ ['eegch','FP1','all'] ]
 		useFilters=true, 
 		pipeToAtlas=true
 		) {
@@ -1307,7 +1307,7 @@ class streamThatShit {
 					}
 				});
 				if(params.length > 0) {
-					Object.assign(streamObj.userData,this.getDataForSocket(device,params));
+					Object.assign(streamObj.userData,this.getDataForSocket(d,params));
 				}
 			});
 			this.info.appStreamParams.forEach((p) => {
