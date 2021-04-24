@@ -161,7 +161,7 @@ export class Session {
 				)
 			);
 
-			if(streamParams[0]) this.streamObj.info.deviceStreamParams.push(...streamParams);
+			if(streamParams[0]) this.addStreamParams(streamParams);
 
 			let i = this.devices.length-1;
 
@@ -481,7 +481,7 @@ export class Session {
 		}
 
 		this.addStreamFunc(id,newStreamFunc);
-		this.addStreamParam([id]);
+		this.addStreamParams([id]);
 
 		return id; //this.state.unsubscribeAll(id) when done
 	
@@ -495,7 +495,7 @@ export class Session {
 	}
 
 	//add a parameter to the stream based on available callbacks [['function','arg1','arg2',etc][stream function 2...]]
-	addStreamParam(params=[]) {
+	addStreamParams(params=[]) {
 		params.forEach((p,i) => {
 			if(Array.isArray(p)) {
 				let found = this.devices.find((d) => {
