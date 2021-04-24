@@ -22,7 +22,7 @@ export const AppletFolderUrls = [
     { folderUrl:'./EEG/pixi', name:'Pixi', categories:['feedback'] },
     { folderUrl:'./HEG/circle', name:'Circle', categories:['feedback'] },
     { folderUrl:'./General/audio', name:'Audio', categories:['feedback'] },
-    { folderUrl:'./General/vidio', name:'Vidio', categories:['feedback'] },
+    { folderUrl:'./General/video', name:'Video', categories:['feedback'] },
     { folderUrl:'./HEG/boids', name:'Boids', categories:['feedback'] },
     { folderUrl:'./HEG/hillclimber', name:'Hill Climber', categories:['feedback'] },
     { folderUrl:'./HEG/textscroller', name:'Text Scroller', categories:['feedback'] },
