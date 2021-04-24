@@ -85,13 +85,13 @@
 
 .nexus-point {
     z-index: 1;
-    transition: transform 0.5s;
-    will-change: transform;
+    /* transition: transform 0.5s; */
+    /* will-change: transform; */
 }
 
-.nexus-point:active {
+/* .nexus-point:active {
 	pointer-events: none;
-}
+} */
 
 .nexus-point .nexus-label {
     position: absolute;
@@ -113,6 +113,7 @@
 
 .nexus-point.visible .nexus-label {
     transform: scale(1, 1);
+    transition: transform 0.5s;
 }
 
 .nexus-point .nexus-text
