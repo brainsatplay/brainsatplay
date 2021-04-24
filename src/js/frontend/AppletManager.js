@@ -153,15 +153,14 @@ export class AppletManager {
             else this.appletConfigs = ['Applet Browser']
         } else {
             // disabled settings reloading for now
-
-            // if (appletConfigs[0].constructor == Object){
-            //     this.appletConfigs = []
-            //     appletConfigs.forEach(dict => {
-            //         this.appletConfigs.push(dict.name)
-            //     })
-            // } else 
-
-            console.log(appletConfigs)
+            if (appletConfigs[0].constructor == Object){
+                console.log(appletConfigs)
+                console.log('is a settings object')
+                this.appletConfigs = []
+                appletConfigs.forEach(dict => {
+                    this.appletConfigs.push(dict.name)
+                })
+            } else 
             if(appletConfigs.length === 1) {
                 preset = this.appletPresets.find((p) => {
                     if(p.value == appletConfigs[0].toLowerCase()) {
