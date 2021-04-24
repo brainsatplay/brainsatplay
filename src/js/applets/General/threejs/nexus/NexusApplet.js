@@ -118,7 +118,6 @@ const loadingManager = new THREE.LoadingManager(
         gsap.delayedCall(3.0,() => 
         {
         if (this.three.canvas != null){
-            console.log(this)
             this.resizeNexus()
             this.three.canvas.style.display = 'block'
             gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
@@ -365,8 +364,10 @@ appletContainer.addEventListener('click', () => {
 this.MAXPOINTS = 25
 let points = new Map()
 let diameter = 1e-2/4;
-points.set('me',new UserMarker({name: 'me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
-points.set('Los Angeles',new UserMarker({latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
+points.set('Me',new UserMarker({name: 'Me',diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)}))
+points.set('Samir',new UserMarker({name: 'Samir', latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
+points.get('Samir').setElement(camera,controls)
+
 // points.set('Somewhere',new UserMarker({latitude: 0, longitude: 0, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.bci.atlas.data.eeg[0].means)})); // LA
 
 // Plane
@@ -380,7 +381,6 @@ let tStart = Date.now()
 //  pointArr[1] = NaN
 
 let colorReachBase = 0.030;
-console.log(Array.from({length: this.MAXPOINTS}, e => new THREE.Vector2(null,null)))
 const material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
     fragmentShader: mapFragmentShader,
@@ -428,16 +428,12 @@ this.resizeNexus = () => {
             point.element.style.transform = `translate(${translateX}px)`
             let translateY = appletContainer.clientHeight * screenPos.y * 0.5
             point.element.style.transform = `translate(${translateY}px)`
-            if (point.name == 'me'){
-                material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
-                controls.target.set(point.x,point.y,point.z)
-            }
         }
         pointsUniform[pointIter] = new THREE.Vector2(point.x,point.y)
         pointIter++
     })
-    console.log(pointsUniform)
     material.uniforms.points.value = pointsUniform
+    material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
     this.three.drawCylinder()
     this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
     this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -535,7 +531,7 @@ const animateUsers = () => {
         point.neurofeedbackGroup.rotateZ(0.01);
     })
 
-    let me = points.get('me')
+    let me = points.get('Me')
     let atlas = this.bci.atlas
     if (atlas.settings.deviceConnected){
         let channelTags = atlas.data.eegshared.eegChannelTags;
@@ -617,11 +613,10 @@ this.three.getGeolocation = () => {
        // Success   
     (pos) => {
         if (this.three.canvas != null){
-            points.get('me').setGeolocation(pos.coords)
-            let me = points.get('me')
+            let me = points.get('Me')
+            me.setGeolocation(pos.coords)
+            me.setElement(camera,controls)
             this.three.drawCylinder()
-            controls.target.set(me.x,me.y,me.z)
-            camera.position.set(me.x,me.y)
             this.resizeNexus()
         }
     }, 

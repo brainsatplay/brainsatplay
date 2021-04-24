@@ -21,15 +21,14 @@ export class UserMarker {
     this.prevGroups = []
     this.createMarker()
     this.createHTMLElement()
-    this.element = document.querySelector(`.nexus-point-${this.name}`)
-    this.active = false;
+    this.setElement()
   }
 
   createHTMLElement(){
     document.querySelector(`.nexus-point-container`).innerHTML += `
     <div class="nexus-point nexus-point-${this.name}">
       <div class="nexus-label">${this.name}</div>
-      <div class="nexus-text">${this.name} is down here. Scroll to zoom in and see.</div>
+      <div class="nexus-text">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
     </div>
     `
   }
@@ -40,15 +39,25 @@ export class UserMarker {
       camera.position.x,
       camera.position.y,
       camera.position.z))
-    if (distanceToPoint > 0.1 && this.active){
+    if (distanceToPoint > 0.1){
       this.element.classList.add('visible')
-    } else {
-      this.element.classList.remove('visible')
     }
+
+    function offset(el) {
+      var rect = el.getBoundingClientRect(),
+      scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+  }
+
     screenPos.project(camera)
     let translateX = container.clientWidth * screenPos.x * 0.5
     let translateY = -container.clientHeight * screenPos.y * 0.5
     this.element.style.transform = `translate(${translateX}px,${translateY}px)`
+    let off = offset(this.element)
+    if (off.top < 0 || off.left < 0){
+      this.element.classList.remove('visible')
+    }
   }
 
   updateMesh(meshWidth,meshHeight){
@@ -73,6 +82,16 @@ export class UserMarker {
     this.setLatitude(geolocation.latitude)
     this.setLongitude(geolocation.longitude)
     this.createMarker()
+  }
+
+  setElement(camera, controls){
+    this.element = document.querySelector(`.nexus-point-${this.name}`)
+    if (camera != null && controls != null){
+      this.element.onclick = () => {
+          controls.target.set(this.x,this.y,this.z)
+          camera.lookAt(this.x,this.y)
+      }
+    }
   }
 
   createMarker(){
@@ -113,7 +132,6 @@ export class UserMarker {
       this.neurofeedbackGroup.add(miniSphere)
     }
     this.neurofeedbackGroup.position.set(this.x,this.y,this.z)
-    this.active = true;
   }
 
   mercX(lon=this.longitude) { 
