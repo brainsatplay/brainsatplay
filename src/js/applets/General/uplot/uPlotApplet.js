@@ -572,7 +572,7 @@ export class uPlotApplet {
       }
       else if(atlas.settings.eeg) {
         ref_ch = atlas.getDeviceDataByTag('eeg',atlas.data.eegshared.eegChannelTags[0].ch);
-        console.log(ch)
+        //console.log(ch)
         if(graphmode === "TimeSeries"){
           document.getElementById(this.props.id+"title").innerHTML = "ADC signals";
       
