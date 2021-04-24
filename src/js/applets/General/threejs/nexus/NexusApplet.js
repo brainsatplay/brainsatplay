@@ -129,6 +129,9 @@ const loadingManager = new THREE.LoadingManager(
             gsap.delayedCall(0.5,() => 
             {
                 // Get My Location
+                points.forEach(p => {
+                    p.active = true;
+                })
                 glitchPass.enabled = true
                 glitchPass.lastGlitchTime = Date.now();
                 controls.enabled = true;

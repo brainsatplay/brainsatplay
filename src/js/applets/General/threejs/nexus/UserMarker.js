@@ -22,6 +22,7 @@ export class UserMarker {
     this.createMarker()
     this.createHTMLElement()
     this.setElement()
+    this.active = false;
   }
 
   createHTMLElement(){
@@ -39,8 +40,10 @@ export class UserMarker {
       camera.position.x,
       camera.position.y,
       camera.position.z))
-    if (distanceToPoint > 0.1){
+    if (distanceToPoint > 0.1 && this.active){
       this.element.classList.add('visible')
+    } else {
+      this.element.classList.remove('visible')
     }
 
     function offset(el) {
