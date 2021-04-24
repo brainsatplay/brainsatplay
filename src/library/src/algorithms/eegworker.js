@@ -7,7 +7,10 @@ import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
-export const eegworker = self.addEventListener('onmessage', (e) => {
+
+export let workerstring = `
+
+onmessage = (e) => {
   // define gpu instance
   //console.log("worker executing...")
   console.time("worker");
@@ -132,4 +135,6 @@ export const eegworker = self.addEventListener('onmessage', (e) => {
   console.timeEnd("worker");
   
   postMessage({output: output, foo: e.data.foo, origin: e.data.origin});
-});
+},false);
+
+`

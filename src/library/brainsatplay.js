@@ -6,8 +6,9 @@
 import Worker from 'web-worker'
 
 
-import {eegworker} from './src/algorithms/eegworker.js';
-var scriptBase64 = btoa(eegworker);
+let src = './src/algorithms/eegworker.js';
+import {workerstring} from './src/algorithms/eegworker.js'
+var scriptBase64 = btoa(workerstring);
 var scriptURL = 'data:text/javascript;base64,' + scriptBase64;
 
 //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
@@ -21,10 +22,10 @@ export let workerThreadrot = 0;
 try {
     workers = [];
     for(var i = 0; i < workerThreads; i++){
-        workers.push(new Worker(scriptURL, 
+        workers.push(new Worker(scriptURL,//new URL(src,import.meta.url), 
         {
         name:'eegworker_'+workers.length, 
-        type: 'module',
+        type: 'module'
         }));
         workers[i].onmessage = (e) => {
             var msg = e.data;
