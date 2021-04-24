@@ -88,6 +88,8 @@ export class Session {
 			localHostURL: localHostURL
 		}
 		this.socket = null;
+		this.streamObj = new streamThatShit();
+		this.streamObj.deviceStreams = this.devices; //reference the same object
 	}
 
 	/**
@@ -155,12 +157,11 @@ export class Session {
 					analysis,
 					useFilters,
 					pipeToAtlas,
-					streaming,
-					this.socket,
-					streamParams,
 					this.info.auth
 				)
 			);
+
+			if(streamParams[0]) this.streamObj.info.deviceStreamParams.push(...streamParams);
 
 			let i = this.devices.length-1;
 
@@ -216,7 +217,6 @@ export class Session {
 	 */
 	disconnect(deviceIdx=this.devices.length-1,ondisconnect=()=>{}) {
 		if(deviceIdx > -1) {
-			this.devices[deviceIdx].info.streaming = false;
 			this.devices[deviceIdx].disconnect();
 			ondisconnect();
 		} else { console.log("No devices connected"); }
@@ -295,18 +295,16 @@ export class Session {
 		}
 	}
 
-	beginStream(deviceIdx=0,streamParams=null) {
-		if(this.devices[deviceIdx].info.streaming ) {
-			this.devices[deviceIdx].info.streaming = true;
-			if(streamParams !== null) {
-				this.devices[deviceIdx].info.streamParams = streamParams;
-			}
-			this.devices[deviceIdx].streamLoop();
+	beginStream(streamParams=null) { //can push app stream parameters here
+		if(this.streamObj.info.streaming ) {
+			this.streamObj.info.streaming = true;
+			this.addStreamParam(streamParams);
+			this.streamObj.streamLoop();
 		}
 	}
 
-	endStream(deviceIdx=0) {
-		this.devices[deviceIdx].info.streaming = false;
+	endStream() {
+		this.streamObj.info.streaming = false;
 	}
 
 	//get the device stream object
@@ -491,8 +489,8 @@ export class Session {
 
 	//Add functions for gathering data to send to the server
 	addStreamFunc(name,callback,idx=0) {
-		if(typeof name === 'string' && typeof callback === 'function' && this.devices[idx] !== undefined) {
-			this.devices[idx].addStreamFunc(name,callback);
+		if(typeof name === 'string' && typeof callback === 'function') {
+			this.streamObj.addStreamFunc(name,callback);
 		} else { console.error("addStreamFunc error"); }
 	}
 
@@ -500,24 +498,24 @@ export class Session {
 	addStreamParam(params=[]) {
 		params.forEach((p,i) => {
 			if(Array.isArray(p)) {
-				this.devices.find((d) => {
+				let found = this.devices.find((d) => {
 					if(p[0].indexOf(d.info.deviceType) > -1) {
 						if(d.info.deviceType === 'eeg') {
 							d.atlas.data.eegshared.eegChannelTags.find((o) => {
 								if(o.tag === p[1] || o.ch === p[1]) {
-									d.info.streamParams.push(p);
+									this.streamObj.info.deviceStreamParams.push(p);
 									return true;
 								}
 							})
 						}
 						else {
-							d.info.streamParams.push(p); 
+							this.streamObj.info.deviceStreamParams.push(p); 
 						}
 
 						return true;
 					}
 				});
-				
+				if(!found) this.streamObj.info.appStreamParams.push(p);
 			}
 		});
 	}
@@ -534,12 +532,9 @@ export class Session {
 			//this.info.nDevices++;
 		}
 		if(this.socket !== null && this.socket.readyState === 1) {
+			this.streamObj.socket = this.socket;
 			if(beginStream === true) {
-				if(this.devices.length > 0) {
-					this.devices.forEach((d,i) => {
-						this.beginStream(i);
-					});
-				}
+				this.beginStream();
 			}
 		}
 	} 
@@ -940,10 +935,9 @@ export class Session {
 		deviceTypes.forEach((name,i) => { // configure named device
 			d = this.devices.find((o,j) => {
 				if(o.info.deviceType === name) {
-					if(o.socket === null) o.socket = this.socket;
 					let deviceParams = [];
 					params.forEach((p) => {
-						if(p[0].indexOf(o.info.deviceType) > -1) { //stream parameters should have the device type specified (in case multiple devices are involved)
+						if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
 							if(o.info.deviceType === 'eeg') {
 								o.atlas.data.eegshared.eegChannelTags.find((o) => {
 									if(o.tag === p[1] || o.ch === p[1]) {
@@ -956,10 +950,10 @@ export class Session {
 						}
 					});
 					if(deviceParams.length > 0) {
-						o.info.streamParams = deviceParams;
-						if(o.info.streaming === false) {
-							o.info.streaming = true;
-							o.streamLoop();
+						this.streamObj.info.deviceStreamParams.push(...deviceParams);
+						if(this.streamObj.info.streaming === false) {
+							this.streamObj.info.streaming = true;
+							this.streamObj.streamLoop();
 						}
 						found = true; //at least one device was found (if multiple types allowed)
 						return true;
@@ -1031,9 +1025,6 @@ class deviceStream {
 		analysis=['eegfft'],
 		useFilters=true,
 		pipeToAtlas=true,
-		streaming=false,
-		socket=null,
-		streamParams=[],
 		auth={
 			username:'guest'
 		}
@@ -1042,14 +1033,10 @@ class deviceStream {
 		this.info = {
 			deviceName:device,
 			deviceType:null,
-			streaming:streaming,
-			streamParams:streamParams, //[['eegch','FP1','all'],['eegfft','AF7','all']]
 			analysis:analysis, //['eegcoherence','eegfft' etc]
 
 			deviceNum:0,
-			streamLoopTiming:100, //ms between update checks
-			streamCt:0,
-
+			
 			auth:auth,
 			sps: null,
 			useFilters:useFilters,
@@ -1068,10 +1055,6 @@ class deviceStream {
 			{  name:'ganglion',    cls:ganglionPlugin     },
 		];
 
-		this.socket = socket;
-		//console.log(this.socket);
-		
-		this.streamTable=[]; //tags and callbacks for streaming
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 		this.pipeToAtlas = pipeToAtlas;
@@ -1110,17 +1093,56 @@ class deviceStream {
 
 	ondisconnect() {}
 
+	simulateData() {
+		let delay = 100;
+		if(this.info.simulating === true) {
+			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
+			for(let i = 0; i<nSamplesToSim; i++) {
+				//For each tagged channel generate fake data
+				//let sample = Math.sin(i*Math.PI/180);
+			}
+
+			if (typeof window === 'undefined') {
+				setTimeout(()=>{this.simulateData}, delay)
+			} else {
+				setTimeout(requestAnimationFrame(this.simulateData),delay);
+			}
+		}
+	}
+
+
+}
+
+
+
+class streamThatShit {
+	constructor(socket) {
+
+		this.deviceStreams = [];
+
+		this.info = {
+			streaming:false,
+			deviceStreamParams: [],
+			appStreamParams: [],
+			streamCt: 0,
+			streamLoopTiming: 100
+		};
+
+		this.streamTable = []; //tags and callbacks for streaming
+		this.socket = socket;
+	}
+
 	configureDefaultStreamTable(params=[]) {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
-		let getEEGChData = (channel,nSamples='all') => {
+		let getEEGChData = (device,channel,nSamples='all') => {
 			let get = nSamples;
-			if(this.info.useAtlas === true) {
+			if(device.info.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
-					coord = this.atlas.getEEGDataByChannel(channel);
+					coord = device.atlas.getEEGDataByChannel(channel);
 				}
 				else {
-					coord = this.atlas.getEEGDataByTag(channel);
+					coord = device.atlas.getEEGDataByTag(channel);
 				}
 				if(coord !== undefined) { 
 					if(get === 'all') {
@@ -1149,15 +1171,15 @@ class deviceStream {
 			}
 		}
 
-		let getEEGFFTData = (channel,nArrays='all') => {
+		let getEEGFFTData = (device,channel,nArrays='all') => {
 			let get = nArrays;
-			if(this.info.useAtlas === true) {
+			if(device.info.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
-					coord = this.atlas.getEEGFFTData(channel);
+					coord = device.atlas.getEEGFFTData(channel);
 				}
 				else {
-					coord = this.atlas.getEEGDataByTag(channel);
+					coord = device.atlas.getEEGDataByTag(channel);
 				}
 				if(coord !== undefined) {
 					if(get === 'all') {
@@ -1176,11 +1198,11 @@ class deviceStream {
 			}
 		}
 
-		let getCoherenceData = (tag, nArrays='all') => {
+		let getCoherenceData = (device,tag, nArrays='all') => {
 			let get = nArrays;
-			if(this.info.useAtlas === true) {
+			if(device.info.useAtlas === true) {
 				console.log(tag)
-				let coord = this.atlas.getCoherenceByTag(tag);
+				let coord = device.atlas.getCoherenceByTag(tag);
 				if(coord !== undefined) {
 					if(get === 'all') {
 						if(coord.fftCount === 0) return undefined;
@@ -1198,10 +1220,10 @@ class deviceStream {
 			}
 		}
 
-		let getHEGData = (tag=0,nArrays='all',prop=undefined) => {
+		let getHEGData = (device,tag=0,nArrays='all',prop=undefined) => {
 			let get = nArrays;
-			if(this.info.useAtlas === true) {
-				let coord = this.atlas.getDeviceDataByTag('heg',tag);
+			if(device.info.useAtlas === true) {
+				let coord = device.atlas.getDeviceDataByTag('heg',tag);
 				if(get === 'all') {
 					get = coord.count-coord.lastRead;
 					coord.lastRead = coord.count;
@@ -1248,44 +1270,57 @@ class deviceStream {
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
 	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
-	sendDataToSocket = (params=[['prop','tag','arg1']],dataObj={}) => {
-		let streamObj = {
-			username:this.info.auth.username,
-			userData:{}
-		};
+	getDataForSocket = (device=undefined,params=[['prop','tag','arg1']],dataObj={}) => {
+		let userData = {};
 		Object.assign(streamObj.userData,dataObj); //Append any extra data not defined by parameters from the stream table
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
 				if(param[0].indexOf(option.prop) > -1) {
-					let args = param.slice(1);
+					let args;
+					if(device) args = [device,...param.slice(1)];
+					else args = param.slice(1);
 					let result = option.callback(...args);
 					if(result !== undefined) {
-						let prop = '';
-						streamObj.userData[param.join('_')] = result;
+						if(device) userData[device+"_"+param.join('_')] = result;
+						else userData[param.join('_')] = result;
 					}
 					return true;
 				}
 			});
 		});
-		if(Object.keys(streamObj.userData).length > 0) {
-			this.socket.send(JSON.stringify(streamObj));
-		}
+
+		return userData;
+		// if(Object.keys(streamObj.userData).length > 0) {
+		// 	this.socket.send(JSON.stringify(streamObj));
+		// }
 	}
 
 	streamLoop = (prev={}) => {
+		let streamObj = {
+			username:this.username,
+			userData:{}
+		}
 		if(this.info.streaming === true) {
-			let params = [];
-			if(this.info.streamParams.length === 0) { console.error('No stream parameters set'); return false;}
-			this.info.streamParams.forEach((param,i) => {
-				let c = this.streamTable.find((o,i) => {
-					if(o.prop === param[0]) {
+			this.deviceStreams.forEach((d) => {
+				let params = [];
+				this.info.deviceStreamParams.forEach((param,i) => {
+					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
+					if(param[0].indexOf(d.info.deviceType) > -1) {
 						params.push(param);
-						return true;
 					}
 				});
+				if(params.length > 0) {
+					Object.assign(streamObj.userData,this.getDataForSocket(device,params));
+				}
 			});
+			this.info.appStreamParams.forEach((p) => {
+				Object.assign(streamObj.userData,this.getDataForSocket(undefined,p));
+			})
 			//console.log(params);
-			if(params.length > 0) { this.sendDataToSocket(params); }
+			//if(params.length > 0) { this.sendDataToSocket(params); }
+			if(Object.keys(streamObj.userData).length > 0) {
+			 	this.socket.send(JSON.stringify(streamObj));
+			}
 			this.info.streamCt++;
 			setTimeout(() => {this.streamLoop();}, this.info.streamLoopTiming);
 		}
@@ -1293,24 +1328,4 @@ class deviceStream {
 			this.info.streamCt = 0;
 		}
 	}
-
-	simulateData() {
-		let delay = 100;
-		if(this.info.simulating === true) {
-			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
-			for(let i = 0; i<nSamplesToSim; i++) {
-				//For each tagged channel generate fake data
-				//let sample = Math.sin(i*Math.PI/180);
-			}
-
-			if (typeof window === 'undefined') {
-				setTimeout(()=>{this.simulateData}, delay)
-			} else {
-				setTimeout(requestAnimationFrame(this.simulateData),delay);
-			}
-		}
-	}
-
-
 }
-
