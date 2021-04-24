@@ -161,6 +161,7 @@ export class AppletManager {
             //     })
             // } else 
 
+            console.log(appletConfigs)
             if(appletConfigs.length === 1) {
                 preset = this.appletPresets.find((p) => {
                     if(p.value == appletConfigs[0].toLowerCase()) {

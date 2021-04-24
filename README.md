@@ -59,3 +59,13 @@ The alpha version of Brains@Play's application manager.
 
 ## Support
 If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
+
+
+## Appendix A: The Brains@Play Ethos
+Everyone has a brain. Why not develop applications inclusive of all of them? Brains@Play is kickstarting a brainstorm to use our brains to function better together.
+
+We prioritize web-based application using our **Applet** structure that can be deployed on tbe [Brains@Play Platform](https://app.brainsatplay.com)—though we support standalone applications via our browser library. At the core of each applet is a **Data Atlas** that allows any biosensing hardware to pipe biosignals to the same object for analysis. This object allows for users to **train** in modulating their brainwaves and eventually **play** games. 
+
+Any application built with Brains@Play can take advantage of **The Brainstorm** to allow users from around the world, with varying degrees of motor control, to train and play together. 
+
+We hope you join the brainstorm with us!
