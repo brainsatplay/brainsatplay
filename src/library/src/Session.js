@@ -1307,7 +1307,7 @@ class streamThatShit {
 					}
 				});
 				if(params.length > 0) {
-					Object.assign(streamObj.userData,this.getDataForSocket(device,params));
+					Object.assign(streamObj.userData,this.getDataForSocket(d,params));
 				}
 			});
 			this.info.appStreamParams.forEach((p) => {
