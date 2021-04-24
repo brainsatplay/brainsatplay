@@ -16,7 +16,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
-import featureImg from './img/feature.png'
+
 
 // import * as p5 from 'p5'
 // console.log(p5.noise)
@@ -24,11 +24,8 @@ import featureImg from './img/feature.png'
 //Example Applet for integrating with the UI Manager
 export class EnsoApplet {
 
-    static name = "Enso"; 
-    static description = "Calm the ring!"
-    static image=featureImg
-    static categories = ['feedback'];
-    static devices = ['eeg'] //,heg
+    
+    
 
     constructor(
         parent=document.body,

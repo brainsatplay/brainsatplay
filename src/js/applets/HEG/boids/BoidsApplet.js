@@ -1,16 +1,10 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {Boids} from '../../../frontend/UX/Particles'
-import featureImg from './img/feature.png'
+
 
 export class BoidsApplet {
 
-    static name = "Boids"; 
-    static devices = ['heg']
-    static description = "Play with swarm intelligence! Your HEG ratio creates swirls."
-    static categories = ['feedback'];
-    static image=featureImg
-    
     constructor(
         parent=document.body,
         bci=new Session(),

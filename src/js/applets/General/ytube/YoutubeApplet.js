@@ -1,16 +1,13 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
-import featureImg from './logo.png'
+
 
 //Example Applet for integrating with the UI Manager
 // Just need an iframe, a search window, and link posting
 export class YoutubeApplet {
 
-    static name = "Youtube"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Control fade and volume, or learn about your brain on Youtube."
-    static categories = ['feedback']; //data,game,multiplayer,meditation,etc
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

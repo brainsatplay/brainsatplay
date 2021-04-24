@@ -11,15 +11,12 @@ import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
 import metalUrl from './textures/8k-earth-specular-map.tiff'
 
-import featureImg from './img/feature.png'
+
 
 export class ThreeSunriseApplet {
 
-    static name = "Sunrise"; 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Spin the Earth!"
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

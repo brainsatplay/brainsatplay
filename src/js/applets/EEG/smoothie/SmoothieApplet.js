@@ -2,16 +2,13 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 import { SmoothieChartMaker } from '../../../frontend/UX/eegvisuals';
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class SmoothieApplet {
 
-    static name = "Smoothie"; 
-    static devices = ['eeg']
-    static description = "Simple real time bandpower and coherence plot."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

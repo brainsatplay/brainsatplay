@@ -19,16 +19,13 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import dummyTexture from "./img/dummyTexture.jpeg"
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
 
-    static name = "Cosmos"; 
-    static description = "Spin the galaxy!"
-    static image=featureImg
-    static categories = ['feedback'];
-    static devices = ['eeg'] //,heg
+    
+    
 
     constructor(
         parent=document.body,

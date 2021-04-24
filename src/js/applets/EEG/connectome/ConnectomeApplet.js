@@ -2,16 +2,13 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
 import {Connectome} from './Connectome';
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class ConnectomeApplet {
 
-    static name = "Connectome"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Visualize connection strength between brain regions."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

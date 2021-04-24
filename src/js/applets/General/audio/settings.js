@@ -5,6 +5,6 @@ export const settings = {
     "devices": ["eeg","heg"],
     "description": "HEG ratio and EEG Coherence feedback.",
     "categories": ["feedback"],
-    "module": "YoutubeApplet",
+    "module": "AudioApplet",
     "image": featureImg
 }

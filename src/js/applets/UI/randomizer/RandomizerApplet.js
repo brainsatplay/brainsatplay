@@ -1,18 +1,10 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
-import featureImg from '../../../../assets/features/placeholder.png'
 import logo from '../../../../assets/logo_and_sub(v3).png'
 
 import { getApplet, appletSettings} from "../../appletList"
 
 export class RandomizerApplet {
-
-    static name = "Randomizer"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Try out a random applet!"
-    static categories = ['framework']; //data,game,multiplayer,meditation,etc
-    static image=featureImg
-
     constructor(
         parent=document.body,
         bci=new Session(),

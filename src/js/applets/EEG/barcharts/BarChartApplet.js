@@ -1,15 +1,12 @@
 import {Session} from '../../../Session'
 import {DOMFragment} from '../../../ui/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class BarChartApplet {
 
-    static name = "Bar Chart"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "See your brain."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

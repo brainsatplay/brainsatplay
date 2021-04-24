@@ -1,15 +1,12 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
-import featureImg from './img/feature.png'
+
 
 export class p5SandboxApplet {
 
-    static name = "P5 Sandbox"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Working with brains!"
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

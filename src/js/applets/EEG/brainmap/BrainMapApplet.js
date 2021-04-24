@@ -2,16 +2,13 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {BrainMap2D} from '../../../frontend/UX/eegvisuals'
 import {genBandviewSelect} from '../../../frontend/menus/selectTemplates'
-import featureImg from './../../../../assets/features/placeholder.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class BrainMapApplet {
 
-    static name = "Brain Map"; 
-    static devices = ['eeg']
-    static description = "Bandpower and coherence mapping."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

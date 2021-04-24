@@ -19,16 +19,13 @@ import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import dummyTexture from "./img/dummyTexture.jpeg"
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class BlobApplet {
 
-    static name = "Blob"; 
-    static devices = ['eeg'] //,heg
-    static description = "Calm the blob!"
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

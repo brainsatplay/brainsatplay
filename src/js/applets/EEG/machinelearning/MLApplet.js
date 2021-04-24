@@ -1,15 +1,12 @@
 import {Session} from '../../../Session'
 import {DOMFragment} from '../../../ui/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class MLApplet {
 
-    static name = "Machine Learning"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Detect blinks with machine learning!"
-    static categories = ['data']; //data,game,multiplayer,meditation,etc
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

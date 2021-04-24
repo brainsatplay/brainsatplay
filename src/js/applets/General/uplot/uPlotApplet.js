@@ -3,16 +3,13 @@ import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../frontend/UX/eegvisuals'
 import {eegmath} from '../../../../library/src/algorithms/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
-    static name = "uPlot"; 
-    static devices = ['eeg','heg']
-    static description = "View live data."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

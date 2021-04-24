@@ -1,16 +1,9 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
-import { presets , appletSettings} from "../appletList"
-import featureImg from './../../../assets/features/placeholder.png'
+import {Session} from '../../../../library/src/Session'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import { presets , appletSettings} from "../../appletList"
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
-
-    static name = "Applet Browser"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Select applets to view."
-    static categories = ['framework'];
-    static image=featureImg
 
     constructor(
         parent=document.body,
@@ -95,10 +88,9 @@ export class AppletBrowser {
         let presetHTML = ``
 
         presets.forEach(preset => {
-            if (preset.name != 'Applet Browser'){
                 presetHTML += `
                 <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
-                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2/1">
+                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1;">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
                     <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
@@ -106,7 +98,6 @@ export class AppletBrowser {
                     </div>
                 </div>`
                 presetSelections.push(preset.value)
-            }
         })
 
         let generalHTML = ``
@@ -126,11 +117,11 @@ export class AppletBrowser {
                     type = "Other"
                 }
                 let html = `
-                <div id="${this.props.id}-${name}" class='browser-card' style="${appletStyle};">
+                <div id="${this.props.id}-${settings.name}" class='browser-card' style="${appletStyle};">
                     <img src="${settings.image}" style="width: 100%;">
                     <div style="padding: 0px 25px 10px 25px; position: relative;">
                         <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                        <p style="font-size: 80%;margin-top: 5px;">${settings.type}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
                         <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                     </div>
                 </div>`
@@ -172,13 +163,7 @@ export class AppletBrowser {
                 div.onclick = (e) => {
                     let selector = document.getElementById('applet1')
                     selector.value = choice
-                    window.history.pushState(
-                        {
-                            // applet1: document.getElementById('applet1').value,
-                            // preset: document.getElementById('preset-selector').value,
-                            // layout: document.getElementById('layout-selector').value,
-                            additionalInformation: 'Updated URL from Applet Browser (applet)' 
-                        },'',`${window.location.origin}/#${selector.value}`)
+                    window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
                     selector.onchange()
                 }
                 }

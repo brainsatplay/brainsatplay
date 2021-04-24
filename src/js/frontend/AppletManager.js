@@ -1,6 +1,5 @@
 import { Session } from "../../library/src/Session";
 import { getApplet, presets , appletSettings} from "../applets/appletList"
-import { AppletBrowser } from '../applets/UI/AppletBrowser'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
 
@@ -151,7 +150,7 @@ export class AppletManager {
         if(appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
-            else this.appletConfigs = [AppletBrowser]
+            else this.appletConfigs = ['Applet Browser']
         } else {
             // disabled settings reloading for now
 
@@ -164,12 +163,13 @@ export class AppletManager {
 
             if(appletConfigs.length === 1) {
                 preset = this.appletPresets.find((p) => {
-                    if(p.value.indexOf(appletConfigs[0].toLowerCase()) > -1) {
+                    if(p.value == appletConfigs[0].toLowerCase()) {
                         document.getElementById("preset-selector").value = p.value;
                         this.appletConfigs = p.applets
                         return true;
                     } else {
                         document.getElementById("preset-selector").value = 'default';
+                        return false
                     }
                 });   
             }
@@ -190,77 +190,82 @@ export class AppletManager {
                 showOptions = false
             }
         }
-
         
-        let configApplets = []
+        let appletPromises = []
         // Grab Correct Applets
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
         this.appletConfigs.forEach(async conf => {
-            if(typeof conf === 'string') {
-                if (!currentApplets.reduce(isAllNull,0)) configApplets.push(await getApplet(appletSettings.get(conf))) // URL Config
-            }
-            else if (!currentApplets.reduce(isAllNull,0)) configApplets.push(conf) // Presets
+            let settings = appletSettings.get(conf)
+            if (!currentApplets.reduce(isAllNull,0) && settings != null) appletPromises.push(getApplet(settings)) // URL Config
         })
 
-
-        // If no applets have been configured, redirect to base URL
-        if (configApplets.every(v => v == null)){
-            configApplets = [AppletBrowser]
+        if (appletPromises.length == 0){
+            appletPromises = [(async () => {return getApplet(appletSettings.get('Applet Browser'))})()]
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' },'',window.location.origin)
         } 
-        
-        // Check the compatibility of current applets with connected devices
-        this.appletsSpawned = 0;
-        currentApplets.forEach(async (className,i) => {
-            let applet = (className != null) ? await getApplet(appletSettings.get(className)) : null
-            let compatible = false;
-            if (applet != null) compatible = this.checkDeviceCompatibility(applet.cls) // Check if applet is compatible with current device(s)
-            // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
+
+
+        Promise.all(appletPromises).then((configApplets) => {
+
+            // If no applets have been configured, redirect to base URL
+            if (configApplets.every(v => v == null) && configApplets.length == 0){
+                configApplets = [(async () => {return await getApplet(appletSettings.get('Applet Browser'))})()]
+                window.history.replaceState({ additionalInformation: 'Updated Invalid URL' },'',window.location.origin)
+            } 
             
-            // Replace incompatible applets
-            if (!compatible){
-                // Deinit old applet
-                if (this.applets[i].classinstance != null){
-                    this.deinitApplet(this.applets[i].appletIdx);
-                }
-
-                // Add new applet
-                let appletCls = configApplets[0]
-                if (appletCls){
-                    
-                    let config = undefined;
-                    if (typeof this.appletConfigs[i] === 'object') {
-                        config = this.appletConfigs[i].settings;
-                    }
-                    this.applets[i] = {
-                        appletIdx: i+1,
-                        name:appletCls.name,
-                        classinstance: new appletCls("applets",this.bcisession,config)
+            // Check the compatibility of current applets with connected devices
+            this.appletsSpawned = 0;
+            currentApplets.forEach(async (className,i) => {
+                let applet = (className != null) ? await getApplet(appletSettings.get(className)) : null
+                let compatible = false;
+                if (applet != null) compatible = this.checkDeviceCompatibility(applet.cls) // Check if applet is compatible with current device(s)
+                // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
+                
+                // Replace incompatible applets
+                if (!compatible){
+                    // Deinit old applet
+                    if (this.applets[i].classinstance != null){
+                        this.deinitApplet(this.applets[i].appletIdx);
                     }
 
-                    configApplets.splice(0,1)
+                    // Add new applet
+                    let appletCls = configApplets[0]
+                    if (appletCls){
+                        
+                        let config = undefined;
+                        if (typeof this.appletConfigs[i] === 'object') {
+                            config = this.appletConfigs[i].settings;
+                        }
+                        this.applets[i] = {
+                            appletIdx: i+1,
+                            name:appletCls.name,
+                            classinstance: new appletCls("applets",this.bcisession,config)
+                        }
+
+                        configApplets.splice(0,1)
+                        this.appletsSpawned++;
+                    }
+                } else {
                     this.appletsSpawned++;
                 }
+            })
+
+            this.initApplets();
+
+            // Generate applet selectors
+
+            if (showOptions){
+                document.body.querySelector('.applet-select-container').style.display = 'flex'
+                this.appletSelectIds.forEach((id,i) => {
+                    if (i < this.maxApplets){
+                        this.addAppletOptions(id,i);
+                    }
+                }) 
             } else {
-                this.appletsSpawned++;
+                document.body.querySelector('.applet-select-container').style.display = 'none'
             }
         })
-
-        this.initApplets();
-
-        // Generate applet selectors
-
-        if (showOptions){
-            document.body.querySelector('.applet-select-container').style.display = 'flex'
-            this.appletSelectIds.forEach((id,i) => {
-                if (i < this.maxApplets){
-                    this.addAppletOptions(id,i);
-                }
-            }) 
-        } else {
-            document.body.querySelector('.applet-select-container').style.display = 'none'
-        }
     }
 
     appletDivSettings = (appletDiv, appletIdx) => {
@@ -432,12 +437,14 @@ export class AppletManager {
         var newhtml = `<option value='None'>None</option>`;
 
         appletSettings.forEach((classObj) => {
-            if (this.checkDeviceCompatibility(classObj)){
-                if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.name) {
-                    newhtml += `<option value='`+classObj.name+`' selected="selected">`+classObj.name+`</option>`;
-                }
-                else{
-                    newhtml += `<option value='`+classObj.name+`'>`+classObj.name+`</option>`;
+            if (!['Applet Browser'].includes(classObj.name)){
+                if (this.checkDeviceCompatibility(classObj)){
+                    if(this.applets[appletIdx] && this.applets[appletIdx].name===classObj.module) {
+                        newhtml += `<option value='`+classObj.name+`' selected="selected">`+classObj.name+`</option>`;
+                    }
+                    else{
+                        newhtml += `<option value='`+classObj.name+`'>`+classObj.name+`</option>`;
+                    }
                 }
             }
         });

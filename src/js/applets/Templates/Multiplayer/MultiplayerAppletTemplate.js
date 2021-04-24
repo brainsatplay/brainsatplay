@@ -1,15 +1,12 @@
 import * as brainsatplay from './../../../../library/brainsatplay'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class MultiplayerAppletTemplate {
 
-    static name = "Multiplayer Example"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegcoherenceannelTags:['FP1','FP2']  }
-    static description = "Multiplayer Example"
-    static categories = ['multiplayer','feedback']; //data,game,multiplayer,meditation,etc
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

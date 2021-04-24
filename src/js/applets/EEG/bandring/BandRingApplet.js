@@ -2,16 +2,13 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
 import {Ring} from './Ring';
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class BandRingApplet {
 
-    static name = "Band Ring"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Bandpower visualizer."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,
