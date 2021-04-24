@@ -3,8 +3,6 @@
 //---------GPU Utility Funcs---------- (gpu.addFunction())
 //------------------------------------
 
-import { Input } from "gpu.js";
-
 
 function add(a, b) { return a + b; }
 function sub(a, b) { return a - b; }

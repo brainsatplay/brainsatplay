@@ -823,20 +823,10 @@ export class Session {
 							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',userToSubscribe,gameid,spectating]}));
 							let userData = {}
 							newResult.gameInfo.usernames.forEach((user) => {
-								userData[user] = {latest: {}, history: {}}
 								newResult.gameInfo.propnames.forEach((prop) => {
-									userData[user].latest[prop] = null
-									userData[user].history[prop] = null
-								})
-							})
-
-							this.state.data.multiplayer = {
-								[newResult.gameInfo.id]: {
-									usernames: [],
-									spectators: [],
-									userData: userData
-								}
-							}
+									this.state.data[gameid+"_"+user+"_"+prop] = null;
+								});
+							});
 
 							onsuccess(newResult);
 						}
