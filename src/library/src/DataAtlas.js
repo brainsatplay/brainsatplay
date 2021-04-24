@@ -282,7 +282,7 @@ export class DataAtlas {
 		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []};
 		
 		return {
-			tag: tag0+"_"+tag1,
+			tag: tag0+"::"+tag1,
 			x0: coord0?.x,
 			y0: coord0?.y,
 			z0: coord0?.z,

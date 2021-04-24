@@ -1196,10 +1196,10 @@ class streamThatShit {
 			}
 		}
 
-		let getCoherenceData = (device,tag, nArrays='all') => {
+		let getCoherenceData = (device, tag, nArrays='all') => {
 			let get = nArrays;
 			if(device.info.useAtlas === true) {
-				console.log(tag)
+				//console.log(tag)
 				let coord = device.atlas.getCoherenceByTag(tag);
 				if(coord !== undefined) {
 					if(get === 'all') {
