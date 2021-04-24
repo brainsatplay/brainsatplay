@@ -128,7 +128,7 @@ export class Session {
 		onconnect=()=>{},
 		ondisconnect=()=>{}, 
 		streaming=false, 
-		streamParams=[['eegch','FP1','all']], 
+		streamParams=[], // [ ['eegch','FP1','all'] ]
 		useFilters=true, 
 		pipeToAtlas=true
 		) {
