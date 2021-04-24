@@ -95,6 +95,12 @@ export class MultiplayerAppletTemplate {
         
         let info = document.getElementById(`${this.props.id}gameInfo`)
 
+        let id = this.bci.streamAppData('Multiplayer',this.uiStates.dynamic,(newData) => {
+            console.log("New data detected! Will be sent!");
+        })
+
+        //this.bci.state.unsubscribeAll(id);
+
         this.animate = () => {
             let data = this.session.state.data
             let result = this.session.state.data?.commandResult

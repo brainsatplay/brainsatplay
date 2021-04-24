@@ -468,7 +468,8 @@ export class Session {
 			let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
 
 			this.state.addToState(id,props,onData);
-			this.state.data[id+"_flag"]
+			
+			this.state.data[id+"_flag"] = false;
 			let sub = this.state.subscribe(id,()=>{
 				this.state.data[id+"_flag"] = true;
 			})
