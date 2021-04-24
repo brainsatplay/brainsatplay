@@ -183,7 +183,7 @@ export class ObjectListenerInstance {
         }
 
         if (typeof window === 'undefined') {
-            setTimeout(()=>{this.check}, 60)
+            setTimeout(()=>{this.check();}, 60)
         } else {
             this.checker = requestAnimationFrame(this.check);
         }
