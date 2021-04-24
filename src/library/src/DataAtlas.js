@@ -1354,7 +1354,7 @@ export class DataAtlas {
 				});
 			});
 			if (typeof window === 'undefined') {
-				setTimeout(()=>{this.analyzer}, 60)
+				setTimeout(()=>{this.analyzer()}, 60)
 			} else {
 				setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 			}
