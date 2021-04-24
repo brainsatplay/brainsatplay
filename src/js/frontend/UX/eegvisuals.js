@@ -308,7 +308,7 @@ export class uPlotMaker {
 		var ax=-1;
 		const axmapper = (v,i) => {
 			if(v === Math.floor(v)){
-			  if(v < this.plot.series.length){
+			  if(v < this.plot?.series.length){
 				ax++;
 				if(this.plot.series[ax]) return this.plot.series[ax].label;
 			  }
