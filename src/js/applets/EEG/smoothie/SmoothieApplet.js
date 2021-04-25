@@ -91,7 +91,7 @@ export class SmoothieApplet {
               if(this.charts.length>1) {
                 this.charts.forEach((chart,i) => {if(i>1) {chart.deInit(); chart=undefined;}});
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
-                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+                  <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
               }
@@ -101,7 +101,7 @@ export class SmoothieApplet {
               if(this.charts.length>1) {
                 this.charts.forEach((chart) => {if(i>1) {chart.deInit(); chart=undefined;}});  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
-                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+                  <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
               }
@@ -110,10 +110,10 @@ export class SmoothieApplet {
             } else if (val === "stackedraw") {
               this.charts[0].deInit();
               document.getElementById(props.id+'canvascontainer').innerHTML = '';
-              let height = 100/this.bci.atlas.data.eegshared.eegChannelTags.length;
+              let height = this.AppletHTML.node.clientHeight/this.bci.atlas.data.eegshared.eegChannelTags.length;
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
-                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`%' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
+                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
                 `;
               });
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
@@ -124,7 +124,7 @@ export class SmoothieApplet {
                 else if(i === 3) { stroke = 'turquoise'; fill = 'rgba(0,255,150,0.2)'; }
                 else if(i === 4) { stroke = 'rgba(50,50,255,1)';      fill = 'rgba(0,0,255,0.2)';   }
                 else if(i === 5) { stroke = 'rgba(200,0,200,1)';    fill = 'rgba(128,0,128,0.2)'; }
-                else {
+                else if (i !== 0) {
                   var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
                   stroke = 'rgb('+r+","+g+","+b+")"; fill = 'rgba('+r+','+g+','+b+","+"0.2)";
                 }
@@ -217,7 +217,7 @@ export class SmoothieApplet {
               var newseries = new TimeSeries();
               this.charts[0].series.push(newseries);
               var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
-                      stroke = 'rgb('+r+","+g+","+b+")"; fill = 'rgba('+r+','+g+','+b+","+"0.2)";
+              let stroke = 'rgb('+r+","+g+","+b+")"; let fill = 'rgba('+r+','+g+','+b+","+"0.2)";
               this.charts[0].seriesColors.push(stroke); // For reference
               this.charts[0].addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
             }

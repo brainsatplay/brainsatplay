@@ -68,13 +68,13 @@ export class SmoothieChartMaker {
 		});
 
 		if(canvas !== null){
-			this.chart.streamTo(canvas, 500);
+			this.chart.streamTo(canvas, 100);
 		}
 	}
 
 	streamTo(canvas = this.canvas){
 		if(canvas !== null) {
-			this.chart.streamTo(canvas, 500);
+			this.chart.streamTo(canvas, 100);
 		}
 		else { console.log("Needs a canvas id to stream the chart to");}
 	}
