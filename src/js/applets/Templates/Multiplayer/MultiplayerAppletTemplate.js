@@ -111,11 +111,11 @@ export class MultiplayerAppletTemplate {
 
                 let dataIWant = this.session.getStreamData(`${this.appname}`,'location')
                 // console.log(dataIWant)
-                // if (Object.keys(dataIWant).length === 0){
+                if (Object.keys(dataIWant).length === 0){
                     this.stateIds.push(this.session.streamAppData('location', 'Eau Claire',(newData) => {
                         console.log("New data detected! Will be sent!");
                     }))
-                // }
+                }
 
                 // console.log(data)
                 let gameInfo = this.session.state.data?.commandResult?.gameInfo
