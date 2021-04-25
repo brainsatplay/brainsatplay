@@ -163,7 +163,7 @@ export class AppletBrowser {
             <div style="display: grid; grid-template-columns: repeat(2,1fr);">
                 <h1>Applets</h1>
                 <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
-                    <option value="default" selected disabled>Select a category</option>
+                    <option value="all" selected>All</option>
                 </select>
             </div>
             <hr>
@@ -241,7 +241,7 @@ export class AppletBrowser {
     filterAppletsByCategory(category){
         let divs = document.getElementById(`${this.props.id}-appletsection`).querySelectorAll('.browser-card')
         for (let div of divs){
-            if (div.getAttribute('categories') == category){
+            if (div.getAttribute('categories').includes(category) || category ===  "all"){
                 div.style.display = "block"
             } else {
                 div.style.display = "none"

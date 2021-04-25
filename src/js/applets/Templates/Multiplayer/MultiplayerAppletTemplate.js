@@ -50,8 +50,9 @@ export class MultiplayerAppletTemplate {
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
             <button id='${props.id}createGame'>Make Game session</button>
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+            <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
+                <div id='${props.id}streamInfo' style='padding: 5px;'></div>
                 <h2>Players</h2>
                 <hr>
                 <div id='${props.id}userList-players'>
@@ -64,8 +65,6 @@ export class MultiplayerAppletTemplate {
                 </div>
                 </div>
             </div>
-            <div id='${props.id}streamInfo' style='position: absolute; top: 0; right: 0; width: 25%; height: 20%; padding: 5px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
-
             </div>`;
         }
 
@@ -135,7 +134,7 @@ export class MultiplayerAppletTemplate {
                             if (spectators.includes(name)) {
                                 if (document.getElementById(`${this.props.id}-spectator-${name}`) == null){
                                     spectatorsList.innerHTML += `
-                                    <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+                                    <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
                                         <h1>${name}</h1>
                                         <div style="font-size: 60%;">
                                         </div>
@@ -144,7 +143,7 @@ export class MultiplayerAppletTemplate {
                             }
                             else {
                                 if (document.getElementById(`${this.props.id}-player-${name}`) == null){
-                                playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+                                playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
                                         <h1>${name}</h1>
                                         <div style="font-size: 60%;">
                                         </div>
@@ -194,12 +193,15 @@ export class MultiplayerAppletTemplate {
                 }
 
                 let appInfo = streamInfo.gameInfo
-                if (appInfo != null){
+                if (appInfo != null && streamInfo.msg === "getGameInfoResult"){
+
+                    info.innerHTML += `
+                    <h3 style="font-size: 80%;">${appInfo.id}</h3>
+                    `
 
                     Object.keys(appInfo).forEach((key) => {
-                        if (!['usernames','appname','spectators','updatedUsers','newUsers', 'lastTransmit'].includes(key)){
+                        if (!['usernames','appname','spectators','updatedUsers','newUsers', 'lastTransmit','id'].includes(key)){
                             let val = appInfo[key]
-                            if ( val != null && this.states.static[key] !== val ){
                                 let el = document.getElementById(`${this.props.id}-appInfo-${key}`)
                                 if (el == null ) {
                                     info.innerHTML += `<div id="${this.props.id}-appInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
@@ -215,7 +217,6 @@ export class MultiplayerAppletTemplate {
                                     el.innerHTML += `<p>${val}</p>`
                                 }
                                 this.states.static[key] = val
-                            }
                         }
                     })
                 }
@@ -231,7 +232,9 @@ export class MultiplayerAppletTemplate {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.session.state.unsubscribeAll(id);
+        this.stateIds.forEach(id => {
+            this.session.state.unsubscribeAll(id);
+        })
         this.AppletHTML.deleteNode();
         window.cancelAnimationFrame(this.animation)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
