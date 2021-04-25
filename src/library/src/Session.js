@@ -1049,7 +1049,6 @@ class deviceStream {
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 		this.pipeToAtlas = pipeToAtlas;
-		this.configureDefaultStreamTable();
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -1120,6 +1119,8 @@ class streamThatShit {
 
 		this.streamTable = []; //tags and callbacks for streaming
 		this.socket = socket;
+		
+		this.configureDefaultStreamTable();
 	}
 
 	configureDefaultStreamTable(params=[]) {
