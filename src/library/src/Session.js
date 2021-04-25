@@ -1142,7 +1142,7 @@ class streamThatShit {
 
 		let getEEGFFTData = (device,channel,nArrays='all') => {
 			let get = nArrays;
-			if(device.info.useAtlas === true) {
+			if(device?.info?.useAtlas === true) {
 				let coord = false;
 				if(typeof channel === 'number') {
 					coord = device.atlas.getEEGFFTData(channel);
