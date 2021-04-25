@@ -1049,7 +1049,7 @@ class deviceStream {
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 		this.pipeToAtlas = pipeToAtlas;
-
+		this.configureDefaultStreamTable();
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
