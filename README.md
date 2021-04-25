@@ -1,81 +1,73 @@
 <div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px;">
 <div style="text-align:center; width: 400px;">
-<img src="./logo.png" style="width: 300px;">
+<img src="./logo.png" style="width: 300px;" alt="Brains@Play">
 <p>A full-stack framework for developing brain-responsive web apps with JavaScript</p>
 
-<img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"
-href="https://github.com/brainsatplay/brainsatplay">
-<img src="https://img.shields.io/badge/License-MIT-yellow.svg"
-href="https://opensource.org/licenses/MIT">
+<a href="https://github.com/brainsatplay/brainsatplay-beta"><img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"></a>
+<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
 </div>
 </div>
 
 ## Description
-**brainsatplay.js** is full-stack framework for developing web-based brain-computer interface (BCI) applications. This library extends [bci.js](https://bci.js.org/) to remove the networking and data management requirements for developing functional BCI apps hosted on the web.
+**brainsatplay.js** is full-stack framework for deploying web-based brain-computer interface (BCI) applications. This library abstracts the networking and data management requirements for developing functional BCI apps hosted on the web.
 
-# Test for EEG browser PWA
-
-See Web BCI test at https://webbci.netlify.app
-
-With the latest node LTS installed, cd to where you extracted this folder from your command prompt then use the command
-
-`npm install`
-
-then
-
-`npm start`
-
-Follow the prompt to find where the app is on your localhost server. 
-
-## Purpose
-
-To make a cross-platform, plug and play progressive web app interface for EEG interaction. This will later merge with my FNIRS work to make a full "Web BCI" platform. Everything is kept as modular as possible so new hardware support or interesting software features become as trivial to add as possible and without breaking anything else. 
-
-Leveraging a developer option for chromium browsers (Chrome only currently), the Web Serial API, we can get real time data with the FreeEEG32 at the full 512sps * 32 channel sample speed. With other nice feature like web workers, gpujs, and canvas, we can make a competent and user friendly piece of software that matches functionality with others - and it can be developed in a fraction of the time.
-
-Everything here now was accomplished over the past couple months independently, when it's done it will look like any other starter BCI software but accessible from a web link. PWAs can also be made downloadable on desktop or mobile depending on use case. This altogether makes for a flexible, rapid-development-friendly, cross platform, build-free software package to jump into the fray with our favorite hardware. I want to be able to develop something with instant cross platform access, plug and play ability, easy networking, and easy feature development. We got that with this software model, and I'll be experimenting with python and C wrappers to allow plugging those scripts into the interface for visualizing or networking with different data.
-
-![brainmap](./brainmap.PNG)
-
-![stream](./Coherence.PNG)
-
-![stream](./stream.png)
+FYI it's super unfinished. We are reworking a few systems still to be *just* right and then completing documentation and a community website, give it a few weeks :-)
 
 
-## Cool features
+## Getting Started
+### Library Usage
+#### Node.js
+```bash
+npm install brainsatplay
+``` 
 
-* GPU js FFTs with web workers enabling real time DSP for as many channel inputs as you want. Benchmarked 128 channels * 512 samples in 8.3ms, about 15ms-20ms average on an RTX 2060.
-* Digital biquad filters, as many as you want...
-* Live charting, brain mapping, coherence, much more to come.
-* Modular data and visual tools with class based modules, and a modifiable decoder for enabling any hardware.
-* Configured for the [FreeEEG32](https://github.com/neuroidss/freeeeg32_beta), easy to add other configurations, I need to add a formal layer to accept data from any kind of stream into some functions so you don't need to mess with anything else in the app.
-* Wicked fast HTML rendering with custom fragment system.
-* State based UI system for easy subscribing/unsubcribing disparate features to data streams. 
-* Applet based feature system, easy to write features and add to the main app. The whole app is interchangable.
-* IndexedDB file system with BrowserFS, download a formatted CSV, optimized for performance and not overwhelming browser memory limits by autosaving often and breaking up download file sizes into chunks.
+##### CommonJS
+```javascript
+const brainsatplay = require('brainsatplay')
+``` 
 
-## Javascript EEG Utilities (WIP docs as we add features)
+##### ES Modules
+```javascript
+import * as brainsatplay from 'brainsatplay'
+```
 
-This is still being organized and added to but the core functions are there to start doing some fun stuff with the EEG
+#### Browser
+```html
+<script src="https://cdn.jsdelivr.net/npm/brainsatplay"></script>
+```
 
-See [signalAnalysis.md](/docs/signalAnalysis.md) for working docs
+### Running a Local Development Server
+1. Install [NPM](https://www.npmjs.com/) and [Node](https://nodejs.org/en/).
+2. If you have npm installed already, make sure to update it to the latest version using:
+```bash
+npm update -g npm
+```
+2. In the project folder, install the required Node modules by typing this into your command line:
+```bash
+npm install
+``` 
+3. In your command line:
+```bash
+npm start
+```
+4. Click on the link in the terminal to navigate to http://localhost:1234 to view the latest version of Brains@Play Platform
 
 
-### Visual features
+##  Examples
+### [Brains@Play Platform](https://app.brainsatplay.com) 
+The alpha version of Brains@Play's application manager.
 
-See the working [applets doc](/docs/applets.md) on how to add your own visual features fairly easily. There are very few restrictions on what you can do as it's all based in vanillajs. See [frontend.md](/docs/frontend.md) for a wip breakdown on how we built our front end app system. 
- 
-Going by packages:
-* uPlot
-* smoothiejs
-* webglheatmap (for brainmapping)
-* spectrogramjs with major modifications
-* barcharts, mirrored bar charts
-* timechartsjs (another webgl plotting option)
+## Support
+If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
 
-Planned:
-* ThreeJS module, considering PixiJS for 2D among others
-* Reintegrating HEG features from the other PWA, including the bluetooth and event sources. Websockets are easy too.
-* I have a stupid simple audio system, geolocation, and a ton of other fun stuff from tinkering with the HEG we can borrow. 
 
-Lots more, see the [TODO.txt](/TODO.txt) as well for more notes.
+## Appendix A: The Brains@Play Ethos
+Everyone has a brain. So why not develop hardware and applications with all of them in mind? Brains@Play is kickstarting a neurotechnology co-development movement where anyone can *join the brainstorm to collectively imagine how to use our brains to function better together*.
+
+Our technology supports the development of web-based applications structured as an **Applet** (shown in the [Brains@Play Starter Kit](https://github.com/brainsatplay/brainsatplay-starter-kit) repository). At the core of each applet is a **Data Atlas** that processes biosignals streamed over Bluetooth Low Energy (BLE) or Serial in real-time. This allows users to **train** to modulate their brainwaves and, eventually, **play** games. 
+
+Distributing your applets via tbe [Brains@Play Platform](https://app.brainsatplay.com) is highly encouraged—though we intend to support standalone app development in the browser and Node.js using [the brainsatplay.js NPM library](https://www.npmjs.com/package/brainsatplay). Any application built with brainsatplay.js can stream data to **The Brainstorm** and allow users from around the world, with varying degrees of motor control, to train and play together. 
+
+In the coming months, our team will announce **BCI Bounties** (i.e. cash prizes and community "karma") to incentivize eager contributors to solve hard problems in the neurotechnology space and make their mark in the community. 
+
+The brainstorm has begun. Will you play a part in it?

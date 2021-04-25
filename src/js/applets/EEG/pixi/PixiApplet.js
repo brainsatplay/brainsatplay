@@ -1,7 +1,7 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import * as PIXI from 'pixi.js';
-import featureImg from './img/feature.png'
+
 // import perlinImg from './img/perlin.jpeg'
 
 import vertexSrc from "./shaders/vertex.glsl"
@@ -14,11 +14,8 @@ import fragmentSrc from "./shaders/noiseCircle/fragment.glsl"
 //Example Applet for integrating with the UI Manager
 export class PixiApplet {
 
-    static name = "Pixi"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Control a shader with your brain."
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

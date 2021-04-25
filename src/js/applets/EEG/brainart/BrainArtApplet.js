@@ -1,17 +1,14 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
 import {Ring} from './Ring';
-import featureImg from './img/feature.png'
+
 
 //Example Applet for integrating with the UI Manager
 export class BrainArtApplet {
 
-    static name = "Brain Art"; 
-    static devices = ['eeg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Generate art using your brain."
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

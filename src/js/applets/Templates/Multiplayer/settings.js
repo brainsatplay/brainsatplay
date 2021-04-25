@@ -1,10 +1,10 @@
-import featureImg from "./../../../../assets/features/placeholder.png"
+import featureImg from './../../../../assets/features/placeholder.png'
 
 export const settings = {
-    "name": "Multiplayer Template",
-    "devices": ["eeg","heg"],
-    "description": "Multiplayer Template",
-    "categories": ["multiplayer","feedback"],
+    "name": "Multiplayer Example",
+    "devices": ['eeg','heg'],
+    "description": "An example multiplayer application",
+    "categories": ['multiplayer','feedback'],
     "module": "MultiplayerAppletTemplate",
     "image": featureImg
 }

@@ -1,15 +1,12 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {SoundJS} from '../../../frontend/UX/Sound'
-import featureImg from './../../../../assets/features/placeholder.png'
+
 
 export class HillClimberApplet {
 
-    static name = "Hill Climber"; 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Increase HEG ratio, go up." 
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
     
     constructor(
         parent=document.body,

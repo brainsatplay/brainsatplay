@@ -1,17 +1,14 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
-import {Spectrogram} from '../../../../library/src/bciutils/visuals/eegvisuals'
-import featureImg from './img/feature.jpg'
+import {Spectrogram} from '../../../frontend/UX/eegvisuals'
+
 
 //Example Applet for integrating with the UI Manager
 export class SpectrogramApplet {
 
-    static name = "Spectrogram"; 
-    static devices = ['eeg']
-    static description = "Bandpower and coherence visualizer."
-    static categories = ['data'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

@@ -1,221 +1,85 @@
-import { RandomizerApplet } from './UI/randomizer/RandomizerApplet'
 
-// import {AppletExample} from './AppletExample'
-// import {MLApplet} from './EEG/machinelearning/MLApplet'
-import { p5SandboxApplet } from './General/other/p5sandbox/p5SandboxApplet'
-
-
-import {MultiplayerAppletExample} from './General/other/multiplayer/MultiplayerAppletExample'
-//import {AppletTemplate} from './AppletTemplate'
-//import {AppletExample} from './AppletExample'
-
-import {uPlotApplet} from './General/other/uplot/uPlotApplet'
-import {SpectrogramApplet} from './EEG/spectrogram/SpectrogramApplet'
-import { BrainMapApplet } from './EEG/brainmap/BrainMapApplet'
-import { SmoothieApplet } from './EEG/smoothie/SmoothieApplet'
-import { NexusApplet } from './General/threejs/nexus/NexusApplet'
-import { BlobApplet } from './General/threejs/blob/BlobApplet'
-import { EnsoApplet } from './General/threejs/enso/EnsoApplet'
-import { CosmosApplet } from './General/threejs/cosmos/CosmosApplet'
-import { BlinkApplet } from './EEG/blink/Blink'
-import { BandRingApplet } from './EEG/bandring/BandRing'
-import { BrainArtApplet } from './EEG/brainart/BrainArtApplet'
-import { ConnectomeApplet } from './EEG/connectome/ConnectomeApplet'
-import { PixiApplet } from './EEG/pixi/PixiApplet'
-
-import { CircleApplet } from './HEG/circle/CircleApplet'
-import { AudioApplet } from './General/other/audio/AudioApplet'
-import { VideoApplet } from './General/other/video/VideoApplet'
-import { BoidsApplet } from './HEG/boids/BoidsApplet'
-import { HillClimberApplet } from './HEG/hillclimber/HillClimberApplet'
-import { TextScrollerApplet } from './HEG/textscroller/TextScrollerApplet'
-import { ThreeSunriseApplet } from './General/threejs/ThreeSunrise/ThreeSunriseApplet'
-import { PulseMonitorApplet } from './HEG/pulsemonitor/PulseMonitorApplet'
-
-import { YoutubeApplet } from './General/other/ytube/YoutubeApplet'
-
-import placeholderImg from './../../assets/features/placeholder.png'
+import placeholderImg from '../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
-
-const AppletFolderUrls = [
-    './General/other/uplot',
-    './EEG/spectrogram',
-    './EEG/brainmap',
-    './EEG/smoothie',
-    './General/threejs/nexus',
-    './General/threejs/blob',
-    './General/threejs/enso',
-    './General/threejs/cosmos',
-    './EEG/blink',
-    './EEG/bandring',
-    './EEG/brainart',
-    './EEG/connectome',
-    './EEG/pixi',
-    './HEG/circle',
-    './General/other/audio',
-    './General/other/video',
-    './HEG/boids',
-    './HEG/hillclimber',
-    './HEG/textscroller',
-    './General/threejs/ThreeSunrise',
-    './HEG/pulsemonitor',
-    './General/other/ytube',
-    './General/other/multiplayer'
-];
+// { folderUrl:'', name:'', categories:[] }
+export const AppletInfo = {
+    'Applet Browser': { folderUrl:'./UI/browser',       devices:['eeg','heg'],     categories:['UI']},
+    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['eeg','heg'],     categories:['UI']},
+    'uPlot': { folderUrl:'./General/uplot',             devices:['eeg','heg'],     categories:['data']},
+    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['data']},
+    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['data']},
+    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['data']},
+    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['multiplayer','feedback']},
+    'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:['feedback']},
+    'Enso': { folderUrl:'./General/threejs/enso',       devices:['eeg','heg'],           categories:['feedback']},
+    'Cosmos': { folderUrl:'./General/threejs/cosmos',   devices:['eeg','heg'],           categories:['feedback']},
+    'Blink': { folderUrl:'./EEG/blink',                 devices:['eeg'],           categories:['feedback']},
+    'Band Ring': { folderUrl:'./EEG/bandring',          devices:['eeg'],           categories:['feedback'] },
+    'Brain Art': { folderUrl:'./EEG/brainart',          devices:['eeg'],           categories:['feedback'] },
+    'Connectome': { folderUrl:'./EEG/connectome',       devices:['eeg'],           categories:['feedback'] },
+    'Pixi': { folderUrl:'./EEG/pixi',                   devices:['eeg'],           categories:['feedback'] },
+    'Circle': { folderUrl:'./HEG/circle',               devices:['heg'],           categories:['feedback'] },
+    'Audio': { folderUrl:'./General/audio',             devices:['eeg','heg'],     categories:['feedback'] },
+    'Video': { folderUrl:'./General/video',             devices:['eeg','heg'],     categories:['feedback'] },
+    'Boids':{ folderUrl:'./HEG/boids',                  devices:['eeg'],           categories:['feedback'] },
+    'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['heg'],           categories:['feedback'] },
+    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['feedback'] },
+    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['feedback'] },
+    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },
+    'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['feedback'] },
+    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
+};
 
 export let dynamicImport = async (url) => {
-    let module = await import(url);;
+    let module = await import(url);
     return module;
 }
 
 export let getAppletSettings = async (AppletFolderUrl) => {
     let config = await dynamicImport(AppletFolderUrl+"/settings.js");
     //let image = await dynamicImport(AppletFolderUrl+"/"+config.settings.image);
-    return [config.settings,config.settings.image];
+    return config.settings;
 }
 
-export let getApplet = async (AppletFolderUrl,settings) => {
-    
-    let module = await dynamicImport(AppletFolderUrl+"/"+settings.module);
-    return [module[settings.module],module.name];
+export let getApplet = async (settings) => {
+    let module = await dynamicImport(AppletInfo[settings.name].folderUrl+"/"+settings.module + '.js');
+    return module[settings.module];
 }
 
-let generateSettings = (urls) => {
+export let generateSettings = (appletInfo, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
     let settings = new Map();
+    let appletKeys = Object.keys(appletInfo)
+    if(to === 'end') to = appletKeys.length;
 
-    urls.forEach(async (url) => {
-        let result = await getAppletSettings(url);
-        settings.set(result[0].name,{image:result[1],moduleUrl:url+"/"+result[0].module}); // then onclick run getApplet(moduleUrl)
-        //Add a card to the applet manager here
+    appletKeys.forEach(async (key,i) => {
+        if(i >= from && i < to) {
+            let result = await getAppletSettings(appletInfo[key].folderUrl);
+            if(category === undefined)
+                settings.set(result.name,result); 
+            else if (result.settings.categories.indexOf(category) > -1) 
+                settings.set(result.name,result);
+
+            onload(appletInfo[key].folderUrl,result);
+        }
     });
 
     return settings;
 }
 
-let settings = generateSettings(AppletFolderUrls);
+// export let appletSettings = generateSettings(AppletInfo);
 //while(settings.get('uPlot') === undefined) { /*...awaiting...*/  }
-console.log(settings) //resolves later
 
-
-let applets = new Map([
-	[
-        BlobApplet.name,
-        BlobApplet,
-    ],
-	[
-        CosmosApplet.name,
-        CosmosApplet,	
-    ],
-    [	
-        uPlotApplet.name, 	
-        uPlotApplet
-    ],
-    [	
-        SpectrogramApplet.name,    	
-        SpectrogramApplet,
-    ],
-    [	
-        NexusApplet.name,      		
-        NexusApplet,		
-    ],
-    [	
-        EnsoApplet.name,      		
-        EnsoApplet,
-    ],
-    [	SmoothieApplet.name,
-        SmoothieApplet,
-    ],
-	[	
-        BrainMapApplet.name,      	
-        BrainMapApplet,
-    ],
-	[   
-        CircleApplet.name, 		
-        CircleApplet,
-    ],
-	[   
-        BoidsApplet.name,       
-        BoidsApplet,
-    ],
-	[   
-        AudioApplet.name,       
-        AudioApplet	,
-    ],
-	[   
-        VideoApplet.name,		
-        VideoApplet,
-    ],
-	[   
-        ThreeSunriseApplet.name,         
-        ThreeSunriseApplet,
-    ],
-	[   
-        HillClimberApplet.name,     
-        HillClimberApplet,
-    ],
-	[   
-        TextScrollerApplet.name,   
-        TextScrollerApplet,
-    ],
-    [   
-        PulseMonitorApplet.name,   
-        PulseMonitorApplet,
-    ],
-	[	
-        BlinkApplet.name,      		
-        BlinkApplet,
-    ],
-	[	
-        BandRingApplet.name,       
-        BandRingApplet,
-    ],
-    [	
-        BrainArtApplet.name,       
-        BrainArtApplet,
-    ],
-    [	
-        ConnectomeApplet.name,       
-        ConnectomeApplet,
-    ],
-    [	
-        YoutubeApplet.name,       
-        YoutubeApplet,
-    ],
-    [   
-        PixiApplet.name,
-        PixiApplet
-    ], 
-    [
-        p5SandboxApplet.name,
-        p5SandboxApplet
-    ],
-    [
-        MultiplayerAppletExample.name,
-        MultiplayerAppletExample
-    ]
-]);
-
-let presets = [
-    // {
-    //     value: 'browser',
-    //     name: "Applet Browser",
-    //     applets: [
-    //         AppletBrowser,
-    //     ],
-    //     description: "Choose any applet.",
-    //     image: placeholderImg,
-    //     lock: false
-    // },
+export let presets = [
     {
         value: 'eeg',
         name: "EEG Neurofeedback",
         applets: [
-            BlobApplet,
-            BrainMapApplet,
-            SpectrogramApplet,
-            uPlotApplet,
+            'Blob',
+            'Brain Map',
+            'Spectrogram',
+            'uPlot',
         ],
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
@@ -226,10 +90,10 @@ let presets = [
         value: 'heg',
         name: "HEG Biofeedback",
         applets: [
-            BoidsApplet,
-            CircleApplet,
-            AudioApplet,
-            uPlotApplet,
+            'Boids',
+            'Circle',
+            'Audio',
+            'uPlot',
         ],
         description: "Brain blood flow training!",
         type: "HEG",
@@ -240,7 +104,7 @@ let presets = [
         value: 'randomizer',
         name: "Randomizer",
         applets: [
-            RandomizerApplet,
+            'Randomizer',
         ],
         description: "Experience a random applet every 10 seconds!",
         type: "All",
@@ -248,5 +112,3 @@ let presets = [
         lock: true	
     }
 ]
-
-export {applets, presets}

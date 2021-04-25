@@ -1,14 +1,12 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+
 
 //Example Applet for integrating with the UI Manager
 export class PulseMonitorApplet {
 
-    static name = "Pulse Monitor"; 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "See pulse and breathing rate with HEG"
-    static categories = ['data']; //data,game,multiplayer,meditation,etc
+    
+    
     static image= featureImg
 
     constructor(

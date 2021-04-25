@@ -10,11 +10,11 @@ const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
 require('dotenv').config();
-const brainsatplay = require('./src/library/dist/brainsatplay')
+// const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // New Server Code
-const DataServer = require('./src/js/DataServer.js'); 
-const auth = require('./src/js/auth.js'); 
+const DataServer = require('./src/library/src/server/DataServer.js'); 
+const auth = require('./src/library/src/server/auth.js'); 
 let dataServ = new DataServer();
 
 // Settings
@@ -55,9 +55,7 @@ mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
   app.set('mongoClient', db);
   dataServ.mongodb = app.get('mongoClient')
   console.log('Connected to Database')
-  let b = new brainsatplay.Session()
-  console.log(b)
-
+  // let b = new brainsatplay.Session()
 }).catch(err => {
   console.log('Error: ' + err)
 })
@@ -85,7 +83,7 @@ app.use(function(req, res, next) {
 });
 
 // Set Routes
-const initRoutes = require("./src/js/routes/web.js");
+const initRoutes = require("./src/library/src/server/routes/web.js");
 initRoutes(app);
 
 // development error handler

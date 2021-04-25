@@ -1,15 +1,12 @@
 import {Session} from './../../../Session'
-import {DOMFragment} from './../../../frontend/utils/DOMFragment'
-import featureImg from './../../../../assets/features/placeholder.png'
+import {DOMFragment} from './../../../ui/DOMFragment'
+
 
 //Example Applet for integrating with the UI Manager
 export class AppletTemplate {
 
-    static name = "Example"; 
-    static devices = ['eeg','heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Example"
-    static categories = ['feedback']; //data,game,multiplayer,meditation,etc
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,

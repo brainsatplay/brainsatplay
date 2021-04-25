@@ -1,14 +1,11 @@
 import {Session} from '../../../../library/src/Session'
-import {DOMFragment} from '../../../../library/src/frontend/utils/DOMFragment'
-import featureImg from './img/feature.png'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+
 
 export class TextScrollerApplet {
 
-    static name = "Text Scroller"; 
-    static devices = ['heg']; //{devices:['eeg'], eegChannelTags:['FP1','FP2']  }
-    static description = "Words of affirmation." 
-    static categories = ['feedback'];
-    static image=featureImg
+    
+    
 
     constructor(
         parent=document.body,
