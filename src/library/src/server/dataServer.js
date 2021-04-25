@@ -653,6 +653,7 @@ class DataServer {
                                 username:user
                             }
                             let listener = this.userData.get(user);
+                            if(listener.props.devices) userObj.devices = listener.props.devices;
                             if(listener) {
                                 sub.propnames.forEach((prop,k) => {
                                     userObj[prop] = listener.props[prop];
@@ -764,6 +765,7 @@ class DataServer {
                                     username:user
                                 }
                                 let listener = this.userData.get(user);
+                                if(listener.props.devices) userObj.devices = listener.props.devices;
                                 if(listener) {
                                     sub.propnames.forEach((prop,k) => {
                                         userObj[prop] = listener.props[prop];
