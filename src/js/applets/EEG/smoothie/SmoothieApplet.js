@@ -87,23 +87,28 @@ export class SmoothieApplet {
               series.clear();
             });
             let val = document.getElementById(props.id+"mode").value;
+            console.log(this.charts)
             if(val === "alpha" || val === "coherence"){
               if(this.charts.length>1) {
-                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit(); chart=undefined;}});
+                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit();}});
+                this.charts.splice(1,this.charts.length-1);  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
                   <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
+                this.charts[0].init('rgba(0,100,100,0.5)');
               }
               document.getElementById(props.id+"channelmenu").style.display = "none";
             }
             else if (val === "bandpowers") {
               if(this.charts.length>1) {
-                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit(); chart=undefined;}});  
+                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit();}});
+                this.charts.splice(1,this.charts.length-1);  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
                   <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
+                this.charts[0].init('rgba(0,100,100,0.5)');
               }
               document.getElementById(props.id+"channelmenu").style.display = "";
               document.getElementById(props.id+"legend").innerHTML = "";
