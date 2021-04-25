@@ -75,14 +75,6 @@ export class AppletBrowser {
             background: rgb(25,25,25);
             font-size: 80%;
             `
-        
-        let sectionContainer = `
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: stretch; 
-            justify-content: center;'>
-            `
 
         let presetSelections = []
         let presetHTML = ``
@@ -129,6 +121,8 @@ export class AppletBrowser {
             return await getAppletSettings(arr[1].folderUrl)
         })
         Promise.all(appletSettingsArray).then((appletSettings) => {
+
+            let categoryArray = []
             appletSettings.forEach(settings => {
                 if (!['Applet Browser','Randomizer'].includes(settings.name)){
                     let type;
@@ -142,7 +136,7 @@ export class AppletBrowser {
                         type = 'Other'
                     }
                     let html = `
-                    <div id="${this.props.id}-${settings.name}" class='browser-card' style="${appletStyle};">
+                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
                         <img src="${settings.image}" style="width: 100%;">
                         <div style="padding: 0px 25px 10px 25px; position: relative;">
                             <h2 style="margin-bottom: 0px;">${settings.name}</h2>
@@ -151,22 +145,55 @@ export class AppletBrowser {
                         </div>
                     </div>`
                     generalHTML += html
+
+                    categoryArray.push(...settings.categories)
                 }
             })
 
             container.innerHTML += `
             <h1>Feedback Presets</h1>
             <hr>
-            ${sectionContainer}
-            ${presetHTML}
+            <div style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: stretch; 
+            justify-content: center;'>
+                ${presetHTML}
             </div>
-            <h1>Applets</h1>
+            <div style="display: grid; grid-template-columns: repeat(2,1fr);">
+                <h1>Applets</h1>
+                <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
+                    <option value="default" selected disabled>Select a category</option>
+                </select>
+            </div>
             <hr>
-            ${sectionContainer}
-            ${generalHTML}
+            <div id="${this.props.id}-appletsection" 
+            style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: stretch; 
+            justify-content: center;'>
+                ${generalHTML}
             </div>
             `
 
+            // Populate Category Selector
+            function onlyUnique(value, index, self) {
+                return self.indexOf(value) === index;
+              }
+              
+            // usage example:
+            let uniqueCategories = categoryArray.filter(onlyUnique);
+            let categorySelector = document.getElementById(`${this.props.id}-categoryselector`)
+            uniqueCategories.forEach(category => {
+                categorySelector.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`
+            })
+
+            categorySelector.onchange = (e) => {
+                this.filterAppletsByCategory(e.target.value)
+            }
+
+            // Declare OnClick Responses
             const appletCards = container.querySelectorAll('.browser-card')
             for (let div of appletCards){
                 let choice = div.id.split('-')[1]
@@ -211,11 +238,17 @@ export class AppletBrowser {
         });
     }
 
-    //--------------------------------------------
-    //--Add anything else for internal use below--
-    //--------------------------------------------
+    filterAppletsByCategory(category){
+        let divs = document.getElementById(`${this.props.id}-appletsection`).querySelectorAll('.browser-card')
+        for (let div of divs){
+            if (div.getAttribute('categories') == category){
+                div.style.display = "block"
+            } else {
+                div.style.display = "none"
+            }
+        }
 
-    //doSomething(){}
+    }
 
    
 } 
