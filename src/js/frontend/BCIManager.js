@@ -468,7 +468,8 @@ export class BCIAppManager {
             this.appletConfigs = configs;
         } else if(this.appletConfigs.length > 0) {
             this.appletConfigs.forEach((c) => {
-                window.location.href += "#"+JSON.stringify(c);
+                if(typeof c === 'object') window.location.href += "#"+JSON.stringify(c);
+                else window.location.href += "#"+c;
             })
         }
         // -------------------------------------
