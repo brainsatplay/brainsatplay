@@ -462,7 +462,7 @@ export class BCIAppManager {
             }
             //console.log(this.appletConfigs)
         }
-        console.log(this.appletConfigs)
+        //console.log(this.appletConfigs)
         let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length > 0){
             this.appletConfigs = configs;
