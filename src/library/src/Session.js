@@ -69,7 +69,7 @@ export class Session {
 		this.devices = [];
 		this.state = new StateManager({
 			commandResult:{},
-		});
+		},10);
 
 		this.atlas = new DataAtlas('atlas',undefined,undefined,true,false);
 
