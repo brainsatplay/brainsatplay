@@ -461,16 +461,16 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(appname='',props={}, onData = (newData) => {}) {
+	streamAppData(propname='',props={}, onData = (newData) => {}) {
 
-		let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
+		let id = this.info.auth.username+"_"+propname;
 
 		this.state.addToState(id,props,onData);
 		
 		this.state.data[id+"_flag"] = false;
 		let sub = this.state.subscribe(id,()=>{
 			this.state.data[id+"_flag"] = true;
-		})
+		});
 
 		let newStreamFunc = () => {
 			if(this.state.data[id+"_flag"] === true) {
