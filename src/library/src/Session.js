@@ -1246,8 +1246,7 @@ class streamThatShit {
 					else args = param.slice(1);
 					let result = (args.length !== 0) ? option.callback(...args) : option.callback()
 					if(result !== undefined) {
-						if(device) userData[device.info.deviceName+"_"+param.join('_')] = result;
-						else userData[param.join('_')] = result;
+						userData[param.join('_')] = result;
 					}
 					return true;
 				}
@@ -1265,10 +1264,11 @@ class streamThatShit {
 	streamLoop = (prev={}) => {
 		let streamObj = {
 			username:this.info.auth.username,
-			userData:{}
+			userData:{devices:[]}
 		}
 		if(this.info.streaming === true) {
 			this.deviceStreams.forEach((d) => {
+				streamObj.userData.devices.push(d.info.deviceName)
 				let params = [];
 				this.info.deviceStreamParams.forEach((param,i) => {
 					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
