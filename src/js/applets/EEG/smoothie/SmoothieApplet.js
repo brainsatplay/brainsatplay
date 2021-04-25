@@ -73,7 +73,7 @@ export class SmoothieApplet {
                 <div id='`+props.id+`canvascontainer' width='100%' height='100%'>
                   <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
                 </div>
-                </div>
+            </div>
             `;
         }
 
@@ -88,30 +88,36 @@ export class SmoothieApplet {
             });
             let val = document.getElementById(props.id+"mode").value;
             if(val === "alpha" || val === "coherence"){
-              this.charts.forEach((chart) => {chart.deInit(); chart=undefined;});
-              document.getElementById(props.id+'canvascontainer').innerHTML = `
-                <canvas id='`+props.id+`canvas`+i+`' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
-              `;
-              this.charts[0] = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
+              if(this.charts.length>1) {
+                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit(); chart=undefined;}});
+                document.getElementById(props.id+'canvascontainer').innerHTML = `
+                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+                `;
+                this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
+              }
               document.getElementById(props.id+"channelmenu").style.display = "none";
             }
             else if (val === "bandpowers") {
-              this.charts.forEach((chart) => {chart.deInit(); chart=undefined;});
-              document.getElementById(props.id+'canvascontainer').innerHTML = `
-                <canvas id='`+props.id+`canvas`+i+`' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
-              `;
-              this.charts[0] = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
+              if(this.charts.length>1) {
+                this.charts.forEach((chart) => {if(i>1) {chart.deInit(); chart=undefined;}});  
+                document.getElementById(props.id+'canvascontainer').innerHTML = `
+                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+                `;
+                this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
+              }
               document.getElementById(props.id+"channelmenu").style.display = "";
               document.getElementById(props.id+"legend").innerHTML = "";
             } else if (val === "stackedraw") {
-              this.charts[0].deinit();
+              this.charts[0].deInit();
               document.getElementById(props.id+'canvascontainer').innerHTML = '';
-              let height = 100/this.atlas.data.eegshared.eegChannelTags.length;
-              this.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
+              let height = 100/this.bci.atlas.data.eegshared.eegChannelTags.length;
+              this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
                   <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`%' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
                 `;
-                this.charts[i] = new SmoothieChartMaker(1, document.getElementById(this.props.id+"canvas"+i));
+              });
+              this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
+                this.charts[i] = new SmoothieChartMaker(1, document.getElementById(props.id+"canvas"+i));
                 this.charts[i].seriesColors[0] = this.charts[i].seriesColors[i];
                 this.charts[i].init('rgba(0,100,100,0.5)');
               });
@@ -159,7 +165,7 @@ export class SmoothieApplet {
     responsive() {
       if(this.bci.atlas.settings.eeg) {
         addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
-        this.setLegend();
+        document.getElementById(this.props.id+"mode").onchange();
       }
       
     }
@@ -197,8 +203,8 @@ export class SmoothieApplet {
         let channelTags = atlas.data.eegshared.eegChannelTags;
         var graphmode = document.getElementById(this.props.id+"mode").value;
         if((graphmode === "alpha") || (graphmode === "bandpowers")) {
-          if(channelTags.length > this.class.series.length) {
-            while(channelTags.length > this.class.series.length) {
+          if(channelTags.length > this.charts[0].series.length) {
+            while(channelTags.length > this.charts[0].series.length) {
               var newseries = new TimeSeries();
               this.series.push(newseries);
               var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
@@ -241,7 +247,7 @@ export class SmoothieApplet {
             }
           }
         }
-        else if (a.settings.coherence === true && graphmode === "coherence") {
+        else if (atlas.settings.coherence === true && graphmode === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             if(i < this.charts[0].series.length - 1){
               this.charts[0].series[i].append(Date.now(), Math.max(...row.slices.alpha1[row.slices.alpha1.length-1]));
@@ -250,9 +256,9 @@ export class SmoothieApplet {
         }
         else if (graphmode === 'stackedraw') {
           atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
-            let datum = atlas.getEEGDataByTag(row.tag);
-            if(datum.filtered.length < 1) this.charts[i].series[0].append(Date.now(),row.raw[row.count-1]);
-            else this.charts[i].series[0].append(Date.now(),row.filtered[row.count-1]);
+            let datum = atlas.getEEGDataByChannel(row.ch);
+            if(datum.filtered.length < 1) this.charts[i].series[0].append(Date.now(),datum.raw[datum.count-1]);
+            else this.charts[i].series[0].append(Date.now(),datum.filtered[datum.count-1]);
           });
         }
       }
@@ -270,7 +276,7 @@ export class SmoothieApplet {
             }
           });
         }
-        else if(a.settings.coherence === true && val === "coherence") {
+        else if(atlas.settings.coherence === true && val === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
           });
