@@ -462,12 +462,14 @@ export class BCIAppManager {
             }
             //console.log(this.appletConfigs)
         }
-        console.log(window.location.hash)
+        //console.log(this.appletConfigs)
         let configs = this.getConfigsFromHashes(); //overrides old settings
         if(configs.length > 0){
             this.appletConfigs = configs;
-        } else {
-            
+        } else if(this.appletConfigs.length > 0) {
+            this.appletConfigs.forEach((c) => {
+                window.location.href += "#"+JSON.stringify(c);
+            })
         }
         // -------------------------------------
         
@@ -671,7 +673,7 @@ export class BCIAppManager {
                 let configs = [];
                 this.appletManager.applets.forEach((applet) => {
                     if(applet.name)
-                        configs.push({name:applet.name, settings:applet.classinstance.settings})
+                        configs.push(applet.name)
                 });
                 this.appletConfigs = configs;
                 let newsettings = JSON.stringify({   

@@ -154,23 +154,23 @@ export class AppletManager {
             else this.appletConfigs = ['Applet Browser']
         } else {
             // disabled settings reloading for now
-            if (appletConfigs[0].constructor == Object){
-                this.appletConfigs = []
-                appletConfigs.forEach(dict => {
-                    this.appletConfigs.push(dict.name)
-                })
-            } else 
             if(appletConfigs.length === 1) {
-                preset = this.appletPresets.find((p) => {
-                    if(p.value == appletConfigs[0].toLowerCase()) {
-                        document.getElementById("preset-selector").value = p.value;
-                        this.appletConfigs = p.applets
-                        return true;
-                    } else {
-                        document.getElementById("preset-selector").value = 'default';
-                        return false
-                    }
-                });   
+                if(typeof appletConfigs[0] === 'string') {
+                    preset = this.appletPresets.find((p) => {
+                        if(p.value == appletConfigs[0].toLowerCase()) {
+                            document.getElementById("preset-selector").value = p.value;
+                            this.appletConfigs = p.applets
+                            return true;
+                        } else {
+                            document.getElementById("preset-selector").value = 'default';
+                            return false
+                        }
+                    });   
+                } else {
+                    this.appletConfigs = appletConfigs;
+                }
+            } else {
+                this.appletConfigs = appletConfigs;
             }
         }
         if(preset) {
@@ -195,8 +195,20 @@ export class AppletManager {
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s,a) => s + ((a != null)? 1 : 0)
 
+        console.log(this.appletConfigs)
         this.appletConfigs.forEach(conf => {
-            if (!currentApplets.reduce(isAllNull,0) && AppletInfo[conf] != null) {
+            if(typeof conf === 'object') {
+                if (!currentApplets.reduce(isAllNull,0) && AppletInfo[conf.name] != null) {
+                    appletPromises.push(new Promise(async (resolve, reject) => {
+                        console.log(AppletInfo[conf.name].folderUrl)
+                        let settings = await getAppletSettings(AppletInfo[conf.name].folderUrl)
+                        let applet = await getApplet(settings)
+                        if (applet != null) return resolve(applet)
+                        else return reject('applet does not exist')
+                    }))
+                }
+            }
+            else if (!currentApplets.reduce(isAllNull,0) && AppletInfo[conf] != null) {
                 appletPromises.push(new Promise(async (resolve, reject) => {
                     console.log(AppletInfo[conf].folderUrl)
                     let settings = await getAppletSettings(AppletInfo[conf].folderUrl)
