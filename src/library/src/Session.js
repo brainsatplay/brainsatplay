@@ -461,9 +461,9 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname='',props={}, onData = (newData) => {}) {
+	streamAppData(propname='data', props={}, onData = (newData) => {}) {
 
-		let id = this.info.auth.username+"_"+propname;
+		let id = `${this.info.auth.username}_${propname}`; //Math.floor(Math.random()*100000000);
 
 		this.state.addToState(id,props,onData);
 		
@@ -598,6 +598,7 @@ export class Session {
 
 	processSocketMessage(received='') {
 		let parsed = JSON.parse(received);
+		console.log(parsed)
 
 		if(!parsed.msg) {
 			console.log(received);
@@ -1292,11 +1293,13 @@ class streamThatShit {
 				let params = [];
 				this.info.deviceStreamParams.forEach((param,i) => {
 					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
+					console.log(d.info.deviceType)
 					if(param[0].indexOf(d.info.deviceType) > -1) {
 						params.push(param);
 					}
 				});
 				if(params.length > 0) {
+					console.log(this.getDataForSocket(d,params))
 					Object.assign(streamObj.userData,this.getDataForSocket(d,params));
 				}
 			});
@@ -1306,6 +1309,7 @@ class streamThatShit {
 			//console.log(params);
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 			if(Object.keys(streamObj.userData).length > 0) {
+				console.log('sending stream')
 			 	this.socket.send(JSON.stringify(streamObj));
 			}
 			this.info.streamCt++;
