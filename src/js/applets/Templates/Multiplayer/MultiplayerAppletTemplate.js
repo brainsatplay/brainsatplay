@@ -73,7 +73,7 @@ export class MultiplayerAppletTemplate {
             this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbandslices_FP1_all','eegfftbandslices_FP2_all','eegfftbandslices_AF7_all','eegfftbandslices_AF8_all','hegdata','dynamicProps']
+                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
@@ -158,16 +158,16 @@ export class MultiplayerAppletTemplate {
                         let name = userData.username
                         let type = (spectators.includes(name) ? 'spectator' : 'player')
                         let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
-                            Object.keys(userData).forEach(k1 => {
+                        console.log(userData)
+                        Object.keys(userData).forEach(k1 => {
                                 if (!['username'].includes(k1)){
                                     let div = userCard.querySelector(`.${k1}`)
                                     if (div == null ) {
                                         if (userData[k1].constructor == Object){
                                             let innerHTML = ``
                                             innerHTML += `<h3>${k1}</h3>`
-                                            Object.keys(userData[k1]).forEach(k2 => {
-                                                innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                            })
+                                            let a = this.unpackObject(userData[k1])
+                                            innerHTML += this.nestHTMLElements(a)
                                             userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
                                         } else {
                                             userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
@@ -178,9 +178,8 @@ export class MultiplayerAppletTemplate {
                                         if (userData[k1].constructor == Object){
                                             let innerHTML = ``
                                             innerHTML += `<h3>${k1}</h3>`
-                                            Object.keys(userData[k1]).forEach(k2 => {
-                                                innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                            })
+                                            let a = this.unpackObject(userData[k1])
+                                            innerHTML += this.nestHTMLElements(a)
                                             div.innerHTML += innerHTML
                                         } else {
                                             div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
@@ -251,6 +250,24 @@ export class MultiplayerAppletTemplate {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
+    }
+
+    unpackObject(o) {
+        let a = []
+        Object.keys(o).forEach(k => {
+            if (o[k].constructor != Object) a.push([k,o[k]])
+            else a.push([k,this.unpackObject(o[k])])
+        })
+        return a
+    }
+
+    nestHTMLElements(a){
+        let innerHTML = ``
+        a.forEach(v => {
+            if (!Array.isArray(v[1])) innerHTML += `<p>${v[0]} : ${v[1]}</p>`
+           else innerHTML += `<p>${v[0]} : ${this.nestHTMLElements(v[1])}</p>`
+        })
+        return innerHTML
     }
 
     //--------------------------------------------

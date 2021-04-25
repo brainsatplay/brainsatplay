@@ -473,7 +473,7 @@ export class DataAtlas {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			if(tag) {
-				if(tag === row.tag || tag === row.ch) {
+				if(tag === r.tag || tag === r.ch) {
 					if(r.analyze === true) {
 						let row = this.getEEGDataByTag(r.tag);
 						if(row.fftCount === 0) {
@@ -483,7 +483,6 @@ export class DataAtlas {
 							});
 						}
 						else {
-							//console.log(row);
 							let lastIndex = row.fftCount - 1;
 							dat.push({
 								tag:row.tag,
