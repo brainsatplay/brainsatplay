@@ -31,7 +31,7 @@ export class SmoothieApplet {
         };
 
         
-        this.class=null;
+        this.charts=[];
         this.loop=null;
         this.looping=false;
 
@@ -56,6 +56,7 @@ export class SmoothieApplet {
                     <option value="alpha" selected="selected">Alpha1 Bandpowers</option>
                     <option value="coherence">Alpha1 Coherence</option>
                     <option value="bandpowers">1Ch All Bandpowers</option>
+                    <option value="stackedraw">Raw Data</option>
                     </select>
                 </td><td id='`+props.id+`channelmenu'>  
                     Channel:
@@ -69,30 +70,55 @@ export class SmoothieApplet {
                     </td>
                     </tr>
                 </table>
-                <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
-            </div>
+                <div id='`+props.id+`canvascontainer' width='100%' height='100%'>
+                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+                </div>
+                </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
-            document.getElementById(props.id+"channelmenu").style.display = "none";
-            
-            document.getElementById(props.id+"mode").onchange = () => {
-            this.class.series.forEach((series,i)=> {
+          addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+          document.getElementById(props.id+"channelmenu").style.display = "none";
+          
+          document.getElementById(props.id+"mode").onchange = () => {
+            this.charts[0].series.forEach((series,i)=> {
               series.clear();
             });
             let val = document.getElementById(props.id+"mode").value;
             if(val === "alpha" || val === "coherence"){
+              this.charts.forEach((chart) => {chart.deInit(); chart=undefined;});
+              document.getElementById(props.id+'canvascontainer').innerHTML = `
+                <canvas id='`+props.id+`canvas`+i+`' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+              `;
+              this.charts[0] = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
               document.getElementById(props.id+"channelmenu").style.display = "none";
             }
             else if (val === "bandpowers") {
+              this.charts.forEach((chart) => {chart.deInit(); chart=undefined;});
+              document.getElementById(props.id+'canvascontainer').innerHTML = `
+                <canvas id='`+props.id+`canvas`+i+`' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
+              `;
+              this.charts[0] = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
               document.getElementById(props.id+"channelmenu").style.display = "";
               document.getElementById(props.id+"legend").innerHTML = "";
-            }
+            } else if (val === "stackedraw") {
+              this.charts[0].deinit();
+              document.getElementById(props.id+'canvascontainer').innerHTML = '';
+              let height = 100/this.atlas.data.eegshared.eegChannelTags.length;
+              this.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
+                document.getElementById(props.id+'canvascontainer').innerHTML += `
+                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`%' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
+                `;
+                this.charts[i] = new SmoothieChartMaker(1, document.getElementById(this.props.id+"canvas"+i));
+                this.charts[i].seriesColors[0] = this.charts[i].seriesColors[i];
+                this.charts[i].init('rgba(0,100,100,0.5)');
+              });
+              document.getElementById(props.id+"channelmenu").style.display = "none";
+            } 
             this.setLegend();
-        }
+          }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -107,8 +133,8 @@ export class SmoothieApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 
-        this.class = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
-        this.class.init('rgba(0,100,100,0.5)');
+        this.charts[0] = new SmoothieChartMaker(8, document.getElementById(this.props.id+"canvas"));
+        this.charts[0].init('rgba(0,100,100,0.5)');
         
         this.setLegend();
         
@@ -123,8 +149,8 @@ export class SmoothieApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.class.deInit();
-        this.class = null;
+        this.charts.forEach(chart => chart.deInit());
+        this.charts = null;
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -150,11 +176,11 @@ export class SmoothieApplet {
 
    
     stopEvent = () => {
-        this.class.chart.stop();
+        this.charts.forEach(chart => chart.stop());
     }
 
     startEvent = () => {
-        this.class.chart.start();
+      this.charts.forEach(chart => chart.start());
     }
 
     updateLoop = () => {
@@ -178,7 +204,7 @@ export class SmoothieApplet {
               var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
                       stroke = 'rgb('+r+","+g+","+b+")"; fill = 'rgba('+r+','+g+','+b+","+"0.2)";
               this.seriesColors.push(stroke); // For reference
-              this.chart.addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
+              this.charts[0].addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
             }
           }
           if(graphmode === "alpha"){
@@ -187,8 +213,8 @@ export class SmoothieApplet {
                   var coord = {};
                   coord = atlas.getEEGDataByTag(row.tag);
   
-                  if(i < this.class.series.length - 1){
-                    this.class.series[i].append(Date.now(), Math.max(...coord.slices.alpha1[coord.slices.alpha1.length-1]));
+                  if(i < this.charts[0].series.length - 1){
+                    this.charts[0].series[i].append(Date.now(), Math.max(...coord.slices.alpha1[coord.slices.alpha1.length-1]));
                   }
                 }
             });
@@ -204,7 +230,7 @@ export class SmoothieApplet {
             });
             if(tag !== null){
               var coord = atlas.getEEGDataByTag(tag);
-              this.class.bulkAppend([
+              this.charts[0].bulkAppend([
                 coord.means.delta[coord.means.delta.length-1],
                 coord.means.theta[coord.means.theta.length-1],
                 coord.means.alpha1[coord.means.alpha1.length-1],
@@ -217,9 +243,16 @@ export class SmoothieApplet {
         }
         else if (a.settings.coherence === true && graphmode === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
-            if(i < this.class.series.length - 1){
-              this.class.series[i].append(Date.now(), Math.max(...row.slices.alpha1[row.slices.alpha1.length-1]));
+            if(i < this.charts[0].series.length - 1){
+              this.charts[0].series[i].append(Date.now(), Math.max(...row.slices.alpha1[row.slices.alpha1.length-1]));
             }
+          });
+        }
+        else if (graphmode === 'stackedraw') {
+          atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
+            let datum = atlas.getEEGDataByTag(row.tag);
+            if(datum.filtered.length < 1) this.charts[i].series[0].append(Date.now(),row.raw[row.count-1]);
+            else this.charts[i].series[0].append(Date.now(),row.filtered[row.count-1]);
           });
         }
       }
@@ -233,23 +266,29 @@ export class SmoothieApplet {
         if(val === "alpha") {
           channelTags.forEach((row,i) => {
             if(row.tag !== null && row.tag !== 'other'){
-              htmlToAppend += `<div style='display:table-row; color:`+this.class.seriesColors[i]+`'>`+row.tag+`</div>`;
+              htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
             }
           });
         }
         else if(a.settings.coherence === true && val === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
-            htmlToAppend += `<div style='display:table-row; color:`+this.class.seriesColors[i]+`'>`+row.tag+`</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
           });
         }
         else if (val === "bandpowers") {
           let i = 0;
           for(const prop in atlas.data.eeg[0].means){
             if(prop !== 'scp' && prop !== 'highgamma'){
-              htmlToAppend += `<div style='display:table-row; color:`+this.class.seriesColors[i]+`'>`+prop+`</div>`;
+              htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+prop+`</div>`;
               i++;
             }
           }
+        }
+        else if (val === "stackedraw") {
+          let i = 0;
+          atlas.data.eegshared.eegChannelTags.forEach((row,i)=> {
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
+          });
         }
         document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
         

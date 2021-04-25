@@ -69,7 +69,7 @@ export let generateSettings = (urls, from=0, to='end', category=undefined, onloa
     return settings;
 }
 
-export let appletSettings = generateSettings(AppletFolderUrls);
+export let appletSettings = generateSettings(AppletInfo);
 //while(settings.get('uPlot') === undefined) { /*...awaiting...*/  }
 
 export let presets = [
