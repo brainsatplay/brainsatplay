@@ -99,7 +99,7 @@ export class SmoothieApplet {
             }
             else if (val === "bandpowers") {
               if(this.charts.length>1) {
-                this.charts.forEach((chart) => {if(i>1) {chart.deInit(); chart=undefined;}});  
+                this.charts.forEach((chart,i) => {if(i>1) {chart.deInit(); chart=undefined;}});  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
                   <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
                 `;
@@ -113,7 +113,7 @@ export class SmoothieApplet {
               let height = this.AppletHTML.node.clientHeight/this.bci.atlas.data.eegshared.eegChannelTags.length;
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
-                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
+                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`' style='z-index:3; width:100%; height:`+height+`;'></canvas>
                 `;
               });
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
