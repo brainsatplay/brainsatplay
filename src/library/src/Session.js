@@ -88,7 +88,7 @@ export class Session {
 			localHostURL: localHostURL
 		}
 		this.socket = null;
-		this.streamObj = new streamThatShit();
+		this.streamObj = new streamThatShit(this.info.auth);
 		this.streamObj.deviceStreams = this.devices; //reference the same object
 	}
 
@@ -915,12 +915,7 @@ export class Session {
 	}
 
 	configureStreamForGame(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
-		let params = [];
-		streamParams.forEach((p,i) => {
-			if(p[2] === undefined)
-				params.push([p[0],p[1],'all']);
-			else params.push([...p]);
-		});
+		let params = streamParams;
 		let d = undefined;
 		let found = false;
 		deviceTypes.forEach((name,i) => { // configure named device
@@ -929,7 +924,6 @@ export class Session {
 					let deviceParams = [];
 					params.forEach((p) => {
 						if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
-							if(p[2] === undefined && p[1] !== undefined) p = [p[0],p[1],'all'];
 							if(o.info.deviceType === 'eeg') {
 								o.atlas.data.eegshared.eegChannelTags.find((o) => {
 									if(o.tag === p[1] || o.ch === p[1]) {
@@ -1111,11 +1105,12 @@ class deviceStream {
 
 
 class streamThatShit {
-	constructor(socket) {
+	constructor(auth,socket) {
 
 		this.deviceStreams = [];
 
 		this.info = {
+			auth:auth,
 			streaming:false,
 			deviceStreamParams: [],
 			appStreamParams: [],
@@ -1291,7 +1286,7 @@ class streamThatShit {
 
 	streamLoop = (prev={}) => {
 		let streamObj = {
-			username:this.username,
+			username:this.info.auth.username,
 			userData:{}
 		}
 		if(this.info.streaming === true) {
