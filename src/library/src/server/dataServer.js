@@ -319,7 +319,7 @@ class DataServer {
 
             for(const prop in data.userData) {
                 u.props[prop] = data.userData[prop];
-                if(u.updatedPropnames.indexOf(prop) < -1)
+                if(u.updatedPropnames.indexOf(prop) < 0)
                     u.updatedPropnames.push(prop);
             }
 
