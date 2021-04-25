@@ -352,7 +352,7 @@ export class Session {
 			} else {
 				this.atlas.settings.analyzing = false;
 			}
-		} else {console.error("no devices connected")}
+		} else {console.error("no devices connected");}
 	}
 
 	//get data for a particular device	
@@ -481,7 +481,7 @@ export class Session {
 		}
 
 		this.addStreamFunc(id,newStreamFunc);
-		this.addStreamParams([id]);
+		this.addStreamParams([[id]]);
 
 		return id; //this.state.unsubscribeAll(id) when done
 	
@@ -1295,7 +1295,6 @@ class streamThatShit {
 				let params = [];
 				this.info.deviceStreamParams.forEach((param,i) => {
 					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
-					console.log(d.info.deviceType)
 					if(param[0].indexOf(d.info.deviceType) > -1) {
 						params.push(param);
 					}
