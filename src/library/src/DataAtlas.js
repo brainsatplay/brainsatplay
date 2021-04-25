@@ -448,7 +448,7 @@ export class DataAtlas {
 
 
     //Return the object corresponding to the atlas tag
-	getCoherenceByTag = (tag="FP1_FZ") => {
+	getCoherenceByTag = (tag="FP1::FZ") => {
 		var found = undefined;
 		let atlasCoord = this.data.coherence.find((o, i) => {
 			if(o.tag === tag){
@@ -573,7 +573,7 @@ export class DataAtlas {
 	getFrontalCoherenceData = () => {
 		let coh_ref_ch = undefined;
 		if(this.settings.coherence) {
-            coh_ref_ch = this.getCoherenceByTag('FP2_FP1') ?? this.getCoherenceByTag('FP1_FP2') ?? this.getCoherenceByTag('AF7_AF8') ?? this.getCoherenceByTag('AF8_AF7')
+            coh_ref_ch = this.getCoherenceByTag('FP2::FP1') ?? this.getCoherenceByTag('FP1::FP2') ?? this.getCoherenceByTag('AF7::AF8') ?? this.getCoherenceByTag('AF8::AF7')
 		}
 		return coh_ref_ch;
 	}
