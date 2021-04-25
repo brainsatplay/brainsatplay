@@ -286,7 +286,7 @@ export class ObjectListenerInstance {
             if(this.debug === true) {console.log("checking", this.object, this.propName);}
             if(this.interval === "FRAMERATE"){
                 if (typeof window === 'undefined') {
-                    setTimeout(()=>{this.check();}, 60)
+                    setTimeout(()=>{this.check();}, 16)
                 } else {
                     this.checker = requestAnimationFrame(this.check);
                 }
@@ -300,7 +300,7 @@ export class ObjectListenerInstance {
     start() {
         this.running = true;
         if (typeof window === 'undefined') {
-            setTimeout(()=>{this.check();}, 60)
+            setTimeout(()=>{this.check();}, 16)
         } else {
             this.checker = requestAnimationFrame(this.check);
         }

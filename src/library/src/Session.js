@@ -1087,6 +1087,7 @@ class streamThatShit {
 			auth:auth,
 			streaming:false,
 			deviceStreamParams: [],
+			nDevices: 0,
 			appStreamParams: [],
 			streamCt: 0,
 			streamLoopTiming: 100
@@ -1264,11 +1265,15 @@ class streamThatShit {
 	streamLoop = (prev={}) => {
 		let streamObj = {
 			username:this.info.auth.username,
-			userData:{devices:[]}
+			userData:{}
 		}
 		if(this.info.streaming === true) {
 			this.deviceStreams.forEach((d) => {
-				streamObj.userData.devices.push(d.info.deviceName)
+				if(this.info.nDevices < this.deviceStreams.length) {
+					if(!streamObj.userData.devices) streamObj.userData.devices = [];
+					streamObj.userData.devices.push(d.info.deviceName);
+					this.info.nDevices++;
+				}
 				let params = [];
 				this.info.deviceStreamParams.forEach((param,i) => {
 					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
