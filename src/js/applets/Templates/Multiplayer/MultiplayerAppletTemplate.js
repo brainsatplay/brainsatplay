@@ -72,7 +72,7 @@ export class MultiplayerAppletTemplate {
             this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata']
+                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata','location']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
@@ -99,127 +99,133 @@ export class MultiplayerAppletTemplate {
         let info = document.getElementById(`${this.props.id}gameInfo`)
 
 
-        this.stateIds.push(this.session.streamAppData('newStream',this.dynamicProps,(newData) => {
-            console.log("New data detected! Will be sent!");
-        }))
-        this.dynamicProps.location = 'Eau Claire'
-
         this.animate = () => {
             let data = this.session.state.data
             let result = this.session.state.data?.commandResult
 
-            let streamInfo = data?.multiplayer?.[`${result.appname}`]
-            if (streamInfo != null){
+            let returnedAppName = this.session.state.data?.commandResult?.appname
 
-                console.log(data)
+            if (returnedAppName != null && returnedAppName != this.name) this.appname = this.session.state.data?.commandResult?.appname
+
+            if (this.appname != null){
+
+                let dataIWant = this.session.getStreamData(`${this.appname}`,'location')
+                // console.log(dataIWant)
+                // if (Object.keys(dataIWant).length === 0){
+                    this.stateIds.push(this.session.streamAppData('location', 'Eau Claire',(newData) => {
+                        console.log("New data detected! Will be sent!");
+                    }))
+                // }
+
+                // console.log(data)
                 let gameInfo = this.session.state.data?.commandResult?.gameInfo
-                let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
-                let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
-                let t = streamInfo.t ?? gameInfo.lastTransmit
+        //         let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
+        //         let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
+        //         let t = streamInfo.t ?? gameInfo.lastTransmit
 
-                if ( result.msg != null && this.uiStates.dynamic.msg !== result.msg ){
-                    this.uiStates.dynamic.msg = result.msg
-                }
+        //         if ( result.msg != null && this.uiStates.dynamic.msg !== result.msg ){
+        //             this.uiStates.dynamic.msg = result.msg
+        //         }
 
-                if ( usernames != null) {
-                    if (this.uiStates.dynamic.usernames !== usernames ){
-                    spectatorsList.innerHTML = ''
-                    playersList.innerHTML = ''
+        //         if ( usernames != null) {
+        //             if (this.uiStates.dynamic.usernames !== usernames ){
+        //             spectatorsList.innerHTML = ''
+        //             playersList.innerHTML = ''
 
-                    usernames.forEach((name)=> {
-                        if (spectators.includes(name)) {
-                            spectatorsList.innerHTML += `
-                            <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
-                                <h1>${name}</h1>
-                                <div style="font-size: 60%;">
-                                </div>
-                            </div>`
-                        }
-                        else {
-                            playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
-                                <h1>${name}</h1>
-                                <div style="font-size: 60%;">
-                                </div>
-                            </div>`
-                        }
-                    })
-                    this.uiStates.dynamic.usernames = usernames
-                    this.uiStates.dynamic.spectators = spectators
-                }
+        //             usernames.forEach((name)=> {
+        //                 if (spectators.includes(name)) {
+        //                     spectatorsList.innerHTML += `
+        //                     <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+        //                         <h1>${name}</h1>
+        //                         <div style="font-size: 60%;">
+        //                         </div>
+        //                     </div>`
+        //                 }
+        //                 else {
+        //                     playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
+        //                         <h1>${name}</h1>
+        //                         <div style="font-size: 60%;">
+        //                         </div>
+        //                     </div>`
+        //                 }
+        //             })
+        //             this.uiStates.dynamic.usernames = usernames
+        //             this.uiStates.dynamic.spectators = spectators
+        //         }
 
-                usernames.forEach((name) => {
-                    let type = (spectators.includes(name) ? 'spectator' : 'player')
-                    let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
-                    let userData = streamInfo.userData?.[name]
-                    if (userData != null){
-                        Object.keys(userData).forEach(k1 => {
-                            let div = userCard.querySelector(`.${k1}`)
-                            if (div == null ) {
-                                if (userData[k1].constructor == Object){
-                                    let innerHTML = ``
-                                    innerHTML += `<h3>${k1}</h3>`
-                                    Object.keys(userData[k1]).forEach(k2 => {
-                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                    })
-                                    userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
-                                } else {
-                                    userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
-                                }
-                            }
-                            else {
-                                div.innerHTML = ''
-                                if (userData[k1].constructor == Object){
-                                    let innerHTML = ``
-                                    innerHTML += `<h3>${k1}</h3>`
-                                    Object.keys(userData[k1]).forEach(k2 => {
-                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                    })
-                                    div.innerHTML += innerHTML
-                                } else {
-                                    div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
-                                }
-                            }
-                        })
-                    }
-                })
-            }
+        //         usernames.forEach((name) => {
+        //             let type = (spectators.includes(name) ? 'spectator' : 'player')
+        //             let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
+        //             let userData = streamInfo.userData?.[name]
+        //             if (userData != null){
+        //                 Object.keys(userData).forEach(k1 => {
+        //                     let div = userCard.querySelector(`.${k1}`)
+        //                     if (div == null ) {
+        //                         if (userData[k1].constructor == Object){
+        //                             let innerHTML = ``
+        //                             innerHTML += `<h3>${k1}</h3>`
+        //                             Object.keys(userData[k1]).forEach(k2 => {
+        //                                 innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
+        //                             })
+        //                             userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
+        //                         } else {
+        //                             userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
+        //                         }
+        //                     }
+        //                     else {
+        //                         div.innerHTML = ''
+        //                         if (userData[k1].constructor == Object){
+        //                             let innerHTML = ``
+        //                             innerHTML += `<h3>${k1}</h3>`
+        //                             Object.keys(userData[k1]).forEach(k2 => {
+        //                                 innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
+        //                             })
+        //                             div.innerHTML += innerHTML
+        //                         } else {
+        //                             div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
+        //                         }
+        //                     }
+        //                 })
+        //             }
+        //         })
+        //     }
 
 
-                if (gameInfo != null && this.uiStates.static !== gameInfo){
-                    Object.keys(gameInfo).forEach((key) => {
-                        if (!['usernames','spectators','updatedUsers','newUsers', 'lastTransmit'].includes(key)){
-                            let val = gameInfo[key]
-                            if ( val != null && this.uiStates.static[key] !== val ){
+        //         if (gameInfo != null && this.uiStates.static !== gameInfo){
+        //             Object.keys(gameInfo).forEach((key) => {
+        //                 if (!['usernames','spectators','updatedUsers','newUsers', 'lastTransmit'].includes(key)){
+        //                     let val = gameInfo[key]
+        //                     if ( val != null && this.uiStates.static[key] !== val ){
 
-                                let el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
-                                if (el == null ) {
-                                    info.innerHTML += `<div id="${this.props.id}-gameInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
-                                    el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
-                                }
-                                el.innerHTML = `<h3>${key}</h3>`
+        //                         let el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+        //                         if (el == null ) {
+        //                             info.innerHTML += `<div id="${this.props.id}-gameInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
+        //                             el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+        //                         }
+        //                         el.innerHTML = `<h3>${key}</h3>`
 
-                                if (Array.isArray(val)){
-                                    val.forEach(v => {
-                                        el.innerHTML += `<p>${v}</p>`
-                                    })
-                                } else {
-                                    el.innerHTML += `<p>${val}</p>`
-                                }
-                                this.uiStates.static[key] = val
-                            }
-                        }
-                    })
-            }
+        //                         if (Array.isArray(val)){
+        //                             val.forEach(v => {
+        //                                 el.innerHTML += `<p>${v}</p>`
+        //                             })
+        //                         } else {
+        //                             el.innerHTML += `<p>${val}</p>`
+        //                         }
+        //                         this.uiStates.static[key] = val
+        //                     }
+        //                 }
+        //             })
+        //     }
 
-            if ( t != null && this.uiStates.dynamic.t !== t ){
-                let el = document.getElementById(`${this.props.id}-gameInfo-t`)
-                if (el == null ) {
-                    info.innerHTML += `<div id="${this.props.id}-gameInfo-t" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
-                    el = document.getElementById(`${this.props.id}-gameInfo-t`)
-                }
-                el.innerHTML = `<h3>Transmission Received</h3><p>${t}</p>`
-                this.uiStates.dynamic.t = t
-            }
+        //     if ( t != null && this.uiStates.dynamic.t !== t ){
+        //         let el = document.getElementById(`${this.props.id}-gameInfo-t`)
+        //         if (el == null ) {
+        //             info.innerHTML += `<div id="${this.props.id}-gameInfo-t" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
+        //             el = document.getElementById(`${this.props.id}-gameInfo-t`)
+        //         }
+        //         el.innerHTML = `<h3>Transmission Received</h3><p>${t}</p>`
+        //         this.uiStates.dynamic.t = t
+        //     }
         }
 
             this.animation = window.requestAnimationFrame(this.animate)
