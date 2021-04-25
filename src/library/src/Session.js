@@ -940,8 +940,8 @@ export class Session {
 							else deviceParams.push(p);
 						}
 						else if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
-							if(!this.streamObj.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
-								this.streamObj.appStreamParams.push(p);
+							if(!this.streamObj.info.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
+								this.streamObj.info.appStreamParams.push(p);
 							}
 						}
 					});
