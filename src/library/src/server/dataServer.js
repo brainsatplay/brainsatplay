@@ -317,10 +317,10 @@ class DataServer {
 
             let u = this.userData.get(data.username);
 
-            u.updatedProps = [];
             for(const prop in data.userData) {
                 u.props[prop] = data.userData[prop];
-                u.updatedPropnames.push(prop);
+                if(u.updatedPropnames.indexOf(prop) < -1)
+                    u.updatedPropnames.push(prop);
             }
 
             let now = Date.now();
@@ -837,6 +837,7 @@ class DataServer {
 		this.updateHostGameSubscriptions(time);
 
         this.userData.forEach((u,i) => {
+            u.updatedPropnames = [];
             if(time - u.lastUpdate > this.serverTimeout) {
                 this.userData.socket.close();
                 this.userData.delete(u.username);
