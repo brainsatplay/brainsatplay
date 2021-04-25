@@ -1,6 +1,6 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
-import { presets , appletSettings} from "../../appletList"
+import { presets , AppletInfo, getAppletSettings} from "../../appletList"
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -101,76 +101,94 @@ export class AppletBrowser {
         })
 
         let generalHTML = ``
-        let eegHTML = ``
-        let hegHTML = ``
+        // let eegHTML = ``
+        // let hegHTML = ``
 
-        appletSettings.forEach(settings => {
-            if (!['Applet Browser','Randomizer'].includes(settings.name)){
-                let type;
-                if (settings.devices.length > 1){
-                    type = 'All'
-                } else if (settings.devices[0] == 'eeg'){
-                    type = 'EEG'
-                } else if (settings.devices[0] == 'heg'){
-                    type = 'HEG'
-                } else {
-                    type = "Other"
-                }
-                let html = `
-                <div id="${this.props.id}-${settings.name}" class='browser-card' style="${appletStyle};">
-                    <img src="${settings.image}" style="width: 100%;">
-                    <div style="padding: 0px 25px 10px 25px; position: relative;">
-                        <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                        <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
-                    </div>
-                </div>`
-                if (settings.devices.length > 1){
-                    generalHTML += html
-                } else if (settings.devices[0] == 'eeg'){
-                    eegHTML += html
-                } else if (settings.devices[0] == 'heg'){
-                    hegHTML += html
-                }
-            }
-        })
+        var appletInfoArray = Object.keys(AppletInfo).map(function(key) {
+        return [key, AppletInfo[key]];
+        });
 
-        container.innerHTML += `
-        <h1>Feedback Presets</h1>
-        <hr>
-        ${sectionContainer}
-        ${presetHTML}
-        </div>
-        <h1>Applets</h1>
-        <hr>
-        ${sectionContainer}
-        ${generalHTML}
-        ${eegHTML}
-        ${hegHTML}
-        </div>
-        `
-
-        const appletCards = container.querySelectorAll('.browser-card')
-        for (let div of appletCards){
-            let choice = div.id.split('-')[1]
-            if (presetSelections.includes(choice)){
-                div.onclick = (e) => {
-                    let selector = document.getElementById('preset-selector')
-                    selector.value = choice
-                    selector.onchange()
-                }
+        appletInfoArray.sort(function(first, second) {
+        let translate = (settings) => {
+            if (settings.devices.length > 1){
+                return 0 // all
+            } else if (settings.devices[0] == 'eeg'){
+                return 1 // eeg
+            } else if (settings.devices[0] == 'heg'){
+                return 2 // heg
             } else {
-                div.onclick = (e) => {
-                    let selector = document.getElementById('applet1')
-                    selector.value = choice
-                    window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
-                    selector.onchange()
-                }
-                }
+                return 3 // other
             }
+        }
+        let pos1 = translate(first[1])
+        let pos2 = translate(second[1])
+        return pos1 - pos2;
+        });
 
-        //Add whatever else you need to initialize
-        this.responsive()
+        let appletSettingsArray = appletInfoArray.map(async (arr) => {
+            return await getAppletSettings(arr[1].folderUrl)
+        })
+        Promise.all(appletSettingsArray).then((appletSettings) => {
+            appletSettings.forEach(settings => {
+                if (!['Applet Browser','Randomizer'].includes(settings.name)){
+                    let type;
+                    if (settings.devices.length > 1){
+                        type = 'All'
+                    } else if (settings.devices[0] == 'eeg'){
+                        type = 'EEG'
+                    } else if (settings.devices[0] == 'heg'){
+                        type = 'HEG'
+                    } else {
+                        type = 'Other'
+                    }
+                    let html = `
+                    <div id="${this.props.id}-${settings.name}" class='browser-card' style="${appletStyle};">
+                        <img src="${settings.image}" style="width: 100%;">
+                        <div style="padding: 0px 25px 10px 25px; position: relative;">
+                            <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                            <p style="font-size: 80%;margin-top: 5px;">${type}</p>
+                            <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                        </div>
+                    </div>`
+                    generalHTML += html
+                }
+            })
+
+            container.innerHTML += `
+            <h1>Feedback Presets</h1>
+            <hr>
+            ${sectionContainer}
+            ${presetHTML}
+            </div>
+            <h1>Applets</h1>
+            <hr>
+            ${sectionContainer}
+            ${generalHTML}
+            </div>
+            `
+
+            const appletCards = container.querySelectorAll('.browser-card')
+            for (let div of appletCards){
+                let choice = div.id.split('-')[1]
+                if (presetSelections.includes(choice)){
+                    div.onclick = (e) => {
+                        let selector = document.getElementById('preset-selector')
+                        selector.value = choice
+                        selector.onchange()
+                    }
+                } else {
+                    div.onclick = (e) => {
+                        let selector = document.getElementById('applet1')
+                        selector.value = choice
+                        window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
+                        selector.onchange()
+                    }
+                    }
+                }
+
+            //Add whatever else you need to initialize
+            this.responsive()
+        })
     }
 
     //Delete all event listeners and loops here and delete the HTML block
