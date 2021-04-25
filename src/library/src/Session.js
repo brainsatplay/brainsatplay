@@ -1165,6 +1165,66 @@ class streamThatShit {
 			}
 		}
 
+		let getEEGBandpowerMeans = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestFFTData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.mean};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGCoherenceBandpowerMeans = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestCoherenceData(channel);
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.mean};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGBandpowerSlices = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestFFTData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.slice};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGCoherenceBandpowerSlices = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestCoherenceData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.slice};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
 		let getCoherenceData = (device, tag, nArrays='all') => {
 			let get = nArrays;
 			if(device.info.useAtlas === true) {
@@ -1212,10 +1272,14 @@ class streamThatShit {
 		}
 
 		this.streamTable = [
-			{prop:'eegch',  		callback:getEEGChData	 	},
-			{prop:'eegfft', 		callback:getEEGFFTData	 	},
-			{prop:'eegcoherence', 	callback:getCoherenceData	},
-			{prop:'hegdata',        callback:getHEGData			}
+			{prop:'eegch',  				callback:getEEGChData	 				},
+			{prop:'eegfft', 				callback:getEEGFFTData	 				},
+			{prop:'eegcoherence', 			callback:getCoherenceData				},
+			{prop:'eegfftbands', 			callback:getEEGBandpowerMeans	 		},
+			{prop:'eegcoherencebands', 		callback:getEEGCoherenceBandpowerMeans	},
+			{prop:'eegfftbandslices', 		callback:getEEGBandpowerSlices	 		},
+			{prop:'eegcoherencebandslices', callback:getEEGCoherenceBandpowerSlices	},
+			{prop:'hegdata',        		callback:getHEGData						}
 		];
 
 		if(params.length > 0) {

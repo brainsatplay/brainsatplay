@@ -469,9 +469,34 @@ export class DataAtlas {
 	}
 
     //Get the latest data pushed to tagged channels
-	getLatestFFTData = () => {
+	getLatestFFTData = (tag=undefined) => {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
+			if(tag) {
+				if(tag === row.tag || tag === row.ch) {
+					if(r.analyze === true) {
+						let row = this.getEEGDataByTag(r.tag);
+						if(row.fftCount === 0) {
+							dat.push({
+								tag:row.tag,
+								fftCount:row.fftCount
+							});
+						}
+						else {
+							//console.log(row);
+							let lastIndex = row.fftCount - 1;
+							dat.push({
+								tag:row.tag,
+								fftCount:row.fftCount,
+								time: row.fftTimes[lastIndex],
+								fft: row.ffts[lastIndex],
+								slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
+								mean:{scp:row.means.scp[lastIndex],delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
+							});
+						}
+					}
+				}
+			}
 			if(r.analyze === true) {
 				let row = this.getEEGDataByTag(r.tag);
 				if(row.fftCount === 0) {
@@ -488,8 +513,8 @@ export class DataAtlas {
 						fftCount:row.fftCount,
 						time: row.fftTimes[lastIndex],
 						fft: row.ffts[lastIndex],
-						slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
-						mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
+						slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
+						mean:{scp:row.means.scp[lastIndex], delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
 					});
 				}
 			}
@@ -497,18 +522,32 @@ export class DataAtlas {
 		return dat;
 	}
 
-	getLatestCoherenceData = () => {
+	getLatestCoherenceData = (tag=undefined) => {
 		let dat = [];
 		this.data.coherence.forEach((row,i) => {
-			let lastIndex = row.fftCount - 1;
-			dat.push({
-				tag:row.tag,
-				fftCount:row.fftCount,
-				time: row.times[lastIndex],
-				fft: row.ffts[lastIndex],
-				slice:{delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
-				mean:{delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
-			});
+			if(tag) {
+				if(row.tag === tag) {
+					let lastIndex = row.fftCount - 1;
+					dat.push({
+						tag:row.tag,
+						fftCount:row.fftCount,
+						time: row.times[lastIndex],
+						fft: row.ffts[lastIndex],
+						slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
+						mean:{scp:row.means.scp[lastIndex], delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
+					});
+				}
+			} else {
+				let lastIndex = row.fftCount - 1;
+				dat.push({
+					tag:row.tag,
+					fftCount:row.fftCount,
+					time: row.times[lastIndex],
+					fft: row.ffts[lastIndex],
+					slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], gamma:row.slices.gamma[lastIndex]},
+					mean:{scp:row.means.scp[lastIndex], delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], gamma: row.means.gamma[lastIndex]}
+				});
+			}
 		});
 		return dat;
 	}
