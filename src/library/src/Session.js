@@ -532,7 +532,6 @@ export class Session {
 			//this.info.nDevices++;
 		}
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.streamObj.socket = this.socket;
 			if(beginStream === true) {
 				this.beginStream();
 			}
@@ -727,6 +726,7 @@ export class Session {
             console.log('close');
         }
 
+		this.streamObj.socket = socket;
 		return socket;
 	}
 
