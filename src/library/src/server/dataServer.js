@@ -37,6 +37,7 @@ class DataServer {
                 appname:appname,
                 socket:socket,
                 props: {},
+                updatedPropnames: [],
                 lastUpdate:Date.now(),
                 lastTransmit:0,
                 latency:0
@@ -316,8 +317,10 @@ class DataServer {
 
             let u = this.userData.get(data.username);
 
+            u.updatedProps = [];
             for(const prop in data.userData) {
                 u.props[prop] = data.userData[prop];
+                u.updatedPropnames.push(prop);
             }
 
             let now = Date.now();
@@ -615,7 +618,7 @@ class DataServer {
                         id:sub.id,
                         userData:{}
                     };
-                    sub.propnames.forEach((prop,j) => {
+                    sub.updatedPropnames.forEach((prop,j) => {
                         dataToSend.userData[prop] = source.props[prop];
                     });
                     sub.newData = false;
@@ -655,7 +658,7 @@ class DataServer {
                             let listener = this.userData.get(user);
                             if(listener.props.devices) userObj.devices = listener.props.devices;
                             if(listener) {
-                                sub.propnames.forEach((prop,k) => {
+                                sub.updatedPropnames.forEach((prop,k) => {
                                     userObj[prop] = listener.props[prop];
                                 });
                                 updateObj.userData.push(userObj);
@@ -674,7 +677,7 @@ class DataServer {
                                 }
                                 let listener = this.userData.get(user);
                                 if(listener){ 
-                                    sub.propnames.forEach((prop,k) => {
+                                    sub.updatedPropnames.forEach((prop,k) => {
                                         userObj[prop] = listener.props[prop];
                                     });
                                     fullUserData.push(userObj);
@@ -767,7 +770,7 @@ class DataServer {
                                 let listener = this.userData.get(user);
                                 if(listener.props.devices) userObj.devices = listener.props.devices;
                                 if(listener) {
-                                    sub.propnames.forEach((prop,k) => {
+                                    sub.updatedPropnames.forEach((prop,k) => {
                                         userObj[prop] = listener.props[prop];
                                     });
                                     hostUpdateObj.userData.push(userObj);
@@ -783,7 +786,7 @@ class DataServer {
                             }
                             let listener = this.userData.get(user);
                             if(listener) {
-                                sub.propnames.forEach((prop,k) => {
+                                sub.updatedPropnames.forEach((prop,k) => {
                                     userObj[prop] = listener.props[prop];
                                 });
                                 hostUpdateObj.userData.push(userObj);
