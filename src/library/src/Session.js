@@ -928,6 +928,7 @@ export class Session {
 					let deviceParams = [];
 					params.forEach((p) => {
 						if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
+							if(p[2] === undefined) p = [p[0],p[1],'all'];
 							if(o.info.deviceType === 'eeg') {
 								o.atlas.data.eegshared.eegChannelTags.find((o) => {
 									if(o.tag === p[1] || o.ch === p[1]) {
@@ -937,6 +938,11 @@ export class Session {
 								})
 							}
 							else deviceParams.push(p);
+						}
+						else if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
+							if(!this.streamObj.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
+								this.streamObj.appStreamParams.push(p);
+							}
 						}
 					});
 					if(deviceParams.length > 0) {
