@@ -490,7 +490,7 @@ export class DataAtlas {
 								time: row.fftTimes[lastIndex],
 								fft: row.ffts[lastIndex],
 								slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
-								mean:{scp:row.means.scp[lastIndex],delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
+								mean:{scp:row.means.scp[lastIndex],delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.means.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
 							});
 						}
 					}
@@ -513,7 +513,7 @@ export class DataAtlas {
 						time: row.fftTimes[lastIndex],
 						fft: row.ffts[lastIndex],
 						slice:{scp:row.slices.scp[lastIndex], delta:row.slices.delta[lastIndex], theta:row.slices.theta[lastIndex], alpha1:row.slices.alpha1[lastIndex], alpha2:row.slices.alpha2[lastIndex], beta:row.slices.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma:row.slices.highgamma[lastIndex]},
-						mean:{scp:row.means.scp[lastIndex], delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.slices.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
+						mean:{scp:row.means.scp[lastIndex], delta:row.means.delta[lastIndex], theta:row.means.theta[lastIndex], alpha1: row.means.alpha1[lastIndex], alpha2: row.means.alpha2[lastIndex], beta: row.means.beta[lastIndex], lowgamma:row.means.lowgamma[lastIndex], highgamma: row.means.highgamma[lastIndex]}
 					});
 				}
 			}
