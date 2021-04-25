@@ -44,7 +44,7 @@ export let getAppletSettings = async (AppletFolderUrl) => {
 }
 
 export let getApplet = async (settings) => {
-    let module = await dynamicImport(settings.moduleURL + '.js');
+    let module = await dynamicImport(AppletInfo[settings.name].folderUrl+"/"+settings.module + '.js');
     return module[settings.module];
 }
 
@@ -56,7 +56,6 @@ export let generateSettings = (appletInfo, from=0, to='end', category=undefined,
     appletKeys.forEach(async (key,i) => {
         if(i >= from && i < to) {
             let result = await getAppletSettings(appletInfo[key].folderUrl);
-            result.moduleURL = appletInfo[key].folderUrl+"/"+result.module
             if(category === undefined)
                 settings.set(result.name,result); 
             else if (result.settings.categories.indexOf(category) > -1) 
@@ -69,7 +68,7 @@ export let generateSettings = (appletInfo, from=0, to='end', category=undefined,
     return settings;
 }
 
-export let appletSettings = generateSettings(AppletInfo);
+// export let appletSettings = generateSettings(AppletInfo);
 //while(settings.get('uPlot') === undefined) { /*...awaiting...*/  }
 
 export let presets = [

@@ -198,8 +198,10 @@ export class AppletManager {
         this.appletConfigs.forEach(conf => {
             if (!currentApplets.reduce(isAllNull,0) && AppletInfo[conf] != null) {
                 appletPromises.push(new Promise(async (resolve, reject) => {
-                    let value = await getApplet(await getAppletSettings(AppletInfo[conf].folderUrl))
-                    if (value != null) return resolve(value)
+                    console.log(AppletInfo[conf].folderUrl)
+                    let settings = await getAppletSettings(AppletInfo[conf].folderUrl)
+                    let applet = await getApplet(settings)
+                    if (applet != null) return resolve(applet)
                     else return reject('applet does not exist')
                 }))
             }
