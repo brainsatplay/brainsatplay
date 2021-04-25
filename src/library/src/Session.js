@@ -1271,7 +1271,7 @@ class streamThatShit {
 					else args = param.slice(1);
 					let result = option.callback(...args);
 					if(result !== undefined) {
-						if(device) userData[device+"_"+param.join('_')] = result;
+						if(device) userData[device.info.deviceName+"_"+param.join('_')] = result;
 						else userData[param.join('_')] = result;
 					}
 					return true;
