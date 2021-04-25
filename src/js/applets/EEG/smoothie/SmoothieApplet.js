@@ -47,7 +47,7 @@ export class SmoothieApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
              return `
-            <div id='`+props.id+`'>
+            <div id='`+props.id+`' width=100% height=100%>
                 <table id='`+props.id+`menu' style='position:absolute; z-index:4; color:white;'>
                 <tr>
                 <td>
@@ -70,7 +70,7 @@ export class SmoothieApplet {
                     </td>
                     </tr>
                 </table>
-                <div id='`+props.id+`canvascontainer' width='100%' height='100%'>
+                <div id='`+props.id+`canvascontainer' style='width:100%; height:100%;'>
                   <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
                 </div>
             </div>
@@ -93,7 +93,7 @@ export class SmoothieApplet {
                 this.charts.forEach((chart,i) => {if(i>1) {chart.deInit();}});
                 this.charts.splice(1,this.charts.length-1);  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
-                  <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
+                  <canvas id='`+props.id+`canvas' width=100% height=100% style='z-index:3; width:100%; height:100%;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
                 this.charts[0].init('rgba(0,100,100,0.5)');
@@ -105,7 +105,7 @@ export class SmoothieApplet {
                 this.charts.forEach((chart,i) => {if(i>1) {chart.deInit();}});
                 this.charts.splice(1,this.charts.length-1);  
                 document.getElementById(props.id+'canvascontainer').innerHTML = `
-                  <canvas id='`+props.id+`canvas' width='100%' height='`+this.AppletHTML.node.clientHeight+`' style='z-index:3; width:100%; height:`+this.AppletHTML.node.clientHeight+`;'></canvas>
+                  <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
                 `;
                 this.charts[0] = new SmoothieChartMaker(8, document.getElementById(props.id+"canvas"));
                 this.charts[0].init('rgba(0,100,100,0.5)');
@@ -115,10 +115,10 @@ export class SmoothieApplet {
             } else if (val === "stackedraw") {
               this.charts[0].deInit();
               document.getElementById(props.id+'canvascontainer').innerHTML = '';
-              let height = this.AppletHTML.node.clientHeight/this.bci.atlas.data.eegshared.eegChannelTags.length;
+              let height = 100/this.bci.atlas.data.eegshared.eegChannelTags.length;
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
-                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`' style='z-index:3; width:100%; height:`+height+`;'></canvas>
+                  <canvas id='`+props.id+`canvas`+i+`' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
                 `;
               });
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{

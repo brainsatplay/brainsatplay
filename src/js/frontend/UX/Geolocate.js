@@ -16,8 +16,12 @@ export class geolocateJS {
       return position;
     }
 
-    getPosition() {
-      navigator.geolocation.getCurrentPosition(this.showPosition);
+    getPosition = () => {
+      let position = undefined;
+      navigator.geolocation.getCurrentPosition((position)=>{
+        position = this.showPosition();
+      },(e)=>{console.error(e)});
+      return position;
     }
 
 }
