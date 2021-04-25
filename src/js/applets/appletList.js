@@ -4,33 +4,33 @@ import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
 
 // { folderUrl:'', name:'', categories:[] }
-export const AppletInfo = [
-    { folderUrl:'./UI/browser',       name:'Applet Browser', devices:['eeg','heg'],     categories:['UI']},
-    { folderUrl:'./UI/randomizer',    name:'Randomizer',     devices:['eeg','heg'],     categories:['UI']},
-    { folderUrl:'./General/uplot',    name:'uPlot',          devices:['eeg','heg'],     categories:['data']},
-    { folderUrl:'./EEG/spectrogram',  name:'Spectrogram',    devices:['eeg'],           categories:['data']},
-    { folderUrl:'./EEG/brainmap',     name:'Brain Map',      devices:['eeg'],           categories:['data']},
-    { folderUrl:'./EEG/smoothie',     name:'Smoothie',       devices:['eeg'],           categories:['data']},
-    { folderUrl:'./General/threejs/nexus',  name:'Nexus',    devices:['eeg','heg'],     categories:['multiplayer','feedback']},
-    { folderUrl:'./General/threejs/blob',   name:'Blob',     devices:['eeg','heg'],     categories:['feedback']},
-    { folderUrl:'./General/threejs/enso',   name:'Enso',     devices:['eeg','heg'],     categories:['feedback']},
-    { folderUrl:'./General/threejs/cosmos', name:'Cosmos',   devices:['eeg','heg'],     categories:['feedback']},
-    { folderUrl:'./EEG/blink',        name:'Blink',          devices:['eeg'],           categories:['feedback']},
-    { folderUrl:'./EEG/bandring',     name:'Band Ring',      devices:['eeg'],           categories:['feedback'] },
-    { folderUrl:'./EEG/brainart',     name:'Brain Art',      devices:['eeg'],           categories:['feedback'] },
-    { folderUrl:'./EEG/connectome',   name:'Connectome',     devices:['eeg'],           categories:['feedback'] },
-    { folderUrl:'./EEG/pixi',         name:'Pixi',           devices:['eeg','heg'],     categories:['feedback'] },
-    { folderUrl:'./HEG/circle',       name:'Circle',         devices:['heg'],           categories:['feedback'] },
-    { folderUrl:'./General/audio',    name:'Audio',          devices:['eeg','heg'],     categories:['feedback'] },
-    { folderUrl:'./General/video',    name:'Video',          devices:['eeg','heg'],     categories:['feedback'] },
-    { folderUrl:'./HEG/boids',        name:'Boids',          devices:['eeg'],           categories:['feedback'] },
-    { folderUrl:'./HEG/hillclimber',  name:'Hill Climber',   devices:['heg'],           categories:['feedback'] },
-    { folderUrl:'./HEG/textscroller', name:'Text Scroller',  devices:['heg'],           categories:['feedback'] },
-    { folderUrl:'./General/threejs/ThreeSunrise', name:'Sunrise', devices:['heg'],      categories:['feedback'] },
-    { folderUrl:'./HEG/pulsemonitor', name:'Pulse Monitor',  devices:['heg'],           categories:['data'] },
-    { folderUrl:'./General/ytube',    name:'Youtube',        devices:['eeg','heg'],     categories:['feedback'] },
-    { folderUrl:'./Templates/Multiplayer', name:'Multiplayer Example', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
-];
+export const AppletInfo = {
+    'Applet Browser': { folderUrl:'./UI/browser', devices:['eeg','heg'],     categories:['UI']},
+    'Randomizer': { folderUrl:'./UI/randomizer', devices:['eeg','heg'],     categories:['UI']},
+    'uPlot': { folderUrl:'./General/uplot',     devices:['eeg','heg'],     categories:['data']},
+    'Spectrogram': { folderUrl:'./EEG/spectrogram',   devices:['eeg'],           categories:['data']},
+    'Brain Map': { folderUrl:'./EEG/brainmap',   devices:['eeg'],           categories:['data']},
+    'Smoothie': { folderUrl:'./EEG/smoothie',      devices:['eeg'],           categories:['data']},
+    'Nexus': { folderUrl:'./General/threejs/nexus', devices:['eeg','heg'],     categories:['multiplayer','feedback']},
+    'Blob': { folderUrl:'./General/threejs/blob',   devices:['eeg','heg'],     categories:['feedback']},
+    'Enso': { folderUrl:'./General/threejs/enso',    devices:['eeg','heg'],     categories:['feedback']},
+    'Cosmos': { folderUrl:'./General/threejs/cosmos',   devices:['eeg','heg'],     categories:['feedback']},
+    'Blink': { folderUrl:'./EEG/blink',          devices:['eeg'],           categories:['feedback']},
+    'Band Ring': { folderUrl:'./EEG/bandring',  devices:['eeg'],           categories:['feedback'] },
+    'Brain Art': { folderUrl:'./EEG/brainart',       devices:['eeg'],           categories:['feedback'] },
+    'Connectome': { folderUrl:'./EEG/connectome',    devices:['eeg'],           categories:['feedback'] },
+    'Pixi': { folderUrl:'./EEG/pixi',       devices:['eeg','heg'],     categories:['feedback'] },
+    'Circle': { folderUrl:'./HEG/circle',        devices:['heg'],           categories:['feedback'] },
+    'Audio': { folderUrl:'./General/audio',        devices:['eeg','heg'],     categories:['feedback'] },
+    'Video': { folderUrl:'./General/video',          devices:['eeg','heg'],     categories:['feedback'] },
+    'Boids':{ folderUrl:'./HEG/boids',    devices:['eeg'],           categories:['feedback'] },
+    'Hill Climber': { folderUrl:'./HEG/hillclimber',   devices:['heg'],           categories:['feedback'] },
+    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['feedback'] },
+    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['feedback'] },
+    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',   devices:['heg'],           categories:['data'] },
+    'Youtube': { folderUrl:'./General/ytube',    devices:['eeg','heg'],     categories:['feedback'] },
+    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
+};
 
 export let dynamicImport = async (url) => {
     let module = await import(url);
@@ -48,21 +48,21 @@ export let getApplet = async (settings) => {
     return module[settings.module];
 }
 
-export let generateSettings = (urls, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
+export let generateSettings = (appletInfo, from=0, to='end', category=undefined, onload=(url,result)=>{}) => {
     let settings = new Map();
-    if(to === 'end') to = urls.length;
+    let appletKeys = Object.keys(appletInfo)
+    if(to === 'end') to = appletKeys.length;
 
-    urls.forEach(async (url,i) => {
+    appletKeys.forEach(async (key,i) => {
         if(i >= from && i < to) {
-            let result = await getAppletSettings(url.folderUrl);
-            result.moduleURL = url.folderUrl+"/"+result.module
+            let result = await getAppletSettings(appletInfo[key].folderUrl);
+            result.moduleURL = appletInfo[key].folderUrl+"/"+result.module
             if(category === undefined)
-                settings.set(result.name,result); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,result); 
             else if (result.settings.categories.indexOf(category) > -1) 
-                settings.set(result.name,result); // then onclick run getApplet(moduleUrl)
+                settings.set(result.name,result);
 
-            onload(url.folderUrl,result);
-            //Add a card to the applet manager here
+            onload(appletInfo[key].folderUrl,result);
         }
     });
 

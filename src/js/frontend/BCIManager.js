@@ -389,6 +389,7 @@ export class BCIAppManager {
 
         let presetSelector = document.getElementById("preset-selector")
 		presetSelector.onchange = (e) => {
+            console.log(presetSelector.value)
             window.history.pushState({ 
                 // applet1: document.getElementById('applet1').value,
                 // preset: document.getElementById('preset-selector').value,

@@ -105,7 +105,7 @@ export class AppletBrowser {
         let hegHTML = ``
 
         appletSettings.forEach(settings => {
-            if (settings.name != 'Applet Browser'){
+            if (!['Applet Browser','Randomizer'].includes(settings.name)){
                 let type;
                 if (settings.devices.length > 1){
                     type = 'All'
