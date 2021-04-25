@@ -2,7 +2,7 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 import { SmoothieChartMaker } from '../../../frontend/UX/eegvisuals';
-
+import { TimeSeries } from 'smoothie'
 
 //Example Applet for integrating with the UI Manager
 export class SmoothieApplet {
@@ -118,8 +118,17 @@ export class SmoothieApplet {
               });
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 this.charts[i] = new SmoothieChartMaker(1, document.getElementById(props.id+"canvas"+i));
-                this.charts[i].seriesColors[0] = this.charts[i].seriesColors[i];
-                this.charts[i].init('rgba(0,100,100,0.5)');
+                let stroke = 'red'; let fill='rgba(255,0,0,0.2)';
+                if(i === 1) { stroke = 'orange';    fill = 'rgba(255,128,0,0.2)'; }
+                else if(i === 2) { stroke = 'green';     fill = 'rgba(0,255,0,0.2)';   }
+                else if(i === 3) { stroke = 'turquoise'; fill = 'rgba(0,255,150,0.2)'; }
+                else if(i === 4) { stroke = 'rgba(50,50,255,1)';      fill = 'rgba(0,0,255,0.2)';   }
+                else if(i === 5) { stroke = 'rgba(200,0,200,1)';    fill = 'rgba(128,0,128,0.2)'; }
+                else {
+                  var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
+                  stroke = 'rgb('+r+","+g+","+b+")"; fill = 'rgba('+r+','+g+','+b+","+"0.2)";
+                }
+                this.charts[i].init('rgba(0,100,100,0.5)',undefined,undefined,stroke,fill);
               });
               document.getElementById(props.id+"channelmenu").style.display = "none";
             } 
@@ -206,10 +215,10 @@ export class SmoothieApplet {
           if(channelTags.length > this.charts[0].series.length) {
             while(channelTags.length > this.charts[0].series.length) {
               var newseries = new TimeSeries();
-              this.series.push(newseries);
+              this.charts[0].series.push(newseries);
               var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
                       stroke = 'rgb('+r+","+g+","+b+")"; fill = 'rgba('+r+','+g+','+b+","+"0.2)";
-              this.seriesColors.push(stroke); // For reference
+              this.charts[0].seriesColors.push(stroke); // For reference
               this.charts[0].addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
             }
           }
@@ -293,7 +302,7 @@ export class SmoothieApplet {
         else if (val === "stackedraw") {
           let i = 0;
           atlas.data.eegshared.eegChannelTags.forEach((row,i)=> {
-            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[i].seriesColors[0]+`'>`+row.tag+`</div>`;
           });
         }
         document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;

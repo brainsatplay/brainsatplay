@@ -37,11 +37,11 @@ export class SmoothieChartMaker {
 		ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
 	}
 
-	init(gridStrokeStyle = 'rgb(125, 125, 125)', gridFillStyle = 'rgb(10, 10, 10)', labelFillStyle = 'rgb(255, 255, 255)') {
-		this.makeSmoothieChart(this.canvas, gridStrokeStyle, gridFillStyle, labelFillStyle);
+	init(gridStrokeStyle = 'rgb(125, 125, 125)', gridFillStyle = 'rgb(10, 10, 10)', labelFillStyle = 'rgb(255, 255, 255)', stroke1Style = 'rgba(255,0,0,1)',stroke1Fill = 'rgba(255,0,0,0.2)') {
+		this.makeSmoothieChart(this.canvas, gridStrokeStyle, gridFillStyle, labelFillStyle, stroke1Style, stroke1Fill);
 	}
 
-	makeSmoothieChart( canvas = this.canvas, gridStrokeStyle = 'rgb(125, 125, 125)', gridFillStyle = 'rgb(10, 10, 10)', labelFillStyle = 'rgb(255, 255, 255)')
+	makeSmoothieChart( canvas = this.canvas, gridStrokeStyle = 'rgb(125, 125, 125)', gridFillStyle = 'rgb(10, 10, 10)', labelFillStyle = 'rgb(255, 255, 255)', stroke1Style = 'rgba(255,0,0,1)',stroke1Fill = 'rgba(255,0,0,0.2)')
 	{
 		this.chart = new SmoothieChart({
 			responsive: true,
@@ -53,7 +53,7 @@ export class SmoothieChartMaker {
 		this.series.forEach((series, i) => {
 			var stroke = ''; //Set the initial stroke and fill styles to be the same each time
 			var fill = '';
-			if(i === 0) 	 { stroke = 'red'; 	     fill = 'rgba(255,0,0,0.2)';   }
+			if(i === 0) 	 { stroke = stroke1Style; 	     fill = stroke1Fill;   }
 			else if(i === 1) { stroke = 'orange';    fill = 'rgba(255,128,0,0.2)'; }
 			else if(i === 2) { stroke = 'green';     fill = 'rgba(0,255,0,0.2)';   }
 			else if(i === 3) { stroke = 'turquoise'; fill = 'rgba(0,255,150,0.2)'; }
