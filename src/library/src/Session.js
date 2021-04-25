@@ -88,7 +88,7 @@ export class Session {
 			localHostURL: localHostURL
 		}
 		this.socket = null;
-		this.streamObj = new streamThatShit();
+		this.streamObj = new streamThatShit(this.info.auth);
 		this.streamObj.deviceStreams = this.devices; //reference the same object
 	}
 
@@ -133,7 +133,6 @@ export class Session {
 		pipeToAtlas=true
 		) {
 			if(streaming === true) {
-				console.log(this.socket);
 				if(this.socket == null || this.socket.readyState !== 1) {
 					console.error('Server connection not found, please run login() first');
 					return false;
@@ -352,7 +351,7 @@ export class Session {
 			} else {
 				this.atlas.settings.analyzing = false;
 			}
-		} else {console.error("no devices connected")}
+		} else {console.error("no devices connected");}
 	}
 
 	//get data for a particular device	
@@ -370,15 +369,18 @@ export class Session {
 
 	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
 	getStreamData(userOrAppname='',propname=null) {
+		// let a = []
 		let o = {};
 		for(const prop in this.state.data) {
 			if(propname === null) {
 				if(prop.indexOf(userOrAppname) > -1) {
 					o[prop] = this.state.data[prop];
+					// a.push(o)
 				}
 			}
 			else if((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
 				o[prop] = this.state.data[prop];
+				// a.push(o)
 			}
 		}
 		return o;
@@ -461,16 +463,16 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(appname='',props={}, onData = (newData) => {}) {
+	streamAppData(propname='data', props={}, onData = (newData) => {}) {
 
-		let id = "appname_gameData_"+Math.floor(Math.random()*100000000);
+		let id = `${propname}`; //Math.floor(Math.random()*100000000);
 
 		this.state.addToState(id,props,onData);
 		
-		this.state.data[id+"_flag"] = false;
+		this.state.data[id+"_flag"] = true;
 		let sub = this.state.subscribe(id,()=>{
 			this.state.data[id+"_flag"] = true;
-		})
+		});
 
 		let newStreamFunc = () => {
 			if(this.state.data[id+"_flag"] === true) {
@@ -481,7 +483,7 @@ export class Session {
 		}
 
 		this.addStreamFunc(id,newStreamFunc);
-		this.addStreamParams([id]);
+		this.addStreamParams([[id]]);
 
 		return id; //this.state.unsubscribeAll(id) when done
 	
@@ -532,7 +534,6 @@ export class Session {
 			//this.info.nDevices++;
 		}
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.streamObj.socket = this.socket;
 			if(beginStream === true) {
 				this.beginStream();
 			}
@@ -610,37 +611,13 @@ export class Session {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-			if (this.state.data.multiplayer[parsed.id] == null) this.state.data.multiplayer[parsed.id] = {userData: {}}
-			if(this.state.data.multiplayer[parsed.id].userData) {
-				parsed.userData.forEach((o,i) => {
-					let user = this.state.data.multiplayer[parsed.id].userData[o.username]
-					if (user != null){
-						for(const prop in o) {
-							if (user.latest[prop] == null) user.latest[prop] = null
-							user.latest[prop] = o[prop];
-							if (o[prop].constructor == Object){
-								Object.keys(o[prop]).forEach(k => {
-									if (user.history[prop] == null) user.history[prop] = o[prop]
-									else user.history[prop][k].push(o[prop][k])
-								});
-							}
-						}
-					} else {
-						this.state.data.multiplayer[parsed.id].userData[o.username] = {latest: {},history: o}
-					}
-				});
-				//Should check if usernames are still present to splice them off but should do it only on an interval
-				//this.state.data.multiplayer[parsed.id]["userData"].forEach((u,i) => {
-				//	let found = parsed.usernames.find((name) => { if(u.username === name) return true; });
-				//  if(!found) { this.state.data.multiplayer[parsed.id]["userData"].splice(i,1); }
-				//});
-			}
-			else { this.state.data.multiplayer[parsed.id].userData = {} }
-			this.state.data.multiplayer[parsed.id].spectators = parsed.spectators;
-			this.state.data.multiplayer[parsed.id].usernames = parsed.usernames;
-			this.state.data.multiplayer[parsed.id].t = Date.now();
-		}
-		else if (parsed.msg === 'getUserDataResult') {
+			// console.log('Received', parsed.userData)
+			parsed.userData.forEach((o,i) => {
+				let user = o.username
+				for(const prop in o) {
+					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`]= o[prop]
+				}
+			});
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
@@ -726,6 +703,7 @@ export class Session {
             console.log('close');
         }
 
+		this.streamObj.socket = socket;
 		return socket;
 	}
 
@@ -914,12 +892,7 @@ export class Session {
 	}
 
 	configureStreamForGame(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
-		let params = [];
-		streamParams.forEach((p,i) => {
-			if(p[2] === undefined)
-				params.push([p[0],p[1],'all']);
-			else params.push([...p]);
-		});
+		let params = streamParams;
 		let d = undefined;
 		let found = false;
 		deviceTypes.forEach((name,i) => { // configure named device
@@ -937,6 +910,11 @@ export class Session {
 								})
 							}
 							else deviceParams.push(p);
+						}
+						else if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
+							if(!this.streamObj.info.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
+								this.streamObj.info.appStreamParams.push(p);
+							}
 						}
 					});
 					if(deviceParams.length > 0) {
@@ -1048,7 +1026,6 @@ class deviceStream {
 		this.filters = [];   //BiquadChannelFilterer instances 
 		this.atlas = null;
 		this.pipeToAtlas = pipeToAtlas;
-
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -1104,13 +1081,15 @@ class deviceStream {
 
 
 class streamThatShit {
-	constructor(socket) {
+	constructor(auth,socket) {
 
 		this.deviceStreams = [];
 
 		this.info = {
+			auth:auth,
 			streaming:false,
 			deviceStreamParams: [],
+			nDevices: 0,
 			appStreamParams: [],
 			streamCt: 0,
 			streamLoopTiming: 100
@@ -1118,6 +1097,8 @@ class streamThatShit {
 
 		this.streamTable = []; //tags and callbacks for streaming
 		this.socket = socket;
+
+		this.configureDefaultStreamTable();
 	}
 
 	configureDefaultStreamTable(params=[]) {
@@ -1186,6 +1167,66 @@ class streamThatShit {
 			}
 		}
 
+		let getEEGBandpowerMeans = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestFFTData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.mean};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGCoherenceBandpowerMeans = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestCoherenceData(channel);
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.mean};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGBandpowerSlices = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestFFTData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.slice};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
+		let getEEGCoherenceBandpowerSlices = (device,channel) => {
+			if(device.info.useAtlas === true) {
+				let coord = false;
+				
+				coord = device.atlas.getLatestCoherenceData(channel)[0];
+			
+				if(coord !== undefined) {
+					return {time: coord.time, bandpowers:coord.slice};
+				}
+				else {
+					return undefined;
+				}
+			}
+		}
+
 		let getCoherenceData = (device, tag, nArrays='all') => {
 			let get = nArrays;
 			if(device.info.useAtlas === true) {
@@ -1210,7 +1251,7 @@ class streamThatShit {
 
 		let getHEGData = (device,tag=0,nArrays='all',prop=undefined) => {
 			let get = nArrays;
-			if(device.info.useAtlas === true) {
+			if(device?.info?.useAtlas === true) {
 				let coord = device.atlas.getDeviceDataByTag('heg',tag);
 				if(get === 'all') {
 					get = coord.count-coord.lastRead;
@@ -1233,10 +1274,14 @@ class streamThatShit {
 		}
 
 		this.streamTable = [
-			{prop:'eegch',  		callback:getEEGChData	 	},
-			{prop:'eegfft', 		callback:getEEGFFTData	 	},
-			{prop:'eegcoherence', 	callback:getCoherenceData	},
-			{prop:'hegdata',        callback:getHEGData			}
+			{prop:'eegch',  				callback:getEEGChData	 				},
+			{prop:'eegfft', 				callback:getEEGFFTData	 				},
+			{prop:'eegcoherence', 			callback:getCoherenceData				},
+			{prop:'eegfftbands', 			callback:getEEGBandpowerMeans	 		},
+			{prop:'eegcoherencebands', 		callback:getEEGCoherenceBandpowerMeans	},
+			{prop:'eegfftbandslices', 		callback:getEEGBandpowerSlices	 		},
+			{prop:'eegcoherencebandslices', callback:getEEGCoherenceBandpowerSlices	},
+			{prop:'hegdata',        		callback:getHEGData						}
 		];
 
 		if(params.length > 0) {
@@ -1257,19 +1302,18 @@ class streamThatShit {
 	}
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
-	// functions and additional required arguments from the streamTable e.g.: [['EEG_Ch','FP1',10],['EEG_FFT','FP1',1]]
+	// functions and additional required arguments from the streamTable e.g.: [['eegch','FP1'],['eegfft','FP1']]
 	getDataForSocket = (device=undefined,params=[['prop','tag','arg1']]) => {
 		let userData = {};
 		params.forEach((param,i) => {
 			this.streamTable.find((option,i) => {
-				if(param[0].indexOf(option.prop) > -1) {
+				if(param[0] === option.prop) {
 					let args;
 					if(device) args = [device,...param.slice(1)];
 					else args = param.slice(1);
-					let result = option.callback(...args);
+					let result = (args.length !== 0) ? option.callback(...args) : option.callback()
 					if(result !== undefined) {
-						if(device) userData[device+"_"+param.join('_')] = result;
-						else userData[param.join('_')] = result;
+						userData[param.join('_')] = result;
 					}
 					return true;
 				}
@@ -1284,11 +1328,16 @@ class streamThatShit {
 
 	streamLoop = (prev={}) => {
 		let streamObj = {
-			username:this.username,
+			username:this.info.auth.username,
 			userData:{}
 		}
 		if(this.info.streaming === true) {
 			this.deviceStreams.forEach((d) => {
+				if(this.info.nDevices < this.deviceStreams.length) {
+					if(!streamObj.userData.devices) streamObj.userData.devices = [];
+					streamObj.userData.devices.push(d.info.deviceName);
+					this.info.nDevices++;
+				}
 				let params = [];
 				this.info.deviceStreamParams.forEach((param,i) => {
 					if(this.info.deviceStreamParams.length === 0) { console.error('No stream parameters set'); return false;}
@@ -1300,10 +1349,7 @@ class streamThatShit {
 					Object.assign(streamObj.userData,this.getDataForSocket(d,params));
 				}
 			});
-			this.info.appStreamParams.forEach((p) => {
-				Object.assign(streamObj.userData,this.getDataForSocket(undefined,p));
-			})
-			//console.log(params);
+			Object.assign(streamObj.userData,this.getDataForSocket(undefined,this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 			if(Object.keys(streamObj.userData).length > 0) {
 			 	this.socket.send(JSON.stringify(streamObj));

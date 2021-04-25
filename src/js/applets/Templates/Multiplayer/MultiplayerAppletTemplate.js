@@ -1,5 +1,6 @@
 import * as brainsatplay from './../../../../library/brainsatplay'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
+import {geolocateJS} from './../../../frontend/UX/Geolocate'
 
 
 //Example Applet for integrating with the UI Manager
@@ -27,13 +28,14 @@ export class MultiplayerAppletTemplate {
             //Add whatever else
         };
 
-        this.uiStates = {
+        this.states = {
             dynamic: {},
             static: {}
         }
 
         this.stateIds = []
         this.dynamicProps = {}
+        this.geolocationManager = new geolocateJS()
     }
 
     //---------------------------------
@@ -48,8 +50,9 @@ export class MultiplayerAppletTemplate {
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
             <button id='${props.id}createGame'>Make Game session</button>
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+            <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
+                <div id='${props.id}streamInfo' style='padding: 5px;'></div>
                 <h2>Players</h2>
                 <hr>
                 <div id='${props.id}userList-players'>
@@ -62,8 +65,6 @@ export class MultiplayerAppletTemplate {
                 </div>
                 </div>
             </div>
-            <div id='${props.id}gameInfo' style='position: absolute; top: 0; right: 0; width: 25%; height: 20%; padding: 5px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'></div>
-
             </div>`;
         }
 
@@ -72,7 +73,7 @@ export class MultiplayerAppletTemplate {
             this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfft_FP1_all','eegfft_FP2_all','eegfft_AF7_all','eegfft_AF8_all','hegdata']
+                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
@@ -96,105 +97,114 @@ export class MultiplayerAppletTemplate {
         let spectatorsList = document.getElementById(`${this.props.id}userList-spectators`)
         let playersList = document.getElementById(`${this.props.id}userList-players`)
         
-        let info = document.getElementById(`${this.props.id}gameInfo`)
+        let info = document.getElementById(`${this.props.id}streamInfo`)
 
-
-        this.stateIds.push(this.session.streamAppData('newStream',this.dynamicProps,(newData) => {
-            console.log("New data detected! Will be sent!");
+        document.addEventListener('keydown',(k => {
+            this.dynamicProps.spacebar = (k.keyCode === 32 ? 1 : 0)
         }))
-        this.dynamicProps.location = 'Eau Claire'
+
+        document.addEventListener('keyup',(k => {
+            this.dynamicProps.spacebar = (k.keyCode === 32 ? 0 : 1)
+        }))
 
         this.animate = () => {
-            let data = this.session.state.data
-            let result = this.session.state.data?.commandResult
+            let streamInfo = this.session.state.data?.commandResult
+            let returnedAppName = this.session.state.data?.commandResult?.appname
+            if (returnedAppName != null && returnedAppName != this.name) this.appname = this.session.state.data?.commandResult?.appname
+            if (this.appname != null){
 
-            let streamInfo = data?.multiplayer?.[`${result.appname}`]
-            if (streamInfo != null){
-
-                console.log(data)
-                let gameInfo = this.session.state.data?.commandResult?.gameInfo
-                let usernames = (streamInfo.usernames.length > 0 ? streamInfo.usernames : gameInfo.usernames)
-                let spectators = (streamInfo.spectators.length > 0 ? streamInfo.spectators : gameInfo.spectators)
-                let t = streamInfo.t ?? gameInfo.lastTransmit
-
-                if ( result.msg != null && this.uiStates.dynamic.msg !== result.msg ){
-                    this.uiStates.dynamic.msg = result.msg
+                // Set a dynamic property for your location
+                let dynamicProps = this.session.getStreamData(`${this.appname}`,'dynamicProps')
+                if (Object.keys(dynamicProps).length === 0){
+                    this.dynamicProps.spacebar = 0
+                    this.stateIds.push(this.session.streamAppData('dynamicProps', this.dynamicProps,(newData) => {
+                        console.log("New data detected! Will be sent!");
+                    }))
                 }
 
-                if ( usernames != null) {
-                    if (this.uiStates.dynamic.usernames !== usernames ){
-                    spectatorsList.innerHTML = ''
-                    playersList.innerHTML = ''
+                // Update UI if results are different
+                if (streamInfo != undefined){
 
-                    usernames.forEach((name)=> {
-                        if (spectators.includes(name)) {
-                            spectatorsList.innerHTML += `
-                            <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
-                                <h1>${name}</h1>
-                                <div style="font-size: 60%;">
-                                </div>
-                            </div>`
-                        }
-                        else {
-                            playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px; display: grid; grid-template-columns: repeat(2,1fr);">
-                                <h1>${name}</h1>
-                                <div style="font-size: 60%;">
-                                </div>
-                            </div>`
-                        }
-                    })
-                    this.uiStates.dynamic.usernames = usernames
-                    this.uiStates.dynamic.spectators = spectators
-                }
+                    let usernames = streamInfo.usernames
+                    let spectators = streamInfo.spectators
 
-                usernames.forEach((name) => {
-                    let type = (spectators.includes(name) ? 'spectator' : 'player')
-                    let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
-                    let userData = streamInfo.userData?.[name]
-                    if (userData != null){
-                        Object.keys(userData).forEach(k1 => {
-                            let div = userCard.querySelector(`.${k1}`)
-                            if (div == null ) {
-                                if (userData[k1].constructor == Object){
-                                    let innerHTML = ``
-                                    innerHTML += `<h3>${k1}</h3>`
-                                    Object.keys(userData[k1]).forEach(k2 => {
-                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                    })
-                                    userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
-                                } else {
-                                    userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
+                    // Update user cards
+                    if ( usernames != null) {
+                        usernames.forEach((name)=> {
+                            if (spectators.includes(name)) {
+                                if (document.getElementById(`${this.props.id}-spectator-${name}`) == null){
+                                    spectatorsList.innerHTML += `
+                                    <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
+                                        <h1>${name}</h1>
+                                        <div style="font-size: 60%;">
+                                        </div>
+                                    </div>`
                                 }
                             }
                             else {
-                                div.innerHTML = ''
-                                if (userData[k1].constructor == Object){
-                                    let innerHTML = ``
-                                    innerHTML += `<h3>${k1}</h3>`
-                                    Object.keys(userData[k1]).forEach(k2 => {
-                                        innerHTML += `<p>${k2} : ${userData[k1][k2]}</p>`
-                                    })
-                                    div.innerHTML += innerHTML
-                                } else {
-                                    div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
+                                if (document.getElementById(`${this.props.id}-player-${name}`) == null){
+                                playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
+                                        <h1>${name}</h1>
+                                        <div style="font-size: 60%;">
+                                        </div>
+                                    </div>`
                                 }
                             }
                         })
-                    }
-                })
-            }
 
+                    // Update user data
+                    streamInfo.userData.forEach((userData) => {
+                        if (userData != null){
+                        let name = userData.username
+                        let type = (spectators.includes(name) ? 'spectator' : 'player')
+                        let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
+                        console.log(userData)
+                        Object.keys(userData).forEach(k1 => {
+                                if (!['username'].includes(k1)){
+                                    let div = userCard.querySelector(`.${k1}`)
+                                    if (div == null ) {
+                                        if (userData[k1].constructor == Object){
+                                            let innerHTML = ``
+                                            innerHTML += `<h3>${k1}</h3>`
+                                            let a = this.unpackObject(userData[k1])
+                                            innerHTML += this.nestHTMLElements(a)
+                                            userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
+                                        } else {
+                                            userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
+                                        }
+                                    }
+                                    else {
+                                        div.innerHTML = ''
+                                        if (userData[k1].constructor == Object){
+                                            let innerHTML = ``
+                                            innerHTML += `<h3>${k1}</h3>`
+                                            let a = this.unpackObject(userData[k1])
+                                            innerHTML += this.nestHTMLElements(a)
+                                            div.innerHTML += innerHTML
+                                        } else {
+                                            div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
 
-                if (gameInfo != null && this.uiStates.static !== gameInfo){
-                    Object.keys(gameInfo).forEach((key) => {
-                        if (!['usernames','spectators','updatedUsers','newUsers', 'lastTransmit'].includes(key)){
-                            let val = gameInfo[key]
-                            if ( val != null && this.uiStates.static[key] !== val ){
+                let appInfo = streamInfo.gameInfo
+                if (appInfo != null && streamInfo.msg === "getGameInfoResult"){
 
-                                let el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+                    info.innerHTML += `
+                    <h3 style="font-size: 80%;">${appInfo.id}</h3>
+                    `
+
+                    Object.keys(appInfo).forEach((key) => {
+                        if (!['usernames','appname','spectators','updatedUsers','newUsers', 'lastTransmit','id'].includes(key)){
+                            let val = appInfo[key]
+                                let el = document.getElementById(`${this.props.id}-appInfo-${key}`)
                                 if (el == null ) {
-                                    info.innerHTML += `<div id="${this.props.id}-gameInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
-                                    el = document.getElementById(`${this.props.id}-gameInfo-${key}`)
+                                    info.innerHTML += `<div id="${this.props.id}-appInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
+                                    el = document.getElementById(`${this.props.id}-appInfo-${key}`)
                                 }
                                 el.innerHTML = `<h3>${key}</h3>`
 
@@ -205,20 +215,10 @@ export class MultiplayerAppletTemplate {
                                 } else {
                                     el.innerHTML += `<p>${val}</p>`
                                 }
-                                this.uiStates.static[key] = val
-                            }
+                                this.states.static[key] = val
                         }
                     })
-            }
-
-            if ( t != null && this.uiStates.dynamic.t !== t ){
-                let el = document.getElementById(`${this.props.id}-gameInfo-t`)
-                if (el == null ) {
-                    info.innerHTML += `<div id="${this.props.id}-gameInfo-t" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
-                    el = document.getElementById(`${this.props.id}-gameInfo-t`)
                 }
-                el.innerHTML = `<h3>Transmission Received</h3><p>${t}</p>`
-                this.uiStates.dynamic.t = t
             }
         }
 
@@ -231,7 +231,9 @@ export class MultiplayerAppletTemplate {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.session.state.unsubscribeAll(id);
+        this.stateIds.forEach(id => {
+            this.session.state.unsubscribeAll(id);
+        })
         this.AppletHTML.deleteNode();
         window.cancelAnimationFrame(this.animation)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
@@ -248,6 +250,24 @@ export class MultiplayerAppletTemplate {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
+    }
+
+    unpackObject(o) {
+        let a = []
+        Object.keys(o).forEach(k => {
+            if (o[k].constructor != Object) a.push([k,o[k]])
+            else a.push([k,this.unpackObject(o[k])])
+        })
+        return a
+    }
+
+    nestHTMLElements(a){
+        let innerHTML = ``
+        a.forEach(v => {
+            if (!Array.isArray(v[1])) innerHTML += `<p>${v[0]} : ${v[1]}</p>`
+           else innerHTML += `<p>${v[0]} : ${this.nestHTMLElements(v[1])}</p>`
+        })
+        return innerHTML
     }
 
     //--------------------------------------------

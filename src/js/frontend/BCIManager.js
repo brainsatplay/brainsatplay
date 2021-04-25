@@ -468,7 +468,8 @@ export class BCIAppManager {
             this.appletConfigs = configs;
         } else if(this.appletConfigs.length > 0) {
             this.appletConfigs.forEach((c) => {
-                window.location.href += "#"+JSON.stringify(c);
+                if(typeof c === 'object') window.location.href += "#"+JSON.stringify(c);
+                else window.location.href += "#"+c;
             })
         }
         // -------------------------------------
@@ -570,7 +571,7 @@ export class BCIAppManager {
                                             if(this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                             if(row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) { 
                                                 saveSettings();
-                                                autoSaveEEGChunk(this.state.data.eegSaveCounter);
+                                                autoSaveEEGChunk(this.state.data.eegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
                                                 this.state.data.eegSaveCounter = row.count;
                                             }
                                         }
@@ -579,7 +580,7 @@ export class BCIAppManager {
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
                                         if(this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        autoSaveEEGChunk(this.state.data.saveCounter);
+                                        autoSaveEEGChunk(this.state.data.saveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
                                         this.state.data.eegSaveCounter = row.count;
                                         
                                     }
@@ -594,14 +595,14 @@ export class BCIAppManager {
                                             //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                             if(row.count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
                                                 saveSettings();
-                                                autoSaveHEGChunk(this.state.data.hegSaveCounter);
+                                                autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
                                                 this.state.data.hegSaveCounter = row.count;
                                             }
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        autoSaveHEGChunk(this.state.data.hegSaveCounter);
+                                        autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
                                         this.state.data.hegSaveCounter = this.bcisession.atlas.data.heg[0].count;
                                         
                                     }
@@ -705,8 +706,8 @@ export class BCIAppManager {
                        "(UTC" + sign + z(off/60|0) + ':00)'
             }
 
-            const autoSaveEEGChunk = (startidx=0,to='end') => {
-                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_eeg";}
+            const autoSaveEEGChunk = (startidx=0,to='end',deviceName='eeg') => {
+                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_"+ deviceName;}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
@@ -728,8 +729,8 @@ export class BCIAppManager {
                 
             }
 
-            const autoSaveHEGChunk = (startidx=0,to='end') => {
-                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_heg";}
+            const autoSaveHEGChunk = (startidx=0,to='end', deviceName="heg") => {
+                if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_"+deviceName;}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
                 let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);
