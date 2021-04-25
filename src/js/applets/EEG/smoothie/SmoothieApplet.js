@@ -70,7 +70,7 @@ export class SmoothieApplet {
                     </td>
                     </tr>
                 </table>
-                <div id='`+props.id+`canvascontainer' width='100%' height='100%'>
+                <div id='`+props.id+`canvascontainer' style='width:100%; height:100%;'>
                   <canvas id='`+props.id+`canvas' width='100%' height='100%' style='z-index:3; width:100%; height:100%;'></canvas>
                 </div>
             </div>
@@ -118,7 +118,7 @@ export class SmoothieApplet {
               let height = 100/this.bci.atlas.data.eegshared.eegChannelTags.length;
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
-                  <canvas id='`+props.id+`canvas`+i+`' width='100%' height='`+height+`' style='z-index:3; width:100%; height:`+height+`;'></canvas>
+                  <canvas id='`+props.id+`canvas`+i+`' style='z-index:3; width:100%; height:`+height+`;'></canvas>
                 `;
               });
               this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
