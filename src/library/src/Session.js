@@ -369,15 +369,18 @@ export class Session {
 
 	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
 	getStreamData(userOrAppname='',propname=null) {
+		// let a = []
 		let o = {};
 		for(const prop in this.state.data) {
 			if(propname === null) {
 				if(prop.indexOf(userOrAppname) > -1) {
 					o[prop] = this.state.data[prop];
+					// a.push(o)
 				}
 			}
 			else if((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
 				o[prop] = this.state.data[prop];
+				// a.push(o)
 			}
 		}
 		return o;
@@ -608,12 +611,11 @@ export class Session {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-			console.log(parsed.userData)
+			// console.log('Received', parsed.userData)
 			parsed.userData.forEach((o,i) => {
 				let user = o.username
-				delete o.username
 				for(const prop in o) {
-					this.state.data[`${parsed.id}_${user}_${prop}`]= o[prop]
+					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`]= o[prop]
 				}
 			});
 			this.state.data.commandResult = parsed;
@@ -1318,8 +1320,6 @@ class streamThatShit {
 			});
 		});
 
-		console.log(userData)
-
 		return userData;
 		// if(Object.keys(streamObj.userData).length > 0) {
 		// 	this.socket.send(JSON.stringify(streamObj));
@@ -1352,7 +1352,6 @@ class streamThatShit {
 			Object.assign(streamObj.userData,this.getDataForSocket(undefined,this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 			if(Object.keys(streamObj.userData).length > 0) {
-				console.log(streamObj)
 			 	this.socket.send(JSON.stringify(streamObj));
 			}
 			this.info.streamCt++;
