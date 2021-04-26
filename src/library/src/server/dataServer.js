@@ -680,8 +680,7 @@ class DataServer {
                                 let listener = this.userData.get(user);
                                 if(listener){ 
                                     sub.propnames.forEach((prop,k) => {
-                                        if(listener.updatedPropnames.indexOf(prop) > -1)
-                                            userObj[prop] = listener.props[prop];
+                                        userObj[prop] = listener.props[prop];
                                     });
                                     fullUserData.push(userObj);
                                 }
@@ -791,8 +790,7 @@ class DataServer {
                             let listener = this.userData.get(user);
                             if(listener) {
                                 sub.propnames.forEach((prop,k) => {
-                                    if(listener.updatedPropnames.indexOf(prop) > -1)
-                                        userObj[prop] = listener.props[prop];
+                                    userObj[prop] = listener.props[prop];
                                 });
                                 hostUpdateObj.userData.push(userObj);
                             }
