@@ -93,7 +93,7 @@ export let presets = [
             'Boids',
             'Circle',
             'Audio',
-            'uPlot',
+            'Pulse Monitor',
         ],
         description: "Brain blood flow training!",
         type: "HEG",
