@@ -1431,11 +1431,21 @@ export class DataAtlas {
 			let getHEGRatio = () => {
 				let ct = this.data.heg[0].count;
 				if(ct > 1) {
-				let avg = 40; if(ct < avg) { avg = ct; }
-				let slice = this.data.heg[0].ratio.slice(ct-avg);
-				let score = this.data.heg[0].ratio[ct-1] - this.mean(slice);
-				return score
+					let ratio = this.data.heg[0].ratio[ct-1];
+					return ratio;
 				}
+				else return 0;
+			}
+
+			let getHEGScore = () => {
+				let ct = this.data.heg[0].count;
+				if(ct > 1) {
+					let avg = 40; if(ct < avg) { avg = ct; }
+					let slice = this.data.heg[0].ratio.slice(ct-avg);
+					let score = this.data.heg[0].ratio[ct-1] - this.mean(slice);
+					return score
+				} 
+				else return 0;
 			}
 
 			// A custom function to animate heartbeats
@@ -1476,6 +1486,7 @@ export class DataAtlas {
 			if(this.settings.heg) {
 				feedbackOptions.push(
 					{label: 'HEG Ratio', function: getHEGRatio},
+					{label: 'HEG Score', function: getHEGScore},
 					{label: 'Heartbeat', function: animateHeartbeats},
 					{label: 'Breath', function: animateBreaths},
 				)
