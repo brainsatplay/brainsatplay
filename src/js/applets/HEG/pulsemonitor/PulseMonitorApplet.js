@@ -59,9 +59,9 @@ export class PulseMonitorApplet {
                     <div id='`+props.id+`legend'></div>
                 </div>
                 <div id='`+props.id+`canvascontainer' style='width:100%; height:100%;'>
-                  <canvas id='`+props.id+`canvas1' width='100%' height='31%' style='z-index:3; width:100%; height:31%;'></canvas>
-                  <canvas id='`+props.id+`canvas2' width='100%' height='31%' style='z-index:3; width:100%; height:31%;'></canvas>
-                  <canvas id='`+props.id+`canvas3' width='100%' height='31%' style='z-index:3; width:100%; height:31%;'></canvas>
+                  <canvas id='`+props.id+`canvas1' width='100%' height='33%' style='z-index:3; width:100%; height:33%;'></canvas>
+                  <canvas id='`+props.id+`canvas2' width='100%' height='33%' style='z-index:3; width:100%; height:33%;'></canvas>
+                  <canvas id='`+props.id+`canvas3' width='100%' height='32%' style='z-index:3; width:100%; height:32%;'></canvas>
                 </div>
             </div>
             `;
