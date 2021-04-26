@@ -652,10 +652,10 @@ class DataServer {
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users
 
-                    let fullUserData = [...updateObj.userData];
+                    let fullUserData = [];
 
                     sub.usernames.forEach((user, j) => {
-                        if(sub.updatedUsers.indexOf(user) < 0 && sub.spectators.indexOf(user) < 0) {
+                        if(sub.spectators.indexOf(user) < 0) {
                             let userObj = {
                                 username:user
                             }
