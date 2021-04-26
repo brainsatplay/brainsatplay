@@ -1,13 +1,11 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import { SmoothieChartMaker } from '../../../frontend/UX/eegvisuals';
 
 
 //Example Applet for integrating with the UI Manager
 export class PulseMonitorApplet {
 
-    
-    
-    static image= featureImg
 
     constructor(
         parent=document.body,
@@ -32,8 +30,7 @@ export class PulseMonitorApplet {
         this.breathCounter = 0;
         this.beatCounter = 0;
 
-        this.canvas; this.ctx;
-        this.angle1 = 1.57; this.angle2 = 1.8;
+        this.charts = [];
 
     }
 
@@ -48,19 +45,55 @@ export class PulseMonitorApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
-                <div id='${props.id}text' style='position:absolute;'>
-                    Heart Rate Estimate: <span id='${props.id}hr' style='color:crimson;'>Waiting</span><br>
+                <div id='${props.id}text' style='position:absolute; font-size:12px;'>
+                    Heart Rate Estimate: <span id='${props.id}hr' style='color:orangered;'>Waiting</span><br>
                     Breathing Rate Estimate: <span id='${props.id}br' style='color:green;'>Waiting</span>
+                    <br>
+                    Mode:
+                    <select id='`+props.id+`mode'>
+                        <option value="raw">Raw Data</option>
+                        <option value="pulse">Pulse Rate</option>
+                        <option value="breath">Breathing</option>
+                        <option value="feedback">Feedback Variables</option>
+                    </select>
+                    <div id='`+props.id+`legend'></div>
                 </div>
-                <canvas id='${props.id}canvas'></canvas>
+                <div id='`+props.id+`canvascontainer' style='width:100%; height:100%;'>
+                  <canvas id='`+props.id+`canvas1' width='100%' height='33%' style='z-index:3; width:100%; height:33%;'></canvas>
+                  <canvas id='`+props.id+`canvas2' width='100%' height='33%' style='z-index:3; width:100%; height:33%;'></canvas>
+                  <canvas id='`+props.id+`canvas3' width='100%' height='32%' style='z-index:3; width:100%; height:33%;'></canvas>
+                </div>
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.canvas = document.getElementById(props.id+'canvas');
-            this.ctx = this.canvas.getContext("2d");
+            this.charts[0] = new SmoothieChartMaker(1,document.getElementById(props.id+"canvas1"));
+            this.charts[1] = new SmoothieChartMaker(1,document.getElementById(props.id+"canvas2"));
+            this.charts[2] = new SmoothieChartMaker(1,document.getElementById(props.id+"canvas3"));
+            this.charts[0].init('rgba(100,0,100,0.3)',undefined,undefined,'orangered');
+            this.charts[1].init('rgba(50,0,100,0.3)',undefined,undefined,'lightgreen','rgba(0,255,0,0.1)');
+            this.charts[2].init('rgba(100,0,50,0.3)',undefined,undefined,'yellow','rgba(255,255,0,0.2)');
+            this.setLegend();
+
+            document.getElementById(props.id+"mode").onchange = () => {
+                this.charts.forEach((chart) => {chart.series.forEach((series)=> {
+                    series.clear();
+                });});
+                let val = document.getElementById(props.id+"mode").value;
+                if (val === "raw") {
+
+                } else if (val === "pulse") {
+
+                } else if (val === "breath") {
+
+                } else if (val === "feedback") {
+
+                }
+                this.setLegend();
+            }
+
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -73,6 +106,8 @@ export class PulseMonitorApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+
+        
 
 
         //Add whatever else you need to initialize
@@ -90,9 +125,7 @@ export class PulseMonitorApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let canvas = document.getElementById(this.props.id+"canvas");
-        canvas.width = this.AppletHTML.node.clientWidth;
-        canvas.height = this.AppletHTML.node.clientHeight;
+
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -114,38 +147,95 @@ export class PulseMonitorApplet {
         }
     }
 
+    mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
+
     onUpdate = () => {
         let heg = this.bci.atlas.data.heg[0];
         if(heg) {
+            let val = document.getElementById(this.props.id+"mode").value;
             let hr = heg.beat_detect.beats;
             let breaths = heg.beat_detect.breaths;
 
             if(hr.length > this.beatCounter) {
                 this.beatCounter = hr.length;
                 let bpm = hr[hr.length-1].bpm;
+                let hrv =  hr[hr.length-1].hrv;
                 let span = document.getElementById(this.props.id+'hr');
                 span.innerHTML = bpm.toFixed(2);
                 if(bpm < 30 || bpm > 200) { span.style.color = 'yellow'; } else if (span.style.color !== 'red') { span.style.color = 'red'; }
                 console.log(bpm, hr[hr.length-1]);
+                if(val === 'pulse') {
+                    this.charts[1].series[0].append(Date.now(),bpm);
+                    this.charts[2].series[0].append(Date.now(),hrv);
+                } else if (val === "feedback") {
+                    this.charts[1].series[0].append(Date.now(),hrv);
+                }
             }
             if(breaths.length > this.breathCounter) {
                 this.breathCounter = breaths.length;
                 let bpm = breaths[breaths.length-1].bpm;
+                let brv =  breaths[breaths.length-1].brv;
                 let span = document.getElementById(this.props.id+'br');
                 span.innerHTML = bpm.toFixed(2);
                 if(bpm < 4.5 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
                 console.log(bpm, breaths[breaths.length-1]);
+                if(val === 'breath') {
+                    this.charts[1].series[0].append(Date.now(),bpm);
+                    this.charts[2].series[0].append(Date.now(),brv);
+                } else if (val === "feedback") {
+                    this.charts[2].series[0].append(Date.now(),brv);
+                }
             }
+
+            if(val === "pulse") {
+                this.charts[0].series[0].append(Date.now(),heg.beat_detect.rir[heg.beat_detect.rir.length-1]);
+            } else if (val === "breath") {
+                this.charts[0].series[0].append(Date.now(),heg.beat_detect.rir2[heg.beat_detect.rir2.length-1]);
+            } else if (val === "raw") {
+                this.charts[0].series[0].append(Date.now(),heg.red[heg.red.length-1]);
+                this.charts[1].series[0].append(Date.now(),heg.ir[heg.ir.length-1]);
+                let meanratio = heg.ratio[heg.ratio.length-1];
+                if(heg.count > 40) meanratio = this.mean(heg.ratio.slice(heg.ratio.length-40));
+                else if(heg.count > 1) meanratio = this.mean(heg.ratio);
+                else meanratio = heg.ratio[heg.ratio.length-1];
+                this.charts[2].series[0].append(Date.now(),meanratio);
+            } else if (val === "feedback") {
+                let meanratio;
+                if(heg.count > 40) meanratio = this.mean(heg.ratio.slice(heg.ratio.length-40));
+                else if(heg.count > 1) meanratio = this.mean(heg.ratio);
+                else meanratio = heg.ratio[heg.ratio.length-1];
+                this.charts[0].series[0].append(Date.now(),meanratio);  
+            }
+
+
         }
     }
 
-    draw = () => {
-        //just a circle that pulses every beat?
-
-        if(this.angle > 1.57 && this.angle < 3.14){ //generalize
-
+    setLegend = () => {
+        let val = document.getElementById(this.props.id+"mode").value;
+        let htmlToAppend = ``;
+        if (val === "raw") {
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[0]+`'>Red</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[1].seriesColors[0]+`'>Infrared</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[2].seriesColors[0]+`'>Ratio R/IR</div>`;
+        } else if (val === "pulse") {
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[0]+`'>R + IR Smoothed</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[1].seriesColors[0]+`'>Beats per Minute (BPM)</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[2].seriesColors[0]+`'>Heart Rate Variability (HRV)</div>`;
+        } else if (val === "breath") {
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[0]+`'>R + IR Smoothed</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[1].seriesColors[0]+`'>Breaths per Minute (BPM)</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[2].seriesColors[0]+`'>Breathing Rate Variability (BRV)</div>`;
+        } else if (val === "feedback") {
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[0]+`'>Ratio</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[1].seriesColors[0]+`'>Heart Rate Variability (HRV)</div>`;
+            htmlToAppend += `<div style='display:table-row; color:`+this.charts[2].seriesColors[0]+`'>Breathing Rate Variability (BRV)</div>`;
         }
-    }
+        document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
+    }   
 
    
 } 
