@@ -477,7 +477,7 @@ class DataServer {
                 g.usernames.push(username);
                 if(spectating === true) g.spectators.push(username);
                 g.newUsers.push(username);
-                g.updateUsers.push(username);
+                g.updatedUsers.push(username);
             }
 			
 			g.propnames.forEach((prop,j) => {
