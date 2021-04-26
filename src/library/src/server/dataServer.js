@@ -477,6 +477,7 @@ class DataServer {
                 g.usernames.push(username);
                 if(spectating === true) g.spectators.push(username);
                 g.newUsers.push(username);
+                g.updateUsers.push(username);
             }
 			
 			g.propnames.forEach((prop,j) => {
@@ -676,7 +677,7 @@ class DataServer {
                     sub.newUsers.forEach((user, j) => {
                         let u = this.userData.get(user);
                         if(u !== undefined)
-                            u.socket.send(JSON.stringify(updateObj));
+                            u.socket.send(JSON.stringify(fullUpdateObj));
                         else {
                             sub.usernames.splice(sub.usernames.indexOf(user),1);
                             if(sub.spectators.indexOf(user) > -1) {
