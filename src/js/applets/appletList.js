@@ -25,6 +25,7 @@ export const AppletInfo = {
     'Video': { folderUrl:'./General/video',             devices:['eeg','heg'],     categories:['feedback'] },
     'Boids':{ folderUrl:'./HEG/boids',                  devices:['eeg'],           categories:['feedback'] },
     'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['heg'],           categories:['feedback'] },
+    'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['heg'],           categories:['data'] },
     'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['feedback'] },
     'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['feedback'] },
     'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },

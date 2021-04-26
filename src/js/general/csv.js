@@ -62,8 +62,8 @@ export class CSV { //data=["1|2","11|22"], or data=[[1,2,"xyz"],[2,3,"abc"],etc]
                 tempcsvArr.forEach((row,i) => {
                     if(i==0){ var temp = row.split(delimiter); }
                     else{
-                    var temp = row.split(delimiter);
-                    csvDat.push(temp);
+                        var temp = row.split(delimiter);
+                        csvDat.push(temp);
                     }
                 });
                 onOpen(csvDat);
