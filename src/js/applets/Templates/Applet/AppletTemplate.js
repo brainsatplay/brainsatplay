@@ -1,5 +1,5 @@
-import {Session} from './../../../Session'
-import {DOMFragment} from './../../../ui/DOMFragment'
+import {Session} from './../../../../library/src/Session'
+import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
 
 
 //Example Applet for integrating with the UI Manager

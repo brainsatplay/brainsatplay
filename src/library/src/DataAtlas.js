@@ -1198,13 +1198,14 @@ export class DataAtlas {
 	}
 
 	readyHEGDataForWriting = (from=0,to='end',hegIdx=0) => {
-		let header = ["TimeStamps","UnixTime","Red","IR","Ambient","Ratio"];
+		let header = ["TimeStamps","UnixTime","Red","IR","Ratio","Ambient"];
 		let data = [];
 		let row = this.data.heg[hegIdx];
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
-			data.push([t,this.toISOLocal(new Date(t)),row.red[i],row.ir[i],row.ambient[i],row.ratio[i]].join(','));
+			let amb = row.ambient[i]; if(!amb) amb = 0;
+			data.push([t,this.toISOLocal(new Date(t)),row.red[i],row.ir[i],row.ratio[i],amb].join(','));
 			
 			if(this.data.other.notes.length > 0) {
 				if(i === 0) {

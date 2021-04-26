@@ -8,9 +8,6 @@ import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
 export class uPlotApplet {
 
-    
-    
-
     constructor(
         parent=document.body,
         bci=new Session(),
