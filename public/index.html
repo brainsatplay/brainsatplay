@@ -97,5 +97,77 @@ window.addEventListener('blur', () => {
 
 </script>
 
+<script>
+
+//window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
+//console.log(window.workers);
+window.workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
+window.workers = [];
+window.workerThreads = 2; //Make multiple workers for big tasks
+window.workerThreadrot = 0;
+//WebWorker only works when hosted (e.g. with node)
+let workerURL = './_dist_/library/src/algorithms/eeg.worker.js';
+
+try {
+  window.workers = [];
+    for(var i = 0; i < window.workerThreads; i++){
+      window.workers.push(new Worker(workerURL,
+        {name:'eegworker_'+window.workers.length, type: 'module'}));
+        window.workers[i].onmessage = (e) => {
+            var msg = e.data;
+            //console.log(msg)
+            //window.receivedMsg(msg);
+            window.workerResponses.forEach((foo,i) => {
+                foo(msg);
+            });
+        };
+    }
+    console.log("worker threads: ", window.workers.length)
+}
+catch (err) {
+    console.error(err);
+}
+
+window.addWorker = (workerurl=workerURL) => {
+    try {
+      window.workers.push(new Worker(workerURL,
+        {
+        name:'eegworker_'+window.workers.length, 
+        type: 'module',
+        }));
+        workers[i].onmessage = (e) => {
+            var msg = e.data;
+            //console.log(msg)
+            //window.receivedMsg(msg);
+            window.workerResponses.forEach((foo,i) => {
+            foo(msg);
+            })
+        };
+        console.log("worker threads: ", window.workers.length)
+        return window.workers.length-1; //index
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+//input = {foo:'',data:[],origin:''}
+//foo options: "xcor, autocor, cov1d, cov2d, sma, dft, multidft, multibandpassdft"
+window.postToWorker = (input,workeridx = null) => {
+    if(workeridx === null) {
+      window.workers[window.workerThreadrot].postMessage(input);
+        if(window.workerThreads > 1){
+          window.workerThreadrot++;
+            if(window.workerThreadrot >= window.workerThreads){
+              window.workerThreadrot = 0;
+            }
+        }
+    }
+    else{
+      window.workers[workeridx].postMessage(input);
+    }
+}
+
+</script>
+
 </body>
 </html>
