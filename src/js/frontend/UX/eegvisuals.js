@@ -310,7 +310,7 @@ export class uPlotMaker {
 			if(v === Math.floor(v)){
 			  if(v < this.plot?.series.length){
 				ax++;
-				if(this.plot.series[ax+1]) return this.plot.series[ax+1].label;
+				if(this.plot.series[ax]) return this.plot.series[ax].label;
 			  }
 			}
 			else { return undefined;}
@@ -414,7 +414,7 @@ export class uPlotMaker {
 				if(v === Math.floor(v)){
 				  if(v < this.plot?.series.length){
 					ax++;
-					if(this.plot.series[ax+1]) return this.plot.series[ax+1].label;
+					if(this.plot.series[ax]) return this.plot.series[ax].label;
 				  }
 				}
 				else { return undefined;}
