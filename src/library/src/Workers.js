@@ -8,10 +8,12 @@ export let workerThreads = 2; //Make multiple workers for big tasks
 export let workerThreadrot = 0;
 //WebWorker only works when hosted (e.g. with node)
 
+let workerURL = './algorithms/eeg.worker.js';
+
 try {
     workers = [];
     for(var i = 0; i < workerThreads; i++){
-        workers.push(new Worker(new URL('./algorithms/eeg.worker.js', import.meta.url),
+        workers.push(new Worker(workerURL,//new URL('./algorithms/eeg.worker.js', import.meta.url),
         {name:'eegworker_'+workers.length, type: 'module'}));
         workers[i].onmessage = (e) => {
             var msg = e.data;
@@ -30,7 +32,7 @@ catch (err) {
 
 export const addWorker = (workerurl=workerURL) => {
     try {
-        workers.push(new Worker(new URL(workerurl, import.meta.url),
+        workers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
         {
         name:'eegworker_'+workers.length, 
         type: 'module',
