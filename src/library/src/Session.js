@@ -913,6 +913,10 @@ export class Session {
 					}
 				} 
 			});
+			if(this.streamObj.info.streaming === false) {
+				this.streamObj.info.streaming = true;
+				this.streamObj.streamLoop();
+			}
 		} else {
 			deviceTypes.forEach((name,i) => { // configure named device
 				d = this.devices.find((o,j) => {
@@ -936,7 +940,7 @@ export class Session {
 								}
 							}
 						});
-						if(deviceParams.length > 0) {
+						if(deviceParams.length > 0 || this.streamObj.info.appStreamParams.length > 0) {
 							this.streamObj.info.deviceStreamParams.push(...deviceParams);
 							if(this.streamObj.info.streaming === false) {
 								this.streamObj.info.streaming = true;
