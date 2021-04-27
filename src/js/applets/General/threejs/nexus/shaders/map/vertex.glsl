@@ -1,4 +1,4 @@
-#define POINTSMAX 25
+#define POINTSMAX 10
 // struct Points {
 // 	vec2 position;
 // };

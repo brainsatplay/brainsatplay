@@ -538,6 +538,7 @@ export class Session {
 				this.beginStream();
 			}
 		}
+		return this.socket
 	} 
 
 	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
@@ -762,6 +763,7 @@ export class Session {
 
 	getGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
+			console.log('socket ready; message sent')
 			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',appname]}));
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
@@ -771,11 +773,13 @@ export class Session {
 						console.log(newResult.gameInfo);
 						onsuccess(newResult); //list games, then subscrie to game by id
 						this.state.unsubscribe('commandResult',sub);
+						return newResult.gameInfo
 					}
 				}
 				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
 					this.state.unsubscribe('commandResult',sub);
 					console.log("Game not found: ", appname);
+					return []
 				}
 			});
 		}
@@ -849,13 +853,15 @@ export class Session {
 		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
 		parentNode.insertAdjacentHTML('beforeend',html);
 
-		document.getElementById(id+'search').onclick = () => {
-			this.getGames(appname, (result) => {
+		document.getElementById(id+'search').onclick = async () => {
+
+			let games = this.getGames(appname, (result) => {
 				let tablehtml = '';
 				result.gameInfo.forEach((g) => {
 					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
 				});
 
+				document.getElementById(id+'browser').innerHTML = ''
 				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
 
 				result.gameInfo.forEach((g) => { 
