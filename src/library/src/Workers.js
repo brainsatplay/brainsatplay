@@ -11,7 +11,7 @@ export let workerThreadrot = 0;
 try {
     workers = [];
     for(var i = 0; i < workerThreads; i++){
-        workers.push(new Worker(new URL('./algorithms/eeg.worker.js', import.meta.url),
+        workers.push(new Worker(new URL('./_dist_/library/src/algorithms/eeg.worker.js', import.meta.url),
         {name:'eegworker_'+workers.length, type: 'module'}));
         workers[i].onmessage = (e) => {
             var msg = e.data;
