@@ -88,7 +88,7 @@ export class Session {
 			localHostURL: localHostURL
 		}
 		this.socket = null;
-		this.streamObj = new streamThatShit(this.info.auth);
+		this.streamObj = new streamSession(this.info.auth);
 		this.streamObj.deviceStreams = this.devices; //reference the same object
 	}
 
@@ -906,40 +906,51 @@ export class Session {
 		let params = streamParams;
 		let d = undefined;
 		let found = false;
-		deviceTypes.forEach((name,i) => { // configure named device
-			d = this.devices.find((o,j) => {
-				if(o.info.deviceType === name) {
-					let deviceParams = [];
-					params.forEach((p) => {
-						if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
-							if(o.info.deviceType === 'eeg') {
-								o.atlas.data.eegshared.eegChannelTags.find((o) => {
-									if(o.tag === p[1] || o.ch === p[1]) {
-										deviceParams.push(p);
-										return true;
-									}
-								})
-							}
-							else deviceParams.push(p);
-						}
-						else if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
-							if(!this.streamObj.info.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
-								this.streamObj.info.appStreamParams.push(p);
-							}
-						}
-					});
-					if(deviceParams.length > 0) {
-						this.streamObj.info.deviceStreamParams.push(...deviceParams);
-						if(this.streamObj.info.streaming === false) {
-							this.streamObj.info.streaming = true;
-							this.streamObj.streamLoop();
-						}
-						found = true; //at least one device was found (if multiple types allowed)
-						return true;
+		if(this.devices.length === 0 ) { //no devices, add params anyway
+			params.forEach((p) => {
+				if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
+					if(!this.streamObj.info.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
+						this.streamObj.info.appStreamParams.push(p);
 					}
-				}
+				} 
 			});
-		});
+			found = true;
+		} else {
+			deviceTypes.forEach((name,i) => { // configure named device
+				d = this.devices.find((o,j) => {
+					if(o.info.deviceType === name) {
+						let deviceParams = [];
+						params.forEach((p) => {
+							if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
+								if(o.info.deviceType === 'eeg') {
+									o.atlas.data.eegshared.eegChannelTags.find((o) => {
+										if(o.tag === p[1] || o.ch === p[1]) {
+											deviceParams.push(p);
+											return true;
+										}
+									})
+								}
+								else deviceParams.push(p);
+							}
+							else if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
+								if(!this.streamObj.info.appStreamParams.find((sp)=>{if(sp.toString() === p.toString()) return true;})) {
+									this.streamObj.info.appStreamParams.push(p);
+								}
+							}
+						});
+						if(deviceParams.length > 0) {
+							this.streamObj.info.deviceStreamParams.push(...deviceParams);
+							if(this.streamObj.info.streaming === false) {
+								this.streamObj.info.streaming = true;
+								this.streamObj.streamLoop();
+							}
+							found = true; //at least one device was found (if multiple types allowed)
+							return true;
+						}
+					}
+				});
+			});
+		}
 		if(!found) {
 			console.error('Compatible device not found');
 			return false;
@@ -1091,7 +1102,7 @@ class deviceStream {
 
 
 
-class streamThatShit {
+class streamSession {
 	constructor(auth,socket) {
 
 		this.deviceStreams = [];
