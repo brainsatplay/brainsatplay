@@ -43,8 +43,6 @@ export class NexusApplet {
         };
 
         this.three = {}
-        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
-        this.getNeurofeedback = this.defaultNeurofeedback   
 
         this.neurofeedbackColors = {
             'scp': [0,0,1],

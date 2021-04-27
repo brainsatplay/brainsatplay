@@ -172,7 +172,7 @@ class DataServer {
     
     processUserCommand(username='',commands=[]) { //Commands should be an array of arguments 
         let u = this.userData.get(username);
-        u.lastUpdate = Date.now();
+        if (u != null) u.lastUpdate = Date.now();
         //u.socket.send(JSON.stringify({msg:commands}));
         if(commands[0] === 'getUsers') {
             let users = [];
@@ -842,7 +842,7 @@ class DataServer {
         })
 
 		setTimeout(() => {this.subscriptionLoop();},10);
-	}
+    }
 
 }
 
