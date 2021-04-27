@@ -1,5 +1,6 @@
 import * as brainsatplay from './../../../../library/brainsatplay'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager
@@ -12,9 +13,9 @@ export class MultiplayerAppletTemplate {
     ) {
     
         //-------Keep these------- 
-        this.name = this.constructor.name
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -30,7 +31,7 @@ export class MultiplayerAppletTemplate {
         }
 
         this.stateIds = []
-        this.dynamicProps = {}
+        this.keysPressed = {}
     }
 
     //---------------------------------
@@ -65,12 +66,12 @@ export class MultiplayerAppletTemplate {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
+            this.session.makeGameBrowser(this.info.name.replace(' ',''),props.id,()=>{console.log('Joined game!', this.info.name)},()=>{console.log('Left game!', this.info.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
-                // this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['dynamicProps']
+                this.session.sendWSCommand(['createGame',this.info.name.replace(' ',''),['eeg'],['attack','defense', 'keysPressed']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
+                // ['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','attack','defense', 'keysPressed']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
             }
@@ -96,18 +97,45 @@ export class MultiplayerAppletTemplate {
         let info = document.getElementById(`${this.props.id}streamInfo`)
 
         document.addEventListener('keydown',(k => {
-            this.dynamicProps.spacebar = (k.keyCode === 32 ? 1 : 0)
+            this.keysPressed.spacebar = (k.keyCode === 32 ? 1 : 0)
         }))
 
         document.addEventListener('keyup',(k => {
-            this.dynamicProps.spacebar = (k.keyCode === 32 ? 0 : 0)
+            this.keysPressed.spacebar = (k.keyCode === 32 ? 0 : 0)
         }))
 
         // Set a dynamic property for your location
-        this.dynamicProps.spacebar = 0
-        this.stateIds.push(this.session.streamAppData('dynamicProps', this.dynamicProps,(newData) => {
+        this.keysPressed.spacebar = 0
+        this.stateIds.push(this.session.streamAppData('keysPressed', this.keysPressed,(newData) => {
             console.log("New data detected! Will be sent!");
         }))
+
+
+        let getCoherence = (band) => {
+            let score = null;
+            if(this.session.atlas.settings.coherence) {
+                let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
+                if(coherenceBuffer != null && coherenceBuffer.length > 0) {
+                    let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+                    let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+                    let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
+                    score = slice[slice.length-1] - mean
+                }
+            }
+            return score;
+        }
+
+        // Set Up Combat Variables
+        this.session.addStreamFunc(
+            'attack', 
+            () => {
+                return Math.max(0,getCoherence('alpha'))
+            },
+            'defense', 
+            () => {
+                return Math.max(0,getCoherence('beta'));
+            }
+        )
 
         // Animate
         this.animate = () => {
@@ -117,8 +145,6 @@ export class MultiplayerAppletTemplate {
 
                     let usernames = streamInfo.usernames
                     let spectators = streamInfo.spectators
-
-                    console.log(streamInfo)
 
                     // Update user cards
                     if ( usernames != null) {
@@ -185,9 +211,7 @@ export class MultiplayerAppletTemplate {
                 let appInfo = streamInfo.gameInfo
                 if (appInfo != null && streamInfo.msg === "getGameInfoResult"){
 
-                    info.innerHTML += `
-                    <h3 style="font-size: 80%;">${appInfo.id}</h3>
-                    `
+                    if (document.getElementById(`${this.props.id}-appInfo-appname`) == null) info.innerHTML += `<h3 id='${this.props.id}-appInfo-appname' style="font-size: 80%;">${appInfo.id}</h3>`
 
                     Object.keys(appInfo).forEach((key) => {
                         if (!['usernames','appname','spectators','updatedUsers','newUsers', 'lastTransmit','id'].includes(key)){
@@ -201,7 +225,7 @@ export class MultiplayerAppletTemplate {
 
                                 if (Array.isArray(val)){
                                     val.forEach(v => {
-                                                    el.innerHTML += `<p>${v}</p>`
+                                        el.innerHTML += `<p>${v}</p>`
                                     })
                                 } else {
                                     el.innerHTML += `<p>${val}</p>`
