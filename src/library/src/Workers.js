@@ -1,4 +1,4 @@
-//import Worker from 'web-worker'
+import Worker from 'web-worker'
 
 //window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
 //console.log(window.workers);
