@@ -905,7 +905,6 @@ export class Session {
 	configureStreamForGame(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
 		let params = streamParams;
 		let d = undefined;
-		let found = false;
 		if(this.devices.length === 0 ) { //no devices, add params anyway
 			params.forEach((p) => {
 				if (!this.streamObj.deviceStreams.find((ds)=>{if(p[0].indexOf(ds.info.deviceType) > -1) {return true;}})) {
@@ -914,7 +913,6 @@ export class Session {
 					}
 				} 
 			});
-			found = true;
 		} else {
 			deviceTypes.forEach((name,i) => { // configure named device
 				d = this.devices.find((o,j) => {
@@ -944,14 +942,13 @@ export class Session {
 								this.streamObj.info.streaming = true;
 								this.streamObj.streamLoop();
 							}
-							found = true; //at least one device was found (if multiple types allowed)
 							return true;
 						}
 					}
 				});
 			});
 		}
-		if(!found) {
+		if(this.streamObj.info.deviceStreamParams.length === 0 && this.streamObj.info.appStreamParams.length === 0) {
 			console.error('Compatible device not found');
 			return false;
 		}
