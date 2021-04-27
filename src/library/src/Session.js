@@ -669,11 +669,15 @@ export class Session {
 
 	setupWebSocket(auth=this.info.auth) {
 
+		let encodeForSubprotocol = (info) => {
+			return info.replace(' ', '%20')
+		}
+
 		let socket = null;
         let subprotocol = [
-			'username&'+auth.username,
-     	   	'password&'+auth.password,
-     	   	'appname&'+auth.appname
+			'username&'+encodeForSubprotocol(auth.username),
+     	   	'password&'+encodeForSubprotocol(auth.password),
+     	   	'appname&'+encodeForSubprotocol(auth.appname)
 		];
 		// if (auth.url.protocol === 'http:') {
 		if (location.protocol === 'http:') {

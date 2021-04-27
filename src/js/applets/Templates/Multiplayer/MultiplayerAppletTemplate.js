@@ -68,8 +68,8 @@ export class MultiplayerAppletTemplate {
             this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                // this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['dynamicProps']
+                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
+                // this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['dynamicProps']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);

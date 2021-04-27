@@ -11,7 +11,6 @@ import mapFragmentShader from './shaders/map/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { GlitchPass } from './postprocessing/CustomGlitchPass'
-// import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
@@ -64,16 +63,12 @@ export class NexusApplet {
         this.stateIds = []
         this.dynamicProps = {}
         this.pointInfo = {}
+
+        this.edges = []
     }
 
-    //---------------------------------
-    //---Required template functions---
-    //---------------------------------
-
-    //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
-        //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
@@ -97,9 +92,7 @@ export class NexusApplet {
             this.session.makeGameBrowser(this.name,`${props.id}multiplayerButtons`,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
             document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','dynamicProps']
-                // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
-            ]);
+                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherence','dynamicProps']]);
         }
     }
 
@@ -121,8 +114,21 @@ export class NexusApplet {
             console.log("New data detected! Will be sent!");
         }))
 
-
-
+        this.session.addStreamFunc(
+            'frontalcoherence', 
+            (band='alpha1') => {
+                let coherence = null;
+                if(this.session.atlas.settings.coherence) {
+                    let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
+                    if(coherenceBuffer.length > 0) {
+                        let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+                        let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+                        coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
+                    }
+                }
+            return coherence;
+            }
+        )
 /**
  * Nexus: Neurofeedback + Group Meditation
  */
@@ -144,17 +150,16 @@ const loadingManager = new THREE.LoadingManager(
             gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
             loadingBarElement.classList.add('ended')
             loadingBarElement.style.transform = ''
-            let hero = appletContainer.querySelector(".nexus-gameHero")
+            let hero = this.appletContainer.querySelector(".nexus-gameHero")
             hero.style.opacity = 0;
             this.three.getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
-                // Get My Location
                 this.points.forEach(p => {
                     p.active = true;
                 })
-                glitchPass.enabled = true
-                glitchPass.lastGlitchTime = Date.now();
+                this.glitchPass.enabled = true
+                this.glitchPass.lastGlitchTime = Date.now();
                 this.controls.enabled = true;
             })
         }
@@ -167,59 +172,21 @@ const loadingManager = new THREE.LoadingManager(
     }
 )
 
-// const gltfLoader = new GLTFLoader(loadingManager)
-// const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
 // Textures
 const textureLoader = new THREE.TextureLoader(loadingManager)
 const texture = textureLoader.load(mapTexture)
-// const futuristicInterface = textureLoader.load('./textures/interfaceNormalMap.png')
 const displacementMap = textureLoader.load(mapDisp)
-
-// const matcapTexture = textureLoader.load('./textures/matcaps/8.png')
-
-// // Text
-// const fontLoader = new THREE.FontLoader()
-// fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-//     points.forEach((point,name) => {
-
-//         const textGeometry = new THREE.TextBufferGeometry(
-//             name,
-//             {
-//                 font: font,
-//                 size: 0.5/10,
-//                 height: 0.2/10,
-//                 curveSegments: 5,
-//                 bevelEnabled: true,
-//                 bevelThickness: 0.03/10,
-//                 bevelSize:0.02/10,
-//                 bevelOffset:0,
-//                 bevelSegments: 4
-//             }
-//         )
-//         textGeometry.computeBoundingBox()
-//         textGeometry.center()
-//         const textMaterial = new THREE.MeshMatcapMaterial({matcap: matcapTexture})
-//         const text = new THREE.Mesh(textGeometry, textMaterial)
-//         text.position.set(point.x, point.y, 0.1)
-//         scene.add(text)
-//     })
-// })
 
 /**
  * Canvas
  */
-const appletContainer = document.getElementById(this.props.id)
-this.three.canvas = appletContainer.querySelector('canvas.nexus-webgl')
+this.appletContainer = document.getElementById(this.props.id)
+this.three.canvas = this.appletContainer.querySelector('canvas.nexus-webgl')
 
 /**
  * Scene
  */
 this.three.scene = new THREE.Scene()
-// // const light = new THREE.AmbientLight(0x00b3ff);
-// const light = new THREE.AmbientLight(0xffffff);
-// light.position.set(0, 5, 10);
-// light.intensity = 1.4;
-// scene.add(light);
 
 /**
  * Camera
@@ -273,9 +240,9 @@ overlay.position.z = this.camera.position.z - 0.1;
 this.three.scene.add(overlay)
 
 // Renderer
-this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
 this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
+this.appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
 this.three.canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
@@ -311,24 +278,16 @@ this.three.canvas.style.display = 'none'
  // Composer
 const effectComposer = new EffectComposer(this.three.renderer,renderTarget)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
+effectComposer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight)
 
  // Passes
 const renderPass = new RenderPass(this.three.scene, this.camera)
 effectComposer.addPass(renderPass)
 
-// const effectGrayScale = new ShaderPass( LuminosityShader );
-// effectComposer.addPass( effectGrayScale );
-
-// const effectSobel = new ShaderPass( SobelOperatorShader );
-// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
-// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
-// effectComposer.addPass( effectSobel );
-
-const glitchPass = new GlitchPass()
-glitchPass.goWild = false
-glitchPass.enabled = false
-effectComposer.addPass(glitchPass)
+this.glitchPass = new GlitchPass()
+this.glitchPass.goWild = false
+this.glitchPass.enabled = false
+effectComposer.addPass(this.glitchPass)
 
 const shaderPass = new ShaderPass(RGBShiftShader)
 shaderPass.enabled = true
@@ -368,17 +327,15 @@ this.controls.screenSpacePanning = true
 this.controls.enableDamping = true
 this.controls.enabled = false;
 
-//this.controls.addEventListener('change', render)
-
 // Mouse
 const mouse = new THREE.Vector2()
-appletContainer.addEventListener('mousemove', (e) => {
-    mouse.x = (e.layerX/appletContainer.clientWidth) * 2 - 1
-    mouse.y = -(e.layerY/appletContainer.clientHeight) * 2 + 1
+this.appletContainer.addEventListener('mousemove', (e) => {
+    mouse.x = (e.layerX/this.appletContainer.clientWidth) * 2 - 1
+    mouse.y = -(e.layerY/this.appletContainer.clientHeight) * 2 + 1
 })
 
 
-appletContainer.addEventListener('click', () => {
+this.appletContainer.addEventListener('click', () => {
     if (currentIntersect){
         currentIntersect.object.material.opacity = 1.0 
     }
@@ -389,20 +346,12 @@ this.MAXPOINTS = 25
 this.points = new Map()
 this.pointInfo.diameter = 1e-2/4;
 
-// points.set('Somewhere',new UserMarker({latitude: 0, longitude: 0, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.session.atlas.data.eeg[0].means)})); // LA
 
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(this.pointInfo.meshWidth, this.pointInfo.meshHeight, segmentsX, segmentsX/imageAspect)
 let tStart = Date.now()
-//  let point1 = {
-//     position: new THREE.Vector2(NaN,NaN)
-//  }
-//  let pointArr = new Float32Array() //[point1]
-//  pointArr[0] = NaN
-//  pointArr[1] = NaN
-
-let colorReachBase = 0.030;
-const material = new THREE.ShaderMaterial({
+this.colorReachBase = 0.030;
+this.material = new THREE.ShaderMaterial({
     vertexShader: mapVertexShader,
     fragmentShader: mapFragmentShader,
     transparent: true,
@@ -410,25 +359,21 @@ const material = new THREE.ShaderMaterial({
     blending: THREE.AdditiveBlending,
     uniforms:
     {
-        // points: { value: pointArr },
-        // count: {value: pointArr.length/2 },
-        // point: { value: new THREE.Vector2(NaN,NaN) },
         points: { value: Array.from({length: this.MAXPOINTS}, e => new THREE.Vector2(null,null))},
         count: {value: 1 },
         uTime: { value: 0 },
         uTexture: { value: texture },
         displacementMap: { value: displacementMap },
         displacementHeight: { value: 0.025 },
-        colorThresholds: { value: Array.from({length: this.MAXPOINTS}, e => colorReachBase)},
+        colorThresholds: { value: Array.from({length: this.MAXPOINTS}, e => this.colorReachBase)},
         aspectRatio: {value: window.innerWidth / window.innerHeight}
-        // colorThreshold: { value: new THREE.Vector2(0.05*window.innerWidth,0.05*window.innerHeight) },
     }
 })
 
 
 
 // Mesh
-const plane = new THREE.Mesh(planeGeometry, material)
+const plane = new THREE.Mesh(planeGeometry, this.material)
 this.three.scene.add(plane)
 
 // Resize
@@ -445,21 +390,21 @@ this.resizeNexus = () => {
             point.updateMesh(this.pointInfo.meshWidth,this.pointInfo.meshHeight)
             let screenPos = point.marker.position.clone()
             screenPos.project(this.camera)
-            let translateX = appletContainer.clientWidth * screenPos.x * 0.5
+            let translateX = this.appletContainer.clientWidth * screenPos.x * 0.5
             point.element.style.transform = `translate(${translateX}px)`
-            let translateY = appletContainer.clientHeight * screenPos.y * 0.5
+            let translateY = this.appletContainer.clientHeight * screenPos.y * 0.5
             point.element.style.transform = `translate(${translateY}px)`
         }
         pointsUniform[pointIter] = new THREE.Vector2(point.x,point.y)
         pointIter++
     })
-    material.uniforms.points.value = pointsUniform
-    material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
-    this.three.drawCylinder()
-    this.three.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
+    this.material.uniforms.points.value = pointsUniform
+    this.material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight
+    this.three.drawEdges()
+    this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
     this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(appletContainer.clientWidth, appletContainer.clientHeight)
+    effectComposer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight)
 
 }
 
@@ -479,36 +424,17 @@ var animate = () => {
 
                 this.manageMultiplayer()
                 animateUsers()
-                material.uniforms.uTime.value = Date.now() - tStart
+                this.material.uniforms.uTime.value = Date.now() - tStart
                 this.points.forEach(point => {
-                    point.animateLabel(this.camera,appletContainer)
+                    point.animateLabel(this.camera,this.appletContainer)
                 })
-                // stats.update()
+
                 this.controls.update()
-                // this.three.renderer.render(this.three.scene, this.camera)
                 effectComposer.render()
         }
     }, 1000 / 60 );
 };
 
-
-// Stats
-// const stats = Stats()
-// document.body.appendChild(stats.dom)
-
-// Coherence
-const getCoherence = (band='alpha1') => {
-    let coherence = null;
-    if(this.session.atlas.settings.coherence) {
-        let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence ?? 0.5 + Math.sin(Date.now()/1000)/2; // Real or Simulation
-}
 
 // Draw Shapes
 const animateUsers = () => {
@@ -551,66 +477,23 @@ const animateUsers = () => {
         this.three.scene.add(point.neurofeedbackGroup)
         point.neurofeedbackGroup.rotateZ(0.01);
     })
-
-    // let me = points.get('Me')
-    // let atlas = this.session.atlas
-    // if (atlas.settings.deviceConnected){
-    //     let channelTags = atlas.data.eegshared.eegChannelTags;
-    //     let scaling = {}
-    //     // init
-    //     me.neurofeedbackDimensions.forEach(key => {
-    //         scaling[key] = []
-    //     })
-
-    //     // populate
-    //     channelTags.forEach(row => {
-    //         let coord = atlas.getEEGDataByTag(row.tag)
-    //         if (coord){
-    //             me.neurofeedbackDimensions.forEach(key => {
-    //                 if (coord.means[key].length != 0) scaling[key].push(coord.means[key][coord.means[key].length-1])
-    //             })
-    //         }
-    //     })
-
-    //     me.neurofeedbackDimensions.forEach(key => {
-    //         scaling[key] = scaling[key].length > 1 ? (1/4) * scaling[key].reduce((tot,curr)=> tot + curr) / scaling[key].length : 1
-    //     })
-
-    //     let scalingMax = Math.max(...Object.values(scaling))
-    //     me.neurofeedbackDimensions.forEach(key => {
-    //         let nfscale = scaling[key]
-    //         nfscale = nfscale/scalingMax
-    //         me.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
-    //         me.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
-    //         me.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
-    //         material.uniforms.colorThresholds.value[0] = colorReachBase + colorReachBase*nfscale
-    //     })
-
-    //     // coherence
-    //     let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
-    //     let coherence = getCoherence()
-    //     if (coherenceLine) {
-    //         coherenceLine.material.opacity = coherence
-    //     }
-    // }
-    // glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
 }
 
-this.three.drawCylinder = () => {
-    let coherenceLine = this.three.scene.getObjectByName('coherenceLine')
-    if (coherenceLine) {
-        coherenceLine.geometry.dispose()
-        coherenceLine.material.dispose()
-        this.three.scene.remove(coherenceLine)
-    }
-    const pointPositions = []
-    this.points.forEach(point => {
-        if (pointPositions.length < 2){
-            pointPositions.push(point.marker.position)
-        }
-    })
-    if (this.points.size >= 2){
-        let direction = new THREE.Vector3().subVectors( pointPositions[1], pointPositions[0] );
+this.three.drawEdges = () => {
+    function pairwise(list) {
+        if (list.length < 2) { return []; }
+        var first = list[0],
+            rest  = list.slice(1),
+            pairs = rest.map(function (x) { return [first, x]; });
+        return pairs.concat(pairwise(rest));
+      }
+
+    let edges = pairwise(Array.from(this.points.keys()))
+    edges = edges.map((keys) => {return {label: `${keys[0]}_${keys[1]}`, nodes: [this.points.get(keys[0]).marker.position,this.points.get(keys[1]).marker.position]}})
+
+    this.resetEdges()
+    edges.forEach((e,i) => {
+        let direction = new THREE.Vector3().subVectors( e.nodes[1], e.nodes[0] );
         if (!isNaN(direction.length())){
             const lineGeometry = new THREE.CylinderGeometry( 0.0005, 0.0005,  direction.length(), 32 );
             lineGeometry.applyMatrix4(new THREE.Matrix4().makeRotationX(Math.PI/2));
@@ -621,13 +504,14 @@ this.three.drawCylinder = () => {
                 opacity: 0.15
             } );
             const edge = new THREE.Mesh( lineGeometry, lineMaterial);
-            edge.name = 'coherenceLine'
-            let edgeCenter = new THREE.Vector3().addVectors( pointPositions[0], direction.multiplyScalar(0.5))
+            edge.name = `coherenceLine_${e.label}`
+            let edgeCenter = new THREE.Vector3().addVectors( e.nodes[0], direction.multiplyScalar(0.5))
             edge.position.set(edgeCenter.x,edgeCenter.y,edgeCenter.z)
-            edge.lookAt(pointPositions[1]);
+            edge.lookAt(e.nodes[1]);
             this.three.scene.add(edge)
+            this.edges.push({info: e, object: edge})
         }
-    }
+    })
 }
 
 // Geolocation
@@ -637,8 +521,6 @@ this.three.getGeolocation = () => {
     (pos) => {
         if (this.three.canvas != null){
             this.dynamicProps.location = {latitude: pos.coords.latitude, longitude: pos.coords.longitude}
-            this.three.drawCylinder()
-            this.resizeNexus()
         }
     }, 
     // Error
@@ -672,6 +554,9 @@ this.three.getGeolocation = () => {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.stateIds.forEach(id => {
+            this.session.state.unsubscribeAll(id);
+        })
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         this.AppletHTML.deleteNode();
@@ -698,19 +583,102 @@ this.three.getGeolocation = () => {
         let streamInfo = this.session.state.data?.commandResult
         // Update UI if results are different
         if ((!streamInfo != null) && Object.keys(streamInfo).length !== 0 && streamInfo.constructor === Object){
-            // points.set('Example',new UserMarker({name: 'Example', latitude: 34.0522, longitude: -118.2437, diameter:diameter, meshWidth:meshWidth, meshHeight:meshHeight, neurofeedbackDimensions: Object.keys(this.session.atlas.data.eeg[0].means)})); // LA
             if (Array.isArray(streamInfo.userData)){
-                streamInfo.userData.forEach(user => {
-                    if (!this.points.has(user.username)){
-                        console.log(user)
-                        this.points.set(user.username, new UserMarker({name: user.username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors)}))
-                        let newUser = this.points.get(user.username)
-                        newUser.setGeolocation(user.dynamicProps.location)
-                        newUser.setElement(this.camera,this.controls)
-                        newUser.active = true
-                    }
+                streamInfo.userData.forEach((user) => {
+                    this.removeAbsentUsers(streamInfo)
+                    this.updatePoints(user.username, user.dynamicProps?.location)
+                    this.updateNeurofeedback(user)
+                    this.updateEdges()
                 })
             }
         }
+    }
+
+    removeAbsentUsers(streamInfo){
+        Array.from( this.points.keys() ).forEach((username) => {
+            if (!streamInfo.usernames.includes(username)){
+                let toDelete = this.points.get(username)
+                toDelete.element.remove();
+                toDelete.prevMarkers.forEach((obj) => {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                  this.three.scene.remove( obj );
+                })
+                toDelete.prevGroups.forEach((group) => {
+                    this.three.scene.remove( group );
+                })
+                this.points.delete(username)
+                this.responsive()
+            }
+        })
+    }
+
+    updatePoints(username, location){
+
+        if (!this.points.has(username)){
+            this.points.set(username, new UserMarker({name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
+        }
+
+        if (location != null){
+            let user = this.points.get(username)
+            if (username === "LosAngeles"){
+                user.setGeolocation({latitude: 34.0522, longitude: -118.2437})
+            } else {
+                user.setGeolocation(location)
+            }
+            user.setElement(this.camera,this.controls)
+            user.active = true
+            this.responsive()
+        }
+    }
+
+    updateNeurofeedback(userData){
+
+        let currentUser = this.points.get(userData.username)
+        let scaling = {}
+        let dataObj = userData['eegfftbands_FP1_all'] ?? userData['eegfftbands_FP2_all'] ?? userData['eegfftbands_AF7_all'] ?? userData['eegfftbands_AF8_all']
+        if (dataObj?.bandpowers != null) {
+            currentUser.neurofeedbackDimensions.forEach(key => {
+                scaling[key] = dataObj.bandpowers[key]
+            })
+
+            let scalingMax = Math.max(...Object.values(scaling))
+            currentUser.neurofeedbackDimensions.forEach(key => {
+                let nfscale = scaling[key]
+                nfscale = nfscale/scalingMax
+                currentUser.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
+                currentUser.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
+                currentUser.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
+            })
+
+            if (userData.username === this.session.info.auth.username){
+                this.glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
+            }
+        }
+
+        let coherence = userData?.frontalcoherence
+        if (coherence != null){
+            currentUser.coherence = coherence
+            this.material.uniforms.colorThresholds.value[Array.from(this.points.keys()).indexOf(userData.username)] = this.colorReachBase + this.colorReachBase*coherence
+        }
+    }
+
+    updateEdges(){
+        this.edges.forEach((dict) => {
+            let usernames = dict.info.label.split('_')
+            let c1 = this.points.get(usernames[0])?.coherence
+            let c2 = this.points.get(usernames[1])?.coherence
+            let coherenceSimilarity = Math.min(Math.max(0, 1-Math.sqrt(Math.pow(c1,2) - Math.pow(c2,2))),1)
+            if (!isNaN(coherenceSimilarity)) dict.object.material.opacity = coherenceSimilarity
+        })
+    }
+
+    resetEdges(){
+        this.edges.forEach(dict => {
+            dict.object.geometry.dispose()
+            dict.object.material.dispose()
+            this.three.scene.remove(dict.object)
+        })
+        this.edges = []
     }
 } 
