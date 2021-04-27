@@ -18,13 +18,10 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import mapTexture from "./img/mapTexture.jpeg"
 import mapDisp from "./img/mapDisplacement.jpeg"
-
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
-
-    
-    
 
     constructor(
         parent=document.body,
@@ -33,9 +30,9 @@ export class NexusApplet {
     ) {
     
         //-------Keep these------- 
-        this.name = this.constructor.name
         this.parentNode = parent;
         this.settings = settings;
+        this.info = settingsFile.settings
         this.session = session; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
@@ -71,9 +68,9 @@ export class NexusApplet {
 
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
+            <div id='${props.id}' class="wrapper" style='height:100%; width:100%; position: relative; overflow: none;'>
                 <div class="nexus-loading-bar" style="z-index: 6;"></div>
-                <div class="nexus-gameHero nexus-container" style="z-index: 5"><div>
+                <div id='${props.id}gameHero' class="nexus-container" style="z-index: 5"><div>
                 <h1>Nexus</h1>
                 <p>Neurofeedback + Group Meditation</p>
                 </div></div>
@@ -85,22 +82,28 @@ export class NexusApplet {
                             <p id="${props.id}login-message" class="small"></p>
                             <div class='flex'>
                                 <form id="${props.id}login-form" action="">
-                                    <div class="login-element">
+                                    <div class="login-element" style="margin-left: 0px; margin-right: 0px">
                                         <input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
                                     </div>
                                 </form>
                             </div>
-                            <div class="login-buttons">
-                                <dic id="${props.id}login-button" class="nexus-button">Sign In</dic>
+                            <div class="login-buttons" style="justify-content: flex-start;">
+                                <div id="${props.id}login-button" class="nexus-button">Sign In</div>
                             </div>
                         </div>
                     </div>
                 </div></div>
 
                 <div id='${props.id}gameSelection' class="nexus-container" style="z-index: 3"><div>
-                    <div id='${props.id}multiplayerButtons'>
-                        <h2>Choose your Game</h2>
-                        <button id='${props.id}createGame'>Make Game session</button>
+                    <div id='${props.id}multiplayerDiv'">
+                    <div style="
+                    display: flex;
+                    align-items: center;
+                    column-gap: 15px;
+                    grid-template-columns: repeat(2,1fr)">
+                        <h2>Choose a Game</h2>
+                        <button id='${props.id}createGame' class="nexus-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game session</button>
+                    </div>
                     </div>
                 </div></div>
 
@@ -115,24 +118,70 @@ export class NexusApplet {
         let setupHTML = (props=this.props) => {
 
             // Setup HTML References
-            let createGame = document.getElementById(props.id+'createGame')
             let loginScreen = document.getElementById(`${props.id}login-screen`)
             let gameSelection = document.getElementById(`${props.id}gameSelection`)
             let exitGame = document.getElementById(`${props.id}exitGame`)
-            let gameBrowserContainer = this.session.makeGameBrowser(this.name,`${props.id}multiplayerButtons`,
-            ()=>{
-                console.log('Joined game!', this.name); 
+
+            // Create Game Brower
+            let baseBrowserId = `${props.id}${this.info.name}`
+            document.getElementById(`${props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="nexus-button">Search</button>`
+            document.getElementById(`${props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="overflow-x: scroll; box-sizing: border-box; padding: 10px 0; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 0px 5%;'></div></div>`;
+    
+            let waitForReturnedMsg = (msgs, callback = () => {}) => {
+                if (msgs.includes(this.session.state.data.commandResult.msg)){
+                    callback(this.session.state.data.commandResult.msg)
+                } else {
+                    setTimeout(()=> waitForReturnedMsg(msgs,callback), 250)
+                }
+            }
+
+            let onjoined = () => {
+                console.log('Joined game!', this.info.name); 
                 gameSelection.style.opacity = 0;
                 gameSelection.style.pointerEvents = 'none'
-            },
-            ()=>{
-                console.log('Left game!', this.name)
+            }
+            let onleave = () => {
+                console.log('Left game!', this.info.name)
                 gameSelection.style.opacity = 1;
                 gameSelection.style.pointerEvents = 'auto'
-            })
-            let gameSearch = document.getElementById(`${gameBrowserContainer.id}search`)
-            gameSearch.classList.add('nexus-button')
-            let gameBrowser = document.getElementById(`${gameBrowserContainer.id}browser`)
+            }
+
+            let gameSearch = document.getElementById(`${baseBrowserId}search`)
+
+            gameSearch.onclick = () => {
+    
+                this.session.getGames(this.info.name, (result) => {
+                    let gridhtml = '';
+                    
+                    result.gameInfo.forEach((g,i) => {
+                        if (g.usernames.length < 10){ // Limit connections to the same game server
+                            gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="nexus-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
+                        } else {
+                            result.gameInfo.splice(i,1)
+                        }
+                    });
+    
+                    document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
+    
+                    result.gameInfo.forEach((g) => { 
+                        let connectButton = document.getElementById(`${g.id}connect`)
+                        connectButton.onclick = () => {
+                            let spectate = true
+                            if (this.session.deviceConnected) spectate = false
+                            this.session.subscribeToGame(g.id,spectate,undefined,(subresult) => {
+                                onjoined(g);
+
+                                exitGame.onclick = () => {
+                                    this.session.unsubscribeFromGame(g.id,()=>{
+                                        onleave(g);
+                                        exitGame.onclick=null
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
 
             // Set Up Screen Two (Login)
             document.getElementById(`${props.id}login-button`).onclick = () => {
@@ -142,10 +191,33 @@ export class NexusApplet {
                 for (var pair of formData.entries()) {
                     formDict[pair[0]] = pair[1];
                 } 
+
+                let onsocketopen = () => {
+                    if (this.session.socket.readyState === 1){
+                        gameSearch.click()
+                        waitForReturnedMsg(['getGamesResult','gameNotFound'], (msg) => {
+                            console.log(msg)
+                            if (msg === 'gameNotFound'){
+                                createGame.click()
+                                waitForReturnedMsg('gameCreated', () => {
+                                    gameSearch.click()
+                                    loginScreen.style.opacity = 0;
+                                    loginScreen.style.pointerEvents = 'none'
+                                })
+                            } else {
+                                loginScreen.style.opacity = 0;
+                                loginScreen.style.pointerEvents = 'none'
+                            }
+                        })
+                    } else {
+                        setTimeout(()=> onsocketopen(), 500)
+                    }
+                }
+
                 this.session.setLoginInfo(formDict.username)
-                this.session.login(true)
-                loginScreen.style.opacity = 0;
-                loginScreen.style.pointerEvents = 'none'
+                this.session.login(true).then(() => {
+                    onsocketopen(this.session.socket)
+                })
             }
 
             exitGame.onclick = () => {
@@ -153,13 +225,15 @@ export class NexusApplet {
                 gameSelection.style.pointerEvents = 'auto'
             }
 
-
-            // Set Up Screen Three (Game Sessions)
+            let createGame = document.getElementById(`${props.id}createGame`)
 
             createGame.onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']]);
+                this.session.sendWSCommand(['createGame',this.info.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']]);
+
+                waitForReturnedMsg(['gameCreated'],() => {gameSearch.click()})
             }
-            createGame.style.display = 'none'
+            // createGame.style.display = 'none'
+            gameSearch.style.display = 'none'
     }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -216,7 +290,7 @@ const loadingManager = new THREE.LoadingManager(
             this.three.canvas.style.display = 'block'
             loadingBarElement.classList.add('ended')
             loadingBarElement.style.transform = ''
-            let hero = this.appletContainer.querySelector(".nexus-gameHero")
+            let hero = document.getElementById(`${this.props.id}gameHero`)
             hero.style.opacity = 0;
             hero.style.pointerEvents = 'none'
             this.three.getGeolocation()
@@ -380,7 +454,7 @@ this.appletContainer.addEventListener('click', () => {
 })
 
 // Set Default Users
-this.MAXPOINTS = 25
+this.MAXPOINTS = 10
 this.points = new Map()
 this.pointInfo.diameter = 1e-2/4;
 
@@ -604,6 +678,21 @@ this.three.getGeolocation = () => {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) this.resizeNexus()
+        let gameHero = document.getElementById(this.props.id+'gameHero')
+        if (gameHero){
+            gameHero.width = '100%'
+            gameHero.height = '100%'
+        }
+        let createGame = document.getElementById(this.props.id+'createGame')
+        if (createGame){
+            createGame.width = '100%'
+            createGame.height = '100%'
+        }
+        let loginScreen = document.getElementById(`${this.props.id}login-screen`)
+        if (loginScreen){
+            loginScreen.width = '100%'
+            loginScreen.height = '100%'
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

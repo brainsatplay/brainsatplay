@@ -31,7 +31,7 @@
     text-align: left;
     height: 100%;
     width: 100%;
-    padding: 50px;
+    padding: 5%;
     color: white;
     background: black;
     z-index: 1;
@@ -158,6 +158,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    pointer-events: 'auto'
 }
 
 .nexus-button:hover {
