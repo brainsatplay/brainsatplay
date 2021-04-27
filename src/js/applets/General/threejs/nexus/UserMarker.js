@@ -11,6 +11,10 @@ export class UserMarker {
     this.neurofeedbackDimensions = settings.neurofeedbackDimensions
     this.meshWidth = settings.meshWidth;
     this.meshHeight = settings.meshHeight;
+    this.camera = settings.camera;
+    this.controls = settings.controls;
+    this.appletContainer = settings.appletContainer; 
+
     this.x = this.mercX();
     this.y = this.mercY();
     this.z = 0.05;
@@ -32,35 +36,39 @@ export class UserMarker {
       <div class="nexus-text">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
     </div>
     `
+    this.element = document.querySelector(`.nexus-point-${this.name}`)
   }
 
-  animateLabel(camera,container){
+  animateLabel(camera=this.camera,container=this.appletContainer){
+    if (this.element != document.querySelector(`.nexus-point-${this.name}`)){
+      this.setElement()
+    }
     let screenPos = new THREE.Vector3(this.x,this.y,this.z)
     let distanceToPoint = screenPos.distanceTo(new THREE.Vector3(
       camera.position.x,
       camera.position.y,
       camera.position.z))
-    if (distanceToPoint > 0.1 && this.active){
+    if (distanceToPoint > 0.1 && screenPos.z > 0 && this.active){
       this.element.classList.add('visible')
     } else {
       this.element.classList.remove('visible')
     }
 
-    function offset(el) {
-      var rect = el.getBoundingClientRect(),
-      scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
-      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
-  }
+  //   function offset(el) {
+  //     var rect = el.getBoundingClientRect(),
+  //     scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+  //     scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  //     return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+  // }
 
     screenPos.project(camera)
     let translateX = container.clientWidth * screenPos.x * 0.5
     let translateY = -container.clientHeight * screenPos.y * 0.5
     this.element.style.transform = `translate(${translateX}px,${translateY}px)`
-    let off = offset(this.element)
-    if (off.top < 0 || off.left < 0){
-      this.element.classList.remove('visible')
-    }
+  //   let off = offset(this.element)
+  //   if (off.top < 0 || off.left < 0){
+  //     this.element.classList.remove('visible')
+  //   }
   }
 
   updateMesh(meshWidth,meshHeight){
@@ -87,9 +95,12 @@ export class UserMarker {
     this.createMarker()
   }
 
-  setElement(camera, controls){
+  setElement(camera=this.camera, controls=this.controls){
+    console.log(this.name)
     this.element = document.querySelector(`.nexus-point-${this.name}`)
     if (camera != null && controls != null){
+      if (this.camera == null) this.camera = camera
+      if (this.controls == null) this.controls = controls
       this.element.onclick = () => {
           controls.target.set(this.x,this.y,this.z)
           camera.lookAt(this.x,this.y)
@@ -144,9 +155,4 @@ export class UserMarker {
   mercY(lat=this.latitude) {
     return -((this.meshHeight/180.0) * (90 - lat)) + this.meshHeight/2;
   }
-
-  animateNeurofeedback(){
-
-  }
-
 }

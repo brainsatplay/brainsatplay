@@ -130,9 +130,17 @@ server.on('upgrade', async (request, socket, head) => {
       let arr = str.split('&')
       subprotocols[arr[0]] = arr[1]
     })
-    let username = getCookie(request, 'username') || subprotocols['username']
-    let password = getCookie(request, 'password') || subprotocols['password']
-    let appname = getCookie(request, 'appname') || subprotocols['appname']
+
+    let decodeSubprotocol = (info) => {
+      return info.replace('%20',' ')
+    }
+
+
+    let username = decodeSubprotocol(getCookie(request, 'username') || subprotocols['username'])
+    let password = decodeSubprotocol(getCookie(request, 'password') || subprotocols['password'])
+    let appname = decodeSubprotocol(getCookie(request, 'appname') || subprotocols['appname'])
+    
+    console.log(username)
 
     auth.check({username,password},app.get('mongoClient')).then((res) => {
 

@@ -1,13 +1,9 @@
 import * as brainsatplay from './../../../../library/brainsatplay'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
-import {geolocateJS} from './../../../frontend/UX/Geolocate'
 
 
 //Example Applet for integrating with the UI Manager
 export class MultiplayerAppletTemplate {
-
-    
-    
 
     constructor(
         parent=document.body,
@@ -35,7 +31,6 @@ export class MultiplayerAppletTemplate {
 
         this.stateIds = []
         this.dynamicProps = {}
-        this.geolocationManager = new geolocateJS()
     }
 
     //---------------------------------
@@ -74,6 +69,7 @@ export class MultiplayerAppletTemplate {
 
             document.getElementById(props.id+'createGame').onclick = () => {
                 this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
+                // this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['dynamicProps']
                 // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
             ]);
                 //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
@@ -104,29 +100,25 @@ export class MultiplayerAppletTemplate {
         }))
 
         document.addEventListener('keyup',(k => {
-            this.dynamicProps.spacebar = (k.keyCode === 32 ? 0 : 1)
+            this.dynamicProps.spacebar = (k.keyCode === 32 ? 0 : 0)
         }))
 
+        // Set a dynamic property for your location
+        this.dynamicProps.spacebar = 0
+        this.stateIds.push(this.session.streamAppData('dynamicProps', this.dynamicProps,(newData) => {
+            console.log("New data detected! Will be sent!");
+        }))
+
+        // Animate
         this.animate = () => {
             let streamInfo = this.session.state.data?.commandResult
-            let returnedAppName = this.session.state.data?.commandResult?.appname
-            if (returnedAppName != null && returnedAppName != this.name) this.appname = this.session.state.data?.commandResult?.appname
-            if (this.appname != null){
-
-                // Set a dynamic property for your location
-                let dynamicProps = this.session.getStreamData(`${this.appname}`,'dynamicProps')
-                if (Object.keys(dynamicProps).length === 0){
-                    this.dynamicProps.spacebar = 0
-                    this.stateIds.push(this.session.streamAppData('dynamicProps', this.dynamicProps,(newData) => {
-                        console.log("New data detected! Will be sent!");
-                    }))
-                }
-
                 // Update UI if results are different
-                if (streamInfo != undefined){
+                if ((!streamInfo != null) && Object.keys(streamInfo).length !== 0 && streamInfo.constructor === Object){
 
                     let usernames = streamInfo.usernames
                     let spectators = streamInfo.spectators
+
+                    console.log(streamInfo)
 
                     // Update user cards
                     if ( usernames != null) {
@@ -158,7 +150,6 @@ export class MultiplayerAppletTemplate {
                         let name = userData.username
                         let type = (spectators.includes(name) ? 'spectator' : 'player')
                         let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
-                        console.log(userData)
                         Object.keys(userData).forEach(k1 => {
                                 if (!['username'].includes(k1)){
                                     let div = userCard.querySelector(`.${k1}`)
@@ -210,7 +201,7 @@ export class MultiplayerAppletTemplate {
 
                                 if (Array.isArray(val)){
                                     val.forEach(v => {
-                                        el.innerHTML += `<p>${v}</p>`
+                                                    el.innerHTML += `<p>${v}</p>`
                                     })
                                 } else {
                                     el.innerHTML += `<p>${val}</p>`
@@ -220,9 +211,8 @@ export class MultiplayerAppletTemplate {
                     })
                 }
             }
-        }
 
-            this.animation = window.requestAnimationFrame(this.animate)
+            setTimeout(() => this.animation = window.requestAnimationFrame(this.animate), 1000/60)
         }
 
         this.animate()
