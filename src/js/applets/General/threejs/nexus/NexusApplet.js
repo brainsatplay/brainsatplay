@@ -71,9 +71,9 @@ export class NexusApplet {
 
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
+            <div id='${props.id}' class="wrapper" style='height:100%; width:100%; position: relative; overflow: none;'>
                 <div class="nexus-loading-bar" style="z-index: 6;"></div>
-                <div class="nexus-gameHero nexus-container" style="z-index: 5"><div>
+                <div id='${props.id}gameHero' class="nexus-container" style="z-index: 5"><div>
                 <h1>Nexus</h1>
                 <p>Neurofeedback + Group Meditation</p>
                 </div></div>
@@ -216,7 +216,7 @@ const loadingManager = new THREE.LoadingManager(
             this.three.canvas.style.display = 'block'
             loadingBarElement.classList.add('ended')
             loadingBarElement.style.transform = ''
-            let hero = this.appletContainer.querySelector(".nexus-gameHero")
+            let hero = document.getElementById(`${this.props.id}gameHero`)
             hero.style.opacity = 0;
             hero.style.pointerEvents = 'none'
             this.three.getGeolocation()
@@ -604,6 +604,21 @@ this.three.getGeolocation = () => {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) this.resizeNexus()
+        let gameHero = document.getElementById(this.props.id+'gameHero')
+        if (gameHero){
+            gameHero.width = '100%'
+            gameHero.height = '100%'
+        }
+        let createGame = document.getElementById(this.props.id+'createGame')
+        if (createGame){
+            createGame.width = '100%'
+            createGame.height = '100%'
+        }
+        let loginScreen = document.getElementById(`${this.props.id}login-screen`)
+        if (loginScreen){
+            loginScreen.width = '100%'
+            loginScreen.height = '100%'
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

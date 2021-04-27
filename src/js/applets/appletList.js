@@ -2,6 +2,7 @@
 import placeholderImg from '../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
+import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png'
 
 // { folderUrl:'', name:'', categories:[] }
 export const AppletInfo = {
@@ -110,6 +111,18 @@ export let presets = [
         description: "Experience a random applet every 10 seconds!",
         type: "All",
         image: placeholderImg,
+        lock: true	
+    },
+    {
+        value: 'multiplayer',
+        name: "Multiplayer Demo",
+        applets: [
+            'Nexus',
+            'Smoothie'
+        ],
+        description: "Experience a multiplayer game controlled with your brain!",
+        type: "EEG",
+        image: nexusImage,
         lock: true	
     }
 ]
