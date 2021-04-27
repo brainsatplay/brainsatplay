@@ -72,28 +72,94 @@ export class NexusApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
-                <div id='${props.id}multiplayerButtons' style="position: absolute; top: 0; left: 0; z-index: 1;">
-                    <button id='${props.id}createGame'>Make Game session</button>
-                </div>
-                <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
-                <div class="nexus-loading-bar"></div>
-                <div class="nexus-point-container"></div>
-                <div class="nexus-gameHero nexus-container">
-                <div>
+                <div class="nexus-loading-bar" style="z-index: 6;"></div>
+                <div class="nexus-gameHero nexus-container" style="z-index: 5"><div>
                 <h1>Nexus</h1>
                 <p>Neurofeedback + Group Meditation</p>
                 </div></div>
+
+                <div id='${props.id}login-screen' class="nexus-container" style="z-index: 4"><div>
+                    <h2>Choose your Username</h2>
+                    <div id="${props.id}login-container" class="form-container">
+                        <div id="${props.id}login" class="form-context">
+                            <p id="${props.id}login-message" class="small"></p>
+                            <div class='flex'>
+                                <form id="${props.id}login-form" action="">
+                                    <div class="login-element">
+                                        <input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="login-buttons">
+                                <dic id="${props.id}login-button" class="nexus-button">Sign In</dic>
+                            </div>
+                        </div>
+                    </div>
+                </div></div>
+
+                <div id='${props.id}gameSelection' class="nexus-container" style="z-index: 3"><div>
+                    <div id='${props.id}multiplayerButtons'>
+                        <h2>Choose your Game</h2>
+                        <button id='${props.id}createGame'>Make Game session</button>
+                    </div>
+                </div></div>
+
+                <div class="nexus-point-container"></div>
+                <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
+                <div id='${props.id}exitGame' class="nexus-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Game</div>
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.makeGameBrowser(this.name,`${props.id}multiplayerButtons`,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
 
-            document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherence','dynamicProps']]);
-        }
+            // Setup HTML References
+            let createGame = document.getElementById(props.id+'createGame')
+            let loginScreen = document.getElementById(`${props.id}login-screen`)
+            let gameSelection = document.getElementById(`${props.id}gameSelection`)
+            let exitGame = document.getElementById(`${props.id}exitGame`)
+            let gameBrowserContainer = this.session.makeGameBrowser(this.name,`${props.id}multiplayerButtons`,
+            ()=>{
+                console.log('Joined game!', this.name); 
+                gameSelection.style.opacity = 0;
+                gameSelection.style.pointerEvents = 'none'
+            },
+            ()=>{
+                console.log('Left game!', this.name)
+                gameSelection.style.opacity = 1;
+                gameSelection.style.pointerEvents = 'auto'
+            })
+            let gameSearch = document.getElementById(`${gameBrowserContainer.id}search`)
+            gameSearch.classList.add('nexus-button')
+            let gameBrowser = document.getElementById(`${gameBrowserContainer.id}browser`)
+
+            // Set Up Screen Two (Login)
+            document.getElementById(`${props.id}login-button`).onclick = () => {
+                let form = document.getElementById(`${props.id}login-form`)
+                let formDict = {}
+                let formData = new FormData(form);
+                for (var pair of formData.entries()) {
+                    formDict[pair[0]] = pair[1];
+                } 
+                this.session.setLoginInfo(formDict.username)
+                this.session.login(true)
+                loginScreen.style.opacity = 0;
+                loginScreen.style.pointerEvents = 'none'
+            }
+
+            exitGame.onclick = () => {
+                gameSelection.style.opacity = 1;
+                gameSelection.style.pointerEvents = 'auto'
+            }
+
+
+            // Set Up Screen Three (Game Sessions)
+
+            createGame.onclick = () => {
+                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']]);
+            }
+            createGame.style.display = 'none'
     }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -115,18 +181,19 @@ export class NexusApplet {
         }))
 
         this.session.addStreamFunc(
-            'frontalcoherence', 
+            'frontalcoherencescore', 
             (band='alpha1') => {
-                let coherence = null;
+                let score = null;
                 if(this.session.atlas.settings.coherence) {
                     let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
                     if(coherenceBuffer.length > 0) {
                         let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-                        let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-                        coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
+                        let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+                        let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
+                        score = slice[slice.length-1] - mean
                     }
                 }
-            return coherence;
+            return score;
             }
         )
 /**
@@ -147,11 +214,11 @@ const loadingManager = new THREE.LoadingManager(
         if (this.three.canvas != null){
             this.resizeNexus()
             this.three.canvas.style.display = 'block'
-            gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
             loadingBarElement.classList.add('ended')
             loadingBarElement.style.transform = ''
             let hero = this.appletContainer.querySelector(".nexus-gameHero")
             hero.style.opacity = 0;
+            hero.style.pointerEvents = 'none'
             this.three.getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
@@ -209,35 +276,6 @@ this.three.renderer = new THREE.WebGLRenderer({
  let fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
  this.pointInfo.meshWidth = (fov_y  - 1.0)* this.camera.aspect;
  this.pointInfo.meshHeight = this.pointInfo.meshWidth / imageAspect;
-
-/**
- * Overlay
- */
-const overlayGeometry = new THREE.PlaneGeometry(this.pointInfo.meshWidth, fov_y, 1, 1)
-const overlayMaterial = new THREE.ShaderMaterial({
-    transparent: true,
-    uniforms:
-    {
-        uAlpha: { value: 1 }
-    },
-    vertexShader: `
-        void main()
-        {
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform float uAlpha;
-    
-        void main()
-        {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
-        }
-    `
-})
-const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
-overlay.position.z = this.camera.position.z - 0.1;
-this.three.scene.add(overlay)
 
 // Renderer
 this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
@@ -656,7 +694,7 @@ this.three.getGeolocation = () => {
             }
         }
 
-        let coherence = userData?.frontalcoherence
+        let coherence = userData?.frontalcoherencescore
         if (coherence != null){
             currentUser.coherence = coherence
             this.material.uniforms.colorThresholds.value[Array.from(this.points.keys()).indexOf(userData.username)] = this.colorReachBase + this.colorReachBase*coherence

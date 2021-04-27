@@ -875,6 +875,7 @@ export class Session {
 				});
 			});
 		}
+		return document.getElementById(id)
 	}
 
 	kickPlayerFromGame = (gameId, userToKick, onsuccess=(newResult)=>{}) => {
