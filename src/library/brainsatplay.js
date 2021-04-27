@@ -4,7 +4,6 @@
 */
 
 //import * as Workers from './src/Workers.js'
-import './src/Workers'
 
 export {Session} from './src/Session.js'
 //export {Workers}
