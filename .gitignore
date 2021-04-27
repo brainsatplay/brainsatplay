@@ -1,6 +1,7 @@
 /node_modules/
 /dist/
 /.cache/
+/docs
 .vscode/settings.json
 .DS_Store
 .env

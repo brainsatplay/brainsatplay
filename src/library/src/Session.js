@@ -63,8 +63,8 @@ export class Session {
 		password='',
 		appname='',
 		access='public',
-		remoteHostURL='http://localhost:8000',//https://brainsatplay.azurewebsites.net/',
-		localHostURL='http://127.0.0.1:8000'
+		remoteHostURL= 'https://brainsatplay.azurewebsites.net/',
+		localHostURL='http://localhost:8000'
 	) {
 		this.devices = [];
 		this.state = new StateManager({
@@ -73,10 +73,12 @@ export class Session {
 
 		this.atlas = new DataAtlas('atlas',undefined,undefined,true,false);
 
+		let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
+
 		this.info = {
 			nDevices: 0,
 			auth:{
-				url: new URL(remoteHostURL), 
+				url: new URL(urlToConnect), 
 				username:username, 
 				password:password, 
 				access:access, 
@@ -85,6 +87,7 @@ export class Session {
 			},
 			subscribed: false,
 			connections: [],
+			remoteHostURL: remoteHostURL,
 			localHostURL: localHostURL
 		}
 		this.socket = null;
