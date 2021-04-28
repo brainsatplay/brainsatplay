@@ -51,11 +51,11 @@ export class GalleryApplet {
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader
             },
-            white: {
-                name: 'White Box',
-                vertexShader: vertexShader,
-                fragmentShader: whiteFragmentShader
-            },
+            // white: {
+            //     name: 'White Box',
+            //     vertexShader: vertexShader,
+            //     fragmentShader: whiteFragmentShader
+            // },
         }
 
         // Setup Neurofeedback
@@ -85,8 +85,8 @@ export class GalleryApplet {
                 <div id='${props.id}renderer-container'><canvas id='${props.id}canvas'></canvas></div>
                 <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
                     <select id='${props.id}selector'></select>
-                    <div class="brainsatplay-neurofeedback-container" style="margin-top: 25px;">
-                    </div>
+                </div>
+                <div class="brainsatplay-neurofeedback-container" style="margin-top: 25px; position:absolute; top: 0; left: 0; z-index: 1; ">
                 </div>
             </div>
             `;
@@ -279,7 +279,7 @@ this.material = new THREE.ShaderMaterial({
         times: {value: this.timeBuffer},
         colors: {value: this.colorBuffer.flat(1)},
         mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
-        noiseIntensity: {value: this.noiseBuffer}
+        neurofeedback: {value: this.noiseBuffer}
     }
 })
 
@@ -330,12 +330,12 @@ var animate = () => {
 
                 this.noiseBuffer.shift()
                 let neurofeedback = this.getNeurofeedback()
-                this.noiseBuffer.push(5.0 * neurofeedback)
+                this.noiseBuffer.push(neurofeedback)
                     
                 // Set Uniforms
                 this.material.uniforms.colors.value = this.colorBuffer.flat(1) 
                 this.material.uniforms.times.value = this.timeBuffer
-                this.material.uniforms.noiseIntensity.value = this.noiseBuffer
+                this.material.uniforms.neurofeedback.value = this.noiseBuffer
 
                 this.controls.update()
                 effectComposer.render()

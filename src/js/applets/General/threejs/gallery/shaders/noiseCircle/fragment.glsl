@@ -8,7 +8,7 @@ uniform float historyLength;
 uniform vec2 mouse;
 uniform vec3 colors[HISTORY];
 uniform float times[HISTORY];
-uniform float noiseIntensity[HISTORY];
+uniform float neurofeedback[HISTORY];
 
 float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
     vec2 dist = _uv-_center;
@@ -93,14 +93,13 @@ float cnoise(vec3 P){
 
 
 float minDiameter= 0.0;
-float maxDiameter = 0.7;
+float maxDiameter = 1.0;
 float historyInterval = 0.1;
 float history_float = float(HISTORY);
 
 void main()
 {
     vec2 uv = vUv;
-    float angle = atan(uv.y,uv.x);
     
     vec4 outColor = vec4(0.);
     for (int i = 0; i < HISTORY; i++){
@@ -113,25 +112,20 @@ void main()
         // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
         float innerDiameter = 0.3;
         float outerDiameter = innerDiameter + 0.02;
-        float noiseScaling = (maxDiameter - minDiameter) - (outerDiameter-innerDiameter);
+        float noiseScaling = ((maxDiameter - minDiameter) - (outerDiameter-innerDiameter));
 
         // Noisy Circle
         float alpha = i_float/history_float;
+        float angle = atan(uv.y,uv.x);
         float xoff = cos(angle) + 1.0;
         float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(noiseIntensity[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*neurofeedback[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
         // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
         // float noise = 0.0;
 
         outColor += vec4(colors[i]*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
-        outColor.xyz -= vec3(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise))); // Inner Diameter
+        outColor.rgb -= vec3(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise))); // Inner Diameter
     }
-    // outColor *= cnoise(vec3(uv,time));
-    //Simple wavefunctions inversed and with small offsets.
-    // outColor += 5./length(uv.y*200. - 50.0*sin( uv.x*0.25+ time*0.25)*amplitude);
-    // outColor += 4./length(uv.y*300. - 100.0*sin(uv.x*0.5+time*0.5)*amplitude*1.2);
-    // outColor += 3./length(uv.y*400. - 150.0*sin(uv.x*0.75+time*0.75)*amplitude*1.4);
-    // outColor += 2./length(uv.y*500. - 200.0*sin(uv.x+time)*amplitude*1.6);
 
     gl_FragColor = vec4(outColor);
 

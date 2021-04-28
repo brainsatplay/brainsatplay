@@ -2,11 +2,13 @@
 #define HISTORY 5
 
 // uniform sampler2D uTexture;
-uniform float[HISTORY] times;
+uniform float times[HISTORY];
 // varying vec2 vUv;
 
 precision mediump float;
 varying vec2 vUv;
+uniform vec3 colors[HISTORY];
+uniform float neurofeedback[HISTORY];
 
 // taken from: http://www.chilliant.com/rgb2hsv.html
 vec3 HUEtoRGB(in float H)
@@ -24,7 +26,7 @@ void main()
     
     vec3 outColor = vec3(0.);
 
-    float amplitude = 1.0;
+    float amplitude = 1.0-neurofeedback[HISTORY - 1];
     
     //Simple wavefunctions inversed and with small offsets.
     outColor += 5./length(uv.y*200. - 50.0*sin( uv.x*0.25+ times[HISTORY-1]*0.25)*amplitude);
@@ -32,7 +34,8 @@ void main()
     outColor += 3./length(uv.y*400. - 150.0*sin(uv.x*0.75+times[HISTORY-1]*0.75)*amplitude*1.4);
     outColor += 2./length(uv.y*500. - 200.0*sin(uv.x+times[HISTORY-1])*amplitude*1.6);
 
-    outColor.rgb *= 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*times[HISTORY-1]/3.0));
+    outColor *= colors[HISTORY - 1];
+    // outColor.rgb *= 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*times[HISTORY-1]/3.0));
     // outColor.rgb *= 0.3*HUEtoRGB(0.5 + 0.5*uv.x);
 
     gl_FragColor = vec4(outColor,1.0);
