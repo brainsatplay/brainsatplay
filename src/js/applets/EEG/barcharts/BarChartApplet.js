@@ -126,16 +126,18 @@ export class BarChartApplet {
             if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
                 let ch1 = document.getElementById(this.props.id+'channel').value;
                 let dat = this.bci.atlas.getLatestFFTData(ch1);
-                if(this.mode === 'single') {
-                    this.chart.slices = dat.slice;
-                    this.chart.fftArr = dat.fft;
-                } else if (this.mode === 'mirror') {
-                    let ch2 = document.getElementById(this.props.id+'channel2').value;
-                    this.chart.leftbars.slices = dat.slice;
-                    this.chart.leftbars.fftArr = dat.fft;
-                    let dat2 = this.bci.atlas.getLatestFFTData(ch2);
-                    this.chart.rightbars.slices = dat2.slice;
-                    this.chart.rightbars.fftArr = dat2.fft;
+                if(dat.fftCount > 0) {
+                    if(this.mode === 'single') {
+                        this.chart.slices = dat.slice;
+                        this.chart.fftArr = dat.fft;
+                    } else if (this.mode === 'mirror') {
+                        let ch2 = document.getElementById(this.props.id+'channel2').value;
+                        this.chart.leftbars.slices = dat.slice;
+                        this.chart.leftbars.fftArr = dat.fft;
+                        let dat2 = this.bci.atlas.getLatestFFTData(ch2);
+                        this.chart.rightbars.slices = dat2.slice;
+                        this.chart.rightbars.fftArr = dat2.fft;
+                    }
                 }
             }
             setTimeout(()=>{requestAnimationFrame(this.updateLoop)},16);
