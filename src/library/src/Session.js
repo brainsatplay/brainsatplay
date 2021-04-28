@@ -1118,7 +1118,7 @@ class streamSession {
 			nDevices: 0,
 			appStreamParams: [],
 			streamCt: 0,
-			streamLoopTiming: 100
+			streamLoopTiming: 50
 		};
 
 		this.streamTable = []; //tags and callbacks for streaming
