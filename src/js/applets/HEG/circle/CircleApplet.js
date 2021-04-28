@@ -31,6 +31,7 @@ export class CircleApplet {
         this.loop = null;
         this.looping = false;
    
+        this.score = 0;
         this.canvas = null;
         this.ctx = null;
         this.angle = 1.57;
@@ -57,6 +58,7 @@ export class CircleApplet {
                     <button id='`+props.id+`showhide' style='opacity:0.1;'>Hide UI</button>
                     <table id='`+props.id+`table' style='z-index:99;'>
                         <td><button id='`+props.id+`audio'>Tone</button></td>
+                        <tr><td>Score: <span id='`+props.id+`score'>0</span></tr></td>
                     </table>
                 </div>
                 <canvas id='`+props.id+`canvas' style='z-index:1;'></canvas>
@@ -177,7 +179,8 @@ export class CircleApplet {
                     let avg = 40; if(ct < avg) { avg = ct; }
                     let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
                     let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
-                    this.angleChange = score;
+                    this.angleChange = score; this.score += score;
+                    document.getElementById(this.props.id+'score').innerHTML = this.score.toFixed(3);
                     this.draw();
                 }
             }
