@@ -6,8 +6,6 @@ import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 // Just need an iframe, a search window, and link posting
 export class YoutubeApplet {
 
-    
-    
 
     constructor(
         parent=document.body,
@@ -35,6 +33,8 @@ export class YoutubeApplet {
         this.c;
         this.gl;
         this.alpha = 0;
+
+        this.videoId = '';
     }
 
     //---------------------------------
@@ -70,7 +70,8 @@ export class YoutubeApplet {
 
             document.getElementById(props.id+'load').onclick = () => {
                 let id = document.getElementById(props.id+'videoid').value;
-                if(id.indexOf('youtu') < 0) this.player.loadVideoById(id)
+                this.videoId = id;
+                if(id.indexOf('youtu') < 0) this.player.loadVideoById(id);
                 else {
                     console.log(id)
                     if(id.indexOf('watch?v=') > -1 ) {
@@ -147,10 +148,13 @@ export class YoutubeApplet {
               color = "#37474F"; // unstarted = gray
             } else if (playerStatus == 0) {
               color = "#FFFF00"; // ended = yellow
+              this.bci.atlas.makeNote('Youtube: '+this.videoId + " ended");
             } else if (playerStatus == 1) {
               color = "#33691E"; // playing = green
+              this.bci.atlas.makeNote('Youtube: '+this.videoId + " playing");
             } else if (playerStatus == 2) {
               color = "#DD2C00"; // paused = red
+              this.bci.atlas.makeNote('Youtube: '+this.videoId + " paused");
             } else if (playerStatus == 3) {
               color = "#AA00FF"; // buffering = purple
             } else if (playerStatus == 5) {
