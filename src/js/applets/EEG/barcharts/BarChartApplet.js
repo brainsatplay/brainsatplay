@@ -105,9 +105,11 @@ export class BarChartApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        if(this.bci.atlas.settings.eeg) {
+            addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+            addChannelOptions(this.props.id+"channel2", this.bci.atlas.data.eegshared.eegChannelTags, true);
+            document.getElementById(this.props.id+"mode").onchange();
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
