@@ -15,6 +15,12 @@ FYI it's super unfinished. We are reworking a few systems still to be *just* rig
 
 
 ## Getting Started
+### Tutorials
+- {@tutorial Applets}
+- {@tutorial CreatingAnAppletP1}
+- {@tutorial DeviceCompatibility}
+- {@tutorial MultiplayerApplets}
+
 ### Library Usage
 #### Node.js
 ```bash
