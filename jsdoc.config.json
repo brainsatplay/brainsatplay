@@ -14,13 +14,15 @@
     "opts": {
         "destination": "./docs/",               // Where I want my docs to be generated.
         "recurse": true,
-        "tutorials": "./gettingstarted"
+        "tutorials": "./gettingstarted",
+        "template": "./templates/brainstorm"
     },
     "templates": {
         "default": {
             "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
             "staticFiles": {
-                "paths": ["./public/","./templates/brainstorm/static/"]
+                "paths": ["./templates/brainstorm/static/"],
+                "include": ["./public/"]
             }
         }
     }

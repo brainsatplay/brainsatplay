@@ -70,8 +70,10 @@ tt, code, kbd, samp {
 }
 
 #main {
+    box-sizing: border-box;
     float: left;
     width: 70%;
+    padding: 12px 24px 20px;
 }
 
 article dl {
@@ -154,7 +156,6 @@ h1
     font-family: 'Open Sans Light', sans-serif;
     font-size: 48px;
     letter-spacing: -2px;
-    margin: 12px 24px 20px;
 }
 
 h2, h3.subsection-title
@@ -355,4 +356,13 @@ tr > th:last-child { border-right: 1px solid #ddd; }
 
 .disabled {
     color: #454545;
+}
+
+.page-title {
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid gray;
 }

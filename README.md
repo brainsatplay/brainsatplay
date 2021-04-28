@@ -16,10 +16,10 @@ FYI it's super unfinished. We are reworking a few systems still to be *just* rig
 
 ## Getting Started
 ### Tutorials
-- {@tutorial Applets}
-- {@tutorial CreatingAnAppletP1}
-- {@tutorial DeviceCompatibility}
-- {@tutorial MultiplayerApplets}
+- [Create an Applet (v1)]{@tutorial Applets}
+- [Create an Applet (v2)]{@tutorial CreatingAnAppletP1}
+- [Add a Device]{@tutorial DeviceCompatibility}
+- [Create a Multiplayer Applet]{@tutorial MultiplayerApplets}
 
 ### Library Usage
 #### Node.js
