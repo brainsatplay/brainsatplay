@@ -33,6 +33,7 @@ export const AppletInfo = {
     'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },
     'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['feedback'] },
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
+    'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['eeg'], categories:['feedback'] },
 };
 
 export let dynamicImport = async (url) => {
@@ -112,18 +113,6 @@ export let presets = [
         description: "Experience a random applet every 10 seconds!",
         type: "All",
         image: placeholderImg,
-        lock: true	
-    },
-    {
-        value: 'multiplayer',
-        name: "Multiplayer Demo",
-        applets: [
-            'Nexus',
-            'Smoothie'
-        ],
-        description: "Experience a multiplayer game controlled with your brain!",
-        type: "EEG",
-        image: nexusImage,
         lock: true	
     }
 ]
