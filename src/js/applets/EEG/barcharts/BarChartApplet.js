@@ -1,11 +1,10 @@
-import {Session} from '../../../Session'
-import {DOMFragment} from '../../../ui/DOMFragment'
-
+import {Session} from '../../../../library/src/Session'
+import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import {eegBarChart, mirrorBarChart} from '../../../frontend/UX/eegvisuals'
+import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 
 //Example Applet for integrating with the UI Manager
 export class BarChartApplet {
-
-    
     
 
     constructor(
@@ -27,7 +26,9 @@ export class BarChartApplet {
         };
 
         //etc..
-
+        this.chart = null;
+        this.mode = 'single'; //single, mirror
+        this.looping = true;
     }
 
     //---------------------------------
@@ -39,12 +40,42 @@ export class BarChartApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id='${props.id}' style='height:100%; width:100%;'></div>`;
+            return `
+            <div id='${props.id}' style='height:100%; width:100%;'>
+                <div id='${props.id}menu' style='position:absolute;'>
+                    <select id='${props.id}mode'>
+                        <option value='single'>Single</option>
+                        <option value='mirror'>Mirrored</option>
+                    </select>
+                    <select id='${props.id}channel'></select>
+                    <select id='${props.id}channel2'></select>
+                </div>
+                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
+                <canvas id='${props.id}canvas2' style='display:none;width:49%;height:100%;'></canvas>
+            </div>`;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            addChannelOptions(props.id+'channel', this.bci.atlas.data.eegshared.eegChannelTags, true);
+            addChannelOptions(props.id+'channel2', this.bci.atlas.data.eegshared.eegChannelTags, true);
+            document.getElementById(props.id+'channel2').style.display = 'none';
+            document.getElementById(props.id+'mode').onchange = () => {
+                let val = document.getElementById(props.id+'mode').value;
+                this.chart.deInit();
+                if (val === 'single') {
+                    document.getElementById(props.id+'canvas').style.display = 'none';
+                    document.getElementById(props.id+'channel2').style.display = 'none';
+                    document.getElementById(props.id+'canvas').style.width = '100%';
+                    this.chart = new eegBarChart(props.id+'canvas');
+                } else if (val === 'mirror') {
+                    document.getElementById(props.id+'canvas').style.width = '49%';
+                    document.getElementById(props.id+'canvas').style.display = '';
+                    document.getElementById(props.id+'channel2').style.display = '';
+                    this.chart = new mirrorBarChart(props.id+'canvas',props.id+'canvas2');
+                }
+                this.chart.init();
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -60,11 +91,14 @@ export class BarChartApplet {
 
 
         //Add whatever else you need to initialize
-    
+        this.chart = new eegBarChart(this.props.id+'canvas',200);
+        this.chart.init();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
+        this.chart.deInit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -87,6 +121,27 @@ export class BarChartApplet {
     //--------------------------------------------
 
     //doSomething(){}
-
+    updateLoop = () => {
+        if(this.looping) {
+            if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
+                let ch1 = document.getElementById(this.props.id+'channel').value;
+                let dat = this.bci.atlas.getLatestFFTData(ch1);
+                if(dat.fftCount > 0) {
+                    if(this.mode === 'single') {
+                        this.chart.slices = dat.slice;
+                        this.chart.fftArr = dat.fft;
+                    } else if (this.mode === 'mirror') {
+                        let ch2 = document.getElementById(this.props.id+'channel2').value;
+                        this.chart.leftbars.slices = dat.slice;
+                        this.chart.leftbars.fftArr = dat.fft;
+                        let dat2 = this.bci.atlas.getLatestFFTData(ch2);
+                        this.chart.rightbars.slices = dat2.slice;
+                        this.chart.rightbars.fftArr = dat2.fft;
+                    }
+                }
+            }
+            setTimeout(()=>{requestAnimationFrame(this.updateLoop)},16);
+        }
+    }
    
 } 

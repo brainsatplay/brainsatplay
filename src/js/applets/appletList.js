@@ -12,6 +12,7 @@ export const AppletInfo = {
     'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['data']},
     'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['data']},
     'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['data']},
+    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['eeg'],           categories:['data']},
     'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['multiplayer','feedback']},
     'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:['feedback']},
     'Enso': { folderUrl:'./General/threejs/enso',       devices:['eeg','heg'],           categories:['feedback']},
