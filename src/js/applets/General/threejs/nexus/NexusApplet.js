@@ -18,13 +18,10 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { gsap } from 'gsap'
 import mapTexture from "./img/mapTexture.jpeg"
 import mapDisp from "./img/mapDisplacement.jpeg"
-
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class NexusApplet {
-
-    
-    
 
     constructor(
         parent=document.body,
@@ -33,9 +30,9 @@ export class NexusApplet {
     ) {
     
         //-------Keep these------- 
-        this.name = this.constructor.name
         this.parentNode = parent;
         this.settings = settings;
+        this.info = settingsFile.settings
         this.session = session; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
@@ -46,8 +43,6 @@ export class NexusApplet {
         };
 
         this.three = {}
-        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
-        this.getNeurofeedback = this.defaultNeurofeedback   
 
         this.neurofeedbackColors = {
             'scp': [0,0,1],
@@ -72,95 +67,16 @@ export class NexusApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
-                <div class="nexus-loading-bar" style="z-index: 6;"></div>
-                <div class="nexus-gameHero nexus-container" style="z-index: 5"><div>
-                <h1>Nexus</h1>
-                <p>Neurofeedback + Group Meditation</p>
-                </div></div>
-
-                <div id='${props.id}login-screen' class="nexus-container" style="z-index: 4"><div>
-                    <h2>Choose your Username</h2>
-                    <div id="${props.id}login-container" class="form-container">
-                        <div id="${props.id}login" class="form-context">
-                            <p id="${props.id}login-message" class="small"></p>
-                            <div class='flex'>
-                                <form id="${props.id}login-form" action="">
-                                    <div class="login-element">
-                                        <input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="login-buttons">
-                                <dic id="${props.id}login-button" class="nexus-button">Sign In</dic>
-                            </div>
-                        </div>
-                    </div>
-                </div></div>
-
-                <div id='${props.id}gameSelection' class="nexus-container" style="z-index: 3"><div>
-                    <div id='${props.id}multiplayerButtons'>
-                        <h2>Choose your Game</h2>
-                        <button id='${props.id}createGame'>Make Game session</button>
-                    </div>
-                </div></div>
-
                 <div class="nexus-point-container"></div>
                 <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
-                <div id='${props.id}exitGame' class="nexus-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Game</div>
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-
-            // Setup HTML References
-            let createGame = document.getElementById(props.id+'createGame')
-            let loginScreen = document.getElementById(`${props.id}login-screen`)
-            let gameSelection = document.getElementById(`${props.id}gameSelection`)
-            let exitGame = document.getElementById(`${props.id}exitGame`)
-            let gameBrowserContainer = this.session.makeGameBrowser(this.name,`${props.id}multiplayerButtons`,
-            ()=>{
-                console.log('Joined game!', this.name); 
-                gameSelection.style.opacity = 0;
-                gameSelection.style.pointerEvents = 'none'
-            },
-            ()=>{
-                console.log('Left game!', this.name)
-                gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
-            })
-            let gameSearch = document.getElementById(`${gameBrowserContainer.id}search`)
-            gameSearch.classList.add('nexus-button')
-            let gameBrowser = document.getElementById(`${gameBrowserContainer.id}browser`)
-
-            // Set Up Screen Two (Login)
-            document.getElementById(`${props.id}login-button`).onclick = () => {
-                let form = document.getElementById(`${props.id}login-form`)
-                let formDict = {}
-                let formData = new FormData(form);
-                for (var pair of formData.entries()) {
-                    formDict[pair[0]] = pair[1];
-                } 
-                this.session.setLoginInfo(formDict.username)
-                this.session.login(true)
-                loginScreen.style.opacity = 0;
-                loginScreen.style.pointerEvents = 'none'
-            }
-
-            exitGame.onclick = () => {
-                gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
-            }
-
-
-            // Set Up Screen Three (Game Sessions)
-
-            createGame.onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']]);
-            }
-            createGame.style.display = 'none'
-    }
+            this.session.insertMultiplayerIntro(this)
+        }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             HTMLtemplate,       //Define the html template string or function with properties
@@ -204,8 +120,6 @@ export class NexusApplet {
 const raycaster = new THREE.Raycaster()
 
 // Loading Manager
-const loadingBarElement = document.querySelector('.nexus-loading-bar')
-
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
@@ -213,12 +127,6 @@ const loadingManager = new THREE.LoadingManager(
         {
         if (this.three.canvas != null){
             this.resizeNexus()
-            this.three.canvas.style.display = 'block'
-            loadingBarElement.classList.add('ended')
-            loadingBarElement.style.transform = ''
-            let hero = this.appletContainer.querySelector(".nexus-gameHero")
-            hero.style.opacity = 0;
-            hero.style.pointerEvents = 'none'
             this.three.getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
@@ -232,11 +140,6 @@ const loadingManager = new THREE.LoadingManager(
         }
     })
     },
-
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        loadingBarElement.style.transform = `scaleX(${itemsLoaded/itemsTotal})`
-    }
 )
 
 // Textures
@@ -281,7 +184,6 @@ this.three.renderer = new THREE.WebGLRenderer({
 this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
 this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 this.appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
-this.three.canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
 
@@ -380,7 +282,7 @@ this.appletContainer.addEventListener('click', () => {
 })
 
 // Set Default Users
-this.MAXPOINTS = 25
+this.MAXPOINTS = 10
 this.points = new Map()
 this.pointInfo.diameter = 1e-2/4;
 
@@ -604,6 +506,21 @@ this.three.getGeolocation = () => {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) this.resizeNexus()
+        let gameHero = document.getElementById(this.props.id+'gameHero')
+        if (gameHero){
+            gameHero.width = '100%'
+            gameHero.height = '100%'
+        }
+        let createGame = document.getElementById(this.props.id+'createGame')
+        if (createGame){
+            createGame.width = '100%'
+            createGame.height = '100%'
+        }
+        let loginScreen = document.getElementById(`${this.props.id}login-screen`)
+        if (loginScreen){
+            loginScreen.width = '100%'
+            loginScreen.height = '100%'
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

@@ -13,13 +13,16 @@
     "recurseDepth": 10,                         // Only go 10 levels deep.
     "opts": {
         "destination": "./docs/",               // Where I want my docs to be generated.
-        "recurse": true                         // Same as using -r or --recurse
+        "recurse": true,
+        "tutorials": "./gettingstarted",
+        "template": "./templates/brainstorm"
     },
     "templates": {
         "default": {
             "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
             "staticFiles": {
-                "paths": ["./screenshots/","./public/","./templates/brainstorm/static/"]
+                "paths": ["./templates/brainstorm/static/"],
+                "include": ["./public/"]
             }
         }
     }

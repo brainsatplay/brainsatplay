@@ -29,6 +29,7 @@ export class BoidsApplet {
         this.loop = null;
 
         this.hidden = true;
+        this.score=0;
 
     }
 
@@ -44,6 +45,7 @@ export class BoidsApplet {
             return `
             <div id=`+props.id+`>
                 <div id='`+props.id+`menu' height='100%' width='100%' style='position:absolute; z-index:3; '>
+                    <div>Score: <span id='`+props.id+`score'>0</span></div>
                     <button id='`+props.id+`showhide' style='opacity:0.2; z-index:2;'>Show UI</button><br>
                     <table id='`+props.id+`table' style='z-index:99; display:none;'>
                         <tr><td>Cohesion:</td><td><input type='range' id='`+props.id+`cohesion' min="0" max="0.1" value="0.0001" step="0.0001"></td><td><button id='`+props.id+`cohesionreset'>Reset</button></td></tr>
@@ -197,6 +199,8 @@ export class BoidsApplet {
                     let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
                     let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.class.onData(score);
+                    this.score += score;
+                    document.getElementById(this.props.id+'score').innerHTML = this.score.toFixed(3);
                 }
             }
             setTimeout(() => { this.loop = requestAnimationFrame(this.updateLoop); },16);

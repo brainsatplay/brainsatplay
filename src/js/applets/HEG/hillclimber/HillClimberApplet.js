@@ -27,7 +27,9 @@ export class HillClimberApplet {
         };
 
         this.mode = 1;
-
+        this.lastValue = 0;
+        this.feedback = 'ratio'; //hrv
+        
         this.c=false;
         this.ctx=false;
         this.gradient=null;
@@ -65,9 +67,11 @@ export class HillClimberApplet {
                     <table> 
                         <tr><td><button id="`+props.id+`hillsRbutton">Reset</button></td></tr> 
                         <tr><td><button id="`+props.id+`hillsModebutton">Mode</button></td></tr> 
+                        <tr><td><button id="`+props.id+`feedback">Ratio</button></td></tr>
                         <tr><td><button id="`+props.id+`hillsAudbutton">Audio</button></td></tr> 
                         <tr><td><input type="number" id="`+props.id+`speed" placeholder="Update (Sec)"></input></td></tr> 
                         <tr><td><button id="`+props.id+`hillsSpeedbutton">Set Speed</button></tr></td> 
+                        <tr><td>Score: <span id='`+props.id+`score'>0</span></tr></td> 
                     </table> 
                 </div> 
                 <button id="`+props.id+`showhide" style='float:right; z-index:4;'>Hide UI</button>'
@@ -94,6 +98,17 @@ export class HillClimberApplet {
             this.gradient.addColorStop(0.00, 'gold');
                     
             document.getElementById(props.id+"hillsAudbutton").style.opacity = 0.3;
+
+            document.getElementById(props.id+"feedback").onclick = () => {
+              if(this.feedback === 'ratio') { 
+                this.feedback = 'hrv'; 
+                document.getElementById(props.id+"feedback").innerHTML = "HRV";
+              }
+              else {
+                this.feedback = 'ratio';
+                document.getElementById(props.id+"feedback").innerHTML = "Ratio";
+              }
+            }
 
             document.getElementById(props.id+"hillsRbutton").onclick = () => {
                 this.hillScore = [...Array(this.hillNum).fill(50)];
@@ -209,11 +224,26 @@ export class HillClimberApplet {
     
     updateLoop = () => {
         if(this.bci.atlas.settings.heg) {
+          if(this.feedback === 'ratio') {
             let ct = this.bci.atlas.data.heg[0].count;
             let avg = 40; if(ct < avg) { avg = ct; }
             let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
             let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
             this.onData(score);
+          }
+          else if (this.feedback === 'hrv') {
+            let hr = this.bci.atlas.data.heg[0].beat_detect.beats;
+            if(hr.length > 4) {
+              let reducer = (a,c) => {return {hrv:a.hrv+c.hrv}};
+              let hrv = hr.slice(hr.length-5).reduce(reducer).hrv * 0.20;
+              let dhrv = hrv - this.lastValue;
+              let score = 0;
+              if(hrv >= 10 && dhrv <= 5) { score = 0.1;} //steady and high hrv
+              else if (hrv < 10 || dhrv > 5) { score = -0.1; }
+              this.onData(score);
+            }
+          }
+          document.getElementById(this.props.id+'score').innerHTML = this.hillScore.toFixed(3);
         }
         this.draw();
         setTimeout(() => {this.animationId = requestAnimationFrame(this.updateLoop);}, this.updateInterval);

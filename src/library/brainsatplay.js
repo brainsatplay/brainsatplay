@@ -3,9 +3,9 @@
  * 
 */
 
-//import * as Workers from './src/Workers.js'
+// import * as Workers from './src/Workers.js'
 
 export {Session} from './src/Session.js'
-//export {Workers}
+// export {Workers}
 
 // export * from './src/analysis/eegmath'

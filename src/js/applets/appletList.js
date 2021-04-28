@@ -2,6 +2,7 @@
 import placeholderImg from '../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
 import hegImage from './../../assets/features/hegbiofeedback.png'
+import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png'
 
 // { folderUrl:'', name:'', categories:[] }
 export const AppletInfo = {
@@ -11,6 +12,7 @@ export const AppletInfo = {
     'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['data']},
     'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['data']},
     'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['data']},
+    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['eeg'],           categories:['data']},
     'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['multiplayer','feedback']},
     'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:['feedback']},
     'Enso': { folderUrl:'./General/threejs/enso',       devices:['eeg','heg'],           categories:['feedback']},
@@ -31,6 +33,7 @@ export const AppletInfo = {
     'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },
     'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['feedback'] },
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
+    'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['eeg'], categories:['feedback'] },
 };
 
 export let dynamicImport = async (url) => {

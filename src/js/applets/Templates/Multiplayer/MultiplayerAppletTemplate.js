@@ -1,5 +1,7 @@
 import * as brainsatplay from './../../../../library/brainsatplay'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
+import p5 from 'p5';
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager
@@ -12,25 +14,217 @@ export class MultiplayerAppletTemplate {
     ) {
     
         //-------Keep these------- 
-        this.name = this.constructor.name
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            //Add whatever else
         };
 
+
+        // Multiplayer State Management
         this.states = {
             dynamic: {},
             static: {}
         }
 
         this.stateIds = []
-        this.dynamicProps = {}
+        this.keysPressed = {
+            up: {
+                pressed: false,
+                lastOn: null
+            }
+        }
+        this.position = {
+            x: 0.25,
+            y: 0.5
+        }
+
+        this.health = {
+            percentage: 1
+        }
+
+        this.fireballs = {
+            array: []
+        }
+
+        this.userInfo = {}
+
+        // Visualization
+
+        this.sketch = null;
+        this.generatorFuncs = [
+            {
+                name: 'Circle',
+                start: (p) => {
+                    const containerElement = document.getElementById(this.props.id);
+
+                    let drawPlayer = (data) => {
+
+                        let diameter = p.width/50 // px
+
+                        let basePos = {};
+                        let arcRotation = 0;
+                        if (data.username === this.session.info.auth.username){
+                            basePos.x = p.width*data.position.x
+                            p.textAlign(p.RIGHT, p.CENTER)
+                        } else {
+                            basePos.x = p.width*(1-data.position.x)
+                            arcRotation = Math.PI
+                            p.textAlign(p.LEFT, p.CENTER)
+                        }
+                        basePos.y = p.height*(1-data.position.y)
+
+                        // Player
+                        p.fill('white')
+                        p.noStroke()
+                        p.ellipse(basePos.x, basePos.y, diameter)
+
+                        // Text
+                        p.fill('white')
+                        p.noStroke()
+                        p.text(data.username, basePos.x - diameter, basePos.y)
+
+                        // Fireballs
+                        p.noStroke()
+                        p.fill('red')
+                        data.fireballs.array.forEach(ball => {
+                            let ballPosX;
+                            if (data.username === this.session.info.auth.username){
+                                ballPosX = basePos.x + (p.width - data.position.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                            } else {
+                                ballPosX = basePos.x - (p.width - data.position.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                                if (Math.sqrt(Math.pow(this.position.x - ballPosX,2) +  Math.pow(this.position.y - ball.y,2))){
+                                    if (this.health.percentage > 0) this.health.percentage -= 0.0001
+                                    else this.health.percentage = 0
+                                }
+                            }
+                            p.ellipse(ballPosX, p.height*(1-ball.y), diameter/5)
+                        })
+
+                        // Shield
+                        let c = p.color(0,155,255)
+                        c.setAlpha((255*10*data.defense))
+                        p.stroke(c)
+                        p.noFill()
+                        p.strokeWeight(Math.max(1,diameter/10));
+                        p.arc(basePos.x, basePos.y, 2*diameter, 2*diameter, -Math.PI/4 + arcRotation, Math.PI/4 + arcRotation);
+
+                        // Health
+                        p.noFill()
+                        p.stroke('white')
+                        p.strokeWeight(1);
+                        p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter, diameter/5)
+                        p.fill(255*(1-data.health.percentage),200*data.health.percentage,255*data.health.percentage)
+                        p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter*data.health.percentage, diameter/5)
+                    }
+
+                    let getLocalData = () => {
+                        return {
+                            position: {
+                                x: this.position.x,
+                                y: this.position.y
+                            },
+                            username: this.session.info.auth.username,
+                            defense:  Math.max(0,this.getCoherence('beta')),
+                            fireballs: this.fireballs,
+                            health: this.health
+                        }
+                    }
+
+                    p.setup = () => {
+                        p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
+                        p.background(0);
+                    };
+                
+                    p.draw = () => {
+                        p.background(0);
+                        p.textAlign(p.CENTER)
+
+                        // Death Text
+                        if (this.health.percentage === 0){
+                            p.textAlign(p.CENTER)
+                            p.noStroke()
+                            p.fill('white')
+                            p.text('Ope. You Died.', p.width/2, p.height/2)
+                            this.fireballs.array = []
+                        } else {
+
+                        // Jump
+                        if (this.keysPressed.up.lastOn != null){
+                            let timeElapsed = Date.now() - this.keysPressed.up.lastOn
+                            if (timeElapsed < 1000){
+                                this.position.y = 0.5 + (0.1*Math.sin(Math.PI * timeElapsed/ 1000))
+                            } else {
+                                if (this.keysPressed.up.pressed == true) this.keysPressed.up.lastOn = Date.now()
+                                this.position.y = 0.5;
+                            }
+                        }
+
+                        // Spawn Fireballs
+                        let alphaChangePositive = Math.max(0,this.getCoherence('alpha1'))
+
+                        if (alphaChangePositive > 0.2){
+                            this.fireballs.array.push({velocity: 0.0005, spawnTime: Date.now(), y: this.position.y})
+                        }
+
+                        this.fireballs.array.forEach((b,i) => {
+                            let pos = b.velocity * (Date.now() - b.spawnTime)
+                            if (pos > 1){
+                                this.fireballs.array.splice(i,1)
+                            }
+                        })
+                        
+
+
+                        // Draw
+                        let streamInfo = this.session.state.data?.commandResult
+                        if (streamInfo.userData != null && streamInfo.userData.length !== 0 && Array.isArray(streamInfo.userData)){
+
+                            // Filter non-existent users
+                            let presentUsers = streamInfo.usernames
+                            streamInfo.spectators.forEach((s) =>{
+                                presentUsers.filter(e => e !== s);
+                            })
+                            Object.keys(this.userInfo).forEach(user => {
+                                if (!presentUsers.includes(user)){
+                                    delete presentUsers[user]
+                                }
+                            })
+                            
+                            // Draw Data when Connected to Server
+                                streamInfo.userData.forEach((userData)=> {
+                                    if (userData != null){
+                                        let username = userData.username
+                                        if (username != this.session.info.auth.username){
+                                            if (this.userInfo[username] == null) this.userInfo[username] = userData;
+                                            presentUsers.push(username)
+                                            if (userData.position != null) {this.userInfo[username].position = userData.position;}
+                                            if (userData.fireballs != null) this.userInfo[username].fireballs = userData.fireballs
+                                            if (userData.defense != null) this.userInfo[username].defense = userData.defense
+                                            if (userData.keysPressed != null) this.userInfo[username].keysPressed = userData.keysPressed
+                                            drawPlayer(this.userInfo[username])
+                                        } else {
+                                            drawPlayer(getLocalData())
+                                        }
+                                    }
+                                })
+                            } else {
+                                // Draw Data when Local
+                                drawPlayer(getLocalData())
+                            }
+                         }
+                        };
+                    },
+                stop: () => {
+
+                }
+            },
+        ]
     }
 
     //---------------------------------
@@ -42,38 +236,48 @@ export class MultiplayerAppletTemplate {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
+
+            this.buttonStyle = `
+            box-sizing: border-box; 
+            min-height: 50px;
+            flex-grow: 1;
+            width: 200px;
+            position: relative;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 80%;
+            background: transparent;
+            color: white;
+            border: 1px solid rgb(200, 200, 200);
+            text-align: left;
+            transition: 0.5s;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+        `
+
+
             return `
-            <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <button id='${props.id}createGame'>Make Game session</button>
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; display: flex; align-items: center; justify-content: center;">
-            <div id='${props.id}userList' style='pointer-events: auto; width: 50%; height: 50%; padding: 50px; border: 1px solid gray; justify-items: center; align-items: center; overflow-y: scroll;'>
-                <div id='${props.id}streamInfo' style='padding: 5px;'></div>
-                <h2>Players</h2>
-                <hr>
-                <div id='${props.id}userList-players'>
+                <div id='${props.id}' style='height:100%; width:100%; position:relative; display: flex;'>
+                    <div id="${props.id}multiplayerButtons" style="position: absolute; top: 0; left: 0;">
+                        <button id='${props.id}createGame'>Make Game session</button>
+                    </div>
 
-                </div>
-                <h2>Spectators</h2>
-                <hr>
-                <div id='${props.id}userList-spectators'>
+                    <div style="position:absolute; bottom: 50%; left: 50%; transform: translate(-50%,50%); text-align: center;">
+                        <p id='${props.id}-neurofeedback-readout'></p>
+                    </div>
 
+                    <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
+                    </div>
                 </div>
-                </div>
-            </div>
-            </div>`;
+            `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.makeGameBrowser(this.name,props.id,()=>{console.log('Joined game!', this.name)},()=>{console.log('Left game!', this.name)})
-
-            document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','hegdata','dynamicProps']
-                // this.session.sendWSCommand(['createGame',this.name,['eeg','heg'],['dynamicProps']
-                // ['eegcoherence_FP1_FP2_all','eegcoherence_AF7_AF8_all','hegdata']
-            ]);
-                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegcoherence_AF7','eegcoherence_AF8']]);
-            }
+            this.session.insertMultiplayerIntro(this)
 
         }
 
@@ -88,134 +292,71 @@ export class MultiplayerAppletTemplate {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
-        let applet = document.getElementById(this.props.id)
-        let list = document.getElementById(`${this.props.id}userList`)
-        let spectatorsList = document.getElementById(`${this.props.id}userList-spectators`)
-        let playersList = document.getElementById(`${this.props.id}userList-players`)
-        
-        let info = document.getElementById(`${this.props.id}streamInfo`)
-
+        this.movementScaling = 0.01
         document.addEventListener('keydown',(k => {
-            this.dynamicProps.spacebar = (k.keyCode === 32 ? 1 : 0)
+            // if (k.keyCode === 32) { 
+            if (k.keyCode === 38 && this.keysPressed.up.pressed != true) { // Up 
+                this.keysPressed.up.pressed = true
+                this.keysPressed.up.lastOn = Date.now()
+            }
+
+            // if (this.position.x < 0.9) this.position.x += this.movementScaling*(k.keyCode === 39 ? 1 : 0) // Right 
+            // else this.position.x = 0.9
+
+            // if (this.position.x > 0.1) this.position.x -= this.movementScaling*(k.keyCode === 37 ? 1 : 0) // Left
+            // else this.position.x = 0.1
+
+            // if (this.position.y < 0.9) this.position.y += this.movementScaling*(k.keyCode === 38 ? 1 : 0) // Up 
+            // else this.position.y = 0.9
+
+            // if (this.position.y > 0.1) this.position.y -= this.movementScaling*(k.keyCode === 40 ? 1 : 0) // Down
+            // else this.position.y = 0.1
+
         }))
 
         document.addEventListener('keyup',(k => {
-            this.dynamicProps.spacebar = (k.keyCode === 32 ? 0 : 0)
+            if (k.keyCode === 38) this.keysPressed.up.pressed = false
         }))
 
         // Set a dynamic property for your location
-        this.dynamicProps.spacebar = 0
-        this.stateIds.push(this.session.streamAppData('dynamicProps', this.dynamicProps,(newData) => {
-            console.log("New data detected! Will be sent!");
-        }))
 
-        // Animate
-        this.animate = () => {
-            let streamInfo = this.session.state.data?.commandResult
-                // Update UI if results are different
-                if ((!streamInfo != null) && Object.keys(streamInfo).length !== 0 && streamInfo.constructor === Object){
+        this.stateIds.push(this.session.streamAppData('position', this.position,(newData) => {}))
 
-                    let usernames = streamInfo.usernames
-                    let spectators = streamInfo.spectators
+        this.stateIds.push(this.session.streamAppData('keysPressed', this.keysPressed,(newData) => {}))
 
-                    console.log(streamInfo)
+        this.stateIds.push(this.session.streamAppData('fireballs', this.fireballs,(newData) => {}))
 
-                    // Update user cards
-                    if ( usernames != null) {
-                        usernames.forEach((name)=> {
-                            if (spectators.includes(name)) {
-                                if (document.getElementById(`${this.props.id}-spectator-${name}`) == null){
-                                    spectatorsList.innerHTML += `
-                                    <div id="${this.props.id}-spectator-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
-                                        <h1>${name}</h1>
-                                        <div style="font-size: 60%;">
-                                        </div>
-                                    </div>`
-                                }
-                            }
-                            else {
-                                if (document.getElementById(`${this.props.id}-player-${name}`) == null){
-                                playersList.innerHTML += `<div id="${this.props.id}-player-${name}" style="width: 100%; min-height: 25px; padding: 5px;">
-                                        <h1>${name}</h1>
-                                        <div style="font-size: 60%;">
-                                        </div>
-                                    </div>`
-                                }
-                            }
-                        })
 
-                    // Update user data
-                    streamInfo.userData.forEach((userData) => {
-                        if (userData != null){
-                        let name = userData.username
-                        let type = (spectators.includes(name) ? 'spectator' : 'player')
-                        let userCard = document.getElementById(`${this.props.id}-${type}-${name}`).querySelector(`div`)
-                        Object.keys(userData).forEach(k1 => {
-                                if (!['username'].includes(k1)){
-                                    let div = userCard.querySelector(`.${k1}`)
-                                    if (div == null ) {
-                                        if (userData[k1].constructor == Object){
-                                            let innerHTML = ``
-                                            innerHTML += `<h3>${k1}</h3>`
-                                            let a = this.unpackObject(userData[k1])
-                                            innerHTML += this.nestHTMLElements(a)
-                                            userCard.innerHTML += `<div class="${k1}">${innerHTML}</div>`
-                                        } else {
-                                            userCard.innerHTML += `<div class="${k1}"><h3>${k1}</h3><p>${userData[k1]}</p></div>`
-                                        }
-                                    }
-                                    else {
-                                        div.innerHTML = ''
-                                        if (userData[k1].constructor == Object){
-                                            let innerHTML = ``
-                                            innerHTML += `<h3>${k1}</h3>`
-                                            let a = this.unpackObject(userData[k1])
-                                            innerHTML += this.nestHTMLElements(a)
-                                            div.innerHTML += innerHTML
-                                        } else {
-                                            div.innerHTML += `<h3>${k1}</h3><p>${userData[k1]}</p>`
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                    })
-                }
+        this.stateIds.push(this.session.streamAppData('health', this.health,(newData) => {}))
 
-                let appInfo = streamInfo.gameInfo
-                if (appInfo != null && streamInfo.msg === "getGameInfoResult"){
 
-                    info.innerHTML += `
-                    <h3 style="font-size: 80%;">${appInfo.id}</h3>
-                    `
 
-                    Object.keys(appInfo).forEach((key) => {
-                        if (!['usernames','appname','spectators','updatedUsers','newUsers', 'lastTransmit','id'].includes(key)){
-                            let val = appInfo[key]
-                                let el = document.getElementById(`${this.props.id}-appInfo-${key}`)
-                                if (el == null ) {
-                                    info.innerHTML += `<div id="${this.props.id}-appInfo-${key}" style=" font-size: 60%; width: 100%; padding: 5px;"></div>`
-                                    el = document.getElementById(`${this.props.id}-appInfo-${key}`)
-                                }
-                                el.innerHTML = `<h3>${key}</h3>`
-
-                                if (Array.isArray(val)){
-                                    val.forEach(v => {
-                                                    el.innerHTML += `<p>${v}</p>`
-                                    })
-                                } else {
-                                    el.innerHTML += `<p>${val}</p>`
-                                }
-                                this.states.static[key] = val
-                        }
-                    })
+        this.getCoherence = (band) => {
+            let score = null;
+            if(this.session.atlas.settings.coherence) {
+                let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
+                if(coherenceBuffer != null && coherenceBuffer.length > 0) {
+                    let samplesToSmooth = Math.min(20,coherenceBuffer.length);
+                    let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
+                    let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
+                    score = slice[slice.length-1] - mean
                 }
             }
-
-            setTimeout(() => this.animation = window.requestAnimationFrame(this.animate), 1000/60)
+            return score;
         }
 
-        this.animate()
+        // Set Up Combat Variables
+        this.session.addStreamFunc(
+            'defense', 
+            () => {
+                return Math.max(0,this.getCoherence('beta'));
+            }
+        )
+
+        // Animate    
+        const containerElement = document.getElementById(this.props.id);
+        this.generatorFunction = this.generatorFuncs[0]
+        this.sketch = new p5(this.generatorFunction.start, containerElement) // Or basic animation loop
     
     }
 
@@ -224,16 +365,15 @@ export class MultiplayerAppletTemplate {
         this.stateIds.forEach(id => {
             this.session.state.unsubscribeAll(id);
         })
+        this.sketch.remove()
         this.AppletHTML.deleteNode();
-        window.cancelAnimationFrame(this.animation)
-        //Be sure to unsubscribe from state if using it and remove any extra event listeners
+        // window.cancelAnimationFrame(this.animation)
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
+        let containerElement = document.getElementById(this.props.id)
+        this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
