@@ -277,12 +277,7 @@ export class MultiplayerAppletTemplate {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.makeGameBrowser(this.info.name.replace(' ',''),`${props.id}multiplayerButtons`,()=>{console.log('Joined game!', this.info.name)},()=>{console.log('Left game!', this.info.name)})
-
-            document.getElementById(props.id+'createGame').onclick = () => {
-                this.session.sendWSCommand(['createGame',this.info.name.replace(' ',''),['eeg'],['defense', 'keysPressed','position', 'fireballs', 'health']
-            ]);
-            }
+            this.session.insertMultiplayerIntro(this)
 
         }
 

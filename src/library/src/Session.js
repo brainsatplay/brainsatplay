@@ -36,15 +36,20 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
+// Managers
 import {StateManager} from './ui/StateManager'
 import {DataAtlas} from './DataAtlas'
 
+// Device Plugins
 import { eeg32Plugin } from './devices/freeeeg32/freeeeg32Plugin';
 import { musePlugin } from './devices/musePlugin';
 import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
+
+// Default Styling
+import './ui/styles/multiplayerIntro.css'
 
 
 export class Session {
@@ -848,6 +853,189 @@ export class Session {
 			});
 		}
 	}
+
+
+	insertMultiplayerIntro = (applet) => {
+
+			document.getElementById(`${applet.props.id}`).innerHTML += `
+			<div id='${applet.props.id}gameHero' class="brainsatplay-multiplayerintro-container" style="z-index: 5"><div>
+			<h1>${applet.info.name}</h1>
+			<p>${applet.info.subtitle}</p>
+			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
+			</div>
+			</div>
+
+			<div id='${applet.props.id}login-screen' class="brainsatplay-multiplayerintro-container" style="z-index: 4"><div>
+				<h2>Choose your Username</h2>
+				<div id="${applet.props.id}login-container" class="form-container">
+					<div id="${applet.props.id}login" class="form-context">
+						<p id="${applet.props.id}login-message" class="small"></p>
+						<div class='flex'>
+							<form id="${applet.props.id}login-form" action="">
+								<div class="login-element" style="margin-left: 0px; margin-right: 0px">
+									<input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
+								</div>
+							</form>
+						</div>
+						<div class="login-buttons" style="justify-content: flex-start;">
+							<div id="${applet.props.id}login-button" class="brainsatplay-multiplayerintro-button">Sign In</div>
+						</div>
+					</div>
+				</div>
+			</div></div>
+
+			<div id='${applet.props.id}gameSelection' class="brainsatplay-multiplayerintro-container" style="z-index: 3"><div>
+				<div id='${applet.props.id}multiplayerDiv'">
+				<div style="
+				display: flex;
+				align-items: center;
+				column-gap: 15px;
+				grid-template-columns: repeat(2,1fr)">
+					<h2>Choose a Game</h2>
+					<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game session</button>
+				</div>
+				</div>
+			</div></div>
+			<div id='${applet.props.id}exitGame' class="brainsatplay-multiplayerintro-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Game</div>
+			`
+			
+            // Setup HTML References
+            let loginScreen = document.getElementById(`${applet.props.id}login-screen`)
+            let gameSelection = document.getElementById(`${applet.props.id}gameSelection`)
+            let exitGame = document.getElementById(`${applet.props.id}exitGame`)
+			const hero = document.getElementById(`${applet.props.id}gameHero`)
+			const loadingBarElement = document.querySelector('.brainsatplay-multiplayerintro-loadingbar')
+
+            // Create Game Brower
+            let baseBrowserId = `${applet.props.id}${applet.info.name}`
+            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-multiplayerintro-button">Search</button>`
+            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="overflow-x: scroll; box-sizing: border-box; padding: 10px 0; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 0px 5%;'></div></div>`;
+    
+            let waitForReturnedMsg = (msgs, callback = () => {}) => {
+                if (msgs.includes(this.state.data.commandResult.msg)){
+                    callback(this.state.data.commandResult.msg)
+                } else {
+                    setTimeout(()=> waitForReturnedMsg(msgs,callback), 250)
+                }
+            }
+
+            let onjoined = () => {
+                console.log('Joined game!', applet.info.name); 
+                gameSelection.style.opacity = 0;
+                gameSelection.style.pointerEvents = 'none'
+            }
+            let onleave = () => {
+                console.log('Left game!', applet.info.name)
+                gameSelection.style.opacity = 1;
+                gameSelection.style.pointerEvents = 'auto'
+            }
+
+            let gameSearch = document.getElementById(`${baseBrowserId}search`)
+
+            gameSearch.onclick = () => {
+    
+                this.getGames(applet.info.name, (result) => {
+                    let gridhtml = '';
+                    
+                    result.gameInfo.forEach((g,i) => {
+                        if (g.usernames.length < 10){ // Limit connections to the same game server
+                            gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-multiplayerintro-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
+                        } else {
+                            result.gameInfo.splice(i,1)
+                        }
+                    });
+    
+                    document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
+    
+                    result.gameInfo.forEach((g) => { 
+                        let connectButton = document.getElementById(`${g.id}connect`)
+                        connectButton.onclick = () => {
+                            let spectate = true
+                            if (this.deviceConnected) spectate = false
+                            this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
+                                onjoined(g);
+
+                                exitGame.onclick = () => {
+                                    this.unsubscribeFromGame(g.id,()=>{
+                                        onleave(g);
+                                        exitGame.onclick=null
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Set Up Screen Two (Login)
+            document.getElementById(`${applet.props.id}login-button`).onclick = () => {
+                let form = document.getElementById(`${applet.props.id}login-form`)
+                let formDict = {}
+                let formData = new FormData(form);
+                for (var pair of formData.entries()) {
+                    formDict[pair[0]] = pair[1];
+                } 
+
+                let onsocketopen = () => {
+                    if (this.socket.readyState === 1){
+                        gameSearch.click()
+                        waitForReturnedMsg(['getGamesResult','gameNotFound'], (msg) => {
+                            console.log(msg)
+                            if (msg === 'gameNotFound'){
+                                createGame.click()
+                                waitForReturnedMsg('gameCreated', () => {
+                                    gameSearch.click()
+                                    loginScreen.style.opacity = 0;
+                                    loginScreen.style.pointerEvents = 'none'
+                                })
+                            } else {
+                                loginScreen.style.opacity = 0;
+                                loginScreen.style.pointerEvents = 'none'
+                            }
+                        })
+                    } else {
+                        setTimeout(()=> onsocketopen(), 500)
+                    }
+                }
+
+                this.setLoginInfo(formDict.username)
+                this.login(true).then(() => {
+                    onsocketopen(this.socket)
+                })
+            }
+
+            exitGame.onclick = () => {
+                gameSelection.style.opacity = 1;
+                gameSelection.style.pointerEvents = 'auto'
+            }
+
+            let createGame = document.getElementById(`${applet.props.id}createGame`)
+
+            createGame.onclick = () => {
+                this.sendWSCommand(['createGame',applet.info.name,applet.info.devices,applet.info.streams]);
+
+                waitForReturnedMsg(['gameCreated'],() => {gameSearch.click()})
+            }
+            // createGame.style.display = 'none'
+			gameSearch.style.display = 'none'
+
+			let loaded = 0
+			const loadInc = 5
+			const loadTime = 3000
+			setTimeout(() =>{
+			loadingBarElement.style.transition = `transform ${(loadTime-1000)/1000}s`;
+			loadingBarElement.style.transform = `scaleX(1)`
+			}, 1000)
+			setTimeout(() => {
+				loadingBarElement.classList.add('ended')
+				loadingBarElement.style.transform = ''
+				const hero = document.getElementById(`${applet.props.id}gameHero`)
+				hero.style.opacity = 0;
+				hero.style.pointerEvents = 'none'
+			}, loadTime)
+	}
+
+
 
 	//Browse multiplayer instances for an app
 	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {

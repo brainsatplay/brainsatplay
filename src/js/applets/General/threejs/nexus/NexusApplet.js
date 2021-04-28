@@ -66,173 +66,17 @@ export class NexusApplet {
 
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:100%; width:100%; position: relative; overflow: none;'>
-                <div class="nexus-loading-bar" style="z-index: 6;"></div>
-                <div id='${props.id}gameHero' class="nexus-container" style="z-index: 5"><div>
-                <h1>Nexus</h1>
-                <p>Neurofeedback + Group Meditation</p>
-                </div></div>
-
-                <div id='${props.id}login-screen' class="nexus-container" style="z-index: 4"><div>
-                    <h2>Choose your Username</h2>
-                    <div id="${props.id}login-container" class="form-container">
-                        <div id="${props.id}login" class="form-context">
-                            <p id="${props.id}login-message" class="small"></p>
-                            <div class='flex'>
-                                <form id="${props.id}login-form" action="">
-                                    <div class="login-element" style="margin-left: 0px; margin-right: 0px">
-                                        <input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="login-buttons" style="justify-content: flex-start;">
-                                <div id="${props.id}login-button" class="nexus-button">Sign In</div>
-                            </div>
-                        </div>
-                    </div>
-                </div></div>
-
-                <div id='${props.id}gameSelection' class="nexus-container" style="z-index: 3"><div>
-                    <div id='${props.id}multiplayerDiv'">
-                    <div style="
-                    display: flex;
-                    align-items: center;
-                    column-gap: 15px;
-                    grid-template-columns: repeat(2,1fr)">
-                        <h2>Choose a Game</h2>
-                        <button id='${props.id}createGame' class="nexus-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game session</button>
-                    </div>
-                    </div>
-                </div></div>
-
+            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
                 <div class="nexus-point-container"></div>
                 <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
-                <div id='${props.id}exitGame' class="nexus-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Game</div>
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-
-            // Setup HTML References
-            let loginScreen = document.getElementById(`${props.id}login-screen`)
-            let gameSelection = document.getElementById(`${props.id}gameSelection`)
-            let exitGame = document.getElementById(`${props.id}exitGame`)
-
-            // Create Game Brower
-            let baseBrowserId = `${props.id}${this.info.name}`
-            document.getElementById(`${props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="nexus-button">Search</button>`
-            document.getElementById(`${props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="overflow-x: scroll; box-sizing: border-box; padding: 10px 0; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 0px 5%;'></div></div>`;
-    
-            let waitForReturnedMsg = (msgs, callback = () => {}) => {
-                if (msgs.includes(this.session.state.data.commandResult.msg)){
-                    callback(this.session.state.data.commandResult.msg)
-                } else {
-                    setTimeout(()=> waitForReturnedMsg(msgs,callback), 250)
-                }
-            }
-
-            let onjoined = () => {
-                console.log('Joined game!', this.info.name); 
-                gameSelection.style.opacity = 0;
-                gameSelection.style.pointerEvents = 'none'
-            }
-            let onleave = () => {
-                console.log('Left game!', this.info.name)
-                gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
-            }
-
-            let gameSearch = document.getElementById(`${baseBrowserId}search`)
-
-            gameSearch.onclick = () => {
-    
-                this.session.getGames(this.info.name, (result) => {
-                    let gridhtml = '';
-                    
-                    result.gameInfo.forEach((g,i) => {
-                        if (g.usernames.length < 10){ // Limit connections to the same game server
-                            gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="nexus-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
-                        } else {
-                            result.gameInfo.splice(i,1)
-                        }
-                    });
-    
-                    document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
-    
-                    result.gameInfo.forEach((g) => { 
-                        let connectButton = document.getElementById(`${g.id}connect`)
-                        connectButton.onclick = () => {
-                            let spectate = true
-                            if (this.session.deviceConnected) spectate = false
-                            this.session.subscribeToGame(g.id,spectate,undefined,(subresult) => {
-                                onjoined(g);
-
-                                exitGame.onclick = () => {
-                                    this.session.unsubscribeFromGame(g.id,()=>{
-                                        onleave(g);
-                                        exitGame.onclick=null
-                                    });
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-
-            // Set Up Screen Two (Login)
-            document.getElementById(`${props.id}login-button`).onclick = () => {
-                let form = document.getElementById(`${props.id}login-form`)
-                let formDict = {}
-                let formData = new FormData(form);
-                for (var pair of formData.entries()) {
-                    formDict[pair[0]] = pair[1];
-                } 
-
-                let onsocketopen = () => {
-                    if (this.session.socket.readyState === 1){
-                        gameSearch.click()
-                        waitForReturnedMsg(['getGamesResult','gameNotFound'], (msg) => {
-                            console.log(msg)
-                            if (msg === 'gameNotFound'){
-                                createGame.click()
-                                waitForReturnedMsg('gameCreated', () => {
-                                    gameSearch.click()
-                                    loginScreen.style.opacity = 0;
-                                    loginScreen.style.pointerEvents = 'none'
-                                })
-                            } else {
-                                loginScreen.style.opacity = 0;
-                                loginScreen.style.pointerEvents = 'none'
-                            }
-                        })
-                    } else {
-                        setTimeout(()=> onsocketopen(), 500)
-                    }
-                }
-
-                this.session.setLoginInfo(formDict.username)
-                this.session.login(true).then(() => {
-                    onsocketopen(this.session.socket)
-                })
-            }
-
-            exitGame.onclick = () => {
-                gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
-            }
-
-            let createGame = document.getElementById(`${props.id}createGame`)
-
-            createGame.onclick = () => {
-                this.session.sendWSCommand(['createGame',this.info.name,['eeg'],['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']]);
-
-                waitForReturnedMsg(['gameCreated'],() => {gameSearch.click()})
-            }
-            // createGame.style.display = 'none'
-            gameSearch.style.display = 'none'
-    }
+            this.session.insertMultiplayerIntro(this)
+        }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             HTMLtemplate,       //Define the html template string or function with properties
@@ -276,8 +120,6 @@ export class NexusApplet {
 const raycaster = new THREE.Raycaster()
 
 // Loading Manager
-const loadingBarElement = document.querySelector('.nexus-loading-bar')
-
 const loadingManager = new THREE.LoadingManager(
     // Loaded
     () => {
@@ -285,12 +127,6 @@ const loadingManager = new THREE.LoadingManager(
         {
         if (this.three.canvas != null){
             this.resizeNexus()
-            this.three.canvas.style.display = 'block'
-            loadingBarElement.classList.add('ended')
-            loadingBarElement.style.transform = ''
-            let hero = document.getElementById(`${this.props.id}gameHero`)
-            hero.style.opacity = 0;
-            hero.style.pointerEvents = 'none'
             this.three.getGeolocation()
             gsap.delayedCall(0.5,() => 
             {
@@ -304,11 +140,6 @@ const loadingManager = new THREE.LoadingManager(
         }
     })
     },
-
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        loadingBarElement.style.transform = `scaleX(${itemsLoaded/itemsTotal})`
-    }
 )
 
 // Textures
@@ -353,7 +184,6 @@ this.three.renderer = new THREE.WebGLRenderer({
 this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
 this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 this.appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
-this.three.canvas.style.display = 'none'
 // GUI
 // const gui = new dat.GUI({width: 400});
 
