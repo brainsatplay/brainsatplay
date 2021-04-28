@@ -747,8 +747,7 @@ export class BrainMap2D {
 
 
 export class mirrorBarChart {
-	constructor(divId = null, leftcanvasId = null, rightcanvasId = null, normalizeFactor = 1) {
-		this.div = document.getElementById(divId);
+	constructor(leftcanvasId = null, rightcanvasId = null, normalizeFactor = 1) {
 		this.leftcanvasId - leftcanvasId;
 		this.rightcanvasId = rightcanvasId;
 		this.leftbars = new eegBarChart(leftcanvasId, normalizeFactor);
@@ -791,7 +790,8 @@ export class eegBarChart {
 		this.anim = null;
 
 		//combine and push the latest slices to this then call eegbarchart.draw() from the class instance
-		this.slices = {scp: [0], delta: [0], theta: [0], alpha: [0], beta: [0], lowgamma: [0], highgamma: [0]};;
+		this.slices = {scp: [0], delta: [0], theta: [0], alpha1: [0], alpha2:[0], beta: [0], lowgamma: [0], highgamma: [0]};
+		this.fftArr = [];
 
 		this.allCapsReachBottom = false;
 		this.meterWidth = 14; //relative width of the meters in the spectrum
@@ -819,11 +819,16 @@ export class eegBarChart {
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
+	setData(slices,fft) {
+		this.slices = slices;
+		this.fftArr = fft;
+	}
+
 	draw = () => {
 		var cwidth = this.canvas.width;
 		var cheight = this.canvas.height;
 
-		var slicearr = [...this.slices.scp,...this.slices.delta,...this.slices.theta,...this.slices.alpha,...this.slices.beta,...this.slices.lowgamma];
+		var slicearr = this.fftArr;
 		var nbins = slicearr.length;
 
 		var wscale = cwidth / this.relativeWidth;
