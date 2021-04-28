@@ -68,7 +68,7 @@ export class Session {
 		password='',
 		appname='',
 		access='public',
-		remoteHostURL= 'https://brainsatplay.azurewebsites.net/',
+		remoteHostURL= 'http://server.brainsatplay.com',
 		localHostURL='http://localhost:8000'
 	) {
 		this.devices = [];
@@ -950,8 +950,10 @@ export class Session {
                     result.gameInfo.forEach((g) => { 
                         let connectButton = document.getElementById(`${g.id}connect`)
                         connectButton.onclick = () => {
-                            let spectate = true
-                            if (this.deviceConnected) spectate = false
+							let spectate = true
+							
+							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming NOT spectating')}
+							else console.log('spectating')
                             this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
                                 onjoined(g);
 
