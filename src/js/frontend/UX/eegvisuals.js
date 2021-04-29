@@ -747,11 +747,11 @@ export class BrainMap2D {
 
 
 export class mirrorBarChart {
-	constructor(leftcanvasId = null, rightcanvasId = null, normalizeFactor = 1) {
+	constructor(leftcanvasId = null, rightcanvasId = null) {
 		this.leftcanvasId - leftcanvasId;
 		this.rightcanvasId = rightcanvasId;
-		this.leftbars = new eegBarChart(leftcanvasId, normalizeFactor);
-		this.rightbars = new eegBarChart(rightcanvasId, normalizeFactor);
+		this.leftbars = new eegBarChart(leftcanvasId);
+		this.rightbars = new eegBarChart(rightcanvasId);
 		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
 
 		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
@@ -769,13 +769,6 @@ export class mirrorBarChart {
 		this.rightbars.init();
 	}
 
-	updateCharts(left,right) { //push latest slices from desired map data
-		this.leftbars.slices = left;
-		this.rightbars.slices = right;
-
-		this.leftbars.draw();
-		this.rightbars.draw();
-	}
 
 	draw = () => {
 		this.leftbars.draw();
@@ -788,7 +781,7 @@ export class mirrorBarChart {
 
 //Makes a color coded bar chart to apply frequency bins to for a classic visualization. Should upgrade this with smooth transitions in an animation loop
 export class eegBarChart {
-	constructor(canvasId = null, normalizeFactor = 1) {
+	constructor(canvasId = null) {
 		this.canvasId = canvasId;
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext("2d");
@@ -802,9 +795,8 @@ export class eegBarChart {
 		this.meterWidth = 14; //relative width of the meters in the spectrum
 		this.meterGap = 2; //relative gap between meters
 		this.capHeight = 2; //relative cap height
+		this.meterNum = 256;
 		this.capStyle = '#fff';
-		this.capYPositionArray = []; //store the vertical position of the caps for the previous frame
-		this.capYnormalizeFactor = normalizeFactor;
 
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
 
@@ -834,46 +826,42 @@ export class eegBarChart {
 		var cheight = this.canvas.height;
 
 		var slicearr = this.fftArr;
-		var nbins = slicearr.length;
+		var nbins = this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length;
+
+		this.meterNum = nbins;
+		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
 
 		var wscale = cwidth / this.relativeWidth;
 		var xoffset = (this.meterWidth+this.meterGap)*wscale;
 
-		this.canvas.context.clearRect(0, 0, cwidth, cheight);
+		let norm = (1/Math.max(...slicearr));
+
+		this.ctx.clearRect(0, 0, cwidth, cheight);
 		for (var i = 0; i < nbins; i++) {
-			var value = slicearr[i]*this.capYnormalizeFactor*cheight; // normalized y values
+			var value = slicearr[i]*norm*cheight;
+			if(value > cheight) value = cheight;
 			if(value < 0){ value = 0;}
-			if (capYPositionArray.length < Math.round(nbins)) {
-				capYPositionArray.push(value);
-			}
-			this.ctx.fillStyle = this.capStyle;
-			//draw the cap, with transition effect
-			if (value < capYPositionArray[i]) {
-				this.ctx.fillRect(i * xoffset, (cheight - (--capYPositionArray[i])), this.meterWidth*wscale, this.capHeight);
-			} else {
-				this.ctx.fillRect(i * xoffset, (cheight - value), this.meterWidth*wscale, this.capHeight);
-				capYPositionArray[i] = value;
-			}
 
 			this.ctx.fillStyle = "white";
 			if(i < this.slices.scp.length){
 				this.ctx.fillStyle = "purple";
-			} else if(i < this.slices.scp.length+this.slices.delta.length){
-				this.ctx.fillstyle = "violet";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length){
-				this.ctx.fillstyle = "blue";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length){
-				this.ctx.fillstyle = "green";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length)){
+				this.ctx.fillStyle = "violet";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length)){
+				this.ctx.fillStyle = "blue";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length)){
+				this.ctx.fillStyle = "green";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length){
-				this.ctx.fillstyle = "chartreuse";
+				this.ctx.fillStyle = "chartreuse";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length){
-				this.ctx.fillstyle = "gold";
+				this.ctx.fillStyle = "gold";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length){
-				this.ctx.fillstyle = "red";
+				this.ctx.fillStyle = "red";
 			}
 
 			this.ctx.fillRect(i * xoffset /*meterWidth+gap*/ , (cheight - value + this.capHeight), this.meterWidth*wscale, cheight);
 		}
+		
 	}
 
 	animate = () => {
