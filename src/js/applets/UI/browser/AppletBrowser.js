@@ -36,7 +36,7 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:100%; width:100%;
             overflow-y: scroll;
-            padding: 50px;
+            margin: 25px 0px;
             ' 
             >
             </div>
@@ -66,14 +66,16 @@ export class AppletBrowser {
 
 
         let appletStyle = `
+            min-width: 100px;
             width: 200px; 
             cursor: pointer;
             transition: 0.5s;
             border-radius: 5px;
-            margin: 25px;
             position: relative;  
-            background: rgb(25,25,25);
             font-size: 80%;
+            flex-grow: 1;
+            overflow: hidden;
+            background: black;
             `
 
         let presetSelections = []
@@ -81,8 +83,8 @@ export class AppletBrowser {
 
         presets.forEach(preset => {
                 presetHTML += `
-                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
-                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1;">
+                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle}; background: rgb(25,25,25); margin: 10px;">
+                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
                     <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
@@ -137,11 +139,18 @@ export class AppletBrowser {
                     }
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
-                        <img src="${settings.image}" style="width: 100%;">
-                        <div style="padding: 0px 25px 10px 25px; position: relative;">
-                            <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                            <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 1 / 1; opacity: 0.5; transition: 0.5s; object-fit: cover;"
+                        onMouseOver="this.style.opacity = '0.7';"
+                        onMouseOut="this.style.opacity = '0.5';"
+
+                        >
+                        <div style="display: flex; align-items: center; padding: 10%; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; transition: 0.5s; pointer-events: none;"
+                        >
+                            <div>
+                                <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                                <p style="font-size: 80%;margin-top: 5px;">${type}</p>
+                                <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                            </div>
                         </div>
                     </div>`
                     generalHTML += html
@@ -151,7 +160,7 @@ export class AppletBrowser {
             })
 
             container.innerHTML += `
-            <h1>Feedback Presets</h1>
+            <h1 style="padding: 25px 25px 0px 25px;">Feedback Presets</h1>
             <hr>
             <div style='
             display: flex;
@@ -161,7 +170,7 @@ export class AppletBrowser {
                 ${presetHTML}
             </div>
             <div style="display: grid; grid-template-columns: repeat(2,1fr);">
-                <h1>Applets</h1>
+                <h1 style="padding: 25px 25px 0px 25px;">Applets</h1>
                 <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
                     <option value="all" selected>All</option>
                 </select>
