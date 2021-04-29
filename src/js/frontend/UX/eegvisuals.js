@@ -779,7 +779,7 @@ export class mirrorBarChart {
 
 	draw = () => {
 		this.leftbars.draw();
-		this.rightbards.draw();
+		this.rightbars.draw();
 	}
 
 }
