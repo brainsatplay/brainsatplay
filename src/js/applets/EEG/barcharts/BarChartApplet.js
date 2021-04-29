@@ -127,7 +127,7 @@ export class BarChartApplet {
         if(this.looping) {
             if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
                 let ch1 = document.getElementById(this.props.id+'channel').value;
-                let dat = this.bci.atlas.getLatestFFTData(ch1);
+                let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
                 if(dat.fftCount > 0) {
                     if(this.mode === 'single') {
                         this.chart.slices = dat.slice;
