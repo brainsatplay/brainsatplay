@@ -1,4 +1,4 @@
-# Creating a Brains@Play Applet
+# Creating an Applet
 
 This tutorial will get you started building your first modular applet with Brains@Play! 
 
@@ -9,7 +9,7 @@ While the following steps will show you how to set up your applet for deployment
 <h2>Applet Setup</h2>
 </div>
 
-### 1. Copy the template
+### Copy the Template
 First, copy the Applet Template folder located at `src/js/applets/Templates`.
 
 Place this template folder under `src/js/applets/General`. In the future, you may place your applet anywhere under the `src/js/applets` folder. 
@@ -21,8 +21,8 @@ MyApplet
     MyApplet.js
 ```
 
-### 2. Edit app metadata in `settings.js`
-Give your app a name by editing the settings object in the `settings.js` file. This information edits what appears on the thumbnail.
+### Edit Applet Metadata
+Give your applet a name by editing the settings object in the `settings.js` file. This information edits what appears on the thumbnail.
 
 To add an image, place an image under `/src/assets/features` and edit the top import line at the top of the file to point to the correct location:
 
@@ -38,8 +38,8 @@ export const settings = {
 }
 ```
 
-### 3. Add your app to the AppletManager
-Now we need to add the app to the Applet Manager. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
+### Add to Applet Manager
+Now we need to add the app to our Applet Manager. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
 
 ```js
 export const AppletInfo = {
@@ -64,10 +64,10 @@ export const AppletInfo = {
 
 This is our quick lookup table for dynamically loading scripts.
 
-### 4. Test your app configuration
-Run your development environment using `npm start`. If everything is shipshape, your app will appear in the Applet Browser! 
+### Test Applet Configuration
+Run your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
 
-If you enter your applet from the Applet Browser, a URL fragment (e.g. https://localhost/#My%20Applet will appear in the address bar to ensure that you return to your applet when refreshing the page.
+If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
 <div class="brainsatplay-tutorial-subheader">
 <p>Part Two</p>
@@ -76,19 +76,19 @@ If you enter your applet from the Applet Browser, a URL fragment (e.g. https://l
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
 
-### 0. constructor()
+### constructor()
 On initialization, applets are passed a Brains@Play Session that contains all information about device streams and references **Data Atlases** where all current user data is stored.
 
-### 1. init()
+### init()
 The `init()` function contains an HMTLtemplate string, a `setupHTML()` function, and any other logic and functions to handle your rendering and logic in your applet. 
 
-### 2. deinit()
+### deinit()
 The `deinit()` function should destroy animation loops, delete event listeners, and remove extraneous HTML elements from the document. It is called whenever the applet is removed from our **Applet Manager** in the Brains@Play Platform.
 
-### 3. responsive()
+### responsive()
 The `responsive()` function is called when your applet is resized *and* when new devices are connected. It should handle any window resizing logic—as well as spawning HTML elements (e.g. selectors, buttons, etc.) depending on device connections.
 
-### 4. configure()
+### configure()
 The `configure()` function is called on initialization if you have multiple specifications available for your applet. 
 
-In our **Applet Manager**, URL fragments (e.g. `#{"name":"Applet Template","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
+In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"Applet Template","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
