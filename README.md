@@ -16,7 +16,24 @@ Our software framework manages the signal acquisition, data processing, and netw
 **Status:** Alpha (give it a few weeks...)
 
 ## Getting Started
-### Tutorials
+
+### Starting Local Development
+1. Install [NPM](https://www.npmjs.com/) and [Node](https://nodejs.org/en/).
+2. If you have npm installed already, make sure to update it to the latest version using:
+```bash
+npm update -g npm
+```
+2. In the project folder, install the required Node modules by typing this into your command line:
+```bash
+npm install
+``` 
+3. In your command line:
+```bash
+npm start
+```
+4. Click on the link in the terminal to navigate to http://localhost:1234 to view the latest version of Brains@Play Platform. Learn more about how to contribute your own applets [here](@tutorial Applets).
+
+### In-Depth Tutorials
 - [Creating an Applet]{@tutorial Applets}
 - [Connecting to the Brainstorm]{@tutorial Brainstorm}
 - [Adding a Device]{@tutorial Devices}
@@ -42,29 +59,12 @@ import * as brainsatplay from 'brainsatplay'
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay"></script>
 ``` -->
 
-### Local Development
-1. Install [NPM](https://www.npmjs.com/) and [Node](https://nodejs.org/en/).
-2. If you have npm installed already, make sure to update it to the latest version using:
-```bash
-npm update -g npm
-```
-2. In the project folder, install the required Node modules by typing this into your command line:
-```bash
-npm install
-``` 
-3. In your command line:
-```bash
-npm start
-```
-4. Click on the link in the terminal to navigate to http://localhost:1234 to view the latest version of Brains@Play Platform. Learn more about how to contribute your own applets [here](@tutorial Applets)
-
-
 ##  Examples
 ### [Brains@Play Platform](https://app.brainsatplay.com) 
-The alpha version of Brains@Play's application manager.
+The alpha version of Brains@Play's content management system.
 
 ## Support
-If you have any questions (or would just like to chat about this project), reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
+If you have any questions (or would just like to chat about this project), feel free to reach out to Garrett Flynn and Josh Brewster via [contact@brainsatplay.com](contact@brainsatplay.com).
 
 
 ## Appendix A: The Brains@Play Ethos
