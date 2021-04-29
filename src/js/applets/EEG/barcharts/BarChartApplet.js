@@ -28,7 +28,7 @@ export class BarChartApplet {
         //etc..
         this.chart = null;
         this.mode = 'single'; //single, mirror
-        this.looping = true;
+        this.looping = false;
     }
 
     //---------------------------------
@@ -94,6 +94,7 @@ export class BarChartApplet {
         this.chart = new eegBarChart(this.props.id+'canvas',200);
         this.chart.init();
 
+        this.looping = true;
         this.updateLoop();
     }
 
