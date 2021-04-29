@@ -777,6 +777,11 @@ export class mirrorBarChart {
 		this.rightbars.draw();
 	}
 
+	draw = () => {
+		this.leftbars.draw();
+		this.rightbars.draw();
+	}
+
 }
 
 
