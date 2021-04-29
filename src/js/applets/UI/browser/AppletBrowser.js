@@ -76,7 +76,7 @@ export class AppletBrowser {
             flex-grow: 1;
             overflow: hidden;
             background: black;
-            background: rgb(10,10,10);
+            background: rgb(15,15,15);
             margin: 10px;
             `
 
