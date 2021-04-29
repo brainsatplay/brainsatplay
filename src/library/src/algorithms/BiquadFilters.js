@@ -196,37 +196,37 @@ export const makeBandpassFilter = (freqStart,freqEnd,sps,resonance=Math.pow(10,M
 //Macro for running multiple filter passes over a signal. 
 export class BiquadChannelFilterer {
   constructor(channel="A0",sps=512, filtering=true, scalingFactor=1) {
-      this.channel=channel; this.idx = 0; this.sps = sps;
-      this.filtering=filtering;
-      this.bplower = 3; this.bpupper = 45;
-  this.scalingFactor = scalingFactor;
+    this.channel=channel; this.idx = 0; this.sps = sps;
+    this.filtering=filtering;
+    this.bplower = 3; this.bpupper = 45;
+    this.scalingFactor = scalingFactor;
 
-  this.useSMA4 = false; this.last4=[];
-  this.useNotch50 = true; this.useNotch60 = true;
-  this.useLp1 = false; this.useBp1 = false;
-  this.useDCB = true; this.useScaling = false;
+    this.useSMA4 = false; this.last4=[];
+    this.useNotch50 = true; this.useNotch60 = true;
+    this.useLp1 = false; this.useBp1 = false;
+    this.useDCB = true; this.useScaling = false;
 
-      this.notch50 = [
-                  makeNotchFilter(50,sps,1),
-                  makeNotchFilter(100,sps,1)
-              ];
-      this.notch60 = [
-                  makeNotchFilter(60,sps,1),
-                  makeNotchFilter(120,sps,1)
-              ];
-      this.lp1 = [
-                  new Biquad('lowpass', 50, sps),
-                  new Biquad('lowpass', 50, sps),
-                  new Biquad('lowpass', 50, sps),
-                  new Biquad('lowpass', 50, sps)
-              ];
-      this.bp1 = [
-                  makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                  makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                  makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
-                  makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
-              ];
-      this.dcb = new DCBlocker(0.995);
+    this.notch50 = [
+                makeNotchFilter(50,sps,1),
+                makeNotchFilter(100,sps,1)
+            ];
+    this.notch60 = [
+                makeNotchFilter(60,sps,1),
+                makeNotchFilter(120,sps,1)
+            ];
+    this.lp1 = [
+                new Biquad('lowpass', 50, sps),
+                new Biquad('lowpass', 50, sps),
+                new Biquad('lowpass', 50, sps),
+                new Biquad('lowpass', 50, sps)
+            ];
+    this.bp1 = [
+                makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+                makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+                makeBandpassFilter(this.bplower,this.bpupper,sps,9.75),
+                makeBandpassFilter(this.bplower,this.bpupper,sps,9.75)
+            ];
+    this.dcb = new DCBlocker(0.995);
   }
 
   reset(sps=this.sps) {
