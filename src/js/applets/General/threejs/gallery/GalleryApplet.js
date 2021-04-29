@@ -6,13 +6,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './shaders/vertex.glsl'
 import wavesFragmentShader from './shaders/waves/fragment.glsl'
 import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
-import whiteFragmentShader from './shaders/white/fragment.glsl'
-
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { gsap } from 'gsap'
-import mapTexture from "./img/dummyTexture.jpeg"
 import * as settingsFile from './settings'
 
 export class GalleryApplet {
@@ -126,39 +122,13 @@ this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
 this.timeBuffer = Array.from({length: this.history}, e => 0)
 this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
 
-// Raycaster
-const raycaster = new THREE.Raycaster()
-
-// Loading Manager
-const loadingManager = new THREE.LoadingManager(
-    // Loaded
-    () => {
-        if (this.three.canvas != null){
-            this.resize()
-            this.three.canvas.style.opacity = '1'
-            this.controls.enabled = true;
-            // gsap.delayedCall(0.5,() => 
-            // {
-            // })
-        }
-    },
-
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        console.log(itemsLoaded/itemsTotal)
-    }
-)
-
-// Textures
-const textureLoader = new THREE.TextureLoader(loadingManager)
-const texture = textureLoader.load(mapTexture)
-
 /**
  * Canvas
  */
 this.appletContainer = document.getElementById(this.props.id)
 this.three.canvas = document.getElementById(`${this.props.id}canvas`)
-
+this.three.canvas.style.opacity = '0'
+this.three.canvas.style.transition = 'opacity 1s'
 
 /**
  * Scene
@@ -176,6 +146,14 @@ this.camera.position.z = minZoomDistance*1.5
 this.three.renderer = new THREE.WebGLRenderer({
     canvas: this.three.canvas,
     alpha: true
+})
+
+
+navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+    if (isSupported){
+        this.renderer.xr.enabled = true;
+        this.appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+    }
 })
 
 /**
@@ -343,7 +321,10 @@ var animate = () => {
     }, 1000 / 60 );
 };
 
-    if(this.three.renderer) this.three.renderer.setAnimationLoop( animate )
+    this.three.renderer.setAnimationLoop( animate )
+    setTimeout(() => {
+        this.three.canvas.style.opacity = '1'
+    }, 100)
 }
 
     // Clear Three.js Scene Completely
