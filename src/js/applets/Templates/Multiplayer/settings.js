@@ -1,11 +1,11 @@
-import featureImg from './../../../../assets/features/placeholder.png'
+import featureImg from './img/feature.png'
 
 export const settings = {
 
     // Descriptive Information
     "name": "Multiplayer Example",
     "subtitle": 'A Simple Fighting Game',
-    "description": "An example multiplayer application",
+    "description": "A simple fighting game to control your alpha and beta coherence.",
     "categories": ['multiplayer'],
 
     // Stream Information

@@ -67,8 +67,8 @@ export class NexusApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
-                <div class="nexus-point-container"></div>
                 <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
+                <div class="nexus-point-container"></div>
             </div>
             `;
         }
@@ -591,6 +591,13 @@ this.three.getGeolocation = () => {
 
         let currentUser = this.points.get(userData.username)
         let scaling = {}
+
+        let coherence = userData?.frontalcoherencescore
+        if (coherence != null){
+            currentUser.coherence = coherence
+            this.material.uniforms.colorThresholds.value[Array.from(this.points.keys()).indexOf(userData.username)] = this.colorReachBase + this.colorReachBase*coherence
+        }
+
         let dataObj = userData['eegfftbands_FP1_all'] ?? userData['eegfftbands_FP2_all'] ?? userData['eegfftbands_AF7_all'] ?? userData['eegfftbands_AF8_all']
         if (dataObj?.bandpowers != null) {
             currentUser.neurofeedbackDimensions.forEach(key => {
@@ -609,12 +616,6 @@ this.three.getGeolocation = () => {
             if (userData.username === this.session.info.auth.username){
                 this.glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
             }
-        }
-
-        let coherence = userData?.frontalcoherencescore
-        if (coherence != null){
-            currentUser.coherence = coherence
-            this.material.uniforms.colorThresholds.value[Array.from(this.points.keys()).indexOf(userData.username)] = this.colorReachBase + this.colorReachBase*coherence
         }
     }
 
