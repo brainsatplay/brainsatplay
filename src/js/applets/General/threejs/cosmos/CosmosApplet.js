@@ -8,7 +8,6 @@ import fragmentShader from './shaders/cosmos/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {

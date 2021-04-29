@@ -123,7 +123,6 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
     if (isSupported && !this.isMobile){
         this.renderer.xr.enabled = true;
-        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
     }
 })
 
