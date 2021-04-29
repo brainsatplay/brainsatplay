@@ -93,6 +93,8 @@ export class BarChartApplet {
         //Add whatever else you need to initialize
         this.chart = new eegBarChart(this.props.id+'canvas',200);
         this.chart.init();
+
+        this.updateLoop();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
