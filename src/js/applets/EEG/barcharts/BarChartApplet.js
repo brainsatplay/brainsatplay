@@ -139,7 +139,7 @@ export class BarChartApplet {
                         let ch2 = document.getElementById(this.props.id+'channel2').value;
                         this.chart.leftbars.slices = dat.slice;
                         this.chart.leftbars.fftArr = dat.fft;
-                        let dat2 = this.bci.atlas.getLatestFFTData(ch2);
+                        let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
                         this.chart.rightbars.slices = dat2.slice;
                         this.chart.rightbars.fftArr = dat2.fft;
                     }
