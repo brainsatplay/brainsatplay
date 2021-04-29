@@ -1,7 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {eegBarChart, mirrorBarChart} from '../../../frontend/UX/eegvisuals'
-import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
+import {addChannelOptions, addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 
 //Example Applet for integrating with the UI Manager
 export class BarChartApplet {
@@ -28,7 +28,8 @@ export class BarChartApplet {
         //etc..
         this.chart = null;
         this.mode = 'single'; //single, mirror
-        this.looping = true;
+        this.looping = false;
+        this.loop = null;
     }
 
     //---------------------------------
@@ -93,6 +94,9 @@ export class BarChartApplet {
         //Add whatever else you need to initialize
         this.chart = new eegBarChart(this.props.id+'canvas',200);
         this.chart.init();
+
+        this.looping = true;
+        this.updateLoop();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -142,7 +146,7 @@ export class BarChartApplet {
                     }
                 }
             }
-            setTimeout(()=>{requestAnimationFrame(this.updateLoop)},16);
+            setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
         }
     }
    
