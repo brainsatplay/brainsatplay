@@ -73,7 +73,7 @@ export class MultiplayerAppletTemplate {
                             basePos.x = p.width*data.position.x
                             p.textAlign(p.RIGHT, p.CENTER)
                         } else {
-                            basePos.x = p.width*(1-data.position.x)
+                            basePos.x = p.width*(1-data.position?.x)
                             arcRotation = Math.PI
                             p.textAlign(p.LEFT, p.CENTER)
                         }
@@ -95,9 +95,9 @@ export class MultiplayerAppletTemplate {
                         data.fireballs.array.forEach(ball => {
                             let ballPosX;
                             if (data.username === this.session.info.auth.username){
-                                ballPosX = basePos.x + (p.width - data.position.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                                ballPosX = basePos.x + (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
                             } else {
-                                ballPosX = basePos.x - (p.width - data.position.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                                ballPosX = basePos.x - (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
                                 if (Math.sqrt(Math.pow(this.position.x - ballPosX,2) +  Math.pow(this.position.y - ball.y,2))){
                                     if (this.health.percentage > 0) this.health.percentage -= 0.0001
                                     else this.health.percentage = 0
@@ -203,8 +203,8 @@ export class MultiplayerAppletTemplate {
                                         if (username != this.session.info.auth.username){
                                             if (this.userInfo[username] == null) this.userInfo[username] = userData;
                                             presentUsers.push(username)
-                                            if (userData.position != null) {this.userInfo[username].position = userData.position;}
-                                            if (userData.fireballs != null) this.userInfo[username].fireballs = userData.fireballs
+                                            if (userData.position != null && !isNaN(userData.position.x) && !isNaN(userData.position.y)) {this.userInfo[username].position = userData.position}
+                                            if (userData.fireballs != null && userData.fireballs.array.length >  0) this.userInfo[username].fireballs = userData.fireballs
                                             if (userData.defense != null) this.userInfo[username].defense = userData.defense
                                             if (userData.keysPressed != null) this.userInfo[username].keysPressed = userData.keysPressed
                                             drawPlayer(this.userInfo[username])
@@ -261,16 +261,6 @@ export class MultiplayerAppletTemplate {
 
             return `
                 <div id='${props.id}' style='height:100%; width:100%; position:relative; display: flex;'>
-                    <div id="${props.id}multiplayerButtons" style="position: absolute; top: 0; left: 0;">
-                        <button id='${props.id}createGame'>Make Game session</button>
-                    </div>
-
-                    <div style="position:absolute; bottom: 50%; left: 50%; transform: translate(-50%,50%); text-align: center;">
-                        <p id='${props.id}-neurofeedback-readout'></p>
-                    </div>
-
-                    <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
-                    </div>
                 </div>
             `;
         }
