@@ -140,6 +140,7 @@ export class BarChartApplet {
                         this.chart.rightbars.slices = dat2.slice;
                         this.chart.rightbars.fftArr = dat2.fft;
                     }
+                    this.chart.draw();
                 }
             }
             setTimeout(()=>{requestAnimationFrame(this.updateLoop)},16);
