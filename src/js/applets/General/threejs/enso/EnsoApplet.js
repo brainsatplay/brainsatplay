@@ -10,7 +10,6 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 //Example Applet for integrating with the UI Manager
@@ -36,6 +35,7 @@ export class EnsoApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
+
         this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
         this.getNeurofeedback = this.defaultNeurofeedback   
     }
@@ -114,18 +114,6 @@ this.renderer = new THREE.WebGLRenderer({
 this.renderer.setSize(appletContainer.clientWidth, appletContainer.clientHeight);
 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 appletContainer.querySelector('.brainsatplay-threejs-renderer-container').appendChild(this.renderer.domElement)
-
-
-
-/**
- * VR
- */
-// navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-//     if (isSupported){
-//         this.renderer.xr.enabled = true;
-//         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-//     }
-// })
 
 
 // GUI
@@ -339,10 +327,4 @@ setTimeout(() => {
             //if(cmd === 'x'){//doSomething;}
         });
     }
-
-    //--------------------------------------------
-    //--Add anything else for internal use below--
-    //--------------------------------------------
-
-    //doSomething(){}
 } 

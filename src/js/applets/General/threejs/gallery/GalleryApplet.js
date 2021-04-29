@@ -148,14 +148,6 @@ this.three.renderer = new THREE.WebGLRenderer({
     alpha: true
 })
 
-
-navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-    if (isSupported){
-        this.renderer.xr.enabled = true;
-        this.appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    }
-})
-
 /**
  * Texture Params
  */
@@ -324,6 +316,7 @@ var animate = () => {
     this.three.renderer.setAnimationLoop( animate )
     setTimeout(() => {
         this.three.canvas.style.opacity = '1'
+        this.controls.enabled = true;
     }, 100)
 }
 
