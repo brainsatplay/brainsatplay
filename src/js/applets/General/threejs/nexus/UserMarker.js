@@ -3,7 +3,9 @@ import * as THREE from 'three'
 
 // let zoom = 1;
 export class UserMarker {
-  constructor(settings) {
+  constructor(id, styles, settings) {
+    this.id = id
+    this.styles = styles
     this.name = settings.name
     this.latitude = settings.latitude
     this.longitude = settings.longitude
@@ -30,17 +32,17 @@ export class UserMarker {
   }
 
   createHTMLElement(){
-    document.querySelector(`.nexus-point-container`).innerHTML += `
-    <div class="nexus-point nexus-point-${this.name}">
-      <div class="nexus-label">${this.name}</div>
-      <div class="nexus-text">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
+    document.getElementById(`${this.id}nexus-point-container`).innerHTML += `
+    <div class="${this.styles['nexus-point']} nexus-point-${this.name}">
+      <div class="${this.styles['nexus-label']}">${this.name}</div>
+      <div class="${this.styles['nexus-text']}">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
     </div>
     `
-    this.element = document.querySelector(`.nexus-point-${this.name}`)
+    this.element = document.getElementById(`${this.id}`).querySelector(`.nexus-point-${this.name}`)
   }
 
   animateLabel(camera=this.camera,container=this.appletContainer){
-    if (this.element != document.querySelector(`.nexus-point-${this.name}`)){
+    if (this.element != document.getElementById(`${this.id}`).querySelector(`.nexus-point-${this.name}`)){
       this.setElement()
     }
     let screenPos = new THREE.Vector3(this.x,this.y,this.z)
@@ -49,9 +51,9 @@ export class UserMarker {
       camera.position.y,
       camera.position.z))
     if (distanceToPoint > 0.1 && screenPos.z > 0 && this.active){
-      this.element.classList.add('visible')
+      this.element.classList.add(this.styles.visible)
     } else {
-      this.element.classList.remove('visible')
+      this.element.classList.remove(this.styles.visible)
     }
 
   //   function offset(el) {
@@ -97,7 +99,7 @@ export class UserMarker {
 
   setElement(camera=this.camera, controls=this.controls){
     console.log(this.name)
-    this.element = document.querySelector(`.nexus-point-${this.name}`)
+    this.element = document.getElementById(`${this.id}`).querySelector(`.nexus-point-${this.name}`)
     if (camera != null && controls != null){
       if (this.camera == null) this.camera = camera
       if (this.controls == null) this.controls = controls

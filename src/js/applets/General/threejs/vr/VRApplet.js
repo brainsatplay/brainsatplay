@@ -69,8 +69,18 @@ export class VRApplet {
             /**
              * VR Demo
              */
+			const loadingManager = new THREE.LoadingManager(
+				// Loaded
+				() => {
+					gsap.delayedCall(0.1,() => 
+					{
+						this.renderer.domElement.style.opacity = '1'
+						this.responsive()
+					})
+				}
+			)
 
-             let appletContainer = document.getElementById(`${this.props.id}`)
+			this.appletContainer = document.getElementById(`${this.props.id}`)
 			 
 			let camera, scene, renderer;
 			let attractor, light;
@@ -135,8 +145,8 @@ export class VRApplet {
 				scene = new THREE.Scene();
 
 				let baseCameraPos = new THREE.Vector3(0, 1.6, 1)
-				camera = new THREE.PerspectiveCamera( 50, appletContainer.offsetWidth / appletContainer.offsetHeight, 0.1, 10 );
-				camera.position.set( baseCameraPos.x, baseCameraPos.y,baseCameraPos.z );
+				this.camera = new THREE.PerspectiveCamera( 50, this.appletContainer.offsetWidth / this.appletContainer.offsetHeight, 0.1, 10 );
+				this.camera.position.set( baseCameraPos.x, baseCameraPos.y,baseCameraPos.z );
 
 				//
 
@@ -186,12 +196,14 @@ export class VRApplet {
 				// Renderer
 
 				this.renderer = new THREE.WebGLRenderer( { antialias: true } );
-				this.renderer.setPixelRatio( window.devicePixelRatio );
-				this.renderer.setSize( appletContainer.offsetWidth, appletContainer.offsetHeight );
-                appletContainer.appendChild( this.renderer.domElement );
+				this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+				this.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
+                this.appletContainer.appendChild( this.renderer.domElement );
 				this.renderer.domElement.style.width = '100%'
 				this.renderer.domElement.style.height = '100%'
 				this.renderer.domElement.id = `${this.props.id}canvas`
+                this.renderer.domElement.style.opacity = '0'
+                this.renderer.domElement.style.transition = 'opacity 1s'
 
 				// XR
 				navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
@@ -204,16 +216,16 @@ export class VRApplet {
 
 						this.controller.addEventListener( 'connected', ( event ) => {
 							document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( document.getElementById(`${this.props.id}VRButton`) );
-							camera.position.z = baseCameraPos.z
+							this.camera.position.z = baseCameraPos.z
 						} );
 						
 						this.controller.addEventListener( 'disconnected', () => {
-							appletContainer.appendChild( document.getElementById(`${this.props.id}VRButton`) );
-							camera.position.z = baseCameraPos.z
+							this.appletContainer.appendChild( document.getElementById(`${this.props.id}VRButton`) );
+							this.camera.position.z = baseCameraPos.z
 
 						} );
 						
-						appletContainer.appendChild( this.VRButton );
+						this.appletContainer.appendChild( this.VRButton );
 					}
 				})
 
@@ -229,15 +241,6 @@ export class VRApplet {
 
 			}
 
-			this.onResize = () => {
-
-				camera.aspect = appletContainer.offsetWidth / appletContainer.offsetHeight;
-				camera.updateProjectionMatrix();
-
-				this.renderer.setSize( appletContainer.offsetWidth, appletContainer.offsetHeight );
-            }
-            
-
 			let render = () => {
 
 				for ( let i = 0; i < speed; i ++ ) draw();
@@ -246,7 +249,7 @@ export class VRApplet {
 				attractor.geometry.attributes.color.needsUpdate = true;
 				attractor.rotation.z += .001;
 
-				this.renderer.render( scene, camera );
+				this.renderer.render( scene, this.camera );
 
             }
 
@@ -258,6 +261,10 @@ export class VRApplet {
             
             init();
 			animate();
+
+			setTimeout(() => {
+				this.renderer.domElement.style.opacity = '1'
+			}, 100)
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -272,8 +279,10 @@ export class VRApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.onResize()
-        this.bci.atlas.makeFeedbackOptions(this)
+		this.camera.aspect = this.appletContainer.offsetWidth / this.appletContainer.offsetHeight;
+		this.camera.updateProjectionMatrix();
+
+		this.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );        this.bci.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
