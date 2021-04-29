@@ -64,7 +64,6 @@ export class BarChartApplet {
                 let val = document.getElementById(props.id+'mode').value;
                 this.chart.deInit();
                 if (val === 'single') {
-                    document.getElementById(props.id+'canvas').style.display = 'none';
                     document.getElementById(props.id+'channel2').style.display = 'none';
                     document.getElementById(props.id+'canvas').style.width = '100%';
                     this.chart = new eegBarChart(props.id+'canvas');
@@ -91,7 +90,7 @@ export class BarChartApplet {
 
 
         //Add whatever else you need to initialize
-        this.chart = new eegBarChart(this.props.id+'canvas',200);
+        this.chart = new eegBarChart(this.props.id+'canvas',1/10000);
         this.chart.init();
 
         this.looping = true;
