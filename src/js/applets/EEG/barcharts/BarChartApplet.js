@@ -91,7 +91,7 @@ export class BarChartApplet {
 
 
         //Add whatever else you need to initialize
-        this.chart = new eegBarChart(this.props.id+'canvas',1/10000);
+        this.chart = new eegBarChart(this.props.id+'canvas');
         this.chart.init();
 
         this.looping = true;

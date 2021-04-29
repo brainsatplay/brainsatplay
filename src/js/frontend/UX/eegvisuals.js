@@ -747,11 +747,11 @@ export class BrainMap2D {
 
 
 export class mirrorBarChart {
-	constructor(leftcanvasId = null, rightcanvasId = null, normalizeFactor = 1) {
+	constructor(leftcanvasId = null, rightcanvasId = null) {
 		this.leftcanvasId - leftcanvasId;
 		this.rightcanvasId = rightcanvasId;
-		this.leftbars = new eegBarChart(leftcanvasId, normalizeFactor);
-		this.rightbars = new eegBarChart(rightcanvasId, normalizeFactor);
+		this.leftbars = new eegBarChart(leftcanvasId);
+		this.rightbars = new eegBarChart(rightcanvasId);
 		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
 
 		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
@@ -781,7 +781,7 @@ export class mirrorBarChart {
 
 //Makes a color coded bar chart to apply frequency bins to for a classic visualization. Should upgrade this with smooth transitions in an animation loop
 export class eegBarChart {
-	constructor(canvasId = null, normalizeFactor = 1) {
+	constructor(canvasId = null) {
 		this.canvasId = canvasId;
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext("2d");
@@ -797,7 +797,6 @@ export class eegBarChart {
 		this.capHeight = 2; //relative cap height
 		this.meterNum = 256;
 		this.capStyle = '#fff';
-		this.normalizeFactor = normalizeFactor;
 
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
 
