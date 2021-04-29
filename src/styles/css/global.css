@@ -14,15 +14,28 @@ body
     height: 100vh;
     background: black;
     color: white;
-    overflow-x: hidden;
-    overflow-y: hidden;
     margin: 0;
 }
 
 body {
     display: flex;
     position: relative;
+    overflow: hidden;
 }
+
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    }
+    ::-webkit-scrollbar {
+        width: 0px; 
+        height: 0px; 
+    }
+    /* ::-webkit-scrollbar-thumb {
+    background: #FF0000;
+    } */
 
 div {
     box-sizing: border-box; 
