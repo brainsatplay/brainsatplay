@@ -28,6 +28,7 @@ export class VRApplet {
 		};
 		
 		this.controller = null;
+        this.isMobile = this.checkIfMobile()
 
         // Setup Neurofeedback
         this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
@@ -69,17 +70,6 @@ export class VRApplet {
             /**
              * VR Demo
              */
-			const loadingManager = new THREE.LoadingManager(
-				// Loaded
-				() => {
-					gsap.delayedCall(0.1,() => 
-					{
-						this.renderer.domElement.style.opacity = '1'
-						this.responsive()
-					})
-				}
-			)
-
 			this.appletContainer = document.getElementById(`${this.props.id}`)
 			 
 			let camera, scene, renderer;
@@ -207,7 +197,7 @@ export class VRApplet {
 
 				// XR
 				navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-					if (isSupported){
+					if (isSupported && !this.isMobile){
 						this.renderer.xr.enabled = true;
 						this.renderer.xr.enabled = true;
 						this.controller = this.renderer.xr.getController( 0 );
