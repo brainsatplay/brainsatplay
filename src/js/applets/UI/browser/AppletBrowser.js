@@ -76,6 +76,7 @@ export class AppletBrowser {
             flex-grow: 1;
             overflow: hidden;
             background: black;
+            margin: 10px;
             `
 
         let presetSelections = []
@@ -139,9 +140,9 @@ export class AppletBrowser {
                     }
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
-                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 1 / 1; opacity: 0.5; transition: 0.5s; object-fit: cover;"
-                        onMouseOver="this.style.opacity = '0.7';"
-                        onMouseOut="this.style.opacity = '0.5';"
+                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 1 / 1; opacity: 0.25; transition: 0.5s; object-fit: cover;"
+                        onMouseOver="this.style.opacity = '0.75';"
+                        onMouseOut="this.style.opacity = '0.25';"
 
                         >
                         <div style="display: flex; align-items: center; padding: 10%; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; transition: 0.5s; pointer-events: none;"
