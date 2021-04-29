@@ -16,10 +16,9 @@ FYI it's super unfinished. We are reworking a few systems still to be *just* rig
 
 ## Getting Started
 ### Tutorials
-- [Create an Applet (v1)]{@tutorial Applets}
-- [Create an Applet (v2)]{@tutorial Applets(v2)}
+- [Create an Applet]{@tutorial Applets}
+- [Connect to the Brainstorm]{@tutorial Brainstorm}
 - [Add a Device]{@tutorial Devices}
-- [Create a Multiplayer Applet]{@tutorial Multiplayer}
 
 ### Library Usage
 #### Node.js

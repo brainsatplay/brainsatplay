@@ -1,19 +1,94 @@
-## Applets
+# Creating a Brains@Play Applet
 
-The Brains@Play platform uses a simple template system to create and render/destroy applets. This is used by our applet management system to organize apps, but the apps also can be run standalone using only the internal functions for the Applet and our simple built in fragment rendering system. 
+This tutorial will get you started building your first modular applet with Brains@Play! 
 
-To create a new applet, from src/js/applets/Templates make a copy of the Applet folder. Now give the AppletTemplate.js a unique name and make the class name inside the file match. Adjust the settings file to have the correct information as well.
+While the following steps will show you how to set up your applet for deployment on the Brains@Play Platform, all applets built in this way can also run standalone using only the internal functions and built-in fragment rendering system in our Applet Template. 
 
-To add this new applet to the manager, open up src/js/applets/appletList.js and fill out a new row in the AppletInfo object array with your new applet information, like this ` 'Applet Name':{folderURL:'./Templates/Applet', devices:['eeg','heg'], categories:['data']  }  ` with the correct name, folder URL, and matching device and category specification. This is our quick lookup table for dynamically loading scripts.
+<div class="brainsatplay-tutorial-subheader">
+<p>Part One</p>
+<h2>Applet Setup</h2>
+</div>
 
-Now, to customize the Applets, all you need to do is go into the init() function in the template and modify the HTMLtemplate string, the setupHTML function, and add any other logic and functions you may need to handle rendering and app logic. Each applet is passed a Brains@Play Session which will contain all information about device streams and reference the data atlasses where all current user data is stored. Look through the many example applets we provided for diverse use cases.
+### 1. Copy the template
+First, copy the Applet Template folder located at `src/js/applets/Templates`.
 
-Call any necessary cleanup functions in deinit() (i.e. destroying any animation loops or event listeners). 
+Place this template folder under `src/js/applets/General`. In the future, you may place your applet anywhere under the `src/js/applets` folder. 
 
-We base our rendering off of a custom [DOMFragment](https://github.com/moothyknight/JS_UI_Utils) and optional state management system for speed but this is optional as long as you provide the correct cleanup calls in your deinit() function to remove any extraneous HTML.
+Rename the AppletTemplate.js to the name of your app. It should look something like this:
+```
+MyApplet
+    settings.js
+    MyApplet.js
+```
 
-The responsive() function is called to resize the applet and also fires when a new device is connected, so place any window resizing logic in here. 
+### 2. Edit app metadata in `settings.js`
+Give your app a name by editing the settings object in the `settings.js` file. This information edits what appears on the thumbnail.
 
-The configure() function is called on initialization if you have multiple specifications available for your applet. In the manager, if you add a hash to the address bar like `#{"name":"uPlot","settings":["Coherence"]}` this will spawn the selected applet and pass the array of arguments from teh settings property. For uPlot you can customize which graph shows up first. Alternatively you can use `#uPlot` to get the default applet.
+To add an image, place an image under `/src/assets/features` and edit the top import line at the top of the file to point to the correct location:
 
-All new logic you add is to be written internally to the class with new functions so it's all self contained.
+
+```js
+export const settings = {
+    "name": "My Applet",
+    "devices": ["eeg","heg"],
+    "description": "This is my applet.",
+    "categories": ["feedback"],
+    "module": "MyApplet",
+    "image": featureImg
+}
+```
+
+### 3. Add your app to the AppletManager
+Now we need to add the app to the Applet Manager. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
+
+```js
+export const AppletInfo = {
+    'Applet Browser': { folderUrl:'./UI/browser',       devices:['eeg','heg'],     categories:['UI']},
+    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['eeg','heg'],     categories:['UI']},
+    'uPlot': { folderUrl:'./General/uplot',             devices:['eeg','heg'],     categories:['data']},
+    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['data']},
+    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['data']},
+    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['data']},
+    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['multiplayer','feedback']},
+    ///  Truncated  ...
+    'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:
+    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['feedback'] },
+    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['feedback'] },
+    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },
+    'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['feedback'] },
+    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
+    'TestApp': { folderUrl:'./General/TestApp', devices:['eeg','heg'], categories:['feedback'] },
+
+};
+```
+
+This is our quick lookup table for dynamically loading scripts.
+
+### 4. Test your app configuration
+Run your development environment using `npm start`. If everything is shipshape, your app will appear in the Applet Browser! 
+
+If you enter your applet from the Applet Browser, a URL fragment (e.g. https://localhost/#My%20Applet will appear in the address bar to ensure that you return to your applet when refreshing the page.
+
+<div class="brainsatplay-tutorial-subheader">
+<p>Part Two</p>
+<h2>Writing an Applet</h2>
+</div>
+
+Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
+
+### 0. constructor()
+On initialization, applets are passed a Brains@Play Session that contains all information about device streams and references **Data Atlases** where all current user data is stored.
+
+### 1. init()
+The `init()` function contains an HMTLtemplate string, a `setupHTML()` function, and any other logic and functions to handle your rendering and logic in your applet. 
+
+### 2. deinit()
+The `deinit()` function should destroy animation loops, delete event listeners, and remove extraneous HTML elements from the document. It is called whenever the applet is removed from our **Applet Manager** in the Brains@Play Platform.
+
+### 3. responsive()
+The `responsive()` function is called when your applet is resized *and* when new devices are connected. It should handle any window resizing logic—as well as spawning HTML elements (e.g. selectors, buttons, etc.) depending on device connections.
+
+### 4. configure()
+The `configure()` function is called on initialization if you have multiple specifications available for your applet. 
+
+In our **Applet Manager**, URL fragments (e.g. `#{"name":"Applet Template","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 

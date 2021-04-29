@@ -358,6 +358,7 @@ tr > th:last-child { border-right: 1px solid #ddd; }
     color: #454545;
 }
 
+/* Custom Page Title */
 .page-title {
     font-size: 25px;
     font-weight: 700;
@@ -365,4 +366,23 @@ tr > th:last-child { border-right: 1px solid #ddd; }
     margin-bottom: 12px;
     padding-bottom: 15px;
     border-bottom: 1px solid gray;
+}
+
+/* Custom Tutorial Headers */
+
+.brainsatplay-tutorial-subheader{
+    background: #030303;
+    color: white;
+    line-height: normal;
+    padding: 10px 25px;
+    margin: 25px 0px; 
+}
+
+.brainsatplay-tutorial-subheader p{
+    font-size: 80%;
+    margin-bottom: 0px;
+}
+
+.brainsatplay-tutorial-subheader h2{
+    margin-top: 0px;
 }
