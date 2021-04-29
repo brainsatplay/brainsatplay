@@ -1,25 +1,14 @@
 import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 
-import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import Stats from 'three/examples/jsm/libs/stats.module'
 import vertexShader from './shaders/cosmos/vertex.glsl'
 import fragmentShader from './shaders/cosmos/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-
-
-import { gsap } from 'gsap'
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
-import dummyTexture from "./img/dummyTexture.jpeg"
-
 
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
@@ -61,10 +50,7 @@ export class CosmosApplet {
             <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
-                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div class="brainsatplay-neurofeedback-container">
-                    </div>
-                </div>
+                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
             </div>
             `;  
         }
@@ -91,31 +77,12 @@ export class CosmosApplet {
 /**
  * Cosmos
  */
-const loadingManager = new THREE.LoadingManager(
-    // Loaded
-    () => {
-        gsap.delayedCall(0.1,() => 
-        {
-            canvas.style.opacity = '1'
-            this.resizeCosmos()
-        })
-    }, 
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        // console.log(itemsLoaded/itemsTotal)
-    }
-)
-const textureLoader = new THREE.TextureLoader(loadingManager)
-textureLoader.load(dummyTexture)
-
-
- // Debug
-//  const gui = new GUI()
 
  // Canvas
  const appletContainer = document.getElementById(this.props.id)
  const canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
- 
+ canvas.style.opacity = '0'
+ canvas.style.transition = 'opacity 1s'
 
 // Scene
 const scene = new THREE.Scene()
@@ -280,12 +247,12 @@ this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * VR
  */
-navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-    if (isSupported){
-        this.renderer.xr.enabled = true;
-        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    }
-})
+// navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+//     if (isSupported){
+//         this.renderer.xr.enabled = true;
+//         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+//     }
+// })
 
 
 /** 
@@ -373,6 +340,10 @@ const animate = () =>
 }
 
 this.renderer.setAnimationLoop( animate );
+
+setTimeout(() => {
+    canvas.style.opacity = '1'
+}, 100)
     }
 
     //Delete all event listeners and loops here and delete the HTML block

@@ -909,7 +909,7 @@ export class Session {
             // Create Game Brower
             let baseBrowserId = `${applet.props.id}${applet.info.name}`
             document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-multiplayerintro-button">Search</button>`
-            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="overflow-x: scroll; box-sizing: border-box; padding: 10px 0; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 0px 5%;'></div></div>`;
+            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`;
     
             let waitForReturnedMsg = (msgs, callback = () => {}) => {
                 if (msgs.includes(this.state.data.commandResult.msg)){

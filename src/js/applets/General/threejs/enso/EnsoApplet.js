@@ -1,7 +1,6 @@
 import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 
-import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -9,17 +8,10 @@ import vertexShader from './shaders/enso/vertex.glsl'
 import fragmentShader from './shaders/enso/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
-import dummyTexture from "./img/dummyTexture.jpeg"
-
-
-// import * as p5 from 'p5'
-// console.log(p5.noise)
 
 //Example Applet for integrating with the UI Manager
 export class EnsoApplet {
@@ -58,13 +50,10 @@ export class EnsoApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
+            <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%; position: relative'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
-                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div class="brainsatplay-neurofeedback-container">
-                    </div>
-                </div>
+                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
             </div>
             `;
         }
@@ -91,29 +80,13 @@ export class EnsoApplet {
  * Enso
  */
 
-const loadingManager = new THREE.LoadingManager(
-    // Loaded
-    () => {
-        gsap.delayedCall(0.1,() => 
-        {
-            canvas.style.opacity = '1'
-            this.resizeEnso()
-        })
-    }, 
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        // console.log(itemsLoaded/itemsTotal)
-    }
-)
-const textureLoader = new THREE.TextureLoader(loadingManager)
-textureLoader.load(dummyTexture)
-
 /**
  * Canvas
  */
 const appletContainer = document.getElementById(this.props.id)
 let canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
-
+canvas.style.opacity = '0'
+canvas.style.transition = 'opacity 1s'
 /**
  * Scene
  */
@@ -147,12 +120,12 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 /**
  * VR
  */
-navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-    if (isSupported){
-        this.renderer.xr.enabled = true;
-        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    }
-})
+// navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+//     if (isSupported){
+//         this.renderer.xr.enabled = true;
+//         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+//     }
+// })
 
 
 // GUI
@@ -326,6 +299,11 @@ var animate = () => {
 // appletContainer.appendChild(stats.dom)
 
 this.renderer.setAnimationLoop( animate );
+
+setTimeout(() => {
+    canvas.style.opacity = '1'
+}, 100)
+
 }
 
     // // Clear Three.js Scene Completely

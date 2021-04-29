@@ -1,7 +1,6 @@
 import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 
-import '../style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -9,16 +8,9 @@ import vertexShader from './shaders/blob/vertex.glsl'
 import fragmentShader from './shaders/blob/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
-import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
-import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-import dummyTexture from "./img/dummyTexture.jpeg"
 
 
 //Example Applet for integrating with the UI Manager
@@ -63,10 +55,7 @@ export class BlobApplet {
             <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
-                <div class="brainsatplay-threejs-gameHero brainsatplay-threejs-container">
-                    <div class="brainsatplay-neurofeedback-container">
-                    </div>
-                </div>
+                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
             </div>
             `;
         }
@@ -91,29 +80,13 @@ export class BlobApplet {
 /**
  * Blob
  */
-
-const loadingManager = new THREE.LoadingManager(
-    // Loaded
-    () => {
-        gsap.delayedCall(0.1,() => 
-        {
-            canvas.style.opacity = '1'
-            this.resizeMesh()
-        })
-    }, 
-    // Progress
-    (itemURL, itemsLoaded, itemsTotal) => {
-        // console.log(itemsLoaded/itemsTotal)
-    }
-)
-const textureLoader = new THREE.TextureLoader(loadingManager)
-const texture = textureLoader.load(dummyTexture)
-
 /**
  * Canvas
  */
 const appletContainer = document.getElementById(this.props.id)
 let canvas = appletContainer.querySelector('canvas.brainsatplay-threejs-webgl')
+canvas.style.opacity = '0'
+canvas.style.transition = 'opacity 1s'
 
 /**
  * Scene
@@ -145,12 +118,12 @@ appletContainer.querySelector('.brainsatplay-threejs-renderer-container').append
 /**
  * VR
  */
-navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-    if (isSupported){
-        this.renderer.xr.enabled = true;
-        appletContainer.appendChild( VRButton.createButton( this.renderer ) );
-    }
-})
+// navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+//     if (isSupported){
+//         this.renderer.xr.enabled = true;
+//         appletContainer.appendChild( VRButton.createButton( this.renderer ) );
+//     }
+// })
 
 
 // GUI
@@ -194,36 +167,12 @@ effectComposer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
 
-// const effectGrayScale = new ShaderPass( LuminosityShader );
-// effectComposer.addPass( effectGrayScale );
-
-// const effectSobel = new ShaderPass( SobelOperatorShader );
-// effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
-// effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
-// effectComposer.addPass( effectSobel );
-
-// const shaderPass = new ShaderPass(RGBShiftShader)
-// shaderPass.enabled = true
-// effectComposer.addPass(shaderPass)
-
 const bloomPass = new UnrealBloomPass()
 bloomPass.enabled = true
 // bloomPass.strength = 0.5
 bloomPass.radius = 1
 // bloomPass.threshold = 0.6
 effectComposer.addPass(bloomPass)
-
-// // Custom Shader Pass
-// const customPass = new ShaderPass({
-//     uniforms: {
-//         tDiffuse: { value: null },
-//         uInterfaceMap: { value: null }
-//     },
-//     vertexShader: interfaceVertexShader,
-//     fragmentShader: interfaceFragmentShader
-// })
-// customPass.material.uniforms.uInterfaceMap.value = futuristicInterface
-// effectComposer.addPass(customPass)
 
 // Antialiasing
 if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
@@ -240,7 +189,6 @@ controls.screenSpacePanning = true
 controls.enableDamping = true
 controls.enabled = true;
 
-//controls.addEventListener('change', render)
 
 // Plane
 const geometry = generateGeometry()
@@ -301,7 +249,7 @@ scene.add(mesh)
 
 
 // Resize
-this.resizeMesh = () => {
+this.onResize = () => {
     camera.aspect = appletContainer.offsetWidth / appletContainer.offsetHeight
     camera.updateProjectionMatrix()
     // regenerateGeometry()
@@ -314,9 +262,6 @@ this.resizeMesh = () => {
     effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     effectComposer.setSize(appletContainer.offsetWidth, appletContainer.offsetHeight)
 }
-
-window.addEventListener('resize', this.resizeMesh, 
-false)
 
 function generateGeometry() {
     let diameter = 7
@@ -369,6 +314,10 @@ var animate = () => {
 // appletContainer.appendChild(stats.dom)
 
 this.renderer.setAnimationLoop( animate );
+
+setTimeout(() => {
+    canvas.style.opacity = '1'
+}, 100)
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -380,7 +329,7 @@ this.renderer.setAnimationLoop( animate );
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeMesh()
+        this.onResize()
         this.bci.atlas.makeFeedbackOptions(this)
     }
 

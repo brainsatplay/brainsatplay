@@ -65,13 +65,13 @@ export class BarChartApplet {
                 let val = document.getElementById(props.id+'mode').value;
                 this.chart.deInit();
                 if (val === 'single') {
-                    document.getElementById(props.id+'canvas').style.display = 'none';
                     document.getElementById(props.id+'channel2').style.display = 'none';
+                    document.getElementById(props.id+'canvas2').style.display = 'none';
                     document.getElementById(props.id+'canvas').style.width = '100%';
                     this.chart = new eegBarChart(props.id+'canvas');
                 } else if (val === 'mirror') {
                     document.getElementById(props.id+'canvas').style.width = '49%';
-                    document.getElementById(props.id+'canvas').style.display = '';
+                    document.getElementById(props.id+'canvas2').style.display = '';
                     document.getElementById(props.id+'channel2').style.display = '';
                     this.chart = new mirrorBarChart(props.id+'canvas',props.id+'canvas2');
                 }
@@ -92,7 +92,7 @@ export class BarChartApplet {
 
 
         //Add whatever else you need to initialize
-        this.chart = new eegBarChart(this.props.id+'canvas',200);
+        this.chart = new eegBarChart(this.props.id+'canvas');
         this.chart.init();
 
         this.looping = true;
@@ -114,6 +114,21 @@ export class BarChartApplet {
             addChannelOptions(this.props.id+"channel2", this.bci.atlas.data.eegshared.eegChannelTags, true);
             document.getElementById(this.props.id+"mode").onchange();
         }
+        if(this.mode === 'single') {
+            document.getElementById(this.props.id+'canvas').width = this.AppletHTML.node.clientWidth;
+            document.getElementById(this.props.id+'canvas').height = this.AppletHTML.node.clientHeight;
+            document.getElementById(this.props.id+'canvas').style.width = this.AppletHTML.node.clientWidth;
+            document.getElementById(this.props.id+'canvas').style.height = this.AppletHTML.node.clientHeight;
+        } else {
+            document.getElementById(this.props.id+'canvas').width = this.AppletHTML.node.clientWidth*0.49;
+            document.getElementById(this.props.id+'canvas').height = this.AppletHTML.node.clientHeight;
+            document.getElementById(this.props.id+'canvas2').width = this.AppletHTML.node.clientWidth*0.49;
+            document.getElementById(this.props.id+'canvas2').height = this.AppletHTML.node.clientHeight;
+            document.getElementById(this.props.id+'canvas').style.width = this.AppletHTML.node.clientWidth*0.49;
+            document.getElementById(this.props.id+'canvas').style.height = this.AppletHTML.node.clientHeight;
+            document.getElementById(this.props.id+'canvas2').style.width = this.AppletHTML.node.clientWidth*0.49;
+            document.getElementById(this.props.id+'canvas2').style.height = this.AppletHTML.node.clientHeight;
+        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -131,7 +146,7 @@ export class BarChartApplet {
         if(this.looping) {
             if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
                 let ch1 = document.getElementById(this.props.id+'channel').value;
-                let dat = this.bci.atlas.getLatestFFTData(ch1);
+                let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
                 if(dat.fftCount > 0) {
                     if(this.mode === 'single') {
                         this.chart.slices = dat.slice;
@@ -140,7 +155,7 @@ export class BarChartApplet {
                         let ch2 = document.getElementById(this.props.id+'channel2').value;
                         this.chart.leftbars.slices = dat.slice;
                         this.chart.leftbars.fftArr = dat.fft;
-                        let dat2 = this.bci.atlas.getLatestFFTData(ch2);
+                        let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
                         this.chart.rightbars.slices = dat2.slice;
                         this.chart.rightbars.fftArr = dat2.fft;
                     }

@@ -1,7 +1,7 @@
 import {Session} from '../../../../../library/src/Session'
 import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
  
-import './style.css'
+import styles from './style.module.css';
 import * as THREE from 'three'
 import {UserMarker} from './UserMarker'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -66,9 +66,9 @@ export class NexusApplet {
 
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' class="wrapper" style='height:100%; width:100%;'>
-                <div class="nexus-renderer-container"><canvas class="nexus-webgl"></canvas></div>
-                <div class="nexus-point-container"></div>
+            <div id='${props.id}' style='height:100%; width:100%;'>
+                <div id="${this.props.id}rendererContainer"><canvas></canvas></div>
+                <div id='${this.props.id}nexus-point-container' class='${styles['nexus-point-container']}'></div>
             </div>
             `;
         }
@@ -151,7 +151,7 @@ const displacementMap = textureLoader.load(mapDisp)
  * Canvas
  */
 this.appletContainer = document.getElementById(this.props.id)
-this.three.canvas = this.appletContainer.querySelector('canvas.nexus-webgl')
+this.three.canvas = this.appletContainer.querySelector(`canvas`)
 
 /**
  * Scene
@@ -183,7 +183,7 @@ this.three.renderer = new THREE.WebGLRenderer({
 // Renderer
 this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
 this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-this.appletContainer.querySelector('.nexus-renderer-container').appendChild(this.three.renderer.domElement)
+document.getElementById(`${this.props.id}rendererContainer`).appendChild(this.three.renderer.domElement)
 // GUI
 // const gui = new dat.GUI({width: 400});
 
@@ -506,21 +506,6 @@ this.three.getGeolocation = () => {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) this.resizeNexus()
-        let gameHero = document.getElementById(this.props.id+'gameHero')
-        if (gameHero){
-            gameHero.width = '100%'
-            gameHero.height = '100%'
-        }
-        let createGame = document.getElementById(this.props.id+'createGame')
-        if (createGame){
-            createGame.width = '100%'
-            createGame.height = '100%'
-        }
-        let loginScreen = document.getElementById(`${this.props.id}login-screen`)
-        if (loginScreen){
-            loginScreen.width = '100%'
-            loginScreen.height = '100%'
-        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -571,7 +556,7 @@ this.three.getGeolocation = () => {
     updatePoints(username, location){
 
         if (!this.points.has(username)){
-            this.points.set(username, new UserMarker({name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
+            this.points.set(username, new UserMarker(this.props.id, styles, {name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
         }
 
         if (location != null){
