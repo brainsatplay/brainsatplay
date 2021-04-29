@@ -769,13 +769,6 @@ export class mirrorBarChart {
 		this.rightbars.init();
 	}
 
-	updateCharts(left,right) { //push latest slices from desired map data
-		this.leftbars.slices = left;
-		this.rightbars.slices = right;
-
-		this.leftbars.draw();
-		this.rightbars.draw();
-	}
 
 	draw = () => {
 		this.leftbars.draw();
@@ -834,41 +827,39 @@ export class eegBarChart {
 		var cheight = this.canvas.height;
 
 		var slicearr = this.fftArr;
-		var nbins = slicearr.length;
+		var nbins = this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length;
 
-		this.meterNum = slicearr.length;
+		this.meterNum = nbins;
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
 
 		var wscale = cwidth / this.relativeWidth;
 		var xoffset = (this.meterWidth+this.meterGap)*wscale;
 
+		let norm = (1/Math.max(...slicearr));
+
 		this.ctx.clearRect(0, 0, cwidth, cheight);
 		for (var i = 0; i < nbins; i++) {
-			var value = slicearr[i]*this.normalizeFactor*cheight;
+			var value = slicearr[i]*norm*cheight;
 			if(value > cheight) value = cheight;
 			if(value < 0){ value = 0;}
-
-			this.ctx.fillStyle = this.capStyle;
-
 
 			this.ctx.fillStyle = "white";
 			if(i < this.slices.scp.length){
 				this.ctx.fillStyle = "purple";
-			} else if(i < this.slices.scp.length+this.slices.delta.length){
-				this.ctx.fillstyle = "violet";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length){
-				this.ctx.fillstyle = "blue";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length){
-				this.ctx.fillstyle = "green";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length)){
+				this.ctx.fillStyle = "violet";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length)){
+				this.ctx.fillStyle = "blue";
+			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length)){
+				this.ctx.fillStyle = "green";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length){
-				this.ctx.fillstyle = "chartreuse";
+				this.ctx.fillStyle = "chartreuse";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length){
-				this.ctx.fillstyle = "gold";
+				this.ctx.fillStyle = "gold";
 			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length){
-				this.ctx.fillstyle = "red";
+				this.ctx.fillStyle = "red";
 			}
 
-			if(i === 1) { console.log(xoffset, cheight, value, wscale); }
 			this.ctx.fillRect(i * xoffset /*meterWidth+gap*/ , (cheight - value + this.capHeight), this.meterWidth*wscale, cheight);
 		}
 		
