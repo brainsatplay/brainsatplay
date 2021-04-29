@@ -76,6 +76,7 @@ export class AppletBrowser {
             flex-grow: 1;
             overflow: hidden;
             background: black;
+            background: rgb(10,10,10);
             margin: 10px;
             `
 
@@ -84,7 +85,7 @@ export class AppletBrowser {
 
         presets.forEach(preset => {
                 presetHTML += `
-                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle}; background: rgb(25,25,25); margin: 10px;">
+                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
                     <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
@@ -140,18 +141,11 @@ export class AppletBrowser {
                     }
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
-                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 1 / 1; opacity: 0.25; transition: 0.5s; object-fit: cover;"
-                        onMouseOver="this.style.opacity = '0.75';"
-                        onMouseOut="this.style.opacity = '0.25';"
-
-                        >
-                        <div style="display: flex; align-items: center; padding: 10%; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; transition: 0.5s; pointer-events: none;"
-                        >
-                            <div>
-                                <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                                <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                                <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
-                            </div>
+                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
+                        <div style="padding: 0px 25px 10px 25px;">
+                        <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
                     generalHTML += html
