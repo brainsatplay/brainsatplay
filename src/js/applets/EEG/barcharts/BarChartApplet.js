@@ -1,7 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {eegBarChart, mirrorBarChart} from '../../../frontend/UX/eegvisuals'
-import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
+import {addChannelOptions, addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 
 //Example Applet for integrating with the UI Manager
 export class BarChartApplet {
@@ -29,6 +29,7 @@ export class BarChartApplet {
         this.chart = null;
         this.mode = 'single'; //single, mirror
         this.looping = false;
+        this.loop = null;
     }
 
     //---------------------------------
@@ -161,7 +162,7 @@ export class BarChartApplet {
                     this.chart.draw();
                 }
             }
-            setTimeout(()=>{requestAnimationFrame(this.updateLoop)},16);
+            setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
         }
     }
    
