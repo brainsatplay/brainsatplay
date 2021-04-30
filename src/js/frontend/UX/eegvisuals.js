@@ -545,7 +545,7 @@ export class BrainMap2D {
 
 		this.heatmapCanvasId = heatmapCanvasId;
 		this.pointsCanvasId = pointsCanvasId;
-		this.anim = null;
+		this.anim = undefined;
 		this.animationDelay = 20; //ms
 
 		this.heatmap = null;
@@ -564,8 +564,8 @@ export class BrainMap2D {
 	}
 
 	deInit() {
+		if(this.anim) cancelAnimationFrame(this.anim);
 		this.anim = "cancel";
-		cancelAnimationFrame(this.anim);
 		this.heatmap.clear();
 	}
 
@@ -746,36 +746,6 @@ export class BrainMap2D {
 
 
 
-export class mirrorBarChart {
-	constructor(leftcanvasId = null, rightcanvasId = null) {
-		this.leftcanvasId - leftcanvasId;
-		this.rightcanvasId = rightcanvasId;
-		this.leftbars = new eegBarChart(leftcanvasId);
-		this.rightbars = new eegBarChart(rightcanvasId);
-		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
-
-		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
-		this.rightbars.ctx.translate(this.rightbars.canvas.width, 0);
-		this.rightbars.ctx.scale(-1,1);
-	}
-
-	deInit() {
-		this.leftbars.deInit();
-		this.rightbars.deInit();
-	}
-
-	init() {
-		this.leftbars.init();
-		this.rightbars.init();
-	}
-
-
-	draw = () => {
-		this.leftbars.draw();
-		this.rightbars.draw();
-	}
-
-}
 
 
 
@@ -785,11 +755,10 @@ export class eegBarChart {
 		this.canvasId = canvasId;
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext("2d");
-		this.anim = null;
+		this.anim = undefined;
 
 		//combine and push the latest slices to this then call eegbarchart.draw() from the class instance
 		this.slices = {scp: [0], delta: [0], theta: [0], alpha1: [0], alpha2:[0], beta: [0], lowgamma: [0], highgamma: [0]};
-		this.fftArr = [];
 
 		this.allCapsReachBottom = false;
 		this.meterWidth = 14; //relative width of the meters in the spectrum
@@ -802,11 +771,14 @@ export class eegBarChart {
 
 		this.animationDelay = 15;
 
+		this.showvalues = true;
+
 	}
 
 	deInit() {
+		if(this.anim)
+			cancelAnimationFrame(this.anim);
 		this.anim = "cancel";
-		cancelAnimationFrame(this.anim);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
@@ -825,8 +797,11 @@ export class eegBarChart {
 		var cwidth = this.canvas.width;
 		var cheight = this.canvas.height;
 
-		var slicearr = this.fftArr;
-		var nbins = this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length;
+		var nbins;
+		
+		if(typeof this.slices.scp === 'object')
+			nbins = this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length;
+		else nbins = Object.keys(this.slices).length; if (this.slices.highgamma) nbins-=1; //-1 because we don't like you, high gamma
 
 		this.meterNum = nbins;
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
@@ -834,32 +809,97 @@ export class eegBarChart {
 		var wscale = cwidth / this.relativeWidth;
 		var xoffset = (this.meterWidth+this.meterGap)*wscale;
 
-		let norm = (1/Math.max(...slicearr));
+		let slice = this.slices;
+		let max = 0;
+		for(const prop in slice) {
+			if ( typeof slice[prop] === 'number') {if (slice[prop] > max) max = slice[prop];}
+			else if ( typeof slice[prop] === 'object') {    
+				let mx = Math.max(...slice[prop]);
+				if (mx > max) max = mx;
+			}
+		} 
+
+		let normalizer = 1/max;
 
 		this.ctx.clearRect(0, 0, cwidth, cheight);
-		for (var i = 0; i < nbins; i++) {
-			var value = slicearr[i]*norm*cheight;
-			if(value > cheight) value = cheight;
-			if(value < 0){ value = 0;}
+		
+		let i = 0;
+		let drawbar = (value) => {
+			let v = value*normalizer*cheight;
+			if(v > cheight) v = cheight;
+			if(v < 0){ value = 0;}
+			this.ctx.fillRect(i * xoffset /*meterWidth+gap*/ , (cheight - v + this.capHeight), this.meterWidth*wscale, cheight);
 
-			this.ctx.fillStyle = "white";
-			if(i < this.slices.scp.length){
-				this.ctx.fillStyle = "purple";
-			} else if(i < (this.slices.scp.length+this.slices.delta.length)){
-				this.ctx.fillStyle = "violet";
-			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length)){
-				this.ctx.fillStyle = "blue";
-			} else if(i < (this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length)){
-				this.ctx.fillStyle = "green";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length){
-				this.ctx.fillStyle = "chartreuse";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length){
-				this.ctx.fillStyle = "gold";
-			} else if(i < this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length){
-				this.ctx.fillStyle = "red";
+			if(this.showvalues) {
+				let oldfill = this.ctx.fillStyle;
+				this.ctx.fillStyle = 'white';
+				this.ctx.fillText(value.toFixed(2),i*xoffset,cheight-20,xoffset);
+				this.ctx.fillStyle = oldfill;
 			}
 
-			this.ctx.fillRect(i * xoffset /*meterWidth+gap*/ , (cheight - value + this.capHeight), this.meterWidth*wscale, cheight);
+			i++;
+		}
+
+		if(typeof slice.scp === 'object') {
+			
+			slice.scp?.forEach((v) => {
+				this.ctx.fillStyle = "purple";
+				drawbar(v);
+			});
+			slice.delta?.forEach((v) => {
+				this.ctx.fillStyle = "violet";
+				drawbar(v);
+			});
+			slice.theta?.forEach((v) => {
+				this.ctx.fillStyle = "blue";
+				drawbar(v);
+			});
+			slice.alpha1?.forEach((v) => {
+				this.ctx.fillStyle = "green";
+				drawbar(v);
+			});
+			slice.alpha2?.forEach((v) => {
+				this.ctx.fillStyle = "chartreuse";
+				drawbar(v);
+			});
+			slice.beta?.forEach((v) => {
+				this.ctx.fillStyle = "gold";
+				drawbar(v);
+			});
+			slice.lowgamma?.forEach((v) => {
+				this.ctx.fillStyle = "red";
+				drawbar(v);
+			});
+		} else {
+			console.log(slice);
+			if(slice.scp) {
+				this.ctx.fillStyle = "purple";
+				drawbar(slice.scp);
+			}
+			if(slice.delta) { 
+				this.ctx.fillStyle = "violet";
+				drawbar(slice.delta);
+			}
+			if(slice.theta) {
+				this.ctx.fillStyle = "blue";
+				drawbar(slice.theta);
+			}
+			if(slice.alpha1) {
+				this.ctx.fillStyle = "green";
+				drawbar(slice.alpha1);
+			}
+			if(slice.alpha2) {
+				this.ctx.fillStyle = "chartreuse";
+				drawbar(slice.alpha2);
+			}
+			if(slice.beta) {
+				this.ctx.fillStyle = "gold";
+				drawbar(slice.beta);
+			}
+			if(slice.lowgamma) {
+				this.ctx.fillStyle = "red";
+				drawbar(slice.lowgamma);
+			}
 		}
 		
 	}
@@ -870,7 +910,38 @@ export class eegBarChart {
 	}
 }
 
+export class mirrorBarChart {
+	constructor(leftcanvasId = null, rightcanvasId = null) {
+		this.leftcanvasId - leftcanvasId;
+		this.rightcanvasId = rightcanvasId;
+		this.leftbars = new eegBarChart(leftcanvasId);
+		this.rightbars = new eegBarChart(rightcanvasId);
+	}
 
+	deInit() {
+		this.leftbars.deInit();
+		this.rightbars.deInit();
+	}
+
+	init() {
+		this.leftbars.init();
+		this.rightbars.init();
+		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
+		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
+		this.rightbars.ctx.scale(-1,1);
+	}
+
+	draw = () => {
+		this.leftbars.draw();
+		this.rightbars.draw();
+	}
+
+	animate = () => {
+		this.leftbars.animate();
+		this.rightbars.animate();
+	}
+
+}
 
 
 
@@ -959,7 +1030,7 @@ export class Spectrogram {
 		this.offscreen = null;
 		this.offscreenctx = null;
 
-		this.anim = null;
+		this.anim = undefined;
 		this.reset = false;
 		this.offset = true; //automatic DC offset based on mininum 
 
@@ -995,8 +1066,8 @@ export class Spectrogram {
 	};
 
 	deInit() {
+		if(this.anim) cancelAnimationFrame(this.anim);
 		this.anim = "cancel";
-		cancelAnimationFrame(this.anim);
 	}
 
 	clear() {

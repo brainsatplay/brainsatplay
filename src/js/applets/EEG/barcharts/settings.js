@@ -1,4 +1,4 @@
-import featureImg from './../../../../assets/features/placeholder.png'
+import featureImg from './feature.png'
 
 export const settings = {
     "name": "Bar Chart",

@@ -36,7 +36,7 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:100%; width:100%;
             overflow-y: scroll;
-            padding: 50px;
+            padding: 50px
             ' 
             >
             </div>
@@ -66,23 +66,36 @@ export class AppletBrowser {
 
 
         let appletStyle = `
+            min-width: 100px;
             width: 200px; 
             cursor: pointer;
             transition: 0.5s;
             border-radius: 5px;
-            margin: 25px;
             position: relative;  
-            background: rgb(25,25,25);
             font-size: 80%;
+            flex-grow: 1;
+            overflow: hidden;
+            background: black;
+            background: rgb(15,15,15);
+            margin: 5px;
+            transition: 0.5s;
             `
+
+        let onMouseOver = `
+            this.style.boxShadow = '0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6)';
+        `
+
+        let onMouseOut = `
+            this.style.boxShadow = 'none';
+        `
 
         let presetSelections = []
         let presetHTML = ``
 
         presets.forEach(preset => {
                 presetHTML += `
-                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
-                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1;">
+                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
+                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
                     <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
@@ -136,12 +149,12 @@ export class AppletBrowser {
                         type = 'Other'
                     }
                     let html = `
-                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
-                        <img src="${settings.image}" style="width: 100%;">
-                        <div style="padding: 0px 25px 10px 25px; position: relative;">
-                            <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;margin-top: 5px;">${type}</p>
-                            <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
+                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
+                        <div style="padding: 0px 25px 10px 25px;">
+                        <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
                     generalHTML += html
@@ -160,7 +173,7 @@ export class AppletBrowser {
             justify-content: center;'>
                 ${presetHTML}
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2,1fr);">
+            <div style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
                 <h1>Applets</h1>
                 <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
                     <option value="all" selected>All</option>
