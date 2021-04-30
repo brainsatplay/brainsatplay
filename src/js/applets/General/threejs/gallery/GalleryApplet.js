@@ -40,6 +40,8 @@ export class GalleryApplet {
 
         this.currentShader = null;
 
+        this.three.planes = []
+
         this.shaders = {
             
             waves: {
@@ -60,7 +62,6 @@ export class GalleryApplet {
                 fragmentShader: creationFragmentShader,
                 credit: 'Danilo Guanabara (Shadertoy)'
             },
-
             octagrams: {
                 name: 'Octagrams',
                 vertexShader: vertexShader,
@@ -111,9 +112,11 @@ export class GalleryApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%; position: relative; overflow: none;'>
-                <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
-                    <select id='${props.id}selector'></select>
-                </div>
+             `
+            //  <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
+            //         <select id='${props.id}selector'></select>
+            //     </div>
+            + `
                 <div class="brainsatplay-neurofeedback-container" style="margin-top: 25px; position:absolute; top: 0; left: 0; z-index: 1; ">
                 </div>
                 <div id="${props.id}credit" style="text-align: right; font-size: 80%; padding: 25px; position:absolute; bottom: 0; right: 0; z-index: 1; ">
@@ -124,17 +127,17 @@ export class GalleryApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let selector = document.getElementById(`${this.props.id}selector`)
-            Object.keys(this.shaders).forEach((k) => {
-                selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
-            })
+            // let selector = document.getElementById(`${this.props.id}selector`)
+            // Object.keys(this.shaders).forEach((k) => {
+            //     selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
+            // })
             
-            this.currentShader = this.shaders[selector.value]
+            // this.currentShader = this.shaders[selector.value]
 
-            selector.onchange = (e) => {
-                this.currentShader = this.shaders[e.target.value]
-                this.updateShader()
-            }
+            // selector.onchange = (e) => {
+            //     this.currentShader = this.shaders[e.target.value]
+            //     this.updateShader()
+            // }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -223,58 +226,86 @@ this.controls.enableDamping = true
 this.controls.enabled = false;
 this.controls.minPolarAngle = 2*Math.PI/6; // radians
 this.controls.maxPolarAngle = 4*Math.PI/6; // radians
-this.controls.minAzimuthAngle = -1*Math.PI/6; // radians
-this.controls.maxAzimuthAngle = 1*Math.PI/6; // radians
+// this.controls.minAzimuthAngle = -1*Math.PI/6; // radians
+// this.controls.maxAzimuthAngle = 1*Math.PI/6; // radians
 this.controls.minDistance = baseCameraPos.z; // radians
-this.controls.maxDistance = baseCameraPos.z*5; // radians
+this.controls.maxDistance = baseCameraPos.z*10; // radians
 
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
 let tStart = Date.now()
-this.material = new THREE.ShaderMaterial({
-    transparent: true,
-    uniforms:
-    {
-        // aspect: {value: this.three.meshWidth / this.three.meshHeight},
-        amplitude: {value: 0.75},
-        times: {value: this.timeBuffer},
-        colors: {value: this.colorBuffer.flat(1)},
-        mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
-        neurofeedback: {value: this.noiseBuffer}
-    }
+
+let shaderKeys = Object.keys(this.shaders)
+let numShaders = shaderKeys.length
+shaderKeys.forEach((k,i) => {
+
+    this.material = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        vertexShader: this.shaders[k].vertexShader,
+        fragmentShader: this.shaders[k].fragmentShader,
+        uniforms:
+        {
+            // aspect: {value: this.three.meshWidth / this.three.meshHeight},
+            amplitude: {value: 0.75},
+            times: {value: this.timeBuffer},
+            colors: {value: this.colorBuffer.flat(1)},
+            mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
+            neurofeedback: {value: this.noiseBuffer}
+        }
+    })
+
+    let radius = 10
+    let plane = new THREE.Mesh(planeGeometry, this.material)
+    let angle = 2 * Math.PI * i/numShaders
+    plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+    plane.rotation.set(0,-angle - Math.PI/2,0)
+    this.three.planes.push(plane)
+    this.three.scene.add(plane)
 })
 
 
+// SINGLE SHADER
 
-// Mesh
-this.plane = new THREE.Mesh(planeGeometry, this.material)
-this.three.scene.add(this.plane)
-
-this.updateShader()
+// this.material = new THREE.ShaderMaterial({
+//     transparent: true,
+//     uniforms:
+//     {
+//         // aspect: {value: this.three.meshWidth / this.three.meshHeight},
+//         amplitude: {value: 0.75},
+//         times: {value: this.timeBuffer},
+//         colors: {value: this.colorBuffer.flat(1)},
+//         mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
+//         neurofeedback: {value: this.noiseBuffer}
+//     }
+// })
+// this.plane = new THREE.Mesh(planeGeometry, this.material)
+// this.three.scene.add(this.plane)
+// this.updateShader()
 
 // Resize
 this.resize = () => {
     this.camera.aspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
     this.camera.updateProjectionMatrix()
-    regeneratePlaneGeometry()
+    // regeneratePlaneGeometry()
     // this.material.uniforms.aspect.value = this.three.meshWidth / this.three.meshHeight
     
     this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
 }
 
 let regeneratePlaneGeometry = () => {
-    // let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
-    // this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
-    // let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
-    // this.plane.geometry.dispose()
-    // this.plane.geometry = newGeometry
+    let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+    this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
+    let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+    this.plane.geometry.dispose()
+    this.plane.geometry = newGeometry
 }
 
 // Animate
 let startTime = Date.now()
 this.render = () => {
 
-    setTimeout( () => {
+    // setTimeout( () => {
         if (this.three.renderer.domElement != null){
 
                 // Organize Brain Data 
@@ -293,14 +324,16 @@ this.render = () => {
                 this.noiseBuffer.push(neurofeedback)
                     
                 // Set Uniforms
-                this.material.uniforms.colors.value = this.colorBuffer.flat(1) 
-                this.material.uniforms.times.value = this.timeBuffer
-                this.material.uniforms.neurofeedback.value = this.noiseBuffer
+                this.three.planes.forEach(plane => {
+                    plane.material.uniforms.colors.value = this.colorBuffer.flat(1) 
+                    plane.material.uniforms.times.value = this.timeBuffer
+                    plane.material.uniforms.neurofeedback.value = this.noiseBuffer
+                })
 
                 this.controls.update()
                 this.three.renderer.render( this.three.scene, this.camera );
         }
-    }, 1000 / 60 );
+    // }, 1000 / 60 );
 };
 
     let animate = () => {
