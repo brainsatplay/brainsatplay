@@ -36,7 +36,7 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:100%; width:100%;
             overflow-y: scroll;
-            margin: 25px 0px;
+            padding: 25px
             ' 
             >
             </div>
@@ -77,15 +77,24 @@ export class AppletBrowser {
             overflow: hidden;
             background: black;
             background: rgb(15,15,15);
-            margin: 10px;
+            margin: 5px;
+            transition: 0.5s;
             `
+
+        let onMouseOver = `
+            this.style.boxShadow = '0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6)';
+        `
+
+        let onMouseOut = `
+            this.style.boxShadow = 'none';
+        `
 
         let presetSelections = []
         let presetHTML = ``
 
         presets.forEach(preset => {
                 presetHTML += `
-                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};">
+                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                     <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                     <div style="padding: 0px 25px 10px 25px;">
                     <h2 style="margin-bottom: 0px;">${preset.name}</h2>
@@ -140,7 +149,7 @@ export class AppletBrowser {
                         type = 'Other'
                     }
                     let html = `
-                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};">
+                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                         <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                         <div style="padding: 0px 25px 10px 25px;">
                         <h2 style="margin-bottom: 0px;">${settings.name}</h2>
