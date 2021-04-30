@@ -111,6 +111,8 @@ export class AttractorsApplet {
             },
         
             'Thomas Attractor': (x,y,z,timestep) => {
+
+                timestep *= 5;
                 const b = 0.19;
         
                 let dx = (-b*x + Math.sin(y)) * timestep;
@@ -120,6 +122,9 @@ export class AttractorsApplet {
             },
         
             'Three Scroll Unified Chaotic System Attractor': (x,y,z,timestep) => {
+
+                timestep *= 5;
+
                 const a = 40.0;
                 const b = 0.833;
                 const c = 20.0;
@@ -204,8 +209,8 @@ const scene = new THREE.Scene()
  * Cosmos
  */
 const parameters = {}
-parameters.count = 10000
-parameters.size = 0.005
+parameters.count = 100000
+parameters.size = 500
 parameters.radius = 5
 parameters.branches = 3
 parameters.spin = 1
@@ -219,47 +224,21 @@ let material = null
 let points = null
 
 // Attractor
-let x = 15 * Math.random() - 7.5;
-let y = 15 * Math.random() - 7.5;
-let z = 15 * Math.random() - 7.5;
-
-const scale = .007; // for reducing overall displayed size
-const speed = 5; // integer, increase for faster visualization
-
-const steps = 100000;
-let current = 1;
-const dt = .0005;
+const scale = 0.7; // for reducing overall displayed size
+const dt = .005;
 
 const draw = () => {
 
     const geometry = points.geometry;
 
-    geometry.attributes.position.array.copyWithin( 3 );
-    geometry.attributes.color.array.copyWithin( 3 );
-
-    if ( current < steps ) {
-
+    for (let i = 0; i < geometry.attributes.position.count; i++){
+        let x = geometry.attributes.position.array[(3*i)]
+        let y = geometry.attributes.position.array[(3*i)+1]
+        let z = geometry.attributes.position.array[(3*i)+2]
         const [dx,dy,dz] = this.currentAttractor(x,y,z,dt)
-        if (isNaN(dx) || isNaN(dy) || isNaN(dz)) {
-            document.getElementById(`${this.props.id}selector`).onchange()
-        } else {
-            x += dx;
-            y += dy;
-            z += dz;
-
-            geometry.attributes.position.set( [ scale * x, scale * y, scale * z ], 0 );
-            geometry.attributes.color.set( [1-dx,1-dy,1-dz], 0 );
-        }
-
-        if ( current < steps + parameters.count ) {
-
-            current ++;
-
-        } else {
-
-            current = 0;
-
-        }
+        geometry.attributes.position.array[(3*i)] += dx
+        geometry.attributes.position.array[(3*i)+1] += dy
+        geometry.attributes.position.array[(3*i)+2] += dz
     }
 }
 
@@ -299,10 +278,10 @@ this.generateAttractor = () =>
         const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
         const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
 
-        positions[i3    ] = scale * x; // Math.cos(branchAngle) * radius
-        positions[i3 + 1] = scale * y // 0
-        positions[i3 + 2] = scale * z // Math.sin(branchAngle) * radius
-    
+        positions[i3    ] = scale * 15 * Math.random() - 7.5; // Math.cos(branchAngle) * radius
+        positions[i3 + 1] = scale * 15 * Math.random() - 7.5 // 0
+        positions[i3 + 2] = scale * 15 * Math.random() - 7.5 // Math.sin(branchAngle) * radius
+
         randomness[i3    ] = randomX
         randomness[i3 + 1] = randomY
         randomness[i3 + 2] = randomZ
@@ -311,19 +290,14 @@ this.generateAttractor = () =>
         const mixedColor = insideColor.clone()
         mixedColor.lerp(outsideColor, radius / parameters.radius)
 
-        colors[i3    ] = 1; // mixedColor.r
-        colors[i3 + 1] = 1; mixedColor.g
-        colors[i3 + 2] = 1; mixedColor.b
+        colors[i3    ] = mixedColor.r
+        colors[i3 + 1] = mixedColor.g
+        colors[i3 + 2] = mixedColor.b
 
         // Scale
         scales[i] = Math.random()
     }
 
-    for ( let i = 0; i < positions.length; i += 3 ) {
-
-        positions.set( [ scale * x, scale * y, scale * z ], i );
-
-    }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
@@ -336,10 +310,11 @@ this.generateAttractor = () =>
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
+        side: THREE.DoubleSide,
         uniforms:
         {
             uTime: { value: 0 },
-            uSize: { value: 20*camera.position.z * this.renderer.getPixelRatio() }
+            uSize: { value: 100 * this.renderer.getPixelRatio() }
         },    
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
@@ -383,8 +358,8 @@ this.onResize = () => {
  * Camera
  */
 // Base camera
-let baseCameraPos = new THREE.Vector3(0.4,0.4,0.4)
-const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.1, 100)
+let baseCameraPos = new THREE.Vector3(0,0,30)
+const camera = new THREE.PerspectiveCamera(75, appletContainer.clientWidth / appletContainer.clientHeight, 0.01, 1000)
 camera.position.x = baseCameraPos.x * camera.aspect
 camera.position.y = baseCameraPos.y * camera.aspect
 camera.position.z = baseCameraPos.z * camera.aspect
@@ -458,7 +433,7 @@ if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 }
 
 /**
- * Generate galaxy
+ * Generate attractor
  */
 this.generateAttractor()
 
@@ -472,11 +447,11 @@ const animate = () =>
     setTimeout( () => {
     const elapsedTime = clock.getElapsedTime()
 
-    for ( let i = 0; i < speed; i ++ ) draw();
+    draw();
 
     points.geometry.attributes.position.needsUpdate = true;
     // points.geometry.attributes.color.needsUpdate = true;
-    points.rotation.z += .01;
+    // points.rotation.z += .01;
 
     // // Update material
     // let neurofeedback = this.getNeurofeedback()
