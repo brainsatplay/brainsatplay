@@ -199,7 +199,7 @@ export class VRApplet {
 				navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
 					if (isSupported && !this.isMobile){
 						this.renderer.xr.enabled = true;
-						this.renderer.xr.enabled = true;
+						this.renderer.xr.setReferenceSpaceType( 'local' );
 						this.controller = this.renderer.xr.getController( 0 );
 						this.VRButton = VRButton.createButton( this.renderer )
 						this.VRButton.id = `${this.props.id}VRButton`
