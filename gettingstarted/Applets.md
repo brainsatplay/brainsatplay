@@ -32,7 +32,7 @@ export const settings = {
     "name": "My Applet",
     "devices": ["eeg","heg"],
     "description": "This is my applet.",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "MyApplet",
     "image": featureImg
 }

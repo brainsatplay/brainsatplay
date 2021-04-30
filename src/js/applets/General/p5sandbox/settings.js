@@ -4,7 +4,7 @@ export const settings = {
     "name": "P5 Sandbox",
     "devices": ["eeg","heg"],
     "description": "Working with brains!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "p5SandboxApplet",
     "image": featureImg
 }

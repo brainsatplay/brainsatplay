@@ -148,12 +148,15 @@ export class AppletBrowser {
                     } else {
                         type = 'Other'
                     }
+
+                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
+
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                         <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                         <div style="padding: 0px 25px 10px 25px;">
                         <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                        <p style="font-size: 80%;margin-top: 5px;">${type}</p>
+                        <p style="font-size: 80%;margin-top: 5px;">${type} | ${categoryString}</p>
                         <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
@@ -175,9 +178,11 @@ export class AppletBrowser {
             </div>
             <div style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
                 <h1>Applets</h1>
-                <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
-                    <option value="all" selected>All</option>
-                </select>
+                <div style="padding: 0px 25px;  width: 100%; margin: auto;">
+                    <select id="${this.props.id}-categoryselector" style="max-height: 30px; width: 100%;">
+                        <option value="all" selected>All</option>
+                    </select>
+                </div>
             </div>
             <hr>
             <div id="${this.props.id}-appletsection" 

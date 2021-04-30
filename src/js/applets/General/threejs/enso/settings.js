@@ -4,7 +4,7 @@ export const settings = {
     "name": "Enso",
     "devices": ["eeg", "heg"],
     "description": "Calm the ring!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "EnsoApplet",
     "image": featureImg
 };

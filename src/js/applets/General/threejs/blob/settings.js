@@ -4,7 +4,7 @@ export const settings = {
     "name": "Blob",
     "devices": ["eeg","heg"],
     "description": "Calm the blob!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "BlobApplet",
     "image": featureImg
 }

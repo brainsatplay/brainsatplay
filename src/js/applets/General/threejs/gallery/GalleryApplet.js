@@ -366,8 +366,8 @@ this.render = () => {
     deinit() {
         this.AppletHTML.deleteNode();
         this.three.renderer.setAnimationLoop( null );
-        this.controller.removeEventListener( 'connected')
-        this.controller.removeEventListener( 'disconnected')
+        // this.controller.removeEventListener( 'connected')
+        // this.controller.removeEventListener( 'disconnected')
         this.clearThree()
     }
 

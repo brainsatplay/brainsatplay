@@ -4,7 +4,7 @@ export const settings = {
     "name": "Machine Learning",
     "devices": ["eeg"],
     "description": "Detect blinks with machine learning!",
-    "categories": ["data"],
+    "categories": ["connect"],
     "module": "MLApplet",
     "image": featureImg
 }

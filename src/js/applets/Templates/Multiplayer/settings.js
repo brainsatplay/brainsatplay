@@ -6,7 +6,7 @@ export const settings = {
     "name": "Multiplayer Example",
     "subtitle": 'A Simple Fighting Game',
     "description": "A simple fighting game to control your alpha and beta coherence.",
-    "categories": ['multiplayer'],
+    "categories": ['play', 'brainstorm'],
 
     // Stream Information
     "devices": ['eeg'],

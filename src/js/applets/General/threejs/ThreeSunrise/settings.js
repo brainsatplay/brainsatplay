@@ -4,7 +4,7 @@ export const settings = {
     "name": "Sunrise",
     "devices": ["heg"],
     "description": "Spin the Earth!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "ThreeSunriseApplet",
     "image": featureImg
 }
