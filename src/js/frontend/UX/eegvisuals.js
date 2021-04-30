@@ -821,8 +821,6 @@ export class eegBarChart {
 
 		let normalizer = 1/max;
 
-		console.log
-
 		this.ctx.clearRect(0, 0, cwidth, cheight);
 		
 		let i = 0;
@@ -918,10 +916,6 @@ export class mirrorBarChart {
 		this.rightcanvasId = rightcanvasId;
 		this.leftbars = new eegBarChart(leftcanvasId);
 		this.rightbars = new eegBarChart(rightcanvasId);
-		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
-
-		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
-		this.rightbars.ctx.scale(-1,1);
 	}
 
 	deInit() {
@@ -932,11 +926,19 @@ export class mirrorBarChart {
 	init() {
 		this.leftbars.init();
 		this.rightbars.init();
+		this.leftbars.ctx.rotate(90 * (Math.PI / 180));
+		this.rightbars.ctx.rotate(90 * (Math.PI / 180));
+		this.rightbars.ctx.scale(-1,1);
 	}
 
 	draw = () => {
 		this.leftbars.draw();
 		this.rightbars.draw();
+	}
+
+	animate = () => {
+		this.leftbars.animate();
+		this.rightbars.animate();
 	}
 
 }

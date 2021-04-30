@@ -27,7 +27,6 @@ export class BarChartApplet {
 
         //etc..
         this.chart = null;
-        this.mode = 'single'; //single, mirror
         this.looping = false;
         this.loop = null;
     }
@@ -83,7 +82,6 @@ export class BarChartApplet {
                     if(val2 === 'fft') {
                         this.chart.showvalues = false;
                     }
-                    
                 } else if (val === 'mirror') {
                     document.getElementById(props.id+'canvas').style.width = '49%';
                     document.getElementById(props.id+'canvas2').style.display = '';
@@ -96,8 +94,8 @@ export class BarChartApplet {
                         this.chart.rightbars.showvalues = false;
                     }
                 }
-                this.responsive();
                 this.chart.init();
+                this.responsive();
             }
 
             document.getElementById(props.id+'data').onchange = () => {
@@ -122,6 +120,7 @@ export class BarChartApplet {
                         this.chart.rightbars.showvalues = true;
                     }
                 }
+                this.chart.draw();
             }
         }
 
@@ -162,7 +161,9 @@ export class BarChartApplet {
             addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
             addChannelOptions(this.props.id+"channel2", this.bci.atlas.data.eegshared.eegChannelTags, true);
         }
-        if(this.mode === 'single') {
+        
+        let graphmode = document.getElementById(this.props.id+'mode').value;
+        if(graphmode === 'single') {
             document.getElementById(this.props.id+'canvas').width = this.AppletHTML.node.clientWidth;
             document.getElementById(this.props.id+'canvas').height = this.AppletHTML.node.clientHeight;
             document.getElementById(this.props.id+'canvas').style.width = this.AppletHTML.node.clientWidth;
@@ -177,6 +178,7 @@ export class BarChartApplet {
             document.getElementById(this.props.id+'canvas2').style.width = this.AppletHTML.node.clientWidth*0.49;
             document.getElementById(this.props.id+'canvas2').style.height = this.AppletHTML.node.clientHeight;
         }
+        this.chart.draw();
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -227,16 +229,16 @@ export class BarChartApplet {
     updateChart = () => {
         let ch1 = document.getElementById(this.props.id+'channel').value;
         let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
-        let mod = document.getElementById(this.props.id+'data').value;
+        let graphmode = document.getElementById(this.props.id+'mode').value;
+        let datamode = document.getElementById(this.props.id+'data').value;
         if(dat.fftCount > 0) {
-            if(this.mode === 'single') {
-                if(mod === 'fft') {
+            if(graphmode === 'single') {
+                if(datamode === 'fft') {
                     this.chart.slices = dat.slice;
-                } else if (mod === 'bands') {
+                } else if (datamode === 'bands') {
                     this.chart.slices = dat.mean;
-                } else if (mod === 'ratios') {
+                } else if (datamode === 'ratios') {
                     let coord = this.bci.atlas.getEEGDataByChannel(ch1);
-                    console.log(coord, ch1, parseInt(ch1));
                     if(coord) {
                         let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
                         let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
@@ -244,16 +246,16 @@ export class BarChartApplet {
                         this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha1:alpha2_1 };
                     }
                 }
-            } else if (this.mode === 'mirror') {
+            } else if (graphmode === 'mirror') {
                 let ch2 = document.getElementById(this.props.id+'channel2').value;
                 let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
-                if(mod === 'fft') {
+                if(datamode === 'fft') {
                     this.chart.leftbars.slices = dat.slice;
                     this.chart.rightbars.slices = dat2.slice;
-                } else if (mod === 'bands') {
+                } else if (datamode === 'bands') {
                     this.chart.leftbars.slices = dat.mean;
                     this.chart.rightbars.slices = dat2.mean;
-                } else if (mod === 'ratios') {
+                } else if (datamode === 'ratios') {
                     let coord = this.bci.atlas.getEEGDataByChannel(ch1);
                     if(coord) {
                         let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);

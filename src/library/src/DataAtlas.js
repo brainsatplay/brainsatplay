@@ -440,7 +440,7 @@ export class DataAtlas {
 	getEEGDataByTag = (tag="FP1") => {
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
-			if(o.tag === tag || o.ch === tag){
+			if(o.tag === tag || o.ch === parseInt(tag)){
 				found = o;
 				return true;
 			}
@@ -475,7 +475,7 @@ export class DataAtlas {
 		let dat = [];
 		this.data.eegshared.eegChannelTags.forEach((r, i) => {
 			if(tag) {
-				if(tag === r.tag || tag === r.ch) {
+				if(tag === r.tag || parseInt(tag) === r.ch) {
 					if(r.analyze === true) {
 						let row = this.getEEGDataByTag(r.tag);
 						if(row.fftCount === 0) {
@@ -498,7 +498,7 @@ export class DataAtlas {
 					}
 				}
 			}
-			if(r.analyze === true) {
+			else if(r.analyze === true) {
 				let row = this.getEEGDataByTag(r.tag);
 				if(row.fftCount === 0) {
 					dat.push({
