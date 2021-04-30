@@ -280,7 +280,7 @@ export class DataAtlas {
 	}
 
 	genCoherenceStruct(tag0,tag1,coord0,coord1) {
-		var freqBins = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []};
+		var bandFreqs = {scp: [], delta: [], theta: [], alpha1: [], alpha2: [], beta: [], lowgamma: [], highgamma: []};
 		
 		return {
 			tag: tag0+"::"+tag1,
@@ -293,8 +293,8 @@ export class DataAtlas {
 			fftCount: 0,
 			fftTimes:[],
 			ffts:[],
-			slices: JSON.parse(JSON.stringify(freqBins)),
-			means: JSON.parse(JSON.stringify(freqBins)),  // counter value when this struct was last read from (for using get functions)
+			slices: JSON.parse(JSON.stringify(bandFreqs)),
+			means: JSON.parse(JSON.stringify(bandFreqs)),  // counter value when this struct was last read from (for using get functions)
 			lastRead:0
 		}
 	}
@@ -421,6 +421,7 @@ export class DataAtlas {
 
 	getEEGDataByChannel = (ch=0) => {
 		let found = undefined;
+		if(typeof ch === 'string') ch = parseInt(ch);
 		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
 				if(o.tag === null || o.tag === 'other') {
@@ -439,7 +440,7 @@ export class DataAtlas {
 	getEEGDataByTag = (tag="FP1") => {
 		var found = undefined;
 		let atlasCoord = this.data.eeg.find((o, i) => {
-			if(o.tag === tag){
+			if(o.tag === tag || o.ch === tag){
 				found = o;
 				return true;
 			}
@@ -623,7 +624,7 @@ export class DataAtlas {
 	//Get alpha2/alpha1 ratio from bandpower averages
 	getAlphaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
-			let ratio = eeg_data.means.alpha2[eeg_ch.fftCount-1] / eeg_data.means.alpha1[eeg_ch.fftCount-1];
+			let ratio = eeg_data.means.alpha2[eeg_data.fftCount-1] / eeg_data.means.alpha1[eeg_data.fftCount-1];
 			return ratio;
 		}
 		else return 0;
@@ -640,7 +641,7 @@ export class DataAtlas {
 	//Calculate the latest alpha beta ratio from bandpower averages
 	getAlphaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
-			let ratio = ((eeg_data.means.alpha1[eeg_ch.fftCount-1]+eeg_data.means.alpha2[eeg_ch.fftCount-1])*.5) / eeg_data.means.beta[eeg_ch.fftCount-1];
+			let ratio = ((eeg_data.means.alpha1[eeg_data.fftCount-1]+eeg_data.means.alpha2[eeg_data.fftCount-1])*.5) / eeg_data.means.beta[eeg_data.fftCount-1];
 			return ratio;
 		}
 		else return 0;
@@ -649,15 +650,15 @@ export class DataAtlas {
 	//Get highest peak near 40Hz (38-42Hz)
 	get40HzGamma = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
-			let lowgamma = eeg_data.slices.lowgamma[eeg_ch.fftCount-1];
+			let lowgamma = eeg_data.slices.lowgamma[eeg_data.fftCount-1];
 			let centered = [];
 			lowgamma.forEach((val,i) => {
-				if(this.eegshared.freqBins.lowgamma[i] > 38 && this.eegshared.freqBins.lowgamma[i] < 42) {
+				if(this.data.eegshared.bandFreqs.lowgamma[0][i] > 38 && this.data.eegshared.bandFreqs.lowgamma[0][i] < 42) {
 					centered.push(val);
 				}
 			});
 
-			return this.max(...centered);
+			return Math.max(...centered);
 		}
 		else return 0;
 	}

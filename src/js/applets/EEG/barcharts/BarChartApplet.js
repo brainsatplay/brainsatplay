@@ -44,12 +44,21 @@ export class BarChartApplet {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id='${props.id}menu' style='position:absolute;'>
+                    <div>
                     <select id='${props.id}mode'>
                         <option value='single'>Single</option>
                         <option value='mirror'>Mirrored</option>
                     </select>
                     <select id='${props.id}channel'></select>
                     <select id='${props.id}channel2'></select>
+                    </div>
+                    <div>
+                    <select id='${props.id}data'>
+                        <option value='fft'>FFT</option>
+                        <option value='bands'>Bands</option>
+                        <option value='ratios'>Ratios</option>
+                    </select></div>
+                    <div id='${props.id}legend' style='background-color:rgba(0,0,0,0.3)'></div>
                 </div>
                 <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
                 <canvas id='${props.id}canvas2' style='display:none;width:49%;height:100%;'></canvas>
@@ -69,13 +78,50 @@ export class BarChartApplet {
                     document.getElementById(props.id+'canvas2').style.display = 'none';
                     document.getElementById(props.id+'canvas').style.width = '100%';
                     this.chart = new eegBarChart(props.id+'canvas');
+
+                    let val2 = document.getElementById(props.id+'data').value;
+                    if(val2 === 'fft') {
+                        this.chart.showvalues = false;
+                    }
+                    
                 } else if (val === 'mirror') {
                     document.getElementById(props.id+'canvas').style.width = '49%';
                     document.getElementById(props.id+'canvas2').style.display = '';
                     document.getElementById(props.id+'channel2').style.display = '';
                     this.chart = new mirrorBarChart(props.id+'canvas',props.id+'canvas2');
+
+                    let val2 = document.getElementById(props.id+'data').value;
+                    if(val2 === 'fft') {
+                        this.chart.leftbars.showvalues = false;
+                        this.chart.rightbars.showvalues = false;
+                    }
                 }
+                this.responsive();
                 this.chart.init();
+            }
+
+            document.getElementById(props.id+'data').onchange = () => {
+                this.setLegend();
+                let val = document.getElementById(props.id+'data').value;
+                let val2 = document.getElementById(props.id+'mode').value;
+                if(val === 'fft') {
+                    if(val2 === 'single'){
+                        this.chart.showvalues = false;
+                    }
+                    else if (val2 === 'mirror') {
+                        this.chart.leftbars.showvalues = false;
+                        this.chart.rightbars.showvalues = false;
+                    }
+                }
+                else {
+                    if(val2 === 'single'){
+                        this.chart.showvalues = true;
+                    }
+                    else if (val2 === 'mirror') {
+                        this.chart.leftbars.showvalues = true;
+                        this.chart.rightbars.showvalues = true;
+                    }
+                }
             }
         }
 
@@ -93,10 +139,13 @@ export class BarChartApplet {
 
         //Add whatever else you need to initialize
         this.chart = new eegBarChart(this.props.id+'canvas');
+        this.chart.showvalues = false;
         this.chart.init();
 
         this.looping = true;
+        this.setLegend();
         this.updateLoop();
+        
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -112,7 +161,6 @@ export class BarChartApplet {
         if(this.bci.atlas.settings.eeg) {
             addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
             addChannelOptions(this.props.id+"channel2", this.bci.atlas.data.eegshared.eegChannelTags, true);
-            document.getElementById(this.props.id+"mode").onchange();
         }
         if(this.mode === 'single') {
             document.getElementById(this.props.id+'canvas').width = this.AppletHTML.node.clientWidth;
@@ -141,28 +189,88 @@ export class BarChartApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    setLegend() {
+        let legend = document.getElementById(this.props.id+'legend');
+        if(document.getElementById(this.props.id+'data').value === 'ratios'){
+            legend.innerHTML = `
+                Ratios:<br>
+                <span style='color:purple;'>Theta/Beta Ratio</span><br>
+                <span style='color:blue;'>Alpha/Beta Ratio</span><br>
+                <span style='color:chartreuse;'>Alpha2/Alpha1 Ratio</span><br>
+            `;
+        }
+        else {
+            legend.innerHTML = `
+                Bands:<br>
+                <span style='color:purple;'>SCP</span><br>
+                <span style='color:violet;'>Delta</span><br>
+                <span style='color:blue;'>Theta</span><br>
+                <span style='color:green;'>Alpha 1</span><br>
+                <span style='color:chartreuse;'>Alpha 2</span><br>
+                <span style='color:gold;'>Beta</span><br>
+                <span style='color:red;'>Low Gamma</span><br>
+            `;
+        }
+    }
+
+
     //doSomething(){}
     updateLoop = () => {
         if(this.looping) {
             if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
-                let ch1 = document.getElementById(this.props.id+'channel').value;
-                let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
-                if(dat.fftCount > 0) {
-                    if(this.mode === 'single') {
-                        this.chart.slices = dat.slice;
-                        this.chart.fftArr = dat.fft;
-                    } else if (this.mode === 'mirror') {
-                        let ch2 = document.getElementById(this.props.id+'channel2').value;
-                        this.chart.leftbars.slices = dat.slice;
-                        this.chart.leftbars.fftArr = dat.fft;
-                        let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
-                        this.chart.rightbars.slices = dat2.slice;
-                        this.chart.rightbars.fftArr = dat2.fft;
-                    }
-                    this.chart.draw();
-                }
+                this.updateChart();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
+        }
+    }
+
+    updateChart = () => {
+        let ch1 = document.getElementById(this.props.id+'channel').value;
+        let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
+        let mod = document.getElementById(this.props.id+'data').value;
+        if(dat.fftCount > 0) {
+            if(this.mode === 'single') {
+                if(mod === 'fft') {
+                    this.chart.slices = dat.slice;
+                } else if (mod === 'bands') {
+                    this.chart.slices = dat.mean;
+                } else if (mod === 'ratios') {
+                    let coord = this.bci.atlas.getEEGDataByChannel(ch1);
+                    console.log(coord, ch1, parseInt(ch1));
+                    if(coord) {
+                        let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
+                        let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
+                        let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
+                        this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha1:alpha2_1 };
+                    }
+                }
+            } else if (this.mode === 'mirror') {
+                let ch2 = document.getElementById(this.props.id+'channel2').value;
+                let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
+                if(mod === 'fft') {
+                    this.chart.leftbars.slices = dat.slice;
+                    this.chart.rightbars.slices = dat2.slice;
+                } else if (mod === 'bands') {
+                    this.chart.leftbars.slices = dat.mean;
+                    this.chart.rightbars.slices = dat2.mean;
+                } else if (mod === 'ratios') {
+                    let coord = this.bci.atlas.getEEGDataByChannel(ch1);
+                    if(coord) {
+                        let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
+                        let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
+                        let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
+                        this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha2:alpha2_1};
+                    }
+                    let coord2 = this.bci.atlas.getEEGDataByChannel(ch2);
+                    if(coord2) {
+                        let thetabeta2 = this.bci.atlas.getThetaBetaRatio(coord2);
+                        let alphabeta2 = this.bci.atlas.getAlphaBetaRatio(coord2);
+                        let alpha2_12 = this.bci.atlas.getAlphaRatio(coord2);
+                        this.chart.slices = { scp:thetabeta2, theta:alphabeta2, alpha2:alpha2_12 };
+                    }
+                }
+            }
+            this.chart.draw();
         }
     }
    
