@@ -36,7 +36,7 @@ export class AppletBrowser {
             <div id='${props.id}' style='
             height:100%; width:100%;
             overflow-y: scroll;
-            padding: 25px
+            padding: 50px
             ' 
             >
             </div>
@@ -164,7 +164,7 @@ export class AppletBrowser {
             })
 
             container.innerHTML += `
-            <h1 style="padding: 25px 25px 0px 25px;">Feedback Presets</h1>
+            <h1>Feedback Presets</h1>
             <hr>
             <div style='
             display: flex;
@@ -173,8 +173,8 @@ export class AppletBrowser {
             justify-content: center;'>
                 ${presetHTML}
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2,1fr);">
-                <h1 style="padding: 25px 25px 0px 25px;">Applets</h1>
+            <div style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
+                <h1>Applets</h1>
                 <select id="${this.props.id}-categoryselector" style="max-height: 30px; margin: auto;">
                     <option value="all" selected>All</option>
                 </select>
