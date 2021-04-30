@@ -261,14 +261,14 @@ export class BarChartApplet {
                         let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
                         let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
                         let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
-                        this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha2:alpha2_1};
+                        this.chart.leftbars.slices = { scp:thetabeta, theta:alphabeta, alpha2:alpha2_1};
                     }
                     let coord2 = this.bci.atlas.getEEGDataByChannel(ch2);
                     if(coord2) {
                         let thetabeta2 = this.bci.atlas.getThetaBetaRatio(coord2);
                         let alphabeta2 = this.bci.atlas.getAlphaBetaRatio(coord2);
                         let alpha2_12 = this.bci.atlas.getAlphaRatio(coord2);
-                        this.chart.slices = { scp:thetabeta2, theta:alphabeta2, alpha2:alpha2_12 };
+                        this.chart.rightbars.slices = { scp:thetabeta2, theta:alphabeta2, alpha2:alpha2_12 };
                     }
                 }
             }
