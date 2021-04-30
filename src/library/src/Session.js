@@ -239,7 +239,8 @@ export class Session {
 
 	makeConnectOptions(parentNode=document.body, onconnect=()=>{}, ondisconnect=()=>{}) {
 		let id = Math.floor(Math.random()*10000)+"devicemenu";
-		let html = `<div><span class="collapsible-content-label">Device Selection</span><hr></div><div class="device-gallery">`;
+		let html = `
+		<div class="collapsible-content-label"><span>Device Selection</span><hr></div><div class="device-gallery">`;
 	
 		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
 	
