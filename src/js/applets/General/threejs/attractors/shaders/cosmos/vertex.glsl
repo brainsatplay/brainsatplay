@@ -4,8 +4,6 @@ uniform float uSize;
 attribute vec3 aRandomness;
 attribute float aScale;
 
-varying vec3 vColor;
-
 // Lorenz Attractor parameters
 float a = 10.0;
 float b = 28.0;
@@ -42,8 +40,4 @@ void main()
     gl_PointSize = uSize * aScale;
     gl_PointSize *= (1.0 / - viewPosition.z);
 
-    /**
-     * Color
-     */
-    vColor = color;
 }

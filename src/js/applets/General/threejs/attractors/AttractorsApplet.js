@@ -50,6 +50,8 @@ export class AttractorsApplet {
             },
         
             'Arneodo Attractor': (x,y,z,timestep) => {
+                timestep *= 2;
+
                 const a = -5.5;
                 const b = 3.5;
                 const d = -1;
@@ -210,21 +212,13 @@ const scene = new THREE.Scene()
  */
 const parameters = {}
 parameters.count = 100000
-parameters.size = 500
-parameters.radius = 5
-parameters.branches = 3
-parameters.spin = 1
-parameters.randomness = 0.2
-parameters.randomnessPower = 3
-parameters.insideColor = '#ff6030'
-parameters.outsideColor = '#1b3984'
-
+parameters.size = 5
 let geometry = null
 let material = null
 let points = null
 
 // Attractor
-const scale = 0.7; // for reducing overall displayed size
+const scale = 15; // for reducing overall displayed size
 const dt = .005;
 
 const draw = () => {
@@ -236,9 +230,15 @@ const draw = () => {
         let y = geometry.attributes.position.array[(3*i)+1]
         let z = geometry.attributes.position.array[(3*i)+2]
         const [dx,dy,dz] = this.currentAttractor(x,y,z,dt)
-        geometry.attributes.position.array[(3*i)] += dx
-        geometry.attributes.position.array[(3*i)+1] += dy
-        geometry.attributes.position.array[(3*i)+2] += dz
+        if (isNaN(dx) || isNaN(dy) || isNaN(dz)){
+            geometry.attributes.position.array[(3*i)] += scale * Math.random() - scale/2
+            geometry.attributes.position.array[(3*i)+1] += scale * Math.random() - scale/2
+            geometry.attributes.position.array[(3*i)+2] += scale * Math.random() - scale/2
+        } else {
+            geometry.attributes.position.array[(3*i)] += dx
+            geometry.attributes.position.array[(3*i)+1] += dy
+            geometry.attributes.position.array[(3*i)+2] += dz
+        }
     }
 }
 
@@ -258,49 +258,22 @@ this.generateAttractor = () =>
     geometry = new THREE.BufferGeometry()
 
     const positions = new Float32Array(parameters.count * 3)
-    const randomness = new Float32Array(parameters.count * 3)
-    const colors = new Float32Array(parameters.count * 3)
     const scales = new Float32Array(parameters.count * 1)
-
-    const insideColor = new THREE.Color(parameters.insideColor)
-    const outsideColor = new THREE.Color(parameters.outsideColor)
 
     for(let i = 0; i < parameters.count; i++)
     {
         const i3 = i * 3
 
-        // Position
-        const radius = Math.random() * parameters.radius
-
-        const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
-
-        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-
-        positions[i3    ] = scale * 15 * Math.random() - 7.5; // Math.cos(branchAngle) * radius
-        positions[i3 + 1] = scale * 15 * Math.random() - 7.5 // 0
-        positions[i3 + 2] = scale * 15 * Math.random() - 7.5 // Math.sin(branchAngle) * radius
-
-        randomness[i3    ] = randomX
-        randomness[i3 + 1] = randomY
-        randomness[i3 + 2] = randomZ
-
-        // Color
-        const mixedColor = insideColor.clone()
-        mixedColor.lerp(outsideColor, radius / parameters.radius)
-
-        colors[i3    ] = mixedColor.r
-        colors[i3 + 1] = mixedColor.g
-        colors[i3 + 2] = mixedColor.b
-
-        // Scale
-        scales[i] = Math.random()
+        // Positions
+        positions[i3    ] = scale * Math.random() - scale/2; // Math.cos(branchAngle) * radius
+        positions[i3 + 1] = scale * Math.random() - scale/2 // 0
+        positions[i3 + 2] = scale * Math.random() - scale/2 // Math.sin(branchAngle) * radius
+       
+        // Scales
+       scales[i] = 0.2 + 0.8*Math.random()
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
 
     /**
