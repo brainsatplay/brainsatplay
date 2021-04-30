@@ -10,7 +10,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 
 //Example Applet for integrating with the UI Manager
-export class CosmosApplet {
+export class AttractorsApplet {
 
     
     
@@ -33,6 +33,106 @@ export class CosmosApplet {
             //Add whatever else
         };
 
+        this.currentAttractor = null
+        this.attractors = {
+            'Aizawa Attractor': (x,y,z,timestep) => {
+                const a = 0.95;
+                const b = 0.7;
+                const c = 0.6;
+                const d = 3.5;
+                const e = 0.25;
+                const f = 0.1;
+                        
+                let dx = ((z-b) * x - d*y) * timestep;
+                let dy = (d * x + (z-b) * y) *timestep;
+                let dz = (c + a*z - ((z*z*z) /3) - (x*x) + f * z * (x*x*x)) * timestep;
+                return [dx,dy,dz]
+            },
+        
+            'Arneodo Attractor': (x,y,z,timestep) => {
+                const a = -5.5;
+                const b = 3.5;
+                const d = -1;
+                        
+                let dx = y * timestep;
+                let dy = z * timestep;
+                let dz = (-a*x -b*y -z + (d* (Math.pow(x, 3)))) * timestep;
+                return [dx,dy,dz]
+            },
+        
+            'Dadras Attractor': (x,y,z,timestep) => {
+                const a = 3;
+                const b = 2.7;
+                const c = 1.7;
+                const d = 2;
+                const e = 9;
+                        
+                let dx = (y- a*x +b*y*z) * timestep;
+                let dy = (c*y -x*z +z) * timestep;
+                let dz = (d*x*y - e*z) * timestep;
+                return [dx,dy,dz]
+            },
+        
+            // 'Dequan Attractor': (x,y,z,timestep) => {
+            //     const a = 40.0;
+            //     const b = 1.833;
+            //     const c = 0.16;
+            //     const d = 0.65;
+            //     const e = 55.0;
+            //     const f = 20.0;
+                        
+            //     let dx = ( a*(y-x) + c*x*z) * timestep;
+            //     let dy = (e*x + f*y - x*z) * timestep;
+            //     let dz = (b*z + x*y - d*x*x) * timestep;
+            //     return [dx,dy,dz]
+            // },
+
+            'Lorenz Attractor': (x,y,z,timestep) => {
+                const a = 10.0;
+                const b = 28.0;
+                const c = 2.6666666667;
+                        
+                let dx = (a * (y - x)) * timestep;
+                let dy = (x * (b-z) - y) * timestep;
+                let dz = (x*y - c*z) * timestep;
+                return [dx,dy,dz]
+            },
+        
+            'Lorenz Mod 2 Attractor': (x,y,z,timestep) => {
+                const a = 0.9;
+                const b = 5.0;
+                const c = 9.9;
+                const d = 1.0;
+                        
+                let dx = (-a*x+ y*y - z*z + a *c) * timestep;
+                let dy = (x*(y-b*z)+d)  * timestep;
+                let dz = (-z + x*(b*y +z))  * timestep;
+                return [dx,dy,dz]
+            },
+        
+            'Thomas Attractor': (x,y,z,timestep) => {
+                const b = 0.19;
+        
+                let dx = (-b*x + Math.sin(y)) * timestep;
+                let dy = (-b*y + Math.sin(z)) * timestep;
+                let dz = (-b*z + Math.sin(x)) * timestep;
+                return [dx,dy,dz]
+            },
+        
+            'Three Scroll Unified Chaotic System Attractor': (x,y,z,timestep) => {
+                const a = 40.0;
+                const b = 0.833;
+                const c = 20.0;
+                const d = 0.5;
+                const e = 0.65;
+                    
+                let dx = (a*(y-x) + d*x*z)   * timestep * 0.1 ;
+                let dy = (c*y - x*z )        * timestep * 0.1 ;
+                let dz = (b*z + x*y - e*x*x) * timestep * 0.1 ;
+                return [dx,dy,dz]
+            }
+        }
+
 
         this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/5000)} // default neurofeedback function
         this.getNeurofeedback = this.defaultNeurofeedback   
@@ -44,7 +144,6 @@ export class CosmosApplet {
 
     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
-
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
@@ -52,13 +151,26 @@ export class CosmosApplet {
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
                 <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
-            </div>
+                <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
+                    <select id='${props.id}selector'></select>
+                </div>
+                </div>
             `;  
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            let selector = document.getElementById(`${this.props.id}selector`)
+            Object.keys(this.attractors).forEach((k) => {
+                selector.innerHTML += `<option value='${k}'>${k}</option>`
+            })
+            
+            this.currentAttractor = this.attractors[selector.value]
+
+            selector.onchange = (e) => {
+                this.currentAttractor = this.attractors[selector.value]
+                this.generateAttractor()
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -92,7 +204,7 @@ const scene = new THREE.Scene()
  * Cosmos
  */
 const parameters = {}
-parameters.count = 200000
+parameters.count = 10000
 parameters.size = 0.005
 parameters.radius = 5
 parameters.branches = 3
@@ -106,7 +218,53 @@ let geometry = null
 let material = null
 let points = null
 
-const generateCosmos = () =>
+// Attractor
+let x = 15 * Math.random() - 7.5;
+let y = 15 * Math.random() - 7.5;
+let z = 15 * Math.random() - 7.5;
+
+const scale = .007; // for reducing overall displayed size
+const speed = 5; // integer, increase for faster visualization
+
+const steps = 100000;
+let current = 1;
+const dt = .0005;
+
+const draw = () => {
+
+    const geometry = points.geometry;
+
+    geometry.attributes.position.array.copyWithin( 3 );
+    geometry.attributes.color.array.copyWithin( 3 );
+
+    if ( current < steps ) {
+
+        const [dx,dy,dz] = this.currentAttractor(x,y,z,dt)
+        if (isNaN(dx) || isNaN(dy) || isNaN(dz)) {
+            document.getElementById(`${this.props.id}selector`).onchange()
+        } else {
+            x += dx;
+            y += dy;
+            z += dz;
+
+            geometry.attributes.position.set( [ scale * x, scale * y, scale * z ], 0 );
+            geometry.attributes.color.set( [1-dx,1-dy,1-dz], 0 );
+        }
+
+        if ( current < steps + parameters.count ) {
+
+            current ++;
+
+        } else {
+
+            current = 0;
+
+        }
+    }
+}
+
+
+this.generateAttractor = () =>
 {
     if(points !== null)
     {
@@ -141,9 +299,9 @@ const generateCosmos = () =>
         const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
         const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
 
-        positions[i3    ] = Math.cos(branchAngle) * radius
-        positions[i3 + 1] = 0
-        positions[i3 + 2] = Math.sin(branchAngle) * radius
+        positions[i3    ] = scale * x; // Math.cos(branchAngle) * radius
+        positions[i3 + 1] = scale * y // 0
+        positions[i3 + 2] = scale * z // Math.sin(branchAngle) * radius
     
         randomness[i3    ] = randomX
         randomness[i3 + 1] = randomY
@@ -153,14 +311,19 @@ const generateCosmos = () =>
         const mixedColor = insideColor.clone()
         mixedColor.lerp(outsideColor, radius / parameters.radius)
 
-        colors[i3    ] = mixedColor.r
-        colors[i3 + 1] = mixedColor.g
-        colors[i3 + 2] = mixedColor.b
+        colors[i3    ] = 1; // mixedColor.r
+        colors[i3 + 1] = 1; mixedColor.g
+        colors[i3 + 2] = 1; mixedColor.b
 
         // Scale
         scales[i] = Math.random()
     }
 
+    for ( let i = 0; i < positions.length; i += 3 ) {
+
+        positions.set( [ scale * x, scale * y, scale * z ], i );
+
+    }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
@@ -186,6 +349,8 @@ const generateCosmos = () =>
      * Points
      */
     points = new THREE.Points(geometry, material)
+    points.frustumCulled = false; // critical to avoid blackouts!
+
     scene.add(points)
 }
 
@@ -197,7 +362,7 @@ const generateCosmos = () =>
 // gui.addColor(parameters, 'insideColor').onFinishChange(generateCosmos)
 // gui.addColor(parameters, 'outsideColor').onFinishChange(generateCosmos)
 
-this.resizeCosmos = () => {
+this.onResize = () => {
     // Update camera
     camera.aspect = appletContainer.clientWidth / appletContainer.clientHeight
     camera.updateProjectionMatrix()
@@ -295,7 +460,7 @@ if(this.renderer.getPixelRatio() === 1 && !this.renderer.capabilities.isWebGL2)
 /**
  * Generate galaxy
  */
-generateCosmos()
+this.generateAttractor()
 
 /**
  * Animate
@@ -307,13 +472,19 @@ const animate = () =>
     setTimeout( () => {
     const elapsedTime = clock.getElapsedTime()
 
-    // Update material
-    let neurofeedback = this.getNeurofeedback()
-    if (neurofeedback){
-        material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
-        let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
-        if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
-    }
+    for ( let i = 0; i < speed; i ++ ) draw();
+
+    points.geometry.attributes.position.needsUpdate = true;
+    // points.geometry.attributes.color.needsUpdate = true;
+    points.rotation.z += .01;
+
+    // // Update material
+    // let neurofeedback = this.getNeurofeedback()
+    // if (neurofeedback){
+    //     material.uniforms.uTime.value += 0.001 + 0.01*neurofeedback
+    //     let coherenceReadout = appletContainer.querySelector('.brainsatplay-threejs-alphacoherence')
+    //     if (coherenceReadout) coherenceReadout.innerHTML = neurofeedback.toFixed(5)
+    // }
     // Update controls
     controls.update()
 
@@ -339,7 +510,7 @@ setTimeout(() => {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.resizeCosmos()
+        this.onResize()
         this.bci.atlas.makeFeedbackOptions(this)
     }
 
@@ -348,5 +519,4 @@ setTimeout(() => {
             //if(cmd === 'x'){//doSomething;}
         });
     }
-
 } 

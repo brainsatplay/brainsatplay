@@ -35,6 +35,8 @@ export const AppletInfo = {
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['play','brainstorm'] },
     'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['eeg'], categories:['train'] },
     'VR Applet': { folderUrl:'./General/threejs/vr', devices:['eeg','heg'], categories:['train'] },
+    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['eeg','heg'], categories:['train'] },
+
 };
 
 export let dynamicImport = async (url) => {
