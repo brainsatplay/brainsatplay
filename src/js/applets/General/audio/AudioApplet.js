@@ -1,6 +1,8 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {SoundJS} from '../../../frontend/UX/Sound'
+import * as settingsFile from './settings'
+
 export class AudioApplet {
 
     constructor(
@@ -12,6 +14,7 @@ export class AudioApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -34,7 +37,7 @@ export class AudioApplet {
 
         this.audio = null;
 
-        this.info = null;
+        this.fileInfo = null;
         this.menu = null;
 
         this.infoUpdateId = null; //to sotore the setTimeout ID and clear the interval
@@ -101,7 +104,7 @@ export class AudioApplet {
         
 
             //Add whatever else you need to initialize
-            this.info = document.getElementById(this.props.id+'fileinfo').innerHTML; //this used to upgrade the UI information
+            this.fileInfo = document.getElementById(this.props.id+'fileinfo').innerHTML; //this used to upgrade the UI information
             this.menu = document.getElementById(this.props.id+'menu');
        
             
@@ -231,7 +234,7 @@ export class AudioApplet {
             this.endAudio();
         };
         this.updateInfo('Playing ' + this.fileName, false);
-        this.info = 'Playing ' + this.fileName;
+        this.fileInfo = 'Playing ' + this.fileName;
         document.getElementById(this.props.id+'fileWrapper').style.opacity = 0.2;
         this.draw();
     }    
@@ -264,7 +267,7 @@ export class AudioApplet {
         if(div){
             document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
             document.getElementById(this.props.id+'fileinfo').innerHTML = text;
-            this.info = text;
+            this.fileInfo = text;
             document.getElementById(this.props.id+'uploadedFile').value = '';
         }
     }
@@ -354,7 +357,7 @@ export class AudioApplet {
         }, false);
         dropContainer.addEventListener("dragleave", () => {
             document.getElementById(this.props.id+'fileWrapper').style.opacity = 0.2;
-            this.updateInfo(this.info, false);
+            this.updateInfo(this.fileInfo, false);
         }, false);
         dropContainer.addEventListener("drop", (e) => {
             e.stopPropagation();

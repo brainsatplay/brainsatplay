@@ -10,6 +10,7 @@ import cloudtexUrl from './textures/clouds_8k.jpg'
 import moontexUrl from './textures/moon_4k.jpg'
 import emissiveUrl from './textures/8k_earth_nightmap.jpg'           
 import metalUrl from './textures/8k-earth-specular-map.tiff'
+import * as settingsFile from './settings'
 
 
 
@@ -27,6 +28,7 @@ export class ThreeSunriseApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

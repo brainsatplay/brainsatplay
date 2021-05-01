@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {Boids} from '../../../frontend/UX/Particles'
+import * as settingsFile from './settings'
 
 
 export class BoidsApplet {
@@ -14,6 +15,7 @@ export class BoidsApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

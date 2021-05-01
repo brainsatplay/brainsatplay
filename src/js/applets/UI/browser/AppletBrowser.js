@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import { presets , AppletInfo, getAppletSettings} from "../../appletList"
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -14,6 +15,7 @@ export class AppletBrowser {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -21,6 +23,12 @@ export class AppletBrowser {
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
+        
+        // Default Configuration Settings 
+        this.appletToReplace = 0
+        this.showPresets = true
+        this.showApplets = true
+        this.displayMode = 'default'
     }
 
     //---------------------------------
@@ -61,25 +69,49 @@ export class AppletBrowser {
 
         
 
-        // Applet Browser
-        const container = document.getElementById(this.props.id)
-
-
-        let appletStyle = `
+        // Style Configuration
+        let appletStyle;
+        let imgStyle = `width: 100%; aspect-ratio: 2 / 1; object-fit: cover;`;
+        let infoStyle = `padding: 0px 25px 10px 25px;`;
+        let appletHeaderStyle;
+        if (this.displayMode === 'tight'){
+            appletStyle = `
             min-width: 100px;
-            width: 200px; 
+            width: 20%; 
             cursor: pointer;
-            transition: 0.5s;
             border-radius: 5px;
             position: relative;  
             font-size: 80%;
             flex-grow: 1;
             overflow: hidden;
-            background: black;
             background: rgb(15,15,15);
             margin: 5px;
             transition: 0.5s;
             `
+
+        } else {
+        appletStyle = `
+            min-width: 100px;
+            width: 200px; 
+            cursor: pointer;
+            border-radius: 5px;
+            position: relative;  
+            font-size: 80%;
+            flex-grow: 1;
+            overflow: hidden;
+            background: rgb(15,15,15);
+            margin: 5px;
+            transition: 0.5s;
+            `
+        }
+
+        if (this.showPresets){
+            appletHeaderStyle = `display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;`
+        } else {
+            appletHeaderStyle = `display: grid; grid-template-columns: repeat(2,1fr);`
+        }
+
+        // Mouse Over Behavior
 
         let onMouseOver = `
             this.style.boxShadow = '0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6)';
@@ -89,22 +121,36 @@ export class AppletBrowser {
             this.style.boxShadow = 'none';
         `
 
+        // HTML Fragments
         let presetSelections = []
-        let presetHTML = ``
+        let presetHTML = ''
+        if (this.showPresets){
+            presetHTML = `
+            <h1>Feedback Presets</h1>
+            <hr>
+            <div style='
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: stretch; 
+            justify-content: center;'>
+            `
 
-        presets.forEach(preset => {
-                presetHTML += `
-                <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
-                    <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
-                    <div style="padding: 0px 25px 10px 25px;">
-                    <h2 style="margin-bottom: 0px;">${preset.name}</h2>
-                    <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
-                    <p style="font-size: 80%;margin-top: 5px;">${preset.description}</p>
-                    </div>
-                </div>`
-                presetSelections.push(preset.value)
-        })
-
+            if (this.showPresets){
+                presets.forEach(preset => {
+                        presetHTML += `
+                        <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
+                            <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
+                            <div style="padding: 0px 25px 10px 25px;">
+                            <h2 style="margin-bottom: 0px;">${preset.name}</h2>
+                            <p style="font-size: 80%;margin-top: 5px;">${preset.type}</p>
+                            <p style="font-size: 80%;margin-top: 5px;">${preset.description}</p>
+                            </div>
+                        </div>`
+                        presetSelections.push(preset.value)
+                })
+            }
+            presetHTML += `</div>`
+        }
         let generalHTML = ``
         // let eegHTML = ``
         // let hegHTML = ``
@@ -150,11 +196,11 @@ export class AppletBrowser {
 
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
-                        <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
-                        <div style="padding: 0px 25px 10px 25px;">
-                        <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                        <p style="font-size: 80%;margin-top: 5px;">${type} | ${categoryString}</p>
-                        <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                        <img src="${settings.image}" style="${imgStyle}">
+                        <div style="${infoStyle}">
+                            <h2 style="margin-bottom: 0px;">${settings.name}</h2>
+                            <p style="font-size: 80%;margin-top: 5px;">${type} | ${categoryString}</p>
+                            <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
                     generalHTML += html
@@ -164,17 +210,9 @@ export class AppletBrowser {
                 }
             })
 
-            container.innerHTML += `
-            <h1>Feedback Presets</h1>
-            <hr>
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: stretch; 
-            justify-content: center;'>
-                ${presetHTML}
-            </div>
-            <div id="${this.props.id}-appletheader" style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
+            document.getElementById(this.props.id).innerHTML += `
+            ${presetHTML}
+            <div id="${this.props.id}-appletheader" style="${appletHeaderStyle}">
                 <h1>Applets</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
@@ -193,6 +231,7 @@ export class AppletBrowser {
                 </div>
             </div>
             <hr>
+            <br>
             <div id="${this.props.id}-appletsection" 
             style='
             display: flex;
@@ -230,7 +269,7 @@ export class AppletBrowser {
 
 
             // Declare OnClick Responses
-            const appletCards = container.querySelectorAll('.browser-card')
+            const appletCards = document.getElementById(this.props.id).querySelectorAll('.browser-card')
             for (let div of appletCards){
                 let choice = div.id.split('-')[1]
                 if (presetSelections.includes(choice)){
@@ -241,7 +280,7 @@ export class AppletBrowser {
                     }
                 } else {
                     div.onclick = (e) => {
-                        let selector = document.getElementById('applet1')
+                        let selector = document.getElementById(`applet${this.appletToReplace+1}`)
                         selector.value = choice
                         window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
                         selector.onchange()
@@ -270,7 +309,11 @@ export class AppletBrowser {
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
-            //if(cmd === 'x'){//doSomething;}
+            if (cmd.appletIdx != null) this.appletToReplace = cmd.appletIdx
+            if (cmd.showPresets != null) this.showPresets = cmd.showPresets
+            // if (cmd.showApplets != null) this.showApplets = cmd.showApplets
+            if (cmd.displayMode != null) this.displayMode = cmd.displayMode
+
         });
     }
 

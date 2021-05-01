@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import logo from '../../../../assets/logo_and_sub(v3).png'
+import * as settingsFile from './settings'
 
 import { getApplet, AppletInfo, getAppletSettings} from "../../appletList"
 
@@ -14,6 +15,7 @@ export class RandomizerApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

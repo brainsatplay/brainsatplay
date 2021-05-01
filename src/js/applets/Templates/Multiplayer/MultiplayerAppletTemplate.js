@@ -16,7 +16,7 @@ export class MultiplayerAppletTemplate {
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
-        this.info = settingsFile.settings
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

@@ -1,5 +1,6 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager
@@ -16,6 +17,7 @@ export class YoutubeApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

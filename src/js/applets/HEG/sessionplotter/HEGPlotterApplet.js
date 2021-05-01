@@ -2,6 +2,7 @@ import {Session} from './../../../../library/src/Session'
 import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../frontend/UX/eegvisuals'
 import {CSV} from '../../../general/csv'
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class HEGPlotterApplet {
@@ -15,6 +16,7 @@ export class HEGPlotterApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

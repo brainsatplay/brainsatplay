@@ -1,5 +1,6 @@
 import {Session} from './../../../Session'
 import {DOMFragment} from './../../../ui/DOMFragment'
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager

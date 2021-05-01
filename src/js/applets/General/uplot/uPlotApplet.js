@@ -3,6 +3,7 @@ import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../frontend/UX/eegvisuals'
 import {eegmath} from '../../../../library/src/algorithms/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager. By Joshua Brewster
@@ -17,6 +18,7 @@ export class uPlotApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

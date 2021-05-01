@@ -3,6 +3,7 @@ import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
 import { SmoothieChartMaker } from '../../../frontend/UX/eegvisuals';
 import { TimeSeries } from 'smoothie'
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class SmoothieApplet {
@@ -19,6 +20,7 @@ export class SmoothieApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
