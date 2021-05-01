@@ -4,7 +4,7 @@ export const settings = {
     "name": "Connectome",
     "devices": ["eeg"],
     "description": "Visualize connection strength between brain regions.",
-    "categories": ["data"],
+    "categories": ["connect"],
     "module": "ConnectomeApplet",
     "image": featureImg
 }

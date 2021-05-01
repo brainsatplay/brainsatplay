@@ -1,10 +1,10 @@
 import featureImg from './img/feature.png'
 
 export const settings = {
-    "name": "Enso",
+    "name": "Attractors",
     "devices": ["eeg", "heg"],
-    "description": "Calm the ring!",
+    "description": "Create stable attractors!",
     "categories": ["train"],
-    "module": "EnsoApplet",
+    "module": "AttractorsApplet",
     "image": featureImg
-};
+}

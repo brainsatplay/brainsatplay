@@ -150,37 +150,40 @@ export class BCIAppManager {
                         </div>
                     </div>
                 </div>
-                <div id="profile-menu" class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/user-solid.svg"><span>Profile</span></div></button>
-                    <div class="content">
-                    <div class="collapsible-content-label">
-                        <span>Profile</span>
-                        <hr>
-                    </div>
-                    </div>
-                </div>
-                <div class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
-                    <div class="content">
-                        <div class="collapsible-content-label">
-                        <span>Server</span>
-                        <hr>
-                    </div>
-                        <button id='ping'>Send Ping</button>
-                        <button id='getusers'>Get Users</button>
-                        <button id='createGame'>Make Game session</button>
-                        <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
-                        <button id='spectateGame'>Spectate game</button>
-                        <button id='subscribeToSelf'>Subscribe to self</button>
+                `
+                // <div id="profile-menu" class="collapsible-container">
+                //     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/user-solid.svg"><span>Profile</span></div></button>
+                //     <div class="content">
+                //     <div class="collapsible-content-label">
+                //         <span>Profile</span>
+                //         <hr>
+                //     </div>
+                //     </div>
+                // </div>
+                
+                // <div class="collapsible-container">
+                //     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/code-solid.svg"><span>Dev Tools</span></div></button>
+                //     <div class="content">
+                //         <div class="collapsible-content-label">
+                //         <span>Server</span>
+                //         <hr>
+                //     </div>
+                //         <button id='ping'>Send Ping</button>
+                //         <button id='getusers'>Get Users</button>
+                //         <button id='createGame'>Make Game session</button>
+                //         <button id='subscribeToGame'>Subscribe to game session (connect device first)</button>
+                //         <button id='spectateGame'>Spectate game</button>
+                //         <button id='subscribeToSelf'>Subscribe to self</button>
 
-                        <div class="collapsible-content-label">
-                            <span>Other</span>
-                            <hr>
-                        </div>
-                        <button id='enableTutorial'>Enable Tutorial</button>
+                //         <div class="collapsible-content-label">
+                //             <span>Other</span>
+                //             <hr>
+                //         </div>
+                //         <button id='enableTutorial'>Enable Tutorial</button>
 
-                    </div>
-                </div>
+                //     </div>
+                // </div>
+                + `
             </div>
             </div>
             <div id="sidebar-toggle"></div>
@@ -195,34 +198,28 @@ export class BCIAppManager {
         undefined,
         () => {
 
-            // document.getElementById('connect').onclick = () => {
-            // 	if(bcisession.info.auth.authenticated) bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected,undefined,true,[['eegch','FP1','all'],['eegch','FP2','all']]);
-            // 	else bcisession.connect('freeeeg32_2',['eegcoherence'],onconnected);
-            // 	// if(bcisession.info.auth.authenticated) bcisession.connect('muse',['eegcoherence'],true,[['eegch','AF7','all'],['eegch','AF8','all']]);
-            // 	// else bcisession.connect('muse',['eegcoherence']);
+            // document.getElementById('ping').onclick = () => {
+            //     this.bcisession.sendWSCommand(['ping']); //send array of arguments
             // }
-            document.getElementById('ping').onclick = () => {
-                this.bcisession.sendWSCommand(['ping']); //send array of arguments
-            }
-            document.getElementById('getusers').onclick = () => {
-                this.bcisession.sendWSCommand(['getUsers']);
-            }
-            document.getElementById('createGame').onclick = () => {
-                this.bcisession.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
-                //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
-            }
-            document.getElementById('subscribeToGame').onclick = () => {
-                this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
-            }
-            document.getElementById('spectateGame').onclick = () => {
-                this.bcisession.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
-            }
-            document.getElementById('subscribeToSelf').onclick = () => {
-                this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
-                //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
-                this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
-                //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
-            }
+            // document.getElementById('getusers').onclick = () => {
+            //     this.bcisession.sendWSCommand(['getUsers']);
+            // }
+            // document.getElementById('createGame').onclick = () => {
+            //     this.bcisession.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
+            //     //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+            // }
+            // document.getElementById('subscribeToGame').onclick = () => {
+            //     this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
+            // }
+            // document.getElementById('spectateGame').onclick = () => {
+            //     this.bcisession.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
+            // }
+            // document.getElementById('subscribeToSelf').onclick = () => {
+            //     this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
+            //     //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
+            //     this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
+            //     //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
+            // }
 
             document.getElementById('autosavingfiles').onchange = () => {
                 this.state.autosaving = document.getElementById('autosavingfiles').checked;
@@ -355,22 +352,22 @@ export class BCIAppManager {
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
         
-        let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
-        this.uiFragments.login = new DOMFragment(
-            login_template,
-            contentChild3
-        );
+        // let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
+        // this.uiFragments.login = new DOMFragment(
+        //     login_template,
+        //     contentChild3
+        // );
 
-        app.querySelector('#login-button').onclick = () => {
-            let form = app.querySelector('#login-form')
-            let formDict = {}
-            let formData = new FormData(form);
-            for (var pair of formData.entries()) {
-                formDict[pair[0]] = pair[1];
-            } 
-            this.bcisession.setLoginInfo(formDict.username, formDict.password)
-            this.bcisession.login(true)
-        }
+        // app.querySelector('#login-button').onclick = () => {
+        //     let form = app.querySelector('#login-form')
+        //     let formDict = {}
+        //     let formData = new FormData(form);
+        //     for (var pair of formData.entries()) {
+        //         formDict[pair[0]] = pair[1];
+        //     } 
+        //     this.bcisession.setLoginInfo(formDict.username, formDict.password)
+        //     this.bcisession.login(true)
+        // }
 
         if(this.useFS) {
             this.uiFragments.filemenu = new DOMFragment(
@@ -400,11 +397,11 @@ export class BCIAppManager {
             this.appletManager.initAddApplets()   
          }
 
-         document.getElementById('enableTutorial').onclick = () => {
-            this.tutorialManager.setTutorialDefault(true)
-            this.tutorialManager.openTutorial()
-            this.tutorialManager.updateStandaloneTutorialContent(0,0)
-         }
+        //  document.getElementById('enableTutorial').onclick = () => {
+        //     this.tutorialManager.setTutorialDefault(true)
+        //     this.tutorialManager.openTutorial()
+        //     this.tutorialManager.updateStandaloneTutorialContent(0,0)
+        //  }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
@@ -421,7 +418,7 @@ export class BCIAppManager {
         }
 
         this.bcisession.ondisconnected = () => {
-
+            if(this.uiFragments.controls !== undefined) this.uiFragments.controls.deleteNode();
         }
 
         this.setupUITemplates();

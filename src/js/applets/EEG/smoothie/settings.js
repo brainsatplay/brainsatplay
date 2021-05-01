@@ -4,7 +4,7 @@ export const settings = {
     "name": "Smoothie",
     "devices": ["eeg"],
     "description": "Simple real time EEG plots.",
-    "categories": ["data"],
+    "categories": ["connect"],
     "module": "SmoothieApplet",
     "image": featureImg
 }

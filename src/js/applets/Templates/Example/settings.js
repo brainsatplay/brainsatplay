@@ -4,7 +4,7 @@ export const settings = {
     "name": "Example",
     "devices": ["eeg","heg"],
     "description": "Example",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "AppletExample",
     "image": featureImg
 }

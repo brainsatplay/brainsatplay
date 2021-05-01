@@ -4,7 +4,7 @@ export const settings = {
     "name": "Pixi",
     "devices": ["eeg"],
     "description": "Control a shader with your brain.",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "PixiApplet",
     "image": featureImg
 }

@@ -4,7 +4,7 @@ export const settings = {
     "name": "Circle",
     "devices": ["heg"],
     "description": "Working with brains!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "CircleApplet",
     "image": featureImg
 }

@@ -248,7 +248,7 @@ button {
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: center;
-    width:75px; 
+    width:75px;
     left:0px;
     top:0px;
     height:100vh;
@@ -260,7 +260,7 @@ button {
 }
 
 #sidebar:hover {
-    width: 250px;
+    width: 75px;
 }
 
 #sidebar-container:hover .overlay{
@@ -324,16 +324,6 @@ button {
 }
 
 
-#sidebar:hover button {
-    padding-left: 25px;
-    padding-right: 25px;
-}
-
-#sidebar:hover button .img-cont span{
-    visibility: visible;
-    opacity: 1;
-}
-
 #sidebar .collapsible-container img {
     box-sizing: border-box; 
     /* width: 100%; */
@@ -388,14 +378,14 @@ button {
   .content {
     position: absolute;
     padding: 0px 25px 25px 25px;
-    width: calc((100vw - 250px)/2);
-    max-width: calc(100vw - 250px);
+    /* min-width: 100vw; */
+    width: calc(100vw - 75px);
     box-sizing: border-box;
     top: 0; 
     right: 0;
     opacity: 0%;
     overflow: hidden;
-    background-color: rgb(15,15,15);
+    background-color: rgb(20,20,20);
     z-index: -1;
     transition: 0.5s;
     pointer-events: none;
@@ -591,4 +581,41 @@ input:focus{
     border-radius: 50%;
     border: 1px solid white;
     /* opacity: 0.5; */
+}
+
+
+@media only screen and (min-device-width: 1000px) {
+
+    /* Sidebar Reveal */
+    #sidebar:hover button {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+
+    #sidebar:hover button .img-cont span{
+        visibility: visible;
+        opacity: 1;
+    }
+
+    #sidebar:hover {
+        width: clamp(75px, 200px, 20vw);
+    }
+}
+
+@media only screen and (min-device-width: 600px) {
+    .content {
+        position: absolute;
+        padding: 0px 25px 25px 25px;
+        /* min-width: 100vw; */
+        width: clamp(200px, calc((100vw - 200px)/2), 500px);
+        box-sizing: border-box;
+        top: 0; 
+        right: 0;
+        opacity: 0%;
+        overflow: hidden;
+        background-color: rgb(20,20,20);
+        z-index: -1;
+        transition: 0.5s;
+        pointer-events: none;
+      }
 }

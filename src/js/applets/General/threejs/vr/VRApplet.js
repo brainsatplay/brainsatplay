@@ -5,6 +5,8 @@ import {DOMFragment} from '../../../../../library/src/ui/DOMFragment'
 import * as THREE from 'three'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import vertexShader from './blob/vertex.glsl'
+import fragmentShader from './blob/fragment.glsl'
 
 //Example Applet for integrating with the UI Manager
 export class VRApplet {
@@ -74,6 +76,8 @@ export class VRApplet {
 			 
 			let camera, scene, renderer;
 			let attractor, light;
+
+			let tStart = Date.now()
 
 			let x = 15 * Math.random();
 			let y = 15 * Math.random();
@@ -183,6 +187,55 @@ export class VRApplet {
 				ground.geometry.rotateX( - 90 * Math.PI / 180 );
 				scene.add( ground );
 
+
+				// Blob Test
+				// const blobGeometry = new THREE.SphereGeometry(0.4,Math.pow(2,6), Math.pow(2,6));
+
+				// // const material = new THREE.MeshNormalMaterial( );
+
+				// var materialControls = new function () {
+				// 	this.rPower = 0.0;
+				// 	this.gPower = 0.85;
+				// 	this.bPower = 1.0;
+				// 	this.alpha = 1.0;
+				// 	this.noiseIntensity = 0.5;
+
+				// 	this.updateColor = function () {
+				// 		material.uniforms.uColor.value = [
+				// 			materialControls.rPower,
+				// 			materialControls.gPower,
+				// 			materialControls.bPower,
+				// 			materialControls.alpha
+				// 		]
+				// 	};
+
+				// 	this.updateNoise = function () {
+				// 		material.uniforms.uNoiseIntensity.value = materialControls.noiseIntensity
+				// 	};
+				// };
+
+
+				// this.blobMaterial = new THREE.ShaderMaterial({
+				// 	vertexShader: vertexShader,
+				// 	fragmentShader: fragmentShader,
+				// 	transparent: true,
+				// 	// wireframe: true,
+				// 	blending: THREE.AdditiveBlending,
+				// 	uniforms:
+				// 	{
+				// 		uTime: { value: 0 },
+				// 		uColor: {value: [materialControls.rPower,materialControls.gPower,materialControls.bPower,materialControls.alpha] },
+				// 		uNoiseIntensity: {value: materialControls.noiseIntensity}
+				// 	}
+				// })
+
+
+				// // Mesh
+				// const mesh = new THREE.Mesh(blobGeometry, this.blobMaterial)
+				// scene.add(mesh)
+				// mesh.position.set(attractorBasePos.x,attractorBasePos.y,attractorBasePos.z)
+
+
 				// Renderer
 
 				this.renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -199,7 +252,7 @@ export class VRApplet {
 				navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
 					if (isSupported && !this.isMobile){
 						this.renderer.xr.enabled = true;
-						this.renderer.xr.enabled = true;
+						// this.renderer.xr.setReferenceSpaceType( 'local' );
 						this.controller = this.renderer.xr.getController( 0 );
 						this.VRButton = VRButton.createButton( this.renderer )
 						this.VRButton.id = `${this.props.id}VRButton`
@@ -238,6 +291,9 @@ export class VRApplet {
 				attractor.geometry.attributes.position.needsUpdate = true;
 				attractor.geometry.attributes.color.needsUpdate = true;
 				attractor.rotation.z += .001;
+
+				// Blob Test
+				// this.blobMaterial.uniforms.uTime.value = Date.now() - tStart
 
 				this.renderer.render( scene, this.camera );
 

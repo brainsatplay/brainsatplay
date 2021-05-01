@@ -4,7 +4,7 @@ export const settings = {
     "name": "Brain Art",
     "devices": ["eeg"],
     "description": "Generate art using your brain.",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "BrainArtApplet",
     "image": featureImg
 }

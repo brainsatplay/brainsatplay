@@ -1,23 +1,11 @@
-#define HISTORY 5
-
-precision mediump float;
+uniform float uTime;
+uniform float uNoiseScaling;
+uniform float uNoiseIntensity;
+varying float offset;
 varying vec2 vUv;
 
-uniform float amplitude;
-uniform float historyLength;
-uniform vec2 mouse;
-uniform vec3 colors[HISTORY];
-uniform float times[HISTORY];
-uniform float neurofeedback[HISTORY];
-
-float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
-    vec2 dist = _uv-_center;
-	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
-                         _Diameter+(_Diameter*0.01),
-                         dot(dist,dist)*4.0);
-}
-//	Classic Perlin 3D Noise 
-//	by Stefan Gustavson
+//Classic Perlin 3D Noise 
+//by Stefan Gustavson
 //
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
@@ -92,40 +80,14 @@ float cnoise(vec3 P){
 }
 
 
-float minDiameter= 0.0;
-float maxDiameter = 1.0;
-float historyInterval = 0.1;
-float history_float = float(HISTORY);
-
 void main()
 {
-    vec2 uv = vUv;
-    
-    vec4 outColor = vec4(0.);
-    for (int i = 0; i < HISTORY; i++){
+    vUv = uv;
+    offset = cnoise(uNoiseIntensity*position + uTime/1000.0);
+    vec3 posTimeoffset =  position + position*uNoiseIntensity*(0.5*offset);
+    vec4 modelPosition = modelMatrix * vec4(posTimeoffset, 1.0);
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
 
-        vec2 uv = (vUv-vec2(0.5))*2.0;
-
-        float i_float = float(i);
-
-        // Noisy Diameter
-        // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
-        float innerDiameter = 0.3;
-        float outerDiameter = innerDiameter + 0.02;
-        float noiseScaling = ((maxDiameter - minDiameter) - (outerDiameter-innerDiameter));
-
-        // Noisy Circle
-        float alpha = i_float/history_float;
-        float angle = atan(uv.y,uv.x);
-        float xoff = cos(angle) + 1.0;
-        float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*neurofeedback[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
-        // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
-        // float noise = 0.0;
-
-        outColor += vec4(colors[i]*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
-        outColor.rgb -= vec3(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise))); // Inner Diameter
-    }
-
-    gl_FragColor = vec4(outColor);
+    gl_Position = projectedPosition;
 }

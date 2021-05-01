@@ -6,9 +6,12 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './shaders/vertex.glsl'
 import wavesFragmentShader from './shaders/waves/fragment.glsl'
 import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
+import creationFragmentShader from './shaders/creation/fragment.glsl'
+import blobFragmentShader from './shaders/voronoiblobs/fragment.glsl'
+import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl'
+import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
+import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
+
 import * as settingsFile from './settings'
 
 export class GalleryApplet {
@@ -33,25 +36,56 @@ export class GalleryApplet {
         };
 
         this.three = {}
+        this.isMobile = this.checkIfMobile()
 
         this.currentShader = null;
 
+        this.three.planes = []
+
         this.shaders = {
+            
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
-                fragmentShader: wavesFragmentShader
+                fragmentShader: wavesFragmentShader,
+                credit: 'Pixi.js'
             },
             box: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
-                fragmentShader: noiseCircleFragmentShader
+                fragmentShader: noiseCircleFragmentShader,
+                credit: 'Garrett Flynn'
             },
-            // white: {
-            //     name: 'White Box',
+            creation: {
+                name: 'Creation',
+                vertexShader: vertexShader,
+                fragmentShader: creationFragmentShader,
+                credit: 'Danilo Guanabara (Shadertoy)'
+            },
+            octagrams: {
+                name: 'Octagrams',
+                vertexShader: vertexShader,
+                fragmentShader: octagramsFragmentShader,
+                credit: 'whisky_shusuky (Shadertoy)'
+            },
+            // cineshaderlava: {
+            //     name: 'Cineshader Lava',
             //     vertexShader: vertexShader,
-            //     fragmentShader: whiteFragmentShader
+            //     fragmentShader: cineshaderlavaFragmentShader,
+            //     credit: 'edankwan (Shadertoy)'
             // },
+            // fractalpyramid: {
+            //     name: 'Fractal Pyramid',
+            //     vertexShader: vertexShader,
+            //     fragmentShader: fractalpyramidFragmentShader,
+            //     credit: 'bradjamesgrant (Shadertoy)'
+            // },
+            voronoiblobs: {
+                name: 'Voronoi Blobs',
+                vertexShader: vertexShader,
+                fragmentShader: blobFragmentShader,
+                credit: 'Elise (Shadertoy)'
+            },
         }
 
         // Setup Neurofeedback
@@ -78,11 +112,14 @@ export class GalleryApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' class="wrapper" style='height:100%; width:100%; position: relative; overflow: none;'>
-                <div id='${props.id}renderer-container'><canvas id='${props.id}canvas'></canvas></div>
-                <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
-                    <select id='${props.id}selector'></select>
-                </div>
+             `
+            //  <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
+            //         <select id='${props.id}selector'></select>
+            //     </div>
+            + `
                 <div class="brainsatplay-neurofeedback-container" style="margin-top: 25px; position:absolute; top: 0; left: 0; z-index: 1; ">
+                </div>
+                <div id="${props.id}credit" style="text-align: right; font-size: 80%; padding: 25px; position:absolute; bottom: 0; right: 0; z-index: 1; ">
                 </div>
             </div>
             `;
@@ -90,17 +127,17 @@ export class GalleryApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let selector = document.getElementById(`${this.props.id}selector`)
-            Object.keys(this.shaders).forEach((k) => {
-                selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
-            })
+            // let selector = document.getElementById(`${this.props.id}selector`)
+            // Object.keys(this.shaders).forEach((k) => {
+            //     selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
+            // })
             
-            this.currentShader = this.shaders[selector.value]
+            // this.currentShader = this.shaders[selector.value]
 
-            selector.onchange = (e) => {
-                this.currentShader = this.shaders[e.target.value]
-                this.updateShader()
-            }
+            // selector.onchange = (e) => {
+            //     this.currentShader = this.shaders[e.target.value]
+            //     this.updateShader()
+            // }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -122,13 +159,7 @@ this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
 this.timeBuffer = Array.from({length: this.history}, e => 0)
 this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
 
-/**
- * Canvas
- */
 this.appletContainer = document.getElementById(this.props.id)
-this.three.canvas = document.getElementById(`${this.props.id}canvas`)
-this.three.canvas.style.opacity = '0'
-this.three.canvas.style.transition = 'opacity 1s'
 
 /**
  * Scene
@@ -139,89 +170,54 @@ this.three.scene = new THREE.Scene()
  * Camera
  */
 
-let minZoomDistance = 3
+let baseCameraPos = new THREE.Vector3(0,0,3)
 this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
-this.camera.position.z = minZoomDistance*1.5
-
-this.three.renderer = new THREE.WebGLRenderer({
-    canvas: this.three.canvas,
-    alpha: true
-})
+this.camera.position.z = baseCameraPos.z*1.5
 
 /**
  * Texture Params
  */
 
  let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
- let fov_y = minZoomDistance * this.camera.getFilmHeight() / this.camera.getFocalLength();
+ let fov_y = baseCameraPos.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
 
 // Renderer
-this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
+// Renderer
+
+this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-document.getElementById(`${this.props.id}renderer-container`).appendChild(this.three.renderer.domElement)
-this.three.canvas.style.opacity = '0'
-this.three.canvas.style.transition = 'opacity 1s'
+this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
+this.appletContainer.appendChild( this.three.renderer.domElement );
+this.three.renderer.domElement.style.width = '100%'
+this.three.renderer.domElement.style.height = '100%'
+this.three.renderer.domElement.id = `${this.props.id}canvas`
+this.three.renderer.domElement.style.opacity = '0'
+this.three.renderer.domElement.style.transition = 'opacity 1s'
 
-// GUI
-// const gui = new dat.GUI({width: 400});
+// // XR
+// navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+//     if (isSupported && !this.isMobile){
+//         this.three.renderer.xr.enabled = true;
+//         this.three.renderer.xr.setReferenceSpaceType( 'local' );
+//         this.controller = this.three.renderer.xr.getController( 0 );
+//         this.VRButton = VRButton.createButton( this.three.renderer )
+//         this.VRButton.id = `${this.props.id}VRButton`
 
-/** 
- * Postprocessing 
- **/
+//         this.controller.addEventListener( 'connected', ( event ) => {
+//             document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( document.getElementById(`${this.props.id}VRButton`) );
+//             this.camera.position.z = baseCameraPos.z*1.5
+//         } );
+        
+//         this.controller.addEventListener( 'disconnected', () => {
+//             this.appletContainer.appendChild( document.getElementById(`${this.props.id}VRButton`) );
+//             this.camera.position.z = baseCameraPos.z*1.5
 
- // Render Target
-
- let RenderTargetClass = null
-
- if(this.three.renderer.getPixelRatio() === 1 && this.three.renderer.capabilities.isWebGL2)
- {
-     RenderTargetClass = THREE.WebGLMultisampleRenderTarget
- }
- else
- {
-     RenderTargetClass = THREE.WebGLRenderTarget
- }
-
- const renderTarget = new RenderTargetClass(
-    this.appletContainer.offsetWidth, this.appletContainer.offsetHeight,
-    {
-        minFilter: THREE.LinearFilter,
-        maxFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        encoding: THREE.sRGBEncoding,
-        type: THREE.HalfFloatType // For Safari (doesn't work)
-    }
- )
-
- // Composer
-const effectComposer = new EffectComposer(this.three.renderer,renderTarget)
-effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-effectComposer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight)
-
- // Passes
-const renderPass = new RenderPass(this.three.scene, this.camera)
-effectComposer.addPass(renderPass)
-
-// // Custom Shader Pass
-// const customPass = new ShaderPass({
-//     uniforms: {
-//         tDiffuse: { value: null },
-//         uInterfaceMap: { value: null }
-//     },
-//     vertexShader: interfaceVertexShader,
-//     fragmentShader: interfaceFragmentShader
+//         } );
+        
+//         this.appletContainer.appendChild( this.VRButton );
+//     }
 // })
-// customPass.material.uniforms.uInterfaceMap.value = futuristicInterface
-// effectComposer.addPass(customPass)
-
-// Antialiasing
-if(this.three.renderer.getPixelRatio() === 1 && !this.three.renderer.capabilities.isWebGL2)
-{
-    const smaaPass = new SMAAPass()
-    effectComposer.addPass(smaaPass)
-    console.log('Using SMAA')
-}
 
 // Controls
 this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
@@ -230,46 +226,71 @@ this.controls.enableDamping = true
 this.controls.enabled = false;
 this.controls.minPolarAngle = 2*Math.PI/6; // radians
 this.controls.maxPolarAngle = 4*Math.PI/6; // radians
-this.controls.minAzimuthAngle = -1*Math.PI/6; // radians
-this.controls.maxAzimuthAngle = 1*Math.PI/6; // radians
-this.controls.minDistance = minZoomDistance; // radians
-this.controls.maxDistance = minZoomDistance*5; // radians
+// this.controls.minAzimuthAngle = -1*Math.PI/6; // radians
+// this.controls.maxAzimuthAngle = 1*Math.PI/6; // radians
+this.controls.minDistance = baseCameraPos.z; // radians
+this.controls.maxDistance = baseCameraPos.z*10; // radians
 
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
 let tStart = Date.now()
-this.material = new THREE.ShaderMaterial({
-    vertexShader: this.currentShader.vertexShader,
-    fragmentShader: this.currentShader.fragmentShader,
-    transparent: true,
-    uniforms:
-    {
-        // aspect: {value: this.three.meshWidth / this.three.meshHeight},
-        amplitude: {value: 0.75},
-        times: {value: this.timeBuffer},
-        colors: {value: this.colorBuffer.flat(1)},
-        mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
-        neurofeedback: {value: this.noiseBuffer}
-    }
+
+let shaderKeys = Object.keys(this.shaders)
+let numShaders = shaderKeys.length
+shaderKeys.forEach((k,i) => {
+
+    this.material = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        vertexShader: this.shaders[k].vertexShader,
+        fragmentShader: this.shaders[k].fragmentShader,
+        uniforms:
+        {
+            // aspect: {value: this.three.meshWidth / this.three.meshHeight},
+            amplitude: {value: 0.75},
+            times: {value: this.timeBuffer},
+            colors: {value: this.colorBuffer.flat(1)},
+            mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
+            neurofeedback: {value: this.noiseBuffer}
+        }
+    })
+
+    let radius = 10
+    let plane = new THREE.Mesh(planeGeometry, this.material)
+    let angle = 2 * Math.PI * i/numShaders
+    plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+    plane.rotation.set(0,-angle - Math.PI/2,0)
+    this.three.planes.push(plane)
+    this.three.scene.add(plane)
 })
 
 
+// SINGLE SHADER
 
-// Mesh
-this.plane = new THREE.Mesh(planeGeometry, this.material)
-this.three.scene.add(this.plane)
+// this.material = new THREE.ShaderMaterial({
+//     transparent: true,
+//     uniforms:
+//     {
+//         // aspect: {value: this.three.meshWidth / this.three.meshHeight},
+//         amplitude: {value: 0.75},
+//         times: {value: this.timeBuffer},
+//         colors: {value: this.colorBuffer.flat(1)},
+//         mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
+//         neurofeedback: {value: this.noiseBuffer}
+//     }
+// })
+// this.plane = new THREE.Mesh(planeGeometry, this.material)
+// this.three.scene.add(this.plane)
+// this.updateShader()
 
 // Resize
 this.resize = () => {
     this.camera.aspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
     this.camera.updateProjectionMatrix()
-    regeneratePlaneGeometry()
+    // regeneratePlaneGeometry()
     // this.material.uniforms.aspect.value = this.three.meshWidth / this.three.meshHeight
     
-    this.three.renderer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight);
-    this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    effectComposer.setSize(this.appletContainer.clientWidth, this.appletContainer.clientHeight)
+    this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
 }
 
 let regeneratePlaneGeometry = () => {
@@ -282,10 +303,10 @@ let regeneratePlaneGeometry = () => {
 
 // Animate
 let startTime = Date.now()
-var animate = () => {
+this.render = () => {
 
-    setTimeout( () => {
-        if (this.three.canvas != null){
+    // setTimeout( () => {
+        if (this.three.renderer.domElement != null){
 
                 // Organize Brain Data 
                 this.setBrainData(this.session.atlas.data.eeg)
@@ -303,19 +324,25 @@ var animate = () => {
                 this.noiseBuffer.push(neurofeedback)
                     
                 // Set Uniforms
-                this.material.uniforms.colors.value = this.colorBuffer.flat(1) 
-                this.material.uniforms.times.value = this.timeBuffer
-                this.material.uniforms.neurofeedback.value = this.noiseBuffer
+                this.three.planes.forEach(plane => {
+                    plane.material.uniforms.colors.value = this.colorBuffer.flat(1) 
+                    plane.material.uniforms.times.value = this.timeBuffer
+                    plane.material.uniforms.neurofeedback.value = this.noiseBuffer
+                })
 
                 this.controls.update()
-                effectComposer.render()
+                this.three.renderer.render( this.three.scene, this.camera );
         }
-    }, 1000 / 60 );
+    // }, 1000 / 60 );
 };
 
-    this.three.renderer.setAnimationLoop( animate )
+    let animate = () => {
+        this.three.renderer.setAnimationLoop( this.render );
+    }
+
+    animate()
     setTimeout(() => {
-        this.three.canvas.style.opacity = '1'
+        this.three.renderer.domElement.style.opacity = '1'
         this.controls.enabled = true;
     }, 100)
 }
@@ -331,19 +358,19 @@ var animate = () => {
             this.three.scene.remove(object);
         }
         this.three.scene = null;
+        this.three.renderer.domElement = null;
         this.three.renderer = null;
-        this.three.canvas = null;
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        this.three.renderer.setAnimationLoop( null );
-        this.clearThree()
         this.AppletHTML.deleteNode();
-        //Be sure to unsubscribe from state if using it and remove any extra event listeners
+        this.three.renderer.setAnimationLoop( null );
+        // this.controller.removeEventListener( 'connected')
+        // this.controller.removeEventListener( 'disconnected')
+        this.clearThree()
     }
 
-    //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) this.resize()
         this.session.atlas.makeFeedbackOptions(this)
@@ -365,6 +392,7 @@ var animate = () => {
         })
         this.plane.material.dispose()
         this.plane.material = newMaterial
+        document.getElementById(`${this.props.id}credit`).innerHTML = `<p>Credit: ${this.currentShader.credit}</p>`
     }
 
 
@@ -403,4 +431,14 @@ var animate = () => {
     }
     return currentColor
 }
+
+checkIfMobile(){
+    if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) 
+        || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) { 
+        return true;
+    } else {
+        return false;
+    }
+}
+
 } 

@@ -4,7 +4,7 @@ export const settings = {
     "name": "Blink",
     "devices": ["eeg"],
     "description": "Staring contest (with yourself...)",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "BlinkApplet",
     "image": featureImg
 }

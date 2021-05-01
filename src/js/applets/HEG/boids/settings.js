@@ -4,7 +4,7 @@ export const settings = {
     "name": "Boids",
     "devices": ["heg"],
     "description": "Play with swarm intelligence! Your HEG ratio creates swirls.",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "BoidsApplet",
     "image": featureImg
 }

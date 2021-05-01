@@ -4,7 +4,7 @@ export const settings = {
     "name": "Cosmos",
     "devices": ["eeg", "heg"],
     "description": "Spin the galaxy!",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "CosmosApplet",
     "image": featureImg
 }

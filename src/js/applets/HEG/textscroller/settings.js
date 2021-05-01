@@ -4,7 +4,7 @@ export const settings = {
     "name": "Text Scroller",
     "devices": ["eeg","heg"],
     "description": "Words of affirmation.",
-    "categories": ["feedback"],
+    "categories": ["train"],
     "module": "TextScrollerApplet",
     "image": featureImg
 }
