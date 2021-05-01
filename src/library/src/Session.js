@@ -183,10 +183,11 @@ export class Session {
 			this.devices[i].ondisconnect = () => {
 				ondisconnect();
 				this.ondisconnected();
-				if(Array.isArray(this.devices[i].info.analysis) && this.devices[i].info.analysis.length > 0) {
+				if(this.devices[i].info.analysis.length > 0) {
 					this.devices[i].atlas.analyzing = false; //cancel analysis loop
 				}
-				this.devices.splice(i,1);			
+				this.devices.splice(i,1);	
+				if(this.devices.length > 1) this.atlas = this.devices[0].atlas;		
 				this.info.nDevices--;
 			}
 
