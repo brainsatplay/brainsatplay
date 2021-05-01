@@ -309,101 +309,103 @@ export class AppletManager {
 
         // Brains@Play Default Overlays
 
-        let thisApplet = this.applets[appletIdx].classinstance
-        let appletName = thisApplet.info.name
-        console.log(thisApplet, appletName)
-        if (appletName != 'Applet Browser') {
-            getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
+        if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
+        {
+            let thisApplet = this.applets[appletIdx].classinstance
+            let appletName = thisApplet.info.name
+            if (appletName != 'Applet Browser') {
+                getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
 
-                var div = document.createElement('div');
+                    var div = document.createElement('div');
 
-                let htmlString = `
-        <div style="position: absolute; right: 15px; top: 15px; font-size: 80%; display:flex; z-index: 1000;">
-            <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                <p>i</p>
-            </div>
-            <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                <img src="${appletSVG}" 
-                style="box-sizing: border-box; 
-                filter: invert(1);
-                cursor: pointer;
-                padding: 7px;">
-            </div>
-        </div>
-        <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
-        </div>
-        <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
-                <div>
-                <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
-                <p style="font-size: 69%;">${appletSettings.description}</p>
+                    let htmlString = `
+            <div style="position: absolute; right: 15px; top: 15px; font-size: 80%; display:flex; z-index: 1000;">
+                <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <p>i</p>
                 </div>
-                <div style="font-size: 80%;">
-                    <p>Devices: ${appletSettings.devices.join(', ')}</p>
-                    <p>Categories: ${appletSettings.categories.join(' + ')}</p>
+                <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${appletSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
                 </div>
             </div>
-            <hr>
-            <h2>Directions</h2>
-            <p>${appletSettings.directions}</p>
-        </div>
-        `
+            <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
+            </div>
+            <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
+                    <div>
+                    <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
+                    <p style="font-size: 69%;">${appletSettings.description}</p>
+                    </div>
+                    <div style="font-size: 80%;">
+                        <p>Devices: ${appletSettings.devices.join(', ')}</p>
+                        <p>Categories: ${appletSettings.categories.join(' + ')}</p>
+                    </div>
+                </div>
+                <hr>
+                <h2>Directions</h2>
+                <p>${appletSettings.directions}</p>
+            </div>
+            `
 
-                div.innerHTML = htmlString.trim();
-                div.id = `${appletDiv.id}-brainsatplay-default-ui`
-                appletDiv.appendChild(div);
+                    div.innerHTML = htmlString.trim();
+                    div.id = `${appletDiv.id}-brainsatplay-default-ui`
+                    appletDiv.appendChild(div);
 
-                let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
-                let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
+                    let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
+                    let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
 
-                let instance = null;
-                appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
-                    if (appletMask.style.opacity != 0) {
-                        appletMask.style.opacity = 0
-                        appletMask.style.pointerEvents = 'none'
-                    } else {
-                        appletMask.style.opacity = 1
-                        appletMask.style.pointerEvents = 'auto'
-                        infoMask.style.opacity = 0;
-                        infoMask.style.pointerEvents = 'none';
-                        if (instance == null) {
-                            await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
-                                instance = new browser(appletMask, this.session, [
-                                    {
-                                        appletIdx: appletIdx,
-                                        showPresets: false,
-                                        displayMode: 'tight'
-                                    }
-                                ]);
-                                instance.init()
+                    let instance = null;
+                    appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
+                        if (appletMask.style.opacity != 0) {
+                            appletMask.style.opacity = 0
+                            appletMask.style.pointerEvents = 'none'
+                        } else {
+                            appletMask.style.opacity = 1
+                            appletMask.style.pointerEvents = 'auto'
+                            infoMask.style.opacity = 0;
+                            infoMask.style.pointerEvents = 'none';
+                            if (instance == null) {
+                                await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
+                                    instance = new browser(appletMask, this.session, [
+                                        {
+                                            appletIdx: appletIdx,
+                                            showPresets: false,
+                                            displayMode: 'tight'
+                                        }
+                                    ]);
+                                    instance.init()
 
-                                thisApplet.deinit = (() => {
-                                    var defaultDeinit = thisApplet.deinit;
-                                
-                                    return function() {    
-                                        instance.deinit()
-                                        appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
-                                        let result = defaultDeinit.apply(this, arguments);                              
-                                        return result;
-                                    };
-                                })()
-                            })
+                                    thisApplet.deinit = (() => {
+                                        var defaultDeinit = thisApplet.deinit;
+                                    
+                                        return function() {    
+                                            instance.deinit()
+                                            appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
+                                            let result = defaultDeinit.apply(this, arguments);                              
+                                            return result;
+                                        };
+                                    })()
+                                })
+                            }
                         }
                     }
-                }
 
-                appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
-                    if (infoMask.style.opacity != 0) {
-                        infoMask.style.opacity = 0
-                        infoMask.style.pointerEvents = 'none'
-                    } else {
-                        infoMask.style.opacity = 1
-                        infoMask.style.pointerEvents = 'auto'
-                        appletMask.style.opacity = 0;
-                        appletMask.style.pointerEvents = 'none';
+                    appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
+                        if (infoMask.style.opacity != 0) {
+                            infoMask.style.opacity = 0
+                            infoMask.style.pointerEvents = 'none'
+                        } else {
+                            infoMask.style.opacity = 1
+                            infoMask.style.pointerEvents = 'auto'
+                            appletMask.style.opacity = 0;
+                            appletMask.style.pointerEvents = 'none';
+                        }
                     }
-                }
-            })
+                })
+            }
         }
     }
 
@@ -617,8 +619,7 @@ export class AppletManager {
 
         activeNodes.forEach((appnode, i) => {
             // Set Generic Applet Settings
-            if (appnode.classinstance.AppletHTML)
-                this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
+            if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
         });
     }
 
