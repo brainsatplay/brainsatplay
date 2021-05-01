@@ -1,6 +1,7 @@
 import { Session } from "../../library/src/Session";
 import { getApplet, presets, AppletInfo, getAppletSettings } from "../applets/appletList"
 import appletSVG from './../../assets/th-large-solid.svg'
+import dragSVG from './../../assets/arrows-alt-solid.svg'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
 
@@ -283,36 +284,15 @@ export class AppletManager {
     }
 
     setAppletDefaultUI = (appletDiv, appletIdx) => {
-        appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
-        appletDiv.style.position = `relative`;
-        // if (appletDiv.style.overflow == 'auto'){appletDiv.style.overflow = `hidden`;}
-        // if (appletDiv.style.position == null){appletDiv.style.position = `relative`;}
-
-        // appletDiv.draggable = true
-        // appletDiv.style.cursor = 'move'
-        // Fullscreen Functionality
-        appletDiv.addEventListener('dblclick', () => {
-            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-            if (!fullscreenElement) {
-                if (appletDiv.requestFullscreen) {
-                    appletDiv.requestFullscreen()
-                } else if (appletDiv.webkitRequestFullscreen) {
-                    appletDiv.webkitRequestFullscreen()
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen()
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen()
-                }
-            }
-        });
-
 
         // Brains@Play Default Overlays
 
         if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
         {
+
+            appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
+            appletDiv.style.position = `relative`;
+            
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
             if (appletName != 'Applet Browser') {
@@ -327,6 +307,13 @@ export class AppletManager {
                 </div>
                 <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <img src="${appletSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
+                </div>
+                <div class="brainsatplay-default-drag-icon"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${dragSVG}" 
                     style="box-sizing: border-box; 
                     filter: invert(1);
                     cursor: pointer;
@@ -358,6 +345,7 @@ export class AppletManager {
 
                     let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
                     let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
+                    let dragIcon = appletDiv.querySelector('.brainsatplay-default-drag-icon')
 
                     let instance = null;
                     appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
@@ -406,6 +394,60 @@ export class AppletManager {
                             appletMask.style.pointerEvents = 'none';
                         }
                     }
+            
+                    // Drag functionality
+                    // appletDiv.draggable = true
+                    dragIcon.classList.add("draggable")
+                    dragIcon.addEventListener('dragstart', () => {
+                        appletDiv.classList.add("dragging")
+                    })
+                    dragIcon.addEventListener('dragend', () => {
+                        appletDiv.classList.remove("dragging")
+                    })
+            
+                    appletDiv.addEventListener('dragenter', (e) => {
+                        e.preventDefault()
+                        if (this.prevHovered != appletDiv){
+                            let draggingGA = document.querySelector('.dragging').style.gridArea
+                            let hoveredGA = appletDiv.style.gridArea
+                            appletDiv.style.gridArea = draggingGA
+                            document.querySelector('.dragging').style.gridArea = hoveredGA
+                            this.responsive()
+                            this.prevHovered = appletDiv
+                        }
+                        appletDiv.classList.add('hovered')
+                    })
+            
+                    appletDiv.addEventListener('dragleave', (e) => {
+                        e.preventDefault()
+                        appletDiv.classList.remove('hovered')
+                    })
+            
+                    appletDiv.addEventListener("drop", function(event) {
+                        event.preventDefault();
+                        let dragging = document.querySelector('.dragging')
+                        appletDiv.classList.remove('hovered')
+                    }, false);
+            
+                    // Fullscreen Functionality
+                    appletDiv.addEventListener('dblclick', () => {
+                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                        if (!fullscreenElement) {
+                            if (appletDiv.requestFullscreen) {
+                                appletDiv.requestFullscreen()
+                            } else if (appletDiv.webkitRequestFullscreen) {
+                                appletDiv.webkitRequestFullscreen()
+                            }
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen()
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen()
+                            }
+                        }
+                    });
+
+
                 })
             }
         }
@@ -420,58 +462,6 @@ export class AppletManager {
                 if (applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { applet.classinstance.init(); }
                 let appletDiv; if (applet.classinstance.AppletHTML) appletDiv = applet.classinstance.AppletHTML.node;
                 appletDiv.name = applet.name
-
-                // Drag functionality
-                appletDiv.draggable = true
-                appletDiv.classList.add("draggable")
-                appletDiv.addEventListener('dragstart', () => {
-                    appletDiv.classList.add("dragging")
-                })
-                appletDiv.addEventListener('dragend', () => {
-                    appletDiv.classList.remove("dragging")
-                })
-
-                appletDiv.addEventListener('dragover', (e) => {
-                    e.preventDefault()
-                    if (this.prevHovered != appletDiv){
-                        let draggingGA = document.querySelector('.dragging').style.gridArea
-                        let hoveredGA = appletDiv.style.gridArea
-                        appletDiv.style.gridArea = draggingGA
-                        document.querySelector('.dragging').style.gridArea = hoveredGA
-                        this.responsive()
-                        this.prevHovered = appletDiv
-                    }
-                    appletDiv.classList.add('hovered')
-                })
-
-                appletDiv.addEventListener('dragleave', (e) => {
-                    e.preventDefault()
-                    appletDiv.classList.remove('hovered')
-                })
-
-                appletDiv.addEventListener("drop", function(event) {
-                    event.preventDefault();
-                    let dragging = document.querySelector('.dragging')
-                    appletDiv.classList.remove('hovered')
-                  }, false);
-
-                // Fullscreen Functionality
-                appletDiv.addEventListener('dblclick', () => {
-                    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                    if (!fullscreenElement) {
-                        if (appletDiv.requestFullscreen) {
-                            appletDiv.requestFullscreen()
-                        } else if (appletDiv.webkitRequestFullscreen) {
-                            appletDiv.webkitRequestFullscreen()
-                        }
-                    } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen()
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen()
-                        }
-                    }
-                });
             }
         });
         this.enforceLayout();
