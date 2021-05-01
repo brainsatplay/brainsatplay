@@ -4,7 +4,7 @@ export const settings = {
     "name": "Brain Map",
     "devices": ["EEG"],
     "description": "Bandpower and coherence mapping.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "BrainMapApplet",
     "image": featureImg
 }

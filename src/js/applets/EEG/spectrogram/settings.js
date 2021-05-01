@@ -4,7 +4,7 @@ export const settings = {
     "name": "Spectrogram",
     "devices": ["EEG"],
     "description": "Bandpower and coherence visualizer.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "SpectrogramApplet",
     "image": featureImg
 }

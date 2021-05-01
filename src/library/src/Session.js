@@ -168,12 +168,14 @@ export class Session {
 				)
 			);
 
-			if(streamParams[0]) { this.addStreamParams(streamParams); this.beginStream();}
-
+			
 			let i = this.devices.length-1;
 
 			this.devices[i].onconnect = () => {
 				this.info.nDevices++;
+				if(streamParams[0]) { this.addStreamParams(streamParams); this.beginStream();}
+				//Device info accessible from state
+				this.state.addToState("device"+(i),this.devices[i].info);
 				onconnect();
 				this.onconnected();
 			}
@@ -181,20 +183,18 @@ export class Session {
 			this.devices[i].ondisconnect = () => {
 				ondisconnect();
 				this.ondisconnected();
-				if(Array.isArray(this.devices[i].info.analysis) && this.devices[i].info.analysis.length > 0) {
-					this.devices[i].info.analyzing = false; //cancel analysis loop
+				if(this.devices[i].info.analysis.length > 0) {
+					this.devices[i].atlas.analyzing = false; //cancel analysis loop
 				}
-				this.devices[i].info.streaming = false; //cancel stream loop
-				this.devices.splice(i,1);			
+				this.devices.splice(i,1);	
+				if(this.devices.length > 1) this.atlas = this.devices[0].atlas;		
 				this.info.nDevices--;
 			}
 
 			this.devices[i].init();
 
 			if(this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
-			//Device info accessible from state
-			this.state.addToState("device"+(i),this.devices[i].info);
-			
+
 			this.devices[i].connect();
 	}
 

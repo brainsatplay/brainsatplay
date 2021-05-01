@@ -4,7 +4,7 @@ export const settings = {
     "name": "uPlot",
     "devices": ["EEG","HEG"],
     "description": "View live data.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "uPlotApplet",
     "image": featureImg
 }

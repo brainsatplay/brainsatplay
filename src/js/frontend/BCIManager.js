@@ -418,7 +418,7 @@ export class BCIAppManager {
         }
 
         this.bcisession.ondisconnected = () => {
-
+            if(this.uiFragments.controls !== undefined) this.uiFragments.controls.deleteNode();
         }
 
         this.setupUITemplates();
