@@ -102,6 +102,8 @@ export class AppletManager {
             this.responsive();
         })
 
+        this.prevHovered = null;
+
         //this.responsive(); 
 
         // Set Styling Properly
@@ -319,7 +321,7 @@ export class AppletManager {
                     var div = document.createElement('div');
 
                     let htmlString = `
-            <div style="position: absolute; right: 15px; top: 15px; font-size: 80%; display:flex; z-index: 1000;">
+            <div style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.25; transition: opacity 0.5s;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.25;">
                 <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <p>i</p>
                 </div>
@@ -333,7 +335,7 @@ export class AppletManager {
             </div>
             <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
             </div>
-            <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
+            <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%; overflow: scroll;">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
                     <div>
                     <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
@@ -420,46 +422,38 @@ export class AppletManager {
                 appletDiv.name = applet.name
 
                 // Drag functionality
-                // appletDiv.draggable = true
-                // appletDiv.classList.add("draggable")
-                // appletDiv.addEventListener('dragstart', () => {
-                //     appletDiv.classList.add("dragging")
-                // })
-                // appletDiv.addEventListener('dragend', () => {
-                //     appletDiv.classList.remove("dragging")
-                // })
+                appletDiv.draggable = true
+                appletDiv.classList.add("draggable")
+                appletDiv.addEventListener('dragstart', () => {
+                    appletDiv.classList.add("dragging")
+                })
+                appletDiv.addEventListener('dragend', () => {
+                    appletDiv.classList.remove("dragging")
+                })
 
-                // appletDiv.addEventListener('dragover', (e) => {
-                //     e.preventDefault()
-                //     // let dragging = document.querySelector('.dragging')
-                //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                //     // let htmlString = '<h1>Replaced!</h1>'
-                //     // appletDiv.innerHTML = htmlString.trim();
-                //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                //     appletDiv.classList.add('hovered')
-                // })
+                appletDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault()
+                    if (this.prevHovered != appletDiv){
+                        let draggingGA = document.querySelector('.dragging').style.gridArea
+                        let hoveredGA = appletDiv.style.gridArea
+                        appletDiv.style.gridArea = draggingGA
+                        document.querySelector('.dragging').style.gridArea = hoveredGA
+                        this.responsive()
+                        this.prevHovered = appletDiv
+                    }
+                    appletDiv.classList.add('hovered')
+                })
 
-                // appletDiv.addEventListener('dragleave', (e) => {
-                //     e.preventDefault()
-                //     // let dragging = document.querySelector('.dragging')
-                //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                //     // let htmlString = '<h1>Replaced!</h1>'
-                //     // appletDiv.innerHTML = htmlString.trim();
-                //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                //     appletDiv.classList.remove('hovered')
-                // })
+                appletDiv.addEventListener('dragleave', (e) => {
+                    e.preventDefault()
+                    appletDiv.classList.remove('hovered')
+                })
 
-                // appletDiv.addEventListener("drop", function(event) {
-                //     event.preventDefault();
-                //     let dragging = document.querySelector('.dragging')
-                //     appletDiv.classList.remove('hovered')
-                //   }, false);
+                appletDiv.addEventListener("drop", function(event) {
+                    event.preventDefault();
+                    let dragging = document.querySelector('.dragging')
+                    appletDiv.classList.remove('hovered')
+                  }, false);
 
                 // Fullscreen Functionality
                 appletDiv.addEventListener('dblclick', () => {
