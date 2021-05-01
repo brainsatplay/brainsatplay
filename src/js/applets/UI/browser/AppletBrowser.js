@@ -174,19 +174,19 @@ export class AppletBrowser {
             justify-content: center;'>
                 ${presetHTML}
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
+            <div id="${this.props.id}-appletheader" style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
                 <h1>Applets</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
                 <div style="margin: 5px;">
                 <p style="font-size: 80%; margin-bottom: 5px;">Device</p>
-                    <select id="${this.props.id}-deviceselector" style="max-height: 30px; width: 100%;">
+                    <select id="${this.props.id}-devices" style="max-height: 30px; width: 100%;">
                         <option value="all" selected>All</option>
                     </select>
                 </div>
                 <div style="margin: 5px;">
                     <p style="font-size: 80%; margin-bottom: 5px;"s>Category</p>
-                    <select id="${this.props.id}-categoryselector" style="max-height: 30px; width: 100%;">
+                    <select id="${this.props.id}-categories" style="max-height: 30px; width: 100%;">
                         <option value="all" selected>All</option>
                     </select>
                     </div>
@@ -210,22 +210,22 @@ export class AppletBrowser {
               
             // usage example:
             let uniqueCategories = categoryArray.filter(onlyUnique);
-            let categorySelector = document.getElementById(`${this.props.id}-categoryselector`)
+            let categorySelector = document.getElementById(`${this.props.id}-categories`)
             uniqueCategories.forEach(category => {
                 categorySelector.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`
             })
             categorySelector.onchange = (e) => {
-                this.filterApplets('categories', e.target.value)
+                this.filterApplets()
             }
 
             let uniqueDevices = deviceArray.filter(onlyUnique);
-            let deviceSelector = document.getElementById(`${this.props.id}-deviceselector`)
+            let deviceSelector = document.getElementById(`${this.props.id}-devices`)
             uniqueDevices.forEach(device => {
                 deviceSelector.innerHTML += `<option value="${device}">${device.charAt(0).toUpperCase() + device.slice(1)}</option>`
             })
             
             deviceSelector.onchange = (e) => {
-                this.filterApplets('devices',e.target.value)
+                this.filterApplets()
             }
 
 
@@ -274,10 +274,25 @@ export class AppletBrowser {
         });
     }
 
-    filterApplets(attribute, value){
+    filterApplets(){
         let divs = document.getElementById(`${this.props.id}-appletsection`).querySelectorAll('.browser-card')
+        let selectors = document.getElementById(`${this.props.id}-appletheader`).querySelectorAll('select')
+
+        let attributes = []
+        let values = []
+        for (let selector of selectors){
+            attributes.push(selector.id.split('-')[1])
+            values.push(selector.value)
+        }
+
         for (let div of divs){
-            if (div.getAttribute(attribute).includes(value) || value ===  "all"){
+            let votes = 0;
+            attributes.forEach((a,i) => {
+                if (div.getAttribute(a).includes(values[i]) || values[i] ===  "all"){
+                    votes++
+                }
+            })
+            if (votes === attributes.length){
                 div.style.display = "block"
             } else {
                 div.style.display = "none"
@@ -285,6 +300,4 @@ export class AppletBrowser {
         }
 
     }
-
-   
 } 
