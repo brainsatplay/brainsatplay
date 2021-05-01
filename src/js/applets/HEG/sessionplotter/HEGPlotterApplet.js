@@ -63,7 +63,7 @@ export class HEGPlotterApplet {
                     let err = 0;
                     let mse = 0;
                     data.forEach((row)=>{
-                        t.push(parseFloat(row[0]));
+                        t.push(parseFloat(row[1]));
                         red.push(parseFloat(row[2]));
                         ir.push(parseFloat(row[3]));
                         ratio.push(parseFloat(row[4]));
