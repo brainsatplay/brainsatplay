@@ -311,6 +311,7 @@ export class AppletManager {
 
         let thisApplet = this.applets[appletIdx].classinstance
         let appletName = thisApplet.info.name
+        console.log(thisApplet, appletName)
         if (appletName != 'Applet Browser') {
             getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
 
@@ -333,14 +334,18 @@ export class AppletManager {
         </div>
         <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
             <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
-                <h2>About ${appletSettings.name}</h2>
+                <div>
+                <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
+                <p style="font-size: 69%;">${appletSettings.description}</p>
+                </div>
                 <div style="font-size: 80%;">
                     <p>Devices: ${appletSettings.devices.join(', ')}</p>
                     <p>Categories: ${appletSettings.categories.join(' + ')}</p>
                 </div>
             </div>
             <hr>
-            <p>${appletSettings.description}</p>
+            <h2>Directions</h2>
+            <p>${appletSettings.directions}</p>
         </div>
         `
 
@@ -363,7 +368,13 @@ export class AppletManager {
                         infoMask.style.pointerEvents = 'none';
                         if (instance == null) {
                             await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
-                                instance = new browser(appletMask, this.session, [{appletIdx}]);
+                                instance = new browser(appletMask, this.session, [
+                                    {
+                                        appletIdx: appletIdx,
+                                        showPresets: false,
+                                        displayMode: 'tight'
+                                    }
+                                ]);
                                 instance.init()
 
                                 thisApplet.deinit = (() => {
