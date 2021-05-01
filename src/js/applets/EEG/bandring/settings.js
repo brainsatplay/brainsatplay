@@ -4,7 +4,7 @@ export const settings = {
     "name": "Band Ring",
     "devices": ["eeg"],
     "description": "Bandpower visualizer.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "BandRingApplet",
     "image": featureImg
 }

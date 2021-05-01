@@ -4,7 +4,7 @@ export const settings = {
     "name": "Bar Chart",
     "devices": ["eeg"],
     "description": "See EEG bandpowers.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "BarChartApplet",
     "image": featureImg
 }

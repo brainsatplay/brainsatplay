@@ -4,7 +4,7 @@ export const settings = {
     "name": "HEG Session Plotter",
     "devices": ["heg"],
     "description": "Plot HEG sessions",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "HEGPlotterApplet",
     "image": featureImg
 }
