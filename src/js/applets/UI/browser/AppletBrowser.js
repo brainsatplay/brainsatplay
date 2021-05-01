@@ -280,9 +280,10 @@ export class AppletBrowser {
                     }
                 } else {
                     div.onclick = (e) => {
-                        let selector = document.getElementById(`applet${this.appletToReplace+1}`)
+                        let selector = document.getElementById(`applet${this.appletToReplace}`)
                         selector.value = choice
-                        window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
+                        window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${choice}`)
+                        console.log(selector)
                         selector.onchange()
                     }
                     }

@@ -59,11 +59,7 @@ export class BCIAppManager {
 
         this.bcisession = bcisession; //brainsatplay class instance
         this.appletConfigs = appletConfigs;
-        if (window.isMobile){
-            this.appletSelectIds = ['applet1']
-        } else {
-            this.appletSelectIds = ['applet1','applet2','applet3','applet4']
-        }
+        this.appletSelectIds = []
         this.appletManager;
         this.fs;
         this.useFS = useFS;
@@ -296,28 +292,6 @@ export class BCIAppManager {
             contentChild1
         );
 
-        let appletSelectContainer = contentChild1.querySelector('.applet-select-container')
-        appletSelectContainer.style.display = 'none';
-        
-        this.appletSelectIds.forEach((id,i) => {
-            if (this.appletSelectIds.length > 1){
-                appletSelectContainer.innerHTML += `
-                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
-                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
-                    <select id="${id}" style="width: 100%;"></select>
-                </div>
-                `
-            } else {
-                appletSelectContainer.innerHTML += `
-                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
-                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
-                    <select id="${id}" style="width: 100%;"></select>
-                    <div></div>
-                </div>
-                `
-            }
-        })
-        
         // Layout Selector
         contentChild1.innerHTML += `
         <br>
@@ -389,7 +363,6 @@ export class BCIAppManager {
 
         let presetSelector = document.getElementById("preset-selector")
 		presetSelector.onchange = (e) => {
-            console.log(presetSelector.value)
             window.history.pushState({ 
                 // applet1: document.getElementById('applet1').value,
                 // preset: document.getElementById('preset-selector').value,

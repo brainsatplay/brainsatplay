@@ -11,7 +11,7 @@ export class AppletManager {
      * @alias AppletManager
      * @description Main container for WebBCI applets.
      */
-    constructor(initUI = () => { }, deinitUI = () => { }, appletConfigs = [], appletSelectIds = ["applet1", "applet2", "applet3", "applet4"], bcisession = new Session()) {
+    constructor(initUI = () => { }, deinitUI = () => { }, appletConfigs = [], appletSelectIds = [], bcisession = new Session()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
@@ -21,9 +21,13 @@ export class AppletManager {
 
         // Layout Constraints
         if (!window.isMobile) {
-            this.maxApplets = 4;
+            this.maxApplets = 16;
         } else {
             this.maxApplets = 1;
+        }
+
+        if (appletSelectIds.length === 0 && Array.isArray(appletSelectIds)){
+            appletSelectIds = Array.from({length: this.maxApplets}, (e,i) => `applet${i}`)
         }
 
         this.layoutTemplates = {
@@ -96,7 +100,14 @@ export class AppletManager {
         this.session = bcisession;
 
         this.appletSelectIds = appletSelectIds;
-
+        this.appletSelectIds.forEach((selectId,appletIdx) => {
+            document.body.querySelector('.applet-select-container').innerHTML += `
+            <div id='brainsatplay-selector-${selectId}' style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
+                <span style="margin:auto 0; font-size: 80%">Applet ${appletIdx}</span>
+                <select id="${selectId}" style="width: 100%;"></select>
+            </div>`
+        })
+        
         this.initAddApplets(appletConfigs);
 
         window.addEventListener('resize', () => {
@@ -164,7 +175,7 @@ export class AppletManager {
             if (appletConfigs.length === 1) {
                 if (typeof appletConfigs[0] === 'string') {
                     preset = this.appletPresets.find((p) => {
-                        if (p.value == appletConfigs[0].toLowerCase()) {
+                        if (p.value.toLowerCase() == appletConfigs[0].toLowerCase()) {
                             document.getElementById("preset-selector").value = p.value;
                             this.appletConfigs = p.applets
                             return true;
@@ -181,12 +192,12 @@ export class AppletManager {
             }
         }
         if (preset) {
-            if (preset.value.includes('heg')) {
+            if (preset.value.includes('HEG')) {
                 if (this.session.atlas.settings.heg === false) {
                     this.session.atlas.addHEGCoord(0);
                     this.session.atlas.settings.heg = true;
                 }
-            } else if (preset.value.includes('eeg')) {
+            } else if (preset.value.includes('EEG')) {
                 if (this.session.atlas.settings.eeg === false) {
                     this.session.atlas.settings.eeg = true;
                 }
@@ -271,12 +282,7 @@ export class AppletManager {
             // Generate applet selectors
 
             if (showOptions) {
-                document.body.querySelector('.applet-select-container').style.display = 'flex'
-                this.appletSelectIds.forEach((id, i) => {
-                    if (i < this.maxApplets) {
-                        this.addAppletOptions(id, i);
-                    }
-                })
+                this.showOptions()
             } else {
                 document.body.querySelector('.applet-select-container').style.display = 'none'
             }
@@ -286,6 +292,13 @@ export class AppletManager {
     setAppletDefaultUI = (appletDiv, appletIdx) => {
 
         // Brains@Play Default Overlays
+
+        // let thisApplet = this.applets.find(o => {
+        //     if (o.appletIdx === appletIdx){
+        //         return o.classinstance
+        //     }
+        // })
+        // console.log(thisApplet)
 
         if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
         {
@@ -397,6 +410,8 @@ export class AppletManager {
             
                     // Drag functionality
                     // appletDiv.draggable = true
+
+                    let swapped = null
                     dragIcon.classList.add("draggable")
                     dragIcon.addEventListener('dragstart', () => {
                         appletDiv.classList.add("dragging")
@@ -405,7 +420,7 @@ export class AppletManager {
                         appletDiv.classList.remove("dragging")
                     })
             
-                    appletDiv.addEventListener('dragenter', (e) => {
+                    appletDiv.addEventListener('dragover', (e) => {
                         e.preventDefault()
                         if (this.prevHovered != appletDiv){
                             let draggingGA = document.querySelector('.dragging').style.gridArea
@@ -414,6 +429,9 @@ export class AppletManager {
                             document.querySelector('.dragging').style.gridArea = hoveredGA
                             this.responsive()
                             this.prevHovered = appletDiv
+                            if (appletDiv != document.querySelector('.dragging')){
+                                this.lastSwapped = appletDiv
+                            }
                         }
                         appletDiv.classList.add('hovered')
                     })
@@ -423,10 +441,20 @@ export class AppletManager {
                         appletDiv.classList.remove('hovered')
                     })
             
-                    appletDiv.addEventListener("drop", function(event) {
+                    appletDiv.addEventListener("drop", (event) => {
                         event.preventDefault();
                         let dragging = document.querySelector('.dragging')
                         appletDiv.classList.remove('hovered')
+                        let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                        let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
+                        let _temp = draggingApplet.appletIdx;
+                        draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
+                        lastSwappedApplet.appletIdx = _temp;
+                        this.showOptions()
+
+                        for (let hovered of document.querySelectorAll('.hovered')){
+                            hovered.classList.remove('hovered')
+                        }
                     }, false);
             
                     // Fullscreen Functionality
@@ -532,15 +560,32 @@ export class AppletManager {
         this.responsive();
     }
 
-    addAppletOptions = (selectId, appletIdx) => {
-        var select = document.getElementById(selectId);
+    showOptions = () => {
+        document.body.querySelector('.applet-select-container').style.display = 'flex'
+        this.appletSelectIds.forEach((id, i) => {
+            if (i < this.maxApplets) {
+                this.generateAppletOptions(id, i);
+            }
+        })
+    }
+
+    generateAppletOptions = (selectId, appletIdx) => {
+        
+        const select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None'>None</option>`;
+        let newhtml = `<option value='None'>None</option>`;
         let appletKeys = Object.keys(AppletInfo)
+
+        let arrayAppletIdx = this.applets.findIndex((o, i) => {
+            if (o.appletIdx === appletIdx+1) {
+                return true
+            }
+        })
+        
         appletKeys.forEach((name) => {
             if (!['Applet Browser'].includes()) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
-                    if (this.applets[appletIdx] && this.applets[appletIdx].name === name) {
+                    if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;
                     }
                     else {
@@ -552,6 +597,7 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = async (e) => {
+            console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
