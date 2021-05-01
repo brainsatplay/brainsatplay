@@ -1,6 +1,8 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {SoundJS} from '../../../frontend/UX/Sound'
+import * as settingsFile from './settings'
+
 export class AudioApplet {
 
     constructor(
@@ -12,6 +14,7 @@ export class AudioApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

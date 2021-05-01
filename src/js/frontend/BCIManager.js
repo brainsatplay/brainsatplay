@@ -122,9 +122,11 @@ export class BCIAppManager {
         <div id="sidebar-container">
             <div id="sidebar">
             <div id="sidebar-inner">
+            <a id="applet-browser-button" style="cursor: pointer;">
                 <div class="logo-container">
                     <img class="logo" src="./logo512.png">
                 </div>
+                </a>
                 <div id="device-menu" class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/wave-square-solid.svg"><span>Device Manager</span></div></button>
                     <div class="content">
@@ -294,16 +296,19 @@ export class BCIAppManager {
             contentChild1
         );
 
+        let appletSelectContainer = contentChild1.querySelector('.applet-select-container')
+        appletSelectContainer.style.display = 'none';
+        
         this.appletSelectIds.forEach((id,i) => {
             if (this.appletSelectIds.length > 1){
-                contentChild1.querySelector('.applet-select-container').innerHTML += `
+                appletSelectContainer.innerHTML += `
                 <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
                     <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
                     <select id="${id}" style="width: 100%;"></select>
                 </div>
                 `
             } else {
-                contentChild1.querySelector('.applet-select-container').innerHTML += `
+                appletSelectContainer.innerHTML += `
                 <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
                     <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
                     <select id="${id}" style="width: 100%;"></select>
@@ -337,15 +342,13 @@ export class BCIAppManager {
 
         // Applet Browser Button
         document.getElementById('applet-browser-button').onclick = () => {
-            window.history.pushState({ 
-                // applet1: document.getElementById('applet1').value,
-                // preset: document.getElementById('preset-selector').value,
-                // layout: document.getElementById('layout-selector').value,
-                additionalInformation: 'Updated URL to Applet Browser' 
-            },'',`${window.location.origin}`)
-            document.getElementById("preset-selector").value = 'default'
-            this.appletManager.deinitApplets()       
-            this.appletManager.initAddApplets()           
+            console.log(window.location.origin, window.location.href.slice(0,window.location.href.length-1))
+            if (window.location.origin != window.location.href.slice(0,window.location.href.length-1)){
+                window.history.pushState({ additionalInformation: 'Updated URL to Applet Browser' },'',`${window.location.origin}`)
+                // document.getElementById("preset-selector").value = 'default'
+                this.appletManager.deinitApplets()       
+                this.appletManager.initAddApplets()       
+            }    
         }
 
 

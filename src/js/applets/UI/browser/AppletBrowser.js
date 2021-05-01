@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import { presets , AppletInfo, getAppletSettings} from "../../appletList"
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -14,6 +15,7 @@ export class AppletBrowser {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -21,6 +23,9 @@ export class AppletBrowser {
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
+        
+        // Default Configuration Settings 
+        this.appletToReplace = 0
     }
 
     //---------------------------------
@@ -241,7 +246,7 @@ export class AppletBrowser {
                     }
                 } else {
                     div.onclick = (e) => {
-                        let selector = document.getElementById('applet1')
+                        let selector = document.getElementById(`applet${this.appletToReplace+1}`)
                         selector.value = choice
                         window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
                         selector.onchange()
@@ -270,6 +275,10 @@ export class AppletBrowser {
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
+            console.log(cmd)
+            if (cmd.appletIdx != null){
+                this.appletToReplace = cmd.appletIdx
+            }
             //if(cmd === 'x'){//doSomething;}
         });
     }

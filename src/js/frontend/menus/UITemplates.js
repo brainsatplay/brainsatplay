@@ -98,9 +98,6 @@ export function appletselect_template(props={}) {
         <span>Applets</span>
         <hr>
     </div>
-    <div>
-        <button id="applet-browser-button">Go to Applet Browser</button>
-    </div>
     <div class="applet-select-container" style="display: flex; flex-wrap: wrap;">
     </div>
     <div class="collapsible-content-label">

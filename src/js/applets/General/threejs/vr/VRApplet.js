@@ -7,6 +7,7 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './blob/vertex.glsl'
 import fragmentShader from './blob/fragment.glsl'
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class VRApplet {
@@ -19,7 +20,8 @@ export class VRApplet {
     
         //-------Keep these------- 
         this.parentNode = parent;
-        this.settings = settings;
+		this.settings = settings;
+		this.info = settingsFile.settings;
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
