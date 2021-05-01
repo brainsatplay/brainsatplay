@@ -30,7 +30,7 @@ To add an image, place an image under `/src/assets/features` and edit the top im
 ```js
 export const settings = {
     "name": "My Applet",
-    "devices": ["eeg","heg"],
+    "devices": ["EEG","HEG"],
     "description": "This is my applet.",
     "categories": ["train"],
     "module": "MyApplet",

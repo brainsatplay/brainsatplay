@@ -2,9 +2,9 @@ import featureImg from './feature.png'
 
 export const settings = {
     "name": "Bar Chart",
-    "devices": ["eeg"],
+    "devices": ["EEG"],
     "description": "See EEG bandpowers.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "BarChartApplet",
     "image": featureImg
 }

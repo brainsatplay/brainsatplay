@@ -2,7 +2,7 @@ import featureImg from './../../../../assets/features/placeholder.png'
 
 export const settings = {
     "name": "Hill Climber",
-    "devices": ["heg"],
+    "devices": ["HEG"],
     "description": "Increase HEG ratio, go up.",
     "categories": ["train"],
     "module": "HillClimberApplet",

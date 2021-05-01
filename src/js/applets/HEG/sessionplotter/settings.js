@@ -2,9 +2,9 @@ import featureImg from './feature.PNG'
 
 export const settings = {
     "name": "HEG Session Plotter",
-    "devices": ["heg"],
+    "devices": ["HEG"],
     "description": "Plot HEG sessions",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "HEGPlotterApplet",
     "image": featureImg
 }

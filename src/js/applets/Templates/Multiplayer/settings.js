@@ -9,7 +9,7 @@ export const settings = {
     "categories": ['play', 'brainstorm'],
 
     // Stream Information
-    "devices": ['eeg'],
+    "devices": ['EEG'],
     "streams": ['defense', 'keysPressed','position', 'fireballs', 'health'],
 
      // Asset Pointers

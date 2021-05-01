@@ -2,9 +2,9 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Connectome",
-    "devices": ["eeg"],
+    "devices": ["EEG"],
     "description": "Visualize connection strength between brain regions.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "ConnectomeApplet",
     "image": featureImg
 }

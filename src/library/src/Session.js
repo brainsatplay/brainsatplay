@@ -1030,11 +1030,15 @@ export class Session {
 			loadingBarElement.style.transform = `scaleX(1)`
 			}, 1000)
 			setTimeout(() => {
-				loadingBarElement.classList.add('ended')
-				loadingBarElement.style.transform = ''
+				if (loadingBarElement){
+					loadingBarElement.classList.add('ended')
+					loadingBarElement.style.transform = ''
+				}
 				const hero = document.getElementById(`${applet.props.id}gameHero`)
-				hero.style.opacity = 0;
-				hero.style.pointerEvents = 'none'
+				if (hero){
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
 			}, loadTime)
 	}
 

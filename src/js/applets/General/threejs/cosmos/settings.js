@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Cosmos",
-    "devices": ["eeg", "heg"],
+    "devices": ["EEG", "HEG"],
     "description": "Spin the galaxy!",
     "categories": ["train"],
     "module": "CosmosApplet",

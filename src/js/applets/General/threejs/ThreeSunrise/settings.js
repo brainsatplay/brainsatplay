@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Sunrise",
-    "devices": ["heg"],
+    "devices": ["HEG"],
     "description": "Spin the Earth!",
     "categories": ["train"],
     "module": "ThreeSunriseApplet",

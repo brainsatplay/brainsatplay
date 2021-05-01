@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Video (MP4)",
-    "devices": ["eeg","heg"],
+    "devices": ["EEG","HEG"],
     "description": "HEG ratio and EEG Coherence feedback.",
     "categories": ["train"],
     "module": "VideoApplet",

@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Audio",
-    "devices": ["eeg","heg"],
+    "devices": ["EEG","HEG"],
     "description": "HEG ratio and EEG Coherence feedback.",
     "categories": ["train"],
     "module": "AudioApplet",

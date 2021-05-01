@@ -2,9 +2,9 @@ import featureImg from './img/feature.jpg'
 
 export const settings = {
     "name": "Spectrogram",
-    "devices": ["eeg"],
+    "devices": ["EEG"],
     "description": "Bandpower and coherence visualizer.",
-    "categories": ["connect"],
+    "categories": ["visualize"],
     "module": "SpectrogramApplet",
     "image": featureImg
 }
