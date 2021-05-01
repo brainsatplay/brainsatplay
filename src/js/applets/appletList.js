@@ -1,41 +1,41 @@
 
 import placeholderImg from '../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
-import hegImage from './../../assets/features/hegbiofeedback.png'
+import HEGImage from './../../assets/features/HEGbiofeedback.png'
 import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png'
 
 // { folderUrl:'', name:'', categories:[] }
 export const AppletInfo = {
-    'Applet Browser': { folderUrl:'./UI/browser',       devices:['eeg','heg'],     categories:['UI']},
-    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['eeg','heg'],     categories:['UI']},
-    'uPlot': { folderUrl:'./General/uplot',             devices:['eeg','heg'],     categories:['connect']},
-    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['connect']},
-    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['connect']},
-    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['connect']},
-    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['eeg'],           categories:['connect']},
-    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['train','brainstorm']},
-    'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:['train']},
-    'Enso': { folderUrl:'./General/threejs/enso',       devices:['eeg','heg'],           categories:['train']},
-    'Cosmos': { folderUrl:'./General/threejs/cosmos',   devices:['eeg','heg'],           categories:['train']},
-    'Blink': { folderUrl:'./EEG/blink',                 devices:['eeg'],           categories:['train']},
-    'Band Ring': { folderUrl:'./EEG/bandring',          devices:['eeg'],           categories:['train'] },
-    'Brain Art': { folderUrl:'./EEG/brainart',          devices:['eeg'],           categories:['train'] },
-    'Connectome': { folderUrl:'./EEG/connectome',       devices:['eeg'],           categories:['train'] },
-    'Pixi': { folderUrl:'./EEG/pixi',                   devices:['eeg'],           categories:['train'] },
-    'Circle': { folderUrl:'./HEG/circle',               devices:['heg'],           categories:['train'] },
-    'Audio': { folderUrl:'./General/audio',             devices:['eeg','heg'],     categories:['train'] },
-    'Video': { folderUrl:'./General/video',             devices:['eeg','heg'],     categories:['train'] },
-    'Boids':{ folderUrl:'./HEG/boids',                  devices:['eeg'],           categories:['train'] },
-    'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['heg'],           categories:['train'] },
-    'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['heg'],           categories:['connect'] },
-    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['train'] },
-    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['train'] },
-    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['connect'] },
-    'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['train'] },
-    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['play','brainstorm'] },
-    'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['eeg'], categories:['train'] },
-    'VR Applet': { folderUrl:'./General/threejs/vr', devices:['eeg','heg'], categories:['train'] },
-    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['eeg','heg'], categories:['train'] },
+    'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
+    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
+    'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['connect']},
+    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['EEG'],           categories:['connect']},
+    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['connect']},
+    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['EEG'],           categories:['connect']},
+    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['EEG'],           categories:['connect']},
+    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['EEG'],           categories:['train','brainstorm']},
+    'Blob': { folderUrl:'./General/threejs/blob',       devices:['EEG','HEG'],           categories:['train']},
+    'Enso': { folderUrl:'./General/threejs/enso',       devices:['EEG','HEG'],           categories:['train']},
+    'Cosmos': { folderUrl:'./General/threejs/cosmos',   devices:['EEG','HEG'],           categories:['train']},
+    'Blink': { folderUrl:'./EEG/blink',                 devices:['EEG'],           categories:['train']},
+    'Band Ring': { folderUrl:'./EEG/bandring',          devices:['EEG'],           categories:['train'] },
+    'Brain Art': { folderUrl:'./EEG/brainart',          devices:['EEG'],           categories:['train'] },
+    'Connectome': { folderUrl:'./EEG/connectome',       devices:['EEG'],           categories:['train'] },
+    'Pixi': { folderUrl:'./EEG/pixi',                   devices:['EEG'],           categories:['train'] },
+    'Circle': { folderUrl:'./HEG/circle',               devices:['HEG'],           categories:['train'] },
+    'Audio': { folderUrl:'./General/audio',             devices:['EEG','HEG'],     categories:['train'] },
+    'Video': { folderUrl:'./General/video',             devices:['EEG','HEG'],     categories:['train'] },
+    'Boids':{ folderUrl:'./HEG/boids',                  devices:['EEG'],           categories:['train'] },
+    'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['HEG'],           categories:['train'] },
+    'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['connect'] },
+    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['HEG'],           categories:['train'] },
+    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['HEG'],      categories:['train'] },
+    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['HEG'],           categories:['connect'] },
+    'Youtube': { folderUrl:'./General/ytube',           devices:['EEG','HEG'],     categories:['train'] },
+    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['EEG','HEG'], categories:['play','brainstorm'] },
+    'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['EEG'], categories:['train'] },
+    'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
+    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
 
 };
 
@@ -80,7 +80,7 @@ export let generateSettings = (appletInfo, from=0, to='end', category=undefined,
 
 export let presets = [
     {
-        value: 'eeg',
+        value: 'EEG',
         name: "EEG Neurofeedback",
         applets: [
             'Blob',
@@ -94,7 +94,7 @@ export let presets = [
         lock: false
     },
     {
-        value: 'heg',
+        value: 'HEG',
         name: "HEG Biofeedback",
         applets: [
             'Boids',
@@ -104,7 +104,7 @@ export let presets = [
         ],
         description: "Brain blood flow training!",
         type: "HEG",
-        image: hegImage,
+        image: HEGImage,
         lock: false
     },
     {

@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Circle",
-    "devices": ["heg"],
+    "devices": ["HEG"],
     "description": "Working with brains!",
     "categories": ["train"],
     "module": "CircleApplet",

@@ -136,23 +136,20 @@ export class AppletBrowser {
         Promise.all(appletSettingsArray).then((appletSettings) => {
 
             let categoryArray = []
+            let deviceArray = []
             appletSettings.forEach(settings => {
                 if (!['Applet Browser','Randomizer'].includes(settings.name)){
                     let type;
                     if (settings.devices.length > 1){
                         type = 'All'
-                    } else if (settings.devices[0] == 'eeg'){
-                        type = 'EEG'
-                    } else if (settings.devices[0] == 'heg'){
-                        type = 'HEG'
                     } else {
-                        type = 'Other'
+                        type = settings.devices[0]
                     }
 
                     let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
 
                     let html = `
-                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
+                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                         <img src="${settings.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
                         <div style="padding: 0px 25px 10px 25px;">
                         <h2 style="margin-bottom: 0px;">${settings.name}</h2>
@@ -163,6 +160,7 @@ export class AppletBrowser {
                     generalHTML += html
 
                     categoryArray.push(...settings.categories)
+                    deviceArray.push(...settings.devices)
                 }
             })
 
@@ -178,10 +176,20 @@ export class AppletBrowser {
             </div>
             <div style="display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;">
                 <h1>Applets</h1>
-                <div style="padding: 0px 25px;  width: 100%; margin: auto;">
+                <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
+                    
+                <div style="margin: 5px;">
+                <p style="font-size: 80%; margin-bottom: 5px;">Device</p>
+                    <select id="${this.props.id}-deviceselector" style="max-height: 30px; width: 100%;">
+                        <option value="all" selected>All</option>
+                    </select>
+                </div>
+                <div style="margin: 5px;">
+                    <p style="font-size: 80%; margin-bottom: 5px;"s>Category</p>
                     <select id="${this.props.id}-categoryselector" style="max-height: 30px; width: 100%;">
                         <option value="all" selected>All</option>
                     </select>
+                    </div>
                 </div>
             </div>
             <hr>
@@ -206,10 +214,20 @@ export class AppletBrowser {
             uniqueCategories.forEach(category => {
                 categorySelector.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`
             })
-
             categorySelector.onchange = (e) => {
-                this.filterAppletsByCategory(e.target.value)
+                this.filterApplets('categories', e.target.value)
             }
+
+            let uniqueDevices = deviceArray.filter(onlyUnique);
+            let deviceSelector = document.getElementById(`${this.props.id}-deviceselector`)
+            uniqueDevices.forEach(device => {
+                deviceSelector.innerHTML += `<option value="${device}">${device.charAt(0).toUpperCase() + device.slice(1)}</option>`
+            })
+            
+            deviceSelector.onchange = (e) => {
+                this.filterApplets('devices',e.target.value)
+            }
+
 
             // Declare OnClick Responses
             const appletCards = container.querySelectorAll('.browser-card')
@@ -256,10 +274,10 @@ export class AppletBrowser {
         });
     }
 
-    filterAppletsByCategory(category){
+    filterApplets(attribute, value){
         let divs = document.getElementById(`${this.props.id}-appletsection`).querySelectorAll('.browser-card')
         for (let div of divs){
-            if (div.getAttribute('categories').includes(category) || category ===  "all"){
+            if (div.getAttribute(attribute).includes(value) || value ===  "all"){
                 div.style.display = "block"
             } else {
                 div.style.display = "none"

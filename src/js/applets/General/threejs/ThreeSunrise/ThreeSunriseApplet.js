@@ -91,16 +91,16 @@ export class ThreeSunriseApplet {
             //Add whatever else you need to initialize
 
 
-            /**
-             * VR
-             */
-            navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-                if (isSupported){
-                    this.renderer.xr.enabled = true;
-                    document.getElementById(props.id+"threeContainer").style.position = 'relative'
-                    document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
-                }
-            })
+            // /**
+            //  * VR
+            //  */
+            // navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+            //     if (isSupported){
+            //         this.renderer.xr.enabled = true;
+            //         document.getElementById(props.id+"threeContainer").style.position = 'relative'
+            //         document.getElementById(props.id+"threeContainer").appendChild( VRButton.createButton( this.renderer ) );
+            //     }
+            // })
 
             
             document.getElementById(props.id+"threeContainer").appendChild(this.renderer.domElement);

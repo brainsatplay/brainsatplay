@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Enso",
-    "devices": ["eeg", "heg"],
+    "devices": ["EEG", "HEG"],
     "description": "Calm the ring!",
     "categories": ["train"],
     "module": "EnsoApplet",
