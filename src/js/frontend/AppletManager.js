@@ -1,6 +1,7 @@
 import { Session } from "../../library/src/Session";
 import { getApplet, presets, AppletInfo, getAppletSettings } from "../applets/appletList"
 import appletSVG from './../../assets/th-large-solid.svg'
+import dragSVG from './../../assets/arrows-alt-solid.svg'
 
 //By Garrett Flynn, Joshua Brewster (GPL)
 
@@ -10,7 +11,7 @@ export class AppletManager {
      * @alias AppletManager
      * @description Main container for WebBCI applets.
      */
-    constructor(initUI = () => { }, deinitUI = () => { }, appletConfigs = [], appletSelectIds = ["applet1", "applet2", "applet3", "applet4"], bcisession = new Session()) {
+    constructor(initUI = () => { }, deinitUI = () => { }, appletConfigs = [], appletSelectIds = [], bcisession = new Session()) {
         this.initUI = initUI;
         this.deinitUI = deinitUI;
         this.initUI();
@@ -20,13 +21,18 @@ export class AppletManager {
 
         // Layout Constraints
         if (!window.isMobile) {
-            this.maxApplets = 4;
+            this.maxApplets = 16;
         } else {
             this.maxApplets = 1;
         }
 
+        if (appletSelectIds.length === 0 && Array.isArray(appletSelectIds)){
+            appletSelectIds = Array.from({length: this.maxApplets}, (e,i) => `applet${i}`)
+        }
+
         this.layoutTemplates = {
             'Focus': {
+                maxApplets: 6,
                 generate: (labels) => {
                     let rows = 3
                     let bottomCols = labels.active.length - 1
@@ -45,36 +51,70 @@ export class AppletManager {
                 }
             },
             'Grid': {
+                maxApplets: 16,
                 generate: (labels) => {
-                    if (labels.active.length != 0) {
-                        let rows = Math.ceil(Math.sqrt(labels.active.length))
-                        let layout = Array.from({ length: rows }, e => []).map((a, i) => {
-                            for (let j = 0; j < rows; j++) {
-                                a.push(labels.all[rows * (i) + j])
-                            }
-                            return a
-                        })
+                    let layout;
+                    let gridResolution = 2
 
-                        let getReplacementLabel = ({ active, inactive, all }, baseLayout, i, j) => {
-                            if (active.includes(baseLayout[i][j - 1])) return baseLayout[i][j - 1]
-                            if (active.includes(baseLayout[i][j + 1])) return baseLayout[i][j + 1]
-                            if (baseLayout[i - 1] != null && active.includes(baseLayout[i - 1][j])) return baseLayout[i - 1][j]
-                            if (baseLayout[i + 1] != null && active.includes(baseLayout[i + 1][j])) return baseLayout[i + 1][j]
-                            else return labels.active.shift()
-                        }
-
-                        layout = layout.map((row, i) => {
-                            return row.map((val, j) => {
-                                if (labels.inactive.includes(val)) { // Replace inactive applets
-                                    return getReplacementLabel(labels, layout, i, j) ?? val
-                                }
-                                else return val
+                    let repeatForGridResolution = (layout, resolution) =>{
+                        layout = layout.map((row,i) => {
+                            let newRow = row.map((col,j) => {
+                                return Array.from({length: resolution}, e => col)
                             })
+                            return Array.from({length: resolution}, e => newRow.flat())
                         })
-                        return layout
-                    } else {
-                        return [[undefined]]
+                        return layout.flat()
                     }
+
+                    let rows = Math.ceil(Math.sqrt(labels.active.length))*gridResolution
+                    if (labels.active.length == 0) layout = [[]]
+                    if (labels.active.length == 1) layout = repeatForGridResolution([[`a`]],gridResolution)
+                    if (labels.active.length == 2) layout = repeatForGridResolution([[`a`,`b`]],gridResolution)
+                    if (labels.active.length == 3) layout = repeatForGridResolution([[`a`,`b`], [`c`,`c`]],gridResolution)
+                    if (labels.active.length == 4) layout = repeatForGridResolution([[`a`,`b`], [`c`,`d`]],gridResolution)
+                    if (labels.active.length == 5) layout = repeatForGridResolution([[`a`,`d`], [`a`,`d`], [`b`,`d`], [`b`,`e`], [`c`,`e`],[`c`,`e`]],gridResolution)
+                    if (labels.active.length == 6) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`f`,`f`], [`e`,`f`,`f`]],gridResolution)
+                    if (labels.active.length == 7) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`e`,`f`], [`g`,`g`,`g`]],gridResolution)
+                    if (labels.active.length == 8) layout = repeatForGridResolution([[`a`,`a`,`b`,`b`,`c`,`c`], [`d`,`d`,`e`,`e`,`f`,`f`], [`g`,`g`,`g`,`h`,`h`,`h`]],gridResolution)
+                    if (labels.active.length == 9) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`e`,`f`], [`g`,`h`,`i`]],gridResolution)
+                    if (labels.active.length == 10) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`i`,`j`,`j`]],gridResolution)
+                    if (labels.active.length == 11) layout = repeatForGridResolution([[`a`,`a`,`a`,`b`,`b`,`b`,`c`,`c`,`c`,`d`,`d`,`d`], 
+                                                                                      [`e`,`e`,`e`,`f`,`f`,`f`,`g`,`g`,`g`,`h`,`h`,`h`], 
+                                                                                      [`i`,`i`,`i`,`i`,`j`,`j`,`j`,`j`,`k`,`k`,`k`,`k`]],gridResolution)
+                    if (labels.active.length == 12) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`]],gridResolution)
+                    if (labels.active.length == 13) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`m`,`m`], [`k`,`l`,`m`,`m`]],gridResolution)
+                    if (labels.active.length == 14) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`],[`m`,`m`,`n`,`n`]],gridResolution)
+                    if (labels.active.length == 15) layout = repeatForGridResolution([[`a`,`a`,`a`,`b`,`b`,`b`,`c`,`c`,`c`,`d`,`d`,`d`], 
+                                                                                      [`e`,`e`,`e`,`f`,`f`,`f`,`g`,`g`,`g`,`h`,`h`,`h`], 
+                                                                                      [`i`,`i`,`i`,`j`,`j`,`j`,`k`,`k`,`k`,`l`,`l`,`l`],
+                                                                                      [`m`,`m`,`m`,`m`,`n`,`n`,`n`,`n`,`o`,`o`,`o`,`o`]],gridResolution)
+                    if (labels.active.length == 16) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`], [`m`,`n`,`o`,`p`]],gridResolution)
+                //     else {
+                //     let layout = Array.from({ length: rows }, e => []).map((a, i) => {
+                //         for (let j = 0; j < rows; j++) {
+                //             a.push(labels.all[rows * (i) + j])
+                //         }
+                //         return a
+                //     })
+
+                //     let getReplacementLabel = ({ active, inactive, all }, baseLayout, i, j) => {
+                //         if (active.includes(baseLayout[i][j - 1])) return baseLayout[i][j - 1]
+                //         if (active.includes(baseLayout[i][j + 1])) return baseLayout[i][j + 1]
+                //         if (baseLayout[i - 1] != null && active.includes(baseLayout[i - 1][j])) return baseLayout[i - 1][j]
+                //         if (baseLayout[i + 1] != null && active.includes(baseLayout[i + 1][j])) return baseLayout[i + 1][j]
+                //         else return labels.active.shift()
+                //     }
+
+                //     layout = layout.map((row, i) => {
+                //         return row.map((val, j) => {
+                //             if (labels.inactive.includes(val)) { // Replace inactive applets
+                //                 return getReplacementLabel(labels, layout, i, j) ?? val
+                //             }
+                //             else return val
+                //         })
+                //     })
+                // }
+                return layout
                 }
             }
         }
@@ -95,12 +135,21 @@ export class AppletManager {
         this.session = bcisession;
 
         this.appletSelectIds = appletSelectIds;
-
+        this.appletSelectIds.forEach((selectId,appletIdx) => {
+            document.body.querySelector('.applet-select-container').innerHTML += `
+            <div id='brainsatplay-selector-${selectId}' style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
+                <span style="margin:auto 0; font-size: 80%">Applet ${appletIdx}</span>
+                <select id="${selectId}" style="width: 100%;"></select>
+            </div>`
+        })
+        
         this.initAddApplets(appletConfigs);
 
         window.addEventListener('resize', () => {
             this.responsive();
         })
+
+        this.prevHovered = null;
 
         //this.responsive(); 
 
@@ -161,7 +210,7 @@ export class AppletManager {
             if (appletConfigs.length === 1) {
                 if (typeof appletConfigs[0] === 'string') {
                     preset = this.appletPresets.find((p) => {
-                        if (p.value == appletConfigs[0].toLowerCase()) {
+                        if (p.value.toLowerCase() == appletConfigs[0].toLowerCase()) {
                             document.getElementById("preset-selector").value = p.value;
                             this.appletConfigs = p.applets
                             return true;
@@ -178,12 +227,12 @@ export class AppletManager {
             }
         }
         if (preset) {
-            if (preset.value.includes('heg')) {
+            if (preset.value.includes('HEG')) {
                 if (this.session.atlas.settings.heg === false) {
                     this.session.atlas.addHEGCoord(0);
                     this.session.atlas.settings.heg = true;
                 }
-            } else if (preset.value.includes('eeg')) {
+            } else if (preset.value.includes('EEG')) {
                 if (this.session.atlas.settings.eeg === false) {
                     this.session.atlas.settings.eeg = true;
                 }
@@ -268,12 +317,7 @@ export class AppletManager {
             // Generate applet selectors
 
             if (showOptions) {
-                document.body.querySelector('.applet-select-container').style.display = 'flex'
-                this.appletSelectIds.forEach((id, i) => {
-                    if (i < this.maxApplets) {
-                        this.addAppletOptions(id, i);
-                    }
-                })
+                this.showOptions()
             } else {
                 document.body.querySelector('.applet-select-container').style.display = 'none'
             }
@@ -281,129 +325,194 @@ export class AppletManager {
     }
 
     setAppletDefaultUI = (appletDiv, appletIdx) => {
-        appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
-        appletDiv.style.position = `relative`;
-        // if (appletDiv.style.overflow == 'auto'){appletDiv.style.overflow = `hidden`;}
-        // if (appletDiv.style.position == null){appletDiv.style.position = `relative`;}
-
-        // appletDiv.draggable = true
-        // appletDiv.style.cursor = 'move'
-        // Fullscreen Functionality
-        appletDiv.addEventListener('dblclick', () => {
-            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-            if (!fullscreenElement) {
-                if (appletDiv.requestFullscreen) {
-                    appletDiv.requestFullscreen()
-                } else if (appletDiv.webkitRequestFullscreen) {
-                    appletDiv.webkitRequestFullscreen()
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen()
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen()
-                }
-            }
-        });
-
 
         // Brains@Play Default Overlays
 
-        let thisApplet = this.applets[appletIdx].classinstance
-        let appletName = thisApplet.info.name
-        console.log(thisApplet, appletName)
-        if (appletName != 'Applet Browser') {
-            getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
+        // let thisApplet = this.applets.find(o => {
+        //     if (o.appletIdx === appletIdx){
+        //         return o.classinstance
+        //     }
+        // })
+        // console.log(thisApplet)
 
-                var div = document.createElement('div');
+        if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
+        {
 
-                let htmlString = `
-        <div style="position: absolute; right: 15px; top: 15px; font-size: 80%; display:flex; z-index: 1000;">
-            <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                <p>i</p>
-            </div>
-            <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                <img src="${appletSVG}" 
-                style="box-sizing: border-box; 
-                filter: invert(1);
-                cursor: pointer;
-                padding: 7px;">
-            </div>
-        </div>
-        <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
-        </div>
-        <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
-                <div>
-                <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
-                <p style="font-size: 69%;">${appletSettings.description}</p>
+            appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
+            appletDiv.style.position = `relative`;
+            
+            let thisApplet = this.applets[appletIdx].classinstance
+            let appletName = thisApplet.info.name
+            if (appletName != 'Applet Browser') {
+                getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
+
+                    var div = document.createElement('div');
+
+                    let htmlString = `
+            <div style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.25; transition: opacity 0.5s;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.25;">
+                <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <p>i</p>
                 </div>
-                <div style="font-size: 80%;">
-                    <p>Devices: ${appletSettings.devices.join(', ')}</p>
-                    <p>Categories: ${appletSettings.categories.join(' + ')}</p>
+                <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${appletSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
+                </div>
+                <div class="brainsatplay-default-drag-icon"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${dragSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
                 </div>
             </div>
-            <hr>
-            <h2>Directions</h2>
-            <p>${appletSettings.directions}</p>
-        </div>
-        `
+            <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
+            </div>
+            <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%; overflow: scroll;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
+                    <div>
+                    <h1 style="margin-bottom: 0; padding-bottom: 0;">${appletSettings.name}</h1>
+                    <p style="font-size: 69%;">${appletSettings.description}</p>
+                    </div>
+                    <div style="font-size: 80%;">
+                        <p>Devices: ${appletSettings.devices.join(', ')}</p>
+                        <p>Categories: ${appletSettings.categories.join(' + ')}</p>
+                    </div>
+                </div>
+                <hr>
+                <h2>Directions</h2>
+                <p>${appletSettings.directions}</p>
+            </div>
+            `
 
-                div.innerHTML = htmlString.trim();
-                div.id = `${appletDiv.id}-brainsatplay-default-ui`
-                appletDiv.appendChild(div);
+                    div.innerHTML = htmlString.trim();
+                    div.id = `${appletDiv.id}-brainsatplay-default-ui`
+                    appletDiv.appendChild(div);
 
-                let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
-                let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
+                    let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
+                    let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
+                    let dragIcon = appletDiv.querySelector('.brainsatplay-default-drag-icon')
 
-                let instance = null;
-                appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
-                    if (appletMask.style.opacity != 0) {
-                        appletMask.style.opacity = 0
-                        appletMask.style.pointerEvents = 'none'
-                    } else {
-                        appletMask.style.opacity = 1
-                        appletMask.style.pointerEvents = 'auto'
-                        infoMask.style.opacity = 0;
-                        infoMask.style.pointerEvents = 'none';
-                        if (instance == null) {
-                            await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
-                                instance = new browser(appletMask, this.session, [
-                                    {
-                                        appletIdx: appletIdx,
-                                        showPresets: false,
-                                        displayMode: 'tight'
-                                    }
-                                ]);
-                                instance.init()
+                    let instance = null;
+                    appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
+                        if (appletMask.style.opacity != 0) {
+                            appletMask.style.opacity = 0
+                            appletMask.style.pointerEvents = 'none'
+                        } else {
+                            appletMask.style.opacity = 1
+                            appletMask.style.pointerEvents = 'auto'
+                            infoMask.style.opacity = 0;
+                            infoMask.style.pointerEvents = 'none';
+                            if (instance == null) {
+                                await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
+                                    instance = new browser(appletMask, this.session, [
+                                        {
+                                            appletIdx: appletIdx,
+                                            showPresets: false,
+                                            displayMode: 'tight'
+                                        }
+                                    ]);
+                                    instance.init()
 
-                                thisApplet.deinit = (() => {
-                                    var defaultDeinit = thisApplet.deinit;
-                                
-                                    return function() {    
-                                        instance.deinit()
-                                        appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
-                                        let result = defaultDeinit.apply(this, arguments);                              
-                                        return result;
-                                    };
-                                })()
-                            })
+                                    thisApplet.deinit = (() => {
+                                        var defaultDeinit = thisApplet.deinit;
+                                    
+                                        return function() {    
+                                            instance.deinit()
+                                            appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
+                                            let result = defaultDeinit.apply(this, arguments);                              
+                                            return result;
+                                        };
+                                    })()
+                                })
+                            }
                         }
                     }
-                }
 
-                appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
-                    if (infoMask.style.opacity != 0) {
-                        infoMask.style.opacity = 0
-                        infoMask.style.pointerEvents = 'none'
-                    } else {
-                        infoMask.style.opacity = 1
-                        infoMask.style.pointerEvents = 'auto'
-                        appletMask.style.opacity = 0;
-                        appletMask.style.pointerEvents = 'none';
+                    appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
+                        if (infoMask.style.opacity != 0) {
+                            infoMask.style.opacity = 0
+                            infoMask.style.pointerEvents = 'none'
+                        } else {
+                            infoMask.style.opacity = 1
+                            infoMask.style.pointerEvents = 'auto'
+                            appletMask.style.opacity = 0;
+                            appletMask.style.pointerEvents = 'none';
+                        }
                     }
-                }
-            })
+            
+                    // Drag functionality
+                    // appletDiv.draggable = true
+
+                    let swapped = null
+                    dragIcon.classList.add("draggable")
+                    dragIcon.addEventListener('dragstart', () => {
+                        appletDiv.classList.add("dragging")
+                    })
+                    dragIcon.addEventListener('dragend', () => {
+                        appletDiv.classList.remove("dragging")
+                    })
+            
+                    appletDiv.addEventListener('dragover', (e) => {
+                        e.preventDefault()
+                        if (this.prevHovered != appletDiv){
+                            let draggingGA = document.querySelector('.dragging').style.gridArea
+                            let hoveredGA = appletDiv.style.gridArea
+                            appletDiv.style.gridArea = draggingGA
+                            document.querySelector('.dragging').style.gridArea = hoveredGA
+                            this.responsive()
+                            this.prevHovered = appletDiv
+                            if (appletDiv != document.querySelector('.dragging')){
+                                this.lastSwapped = appletDiv
+                            }
+                        }
+                        appletDiv.classList.add('hovered')
+                    })
+            
+                    appletDiv.addEventListener('dragleave', (e) => {
+                        e.preventDefault()
+                        appletDiv.classList.remove('hovered')
+                    })
+            
+                    appletDiv.addEventListener("drop", (event) => {
+                        event.preventDefault();
+                        let dragging = document.querySelector('.dragging')
+                        appletDiv.classList.remove('hovered')
+                        let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                        let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
+                        let _temp = draggingApplet.appletIdx;
+                        draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
+                        lastSwappedApplet.appletIdx = _temp;
+                        this.showOptions()
+
+                        for (let hovered of document.querySelectorAll('.hovered')){
+                            hovered.classList.remove('hovered')
+                        }
+                    }, false);
+            
+                    // Fullscreen Functionality
+                    appletDiv.addEventListener('dblclick', () => {
+                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                        if (!fullscreenElement) {
+                            if (appletDiv.requestFullscreen) {
+                                appletDiv.requestFullscreen()
+                            } else if (appletDiv.webkitRequestFullscreen) {
+                                appletDiv.webkitRequestFullscreen()
+                            }
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen()
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen()
+                            }
+                        }
+                    });
+
+
+                })
+            }
         }
     }
 
@@ -416,66 +525,6 @@ export class AppletManager {
                 if (applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { applet.classinstance.init(); }
                 let appletDiv; if (applet.classinstance.AppletHTML) appletDiv = applet.classinstance.AppletHTML.node;
                 appletDiv.name = applet.name
-
-                // Drag functionality
-                // appletDiv.draggable = true
-                // appletDiv.classList.add("draggable")
-                // appletDiv.addEventListener('dragstart', () => {
-                //     appletDiv.classList.add("dragging")
-                // })
-                // appletDiv.addEventListener('dragend', () => {
-                //     appletDiv.classList.remove("dragging")
-                // })
-
-                // appletDiv.addEventListener('dragover', (e) => {
-                //     e.preventDefault()
-                //     // let dragging = document.querySelector('.dragging')
-                //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                //     // let htmlString = '<h1>Replaced!</h1>'
-                //     // appletDiv.innerHTML = htmlString.trim();
-                //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                //     appletDiv.classList.add('hovered')
-                // })
-
-                // appletDiv.addEventListener('dragleave', (e) => {
-                //     e.preventDefault()
-                //     // let dragging = document.querySelector('.dragging')
-                //     // let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                //     // let hoveredApplet = this.applets.find(applet => applet.name == appletDiv.name)
-                //     // this.applets[draggingApplet.appletIdx - 1].appletIdx = hoveredApplet.appletIdx;
-                //     // this.applets[hoveredApplet.appletIdx - 1].appletIdx = draggingApplet.appletIdx;
-                //     // let htmlString = '<h1>Replaced!</h1>'
-                //     // appletDiv.innerHTML = htmlString.trim();
-                //     // appletDiv.parentNode.replaceChild(appletDiv,appletDiv)
-                //     appletDiv.classList.remove('hovered')
-                // })
-
-                // appletDiv.addEventListener("drop", function(event) {
-                //     event.preventDefault();
-                //     let dragging = document.querySelector('.dragging')
-                //     appletDiv.classList.remove('hovered')
-                //   }, false);
-
-                // Fullscreen Functionality
-                appletDiv.addEventListener('dblclick', () => {
-                    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                    if (!fullscreenElement) {
-                        if (appletDiv.requestFullscreen) {
-                            appletDiv.requestFullscreen()
-                        } else if (appletDiv.webkitRequestFullscreen) {
-                            appletDiv.webkitRequestFullscreen()
-                        }
-                    } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen()
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen()
-                        }
-                    }
-                });
             }
         });
         this.enforceLayout();
@@ -546,15 +595,42 @@ export class AppletManager {
         this.responsive();
     }
 
-    addAppletOptions = (selectId, appletIdx) => {
-        var select = document.getElementById(selectId);
+    updateOptionVisibility = () => {
+        this.appletSelectIds.forEach((id, i) => {
+            let div = document.getElementById(`brainsatplay-selector-${id}`)
+                if (i < this.maxApplets) {
+                    div.style.display = 'grid'
+                } else {
+                    div.style.display = 'none'
+                }
+            })
+    }
+
+    showOptions = () => {
+        document.body.querySelector('.applet-select-container').style.display = 'flex'
+        this.appletSelectIds.forEach((id, i) => {
+            this.generateAppletOptions(id, i);
+            this.updateOptionVisibility()
+        })
+    }
+
+    generateAppletOptions = (selectId, appletIdx) => {
+        
+        const select = document.getElementById(selectId);
         select.innerHTML = "";
-        var newhtml = `<option value='None'>None</option>`;
+        let newhtml = `<option value='None'>None</option>`;
         let appletKeys = Object.keys(AppletInfo)
+
+        let arrayAppletIdx = this.applets.findIndex((o, i) => {
+            if (o.appletIdx === appletIdx+1) {
+                return true
+            }
+        })
+
         appletKeys.forEach((name) => {
             if (!['Applet Browser'].includes()) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
-                    if (this.applets[appletIdx] && this.applets[appletIdx].name === name) {
+                    if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;
                     }
                     else {
@@ -566,6 +642,7 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = async (e) => {
+            console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
@@ -591,6 +668,8 @@ export class AppletManager {
             }
             nodeLabels.all.push(String.fromCharCode(97 + app.appletIdx - 1))
         })
+
+        this.maxApplets = this.layoutTemplates[layoutSelector.value].maxApplets
         let responsiveLayout = this.layoutTemplates[layoutSelector.value].generate(nodeLabels)
 
         let layoutRows = responsiveLayout.length
@@ -617,9 +696,9 @@ export class AppletManager {
 
         activeNodes.forEach((appnode, i) => {
             // Set Generic Applet Settings
-            if (appnode.classinstance.AppletHTML)
-                this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
+            if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
         });
+        this.updateOptionVisibility()
     }
 
     responsive(nodes = this.applets) {

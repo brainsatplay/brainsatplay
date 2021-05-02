@@ -126,7 +126,7 @@ export class AppletBrowser {
         let presetHTML = ''
         if (this.showPresets){
             presetHTML = `
-            <h1>Feedback Presets</h1>
+            <h1>Experiences</h1>
             <hr>
             <div style='
             display: flex;
@@ -216,14 +216,14 @@ export class AppletBrowser {
                 <h1>Applets</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
-                <div style="margin: 5px;">
+                <div style="margin: 5px; flex-grow: 1;">
                 <p style="font-size: 80%; margin-bottom: 5px;">Device</p>
                     <select id="${this.props.id}-devices" style="max-height: 30px; width: 100%;">
                         <option value="all" selected>All</option>
                     </select>
                 </div>
-                <div style="margin: 5px;">
-                    <p style="font-size: 80%; margin-bottom: 5px;"s>Category</p>
+                <div style="margin: 5px; flex-grow: 1;"">
+                    <p style="font-size: 80%; margin-bottom: 5px;">Category</p>
                     <select id="${this.props.id}-categories" style="max-height: 30px; width: 100%;">
                         <option value="all" selected>All</option>
                     </select>
@@ -280,9 +280,10 @@ export class AppletBrowser {
                     }
                 } else {
                     div.onclick = (e) => {
-                        let selector = document.getElementById(`applet${this.appletToReplace+1}`)
+                        let selector = document.getElementById(`applet${this.appletToReplace}`)
                         selector.value = choice
-                        window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${selector.value}`)
+                        window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${choice}`)
+                        console.log(selector)
                         selector.onchange()
                     }
                     }
