@@ -350,7 +350,7 @@ export class AppletManager {
                     var div = document.createElement('div');
 
                     let htmlString = `
-            <div style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.25; transition: opacity 0.5s;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.25;">
+            <div style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.0; transition: opacity 0.5s;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.0;">
                 <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <p>i</p>
                 </div>
