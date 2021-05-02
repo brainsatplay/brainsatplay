@@ -316,10 +316,9 @@ export class BCIAppManager {
 
         // Applet Browser Button
         document.getElementById('applet-browser-button').onclick = () => {
-            console.log(window.location.origin, window.location.href.slice(0,window.location.href.length-1))
-            if (window.location.origin != window.location.href.slice(0,window.location.href.length-1)){
+            if (location.hash != ''){
                 window.history.pushState({ additionalInformation: 'Updated URL to Applet Browser' },'',`${window.location.origin}`)
-                // document.getElementById("preset-selector").value = 'default'
+                document.getElementById("preset-selector").value = 'default'
                 this.appletManager.deinitApplets()       
                 this.appletManager.initAddApplets()       
             }    
