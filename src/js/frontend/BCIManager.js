@@ -362,6 +362,7 @@ export class BCIAppManager {
         );
 
         let presetSelector = document.getElementById("preset-selector")
+        document.getElementById("brainsatplay-preset-container").style.display = 'none'
 		presetSelector.onchange = (e) => {
             window.history.pushState({ 
                 // applet1: document.getElementById('applet1').value,
