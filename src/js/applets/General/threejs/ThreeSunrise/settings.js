@@ -2,6 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Sunrise",
+    "author": ["Josh Brewster"],
     "devices": ["HEG"],
     "description": "Spin the Earth!",
     "categories": ["train"],

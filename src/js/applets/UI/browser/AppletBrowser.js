@@ -199,7 +199,7 @@ export class AppletBrowser {
                         <img src="${settings.image}" style="${imgStyle}">
                         <div style="${infoStyle}">
                             <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;margin-top: 5px;">${type} | ${categoryString}</p>
+                            <p style="font-size: 80%;margin-top: 5px;">${settings.author}</p>
                             <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`

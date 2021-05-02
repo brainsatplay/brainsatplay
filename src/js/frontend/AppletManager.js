@@ -343,7 +343,8 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
-            if (appletName != 'Applet Browser') {
+            console.log(AppletInfo[appletName].folderUrl)
+            if (!AppletInfo[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
 
                     var div = document.createElement('div');
@@ -382,8 +383,8 @@ export class AppletManager {
                     </div>
                 </div>
                 <hr>
-                <h2>Directions</h2>
-                <p>${appletSettings.directions}</p>
+                <h2>Instructions</h2>
+                <p>${appletSettings.instructions}</p>
             </div>
             `
 
@@ -628,7 +629,7 @@ export class AppletManager {
         })
 
         appletKeys.forEach((name) => {
-            if (!['Applet Browser'].includes()) {
+            if (!['Applet Browser','Randomizer'].includes(name)) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
                     if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;

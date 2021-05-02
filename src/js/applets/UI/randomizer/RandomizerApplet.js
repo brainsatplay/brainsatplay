@@ -154,7 +154,7 @@ export class RandomizerApplet {
 
     getNewApplet = async () => {
         let appletKeys = Object.keys(AppletInfo)
-        let settings = AppletInfo[appletKeys[Math.floor(Math.random() * appletKeys.length)]]
+        let settings = await getAppletSettings(AppletInfo[appletKeys[Math.floor(Math.random() * appletKeys.length)]].folderUrl)
         // Check that the chosen applet is not prohibited, compatible with current devices, and not the same applet as last time
         let prohibitedApplets = ['Randomizer','Applet Browser', 'Sunrise'] // Sunrise takes too long to load
         let compatible = true
@@ -163,8 +163,11 @@ export class RandomizerApplet {
         this.bci.devices.forEach((device) => {
             if (!settings.devices.includes(device.info.deviceType) && !settings.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
         })
-        if (prohibitedApplets.includes(settings.name) || !compatible) settings = this.getNewApplet()
-        return await getApplet(await getAppletSettings(settings.folderUrl))
+        let applet;
+        if (prohibitedApplets.includes(settings.name) || !compatible) applet = await this.getNewApplet()
+        else applet = await getApplet(settings)
+
+        return applet
     }
 
     //--------------------------------------------

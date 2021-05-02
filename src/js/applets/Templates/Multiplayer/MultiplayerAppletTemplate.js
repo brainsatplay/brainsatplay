@@ -25,6 +25,11 @@ export class MultiplayerAppletTemplate {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
+         //-------Required Multiplayer Properties------- 
+        this.subtitle = 'A Simple Fighting Game'
+        this.streams = ['defense', 'keysPressed','position', 'fireballs', 'health']
+        //----------------------------------------------
+
 
         // Multiplayer State Management
         this.states = {
@@ -268,7 +273,6 @@ export class MultiplayerAppletTemplate {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.insertMultiplayerIntro(this)
-
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
