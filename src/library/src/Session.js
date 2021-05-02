@@ -173,7 +173,7 @@ export class Session {
 
 			this.devices[i].onconnect = () => {
 				this.info.nDevices++;
-				if(streamParams[0]) { this.addStreamParams(streamParams); this.beginStream();}
+				if(streamParams[0]) { this.beginStream(streamParams);}
 				//Device info accessible from state
 				this.state.addToState("device"+(i),this.devices[i].info);
 				onconnect();
@@ -303,10 +303,10 @@ export class Session {
 		}
 	}
 
-	beginStream(streamParams=null) { //can push app stream parameters here
+	beginStream(streamParams=undefined) { //can push app stream parameters here
 		if(!this.streamObj.info.streaming) {
+			if(streamParams) this.addStreamParams(streamParams);
 			this.streamObj.info.streaming = true;
-			this.addStreamParam(streamParams);
 			this.streamObj.streamLoop();
 		}
 	}
