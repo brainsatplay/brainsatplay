@@ -32,6 +32,7 @@ export class AppletManager {
 
         this.layoutTemplates = {
             'Focus': {
+                maxApplets: 6,
                 generate: (labels) => {
                     let rows = 3
                     let bottomCols = labels.active.length - 1
@@ -50,12 +51,12 @@ export class AppletManager {
                 }
             },
             'Grid': {
+                maxApplets: 16,
                 generate: (labels) => {
                     let layout;
                     let gridResolution = 2
 
                     let repeatForGridResolution = (layout, resolution) =>{
-                        console.log(layout)
                         layout = layout.map((row,i) => {
                             let newRow = row.map((col,j) => {
                                 return Array.from({length: resolution}, e => col)
@@ -66,10 +67,10 @@ export class AppletManager {
                     }
 
                     let rows = Math.ceil(Math.sqrt(labels.active.length))*gridResolution
-                    if (labels.active.length == 0) [[undefined]]
+                    if (labels.active.length == 0) layout = [[]]
                     if (labels.active.length == 1) layout = repeatForGridResolution([[`a`]],gridResolution)
                     if (labels.active.length == 2) layout = repeatForGridResolution([[`a`,`b`]],gridResolution)
-                    if (labels.active.length == 3) layout = repeatForGridResolution([[`a`,`b`], [`c`]],gridResolution)
+                    if (labels.active.length == 3) layout = repeatForGridResolution([[`a`,`b`], [`c`,`c`]],gridResolution)
                     if (labels.active.length == 4) layout = repeatForGridResolution([[`a`,`b`], [`c`,`d`]],gridResolution)
                     if (labels.active.length == 5) layout = repeatForGridResolution([[`a`,`d`], [`a`,`d`], [`b`,`d`], [`b`,`e`], [`c`,`e`],[`c`,`e`]],gridResolution)
                     if (labels.active.length == 6) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`f`,`f`], [`e`,`f`,`f`]],gridResolution)
@@ -594,12 +595,22 @@ export class AppletManager {
         this.responsive();
     }
 
+    updateOptionVisibility = () => {
+        this.appletSelectIds.forEach((id, i) => {
+            let div = document.getElementById(`brainsatplay-selector-${id}`)
+                if (i < this.maxApplets) {
+                    div.style.display = 'grid'
+                } else {
+                    div.style.display = 'none'
+                }
+            })
+    }
+
     showOptions = () => {
         document.body.querySelector('.applet-select-container').style.display = 'flex'
         this.appletSelectIds.forEach((id, i) => {
-            if (i < this.maxApplets) {
-                this.generateAppletOptions(id, i);
-            }
+            this.generateAppletOptions(id, i);
+            this.updateOptionVisibility()
         })
     }
 
@@ -657,6 +668,8 @@ export class AppletManager {
             }
             nodeLabels.all.push(String.fromCharCode(97 + app.appletIdx - 1))
         })
+
+        this.maxApplets = this.layoutTemplates[layoutSelector.value].maxApplets
         let responsiveLayout = this.layoutTemplates[layoutSelector.value].generate(nodeLabels)
 
         let layoutRows = responsiveLayout.length
@@ -685,6 +698,7 @@ export class AppletManager {
             // Set Generic Applet Settings
             if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
         });
+        this.updateOptionVisibility()
     }
 
     responsive(nodes = this.applets) {
