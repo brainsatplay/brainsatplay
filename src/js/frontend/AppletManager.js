@@ -51,35 +51,69 @@ export class AppletManager {
             },
             'Grid': {
                 generate: (labels) => {
-                    if (labels.active.length != 0) {
-                        let rows = Math.ceil(Math.sqrt(labels.active.length))
-                        let layout = Array.from({ length: rows }, e => []).map((a, i) => {
-                            for (let j = 0; j < rows; j++) {
-                                a.push(labels.all[rows * (i) + j])
-                            }
-                            return a
-                        })
+                    let layout;
+                    let gridResolution = 2
 
-                        let getReplacementLabel = ({ active, inactive, all }, baseLayout, i, j) => {
-                            if (active.includes(baseLayout[i][j - 1])) return baseLayout[i][j - 1]
-                            if (active.includes(baseLayout[i][j + 1])) return baseLayout[i][j + 1]
-                            if (baseLayout[i - 1] != null && active.includes(baseLayout[i - 1][j])) return baseLayout[i - 1][j]
-                            if (baseLayout[i + 1] != null && active.includes(baseLayout[i + 1][j])) return baseLayout[i + 1][j]
-                            else return labels.active.shift()
-                        }
-
-                        layout = layout.map((row, i) => {
-                            return row.map((val, j) => {
-                                if (labels.inactive.includes(val)) { // Replace inactive applets
-                                    return getReplacementLabel(labels, layout, i, j) ?? val
-                                }
-                                else return val
+                    let repeatForGridResolution = (layout, resolution) =>{
+                        console.log(layout)
+                        layout = layout.map((row,i) => {
+                            let newRow = row.map((col,j) => {
+                                return Array.from({length: resolution}, e => col)
                             })
+                            return Array.from({length: resolution}, e => newRow.flat())
                         })
-                        return layout
-                    } else {
-                        return [[undefined]]
+                        return layout.flat()
                     }
+
+                    let rows = Math.ceil(Math.sqrt(labels.active.length))*gridResolution
+                    if (labels.active.length == 0) [[undefined]]
+                    if (labels.active.length == 1) layout = repeatForGridResolution([[`a`]],gridResolution)
+                    if (labels.active.length == 2) layout = repeatForGridResolution([[`a`,`b`]],gridResolution)
+                    if (labels.active.length == 3) layout = repeatForGridResolution([[`a`,`b`], [`c`]],gridResolution)
+                    if (labels.active.length == 4) layout = repeatForGridResolution([[`a`,`b`], [`c`,`d`]],gridResolution)
+                    if (labels.active.length == 5) layout = repeatForGridResolution([[`a`,`d`], [`a`,`d`], [`b`,`d`], [`b`,`e`], [`c`,`e`],[`c`,`e`]],gridResolution)
+                    if (labels.active.length == 6) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`f`,`f`], [`e`,`f`,`f`]],gridResolution)
+                    if (labels.active.length == 7) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`e`,`f`], [`g`,`g`,`g`]],gridResolution)
+                    if (labels.active.length == 8) layout = repeatForGridResolution([[`a`,`a`,`b`,`b`,`c`,`c`], [`d`,`d`,`e`,`e`,`f`,`f`], [`g`,`g`,`g`,`h`,`h`,`h`]],gridResolution)
+                    if (labels.active.length == 9) layout = repeatForGridResolution([[`a`,`b`,`c`], [`d`,`e`,`f`], [`g`,`h`,`i`]],gridResolution)
+                    if (labels.active.length == 10) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`i`,`j`,`j`]],gridResolution)
+                    if (labels.active.length == 11) layout = repeatForGridResolution([[`a`,`a`,`a`,`b`,`b`,`b`,`c`,`c`,`c`,`d`,`d`,`d`], 
+                                                                                      [`e`,`e`,`e`,`f`,`f`,`f`,`g`,`g`,`g`,`h`,`h`,`h`], 
+                                                                                      [`i`,`i`,`i`,`i`,`j`,`j`,`j`,`j`,`k`,`k`,`k`,`k`]],gridResolution)
+                    if (labels.active.length == 12) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`]],gridResolution)
+                    if (labels.active.length == 13) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`m`,`m`], [`k`,`l`,`m`,`m`]],gridResolution)
+                    if (labels.active.length == 14) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`],[`m`,`m`,`n`,`n`]],gridResolution)
+                    if (labels.active.length == 15) layout = repeatForGridResolution([[`a`,`a`,`a`,`b`,`b`,`b`,`c`,`c`,`c`,`d`,`d`,`d`], 
+                                                                                      [`e`,`e`,`e`,`f`,`f`,`f`,`g`,`g`,`g`,`h`,`h`,`h`], 
+                                                                                      [`i`,`i`,`i`,`j`,`j`,`j`,`k`,`k`,`k`,`l`,`l`,`l`],
+                                                                                      [`m`,`m`,`m`,`m`,`n`,`n`,`n`,`n`,`o`,`o`,`o`,`o`]],gridResolution)
+                    if (labels.active.length == 16) layout = repeatForGridResolution([[`a`,`b`,`c`,`d`], [`e`,`f`,`g`,`h`], [`i`,`j`,`k`,`l`], [`m`,`n`,`o`,`p`]],gridResolution)
+                //     else {
+                //     let layout = Array.from({ length: rows }, e => []).map((a, i) => {
+                //         for (let j = 0; j < rows; j++) {
+                //             a.push(labels.all[rows * (i) + j])
+                //         }
+                //         return a
+                //     })
+
+                //     let getReplacementLabel = ({ active, inactive, all }, baseLayout, i, j) => {
+                //         if (active.includes(baseLayout[i][j - 1])) return baseLayout[i][j - 1]
+                //         if (active.includes(baseLayout[i][j + 1])) return baseLayout[i][j + 1]
+                //         if (baseLayout[i - 1] != null && active.includes(baseLayout[i - 1][j])) return baseLayout[i - 1][j]
+                //         if (baseLayout[i + 1] != null && active.includes(baseLayout[i + 1][j])) return baseLayout[i + 1][j]
+                //         else return labels.active.shift()
+                //     }
+
+                //     layout = layout.map((row, i) => {
+                //         return row.map((val, j) => {
+                //             if (labels.inactive.includes(val)) { // Replace inactive applets
+                //                 return getReplacementLabel(labels, layout, i, j) ?? val
+                //             }
+                //             else return val
+                //         })
+                //     })
+                // }
+                return layout
                 }
             }
         }
@@ -581,7 +615,7 @@ export class AppletManager {
                 return true
             }
         })
-        
+
         appletKeys.forEach((name) => {
             if (!['Applet Browser'].includes()) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
