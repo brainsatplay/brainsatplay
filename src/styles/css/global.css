@@ -398,21 +398,33 @@ button {
 /* Logo */
 
 .logo-container {
-    width: 100%;
+    width: 80%;
+    transform:translateX(12.3%);
     /* border-bottom: 1px solid rgb(200, 200, 200); */
     margin-bottom: 5px;
+    border: 1px solid rgb(15,15,15);
     display: flex;
     justify-content: center;
     align-items:  center;
+    transition: all 0.5s ease-in-out;
+}
+
+.logo-container:hover {
+    border: 1px solid white;
+    border-radius: 5px;
+    background-color: rgb(35,35,35);
 }
 
 .logo {
     width: 75px; 
+    height:75px;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     padding: 15px;
+    border-radius: 5px;
 }
+
 
 /* Topbar */
 
@@ -569,6 +581,7 @@ input:focus{
 .device-card:hover {
     background-color: rgb(35,35,35);
 }
+
 
 .device-card .indicator{
     position: absolute;

@@ -8,6 +8,7 @@ import fragmentShader from './shaders/cosmos/fragment.glsl'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class CosmosApplet {
@@ -24,6 +25,7 @@ export class CosmosApplet {
         //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
+        this.info = settingsFile.settings;
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------

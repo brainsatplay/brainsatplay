@@ -11,6 +11,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager
@@ -28,6 +29,7 @@ export class BlobApplet {
         //-------Keep these------- 
         this.parentNode = parent;
         this.settings = settings;
+        this.info = settingsFile.settings;
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------

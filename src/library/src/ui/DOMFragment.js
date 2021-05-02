@@ -63,10 +63,11 @@ export class DOMFragment {
         if(this.renderSettings.props === {}) {interval = "NEVER";}
         this.node = null;
 
-        this.listener = new ObjectListener();
+        this.listener = undefined;
     
         if((Object.keys(this.renderSettings.props).length > 0) && !(interval === null || interval === undefined || interval === "NEVER")) {
-            console.log("making listeners for ", templateStringGen)
+            console.log("making listeners for ", templateStringGen);
+            this.listener = new ObjectListener();
 
             const templateChange = () => {
                 this.updateNode();

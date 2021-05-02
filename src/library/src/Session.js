@@ -173,7 +173,7 @@ export class Session {
 
 			this.devices[i].onconnect = () => {
 				this.info.nDevices++;
-				if(streamParams[0]) { this.addStreamParams(streamParams); this.beginStream();}
+				if(streamParams[0]) { this.beginStream(streamParams);}
 				//Device info accessible from state
 				this.state.addToState("device"+(i),this.devices[i].info);
 				onconnect();
@@ -303,10 +303,10 @@ export class Session {
 		}
 	}
 
-	beginStream(streamParams=null) { //can push app stream parameters here
+	beginStream(streamParams=undefined) { //can push app stream parameters here
 		if(!this.streamObj.info.streaming) {
+			if(streamParams) this.addStreamParams(streamParams);
 			this.streamObj.info.streaming = true;
-			this.addStreamParam(streamParams);
 			this.streamObj.streamLoop();
 		}
 	}
@@ -861,7 +861,7 @@ export class Session {
 			document.getElementById(`${applet.props.id}`).innerHTML += `
 			<div id='${applet.props.id}gameHero' class="brainsatplay-multiplayerintro-container" style="z-index: 5"><div>
 			<h1>${applet.info.name}</h1>
-			<p>${applet.info.subtitle}</p>
+			<p>${applet.subtitle}</p>
 			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
@@ -1015,7 +1015,7 @@ export class Session {
             let createGame = document.getElementById(`${applet.props.id}createGame`)
 
             createGame.onclick = () => {
-                this.sendWSCommand(['createGame',applet.info.name,applet.info.devices,applet.info.streams]);
+                this.sendWSCommand(['createGame',applet.info.name,applet.info.devices,applet.streams]);
 
                 waitForReturnedMsg(['gameCreated'],() => {gameSearch.click()})
             }

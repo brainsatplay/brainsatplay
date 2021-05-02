@@ -59,11 +59,7 @@ export class BCIAppManager {
 
         this.bcisession = bcisession; //brainsatplay class instance
         this.appletConfigs = appletConfigs;
-        if (window.isMobile){
-            this.appletSelectIds = ['applet1']
-        } else {
-            this.appletSelectIds = ['applet1','applet2','applet3','applet4']
-        }
+        this.appletSelectIds = []
         this.appletManager;
         this.fs;
         this.useFS = useFS;
@@ -122,9 +118,11 @@ export class BCIAppManager {
         <div id="sidebar-container">
             <div id="sidebar">
             <div id="sidebar-inner">
-                <div class="logo-container">
-                    <img class="logo" src="./logo512.png">
-                </div>
+                <a id="applet-browser-button" style="cursor: pointer;">
+                    <div class="logo-container">
+                        <img class="logo" src="./logo512.png">
+                    </div>
+                </a>
                 <div id="device-menu" class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/wave-square-solid.svg"><span>Device Manager</span></div></button>
                     <div class="content">
@@ -294,25 +292,6 @@ export class BCIAppManager {
             contentChild1
         );
 
-        this.appletSelectIds.forEach((id,i) => {
-            if (this.appletSelectIds.length > 1){
-                contentChild1.querySelector('.applet-select-container').innerHTML += `
-                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
-                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
-                    <select id="${id}" style="width: 100%;"></select>
-                </div>
-                `
-            } else {
-                contentChild1.querySelector('.applet-select-container').innerHTML += `
-                <div style="display: grid;  width: 100%; margin: 10px 25px 0px 25px; grid-template-columns: 1fr 1fr;">
-                    <span style="margin:auto 0; font-size: 80%">Applet ${i}</span>
-                    <select id="${id}" style="width: 100%;"></select>
-                    <div></div>
-                </div>
-                `
-            }
-        })
-        
         // Layout Selector
         contentChild1.innerHTML += `
         <br>
@@ -337,15 +316,12 @@ export class BCIAppManager {
 
         // Applet Browser Button
         document.getElementById('applet-browser-button').onclick = () => {
-            window.history.pushState({ 
-                // applet1: document.getElementById('applet1').value,
-                // preset: document.getElementById('preset-selector').value,
-                // layout: document.getElementById('layout-selector').value,
-                additionalInformation: 'Updated URL to Applet Browser' 
-            },'',`${window.location.origin}`)
-            document.getElementById("preset-selector").value = 'default'
-            this.appletManager.deinitApplets()       
-            this.appletManager.initAddApplets()           
+            if (location.hash != ''){
+                window.history.pushState({ additionalInformation: 'Updated URL to Applet Browser' },'',`${window.location.origin}`)
+                document.getElementById("preset-selector").value = 'default'
+                this.appletManager.deinitApplets()       
+                this.appletManager.initAddApplets()       
+            }    
         }
 
 
@@ -385,8 +361,8 @@ export class BCIAppManager {
         );
 
         let presetSelector = document.getElementById("preset-selector")
+        document.getElementById("brainsatplay-preset-container").style.display = 'none'
 		presetSelector.onchange = (e) => {
-            console.log(presetSelector.value)
             window.history.pushState({ 
                 // applet1: document.getElementById('applet1').value,
                 // preset: document.getElementById('preset-selector').value,

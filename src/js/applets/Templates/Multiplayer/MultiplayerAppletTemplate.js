@@ -16,7 +16,7 @@ export class MultiplayerAppletTemplate {
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
-        this.info = settingsFile.settings
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -24,6 +24,11 @@ export class MultiplayerAppletTemplate {
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
+
+         //-------Required Multiplayer Properties------- 
+        this.subtitle = 'A Simple Fighting Game'
+        this.streams = ['defense', 'keysPressed','position', 'fireballs', 'health']
+        //----------------------------------------------
 
 
         // Multiplayer State Management
@@ -268,7 +273,6 @@ export class MultiplayerAppletTemplate {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.insertMultiplayerIntro(this)
-
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

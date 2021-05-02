@@ -98,18 +98,17 @@ export function appletselect_template(props={}) {
         <span>Applets</span>
         <hr>
     </div>
-    <div>
-        <button id="applet-browser-button">Go to Applet Browser</button>
-    </div>
     <div class="applet-select-container" style="display: flex; flex-wrap: wrap;">
     </div>
-    <div class="collapsible-content-label">
-        <span>Presets</span>
-        <hr>
-    </div>
-    <div style="margin: 10px 10px 0px 10px;">
-        <select id="preset-selector" style="width: 100%;">
-        </select>
+    <div id="brainsatplay-preset-container">
+        <div class="collapsible-content-label">
+            <span>Presets</span>
+            <hr>
+        </div>
+        <div style="margin: 10px 10px 0px 10px;">
+            <select id="preset-selector" style="width: 100%;">
+            </select>
+        </div>
     </div>
     `;
 }

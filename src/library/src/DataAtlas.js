@@ -1156,7 +1156,7 @@ export class DataAtlas {
 							}
 						}
 						if(datums[0].times[i] === row.fftTimes[mapidx]) {
-							line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
+							line.push(['',...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
 						}
 					});
 					if(this.settings.coherence) {
@@ -1167,7 +1167,7 @@ export class DataAtlas {
 							}
 							if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
 								try{
-									line.push([...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
+									line.push(['',...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3)));
 								}
 								catch(err) { console.log(err, mapidx, row); }
 							}
@@ -1207,7 +1207,7 @@ export class DataAtlas {
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			let amb = row.ambient[i]; if(!amb) amb = 0;
-			data.push([t,this.toISOLocal(new Date(t)),row.red[i],row.ir[i],row.ratio[i],amb].join(','));
+			data.push([this.toISOLocal(new Date(t)),t,row.red[i],row.ir[i],row.ratio[i],amb].join(','));
 			
 			if(this.data.other.notes.length > 0) {
 				if(i === 0) {

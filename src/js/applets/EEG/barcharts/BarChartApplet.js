@@ -2,6 +2,7 @@ import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {eegBarChart, mirrorBarChart} from '../../../frontend/UX/eegvisuals'
 import {addChannelOptions, addCoherenceOptions} from '../../../frontend/menus/selectTemplates'
+import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
 export class BarChartApplet {
@@ -16,6 +17,7 @@ export class BarChartApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+		this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

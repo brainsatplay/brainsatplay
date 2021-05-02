@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import * as PIXI from 'pixi.js';
+import * as settingsFile from './settings'
 
 // import perlinImg from './img/perlin.jpeg'
 
@@ -26,6 +27,7 @@ export class PixiApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------

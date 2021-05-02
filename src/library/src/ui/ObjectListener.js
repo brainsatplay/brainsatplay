@@ -42,7 +42,7 @@ export class ObjectListener {
     hasKey(key) {
         var found = false;
         this.listeners.forEach((item,i) =>{
-            if(item.key === key) {found = true;}
+            if(item.key === key) {found = true; return true;}
         });
         return found;
     }

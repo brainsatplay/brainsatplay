@@ -1,7 +1,7 @@
 
 import placeholderImg from '../../assets/features/placeholder.png'
 import eegNFImage from './../../assets/features/eegNF.png'
-import HEGImage from './../../assets/features/HEGbiofeedback.png'
+import HEGImage from './../../assets/features/hegbiofeedback.png'
 import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png'
 
 // { folderUrl:'', name:'', categories:[] }

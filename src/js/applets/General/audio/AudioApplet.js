@@ -1,6 +1,8 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import {SoundJS} from '../../../frontend/UX/Sound'
+import * as settingsFile from './settings'
+
 export class AudioApplet {
 
     constructor(
@@ -12,6 +14,7 @@ export class AudioApplet {
         //-------Keep these------- 
         this.bci = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
@@ -32,9 +35,9 @@ export class AudioApplet {
         this.file = null; //the current file
         this.fileName = null; //the current file name
 
-        this.audio = null;
+        this.audio = undefined;
 
-        this.info = null;
+        this.fileInfo = null;
         this.menu = null;
 
         this.infoUpdateId = null; //to sotore the setTimeout ID and clear the interval
@@ -101,7 +104,7 @@ export class AudioApplet {
         
 
             //Add whatever else you need to initialize
-            this.info = document.getElementById(this.props.id+'fileinfo').innerHTML; //this used to upgrade the UI information
+            this.fileInfo = document.getElementById(this.props.id+'fileinfo').innerHTML; //this used to upgrade the UI information
             this.menu = document.getElementById(this.props.id+'menu');
        
             
@@ -223,7 +226,7 @@ export class AudioApplet {
 
     createVisualizer(buffer){
         this.audio.finishedLoading([buffer]);
-
+        console.log(this.audio.sourceList);
         this.audio.sourceList[0].start(0);
         this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
         this.status = 1;
@@ -231,7 +234,7 @@ export class AudioApplet {
             this.endAudio();
         };
         this.updateInfo('Playing ' + this.fileName, false);
-        this.info = 'Playing ' + this.fileName;
+        this.fileInfo = 'Playing ' + this.fileName;
         document.getElementById(this.props.id+'fileWrapper').style.opacity = 0.2;
         this.draw();
     }    
@@ -253,18 +256,20 @@ export class AudioApplet {
     }
 
     endAudio(){
+        this.stopAudio();
         if (this.forceStop) {
             this.forceStop = false;
             this.status = 1;
             return;
         };
         this.status = 0;
+        if(this.audio.sourceList.length > 0) this.audio.sourceList.shift();
         var text = 'Song ended...';
         let div = document.getElementById(this.props.id+'fileWrapper');
         if(div){
             document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
             document.getElementById(this.props.id+'fileinfo').innerHTML = text;
-            this.info = text;
+            this.fileInfo = text;
             document.getElementById(this.props.id+'uploadedFile').value = '';
         }
     }
@@ -323,23 +328,24 @@ export class AudioApplet {
         var dropContainer = document.getElementById(this.props.id+"canvas");
         //listen the file upload
         audioInput.onchange = () => {
-        this.audio = new SoundJS();
-        if (this.audio.ctx===null) {return;};
-        
-        //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
-        if (audioInput.files.length !== 0) {
-            //only process the first file
-            this.file = audioInput.files[0];
-            this.fileName = this.file.name;
-            if (this.status === 1) {
-                //the sound is still playing but we uploaded another file, so set the forceStop flag to true
-                this.forceStop = true;
+            if(!this.audio) this.audio = new SoundJS();
+            if (this.audio.ctx===null) {return;};
+            
+            //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
+            if (audioInput.files.length !== 0) {
+                //only process the first file
+                this.file = audioInput.files[0];
+                this.fileName = this.file.name;
+                if (this.status === 1) {
+                    //the sound is still playing but we uploaded another file, so set the forceStop flag to true
+                    this.forceStop = true;
+                    this.endAudio();
+                };
+                document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
+                this.updateInfo('Uploading', true);
+                //once the file is ready, start the visualizer
+                this.decodeAudio();
             };
-            document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
-            this.updateInfo('Uploading', true);
-            //once the file is ready, start the visualizer
-            this.decodeAudio();
-        };
         };
         //listen the drag & drop
         dropContainer.addEventListener("dragenter", () => {
@@ -354,7 +360,7 @@ export class AudioApplet {
         }, false);
         dropContainer.addEventListener("dragleave", () => {
             document.getElementById(this.props.id+'fileWrapper').style.opacity = 0.2;
-            this.updateInfo(this.info, false);
+            this.updateInfo(this.fileInfo, false);
         }, false);
         dropContainer.addEventListener("drop", (e) => {
             e.stopPropagation();

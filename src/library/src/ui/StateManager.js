@@ -7,7 +7,7 @@ import {ObjectListener} from './ObjectListener'
 export class StateManager {
     constructor(init = {},interval="FRAMERATE") { //Default interval is at the browser framerate
         this.data = init;
-        this.data["stateUpdateInterval"] = interval;
+        this.interval = interval;
         this.pushToState={};
         this.prev = Object.assign({},this.data);;
                 
@@ -28,44 +28,40 @@ export class StateManager {
             interval,
         );
         */
-        
-        const stateUpdateResponse = () => {
-            this.listener.listeners.forEach((obj,i) => {
-                obj.interval = this.data["stateUpdateInterval"];
-            });
-        }
 
-        this.listener.addListener(
-            "interval",
-            this.data,
-            "stateUpdateInterval",
-            stateUpdateResponse,
-            interval
-        );
+    }
 
-        const pushToStateResponse = () => {
-            if(Object.keys(this.pushToState).length > 0) {
-                Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
-                Object.assign(this.data,this.pushToState);
-                //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
-                for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
-                    delete this.pushToState[prop];
-                }
-            }
-        }
-
-        this.listener.addListener(
-            "push",
-            this.pushToState,
-            "__ANY__",
-            pushToStateResponse,
-            interval
-        );
-
+    setInterval(interval="FRAMERATE") {
+        this.interval = interval;
+        this.listener.listeners.forEach((obj,i) => {
+            obj.interval = this.interval;
+        });
     }
 
     //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
     addToState(key, value, onchange=null, debug=false) {
+        if(!this.listener.hasKey('push')) {
+            //we won't add this listener unless we use this function
+            const pushToStateResponse = () => {
+                if(Object.keys(this.pushToState).length > 0) {
+                    Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
+                    Object.assign(this.data,this.pushToState);
+                    //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
+                    for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
+                        delete this.pushToState[prop];
+                    }
+                }
+            }
+    
+            this.listener.addListener(
+                "push",
+                this.pushToState,
+                "__ANY__",
+                pushToStateResponse,
+                interval
+            );
+    
+        }
         this.data[key] = value;
         if(onchange !== null){
             return this.addSecondaryKeyResponse(key,onchange,debug);
