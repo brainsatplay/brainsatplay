@@ -35,7 +35,7 @@ export class AudioApplet {
         this.file = null; //the current file
         this.fileName = null; //the current file name
 
-        this.audio = null;
+        this.audio = undefined;
 
         this.fileInfo = null;
         this.menu = null;
@@ -226,7 +226,7 @@ export class AudioApplet {
 
     createVisualizer(buffer){
         this.audio.finishedLoading([buffer]);
-
+        console.log(this.audio.sourceList);
         this.audio.sourceList[0].start(0);
         this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
         this.status = 1;
@@ -256,12 +256,14 @@ export class AudioApplet {
     }
 
     endAudio(){
+        this.stopAudio();
         if (this.forceStop) {
             this.forceStop = false;
             this.status = 1;
             return;
         };
         this.status = 0;
+        if(this.audio.sourceList.length > 0) this.audio.sourceList.shift();
         var text = 'Song ended...';
         let div = document.getElementById(this.props.id+'fileWrapper');
         if(div){
@@ -326,23 +328,24 @@ export class AudioApplet {
         var dropContainer = document.getElementById(this.props.id+"canvas");
         //listen the file upload
         audioInput.onchange = () => {
-        this.audio = new SoundJS();
-        if (this.audio.ctx===null) {return;};
-        
-        //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
-        if (audioInput.files.length !== 0) {
-            //only process the first file
-            this.file = audioInput.files[0];
-            this.fileName = this.file.name;
-            if (this.status === 1) {
-                //the sound is still playing but we uploaded another file, so set the forceStop flag to true
-                this.forceStop = true;
+            if(!this.audio) this.audio = new SoundJS();
+            if (this.audio.ctx===null) {return;};
+            
+            //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
+            if (audioInput.files.length !== 0) {
+                //only process the first file
+                this.file = audioInput.files[0];
+                this.fileName = this.file.name;
+                if (this.status === 1) {
+                    //the sound is still playing but we uploaded another file, so set the forceStop flag to true
+                    this.forceStop = true;
+                    this.endAudio();
+                };
+                document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
+                this.updateInfo('Uploading', true);
+                //once the file is ready, start the visualizer
+                this.decodeAudio();
             };
-            document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
-            this.updateInfo('Uploading', true);
-            //once the file is ready, start the visualizer
-            this.decodeAudio();
-        };
         };
         //listen the drag & drop
         dropContainer.addEventListener("dragenter", () => {
