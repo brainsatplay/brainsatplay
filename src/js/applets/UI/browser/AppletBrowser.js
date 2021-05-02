@@ -115,10 +115,12 @@ export class AppletBrowser {
 
         let onMouseOver = `
             this.style.boxShadow = '0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6)';
+            this.style.backgroundColor = 'rgb(35,35,35)';
         `
 
         let onMouseOut = `
             this.style.boxShadow = 'none';
+            this.style.backgroundColor = 'rgb(15,15,15)';
         `
 
         // HTML Fragments
@@ -192,7 +194,7 @@ export class AppletBrowser {
                         type = settings.devices[0]
                     }
 
-                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
+                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(', ')
 
 
                     let author = settings.author
@@ -204,7 +206,9 @@ export class AppletBrowser {
                         <img src="${settings.image}" style="${imgStyle}">
                         <div style="${infoStyle}">
                             <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;margin-top: 5px;">${author}</p>
+                            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                                <p style="font-size: 80%;margin-top: 5px;">${categoryString}</p><span style="font-size: 80%;margin-top: 5px;">By ${author}</span>
+                            </div>
                             <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`

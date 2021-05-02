@@ -412,6 +412,13 @@ button {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     padding: 15px;
+    border-radius: 5px;
+    transition: all 0.5s ease-in-out;
+}
+
+.logo:hover { 
+    border: 1px solid white;
+    background-color: rgb(35,35,35);
 }
 
 /* Topbar */
@@ -569,6 +576,7 @@ input:focus{
 .device-card:hover {
     background-color: rgb(35,35,35);
 }
+
 
 .device-card .indicator{
     position: absolute;

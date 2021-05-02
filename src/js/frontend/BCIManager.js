@@ -118,10 +118,10 @@ export class BCIAppManager {
         <div id="sidebar-container">
             <div id="sidebar">
             <div id="sidebar-inner">
-            <a id="applet-browser-button" style="cursor: pointer;">
-                <div class="logo-container">
-                    <img class="logo" src="./logo512.png">
-                </div>
+                <a id="applet-browser-button" style="cursor: pointer;">
+                    <div class="logo-container">
+                        <img class="logo" src="./logo512.png">
+                    </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
                     <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/wave-square-solid.svg"><span>Device Manager</span></div></button>
