@@ -12,8 +12,12 @@ export class DataLoader {
 
         this.onload = onload;
 
-        this.state.subscribe('loaded',(loaded)=>{this.onload(loaded);});
+        this.sub = this.state.subscribe('loaded',(loaded)=>{this.onload(loaded);});
     }
+
+    deinit = () => {
+        this.state.unsubscribeAll('loaded');
+    }   
 
     readyHEGDataForWriting = (from=0,to='end') => {
         let data = this.atlas.readyHEGDataForWriting(from,to);
