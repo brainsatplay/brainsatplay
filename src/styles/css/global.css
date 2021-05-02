@@ -399,7 +399,7 @@ button {
 
 .logo-container {
     width: 80%;
-    transform:translateX(12%);
+    transform:translateX(12.3%);
     /* border-bottom: 1px solid rgb(200, 200, 200); */
     margin-bottom: 5px;
     border: 1px solid rgb(15,15,15);
