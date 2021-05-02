@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Boids",
-    "author": ["Josh Brewster"],
+    "author": "Joshua Brewster",
     "devices": ["HEG"],
     "description": "Play with swarm intelligence! Your HEG ratio creates swirls.",
     "categories": ["train"],

@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Text Scroller",
-    "author": ["Josh Brewster"],
+    "author": "Joshua Brewster",
     "devices": ["EEG","HEG"],
     "description": "Words of affirmation.",
     "categories": ["train"],

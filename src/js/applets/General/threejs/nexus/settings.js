@@ -2,7 +2,7 @@ import featureImg from "./img/feature.png"
 
 export const settings = {
     "name": "Nexus",
-    "author": ["Garrett Flynn"],
+    "author": "Garrett Flynn",
     "devices": ["EEG"],
     "description": "Connect your brain with others!",
     "categories": ["train", 'brainstorm'],

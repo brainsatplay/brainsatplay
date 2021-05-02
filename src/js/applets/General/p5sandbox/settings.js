@@ -2,7 +2,7 @@ import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "P5 Sandbox",
-    "author": ["Garrett Flynn"],
+    "author": "Garrett Flynn",
     "devices": ["EEG","HEG"],
     "description": "Working with brains!",
     "categories": ["train"],

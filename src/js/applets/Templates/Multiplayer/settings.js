@@ -4,7 +4,7 @@ export const settings = {
 
     // Descriptive Information
     "name": "Multiplayer Example",
-    "author": ["Garrett Flynn"],
+    "author": "Garrett Flynn",
     "description": "A simple fighting game to control your alpha and beta coherence.",
     "categories": ['play', 'brainstorm'],
 

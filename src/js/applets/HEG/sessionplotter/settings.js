@@ -2,7 +2,7 @@ import featureImg from './feature.PNG'
 
 export const settings = {
     "name": "HEG Session Plotter",
-    "author": ["Josh Brewster"],
+    "author": "Joshua Brewster",
     "devices": ["HEG"],
     "description": "Plot HEG sessions",
     "categories": ["visualize"],

@@ -194,12 +194,17 @@ export class AppletBrowser {
 
                     let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
 
+
+                    let author = settings.author
+                    console.log(author)
+                    if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
+
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                         <img src="${settings.image}" style="${imgStyle}">
                         <div style="${infoStyle}">
                             <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;margin-top: 5px;">${settings.author}</p>
+                            <p style="font-size: 80%;margin-top: 5px;">${author}</p>
                             <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
