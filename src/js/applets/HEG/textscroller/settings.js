@@ -7,5 +7,6 @@ export const settings = {
     "description": "Words of affirmation.",
     "categories": ["train"],
     "module": "TextScrollerApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

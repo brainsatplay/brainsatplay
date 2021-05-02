@@ -7,5 +7,6 @@ export const settings = {
     "description": "Use your brain in VR!",
     "categories": ["train"],
     "module": "VRApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

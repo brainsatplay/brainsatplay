@@ -7,5 +7,6 @@ export const settings = {
     "description": "Control a shader with your brain.",
     "categories": ["train"],
     "module": "PixiApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

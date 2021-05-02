@@ -34,7 +34,8 @@ export const settings = {
     "description": "This is my applet.",
     "categories": ["train"],
     "module": "MyApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }
 ```
 

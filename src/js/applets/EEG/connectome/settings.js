@@ -7,5 +7,6 @@ export const settings = {
     "description": "Visualize connection strength between brain regions.",
     "categories": ["visualize"],
     "module": "ConnectomeApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

@@ -7,5 +7,6 @@ export const settings = {
     "description": "Spin the Earth!",
     "categories": ["train"],
     "module": "ThreeSunriseApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

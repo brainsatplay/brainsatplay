@@ -7,5 +7,6 @@ export const settings = {
     "description": "Working with brains!",
     "categories": ["train"],
     "module": "p5SandboxApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

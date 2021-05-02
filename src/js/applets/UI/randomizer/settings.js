@@ -7,5 +7,6 @@ export const settings = {
     "description": "Choose an applet.",
     "categories": ["UI"],
     "module": "RandomizerApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

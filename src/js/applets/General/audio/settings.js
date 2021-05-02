@@ -7,5 +7,6 @@ export const settings = {
     "description": "HEG ratio and EEG Coherence feedback.",
     "categories": ["train"],
     "module": "AudioApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

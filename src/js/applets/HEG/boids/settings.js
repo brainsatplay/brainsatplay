@@ -7,5 +7,6 @@ export const settings = {
     "description": "Play with swarm intelligence! Your HEG ratio creates swirls.",
     "categories": ["train"],
     "module": "BoidsApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

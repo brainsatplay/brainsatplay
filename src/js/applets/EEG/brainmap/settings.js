@@ -7,5 +7,6 @@ export const settings = {
     "description": "Bandpower and coherence mapping.",
     "categories": ["visualize"],
     "module": "BrainMapApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

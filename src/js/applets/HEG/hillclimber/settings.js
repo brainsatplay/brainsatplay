@@ -7,5 +7,6 @@ export const settings = {
     "description": "Increase HEG ratio, go up.",
     "categories": ["train"],
     "module": "HillClimberApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

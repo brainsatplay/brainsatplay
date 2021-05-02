@@ -7,5 +7,6 @@ export const settings = {
     "description": "Calm the blob!",
     "categories": ["train"],
     "module": "BlobApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

@@ -7,5 +7,6 @@ export const settings = {
     "description": "Spin the galaxy!",
     "categories": ["train"],
     "module": "CosmosApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

@@ -7,5 +7,6 @@ export const settings = {
     "description": "A gallery of shaders created with Three.js",
     "categories": ["train"],
     "module": "GalleryApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

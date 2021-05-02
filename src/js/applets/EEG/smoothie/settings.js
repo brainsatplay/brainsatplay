@@ -7,5 +7,6 @@ export const settings = {
     "description": "Simple real time EEG plots.",
     "categories": ["visualize"],
     "module": "SmoothieApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

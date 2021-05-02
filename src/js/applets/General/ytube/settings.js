@@ -7,5 +7,6 @@ export const settings = {
     "description": "Control fade and volume, or learn about your brain on Youtube.",
     "categories": ["train"],
     "module": "YoutubeApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

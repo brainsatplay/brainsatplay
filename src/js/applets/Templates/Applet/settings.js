@@ -7,5 +7,6 @@ export const settings = {
     "description": "Example",
     "categories": ["train"],
     "module": "AppletTemplate",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

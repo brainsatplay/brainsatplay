@@ -7,5 +7,6 @@ export const settings = {
     "description": "Connect your brain with others!",
     "categories": ["train", 'brainstorm'],
     "module": "NexusApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

@@ -13,5 +13,6 @@ export const settings = {
 
      // Asset Pointers
     "module": "MultiplayerAppletTemplate",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

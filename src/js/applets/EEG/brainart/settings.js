@@ -7,5 +7,6 @@ export const settings = {
     "description": "Generate art using your brain.",
     "categories": ["train"],
     "module": "BrainArtApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

@@ -7,5 +7,6 @@ export const settings = {
     "description": "Choose an applet.",
     "categories": ["UI"],
     "module": "AppletBrowser",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }

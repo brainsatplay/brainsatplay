@@ -7,5 +7,6 @@ export const settings = {
     "description": "See pulse and breathing rate with HEG",
     "categories": ["visualize"],
     "module": "PulseMonitorApplet",
-    "image": featureImg
+    "image": featureImg,
+		"instructions":"Coming soon..."
 }
