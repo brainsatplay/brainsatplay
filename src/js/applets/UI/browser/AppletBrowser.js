@@ -194,11 +194,9 @@ export class AppletBrowser {
                         type = settings.devices[0]
                     }
 
-                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(', ')
-
+                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
 
                     let author = settings.author
-                    console.log(author)
                     if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
 
                     let html = `
@@ -206,9 +204,8 @@ export class AppletBrowser {
                         <img src="${settings.image}" style="${imgStyle}">
                         <div style="${infoStyle}">
                             <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                                <p style="font-size: 80%;margin-top: 5px;">${categoryString}</p><span style="font-size: 80%;margin-top: 5px;">By ${author}</span>
-                            </div>
+                            <p style="font-size: 80%;">${type} | ${categoryString}</p>
+                                <span style="position: absolute; bottom: 10px; right: 10px; font-size: 60%;margin-top: 5px;">By ${author}</span>
                             <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
                         </div>
                     </div>`
