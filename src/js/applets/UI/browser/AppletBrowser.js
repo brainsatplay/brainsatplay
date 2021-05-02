@@ -194,7 +194,7 @@ export class AppletBrowser {
                         type = settings.devices[0]
                     }
 
-                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(' + ')
+                    let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(', ')
 
                     let author = settings.author
                     if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
@@ -203,10 +203,10 @@ export class AppletBrowser {
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                         <img src="${settings.image}" style="${imgStyle}">
                         <div style="${infoStyle}">
-                            <h2 style="margin-bottom: 0px;">${settings.name}</h2>
-                            <p style="font-size: 80%;">${type} | ${categoryString}</p>
-                                <span style="position: absolute; bottom: 10px; right: 10px; font-size: 60%;margin-top: 5px;">By ${author}</span>
-                            <p style="font-size: 80%;margin-top: 5px;">${settings.description}</p>
+                            <h2 style="margin-bottom: 5px;">${settings.name}</h2>
+                            <p style="font-size: 80%; margin-top: 0px;">By ${author}</p>
+                            <p style="font-size: 80%; margin: 10px 0px 20px 0px;">${settings.description}</p>
+                            <span style="position: absolute; bottom: 10px; right: 10px; font-size: 60%;margin-top: 5px;">Tags: ${categoryString}, ${type}</span>
                         </div>
                     </div>`
                     generalHTML += html
