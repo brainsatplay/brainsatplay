@@ -845,18 +845,19 @@ export class DataAtlas {
 						//Found a peak and valley to average together (for accuracy)
 					if(bt.peak_dists.length > 1 && bt.val_dists.length > 1) {
 						//Make sure you are using the leading valley
+						//console.log(bt.peak_dists[bt.peak_dists.length-1].dt,bt.val_dists[bt.val_dists.length-1].dt,bt.peak_dists[bt.peak_dists.length-2].dt,bt.val_dists[bt.val_dists.length-2].dt)
 						if(bt.val_dists[bt.val_dists.length-1].t > bt.peak_dists[bt.peak_dists.length-1].t) {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t, hrv:0, bpm:60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t, hrv:0, bpm:60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)), height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
 							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-1].t) {
-								let bpm = 60*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000;
+								let bpm = 60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt));
 								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-1].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-1].bpm), bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-1].y0-bt.val_dists[bt.val_dists.length-1].y0,height1:bt.peak_dists[bt.peak_dists.length-1].y1-bt.val_dists[bt.val_dists.length-1].y1});
 							}
 						} else {
 							if(bt.beats.length === 0) {
-								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:0, bpm:60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:0, bpm:60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)), height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t) {
-							 let bpm = 60*(bt.peak_dists[bt.peak_dists.length-2].dt + bt.val_dists[bt.val_dists.length-1].dt)/2000;
+							 let bpm = 60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt));
 							 bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-2].bpm) , bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 							}
 						}
