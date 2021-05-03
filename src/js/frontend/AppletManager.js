@@ -3,6 +3,7 @@ import { getApplet, presets, AppletInfo, getAppletSettings } from "../applets/ap
 import appletSVG from './../../assets/th-large-solid.svg'
 import dragSVG from './../../assets/arrows-alt-solid.svg'
 
+import {handleAuthRedirect} from '../../library/src/ui/login'
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -201,6 +202,7 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
 
+
         if (appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
@@ -208,7 +210,13 @@ export class AppletManager {
         } else {
             // disabled settings reloading for now
             if (appletConfigs.length === 1) {
-                if (typeof appletConfigs[0] === 'string') {
+                
+                if (appletConfigs[0].includes('_baas_client_app_id')){
+                    handleAuthRedirect();
+                    return
+                } 
+                
+                else if (typeof appletConfigs[0] === 'string') {
                     preset = this.appletPresets.find((p) => {
                         if (p.value.toLowerCase() == appletConfigs[0].toLowerCase()) {
                             document.getElementById("preset-selector").value = p.value;
@@ -219,7 +227,9 @@ export class AppletManager {
                             return false
                         }
                     });
-                } else {
+                } 
+                
+                else {
                     this.appletConfigs = appletConfigs;
                 }
             } else {
@@ -242,6 +252,7 @@ export class AppletManager {
                 showOptions = false
             }
         }
+
 
         let appletPromises = []
         // Grab Correct Applets

@@ -24,6 +24,7 @@ import {CSV} from '../general/csv'
 import { StateManager } from '../../library/src/ui/StateManager';
 import { DOMFragment } from '../../library/src/ui/DOMFragment';
 import { TutorialManager } from './utils/TutorialManager';
+import { LoginWithGoogle } from '../../library/src/ui/login';
 
 import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
@@ -118,6 +119,7 @@ export class BCIAppManager {
         <div id="sidebar-container">
             <div id="sidebar">
             <div id="sidebar-inner">
+                <div style="width: 100%;">
                 <a id="applet-browser-button" style="cursor: pointer;">
                     <div class="logo-container">
                         <img class="logo" src="./logo512.png">
@@ -147,6 +149,11 @@ export class BCIAppManager {
                             <hr>
                         </div>
                     </div>
+                </div>
+                </div>
+
+                <div id="profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
+                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'"><div class="img-cont"><img id="brainsatplay-profile-img" src="./_dist_/assets/google.png" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)"><span id="brainsatplay-profile-label" style="margin-left: 10px; ">Log In</span></div></button>
                 </div>
                 `
                 // <div id="profile-menu" class="collapsible-container">
@@ -230,45 +237,50 @@ export class BCIAppManager {
         let closeAllOpenCollapsibles = (content=null) => {
             Array.from(document.getElementsByClassName("collapsible")).forEach(toggleButton => {
                 let overlay = toggleButton.nextElementSibling
+                if (overlay){
                 if (overlay.style.opacity === "1" && overlay != content){
                     overlay.style.opacity = "0";
                     overlay.style.right = "0";
                     overlay.style.pointerEvents = 'none'              
                 }
+            }
             })
         }
 
         var coll = document.getElementsByClassName("collapsible");
         var i;
         for (i = 0; i < coll.length; i++) {
-            coll[i].nextElementSibling.style.opacity = '0'
-          coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.opacity === "0") {
-                content.style.opacity = "1";
-                content.style.right = `-${content.clientWidth}px`;
-                content.style.pointerEvents = 'auto'
-                let currentHeight = content.clientHeight
-                let positionY = content.getBoundingClientRect().top
-                let extraBottomMargin = 50 // px
-                let maxHeight = window.innerHeight - positionY - extraBottomMargin
-                content.style.maxHeight = `${maxHeight}px`;
-                if ( content.clientHeight >= maxHeight) content.style.height = content.style.maxHeight;
-                content.style.overflowY = 'scroll'
-                closeAllOpenCollapsibles(content)
-            } else {
-                content.style.opacity = "0";
-                content.style.right = "0";
-                content.style.pointerEvents = 'none'      
-            }
-          });
-          coll[i].nextElementSibling.addEventListener('mouseleave', function() {
-            this.classList.toggle("active");
-            this.style.opacity = "0";
-            this.style.right = "0";
-            this.style.pointerEvents = 'none'
-        })
+            let nextSibling = coll[i].nextElementSibling;
+            if (nextSibling){
+                coll[i].nextElementSibling.style.opacity = '0'
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.opacity === "0") {
+                    content.style.opacity = "1";
+                    content.style.right = `-${content.clientWidth}px`;
+                    content.style.pointerEvents = 'auto'
+                    let currentHeight = content.clientHeight
+                    let positionY = content.getBoundingClientRect().top
+                    let extraBottomMargin = 50 // px
+                    let maxHeight = window.innerHeight - positionY - extraBottomMargin
+                    content.style.maxHeight = `${maxHeight}px`;
+                    if ( content.clientHeight >= maxHeight) content.style.height = content.style.maxHeight;
+                    content.style.overflowY = 'scroll'
+                    closeAllOpenCollapsibles(content)
+                } else {
+                    content.style.opacity = "0";
+                    content.style.right = "0";
+                    content.style.pointerEvents = 'none'      
+                }
+            });
+            coll[i].nextElementSibling.addEventListener('mouseleave', function() {
+                this.classList.toggle("active");
+                this.style.opacity = "0";
+                this.style.right = "0";
+                this.style.pointerEvents = 'none'
+            })
+        }
         }
 
         let app = document.querySelector('.app')
@@ -328,11 +340,14 @@ export class BCIAppManager {
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
         this.bcisession.makeConnectOptions(contentChild2);
         
+
         // let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
         // this.uiFragments.login = new DOMFragment(
         //     login_template,
         //     contentChild3
         // );
+
+        document.getElementById('profile-menu').querySelector('button').onclick = () => LoginWithGoogle()
 
         // app.querySelector('#login-button').onclick = () => {
         //     let form = app.querySelector('#login-form')
