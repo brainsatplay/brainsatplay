@@ -362,14 +362,15 @@ export class BCIAppManager {
                 document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
                 document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
                 profileImg.style.padding = "0"
+                let selector = document.getElementById(`applet0`)
+                let choice = 'Profile Manager'
                 profileButton.onclick = () => {
-                    let choice = 'Profile Manager'
-                    let selector = document.getElementById(`applet0`)
                     selector.value = choice
                     window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
                     selector.onchange()
                 }
-                // profileButton.click()
+                console.log(choice,selector.value)
+                if (selector.value === choice) profileButton.click() // Refresh profile if necessary
             }).catch(() => {
                 console.log('no login')
             })

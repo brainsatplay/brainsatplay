@@ -48,8 +48,9 @@ import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 
-// Login
+// MongoDB Realm
 import { LoginWithGoogle } from './ui/login';
+import * as Realm from "realm-web";
 
 
 // Default Styling
@@ -536,6 +537,10 @@ export class Session {
 	}
 
 
+	getApp = () =>{
+		return Realm.App.getApp("brainsatplay-tvmdj")
+	}
+
 	loginWithGoogle = async () => {
 	 	let user = await LoginWithGoogle()
 		this.info.googleAuth = user
@@ -982,8 +987,10 @@ export class Session {
                 });
             }
 
-            // Set Up Screen Two (Login)
-            document.getElementById(`${applet.props.id}login-button`).onclick = () => {
+			// Set Up Screen Two (Login)
+			
+			const loginButton = document.getElementById(`${applet.props.id}login-button`)
+            loginButton.onclick = () => {
                 let form = document.getElementById(`${applet.props.id}login-form`)
                 let formDict = {}
                 let formData = new FormData(form);
@@ -1017,7 +1024,17 @@ export class Session {
                 this.login(true).then(() => {
                     onsocketopen(this.socket)
                 })
-            }
+			}
+
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null){
+				this.info.googleAuth.refreshCustomData().then(data => {
+					document.getElementsByName("username")[0].value = data.username
+					loginButton.click()
+				})
+			}
+			
+
 
             exitGame.onclick = () => {
                 gameSelection.style.opacity = 1;

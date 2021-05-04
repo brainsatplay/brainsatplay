@@ -38,11 +38,15 @@ export class ProfileApplet {
                 </section>
                 <section id='${props.id}-profile' style="padding: 50px; width: 100%; height: 100%; box-sizing: border-box; oveflow: scroll;">
                     <img id="${props.id}-picture">
-                    <h1 id="${props.id}-name"></h1>
-                    <div style='font-size: 80%;'>
-                        <p>ID: <span id="${props.id}-customData-userId"></span></p>
-                        <p>Email: <span id="${props.id}-customData-email"></span></p>
+                    <div style="display: grid; grid-template-columns: repeat(2,1fr);">
+                        <h1 id="${props.id}-name"></h1>
+                        <div style='font-size: 80%;'>
+                            <p>ID: <span id="${props.id}-customData-userId"></span></p>
+                            <p>Email: <span id="${props.id}-customData-email"></span></p>
+                        </div>
                     </div>
+                    <hr>
+                    <h3>Username</h3><p><span id="${props.id}-customData-username"></span></p>
                 </section>
                 </div>
             `;
@@ -83,12 +87,11 @@ export class ProfileApplet {
         });
     }
 
-    toggleErrorScreen(msg='<h1>Please log in to view your profile.</h1>') {
+    toggleErrorScreen(msg='<h1>Please log in with Google to view your profile.</h1>') {
         let errorScreen = document.getElementById(`${this.props.id}-error-screen`)
         if (this.session.info.googleAuth != null) {
             errorScreen.style.opacity = 0;
             errorScreen.style.pointerEvents = 'none';
-
         }
         else {
             errorScreen.style.opacity = 1;
@@ -100,18 +103,39 @@ export class ProfileApplet {
     updateProfileInfo(){
         if (this.session.info.googleAuth != null){
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 0;
-            document.getElementById(`${this.props.id}-picture`).src = this.session.info.googleAuth._profile.data.pictureUrl
-            document.getElementById(`${this.props.id}-name`).innerHTML = this.session.info.googleAuth._profile.data.name
+            document.getElementById(`${this.props.id}-picture`).src = this.session.info.googleAuth.profile.pictureUrl
+            document.getElementById(`${this.props.id}-name`).innerHTML = this.session.info.googleAuth.profile.name
             this.session.info.googleAuth.refreshCustomData().then((data) => {
-                console.log(data)
+                let usernameEntry = document.getElementById(`${this.props.id}-customData-username`)
+                if (Object.keys(data).includes('username')){
+                    usernameEntry.innerHTML = data['username'];  
+                } else {
+                    usernameEntry.innerHTML = `<div style="display: inline-block"><input placeholder="Enter your username"></input><button>Submit</button></div>`
+                    usernameEntry.querySelector('button').onclick = async () => {
+                        await this.updateUsernameEntry(usernameEntry)
+                    }
+                }
+
                 for (const [key, value] of Object.entries(data)) {
-                    if (!['picture', 'firstName', 'lastName', '_id'].includes(key)){
-                        document.getElementById(`${this.props.id}-customData-${key}`).innerHTML = value;         
+                    if (!['picture', 'firstName', 'lastName', '_id', 'username'].includes(key)){
+                        document.getElementById(`${this.props.id}-customData-${key}`).innerHTML = value;  
                     }
                 }
             })
         } else {
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 1;
         }
+    }
+
+    updateUsernameEntry = async (usernameContainer) => {
+        const newUsername = usernameContainer.querySelector('input').value
+        usernameContainer.innerHTML = `<p>Updating...</p>`
+        const mongo = this.session.info.googleAuth.mongoClient("mongodb-atlas");
+        const collection = mongo.db("brainsatplay").collection("customUserData");
+        const filter = {userID: this.session.info.googleAuth.profile.id};
+        const updateDoc = {$set: {username: newUsername, },};
+        await collection.updateOne(filter, updateDoc);
+        await this.session.info.googleAuth.refreshCustomData();
+        this.updateProfileInfo()
     }
 } 
