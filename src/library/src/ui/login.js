@@ -36,7 +36,7 @@ window.handleSignoutClick = function(event) {
 }
 
 window.handleClientLoad = function() {
-    window.gapi.load('client:auth2', initClient);
+    window.gapi.load('client:auth2', window.initClient);
 }
 
 
