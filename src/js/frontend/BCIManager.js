@@ -372,8 +372,8 @@ export class BCIAppManager {
                 }
                 console.log(choice,selector.value)
                 if (selector.value === choice) profileButton.click() // Refresh profile if necessary
-            }).catch(() => {
-                console.log('no login')
+            }).catch((e) => {
+                console.log(e)
             })
             
         }
