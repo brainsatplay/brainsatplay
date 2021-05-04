@@ -13,6 +13,7 @@ export class SoundJS { //Only one Audio context at a time!
       } 
       
       this.sourceList = [];
+      this.sourceGains = [];
       
       this.recordedData = [];
       this.recorder = null;
@@ -33,6 +34,7 @@ export class SoundJS { //Only one Audio context at a time!
           this.osc[len] = this.ctx.createOscillator();
           this.osc[len].start();
           this.osc[len].onended = () => {
+            this.osc[len].disconnect();
             this.osc.splice(len,1);
           }
         this.osc[len].type = type;
@@ -61,9 +63,17 @@ export class SoundJS { //Only one Audio context at a time!
         this.sourceList.push(this.ctx.createBufferSource()); 
         var idx = this.sourceList.length - 1;
         this.sourceList[idx].buffer = element;
-        this.sourceList[idx].onended = () => {this.sourceList.splice(idx, 1)};
-        this.sourceList[idx].connect(this.gainNode); //Attach to volume node
+        this.sourceList[idx].onended = () => {
+          this.sourceList[idx].disconnect();
+          this.sourceGains[idx].disconnect();
+          this.sourceList.splice(idx, 1);
+          this.sourceGains.splice(idx,1);
+        };
+        this.sourceGains.push(this.ctx.createGain()); //Allows control of individual sound file volumes
+        this.sourceList[idx].connect(this.sourceGains[idx]); //Attach to volume node
+        this.sourceGains[idx].connect(this.gainNode);
       });
+      
     }
   
     addSounds(urlList=['']){
@@ -229,3 +239,108 @@ export class SoundJS { //Only one Audio context at a time!
     }
   
   }
+
+
+  
+//Parse Audio file buffers
+export class BufferLoader { //From HTML5 Rocks tutorial
+  constructor(ctx, urlList, callback){
+   this.ctx = ctx;
+   this.urlList = urlList;
+   this.onload = callback;
+   this.bufferList = new Array();
+   this.loadCount = 0;
+  }
+
+  loadBuffer(url='',index){
+   // Load buffer asynchronously
+   var request = new XMLHttpRequest();
+   request.responseType = "arraybuffer";
+   var responseBuf = null;
+   
+   if((url.indexOf("http://") !== -1) || (url.indexOf("file://") !== -1)){
+       request.open("GET", url, true);
+       request.onreadystatechange = () => {
+         if(request.readyState === 4){
+           if(request.status === 200 || request.status === 0){
+             responseBuf = request.response; //Local files work on a webserver with request
+           }
+         }
+       }
+     var loader = this;
+
+     request.onload = function() {
+       // Asynchronously decode the audio file data in request.response
+       loader.ctx.decodeAudioData(
+         responseBuf,
+         function(buffer) {
+           if (!buffer) {
+             alert('error decoding file data: ' + url);
+             return;
+           }
+           loader.bufferList[index] = buffer;
+           if (++loader.loadCount === loader.urlList.length)
+             loader.onload(loader.bufferList);
+         },
+         function(error) {
+           console.error('decodeAudioData error: ', error);
+         }
+       );
+     }
+     request.onerror = function() {
+       alert('BufferLoader: XHR error');
+     }
+   
+     request.send();
+   }
+   else{//Local Audio
+     //read and decode the file into audio array buffer 
+     var loader = this;
+     var fr = new FileReader();
+     fr.onload = function(e) {
+         var fileResult = e.target.result;
+         var audioContext = loader.ctx;
+         if (audioContext === null) {
+             return;
+         }
+         console.log("Decoding audio...");
+         audioContext.decodeAudioData(fileResult, function(buffer) {
+           if (!buffer) {
+             alert('Error decoding file data: ' + url);
+             return;
+           }
+           else{
+             console.log('File decoded successfully!')
+           }
+           loader.bufferList[index] = buffer;
+           if (++loader.loadCount === loader.urlList.length)
+             loader.onload(loader.bufferList);
+           },
+           function(error) {
+             console.error('decodeAudioData error: ', error);
+           }
+         );
+     }
+     fr.onerror = function(e) {
+         console.log(e);
+     }
+     
+     var input = document.createElement('input');
+     input.type = 'file';
+     input.multiple = true;
+
+     input.onchange = e => {
+       fr.readAsArrayBuffer(e.target.files[0]);
+       input.value = '';
+       }
+     input.click();
+   }
+
+ }
+
+ load(){
+   for (var i = 0; i < this.urlList.length; ++i)
+   this.loadBuffer(this.urlList[i], i);
+ }
+ 
+}

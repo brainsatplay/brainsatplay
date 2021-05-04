@@ -29,6 +29,7 @@ import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
+
 export class BCIAppManager {
     /**
      * @constructor
@@ -484,6 +485,7 @@ export class BCIAppManager {
                 this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs,undefined,this.bcisession);
                 throw new Error(`?`);
             }
+            this.fs = rootForMfs;
             BrowserFS.initialize(rootForMfs);
             fs.exists('/data', (exists) => {
                 if(exists) { }
