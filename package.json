@@ -42,7 +42,6 @@
     "fs": "^0.0.1-security",
     "gaussian": "^1.2.0",
     "gl-matrix": "^3.3.0",
-    "google-one-tap": "^1.0.1",
     "gpu.js": "^2.11.2",
     "gsap": "^3.6.1",
     "http": "^0.0.1-security",
