@@ -66,7 +66,8 @@ export class Buzz {
                 this.sendCommand('motors stop')
             },
             vibrate: (controlFrames) => {
-                this.sendCommand(`motors vibrate ${controlFrames}`)
+                let base64String = btoa(String.fromCharCode(...new Uint8Array(controlFrames.flat())));
+                this.sendCommand(`motors vibrate ${base64String}`)
             },
             threshold: {
                 set: (feedbackType,threshold='') => {
@@ -157,7 +158,7 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
      this.txUUID      = txUUID; //characteristic that can transmit input to this device
      this.encoder     = new TextEncoder("utf-8");
      this.decoder     = new TextDecoder("utf-8");
- 
+
      this.device  = null;
      this.server  = null;
      this.service = null;

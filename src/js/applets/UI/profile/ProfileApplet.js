@@ -1,19 +1,16 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
-import logo from '../../../../assets/logo_and_sub(v3).png'
 import * as settingsFile from './settings'
 
-import { getApplet, AppletInfo, getAppletSettings} from "../../appletList"
-
-export class RandomizerApplet {
+export class ProfileApplet {
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -24,10 +21,6 @@ export class RandomizerApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.currentApplet = null
-        this.animation = null
-        this.mode = 'timer' // 'button', 'timer'
-        this.timeLimit = 10; // s
     }
 
     //---------------------------------
@@ -41,19 +34,23 @@ export class RandomizerApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
                 <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-                <div>
+                <section id="${props.id}-error-screen" style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 50px; background: black; opacity: 1; transition: opacity 1s;">
+                </section>
+                <section id='${props.id}-profile' style="padding: 50px; width: 100%; height: 100%; box-sizing: border-box; oveflow: scroll;">
                     <img id="${props.id}-picture">
                     <h1 id="${props.id}-name"></h1>
-                </div>
+                    <div style='font-size: 80%;'>
+                        <p>ID: <span id="${props.id}-customData-userId"></span></p>
+                        <p>Email: <span id="${props.id}-customData-email"></span></p>
+                    </div>
+                </section>
                 </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(`${props.id}-picture`).href = this.session.info.googleAuth._profile.data.pictureUrl
-            document.getElementById(`${props.id}-name`).href = this.session.info.googleAuth._profile.data.name
-
+            this.updateProfileInfo()
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -77,11 +74,44 @@ export class RandomizerApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+        this.toggleErrorScreen()
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
+    }
+
+    toggleErrorScreen(msg='<h1>Please log in to view your profile.</h1>') {
+        let errorScreen = document.getElementById(`${this.props.id}-error-screen`)
+        if (this.session.info.googleAuth != null) {
+            errorScreen.style.opacity = 0;
+            errorScreen.style.pointerEvents = 'none';
+
+        }
+        else {
+            errorScreen.style.opacity = 1;
+            errorScreen.style.pointerEvents = 'auto';
+            errorScreen.innerHTML = msg;
+        }
+    }
+
+    updateProfileInfo(){
+        if (this.session.info.googleAuth != null){
+            document.getElementById(`${this.props.id}-error-screen`).style.opacity = 0;
+            document.getElementById(`${this.props.id}-picture`).src = this.session.info.googleAuth._profile.data.pictureUrl
+            document.getElementById(`${this.props.id}-name`).innerHTML = this.session.info.googleAuth._profile.data.name
+            this.session.info.googleAuth.refreshCustomData().then((data) => {
+                console.log(data)
+                for (const [key, value] of Object.entries(data)) {
+                    if (!['picture', 'firstName', 'lastName', '_id'].includes(key)){
+                        document.getElementById(`${this.props.id}-customData-${key}`).innerHTML = value;         
+                    }
+                }
+            })
+        } else {
+            document.getElementById(`${this.props.id}-error-screen`).style.opacity = 1;
+        }
     }
 } 

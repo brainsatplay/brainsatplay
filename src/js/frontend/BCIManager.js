@@ -24,7 +24,6 @@ import {CSV} from '../general/csv'
 import { StateManager } from '../../library/src/ui/StateManager';
 import { DOMFragment } from '../../library/src/ui/DOMFragment';
 import { TutorialManager } from './utils/TutorialManager';
-import { LoginWithGoogle } from '../../library/src/ui/login';
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
@@ -46,7 +45,7 @@ export class BCIAppManager {
      * @description Summon the WebBCI app manager.
      */
     constructor(
-        bcisession=null,
+        session=null,
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
         useFS=false         //launch with browserfs initialized
     ) {
@@ -67,7 +66,7 @@ export class BCIAppManager {
             controls:undefined,
         }; //store DOMFragments for the UI here
 
-        this.bcisession = bcisession; //brainsatplay class instance
+        this.session = session; //brainsatplay class instance
         this.appletConfigs = appletConfigs;
         this.appletSelectIds = []
         this.appletManager;
@@ -161,7 +160,7 @@ export class BCIAppManager {
                 </div>
                 </div>
 
-                <div id="profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
+                <div id="brainstplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
                     <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'"><div class="img-cont"><img id="brainsatplay-profile-img" src="${GoogleIcon}" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)"><span id="brainsatplay-profile-label" style="margin-left: 10px; ">Log In</span></div></button>
                 </div>
                 `
@@ -213,26 +212,26 @@ export class BCIAppManager {
         () => {
 
             // document.getElementById('ping').onclick = () => {
-            //     this.bcisession.sendWSCommand(['ping']); //send array of arguments
+            //     this.session.sendWSCommand(['ping']); //send array of arguments
             // }
             // document.getElementById('getusers').onclick = () => {
-            //     this.bcisession.sendWSCommand(['getUsers']);
+            //     this.session.sendWSCommand(['getUsers']);
             // }
             // document.getElementById('createGame').onclick = () => {
-            //     this.bcisession.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
-            //     //bcisession.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
+            //     this.session.sendWSCommand(['createGame','test',['eeg'],['eegch_FP1','eegch_FP2','eegch_AF7','eegch_AF8']]);
+            //     //session.sendWSCommand(['createGame','game',['muse'],['eegch_AF7','eegch_AF8']]);
             // }
             // document.getElementById('subscribeToGame').onclick = () => {
-            //     this.bcisession.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
+            //     this.session.subscribeToGame(undefined,false,(res)=>{console.log("subscribed!", res)});
             // }
             // document.getElementById('spectateGame').onclick = () => {
-            //     this.bcisession.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
+            //     this.session.subscribeToGame(undefined,true,undefined,(res)=>{console.log("subscribed!", res)});
             // }
             // document.getElementById('subscribeToSelf').onclick = () => {
-            //     this.bcisession.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
-            //     //bcisession.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
-            //     this.bcisession.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
-            //     //bcisession.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
+            //     this.session.addStreamParam([['eegch','FP1','all'],['eegch','FP2','all'],['eegch','AF7','all'],['eegch','AF8','all'],['hegdata',0]]);
+            //     //session.addStreamParam([['eegch','AF7','all'],['eegch','AF8','all']]);
+            //     this.session.subscribeToUser('guest',[['eegch','FP1',],['eegch','FP2'],['eegch','AF7'],['eegch','AF8'],['hegdata',0]],undefined,(res)=>{console.log("subscribed!", res)});
+            //     //session.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
             // }
 
             document.getElementById('autosavingfiles').onchange = () => {
@@ -347,7 +346,7 @@ export class BCIAppManager {
 
 
         let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
-        this.bcisession.makeConnectOptions(contentChild2);
+        this.session.makeConnectOptions(contentChild2);
         
 
         // let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
@@ -356,7 +355,26 @@ export class BCIAppManager {
         //     contentChild3
         // );
 
-        document.getElementById('profile-menu').querySelector('button').onclick = () => LoginWithGoogle()
+        let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
+        profileButton.onclick = async (e) => {
+            this.session.loginWithGoogle().then(user => {
+                let profileImg = document.getElementById(`brainsatplay-profile-img`)
+                document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
+                document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
+                profileImg.style.padding = "0"
+                profileButton.onclick = () => {
+                    let choice = 'Profile Manager'
+                    let selector = document.getElementById(`applet0`)
+                    selector.value = choice
+                    window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
+                    selector.onchange()
+                }
+                // profileButton.click()
+            }).catch(() => {
+                console.log('no login')
+            })
+            
+        }
 
         // app.querySelector('#login-button').onclick = () => {
         //     let form = app.querySelector('#login-form')
@@ -365,8 +383,8 @@ export class BCIAppManager {
         //     for (var pair of formData.entries()) {
         //         formDict[pair[0]] = pair[1];
         //     } 
-        //     this.bcisession.setLoginInfo(formDict.username, formDict.password)
-        //     this.bcisession.login(true)
+        //     this.session.setLoginInfo(formDict.username, formDict.password)
+        //     this.session.login(true)
         // }
 
         if(this.useFS) {
@@ -406,18 +424,18 @@ export class BCIAppManager {
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
-        this.bcisession.onconnected = () => {
+        this.session.onconnected = () => {
             try{
                 let contentChild = Array.from(document.querySelector('.app').querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
                 if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
-                this.uiFragments.controls = this.bcisession.devices[this.bcisession.info.nDevices-1].device.addControls(contentChild);
+                this.uiFragments.controls = this.session.devices[this.session.info.nDevices-1].device.addControls(contentChild);
             }
             catch (err) { console.error(err); }
 
             this.appletManager.responsive();    
         }
 
-        this.bcisession.ondisconnected = () => {
+        this.session.ondisconnected = () => {
             if(this.uiFragments.controls !== undefined) this.uiFragments.controls.deleteNode();
         }
 
@@ -476,7 +494,7 @@ export class BCIAppManager {
             this.deinitUI,
             this.appletConfigs,
             this.appletSelectIds,
-            this.bcisession
+            this.session
         )
 
         // Remove overlay
@@ -505,7 +523,7 @@ export class BCIAppManager {
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
-                this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs,undefined,this.bcisession);
+                this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs,undefined,this.session);
                 throw new Error(`?`);
             }
             BrowserFS.initialize(rootForMfs);
@@ -550,25 +568,25 @@ export class BCIAppManager {
                         }
 
                         //configure autosaving when the device is connected
-                        this.bcisession.state.data.info = this.bcisession.info;
+                        this.session.state.data.info = this.session.info;
 
                         
                         document.getElementById("saveBCISession").onclick = () => {
                             saveSettings();
                         }
                             
-                        //console.log(this.bcisession.state.data.info);
-                        let sub = this.bcisession.state.subscribe('info',(info) => {
+                        //console.log(this.session.state.data.info);
+                        let sub = this.session.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {
-                                let mainDevice = this.bcisession.devices[info.nDevices-1].info.deviceType;
+                                let mainDevice = this.session.devices[info.nDevices-1].info.deviceType;
                                 if(mainDevice === 'eeg') {
-                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, this.bcisession.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
+                                    this.session.subscribe(this.session.devices[info.nDevices-1].info.deviceName, this.session.devices[info.nDevices-1].info.eegChannelTags[0].ch,undefined, (row) => {                                    
                                         //console.log(row.count, this.state.data.eegSaveCounter);
                                         if(this.state.data.autosaving) {
-                                            if(this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                            if(this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                             if(row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) { 
                                                 saveSettings();
-                                                autoSaveEEGChunk(this.state.data.eegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
+                                                autoSaveEEGChunk(this.state.data.eegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
                                                 this.state.data.eegSaveCounter = row.count;
                                             }
                                         }
@@ -576,8 +594,8 @@ export class BCIAppManager {
 
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        if(this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        autoSaveEEGChunk(this.state.data.saveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
+                                        if(this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                        autoSaveEEGChunk(this.state.data.saveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
                                         this.state.data.eegSaveCounter = row.count;
                                         
                                     }
@@ -587,20 +605,20 @@ export class BCIAppManager {
                                     }
 
                                 } else if (mainDevice === 'heg'){
-                                    this.bcisession.subscribe(this.bcisession.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
+                                    this.session.subscribe(this.session.devices[info.nDevices-1].info.deviceName, info.nDevices-1,undefined, (row) => {
                                         if(this.state.data.autosaving) {
-                                            //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.bcisession.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                            //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                             if(row.count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
                                                 saveSettings();
-                                                autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
+                                                autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
                                                 this.state.data.hegSaveCounter = row.count;
                                             }
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.bcisession.devices[info.nDevices-1].info.deviceName);
-                                        this.state.data.hegSaveCounter = this.bcisession.atlas.data.heg[0].count;
+                                        autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
+                                        this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
                                         
                                     }
                                     
@@ -615,7 +633,7 @@ export class BCIAppManager {
             });
     
             const newSession = () => {
-                let deviceType = this.bcisession.devices[info.nDevices-1].info.deviceType
+                let deviceType = this.session.devices[info.nDevices-1].info.deviceType
                 let sessionName = new Date().toISOString(); //Use the time stamp as the session name
                 if(deviceType === 'eeg') { 
                     sessionName += "_eeg"
@@ -707,7 +725,7 @@ export class BCIAppManager {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_"+ deviceName;}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
-                let data = this.bcisession.devices[0].atlas.readyEEGDataForWriting(from,to);
+                let data = this.session.devices[0].atlas.readyEEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
                     fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {
@@ -730,7 +748,7 @@ export class BCIAppManager {
                 if(this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_"+deviceName;}
                 let from = startidx; 
                 if(this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
-                let data = this.bcisession.devices[0].atlas.readyHEGDataForWriting(from,to);
+                let data = this.session.devices[0].atlas.readyHEGDataForWriting(from,to);
                 console.log("Saving chunk to /data/"+this.state.data.sessionName,this.state.data.sessionChunks);
                 if(this.state.data.sessionChunks === 0) {
                     fs.appendFile('/data/'+this.state.data.sessionName, data[0]+data[1], (e) => {

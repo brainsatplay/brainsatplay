@@ -8,6 +8,7 @@ import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png
 export const AppletInfo = {
     'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
     'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
+    'Profile Manager': { folderUrl:'./UI/profile', devices:['EEG','HEG'], categories:['UI'] },
     'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['connect']},
     'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['EEG'],           categories:['connect']},
     'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['connect']},
@@ -36,7 +37,6 @@ export const AppletInfo = {
     'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['EEG'], categories:['train'] },
     'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
     'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
-
 };
 
 export let dynamicImport = async (url) => {

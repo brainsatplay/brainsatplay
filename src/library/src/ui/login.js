@@ -17,16 +17,9 @@ const client_id = "354011508571-521lgm8ulo8nl6bevis1n94nlekf44ge.apps.googleuser
 const redirectUri = `${window.location.origin}/`;
 const credentials = Realm.Credentials.google(redirectUri);
 export const LoginWithGoogle = async () => {
-    app.logIn(credentials).then(user => {
-    console.log(`Logged in with id: ${user.id}`);
-    user.refreshCustomData().then(data => {
-        console.log(data)
-    })
-    let profileImg = document.getElementById(`brainsatplay-profile-img`)
-    document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
-    document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
-    profileImg.style.padding = "0"
-    return true
+    return app.logIn(credentials).then(async user => {
+        await user.refreshCustomData()
+        return user
     }).catch(e => {console.error(e)})
 }
 

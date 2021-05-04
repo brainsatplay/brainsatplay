@@ -186,7 +186,7 @@ export class AppletBrowser {
             let categoryArray = []
             let deviceArray = []
             appletSettings.forEach(settings => {
-                if (!['Applet Browser','Randomizer'].includes(settings.name)){
+                if (!settings.categories.includes('UI')){
                     let type;
                     if (settings.devices.length > 1){
                         type = 'All'
@@ -289,7 +289,6 @@ export class AppletBrowser {
                         let selector = document.getElementById(`applet${this.appletToReplace}`)
                         selector.value = choice
                         window.history.pushState({additionalInformation: 'Updated URL from Applet Browser (applet)' },'',`${window.location.origin}/#${choice}`)
-                        console.log(selector)
                         selector.onchange()
                     }
                     }

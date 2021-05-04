@@ -228,7 +228,6 @@ export class AppletManager {
                         }
                     });
                 } 
-                
                 else {
                     this.appletConfigs = appletConfigs;
                 }
@@ -259,6 +258,8 @@ export class AppletManager {
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s, a) => s + ((a != null) ? 1 : 0)
 
+        console.log(this.appletConfigs)
+
         this.appletConfigs.forEach(conf => {
             if (typeof conf === 'object') {
                 if (!currentApplets.reduce(isAllNull, 0) && AppletInfo[conf.name] != null) {
@@ -287,6 +288,8 @@ export class AppletManager {
         }
 
         Promise.all(appletPromises).then((configApplets) => {
+
+            console.log(configApplets)
 
             // Check the compatibility of current applets with connected devices
             this.appletsSpawned = 0;
@@ -640,7 +643,7 @@ export class AppletManager {
         })
 
         appletKeys.forEach((name) => {
-            if (!['Applet Browser','Randomizer'].includes(name)) {
+            if (!['Applet Browser'].includes(name)) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
                     if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;
@@ -657,6 +660,7 @@ export class AppletManager {
             console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
+                console.log(AppletInfo, [select.value])
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
                 this.addApplet(appletCls, appletIdx + 1);
             }
