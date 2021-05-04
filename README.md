@@ -1,4 +1,4 @@
-<div style="display: flex; align-items: center;  justify-content:center;margin: 25px; background: black; color: white; padding: 10px 25px;">
+<div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px; background: black; color: white; padding: 30px 25px 10px 25px; width: 100%;">
 <div style="text-align:center; width: 100%;">
 <img src="./logo.png" style="width: 400px;" alt="Brains@Play">
 <p>The Platform for Brain-Responsive Applications</p>
@@ -16,24 +16,7 @@ Our software framework manages the signal acquisition, data processing, and netw
 **Status:** Alpha (give it a few weeks...)
 
 ## Getting Started
-
-### Starting Local Development
-1. Install [NPM](https://www.npmjs.com/) and [Node](https://nodejs.org/en/).
-2. If you have npm installed already, make sure to update it to the latest version using:
-```bash
-npm update -g npm
-```
-2. In the project folder, install the required Node modules by typing this into your command line:
-```bash
-npm install
-``` 
-3. In your command line:
-```bash
-npm start
-```
-4. Click on the link in the terminal to navigate to http://localhost:1234 to view the latest version of Brains@Play Platform. Learn more about how to contribute your own applets [here](@tutorial Applets).
-
-### In-Depth Tutorials
+- [Setting Up to Develop]{@tutorial Setup}
 - [Creating an Applet]{@tutorial Applets}
 - [Connecting to the Brainstorm]{@tutorial Brainstorm}
 - [Adding a Device]{@tutorial Devices}

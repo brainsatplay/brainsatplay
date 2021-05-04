@@ -22,7 +22,7 @@
             "layoutFile": "./templates/brainstorm/tmpl/layout.tmpl",
             "staticFiles": {
                 "paths": ["./templates/brainstorm/static/"],
-                "include": ["./public/"]
+                "include": ["./logo.png"]
             }
         }
     }

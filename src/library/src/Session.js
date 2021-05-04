@@ -48,6 +48,11 @@ import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 
+// MongoDB Realm
+import { LoginWithGoogle } from './ui/login';
+import * as Realm from "realm-web";
+
+
 // Default Styling
 import './ui/styles/multiplayerIntro.css'
 
@@ -532,9 +537,21 @@ export class Session {
 	}
 
 
+	getApp = () =>{
+		return Realm.App.getApp("brainsatplay-tvmdj")
+	}
+
+	loginWithGoogle = async () => {
+	 	let user = await LoginWithGoogle()
+		this.info.googleAuth = user
+		return user	
+	}
+
+
 
 	//Server login and socket initialization
 	async login(beginStream=false, dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
+
 		//Connect to websocket
 		if (this.socket == null  || this.socket.readyState !== 1){
 			this.socket = this.setupWebSocket(dict);
@@ -970,8 +987,10 @@ export class Session {
                 });
             }
 
-            // Set Up Screen Two (Login)
-            document.getElementById(`${applet.props.id}login-button`).onclick = () => {
+			// Set Up Screen Two (Login)
+			
+			const loginButton = document.getElementById(`${applet.props.id}login-button`)
+            loginButton.onclick = () => {
                 let form = document.getElementById(`${applet.props.id}login-form`)
                 let formDict = {}
                 let formData = new FormData(form);
@@ -1005,7 +1024,17 @@ export class Session {
                 this.login(true).then(() => {
                     onsocketopen(this.socket)
                 })
-            }
+			}
+
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null){
+				this.info.googleAuth.refreshCustomData().then(data => {
+					document.getElementsByName("username")[0].value = data.username
+					loginButton.click()
+				})
+			}
+			
+
 
             exitGame.onclick = () => {
                 gameSelection.style.opacity = 1;
@@ -1225,7 +1254,8 @@ class deviceStream {
 			analysis:analysis, //['eegcoherence','eegfft' etc]
 
 			deviceNum:0,
-			
+
+			googleAuth: null,
 			auth:auth,
 			sps: null,
 			useFilters:useFilters,

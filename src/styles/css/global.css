@@ -280,7 +280,12 @@ button {
 
 #sidebar-inner {
     width: 100%;
+    height: 100%;
     flex-grow: 1;
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: space-between;
+    justify-content: center;
 }
 
 #sidebar button {
@@ -398,11 +403,11 @@ button {
 /* Logo */
 
 .logo-container {
-    width: 80%;
-    transform:translateX(12.3%);
+    /* width: 80%; */
+    /* transform:translateX(12.3%); */
     /* border-bottom: 1px solid rgb(200, 200, 200); */
     margin-bottom: 5px;
-    border: 1px solid rgb(15,15,15);
+    border-bottom: 1px solid rgb(0,0,0);
     display: flex;
     justify-content: center;
     align-items:  center;
@@ -410,9 +415,9 @@ button {
 }
 
 .logo-container:hover {
-    border: 1px solid white;
-    border-radius: 5px;
-    background-color: rgb(35,35,35);
+    border-bottom: 1px solid white;
+    /* border-radius: 5px; */
+    background-color: rgb(20,20,20);
 }
 
 .logo {
@@ -597,12 +602,12 @@ input:focus{
 }
 
 
-@media only screen and (min-device-width: 1000px) {
+@media (min-device-width: 1000px) {
 
     /* Sidebar Reveal */
     #sidebar:hover button {
-        padding-left: 10%;
-        padding-right: 10%;
+        /* padding-left: 10%;
+        padding-right: 10%; */
     }
 
     #sidebar:hover button .img-cont span{
@@ -611,11 +616,11 @@ input:focus{
     }
 
     #sidebar:hover {
-        width: clamp(75px, 200px, 20vw);
+        width: clamp(75px, 200px, 40vw);
     }
 }
 
-@media only screen and (min-device-width: 600px) {
+@media (min-device-width: 600px) {
     .content {
         position: absolute;
         padding: 0px 25px 25px 25px;
