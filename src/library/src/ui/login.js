@@ -19,11 +19,20 @@ const credentials = Realm.Credentials.google(redirectUri);
 
 
 export const LoginWithGoogle = async () => {
+    let response = await window.gapi.auth2.getAuthInstance().signIn();
+    let authResponse = response.getAuthResponse()
+    let getId = response.getId()
 
-    let credentials = await window.gapi.auth2.getAuthInstance().signIn();
+    const credentials = Realm.Credentials.google(authResponse.id_token)
+    const credentials2 = Realm.Credentials.google(redirectUri);
+
     console.log(credentials)
-    // credentials = gapi.auth2 
-    return credentials; // ????
+    console.log(credentials2)
+    credentials.payload.redirectUrl = redirectUri
+    const user = await app.logIn(credentials);
+    console.log(user)
+
+    return user; // ????
 }
 
 export const handleAuthRedirect = () => Realm.handleAuthRedirect();
