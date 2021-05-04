@@ -20,27 +20,27 @@ const credentials = Realm.Credentials.google(redirectUri);
 
 if(!document.getElementById('googleapi')) {
     document.head.insertAdjacentHTML('beforeend',`
-        <script id='googleapi' async defer src="https://apis.google.com/js/api.js">
+        <script id='googleapi' async defer src="https://apis.google.com/js/api.js" 
+        onload="this.onload=function(){};window.handleClientLoad();" 
+        onreadystatechange="console.log(window.gapi, this.readyState); if (this.readyState === 'complete') this.onload();">
         </script>
     `);
-    document.getElementById('googleapi').onload = function() {this.onload=function(){};handleClientLoad();}
-    document.getElementById('googleapi').onreadystatechange = function() {if (this.readyState === 'complete') this.onload();}
 }
 
 
 /**
  *  Sign out the user upon button click.
  */
-function handleSignoutClick(event) {
+window.handleSignoutClick = function(event) {
     window.gapi.auth2.getAuthInstance().signOut();
 }
 
-function handleClientLoad() {
+window.handleClientLoad = function() {
     window.gapi.load('client:auth2', initClient);
 }
 
 
-function updateSigninStatus(isSignedIn) {
+window.updateSigninStatus = function(isSignedIn) {
     if (isSignedIn) {
         console.log("Signed in with Google, Drive, Docs, and Sheets available.")
     } else {
@@ -48,14 +48,13 @@ function updateSigninStatus(isSignedIn) {
     }
 }
 
-// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = [
-    "https://sheets.googleapis.com/$discovery/rest?version=v4",
-    "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"
-];
 
-
-function initClient() {
+window.initClient = function() {
+    // Array of API discovery doc URLs for APIs used by the quickstart
+    var DISCOVERY_DOCS = [
+        "https://sheets.googleapis.com/$discovery/rest?version=v4",
+        "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"
+    ];
 
     window.gapi.client.init({
         apiKey: 'AIzaSyDkUs-ofe1TPDftg4_T5wcA8y7qp03f6nU',
@@ -75,7 +74,7 @@ function initClient() {
         window.gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
 
         // Handle the initial sign-in state.
-        updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
+        window.updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
         
     }, function(error) {
         console.log(error);//appendPre(JSON.stringify(error, null, 2));
