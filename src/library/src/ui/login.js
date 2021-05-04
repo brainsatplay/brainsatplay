@@ -86,9 +86,10 @@ function initClient() {
 
 export const LoginWithGoogle = async () => {
 
-    gapi.auth2.getAuthInstance().signIn();
+    let credentials = await gapi.auth2.getAuthInstance().signIn();
+    console.log(credentials)
     // credentials = gapi.auth2 
-    return gapi.auth2; // ????
+    return credentials; // ????
 }
 
 export const handleAuthRedirect = () => Realm.handleAuthRedirect();
