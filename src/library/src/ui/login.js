@@ -32,7 +32,7 @@ if(!document.getElementById('googleapi')) {
  *  Sign out the user upon button click.
  */
 function handleSignoutClick(event) {
-    gapi.auth2.getAuthInstance().signOut();
+    window.gapi.auth2.getAuthInstance().signOut();
 }
 
 function handleClientLoad() {
@@ -86,9 +86,9 @@ function initClient() {
 
 export const LoginWithGoogle = async () => {
 
-    gapi.auth2.getAuthInstance().signIn();
+    window.gapi.auth2.getAuthInstance().signIn();
     // credentials = gapi.auth2 
-    return gapi.auth2; // ????
+    return window.gapi.auth2; // ????
 }
 
 export const handleAuthRedirect = () => Realm.handleAuthRedirect();
