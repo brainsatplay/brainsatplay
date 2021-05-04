@@ -59,12 +59,6 @@ export class SessionManagerApplet {
             return ` 
             <div id='${props.id}'>
                 <p>Google Sheets API Quickstart</p>
-
-                <!--Add buttons to initiate auth sequence and sign out-->
-                <button id="authorize_button">Authorize</button>
-                <button id="signout_button" style="display: none;">Sign Out</button>
-
-                <pre id="content" style="white-space: pre-wrap;"></pre>
             </div>
             `;
         }
