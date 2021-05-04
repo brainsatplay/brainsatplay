@@ -23,8 +23,8 @@ if(!document.getElementById('googleapi')) {
         <script id='googleapi' async defer src="https://apis.google.com/js/api.js">
         </script>
     `);
-    document.getElementById('googleapi').onload = () => {this.onload=function(){};handleClientLoad();}
-    document.getElementById('googleapi').onreadystatechange = () => {if (this.readyState === 'complete') this.onload();}
+    document.getElementById('googleapi').onload = function() {this.onload=function(){};handleClientLoad();}
+    document.getElementById('googleapi').onreadystatechange = function() {if (this.readyState === 'complete') this.onload();}
 }
 
 
