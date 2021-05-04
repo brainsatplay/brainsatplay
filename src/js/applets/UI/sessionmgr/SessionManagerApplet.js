@@ -29,18 +29,6 @@ export class SessionManagerApplet {
             //Add whatever else
         };
 
-        this.state = new StateManager({
-            sessionName:'',
-            autosaving:true,
-            saveChunkSize:0,
-            saveChunkSize:2000,
-            sessionChunks:0,
-            eegSaveCounter:0,
-            hegSaveCounter:0,
-            newSessionCt:0,
-            fileSizeLimitMb: 250
-        });
-
     }
 
     //---------------------------------
@@ -58,8 +46,9 @@ export class SessionManagerApplet {
         let HTMLtemplate = (props=this.props) => { 
             return ` 
             <div id='${props.id}'>
-                <p>Google Sheets API Quickstart</p>
-            </div>
+                <p>Google API Test</p>
+                <div id='${props.id}content'></div>
+            </div> 
             `;
         }
 
@@ -82,7 +71,15 @@ export class SessionManagerApplet {
 
 
         //Add whatever else you need to initialize
-    
+        let awaitsignin = () => {
+            if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+                console.log("Signed in, getting files...");
+                this.listFiles();
+            }
+            else setTimeout(()=>{awaitsignin();},1000)
+        }
+
+        awaitsignin();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -107,8 +104,29 @@ export class SessionManagerApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+    appendPre(message) {
+        var pre = document.getElementById(this.props.id+'content');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
 
     //doSomething(){}
-
+    listFiles() {
+        window.gapi.client.drive.files.list({
+            'pageSize': 10,
+            'fields': "nextPageToken, files(id, name)"
+        }).then((response) => {
+            this.appendPre('Files:');
+            var files = response.result.files;
+            if (files && files.length > 0) {
+              for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                this.appendPre(file.name + ' (' + file.id + ')');
+              }
+            } else {
+                this.appendPre('No files found.');
+            }
+          });
+    }
    
 } 
