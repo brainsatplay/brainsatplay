@@ -23,8 +23,8 @@ if(!document.getElementById('googleapi')) {
         <script id='googleapi' async defer src="https://apis.google.com/js/api.js">
         </script>
     `);
-    document.getElementById('googleapi').onload = () => {this.onload=function(){};handleClientLoad();}
-    document.getElementById('googleapi').onreadystatechange = () => {if (this.readyState === 'complete') this.onload();}
+    document.getElementById('googleapi').onload = function() {this.onload=function(){};handleClientLoad();}
+    document.getElementById('googleapi').onreadystatechange = function() {if (this.readyState === 'complete') this.onload();}
 }
 
 
@@ -59,7 +59,7 @@ function initClient() {
 
     window.gapi.client.init({
         apiKey: 'AIzaSyDkUs-ofe1TPDftg4_T5wcA8y7qp03f6nU',
-        clientId: '354011508571-521lgm8ulo8nl6bevis1n94nlekf44ge.apps.googleusercontent.com',
+        clientId: client_id,
         discoveryDocs: DISCOVERY_DOCS,
         scope: `https://www.googleapis.com/auth/drive.appdata 
         https://www.googleapis.com/auth/drive.file 
