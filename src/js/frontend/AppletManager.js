@@ -1,7 +1,7 @@
 import { Session } from "../../library/src/Session";
 import { getApplet, presets, AppletInfo, getAppletSettings } from "../applets/appletList"
-import appletSVG from './../../assets/th-large-solid.svg'
-import dragSVG from './../../assets/arrows-alt-solid.svg'
+import appletSVG from '../../assets/th-large-solid.svg'
+import dragSVG from '../../assets/arrows-alt-solid.svg'
 
 import {handleAuthRedirect} from '../../library/src/ui/login'
 //By Garrett Flynn, Joshua Brewster (GPL)

@@ -26,6 +26,15 @@ import { DOMFragment } from '../../library/src/ui/DOMFragment';
 import { TutorialManager } from './utils/TutorialManager';
 import { LoginWithGoogle } from '../../library/src/ui/login';
 
+// Imagess
+import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
+import AppletMenuIcon from '../../assets/th-large-solid.svg';
+import FileManagerIcon from '../../assets/folder-solid.svg';
+import GoogleIcon from '../../assets/google.png';
+
+
+
+
 import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
@@ -126,19 +135,19 @@ export class BCIAppManager {
                     </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/wave-square-solid.svg"><span>Device Manager</span></div></button>
+                    <button class="collapsible"><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Device Manager</span></div></button>
                     <div class="content">
                     </div>
                 </div>
                 <div id="applet-menu" class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="./_dist_/assets/th-large-solid.svg"><span>Applets</span></div></button>
+                    <button class="collapsible"><div class="img-cont"><img src="${AppletMenuIcon}"><span>Applets</span></div></button>
                     <div class="content">
                     </div>
                 </div>
                 <div id="file-menu" class="collapsible-container">
                     <button class="collapsible">
                     <div class="img-cont">
-                    <img src="./_dist_/assets/folder-solid.svg">
+                    <img src="${FileManagerIcon}">
                     <span>File Manager</span>
                     </div>
                     </button>
@@ -153,7 +162,7 @@ export class BCIAppManager {
                 </div>
 
                 <div id="profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
-                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'"><div class="img-cont"><img id="brainsatplay-profile-img" src="./_dist_/assets/google.png" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)"><span id="brainsatplay-profile-label" style="margin-left: 10px; ">Log In</span></div></button>
+                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'"><div class="img-cont"><img id="brainsatplay-profile-img" src="${GoogleIcon}" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)"><span id="brainsatplay-profile-label" style="margin-left: 10px; ">Log In</span></div></button>
                 </div>
                 `
                 // <div id="profile-menu" class="collapsible-container">
