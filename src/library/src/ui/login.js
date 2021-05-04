@@ -59,7 +59,7 @@ function initClient() {
 
     window.gapi.client.init({
         apiKey: 'AIzaSyDkUs-ofe1TPDftg4_T5wcA8y7qp03f6nU',
-        clientId: '354011508571-521lgm8ulo8nl6bevis1n94nlekf44ge.apps.googleusercontent.com',
+        clientId: client_id,
         discoveryDocs: DISCOVERY_DOCS,
         scope: `https://www.googleapis.com/auth/drive.appdata 
         https://www.googleapis.com/auth/drive.file 
