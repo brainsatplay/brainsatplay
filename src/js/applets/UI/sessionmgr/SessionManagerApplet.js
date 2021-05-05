@@ -43,6 +43,7 @@ export class SessionManagerApplet {
 
         this.nFiles = 0;
         this.fileloader = new DataLoader(this.bci.atlas);
+        this.looping = false;
 
     }
 
@@ -106,15 +107,18 @@ export class SessionManagerApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 
+        this.looping = true;
         //Add whatever else you need to initialize
-        let awaitsignin = () => {
-
-            if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
-                console.log("Signed in, getting files...");
-                this.checkFolder();
-                this.listDriveFiles();
+        let awaitsignin = () => {   
+            if(this.looping){
+                if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+                    console.log("Signed in, getting files...");
+                    this.checkFolder();
+                    this.listDriveFiles();
+                    this.looping = false;
+                }
+                else setTimeout(()=>{awaitsignin();},1000);
             }
-            else setTimeout(()=>{awaitsignin();},1000)
         }
 
         awaitsignin();
@@ -124,6 +128,8 @@ export class SessionManagerApplet {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
+        this.fileloader.deinit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
