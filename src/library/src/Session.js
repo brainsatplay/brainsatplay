@@ -47,6 +47,7 @@ import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
+import { buzzPlugin } from './devices/neosensory/buzz/buzzPlugin';
 
 // MongoDB Realm
 import { LoginWithGoogle } from './ui/login';
@@ -253,7 +254,7 @@ export class Session {
 			'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
-			'cyton','cyton_daisy', 'ganglion', 
+			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -299,6 +300,8 @@ export class Session {
 					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
 				} else if (o === 'ganglion') {
 					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
+				} else if (o === 'neosensory_buzz'){
+					this.connect('neosensory_buzz',[],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -1272,6 +1275,7 @@ class deviceStream {
 			{  name:'cyton', 	   cls:cytonPlugin	      },
 			{  name:'webgazer',    cls:webgazerPlugin     },
 			{  name:'ganglion',    cls:ganglionPlugin     },
+			{  name:'neosensory_buzz',    cls: buzzPlugin     },
 		];
 
 		this.filters = [];   //BiquadChannelFilterer instances 

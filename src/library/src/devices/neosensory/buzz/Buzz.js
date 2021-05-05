@@ -1,7 +1,7 @@
 // Garrett Flynn, MIT License
 
 export class Buzz {
-    constructor(ondata=(newline)=>{},onconnect=()=>{},ondisconnect=()=>{}) {
+    constructor(ondata=()=>{},onconnect=()=>{},ondisconnect=()=>{}) {
 
         this.interface = null;
         this.setupDevice(ondata,onconnect,ondisconnect);
@@ -152,7 +152,10 @@ export class Buzz {
 }
 
 export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends/receives information. Other BLE devices will likely need changes to this to be interactive.
-    constructor(serviceUUID = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E', rxUUID = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E', txUUID = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E', async = false ){
+    constructor(
+        serviceUUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e', rxUUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e', txUUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e', async = false 
+        // serviceUUID = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E', rxUUID = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E', txUUID = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E', async = false 
+        ){
      this.serviceUUID = serviceUUID;
      this.rxUUID      = rxUUID; //characteristic that can receive input from this device
      this.txUUID      = txUUID; //characteristic that can transmit input to this device
@@ -176,7 +179,10 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
     //Typical web BLE calls
     connect = (serviceUUID = this.serviceUUID, rxUUID = this.rxUUID, txUUID = this.txUUID) => { //Must be run by button press or user-initiated call
      navigator.bluetooth.requestDevice({   
-       acceptAllDevices: true,
+        filters: [
+            {services: [serviceUUID]},
+            {namePrefix: 'Buzz'}
+          ],
        optionalServices: [serviceUUID] 
        })
        .then(device => {
@@ -230,7 +236,10 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
     //Async solution fix for slower devices (android). This is slower than the other method on PC. Credit Dovydas Stirpeika
     async connectAsync() {
          this.device = await navigator.bluetooth.requestDevice({
-             filters: [{ namePrefix: 'Buzz' }],
+            filters: [
+                {services: [serviceUUID]},
+                {namePrefix: 'Buzz'}
+              ],
              optionalServices: [this.serviceUUID]
          });
  

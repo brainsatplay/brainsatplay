@@ -31,6 +31,7 @@ export class SSVEPApplet {
         this.n = 4
         this.objects = null; 
         this.SSVEPManager = new SSVEP(this.session)
+        this.freqRange = [4,16]
     }
 
     //---------------------------------
@@ -56,7 +57,10 @@ export class SSVEPApplet {
             
             this.SSVEPManager.init().then((response) => {
 
-                this.objects = Array.from({length: this.n}, (e,i) => {return {element: null, f: 1 + (i)*((this.SSVEPManager.refreshRate/2)/(this.n+2))}})
+                this.objects = Array.from({length: this.n}, (e,i) => {return {element: null, 
+                    // f: 1 + (i)*((this.SSVEPManager.refreshRate/2)/(this.n+2))
+                    f: this.freqRange[0] + i*(this.freqRange[1] - this.freqRange[0])/(this.n-1)
+                }})
                 
                 let containerElement = document.getElementById(`${props.id}-grid`); 
                 let gridLength = Math.ceil(Math.sqrt(this.objects.length))
