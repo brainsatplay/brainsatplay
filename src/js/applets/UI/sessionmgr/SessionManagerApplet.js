@@ -65,7 +65,7 @@ export class SessionManagerApplet {
         let HTMLtemplate = (props=this.props) => { 
             return ` 
             <div id='${props.id}'>
-                <div id='chart1' width='100%' height='25%'></div>
+                <div id='${props.id}sessionwindow' width='100%' height='25%'></div>
                 <p>Google API Test</p>
                 <div id='${props.id}content'></div>
                 <hr>
@@ -184,11 +184,11 @@ export class SessionManagerApplet {
         return `
         <div id="`+props.id+`">
             <div style="display:flex; align-items: center; justify-content: space-between;">
-            <p id="`+props.id+`filename" style='color:white; font-size: 80%;'>`+props.id+`</p>
-            <div style="display: flex;">
-                <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
-                <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
-                <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">  
+                <p id="`+props.id+`filename" style='color:white; font-size: 80%;'>`+props.id.slice(4)+`</p>
+                <div style="display: flex;">
+                    <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">
+                    <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
+                    <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">  
                 </div>
             </div>
         </div>
@@ -258,25 +258,21 @@ export class SessionManagerApplet {
                 filediv.innerHTML = "";
                 dirr.forEach((str,i) => {
                     if(str !== "settings.json"){
-                        filediv.innerHTML += this.file_template({id:str});
-                    }
-                });
-                dirr.forEach((str,i) => {
-                    if(str !== "settings.json") {
-                        document.getElementById(str+"svg").onclick = () => {
+                        filediv.innerHTML += this.file_template({id:"mgr_"+str});
+                        document.getElementById("mgr_"+str+"svg").onclick = () => {
                             console.log(str);
                             this.writeToCSV(str);
                         } 
-                        document.getElementById(str+"delete").onclick = () => { 
+                        console.log('set onclick for ', "mgr_"+str)
+                        document.getElementById("mgr_"+str+"delete").onclick = () => { 
                             this.deleteFile("/data/"+str);
                         } 
-                        document.getElementById(str+"analyze").onclick = () => { 
+                        document.getElementById("mgr_"+str+"analyze").onclick = () => { 
                             if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
                             else this.analyzeDBSession(str,'heg');
                         } 
                     }
                 });
-                
             }
         });
     }
@@ -290,7 +286,7 @@ export class SessionManagerApplet {
     }
 
     //Read a chunk of data from a saved dataset
-    readFromDB = (filename='',begin=0,end=5120,onOpen=(data, path)=>{console.log(data,path);}) => {
+    readFromDB = (filename='',begin=0,end=5120,onOpen=(data, filename)=>{console.log(data,filename);}) => {
         fs.open('/data/'+filename,'r',(e,fd) => {
             if(e) throw e;
             fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
@@ -383,6 +379,7 @@ export class SessionManagerApplet {
 
     analyzeDBSession = (filename='',type='eeg') => {
         if(type === 'eeg') {
+            document.getElementById(this.props.id+'sessionwindow');
         } else if (type === 'heg') {
             
         }
@@ -407,5 +404,38 @@ export class SessionManagerApplet {
             });
         });
     }
+
+    /*
+        -> select file
+        -> get header
+        -> begin scrolling file data
+        -> wait for user to change the window
+        -> update data on change
+    */
+    scrollFileData = (filename) => {
+        this.getFileSize(filename,(size)=> {
+            console.log(size);
+            let begin = 0;
+            let end = 51200;
+            let lastBegin = 0;
+            let lastEnd = 51200;
+            const getData = () => {
+
+                if(end > size) end = size;
+                this.getFileHeader(filename, (header)=> {
+                    this.readFromDB(filename,begin,end,(data,file)=>{
+                        this.parseDBData(data,file,begin===0,end===size);
+                    });
+                });
+            }
+        });
+    }
+
+  
+
+
+
+
+
    
 } 
