@@ -132,6 +132,7 @@ export class SessionManagerApplet {
             this.listDBFiles();
         })
         this.sub2 = this.state.subscribe('filelist',(filelist)=>{
+            document.getElementById(this.props.id+'content').innerHTML = ``;
             for (var i = 0; i < filelist.length; i++) {
                 var file = filelist[i];
                 this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
