@@ -195,7 +195,6 @@ export class SessionManagerApplet {
         `;
     }
 
-
     appendContent(message) {
         var pre = document.getElementById(this.props.id+'content');
         var textContent = document.insertAdjacentHTML('beforeend',message);
@@ -282,29 +281,62 @@ export class SessionManagerApplet {
         });
     }
 
-    //Read a chunk of data from a saved dataset
-    readFromDB = (path,begin=0,end=5120) => {
-        fs.open('/data/'+path,'r',(e,fd) => {
+    getFileSize = (filename,onread=(size)=>{console.log(size);}) => {
+        fs.stat('/data/'+filename,(e,stats) => {
             if(e) throw e;
-        
+            let filesize = stats.size;
+            onread(filesize);
+        });
+    }
+
+    //Read a chunk of data from a saved dataset
+    readFromDB = (filename='',begin=0,end=5120,onOpen=(data, path)=>{console.log(data,path);}) => {
+        fs.open('/data/'+filename,'r',(e,fd) => {
+            if(e) throw e;
             fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
                 if (er) throw er;
                 if(bytesRead !== 0) {
                     let data = output.toString();
                     //Now parse the data back into the buffers.
-                    return data;
+                    onOpen(data, filename);
                 };
             }); 
         });
     }
 
+    getFileHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) {
+        fs.open('/data/'+filename,'r',(e,fd) => {
+            if(e) throw e;
+            fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
+                if (er) throw er;
+                if(bytesRead !== 0) {
+                    let data = output.toString();
+
+                    //Now parse the data back into the buffers.
+                    onOpen(header, filename);
+                };
+            }); 
+        });
+    }
+
+    parseDBData = (data,filename,header=true,end=true) => {
+        let lines = data.split('\n');
+        if(header === false) lines.shift(); 
+        if(end === false) lines.pop(); //pop first and last rows if they are likely incomplete
+        if(filename.indexOf('heg') >-1 ) {
+
+        } else { //eeg data
+
+        }
+    }
+
     //Write CSV data in chunks to not overwhelm memory
-    writeToCSV = (path) => {
-        fs.stat('/data/'+path,(e,stats) => {
+    writeToCSV = (filename) => {
+        fs.stat('/data/'+filename,(e,stats) => {
             if(e) throw e;
             let filesize = stats.size;
             console.log(filesize)
-            fs.open('/data/'+path,'r',(e,fd) => {
+            fs.open('/data/'+filename,'r',(e,fd) => {
                 if(e) throw e;
                 let i = 0;
                 let maxFileSize = 100*1024*1024;
@@ -313,7 +345,7 @@ export class SessionManagerApplet {
                     end = filesize;
                     fs.read(fd,end,0,'utf-8',(e,output,bytesRead) => { 
                         if (e) throw e;
-                        if(bytesRead !== 0) CSV.saveCSV(output.toString(),path);
+                        if(bytesRead !== 0) CSV.saveCSV(output.toString(),filename);
                     }); 
                 }
                 else {
@@ -324,7 +356,7 @@ export class SessionManagerApplet {
                             fs.read(fd,end,i,'utf-8',(e,output,bytesRead) => {   
                                 if (e) throw e;
                                 if(bytesRead !== 0) {
-                                    CSV.saveCSV(output.toString(),path+"_"+chunk);
+                                    CSV.saveCSV(output.toString(),filename+"_"+chunk);
                                     i+=maxFileSize;
                                     chunk++;
                                     writeChunkToFile();
@@ -350,7 +382,6 @@ export class SessionManagerApplet {
 
     analyzeDBSession = (filename='',type='eeg') => {
         if(type === 'eeg') {
-
         } else if (type === 'heg') {
             
         }
