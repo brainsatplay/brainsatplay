@@ -150,5 +150,29 @@ export class SessionManagerApplet {
             }
           });
     }
+
+    analyzeCurrentSession = (type='eeg') => {
+        if(type === 'eeg') {
+
+        } else if (type === 'heg') {
+
+        }
+    }
+
+    analyzeDBSession = (type='eeg') => {
+        if(type === 'eeg') {
+
+        } else if (type === 'heg') {
+            
+        }
+    }
+
+    loadAndAnalyzeSession = (type='eeg') => {
+        if(type === 'eeg') {
+
+        } else if (type === 'heg') {
+            
+        }
+    }
    
 } 
