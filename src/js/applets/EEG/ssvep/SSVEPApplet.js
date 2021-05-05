@@ -28,9 +28,9 @@ export class SSVEPApplet {
         };
 
 
-        this.n = 9
-        this.objects = Array.from({length: this.n}, (e,i) => {return {element: null, f: (i+1)*(20/(this.n+1))}})
-        this.SSVEPManager = null
+        this.n = 4
+        this.objects = null; 
+        this.SSVEPManager = new SSVEP(this.session)
     }
 
     //---------------------------------
@@ -53,28 +53,34 @@ export class SSVEPApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let containerElement = document.getElementById(`${props.id}-grid`); 
-            let gridLength = Math.ceil(Math.sqrt(this.objects.length))
-            containerElement.style.gridTemplateRows = `repeat(${gridLength},1fr)`
-            containerElement.style.gridTemplateColumns = `repeat(${gridLength},1fr)`
+            
+            this.SSVEPManager.init().then((response) => {
+
+                this.objects = Array.from({length: this.n}, (e,i) => {return {element: null, f: 1 + (i)*((this.SSVEPManager.refreshRate/2)/(this.n+2))}})
+                
+                let containerElement = document.getElementById(`${props.id}-grid`); 
+                let gridLength = Math.ceil(Math.sqrt(this.objects.length))
+                containerElement.style.gridTemplateRows = `repeat(${gridLength},1fr)`
+                containerElement.style.gridTemplateColumns = `repeat(${gridLength},1fr)`
 
 
-            let objectStyle = `
-                background: white;
-                box-sizing: border-box;
-                margin: 25%;
-                border-radius: 50%;
-            `
+                let objectStyle = `
+                    background: white;
+                    box-sizing: border-box;
+                    margin: 25%;
+                    border-radius: 50%;
+                `
 
-            this.objects.forEach((o,i) => {
-                let newElement = document.createElement('div')
-                newElement.id = i
-                newElement.style = objectStyle
-                containerElement.appendChild(newElement)
-                o.element = newElement
+                this.objects.forEach((o,i) => {
+                    let newElement = document.createElement('div')
+                    newElement.id = i
+                    newElement.style = objectStyle
+                    containerElement.appendChild(newElement)
+                    o.element = newElement
+                })
+                this.SSVEPManager.addObjects(this.objects)
+                this.SSVEPManager.start()
             })
-            this.SSVEPManager = new SSVEP(this.objects, this.session)
-            this.SSVEPManager.start()
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
