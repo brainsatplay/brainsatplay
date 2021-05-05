@@ -9,6 +9,7 @@ export const AppletInfo = {
     'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
     'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
     'Session Manager': { folderUrl:'./UI/sessionmgr', devices:['EEG','HEG'], categories:['visualize'] },
+    'SSVEP': { folderUrl:'./EEG/ssvep', devices:['EEG'], categories:['play'] },
     'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['visualize']},
     'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['EEG'],           categories:['visualize']},
     'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['visualize']},
@@ -36,7 +37,7 @@ export const AppletInfo = {
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['EEG','HEG'], categories:['play','brainstorm'] },
     'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['EEG'], categories:['train'] },
     'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
-    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] }
+    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
 };
 
 export let dynamicImport = async (url) => {
