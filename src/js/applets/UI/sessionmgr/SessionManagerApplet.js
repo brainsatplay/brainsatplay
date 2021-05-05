@@ -47,6 +47,7 @@ export class SessionManagerApplet {
 
         this.looping = false;
         this.sub = null;
+        this.sub2 = null;
     }
 
     //---------------------------------
@@ -133,7 +134,7 @@ export class SessionManagerApplet {
         this.sub2 = this.state.subscribe('filelist',(filelist)=>{
             for (var i = 0; i < filelist.length; i++) {
                 var file = filelist[i];
-                this.appendPre(file.name + ' (' + file.id + ')');
+                this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
             }
         });
     }
@@ -205,7 +206,7 @@ export class SessionManagerApplet {
     }
 
 
-    appendPre(message) {
+    appendContent(message) {
         var pre = document.getElementById(this.props.id+'content');
         var textContent = document.insertAdjacentHTML('beforeend',message);
         pre.appendChild(textContent);
@@ -238,15 +239,15 @@ export class SessionManagerApplet {
             'fields': "nextPageToken, files(id, name)"
         }).then((response) => {
             document.getElementById(this.props.id+'content').innerHTML = ``;
-            this.appendPre('Files:');
+            this.appendContent('Files:');
             var files = response.result.files;
             if (files && files.length > 0) {
               for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                this.appendPre(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
+                this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
               }
             } else {
-                this.appendPre('<p>No files found.</p>');
+                this.appendContent('<p>No files found.</p>');
             }
           });
     }
