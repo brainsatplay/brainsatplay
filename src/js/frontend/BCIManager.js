@@ -236,7 +236,7 @@ export class BCIAppManager {
             // }
 
             document.getElementById('autosavingfiles').onchange = () => {
-                this.state.autosaving = document.getElementById('autosavingfiles').checked;
+                this.state.data.autosaving = document.getElementById('autosavingfiles').checked;
             }
         },
         undefined,
@@ -477,6 +477,10 @@ export class BCIAppManager {
             if(settings.appletConfigs) {
                 this.appletConfigs = settings.appletConfigs;
             }
+            if(settings.autosaving || settings.autosaving === false) {
+                this.state.data.autosaving = settings.autosaving;
+                document.getElementById('autosavingfiles').checked = this.state.data.autosaving;
+            }
             //console.log(this.appletConfigs)
         }
         //console.log(this.appletConfigs)
@@ -697,7 +701,8 @@ export class BCIAppManager {
                 this.appletConfigs = configs;
                 let newsettings = JSON.stringify({   
                     time:toISOLocal(new Date()),
-                    appletConfigs:this.appletConfigs
+                    appletConfigs:this.appletConfigs,
+                    autosaving:this.state.data.autosaving
                 });
                 fs.writeFile('/data/settings.json',
                     newsettings, 

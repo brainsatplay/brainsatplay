@@ -73,8 +73,7 @@ export class SessionManagerApplet {
                 <hr align='left' style='width:25%;'>
                 <div id='${props.id}fs'></div>
                 <hr>
-                <span>Saved EEG CSV:<button id='${props.id}loadeeg'>Load</button></span>
-                <span>Saved HEG CSV:<button id='${props.id}loadheg'>Load</button></span>
+                <span>Load CSV into FS:<button id='${props.id}loadcsv'>Load</button></span>
             </div> 
             `;
         }
@@ -82,21 +81,8 @@ export class SessionManagerApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-            document.getElementById(props.id+'loadeeg').onclick = () => {
-                this.fileloader.onload = (loaded) => {
-                    //loaded.data
-                    console.log(loaded)
-                    this.analyzeLoadedSession('eeg');
-                }
-                this.fileloader.getEEGDataFromCSV();
-            }
-            document.getElementById(props.id+'loadheg').onclick = () => {
-                this.fileloader.onload = (loaded) => {
-                    //loaded.data
-                    console.log(loaded)
-                    this.analyzeLoadedSession('heg');
-                }
-                this.fileloader.getHEGDataFromCSV();
+            document.getElementById(props.id+'loadcsv').onclick = () => {
+                this.loadCSVintoDB();
             }
         }
 
@@ -193,7 +179,6 @@ export class SessionManagerApplet {
             setTimeout(()=>{this.checkForUpdatedFiles()},1000);
         }
     }
-
 
     file_template(props={id:Math.random()}) {
         return `
@@ -377,6 +362,18 @@ export class SessionManagerApplet {
         } else if (type === 'heg') {
             
         }
+    }
+
+    loadCSVintoDB = () => {
+        CSV.openCSVRaw((data,path)=>{
+            let split = path.split(`\\`);
+            let filename = split[split.length-1].slice(0,split[split.length-1].length-4);
+            console.log(filename);
+            fs.appendFile('/data/'+filename,data,(e)=>{
+                if(e) throw e;
+                this.listDBFiles();
+            });
+        });
     }
    
 } 
