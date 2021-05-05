@@ -319,9 +319,10 @@ export class VRApplet {
     deinit() {
         this.AppletHTML.deleteNode();
         this.renderer.setAnimationLoop( null );
-        this.controller.removeEventListener( 'connected')
-        this.controller.removeEventListener( 'disconnected')
-
+		if(this.controller) {
+        	this.controller.removeEventListener( 'connected')
+        	this.controller.removeEventListener( 'disconnected')
+		}
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
