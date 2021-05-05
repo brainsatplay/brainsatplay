@@ -299,12 +299,12 @@ export class SessionManagerApplet {
                     let data = output.toString();
                     //Now parse the data back into the buffers.
                     onOpen(data, filename);
-                };
+                }
             }); 
         });
     }
 
-    getFileHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) {
+    getFileHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
         fs.open('/data/'+filename,'r',(e,fd) => {
             if(e) throw e;
             fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
