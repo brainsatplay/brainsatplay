@@ -176,7 +176,7 @@ export class ObjectListenerInstance {
 
 
         this.interval;
-        if(interval <= 0) {
+        if(interval < 10) {
             this.interval = 10; console.log("Min recommended interval set: 10ms");}
         else {
             this.interval = interval;
@@ -292,7 +292,7 @@ export class ObjectListenerInstance {
                 }
             }
             else {
-                setTimeout(()=>{this.check},this.interval);
+                setTimeout(()=>{this.check();},this.interval);
             }
         };
     }

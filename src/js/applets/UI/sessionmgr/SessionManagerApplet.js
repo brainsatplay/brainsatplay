@@ -41,10 +41,12 @@ export class SessionManagerApplet {
             //Add whatever else
         };
 
-        this.nFiles = 0;
         this.fileloader = new DataLoader(this.bci.atlas);
-        this.looping = false;
+        
+        this.state = new StateManager({dirr:[], filelist:[]},1000);
 
+        this.looping = false;
+        this.sub = null;
     }
 
     //---------------------------------
@@ -124,6 +126,16 @@ export class SessionManagerApplet {
         awaitsignin();
 
         this.listDBFiles();
+
+        this.sub = this.state.subscribe('dirr',(dirr)=>{
+            this.listDBFiles();
+        })
+        this.sub2 = this.state.subscribe('filelist',(filelist)=>{
+            for (var i = 0; i < filelist.length; i++) {
+                var file = filelist[i];
+                this.appendPre(file.name + ' (' + file.id + ')');
+            }
+        });
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -150,6 +162,33 @@ export class SessionManagerApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+
+    checkForUpdatedFiles = () => {
+        if(this.looping) {
+            fs.readdir('/data', (e,dirr) => { 
+                if(e) return;
+                if(dirr) { 
+                    this.state.data.dirr = dirr;
+                }
+            });
+            /*
+            window.gapi.client.drive.files.list({
+                q:"name contains 'Brainsatplay_Data/'",
+                'pageSize': 10,
+                'fields': "nextPageToken, files(id, name)"
+            }).then((response) => {
+                this.appendPre('Files:');
+                var files = response.result.files;
+                if (files && files.length > 0) { 
+                    this.state.data.filelist = files;
+                }
+            });
+            */
+            setTimeout(()=>{this.checkForUpdatedFiles()},1000);
+        }
+    }
+
+
     file_template(props={id:Math.random()}) {
         return `
         <div id="`+props.id+`">
@@ -168,7 +207,7 @@ export class SessionManagerApplet {
 
     appendPre(message) {
         var pre = document.getElementById(this.props.id+'content');
-        var textContent = document.createTextNode(message + '\n');
+        var textContent = document.insertAdjacentHTML('beforeend',message);
         pre.appendChild(textContent);
       }
 
@@ -198,15 +237,16 @@ export class SessionManagerApplet {
             'pageSize': 10,
             'fields': "nextPageToken, files(id, name)"
         }).then((response) => {
+            document.getElementById(this.props.id+'content').innerHTML = ``;
             this.appendPre('Files:');
             var files = response.result.files;
             if (files && files.length > 0) {
               for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                this.appendPre(file.name + ' (' + file.id + ')');
+                this.appendPre(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
               }
             } else {
-                this.appendPre('No files found.');
+                this.appendPre('<p>No files found.</p>');
             }
           });
     }
@@ -222,31 +262,30 @@ export class SessionManagerApplet {
         fs.readdir('/data', (e,dirr) => { 
             if(e) return;
             if(dirr) {
-                if(dirr.length !== this.nFiles) {
-                    console.log("files",dirr)
-                    let filediv = document.getElementById(this.props.id+"fs");
-                    filediv.innerHTML = "";
-                    dirr.forEach((str,i) => {
-                        if(str !== "settings.json"){
-                            filediv.innerHTML += this.file_template({id:str});
-                        }
-                    });
-                    dirr.forEach((str,i) => {
-                        if(str !== "settings.json") {
-                            document.getElementById(str+"svg").onclick = () => {
-                                console.log(str);
-                                this.writeToCSV(str);
-                            } 
-                            document.getElementById(str+"delete").onclick = () => { 
-                                this.deleteFile("/data/"+str);
-                            } 
-                            document.getElementById(str+"analyze").onclick = () => { 
-                                if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
-                                else this.analyzeDBSession(str,'heg');
-                            } 
-                        }
-                    });
-                }
+                console.log("files",dirr)
+                let filediv = document.getElementById(this.props.id+"fs");
+                filediv.innerHTML = "";
+                dirr.forEach((str,i) => {
+                    if(str !== "settings.json"){
+                        filediv.innerHTML += this.file_template({id:str});
+                    }
+                });
+                dirr.forEach((str,i) => {
+                    if(str !== "settings.json") {
+                        document.getElementById(str+"svg").onclick = () => {
+                            console.log(str);
+                            this.writeToCSV(str);
+                        } 
+                        document.getElementById(str+"delete").onclick = () => { 
+                            this.deleteFile("/data/"+str);
+                        } 
+                        document.getElementById(str+"analyze").onclick = () => { 
+                            if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
+                            else this.analyzeDBSession(str,'heg');
+                        } 
+                    }
+                });
+                
             }
         });
     }
