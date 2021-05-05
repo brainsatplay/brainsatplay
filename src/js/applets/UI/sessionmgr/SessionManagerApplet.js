@@ -12,6 +12,8 @@ import brainsvg from '../../../../assets/brain-solid.svg'
 import csvsvg from '../../../../assets/file-csv-solid.svg'
 import deletesvg from '../../../../assets/trash-alt-regular.svg'
 
+import {uPlotMaker} from '../../../frontend/UX/eegvisuals'
+
 /*
 How it will work:
 Local files can be analyzed, as in given scores and basic review parameters. 
@@ -96,7 +98,8 @@ export class SessionManagerApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
+        
+        this.AppletHTML.appendStylesheet("./_dist_/styles/css/uPlot.min.css");
 
         this.looping = true;
         //Add whatever else you need to initialize
@@ -184,7 +187,7 @@ export class SessionManagerApplet {
         return `
         <div id="`+props.id+`">
             <div style="display:flex; align-items: center; justify-content: space-between;">
-                <p id="`+props.id+`filename" style='color:white; font-size: 80%;'>`+props.id.slice(4)+`</p>
+                <p id="`+props.id+`filename" style='color:white; font-size:80%;'>`+props.id.slice(4)+`</p>
                 <div style="display: flex;">
                     <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">
                     <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
@@ -233,7 +236,7 @@ export class SessionManagerApplet {
             if (files && files.length > 0) {
               for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
+                this.appendContent(`<div id=${file.id} style='border: 1px solid white;'>${file.name}</div>`);
               }
             } else {
                 this.appendContent('<p>No files found.</p>');
@@ -300,7 +303,7 @@ export class SessionManagerApplet {
         });
     }
 
-    getFileHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
+    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
         fs.open('/data/'+filename,'r',(e,fd) => {
             if(e) throw e;
             fs.read(fd,51200,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
@@ -413,21 +416,55 @@ export class SessionManagerApplet {
         -> update data on change
     */
     scrollFileData = (filename) => {
-        this.getFileSize(filename,(size)=> {
+        this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
-            let end = 51200;
-            let lastBegin = 0;
-            let lastEnd = 51200;
-            const getData = () => {
+            let buffersize = 100000;
+            let end = buffersize;
+            let nsec = 10;
+            /*
+                -> get data in window
+                -> check relative sample rate with unix time
+                -> adjust buffer size to that (update rangeend too)
+            */
 
+            let head = undefined;
+            
+            this.getCSVHeader(filename, (header)=> { 
+                head = header;
+            });
+
+            const getData = () => {
                 if(end > size) end = size;
-                this.getFileHeader(filename, (header)=> {
-                    this.readFromDB(filename,begin,end,(data,file)=>{
-                        this.parseDBData(data,file,begin===0,end===size);
-                    });
+                this.readFromDB(filename,begin,end,(data,file)=>{
+                    this.parseDBData(data,file,begin===0,end===size);
                 });
             }
+
+            let rangeend = size - buffersize; if(rangend < 0) rangeend = 1;
+
+            document.getElementById(this.props.id+'sessionwindow').innerHTML = `
+            <div id='${this.props.id}uplot'></div>
+            <div id='${this.props.id}sessioninfo'>
+                <div id='${this.props.id}sessionname'>${filename}</div>
+                <input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='0' step='1'>
+                <div id='${this.props.id}sessionstats'>Stats</div>
+            </div>
+            `;
+
+            this.plot = new uPlotMaker(this.props.id+'uplot');
+
+            document.getElementById(this.props.id+'sessionrange').onchange = () => {
+                let val = document.getElementById(this.props.id+'sessionrange').value;
+                begin = val;
+                end = val+buffersize;
+                if(end > size) end = size;
+                getData();
+            }
+
+
+
+
         });
     }
 
