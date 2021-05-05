@@ -86,6 +86,7 @@ export class SessionManagerApplet {
                 this.fileloader.onload = (loaded) => {
                     //loaded.data
                     console.log(loaded)
+                    this.analyzeLoadedSession('eeg');
                 }
                 this.fileloader.getEEGDataFromCSV();
             }
@@ -93,6 +94,7 @@ export class SessionManagerApplet {
                 this.fileloader.onload = (loaded) => {
                     //loaded.data
                     console.log(loaded)
+                    this.analyzeLoadedSession('heg');
                 }
                 this.fileloader.getHEGDataFromCSV();
             }
@@ -130,7 +132,8 @@ export class SessionManagerApplet {
 
         this.sub = this.state.subscribe('dirr',(dirr)=>{
             this.listDBFiles();
-        })
+        });
+
         this.sub2 = this.state.subscribe('filelist',(filelist)=>{
             document.getElementById(this.props.id+'content').innerHTML = ``;
             for (var i = 0; i < filelist.length; i++) {
@@ -366,7 +369,7 @@ export class SessionManagerApplet {
         }
     }
 
-    loadAndAnalyzeSession = (type='eeg') => {
+    analyzeLoadedSession = (type='eeg') => {
         if(type === 'eeg') {
 
         } else if (type === 'heg') {
