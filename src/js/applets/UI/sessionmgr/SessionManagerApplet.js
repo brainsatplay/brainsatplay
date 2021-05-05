@@ -43,7 +43,7 @@ export class SessionManagerApplet {
             //Add whatever else
         };
 
-        this.fileloader = new DataLoader(this.bci.atlas);
+        this.dataloader = new DataLoader(this.bci.atlas);
         
         this.state = new StateManager({dirr:[], filelist:[]},1000);
 
@@ -136,7 +136,7 @@ export class SessionManagerApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.fileloader.deinit();
+        this.dataloader.deinit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -271,8 +271,7 @@ export class SessionManagerApplet {
                             this.deleteFile("/data/"+str);
                         } 
                         document.getElementById("mgr_"+str+"analyze").onclick = () => { 
-                            if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
-                            else this.analyzeDBSession(str,'heg');
+                            this.scrollFileData(str);
                         } 
                     }
                 });
@@ -301,33 +300,6 @@ export class SessionManagerApplet {
                 }
             }); 
         });
-    }
-
-    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
-        fs.open('/data/'+filename,'r',(e,fd) => {
-            if(e) throw e;
-            fs.read(fd,51200,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
-                if (er) throw er;
-                if(bytesRead !== 0) {
-                    let data = output.toString();
-                    let lines = data.split('\n');
-                    let header = lines[0];
-                    //Now parse the data back into the buffers.
-                    onOpen(header, filename);
-                };
-            }); 
-        });
-    }
-
-    parseDBData = (data,filename,header=true,end=true) => {
-        let lines = data.split('\n');
-        if(header === false) lines.shift(); 
-        if(end === false) lines.pop(); //pop first and last rows if they are likely incomplete
-        if(filename.indexOf('heg') >-1 ) {
-
-        } else { //eeg data
-
-        }
     }
 
     //Write CSV data in chunks to not overwhelm memory
@@ -408,6 +380,37 @@ export class SessionManagerApplet {
         });
     }
 
+    
+    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
+        fs.open('/data/'+filename,'r',(e,fd) => {
+            if(e) throw e;
+            fs.read(fd,65535,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
+                if (er) throw er;
+                if(bytesRead !== 0) {
+                    let data = output.toString();
+                    let lines = data.split('\n');
+                    let header = lines[0];
+                    //Now parse the data back into the buffers.
+                    onOpen(header, filename);
+                };
+            }); 
+        });
+    }
+
+    parseDBData = (data,head,filename,hasheader=true,hasend=true) => {
+        let lines = data.split('\n');
+        if(hasheader === false) lines.shift(); 
+        if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
+        if(filename.indexOf('heg') >-1 ) {
+            this.dataloader.parseHEGData(data,head);
+            //this.dataloader.loaded
+        } else { //eeg data
+            this.dataloader.parseEEGData(data,head);
+        }
+        return this.dataloader.state.loaded;
+    }
+
+
     /*
         -> select file
         -> get header
@@ -434,13 +437,6 @@ export class SessionManagerApplet {
                 head = header;
             });
 
-            const getData = () => {
-                if(end > size) end = size;
-                this.readFromDB(filename,begin,end,(data,file)=>{
-                    this.parseDBData(data,file,begin===0,end===size);
-                });
-            }
-
             let rangeend = size - buffersize; if(rangend < 0) rangeend = 1;
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
@@ -453,6 +449,19 @@ export class SessionManagerApplet {
             `;
 
             this.plot = new uPlotMaker(this.props.id+'uplot');
+
+            const getData = () => {
+                if(end > size) end = size;
+                this.readFromDB(filename,begin,end,(data,file)=>{
+                    let loaded = this.parseDBData(data,head,file,begin===0,end===size);
+                    if(filename.indexOf('heg') > -1) { 
+                        //loaded.data = {times,red,ir,ratio,ambient,error,rmse,notes,noteTimes}
+                    }
+                    else {
+                        //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                    }
+                });
+            }
 
             document.getElementById(this.props.id+'sessionrange').onchange = () => {
                 let val = document.getElementById(this.props.id+'sessionrange').value;

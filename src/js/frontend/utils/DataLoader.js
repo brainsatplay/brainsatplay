@@ -149,7 +149,7 @@ export class DataLoader {
         });
     }
 
-    toISOLocal(d) {
+    toISOLocal(d) { //pass in a new Date(utc timestamp) object
 		var z  = n =>  ('0' + n).slice(-2);
 		var zz = n => ('00' + n).slice(-3);
 		var off = d.getTimezoneOffset();
