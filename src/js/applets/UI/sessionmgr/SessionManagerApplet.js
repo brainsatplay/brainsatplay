@@ -1,11 +1,23 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import { StateManager } from '../../../../library/src/ui/StateManager'
+import {CSV} from '../../../general/csv'
+import {DataLoader} from '../../../frontend/utils/DataLoader'
 import * as settingsFile from './settings'
 import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs');
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
+import brainsvg from '../../../../assets/brain-solid.svg'
+import csvsvg from '../../../../assets/file-csv-solid.svg'
+import deletesvg from '../../../../assets/trash-alt-regular.svg'
+
+/*
+How it will work:
+Local files can be analyzed, as in given scores and basic review parameters. 
+These analyses will be automatically backed up on drive as a session record system
+Large CSVs should be backed up in a separate window.
+*/
 
 //Session reviewer! Yay!
 export class SessionManagerApplet {
@@ -29,6 +41,9 @@ export class SessionManagerApplet {
             //Add whatever else
         };
 
+        this.nFiles = 0;
+        this.fileloader = new DataLoader(this.bci.atlas);
+
     }
 
     //---------------------------------
@@ -39,15 +54,23 @@ export class SessionManagerApplet {
     init() {
 
         fs.exists('./data',(exists) => {
-            console.log(exists);
+            console.log("fs installed: ",exists);
         });
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return ` 
             <div id='${props.id}'>
+                <div id='chart1' width='100%' height='25%'></div>
                 <p>Google API Test</p>
                 <div id='${props.id}content'></div>
+                <hr>
+                <p>Local Files</p>
+                <hr align='left' style='width:25%;'>
+                <div id='${props.id}fs'></div>
+                <hr>
+                <span>Saved EEG CSV:<button id='${props.id}loadeeg'>Load</button></span>
+                <span>Saved HEG CSV:<button id='${props.id}loadheg'>Load</button></span>
             </div> 
             `;
         }
@@ -55,7 +78,20 @@ export class SessionManagerApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-
+            document.getElementById(props.id+'loadeeg').onclick = () => {
+                this.fileloader.onload = (loaded) => {
+                    //loaded.data
+                    console.log(loaded)
+                }
+                this.fileloader.getEEGDataFromCSV();
+            }
+            document.getElementById(props.id+'loadheg').onclick = () => {
+                this.fileloader.onload = (loaded) => {
+                    //loaded.data
+                    console.log(loaded)
+                }
+                this.fileloader.getHEGDataFromCSV();
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -76,12 +112,14 @@ export class SessionManagerApplet {
             if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
                 console.log("Signed in, getting files...");
                 this.checkFolder();
-                this.listFiles();
+                this.listDriveFiles();
             }
             else setTimeout(()=>{awaitsignin();},1000)
         }
 
         awaitsignin();
+
+        this.listDBFiles();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -106,6 +144,22 @@ export class SessionManagerApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+    file_template(props={id:Math.random()}) {
+        return `
+        <div id="`+props.id+`">
+            <div style="display:flex; align-items: center; justify-content: space-between;">
+            <p id="`+props.id+`filename" style='color:white; font-size: 80%;'>`+props.id+`</p>
+            <div style="display: flex;">
+                <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
+                <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">
+                <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; fill:white; padding: 10px; margin: 5px;">  
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+
     appendPre(message) {
         var pre = document.getElementById(this.props.id+'content');
         var textContent = document.createTextNode(message + '\n');
@@ -132,7 +186,7 @@ export class SessionManagerApplet {
     }
 
     //doSomething(){}
-    listFiles() {
+    listDriveFiles() {
         window.gapi.client.drive.files.list({
             q:"name contains 'Brainsatplay_Data/'",
             'pageSize': 10,
@@ -151,6 +205,104 @@ export class SessionManagerApplet {
           });
     }
 
+    deleteFile = (path) => {
+        fs.unlink(path, (e) => {
+            if(e) console.error(e);
+            this.listDBFiles();
+        });
+    }
+
+    listDBFiles = () => {
+        fs.readdir('/data', (e,dirr) => { 
+            if(e) return;
+            if(dirr) {
+                if(dirr.length !== this.nFiles) {
+                    console.log("files",dirr)
+                    let filediv = document.getElementById(this.props.id+"fs");
+                    filediv.innerHTML = "";
+                    dirr.forEach((str,i) => {
+                        if(str !== "settings.json"){
+                            filediv.innerHTML += this.file_template({id:str});
+                        }
+                    });
+                    dirr.forEach((str,i) => {
+                        if(str !== "settings.json") {
+                            document.getElementById(str+"svg").onclick = () => {
+                                console.log(str);
+                                this.writeToCSV(str);
+                            } 
+                            document.getElementById(str+"delete").onclick = () => { 
+                                this.deleteFile("/data/"+str);
+                            } 
+                            document.getElementById(str+"analyze").onclick = () => { 
+                                if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
+                                else this.analyzeDBSession(str,'heg');
+                            } 
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    //Read a chunk of data from a saved dataset
+    readFromDB = (path,begin=0,end=5120) => {
+        fs.open('/data/'+path,'r',(e,fd) => {
+            if(e) throw e;
+        
+            fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
+                if (er) throw er;
+                if(bytesRead !== 0) {
+                    let data = output.toString();
+                    //Now parse the data back into the buffers.
+                    return data;
+                };
+            }); 
+        });
+    }
+
+    //Write CSV data in chunks to not overwhelm memory
+    writeToCSV = (path) => {
+        fs.stat('/data/'+path,(e,stats) => {
+            if(e) throw e;
+            let filesize = stats.size;
+            console.log(filesize)
+            fs.open('/data/'+path,'r',(e,fd) => {
+                if(e) throw e;
+                let i = 0;
+                let maxFileSize = 100*1024*1024;
+                let end = maxFileSize;
+                if(filesize < maxFileSize) {
+                    end = filesize;
+                    fs.read(fd,end,0,'utf-8',(e,output,bytesRead) => { 
+                        if (e) throw e;
+                        if(bytesRead !== 0) CSV.saveCSV(output.toString(),path);
+                    }); 
+                }
+                else {
+                    const writeChunkToFile = () => {
+                        if(i < filesize) {
+                            if(i+end > filesize) {end=filesize - i;}  
+                            let chunk = 0;
+                            fs.read(fd,end,i,'utf-8',(e,output,bytesRead) => {   
+                                if (e) throw e;
+                                if(bytesRead !== 0) {
+                                    CSV.saveCSV(output.toString(),path+"_"+chunk);
+                                    i+=maxFileSize;
+                                    chunk++;
+                                    writeChunkToFile();
+                                }
+                            });
+                        }
+                    }  
+                }
+                //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
+                //file.write(data.toString());
+            }); 
+        });
+        
+    }
+
     analyzeCurrentSession = (type='eeg') => {
         if(type === 'eeg') {
 
@@ -159,7 +311,7 @@ export class SessionManagerApplet {
         }
     }
 
-    analyzeDBSession = (type='eeg') => {
+    analyzeDBSession = (filename='',type='eeg') => {
         if(type === 'eeg') {
 
         } else if (type === 'heg') {

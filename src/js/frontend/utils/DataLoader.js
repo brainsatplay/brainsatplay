@@ -17,7 +17,11 @@ export class DataLoader {
 
     deinit = () => {
         this.state.unsubscribeAll('loaded');
-    }   
+    }      
+    
+    onload = (loaded) => {
+        console.log(loaded);
+    }
 
     readyHEGDataForWriting = (from=0,to='end') => {
         let data = this.atlas.readyHEGDataForWriting(from,to);
@@ -153,9 +157,5 @@ export class DataLoader {
 			   zz(d.getMilliseconds()) + 
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
-
-    onload = (loaded) => {
-        console.log(loaded);
-    }
 
 }
