@@ -72,8 +72,10 @@ export class SessionManagerApplet {
 
         //Add whatever else you need to initialize
         let awaitsignin = () => {
+
             if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
                 console.log("Signed in, getting files...");
+                this.checkFolder();
                 this.listFiles();
             }
             else setTimeout(()=>{awaitsignin();},1000)
@@ -110,9 +112,29 @@ export class SessionManagerApplet {
         pre.appendChild(textContent);
       }
 
+    checkFolder() {
+        window.gapi.client.drive.files.list({
+            q:"name='Brainsatplay_Data' and mimeType='application/vnd.google-apps.folder'",
+        }).then((response) => {
+            if(response.result.files.length === 0) {
+                this.createFolder();
+            }
+        });
+    }
+
+    createFolder(name='Brainsatplay_Data') {
+        let data = new Object();
+        data.name = name;
+        data.mimeType = "application/vnd.google-apps.folder";
+        gapi.client.drive.files.create({'resource': data}).then((response)=>{
+            console.log(response);
+        });
+    }
+
     //doSomething(){}
     listFiles() {
         window.gapi.client.drive.files.list({
+            q:"name contains 'Brainsatplay_Data/'",
             'pageSize': 10,
             'fields': "nextPageToken, files(id, name)"
         }).then((response) => {
