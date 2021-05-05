@@ -48,7 +48,7 @@ export class BCIAppManager {
     constructor(
         session=null,
         appletConfigs=[],   //expects an object array like           [{name:"",idx:n,settings:["a","b","c"]},{...}] to set initial applet configs (including objects found from hashtags in the address bar)
-        useFS=false         //launch with browserfs initialized
+        useFS=true         //launch with browserfs initialized
     ) {
 
         this.state = new StateManager({
@@ -566,22 +566,25 @@ export class BCIAppManager {
                                 console.log("New settings file created");
                                 this.init(contents);
                                 listFiles();
+                                document.getElementById("saveBCISession").onclick = () => {
+                                    saveSettings();
+                                }
+                                   
                             });
                         }
                         else{ 
                             contents = data.toString();    
                             this.init(contents);
                             listFiles();
+                            document.getElementById("saveBCISession").onclick = () => {
+                                saveSettings();
+                            }
+                               
                         }
 
                         //configure autosaving when the device is connected
                         this.session.state.data.info = this.session.info;
-
-                        
-                        document.getElementById("saveBCISession").onclick = () => {
-                            saveSettings();
-                        }
-                            
+ 
                         //console.log(this.session.state.data.info);
                         let sub = this.session.state.subscribe('info',(info) => {
                             if(info.nDevices > 0) {

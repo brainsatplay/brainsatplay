@@ -47,18 +47,19 @@ export class PulseMonitorApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
-                <div id='${props.id}text' style='position:absolute; font-size:12px;'>
-                    Heart Rate Estimate: <span id='${props.id}hr' style='color:orangered;'>Waiting</span><br>
-                    Breathing Rate Estimate: <span id='${props.id}br' style='color:green;'>Waiting</span>
-                    <br>
+                <div id='${props.id}menu' style='position:absolute; height:100%; width:100%; font-size:12px;'>
                     Mode:
                     <select id='`+props.id+`mode'>
-                        <option value="raw">Raw Data</option>
+                        <option value="raw">HEG Ratio</option>
                         <option value="pulse">Pulse Rate</option>
                         <option value="breath">Breathing</option>
-                        <option value="feedback">Feedback Variables</option>
+                        <option value="feedback">Feedback Vars</option>
                     </select>
                     <div id='`+props.id+`legend'></div>
+                    <table style='position:absolute; bottom:10px; font-size:10px'>
+                        <tr><td>Heart Rate Estimate:     </td><td><span id='${props.id}hr' style=' color:aqua;'>Waiting</span></td></tr>
+                        <tr><td>Breathing Rate Estimate: </td><td><span id='${props.id}br' style=' color:aqua;'>Waiting</span></td></tr>
+                    </table>
                 </div>
                 <div id='`+props.id+`canvascontainer' style='width:100%; height:100%;'>
                   <canvas id='`+props.id+`canvas1' width='100%' height='33%' style='z-index:3; width:100%; height:33%;'></canvas>
@@ -167,7 +168,7 @@ export class PulseMonitorApplet {
                 let hrv =  hr[hr.length-1].hrv;
                 let span = document.getElementById(this.props.id+'hr');
                 span.innerHTML = bpm.toFixed(2);
-                if(bpm < 30 || bpm > 200) { span.style.color = 'yellow'; } else if (span.style.color !== 'red') { span.style.color = 'red'; }
+                if(bpm < 30 || bpm > 200) { span.style.color = 'yellow'; } else if (span.style.color !== 'aqua') { span.style.color = 'aqua'; }
                 console.log(bpm, hr[hr.length-1]);
                 if(val === 'pulse') {
                     this.charts[1].series[0].append(Date.now(),bpm);
@@ -182,7 +183,7 @@ export class PulseMonitorApplet {
                 let brv =  breaths[breaths.length-1].brv;
                 let span = document.getElementById(this.props.id+'br');
                 span.innerHTML = bpm.toFixed(2);
-                if(bpm < 4.5 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'green') { span.style.color = 'green'; }
+                if(bpm < 4.5 || bpm > 20) { span.style.color = 'yellow'; } else if (span.style.color !== 'aqua') { span.style.color = 'aqua'; }
                 console.log(bpm, breaths[breaths.length-1]);
                 if(val === 'breath') {
                     this.charts[1].series[0].append(Date.now(),bpm);
@@ -218,7 +219,7 @@ export class PulseMonitorApplet {
 
     setLegend = () => {
         let val = document.getElementById(this.props.id+"mode").value;
-        let htmlToAppend = ``;
+        let htmlToAppend = `Legend:<br>`;
         if (val === "raw") {
             htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[0]+`'>Red</div>`;
             htmlToAppend += `<div style='display:table-row; color:`+this.charts[1].seriesColors[0]+`'>Infrared</div>`;
