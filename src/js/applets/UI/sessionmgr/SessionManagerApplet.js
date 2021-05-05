@@ -307,11 +307,12 @@ export class SessionManagerApplet {
     getFileHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
         fs.open('/data/'+filename,'r',(e,fd) => {
             if(e) throw e;
-            fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
+            fs.read(fd,51200,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
                 if (er) throw er;
                 if(bytesRead !== 0) {
                     let data = output.toString();
-
+                    let lines = data.split('\n');
+                    let header = lines[0];
                     //Now parse the data back into the buffers.
                     onOpen(header, filename);
                 };
