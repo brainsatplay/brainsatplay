@@ -67,7 +67,11 @@ app.use(function(req, res, next) {
     'http://localhost:1234',
     'https://brainsatplay.azurewebsites.net',
     'http://brainsatplay.azurewebsites.net',
-    'https://brainsatplay.com'
+    'https://brainsatplay.com',
+    'http://server.brainsatplay.com',
+    'https://server.brainsatplay.com',
+    'https://app.brainsatplay.com',
+
   ];
 
   const origin = req.headers.origin;
