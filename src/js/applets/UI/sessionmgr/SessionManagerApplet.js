@@ -120,7 +120,6 @@ export class SessionManagerApplet {
                     console.log("Signed in, getting files...");
                     this.checkFolder();
                     this.listDriveFiles();
-                    this.looping = false;
                 }
                 else setTimeout(()=>{awaitsignin();},1000);
             }
@@ -129,6 +128,8 @@ export class SessionManagerApplet {
         awaitsignin();
 
         this.listDBFiles();
+
+        this.checkForUpdatedFiles();
 
         this.sub = this.state.subscribe('dirr',(dirr)=>{
             this.listDBFiles();
@@ -267,6 +268,7 @@ export class SessionManagerApplet {
         fs.readdir('/data', (e,dirr) => { 
             if(e) return;
             if(dirr) {
+                this.state.data.dirr = dirr;
                 console.log("files",dirr)
                 let filediv = document.getElementById(this.props.id+"fs");
                 filediv.innerHTML = "";
