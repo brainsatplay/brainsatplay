@@ -49,7 +49,7 @@ export class ProfileApplet {
                                 </div>
                             </div>
                         </div>
-                        <div id="${props.id}-signout">Sign Out</div>
+                        <button id="${props.id}-signout">Sign Out</button>
                     </div>
                     <br>
                     <h2>Username</h2>
