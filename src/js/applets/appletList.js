@@ -8,6 +8,7 @@ import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png
 export const AppletInfo = {
     'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
     'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
+    'Profile Manager': { folderUrl:'./UI/profile',        devices:['EEG','HEG'],     categories:['UI']},
     'Session Manager': { folderUrl:'./UI/sessionmgr', devices:['EEG','HEG'], categories:['visualize'] },
     'SSVEP': { folderUrl:'./EEG/ssvep', devices:['EEG'], categories:['play'] },
     'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['visualize']},

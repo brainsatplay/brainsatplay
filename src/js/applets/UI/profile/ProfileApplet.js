@@ -1,6 +1,7 @@
 import {Session} from '../../../../library/src/Session'
 import {DOMFragment} from '../../../../library/src/ui/DOMFragment'
 import * as settingsFile from './settings'
+import {deviceList} from '../../../../library/src/devices/deviceList'
 
 export class ProfileApplet {
     constructor(
@@ -37,16 +38,24 @@ export class ProfileApplet {
                 <section id="${props.id}-error-screen" style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 50px; background: black; opacity: 1; transition: opacity 1s;">
                 </section>
                 <section id='${props.id}-profile' style="padding: 50px; width: 100%; height: 100%; box-sizing: border-box; oveflow: scroll;">
-                    <img id="${props.id}-picture">
-                    <div style="display: grid; grid-template-columns: repeat(2,1fr);">
-                        <h1 id="${props.id}-name"></h1>
-                        <div style='font-size: 80%;'>
-                            <p>ID: <span id="${props.id}-customData-userId"></span></p>
-                            <p>Email: <span id="${props.id}-customData-email"></span></p>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <img id="${props.id}-picture" style="height: 100%; aspect-ratio: 1 / 1;">
+                        <div style="margin-left: 25px;">
+                            <h1 id="${props.id}-name"></h1>
+                            <div style='font-size: 80%;'>
+                                <p>ID: <span id="${props.id}-customData-userId"></span></p>
+                                <p>Email: <span id="${props.id}-customData-email"></span></p>
+                            </div>
                         </div>
                     </div>
+                    <br>
+                    <h2>Username</h2>
                     <hr>
-                    <h3>Username</h3><p><span id="${props.id}-customData-username"></span></p>
+                    <p><span id="${props.id}-customData-username"></span></p>
+                    <br>
+                    <h2>Devices</h2>
+                    <hr>
+                    <div id="${props.id}-devicegrid" style="display: flex; flex-wrap: wrap;"></div>
                 </section>
                 </div>
             `;
@@ -105,6 +114,8 @@ export class ProfileApplet {
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 0;
             document.getElementById(`${this.props.id}-picture`).src = this.session.info.googleAuth.profile.pictureUrl
             document.getElementById(`${this.props.id}-name`).innerHTML = this.session.info.googleAuth.profile.name
+            let deviceGrid = document.getElementById(`${this.props.id}-devicegrid`)
+
             this.session.info.googleAuth.refreshCustomData().then((data) => {
                 let usernameEntry = document.getElementById(`${this.props.id}-customData-username`)
                 if (Object.keys(data).includes('username')){
@@ -117,10 +128,36 @@ export class ProfileApplet {
                 }
 
                 for (const [key, value] of Object.entries(data)) {
-                    if (!['picture', 'firstName', 'lastName', '_id', 'username'].includes(key)){
+                    if (!['picture', 'firstName', 'lastName', '_id', 'username','devices'].includes(key)){
                         document.getElementById(`${this.props.id}-customData-${key}`).innerHTML = value;  
                     }
                 }
+
+                deviceList.forEach((config) => {
+                    let div = document.createElement('div')
+                    div.style = `min-width: 200px; flex-grow: 1;`
+                    let input = document.createElement('input')
+                    input.type = 'checkbox'
+                    input.name = `${config.company}_${config.name}`
+                    if (data.devices.includes(config.name)) input.checked = true
+                    input.id = `${this.props.id}-${config.company}_${config.name}`
+                    input.onchange = (e) => {
+                        this.updateDevices(e.target.name,e.target.checked)
+                    }
+                    let label = document.createElement('label')
+                    label.for += config.name
+                    label.innerHTML += config.name
+                    div.appendChild(input)
+                    div.appendChild(label)
+
+
+                    let companyDiv = deviceGrid.querySelector(`.${config.company.replace(/[^\w\s]/gi, '')}`)
+                    if (companyDiv == null) {
+                        deviceGrid.innerHTML += `<div><h3>${config.company[0].toUpperCase() + config.company.slice(1)}</h3><div class="${config.company.replace(/[^\w\s]/gi, '')}"></div></div>`
+                        companyDiv = deviceGrid.querySelector(`.${config.company.replace(/[^\w\s]/gi, '')}`)
+                    }
+                    companyDiv.appendChild(div)
+                })
             })
         } else {
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 1;
@@ -135,7 +172,14 @@ export class ProfileApplet {
         const filter = {userID: this.session.info.googleAuth.profile.id};
         const updateDoc = {$set: {username: newUsername, },};
         await collection.updateOne(filter, updateDoc);
-        await this.session.info.googleAuth.refreshCustomData();
         this.updateProfileInfo()
+    }
+    updateDevices = async (device,has=false) => {
+        const mongo = this.session.info.googleAuth.mongoClient("mongodb-atlas");
+        const collection = mongo.db("brainsatplay").collection("customUserData");
+        const filter = {userID: this.session.info.googleAuth.profile.id};
+        const updateDoc = (has ? {$addToSet: { devices: device }} : {$pull: { devices: device }})
+        console.log(has,updateDoc)
+        await collection.updateOne(filter, updateDoc);
     }
 } 
