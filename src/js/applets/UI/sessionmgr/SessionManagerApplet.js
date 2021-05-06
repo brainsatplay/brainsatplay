@@ -659,7 +659,7 @@ export class SessionManagerApplet {
                     400
                 );
 
-                console.log(newSeries);
+                //console.log(newSeries);
                 this.setLegend();
                 
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
