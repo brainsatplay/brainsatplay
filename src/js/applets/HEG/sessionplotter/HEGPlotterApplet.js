@@ -76,7 +76,7 @@ export class HEGPlotterApplet {
                     err = err/ratio.length;
                     let rmse = Math.sqrt(mse/ratiosma.length);
 
-                    console.log(this.plot.uPlotData)
+                    //console.log(this.plot.uPlotData)
                     this.plot.uPlotData = [
                         t,red,ir,ratio,ratiosma,ambient
                     ]
