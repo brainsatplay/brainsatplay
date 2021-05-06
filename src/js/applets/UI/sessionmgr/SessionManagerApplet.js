@@ -151,14 +151,14 @@ export class SessionManagerApplet {
         if(this.uplot) {
             this.uplot.deInit();
             let plotselect = document.getElementById(this.props.id+'plotselect').value;
-            let newSeries = this.makeSeries(plotselect);
+            let newSeries = this.makeSeries(plotselect,this.dataloader.state.data.loaded.header);
             this.uplot.makeuPlot(
                 newSeries, 
                 this.uplot.uPlotData, 
                 this.AppletHTML.node.clientWidth, 
                 400
             );
-            if(plotselect === 'heg') this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+            if(plotselect === 'heg' || plotselect.includes('eegraw')) this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
         }
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
@@ -449,7 +449,7 @@ export class SessionManagerApplet {
         -> wait for user to change the window
         -> update data on change
     */
-    makeSeries = (type='heg') => {
+    makeSeries = (type='heg' , head=undefined) => {
         let newSeries = [{}];
         if(type==='heg'){
             newSeries.push({
@@ -480,8 +480,56 @@ export class SessionManagerApplet {
                 value: (u, v) => v == null ? "-" : v.toFixed(1),
                 stroke: "rgb(0,0,0)"
             });  
-        } else if (type === 'eeg') {
-
+        } else if(head) {
+            let fft = false;
+            console.log(type)
+            if (type.includes('eegraw')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        fft=true;
+                    } else if (idx > 1 && fft === false) {
+                        newSeries.push({
+                            label:val[0],
+                            value: (u, v) => v == null ? "-" : v.toFixed(1),
+                            stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                        });
+                    } 
+                });
+            }
+            else if (type.includes('eegfft')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        if(val[1].toLowerCase().indexOf("fft") > -1) {
+                            if(val[0].indexOf('::') < 0) {
+                                newSeries.push({
+                                    label:val[0],
+                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                                });
+                            }
+                        }
+                    }
+                });
+            } 
+            else if (type.includes('eegcoh')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        if(val[1].toLowerCase().indexOf("fft") > -1) {
+                            if(val[0].indexOf('::') > -1) {
+                                newSeries.push({
+                                    label:val[0],
+                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+        
         }
         return newSeries;
     }
@@ -497,6 +545,7 @@ export class SessionManagerApplet {
             head = header.split(',');
         });
 
+        setTimeout(()=>{ //wait a little for the csv header to be passed
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
@@ -510,7 +559,7 @@ export class SessionManagerApplet {
             */
 
             let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
-            let val = 0; if(rangeend === 1) val = 1
+            let rval = 0; if(rangeend === 1) rval = 1;
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
             <div width="100%">
@@ -523,7 +572,7 @@ export class SessionManagerApplet {
                 <table>
                 <tr id='${this.props.id}sessioninforow'>
                 <td><span id='${this.props.id}sessionname' style='border:1px solid white'>${filename}</span></td>
-                <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${val}' step='1'></td>
+                <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
                 </tr>
                 <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
@@ -594,14 +643,33 @@ export class SessionManagerApplet {
                 }
             }
             else {
+                let newSeries = this.makeSeries('eegraw',head);
+                newSeries[0].label = "t";
+                let dummyarr = new Array(100).fill(1);
+                newSeries.forEach((s)=>{
+                    this.uplot.uPlotData.push(dummyarr);
+                })
+
+                this.uplot.makeuPlot(
+                    newSeries, 
+                    this.uplot.uPlotData, 
+                    this.AppletHTML.node.clientWidth, 
+                    400
+                );
+
+                console.log(newSeries);
+                this.setLegend();
+                
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+                
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
                     <select id='${this.props.id}plotselect'>
-                        <option value='Raw'>Raw (Single)</option>
-                        <option value='Stacked' selected>Raw (Stacked)</option>
-                        <option value='FFT'>FFT</option>
-                        <option value='Coherence'>Coherence</option>
-                        <option value='MeanCoherence'>Mean Coherence</option>
+                        <option value='eegraw'>Raw (Single)</option>
+                        <option value='Stackedeegraw' selected>Raw (Stacked)</option>
+                        <option value='eegfft'>FFT</option>
+                        <option value='eegcoh'>Coherence</option>
+                        <option value='meaneegcoh'>Mean Coherence</option>
                     </select>
                 `;
             }
@@ -623,7 +691,6 @@ export class SessionManagerApplet {
                                 loaded.data.ambient
                             ]
                             this.uplot.plot.setData(this.uplot.uPlotData);
-                            console.log(gmode);
                         }
     
                         let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
@@ -646,15 +713,49 @@ export class SessionManagerApplet {
                     
                     }
                     else {
-                        console.log(loaded.data) // {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                        // loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                        let gmode = document.getElementById(this.props.id+'plotselect').value;
+                        this.uplot.uPlotData = [
+                            loaded.data.times
+                        ];
+                        if(gmode.includes('eegraw')){
+                            for(const prop in loaded.data) {
+                                if(prop.includes('signal')) {
+                                    this.uplot.uPlotData.push(loaded.data[prop]);
+                                }
+                            }
+                            this.uplot.plot.setData(this.uplot.uPlotData);
+                        } else if(gmode.includes('eegfft')){
+                            for(const prop in loaded.data) {
+                                if(prop.includes('fft')) {
+                                    this.uplot.uPlotData.push(loaded.data[prop]);
+                                }
+                            }
+                            this.uplot.plot.setData(this.uplot.uPlotData);
+                        } else if(gmode === 'eegcoh'){
+                            for(const prop in loaded.data) {
+                                if(prop.includes('::')) {
+                                    this.uplot.uPlotData.push(loaded.data[prop]);
+                                }
+                            }
+                            this.uplot.plot.setData(this.uplot.uPlotData);
+                        } else if(gmode === 'meaneegcoh'){
+                            for(const prop in loaded.data) {
+                                if(prop.includes('::')) {
+                                    //this.uplot.uPlotData.push(loaded.data[prop]);
+                                }
+                            }
+                            this.uplot.plot.setData(this.uplot.uPlotData);
+                        }
                     }
                 });
             }
 
             document.getElementById(this.props.id+'sessionrange').onchange = () => {
                 let val = document.getElementById(this.props.id+'sessionrange').value;
-                begin = val;
-                end = val+buffersize;
+                console.log(val)
+                begin = parseInt(val);
+                end = begin+buffersize;
                 if(end > size) end = size;
                 getData();
             }
@@ -662,6 +763,7 @@ export class SessionManagerApplet {
             getData();
 
         });
+        },100);
     }
 
  

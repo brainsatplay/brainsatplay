@@ -104,7 +104,6 @@ export class DataLoader {
             let v = value.split(';');
             if(v.length > 1) {
                 if(v[1].toLowerCase().indexOf("fft") > -1) {
-                    console.log(v[1], idx)
                     ffts=true;
                     indices.push(idx);
                     dtypes.push('fft');
