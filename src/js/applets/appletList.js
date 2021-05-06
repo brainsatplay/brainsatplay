@@ -29,7 +29,6 @@ export const AppletInfo = {
     'Video': { folderUrl:'./General/video',             devices:['EEG','HEG'],     categories:['train'] },
     'Boids':{ folderUrl:'./HEG/boids',                  devices:['EEG'],           categories:['train'] },
     'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['HEG'],           categories:['train'] },
-    'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['visualize'] },
     'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['HEG'],           categories:['train'] },
     'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['HEG'],      categories:['train'] },
     'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['HEG'],           categories:['visualize'] },
@@ -39,6 +38,8 @@ export const AppletInfo = {
     'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
     'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
 };
+//'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['visualize'] },
+    
 
 export let dynamicImport = async (url) => {
     let module = await import(url);

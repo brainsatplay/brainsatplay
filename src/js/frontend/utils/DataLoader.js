@@ -20,7 +20,7 @@ export class DataLoader {
     }      
     
     onload = (loaded) => {
-        console.log(loaded);
+        //console.log(loaded);
     }
 
     readyHEGDataForWriting = (from=0,to='end') => {
