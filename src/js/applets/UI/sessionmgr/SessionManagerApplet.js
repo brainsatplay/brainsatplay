@@ -455,7 +455,7 @@ export class SessionManagerApplet {
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
             <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
-                <div id='${this.props.id}sessionname'>${filename}</div>
+                <span id='${this.props.id}sessionname'>${filename}</span>
                 <input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='0' step='1'>
                 <div id='${this.props.id}sessionstats'>Stats</div>
             </div>
@@ -468,11 +468,13 @@ export class SessionManagerApplet {
                 let newSeries = [{}];
                 newSeries.push({
                     label:"Red",
+                    show:false,
                     value: (u, v) => v == null ? "-" : v.toFixed(1),
                     stroke: "rgb(155,0,0)"
                 });
                 newSeries.push({
                     label:"IR",
+                    show:false,
                     value: (u, v) => v == null ? "-" : v.toFixed(1),
                     stroke: "rgb(0,155,155)"
                 });
@@ -488,6 +490,7 @@ export class SessionManagerApplet {
                 });
                 newSeries.push({
                     label:"Ambient",
+                    show:false,
                     value: (u, v) => v == null ? "-" : v.toFixed(1),
                     stroke: "rgb(0,0,0)"
                 });
@@ -507,8 +510,8 @@ export class SessionManagerApplet {
                 this.uplot.makeuPlot(
                     newSeries, 
                     this.uplot.uPlotData, 
-                    this.plotWidth, 
-                    this.plotHeight
+                    this.AppletHTML.node.clientWidth, 
+                    400
                 );
 
                 this.setLegend();
@@ -617,7 +620,10 @@ export class SessionManagerApplet {
                 this.uplot.plot.setSeries(i,{show:false});
               } else {this.uplot.plot.setSeries(i,{show:true}); document.getElementById(this.props.id+ser.label).style.opacity = 1;}
             }
-          }
+            if(this.uplot.plot.series[i].show === false){
+                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
+              } else {document.getElementById(this.props.id+ser.label).style.opacity = 1;}
+        }
         });
       }
 
