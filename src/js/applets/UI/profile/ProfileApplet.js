@@ -69,8 +69,7 @@ export class ProfileApplet {
             this.updateProfileInfo()
 
             document.getElementById(`${props.id}-signout`).onclick = async () => {
-                let returned = await window.handleSignoutClick()
-                console.log('returned',returned)
+                await window.handleSignoutClick()
                 this.responsive()
             }
         }
