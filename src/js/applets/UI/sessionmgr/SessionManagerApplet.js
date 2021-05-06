@@ -446,12 +446,11 @@ export class SessionManagerApplet {
             </div>
             <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
                 <table>
-                <tr>
+                <tr id='${this.props.id}sessioninforow'>
                 <td><span id='${this.props.id}sessionname' style='border:1px solid white'>${filename}</span></td>
                 <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${val}' step='1'></td>
-                <td>Session Analytics: <button id='${this.props.id}sessionratio'>HEG Ratio</button></td>
                 </tr>
-                <tr>
+                <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
                     <td id='${this.props.id}results'></td>
                 </tr>
@@ -520,6 +519,24 @@ export class SessionManagerApplet {
                         <option value='All' selected>All</option>
                     </select>
                 `;
+
+                document.getElementById(this.props.id+'sessioninforow').innerHTML += `
+                    <td>Session Analytics: <button id='${this.props.id}sessionratio'>HEG Ratio</button></td>
+                `;
+
+                document.getElementById(this.props.id+'sessionratio').onclick = () => {
+                    this.analyzeSession(filename,'ratio');
+                    let waitResult = () => {
+                        if(!this.analyze_completed) setTimeout(()=>{requestAnimationFrame(waitResult);},15);
+                        else {
+                            console.log('completed analysis!'); 
+                            document.getElementById(this.props.id+'sessionstatsrow').innerHTML += `
+                                <td>Average Ratio: ${this.analyze_result.ratiomean.toFixed(3)}</td>
+                            `;
+                        }
+                    }
+                    waitResult();
+                }
 
                 document.getElementById(this.props.id+'plotclose').onclick = () => {
                     if(this.uplot) {     
@@ -645,11 +662,11 @@ export class SessionManagerApplet {
                 if(end > size) { end = size; }
                 this.readFromDB(filename,begin,end,(data,file)=>{
                     let loaded = this.parseDBData(data,head,file,end===size);
-                    if(!spsEstimate) spsEstimate = Math.round(loaded.data.times.slice(0,20).reduce(a,c => a+c)/20);
+                    if(!spsEstimate) spsEstimate = Math.round(loaded.data.times.slice(0,20).reduce((a,c) => {a+c})/20);
                     if(filename.indexOf('heg') > -1) {
                         if(analysisType === 'ratio') { //heg ratio analysis
-                            if(!result.rationmean) {result.ratiomean = loaded.data.ratio.reduce(a,c => a+c)/loaded.data.ratio.length; result.error = loaded.data.error; result.rmse = loaded.data.rmse; }
-                            else { result.ratiomean = (result.ratiomean + loaded.data.ratio.reduce(a,c => a+c)/loaded.data.ratio.length)/2; result.error = (result.error+loaded.data.error)/2; result.rmse=(result.rmse+loaded.data.rmse)/2; }
+                            if(!this.analyze_result.ratiomean) {this.analyze_result.ratiomean = (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length; console.log(this.analyze_result.ratiomean); this.analyze_result.error = loaded.data.error; this.analyze_result.rmse = loaded.data.rmse; }
+                            else { this.analyze_result.ratiomean = (this.analyze_result.ratiomean + (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length)*.5; this.analyze_result.error = (this.analyze_result.error+loaded.data.error)*.5; this.analyze_result.rmse=(this.analyze_result.rmse+loaded.data.rmse)*.5; }
                         } else if (analysisType === 'hrv') {
 
                         }
@@ -668,12 +685,17 @@ export class SessionManagerApplet {
                 });
             }
 
-            let run = async () => {
+            let run = () => {
                 if(!this.analyze_completed) {
                     if(pass === true) {pass=false; analyzeChunk();}
                     setTimeout(()=>{run();},10);
-                } else return; 
+                } else {
+                    console.log(this.analyze_result);    
+                    return; 
+                } 
             }
+
+            run();
         });
     }
 
