@@ -53,7 +53,7 @@ export class SessionManagerApplet {
         this.uplot = undefined;
         this.analyze_result = {};
         this.analyze_completed = false;
-    
+        this.startTime = undefined;
     }
 
 
@@ -158,7 +158,7 @@ export class SessionManagerApplet {
                 this.AppletHTML.node.clientWidth, 
                 400
             );
-            if(plotselect === 'heg' || plotselect.includes('eegraw')) this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+            if(plotselect === 'heg' || plotselect.includes('eegraw')) this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime*.00001666667))+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(0) + "s");
         }
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
@@ -538,6 +538,7 @@ export class SessionManagerApplet {
         if(this.uplot) {     
             this.uplot.deInit();
             this.uplot = undefined;
+            this.startTime = undefined;
         }
         let head = undefined;
             
@@ -553,7 +554,6 @@ export class SessionManagerApplet {
             let end = buffersize;
             let nsec = 10; 
             let spsEstimate = undefined;
-            let startTime = undefined;
             /*
                 -> get data in window
                 -> check relative sample rate with unix time
@@ -683,9 +683,9 @@ export class SessionManagerApplet {
                         loaded.data.times.slice(0,20).forEach((t,i) => {if(i>0) diff+=(t-loaded.data.times[i-1])});
                         spsEstimate = 1/(0.001*(diff/19));
                     }
-                    if(!startTime) {
-                        startTime = loaded.data.times[0];
-                    }
+                    if(!this.startTime) {
+                        this.startTime = loaded.data.times[0];
+                    }1
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotselect').value;
@@ -699,7 +699,7 @@ export class SessionManagerApplet {
                                 loaded.data.ambient
                             ]
                             this.uplot.plot.setData(this.uplot.uPlotData);
-                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- startTime)*.00001666667)+"m:"+((v- startTime)*.001 - 60*Math.floor((v-startTime)*.00001666667)).toFixed(0) + "s");
+                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(0) + "s");
                         }
     
                         let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
@@ -756,7 +756,7 @@ export class SessionManagerApplet {
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
                         }
-                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-startTime)*.00001666667)+"m:"+((v- startTime)*.001 - 60*Math.floor((v-startTime)*.00001666667)).toFixed(0) + "s");
+                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(0) + "s");
                         
                     }
                 });
