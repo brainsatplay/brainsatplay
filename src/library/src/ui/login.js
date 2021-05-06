@@ -25,9 +25,13 @@ export const LoginWithGoogle = async () => {
 }
 
 export const LoginWithRealm = async (authResponse) => {
-    const credentials = Realm.Credentials.google(authResponse.id_token)
-    credentials.payload.redirectUrl = redirectUri
-    const user = await app.logIn(credentials);
+    let user;
+    if (app.currentUser?.isLoggedIn) user = app.currentUser
+    else {
+        const credentials = Realm.Credentials.google(authResponse.id_token)
+        credentials.payload.redirectUrl = redirectUri
+        user = await app.logIn(credentials);
+    }
     return user;
 }
 

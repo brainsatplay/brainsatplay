@@ -360,7 +360,6 @@ export class BCIAppManager {
         profileButton.onclick = async (e) => {
             this.session.loginWithGoogle().then(authResponse => {
                 this.session.loginWithRealm(authResponse).then(user => {
-                    console.log(user)
                     this.updateProfileUI(user)
                 }).catch((e) => {
                     console.log(e)
@@ -370,10 +369,25 @@ export class BCIAppManager {
             })
         }
 
-        console.log(window.gapi.auth2.getAuthInstance().isSignedIn.get())
-        if (window.gapi.auth2.getAuthInstance().isSignedIn.get()){
-            this.session.loginWithGoogle()
+        let auth = window.gapi.auth2.getAuthInstance()
+        const checkIfLoggedIn = () => {
+            let signedIn = auth.isSignedIn.get()
+            if (window.gapi.auth2.initialized === false){
+                setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
+                return;
+            } else {
+                if (signedIn){
+                    this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
+                        this.updateProfileUI(user)
+                    })
+                }
+                
+                // Remove overlay
+                document.body.querySelector('.loader').style.opacity = 0;
+                this.tutorialManager.initializeTutorial()
+            }
         }
+        checkIfLoggedIn();
 
         // app.querySelector('#login-button').onclick = () => {
         //     let form = app.querySelector('#login-form')
@@ -515,10 +529,6 @@ export class BCIAppManager {
             this.appletSelectIds,
             this.session
         )
-
-        // Remove overlay
-        document.body.querySelector('.loader').style.opacity = 0;
-        this.tutorialManager.initializeTutorial()
     }
 
     setApps( //set the apps and create a new UI or recreate the original
