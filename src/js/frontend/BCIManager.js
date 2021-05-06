@@ -620,14 +620,14 @@ export class BCIAppManager {
                                             //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                             if(row.count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
                                                 saveSettings();
-                                                autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
+                                                autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceType+"_"+this.session.devices[info.nDevices-1].info.deviceName);
                                                 this.state.data.hegSaveCounter = row.count;
                                             }
                                         }
                                     });
                                     document.getElementById("saveBCISession").onclick = () => {
                                         saveSettings();
-                                        autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceName);
+                                        autoSaveHEGChunk(this.state.data.hegSaveCounter,undefined,this.session.devices[info.nDevices-1].info.deviceType+"_"+this.session.devices[info.nDevices-1].info.deviceName);
                                         this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
                                         
                                     }

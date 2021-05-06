@@ -148,6 +148,18 @@ export class SessionManagerApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+        if(this.uplot) {
+            this.uplot.deInit();
+            let plotselect = document.getElementById(this.props.id+'plotselect').value;
+            let newSeries = this.makeSeries(plotselect);
+            this.uplot.makeuPlot(
+                newSeries, 
+                this.uplot.uPlotData, 
+                this.AppletHTML.node.clientWidth, 
+                400
+            );
+            if(plotselect === 'heg') this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+        }
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
@@ -404,6 +416,32 @@ export class SessionManagerApplet {
 		var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
 	}
+
+    setLegend = () => {
+        document.getElementById(this.props.id+"legend").innerHTML = "";
+        let htmlToAppend = ``;
+        //console.log(this.class.plot.series)
+        this.uplot.plot.series.forEach((ser,i) => {
+          if(i>0){
+            htmlToAppend += `<span id='`+this.props.id+ser.label+`' style='border:1px solid black; padding: 5px 2px; color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</span>`;
+          }
+        });
+        document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
+        this.uplot.plot.series.forEach((ser,i) => {
+          if(i>0){
+            document.getElementById(this.props.id+ser.label).onclick = () => {
+              if(this.uplot.plot.series[i].show === true){
+                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
+                this.uplot.plot.setSeries(i,{show:false});
+              } else {this.uplot.plot.setSeries(i,{show:true}); document.getElementById(this.props.id+ser.label).style.opacity = 1;}
+            }
+            if(this.uplot.plot.series[i].show === false){
+                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
+              } else {document.getElementById(this.props.id+ser.label).style.opacity = 1;}
+        }
+        });
+      }
+
     /*
         -> select file
         -> get header
@@ -411,6 +449,43 @@ export class SessionManagerApplet {
         -> wait for user to change the window
         -> update data on change
     */
+    makeSeries = (type='heg') => {
+        let newSeries = [{}];
+        if(type==='heg'){
+            newSeries.push({
+                label:"Red",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,0,0)"
+            });
+            newSeries.push({
+                label:"IR",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(0,155,155)"
+            });
+            newSeries.push({
+                label:"Ratio",
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,0,155)"
+            });
+            newSeries.push({
+                label:"Ratio SMA",
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,155,0)"
+            });
+            newSeries.push({
+                label:"Ambient",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(0,0,0)"
+            });  
+        } else if (type === 'eeg') {
+
+        }
+        return newSeries;
+    }
+
     scrollFileData = (filename) => {
         if(this.uplot) {     
             this.uplot.deInit();
@@ -461,35 +536,8 @@ export class SessionManagerApplet {
             //setup uplot
             if(filename.indexOf('heg') > -1) { 
                 //loaded.data = {times,red,ir,ratio,ambient,error,rmse,notes,noteTimes}
-                let newSeries = [{}];
-                newSeries.push({
-                    label:"Red",
-                    show:false,
-                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                    stroke: "rgb(155,0,0)"
-                });
-                newSeries.push({
-                    label:"IR",
-                    show:false,
-                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                    stroke: "rgb(0,155,155)"
-                });
-                newSeries.push({
-                    label:"Ratio",
-                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                    stroke: "rgb(155,0,155)"
-                });
-                newSeries.push({
-                    label:"Ratio SMA",
-                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                    stroke: "rgb(155,155,0)"
-                });
-                newSeries.push({
-                    label:"Ambient",
-                    show:false,
-                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                    stroke: "rgb(0,0,0)"
-                });
+                
+                let newSeries = this.makeSeries('heg');
 
                 let dummyarr = new Array(100).fill(1);
 
@@ -515,7 +563,7 @@ export class SessionManagerApplet {
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
                     <select id='${this.props.id}plotselect'>
-                        <option value='All' selected>All</option>
+                        <option value='heg' selected>All</option>
                     </select>
                 `;
 
@@ -565,7 +613,7 @@ export class SessionManagerApplet {
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotselect').value;
-                        if(gmode === 'All') {
+                        if(gmode === 'heg') {
                             this.uplot.uPlotData = [
                                 loaded.data.times,
                                 loaded.data.red,
@@ -616,32 +664,8 @@ export class SessionManagerApplet {
         });
     }
 
-    setLegend = () => {
-        document.getElementById(this.props.id+"legend").innerHTML = "";
-        let htmlToAppend = ``;
-        //console.log(this.class.plot.series)
-        this.uplot.plot.series.forEach((ser,i) => {
-          if(i>0){
-            htmlToAppend += `<span id='`+this.props.id+ser.label+`' style='border:1px solid black; padding: 5px 2px; color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</span>`;
-          }
-        });
-        document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
-        this.uplot.plot.series.forEach((ser,i) => {
-          if(i>0){
-            document.getElementById(this.props.id+ser.label).onclick = () => {
-              if(this.uplot.plot.series[i].show === true){
-                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
-                this.uplot.plot.setSeries(i,{show:false});
-              } else {this.uplot.plot.setSeries(i,{show:true}); document.getElementById(this.props.id+ser.label).style.opacity = 1;}
-            }
-            if(this.uplot.plot.series[i].show === false){
-                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
-              } else {document.getElementById(this.props.id+ser.label).style.opacity = 1;}
-        }
-        });
-      }
-
-      analyzeSession = async (filename='', analysisType='ratio') => {
+ 
+    analyzeSession = async (filename='', analysisType='ratio') => {
         let head = undefined;
         this.analyze_result = {}; this.analyze_completed = false;
         this.getCSVHeader(filename, (header)=> { 
