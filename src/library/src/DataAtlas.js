@@ -1420,6 +1420,7 @@ export class DataAtlas {
 		let feedbackOptions;
 		if (this.settings.deviceConnected){
 			parentNode.style.pointerEvents = 'auto'
+			// if (parentNode.style.position === 'absolute')
 			// Custom Feedback Functions
 			let getFrontalAlphaCoherence = () => {return this.getCoherenceScore(this.getFrontalCoherenceData(),'alpha1')}
 			let getFocus = () => {

@@ -213,10 +213,12 @@ window.initClient = function() {
         https://www.googleapis.com/auth/spreadsheets"
     }).then(function () {
         // Listen for sign-in state changes.
-        window.gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+        this.auth = window.gapi.auth2.getAuthInstance()
+        this.auth.isSignedIn.listen(updateSigninStatus);
 
+        console.log(this.auth.isSignedIn.get())
         // Handle the initial sign-in state.
-        window.updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
+        window.updateSigninStatus(this.auth.isSignedIn.get());
         
     }, function(error) {
         console.log(error);//appendPre(JSON.stringify(error, null, 2));

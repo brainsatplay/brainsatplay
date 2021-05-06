@@ -358,24 +358,21 @@ export class BCIAppManager {
 
         let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
         profileButton.onclick = async (e) => {
-            this.session.loginWithGoogle().then(user => {
-                let profileImg = document.getElementById(`brainsatplay-profile-img`)
-                document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
-                document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
-                profileImg.style.padding = "0"
-                let selector = document.getElementById(`applet0`)
-                let choice = 'Profile Manager'
-                profileButton.onclick = () => {
-                    selector.value = choice
-                    window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
-                    selector.onchange()
-                }
-                console.log(choice,selector.value)
-                if (selector.value === choice) profileButton.click() // Refresh profile if necessary
+            this.session.loginWithGoogle().then(authResponse => {
+                this.session.loginWithRealm(authResponse).then(user => {
+                    console.log(user)
+                    this.updateProfileUI(user)
+                }).catch((e) => {
+                    console.log(e)
+                })
             }).catch((e) => {
                 console.log(e)
             })
-            
+        }
+
+        console.log(window.gapi.auth2.getAuthInstance().isSignedIn.get())
+        if (window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+            this.session.loginWithGoogle()
         }
 
         // app.querySelector('#login-button').onclick = () => {
@@ -449,6 +446,22 @@ export class BCIAppManager {
         this.uiFragments.select.deleteNode();
         this.uiFragments.filemenu.deleteNode();
         this.uiFragments.Buttons.deleteNode();
+    }
+
+    updateProfileUI(user){
+        let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
+        let profileImg = document.getElementById(`brainsatplay-profile-img`)
+        document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
+        document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
+        profileImg.style.padding = "0"
+        let selector = document.getElementById(`applet0`)
+        let choice = 'Profile Manager'
+        profileButton.onclick = () => {
+            selector.value = choice
+            window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
+            selector.onchange()
+        }
+        if (selector.value === choice) profileButton.click() // Refresh profile if necessary
     }
 
     getConfigsFromHashes() {

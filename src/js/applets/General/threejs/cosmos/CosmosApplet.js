@@ -53,7 +53,7 @@ export class CosmosApplet {
             <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
-                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
+                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25px; left: 25px;"></div>
             </div>
             `;  
         }

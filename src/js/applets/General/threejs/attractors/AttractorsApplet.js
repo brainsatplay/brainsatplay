@@ -158,7 +158,7 @@ export class AttractorsApplet {
             <div id='${props.id}' class="brainsatplay-threejs-wrapper" style='height:100%; width:100%;'>
                 <div class="brainsatplay-threejs-renderer-container"><canvas class="brainsatplay-threejs-webgl"></canvas></div>
                 <div class="brainsatplay-threejs-gui-container"></div>
-                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25; left: 25;"></div>
+                <div class="brainsatplay-neurofeedback-container" style="position: absolute; top: 25px; left: 25px;"></div>
                 <div style="position:absolute; top: 0; right: 0; z-index: 1; padding: 25px;">
                     <select id='${props.id}selector'></select>
                 </div>
