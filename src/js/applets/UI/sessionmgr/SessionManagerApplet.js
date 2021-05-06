@@ -581,6 +581,14 @@ export class SessionManagerApplet {
             </div>
             `;
 
+            document.getElementById(this.props.id+'plotclose').onclick = () => {
+                if(this.uplot) {     
+                    this.uplot.deInit();
+                    this.uplot = undefined;
+                }
+                document.getElementById(this.props.id+'sessionwindow').innerHTML = "";
+            }
+
             this.uplot = new uPlotMaker(this.props.id+'uplot');
             //setup uplot
             if(filename.indexOf('heg') > -1) { 
@@ -632,14 +640,6 @@ export class SessionManagerApplet {
                         }
                     }
                     waitResult();
-                }
-
-                document.getElementById(this.props.id+'plotclose').onclick = () => {
-                    if(this.uplot) {     
-                        this.uplot.deInit();
-                        this.uplot = undefined;
-                    }
-                    document.getElementById(this.props.id+'sessionwindow').innerHTML = "";
                 }
             }
             else {
