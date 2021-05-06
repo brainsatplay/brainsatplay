@@ -51,7 +51,11 @@ export class SessionManagerApplet {
         this.sub = undefined;
         this.sub2 = undefined;
         this.uplot = undefined;
+        this.analyze_result = {};
+        this.analyze_completed = false;
+    
     }
+
 
     //---------------------------------
     //---Required template functions---
@@ -353,22 +357,6 @@ export class SessionManagerApplet {
         }
     }
 
-    analyzeDBSession = (filename='',type='eeg') => {
-        if(type === 'eeg') {
-            document.getElementById(this.props.id+'sessionwindow');
-        } else if (type === 'heg') {
-            
-        }
-    }
-
-    analyzeLoadedSession = (type='eeg') => {
-        if(type === 'eeg') {
-
-        } else if (type === 'heg') {
-            
-        }
-    }
-
     loadCSVintoDB = () => {
         CSV.openCSVRaw((data,path)=>{
             let split = path.split(`\\`);
@@ -411,6 +399,7 @@ export class SessionManagerApplet {
         return this.dataloader.state.data.loaded;
     }
 
+
     mean(arr){
 		var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
@@ -446,6 +435,7 @@ export class SessionManagerApplet {
             */
 
             let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
+            let val = 0; if(rangeend === 1) val = 1
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
             <div width="100%">
@@ -455,9 +445,17 @@ export class SessionManagerApplet {
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
             <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
-                <span id='${this.props.id}sessionname'>${filename}</span>
-                <input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='0' step='1'>
-                <div id='${this.props.id}sessionstats'>Stats</div>
+                <table>
+                <tr>
+                <td><span id='${this.props.id}sessionname' style='border:1px solid white'>${filename}</span></td>
+                <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${val}' step='1'></td>
+                <td>Session Analytics: <button id='${this.props.id}sessionratio'>HEG Ratio</button></td>
+                </tr>
+                <tr>
+                    <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
+                    <td id='${this.props.id}results'></td>
+                </tr>
+                </table>
             </div>
             `;
 
@@ -571,8 +569,8 @@ export class SessionManagerApplet {
 
                         let changecolor = 'red';
                         let gaincolor = 'red';
-                        if(sessionchange > 0) changecolor = 'green';
-                        if(sessionGain > 0) gaincolor = 'green';
+                        if(sessionchange > 0) changecolor = 'chartreuse';
+                        if(sessionGain > 0) gaincolor = 'chartreuse';
 
                         
                         document.getElementById(this.props.id+"sessionstats").innerHTML = `
@@ -627,9 +625,58 @@ export class SessionManagerApplet {
         });
       }
 
+      analyzeSession = async (filename='', analysisType='ratio') => {
+        let head = undefined;
+        this.analyze_result = {}; this.analyze_completed = false;
+        this.getCSVHeader(filename, (header)=> { 
+            head = header.split(',');
+        });
 
+        this.getFileSize(filename, (size)=> {
+            console.log(size);
+            let begin = 0;
+            let buffersize = 1000000;
+            let end = buffersize;
+            let spsEstimate = undefined;
+            
+            let pass=true;
 
+            const analyzeChunk = () => {
+                if(end > size) { end = size; }
+                this.readFromDB(filename,begin,end,(data,file)=>{
+                    let loaded = this.parseDBData(data,head,file,end===size);
+                    if(!spsEstimate) spsEstimate = Math.round(loaded.data.times.slice(0,20).reduce(a,c => a+c)/20);
+                    if(filename.indexOf('heg') > -1) {
+                        if(analysisType === 'ratio') { //heg ratio analysis
+                            if(!result.rationmean) {result.ratiomean = loaded.data.ratio.reduce(a,c => a+c)/loaded.data.ratio.length; result.error = loaded.data.error; result.rmse = loaded.data.rmse; }
+                            else { result.ratiomean = (result.ratiomean + loaded.data.ratio.reduce(a,c => a+c)/loaded.data.ratio.length)/2; result.error = (result.error+loaded.data.error)/2; result.rmse=(result.rmse+loaded.data.rmse)/2; }
+                        } else if (analysisType === 'hrv') {
 
+                        }
+                    }
+                    else {
+                        if(analysisType === 'ratio') { //bandpower ratios
 
+                        } else if (analysisType === 'fft') {
+
+                        } else if (analysisType === 'coherence') {
+
+                        }
+                    }
+                    pass = true;
+                    if(end === size) { this.analyze_completed = true; } else {begin+= buffersize; end += buffersize;}
+                });
+            }
+
+            let run = async () => {
+                if(!this.analyze_completed) {
+                    if(pass === true) {pass=false; analyzeChunk();}
+                    setTimeout(()=>{run();},10);
+                } else return; 
+            }
+        });
+    }
+
+    
    
 } 
