@@ -41,6 +41,11 @@ export class DataLoader {
         CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to),this.toISOLocal(new Date())+"_eeg");
     }
 
+    mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
+
     parseHEGData = (data=[], header=[]) => {
         let t = [], red = [], ir = [], ratio = [], ratiosma = [], ambient = [], notes=[], noteTimes=[];
         let err = 0;
@@ -54,8 +59,8 @@ export class DataLoader {
                 return true;
             }
         });
-
-        data.forEach((row)=>{
+        data.forEach((r)=>{
+            let row = r.split(',');
             t.push(parseFloat(row[1]));
             red.push(parseFloat(row[2]));
             ir.push(parseFloat(row[3]));

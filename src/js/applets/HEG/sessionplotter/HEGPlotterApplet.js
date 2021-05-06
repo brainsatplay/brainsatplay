@@ -116,14 +116,17 @@ export class HEGPlotterApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
         this.plot = new uPlotMaker(this.props.id+'uplot');
+
+        let dummyarr = new Array(100).fill(1);
+
         this.plot.uPlotData = [
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1)
-        ]
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr
+        ];
     }
 
     //Delete all event listeners and loops here and delete the HTML block

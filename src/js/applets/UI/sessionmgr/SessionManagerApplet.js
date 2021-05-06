@@ -50,6 +50,7 @@ export class SessionManagerApplet {
         this.looping = false;
         this.sub = null;
         this.sub2 = null;
+        this.uplot = null;
     }
 
     //---------------------------------
@@ -397,15 +398,15 @@ export class SessionManagerApplet {
         });
     }
 
-    parseDBData = (data,head,filename,hasheader=true,hasend=true) => {
-        let lines = data.split('\n');
-        if(hasheader === false) lines.shift(); 
+    parseDBData = (data,head,filename,hasend=true) => {
+        let lines = data.split('\n'); 
+        lines.shift(); 
         if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
         if(filename.indexOf('heg') >-1 ) {
-            this.dataloader.parseHEGData(data,head);
+            this.dataloader.parseHEGData(lines,head);
             //this.dataloader.loaded
         } else { //eeg data
-            this.dataloader.parseEEGData(data,head);
+            this.dataloader.parseEEGData(lines,head);
         }
         return this.dataloader.state.data.loaded;
     }
@@ -422,6 +423,12 @@ export class SessionManagerApplet {
         -> update data on change
     */
     scrollFileData = (filename) => {
+        let head = undefined;
+            
+        this.getCSVHeader(filename, (header)=> { 
+            head = header.split(',');
+        });
+
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
@@ -434,21 +441,15 @@ export class SessionManagerApplet {
                 -> adjust buffer size to that (update rangeend too)
             */
 
-            let head = undefined;
-            
-            this.getCSVHeader(filename, (header)=> { 
-                head = header;
-            });
-
-            let rangeend = size - buffersize; if(rangend < 0) rangeend = 1;
+            let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
             <div>
-                <table id=${this.props.id}overlay' style='positon:absolute;'>
+                <table id=${this.props.id}overlay' style='position:absolute;'>
                     <tr><td id='${this.props.id}plotmenu'></td></tr>
                     <tr><td id='${this.props.id}legend'></td></tr>
                 </table>
-                <div id='${this.props.id}uplot'></div>
+                <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
             <div id='${this.props.id}sessioninfo'>
                 <div id='${this.props.id}sessionname'>${filename}</div>
@@ -488,17 +489,27 @@ export class SessionManagerApplet {
                     stroke: "rgb(0,0,0)"
                 });
 
+                let dummyarr = new Array(100).fill(1);
+
+                this.uplot.uPlotData = [
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr
+                ];
 
                 newSeries[0].label = "t";
-                this.plot.makeuPlot(
+                this.uplot.makeuPlot(
                     newSeries, 
-                    this.plot.uPlotData, 
+                    this.uplot.uPlotData, 
                     this.plotWidth, 
                     this.plotHeight
                 );
 
                 this.setLegend();
-                this.plot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.plot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.plot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.plot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
                     <select id='${this.props.id}plotselect'>
@@ -522,12 +533,12 @@ export class SessionManagerApplet {
             const getData = () => {
                 if(end > size) end = size;
                 this.readFromDB(filename,begin,end,(data,file)=>{
-                    let loaded = this.parseDBData(data,head,file,begin===0,end===size);
+                    let loaded = this.parseDBData(data,head,file,end===size);
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotmenu').value;
                         if(gmode === 'All') {
-                            this.plot.uPlotData = [
+                            this.uplot.uPlotData = [
                                 loaded.data.t,
                                 loaded.data.red,
                                 loaded.data.ir,
@@ -535,7 +546,7 @@ export class SessionManagerApplet {
                                 loaded.data.ratiosma,
                                 loaded.data.ambient
                             ]
-                            this.plot.plot.setData(this.plot.uPlotData);
+                            this.uplot.plot.setData(this.uplot.uPlotData);
                         }
     
                         let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
@@ -552,7 +563,7 @@ export class SessionManagerApplet {
                         document.getElementById(this.props.id+"sessionstats").innerHTML = `
                         <span style='color:`+changecolor+`;'>Change: `+sessionchange.toFixed(2)+`%</span>    
                         | <span style='color:`+gaincolor+`;'>Avg Gain: `+sessionGain.toFixed(2)+`%</span>
-                        | <span>Error: `+loaded.data.err.toFixed(5)+`</span>
+                        | <span>Error: `+loaded.data.error.toFixed(5)+`</span>
                         | <span>RMSE: `+loaded.data.rmse.toFixed(5)+`</span>
                         `;
                     
@@ -570,6 +581,8 @@ export class SessionManagerApplet {
                 if(end > size) end = size;
                 getData();
             }
+
+            getData();
 
         });
     }
