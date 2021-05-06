@@ -407,7 +407,11 @@ button {
     /* transform:translateX(12.3%); */
     /* border-bottom: 1px solid rgb(200, 200, 200); */
     margin-bottom: 5px;
-    border-bottom: 1px solid rgb(0,0,0);
+    border: 1px solid rgb(15,15,15);
+    border-radius:5px;
+    height:70px;
+    width:80%;
+    transform:translateX(12.2%);
     display: flex;
     justify-content: center;
     align-items:  center;
@@ -415,7 +419,7 @@ button {
 }
 
 .logo-container:hover {
-    border-bottom: 1px solid white;
+    border: 1px solid white;
     /* border-radius: 5px; */
     background-color: rgb(20,20,20);
 }
