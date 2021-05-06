@@ -278,7 +278,7 @@ export class SessionManagerApplet {
                 filediv.innerHTML = "";
                 dirr.forEach((str,i) => {
                     if(str !== "settings.json"){
-                        filediv.innerHTML += this.file_template({id:"mgr_"+str});
+                        filediv.insertAdjacentHTML('beforeend',this.file_template({id:"mgr_"+str}));
                         document.getElementById("mgr_"+str+"svg").onclick = () => {
                             console.log(str);
                             this.writeToCSV(str);
@@ -549,9 +549,9 @@ export class SessionManagerApplet {
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
-            let buffersize = 1000000;
+            let buffersize = 1100000;
             let end = buffersize;
-            let nsec = 10; let spsEstimate = 0;
+            let nsec = 10; let spsEstimate = undefined;
             /*
                 -> get data in window
                 -> check relative sample rate with unix time
@@ -678,6 +678,11 @@ export class SessionManagerApplet {
                 if(end > size) end = size;
                 this.readFromDB(filename,begin,end,(data,file)=>{
                     let loaded = this.parseDBData(data,head,file,end===size);
+                    if(!spsEstimate) {
+                        let diff = 0;
+                        loaded.data.times.slice(0,20).forEach((t,i) => {if(i>0) diff+=(t-loaded.data.times[i-1])});
+                        spsEstimate = 1/(0.001*(diff/19));
+                    }
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotselect').value;
@@ -777,7 +782,7 @@ export class SessionManagerApplet {
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
-            let buffersize = 1000000;
+            let buffersize = 1100000;
             let end = buffersize;
             let spsEstimate = undefined;
             
@@ -787,7 +792,11 @@ export class SessionManagerApplet {
                 if(end > size) { end = size; }
                 this.readFromDB(filename,begin,end,(data,file)=>{
                     let loaded = this.parseDBData(data,head,file,end===size);
-                    if(!spsEstimate) spsEstimate = Math.round(loaded.data.times.slice(0,20).reduce((a,c) => {a+c})/20);
+                    if(!spsEstimate) {
+                        let diff = 0;
+                        loaded.data.times.slice(0,20).forEach((t,i) => {if(i>0) diff+=(t-loaded.data.times[i-1])});
+                        spsEstimate = 1/(0.001*(diff/19));
+                    }
                     if(filename.indexOf('heg') > -1) {
                         if(analysisType === 'ratio') { //heg ratio analysis
                             if(!this.analyze_result.ratiomean) {this.analyze_result.ratiomean = (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length; console.log(this.analyze_result.ratiomean); this.analyze_result.error = loaded.data.error; this.analyze_result.rmse = loaded.data.rmse; }
