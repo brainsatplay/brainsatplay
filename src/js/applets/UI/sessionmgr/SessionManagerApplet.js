@@ -69,14 +69,14 @@ export class SessionManagerApplet {
             return ` 
             <div id='${props.id}'>
                 <div id='${props.id}sessionwindow' width='100%' height='25%'></div>
-                <p>Google API Test</p>
-                <div id='${props.id}content'></div>
-                <hr>
                 <p>Local Files</p>
                 <hr align='left' style='width:25%;'>
                 <div id='${props.id}fs'></div>
                 <hr>
-                <span>Load CSV into FS:<button id='${props.id}loadcsv'>Load</button></span>
+                <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
+                <hr>
+                <p>Google API Test</p>
+                <div id='${props.id}content'></div>
             </div> 
             `;
         }
@@ -450,7 +450,7 @@ export class SessionManagerApplet {
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
             <div width="100%">
                 <table id=${this.props.id}overlay' style='position:absolute; z-index:4;'>
-                    <tr valign='top'><td id='${this.props.id}plotmenu'></td><td id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td></tr>
+                    <tr valign='top'><td><button id='${this.props.id}plotclose' style='pointer:cursor;'>X</button></td><td id='${this.props.id}plotmenu'></td><td id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td></tr>
                 </table>
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
@@ -519,6 +519,14 @@ export class SessionManagerApplet {
                         <option value='All' selected>All</option>
                     </select>
                 `;
+
+                document.getElementById(this.props.id+'plotclose').onclick = () => {
+                    if(this.uplot) {     
+                        this.uplot.deInit();
+                        this.uplot = undefined;
+                    }
+                    document.getElementById(this.props.id+'sessionwindow').innerHTML = "";
+                }
             }
             else {
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
@@ -597,7 +605,7 @@ export class SessionManagerApplet {
         //console.log(this.class.plot.series)
         this.uplot.plot.series.forEach((ser,i) => {
           if(i>0){
-            htmlToAppend += `<div id='`+this.props.id+ser.label+`' style='color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</div>`;
+            htmlToAppend += `<span id='`+this.props.id+ser.label+`' style='border:1px solid black; padding: 5px 2px; color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</span>`;
           }
         });
         document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
