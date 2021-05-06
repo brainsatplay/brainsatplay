@@ -173,8 +173,9 @@ window.postToWorker = (input,workeridx = null) => {
 /**
  *  Sign out the user upon button click.
  */
-window.handleSignoutClick = function(event) {
-    window.gapi.auth2.getAuthInstance().signOut();
+window.handleSignoutClick = async function(event) {
+    await window.gapi.auth2.getAuthInstance().signOut()
+    return true
 }
 
 window.handleClientLoad = function() {
@@ -216,8 +217,6 @@ window.initClient = function() {
         // Listen for sign-in state changes.
         this.auth = window.gapi.auth2.getAuthInstance()
         this.auth.isSignedIn.listen(updateSigninStatus);
-
-        console.log(this.auth.isSignedIn.get())
         window.gapi.auth2.initialized = true;
         // Handle the initial sign-in state.
         window.updateSigninStatus(this.auth.isSignedIn.get());
