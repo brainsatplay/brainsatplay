@@ -452,7 +452,6 @@ export class SessionManagerApplet {
                 </tr>
                 <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
-                    <td id='${this.props.id}results'></td>
                 </tr>
                 </table>
             </div>
