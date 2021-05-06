@@ -136,7 +136,6 @@ export class DataLoader {
                     channels[names[j]].push(parseFloat(row[idx]));
                 } else if (dtypes[j] === 'fft' && row[idx+1]) {
                     if(!ffttime) {channels.fftTimes.push(parseFloat(row[1])); ffttime = true;}
-                    console.log(names[j],idx+1,indices[j+1])
                     if(indices[j+1]) {
                         channels[names[j]].push([...row.slice(idx+1,indices[j+1])].map(x => parseFloat(x)));
                     }
