@@ -11,6 +11,7 @@ export class buzzPlugin {
         this.device = null;
         this.filters = [];
         this.ui = null;
+        this.readBuffer = []
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -28,9 +29,12 @@ export class buzzPlugin {
 
     init = (info,pipeToAtlas) => {
         info.deviceType = 'other';
-        console.log(this)
         this.device = new Buzz(
-            (v) => {console.log(v)},
+            (response) => {
+                console.log(response)
+                response = this.device.parseResponse(response)
+                if (response) console.log(response)
+            },
             ()=>{ this.atlas.settings.deviceConnected = true; this.onconnect();},
             ()=>{ this.atlas.settings.deviceConnected = false; this.ondisconnect();}
             )
@@ -44,12 +48,10 @@ export class buzzPlugin {
                     info.analysis
                     );
     
-                info.deviceNum = this.atlas.data.heg.length-1;
                 info.useAtlas = true;
                 
             } else if (typeof pipeToAtlas === 'object') {
                 this.atlas = pipeToAtlas; //External atlas reference
-                info.deviceNum = this.atlas.data.heg.length; 
                 info.useAtlas = true;
             }
     }
@@ -79,6 +81,11 @@ export class buzzPlugin {
                 <button id='`+id+`accept'>Accept</button>
                 <button id='`+id+`battery'>Battery</button>
                 <button id='`+id+`info'>Info</button>
+                <button id='`+id+`getLEDs'>Get LEDS</button>
+                <button id='`+id+`setLEDs'>Set LEDS</button>
+                <button id='`+id+`motorsStart'>Start Motors</button>
+                <button id='`+id+`motorsVibrate'>Vibrate Motors</button>
+                <input id='`+id+`buzzcmd' type='text' placeholder='device info'></input><button id='`+id+`sendcmd'>Send</button>
             </div>
             `;
         }
@@ -96,6 +103,21 @@ export class buzzPlugin {
             }
             document.getElementById(id+'info').onclick = () => {
                 this.device.info()
+            }
+            document.getElementById(id+'getLEDs').onclick = () => {
+                this.device.leds.get()
+            }
+            document.getElementById(id+'setLEDs').onclick = () => {
+                this.device.leds.set([[255,0,0],[0,255,0],[0,0,255]],[1,1,1])
+            }
+            document.getElementById(id+'motorsStart').onclick = () => {
+                this.device.motors.start()
+            }
+            document.getElementById(id+'motorsVibrate').onclick = () => {
+                this.device.motors.vibrate([255,255,255,255])
+            }
+            document.getElementById(id+'sendcmd').onclick = () => {
+                this.device.sendCommand(document.getElementById(id+'buzzcmd').value);
             }
         }
 

@@ -4,6 +4,7 @@ export class Buzz {
     constructor(ondata=()=>{},onconnect=()=>{},ondisconnect=()=>{}) {
 
         this.interface = null;
+        this.readBuffer = []
         this.setupDevice(ondata,onconnect,ondisconnect);
     }
 
@@ -13,8 +14,8 @@ export class Buzz {
         this.interface.onConnectedCallback = onconnect;
         this.interface.onDisconnectedCallback = ondisconnect;
         this.interface.onNotificationCallback = (e) => {
-            var line = this.interface.decoder.decode(e.target.value);
-            ondata(line);
+            var msg = this.interface.decoder.decode(e.target.value);
+            ondata(msg);
         }
     }
 
@@ -25,49 +26,50 @@ export class Buzz {
 
     // Specific Buzz Commands
     requestDeveloperAuthorization(acceptTerms = false){
-        this.sendCommand('auth as developer')
+        this.sendCommand('auth as developer\n')
         if (acceptTerms){
             this.acceptDeveloperTerms()
         }
     }
 
     acceptDeveloperTerms(){
-        this.sendCommand('accept')
+        this.sendCommand('accept\n')
     }
 
     battery(){
-        this.sendCommand('device battery_soc')
+        this.sendCommand('device battery_soc\n')
     }
 
     info(){
-        this.sendCommand('device info')
+        this.sendCommand('device info\n')
     }
 
     connect() {
         this.interface.connect();
+        console.log('connecting')
 
         this.audio = {
             start: () => {
-                this.sendCommand('audio start')
+                this.sendCommand('audio start\n')
             }, 
             stop: () => {
-                this.sendCommand('audio stop')
+                this.sendCommand('audio stop\n')
             }
         }
 
         this.motors = {
             clear: () => {
-                this.sendCommand('motors clear_queue')
+                this.sendCommand('motors clear_queue\n')
             },
             start: () => {
-                this.sendCommand('motors start')
+                this.sendCommand('motors start\n')
             },
             stop: () => {
-                this.sendCommand('motors stop')
+                this.sendCommand('motors stop\n')
             },
             vibrate: (controlFrames) => {
                 let base64String = btoa(String.fromCharCode(...new Uint8Array(controlFrames.flat())));
-                this.sendCommand(`motors vibrate ${base64String}`)
+                this.sendCommand(`motors vibrate ${base64String}\n`)
             },
             threshold: {
                 set: (feedbackType,threshold='') => {
@@ -75,10 +77,10 @@ export class Buzz {
                 if (feedbackType == 'always') feedbackType = 1
                 if (feedbackType == 'threshold') feedbackType = 2
 
-                this.sendCommand(`motors config_threshold ${feedbackType} ${threshold}`)
+                this.sendCommand(`motors config_threshold ${feedbackType} ${threshold}\n`)
                 }, 
                 get: () => {
-                    this.sendCommand(`motors get_threshold `)
+                    this.sendCommand(`motors get_threshold\n`)
                 }
             },
             configThreshold: (feedbackType,threshold='') => {
@@ -86,25 +88,25 @@ export class Buzz {
                 if (feedbackType == 'always') feedbackType = 1
                 if (feedbackType == 'threshold') feedbackType = 2
 
-                this.sendCommand(`motors config_threshold ${feedbackType} ${threshold}`)
+                this.sendCommand(`motors config_threshold ${feedbackType} ${threshold}\n`)
             },
             lra: {
                 set: (mode) => {
                     if (mode == 'open') mode = 0
                     if (mode == 'closed') mode = 1
 
-                    this.sendCommand(`motors config_lra_mode ${mode}`)
+                    this.sendCommand(`motors config_lra_mode ${mode}\n`)
 
                 }, 
                 get: () => {
-                    this.sendCommand(`motors get_lra_mode ${mode}`)
+                    this.sendCommand(`motors get_lra_mode ${mode}\n`)
                 }
             }
         }
 
         this.leds = {
             get: () => {
-                this.sendCommand('leds get')
+                this.sendCommand('leds get\n')
 
                 // let hexToRgb = (hex) => {
                 //     let shorthandRegex = /^0x?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -124,8 +126,8 @@ export class Buzz {
                 let rgbToHex = (r, g, b) => {
                     return "0x" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
                   }
-
-                this.sendCommand(`leds set ${rgbToHex(...colors).join(' ')} ${intensities.map(i => i*50).join(' ')}`)
+                  colors = colors.map(c => c = rgbToHex(...c))
+                this.sendCommand(`leds set ${colors.join(' ')} ${intensities.map(i => i*50).join(' ')}\n`)
             },
         }
 
@@ -136,14 +138,49 @@ export class Buzz {
                 if (sensitivity == true || sensitivity == 'true') sensitivity = 1
                 if (sensitivity == false || sensitivity == 'false') sensitivity = 0
 
-                this.sendCommand(`set_buttons_response ${feedback} ${sensitivity}`)
+                this.sendCommand(`set_buttons_response ${feedback} ${sensitivity}\n`)
             }
+        }
+    }
+
+    parseResponse(response) {
+        let complete = false
+        if (response.indexOf("{") != -1 && this.readBuffer.length == 0){
+            if (response.lastIndexOf("}") != -1){
+                this.readBuffer.push(response.substring(
+                    response.indexOf("{"),
+                    response.lastIndexOf("}")+1, 
+                ))
+                complete = true;
+            } else {
+                this.readBuffer.push(response.substring(response.indexOf("{")))
+            }
+        } else {
+            if (response.lastIndexOf("}") != -1){
+                this.readBuffer.push(response.substring(
+                    0,
+                    response.lastIndexOf("}")+1, 
+                ))
+                complete = true;
+            } else if ( this.readBuffer.length != 0 ){
+                this.readBuffer.push(response)
+            }
+        }
+
+        if (complete) {
+            console.log(this.readBuffer)
+            let joinedBuffer = this.readBuffer.join('')
+            this.readBuffer = []
+            console.log(joinedBuffer)
+            response = JSON.parse(joinedBuffer)
+            this.readBuffer = []
+            return response
         }
     }
 
     disconnect() {
         this.interface.disconnect();
-
+        console.log('disconnecting')
         delete this.audio
         delete this.motors
         delete this.leds
@@ -153,7 +190,7 @@ export class Buzz {
 
 export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends/receives information. Other BLE devices will likely need changes to this to be interactive.
     constructor(
-        serviceUUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e', rxUUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e', txUUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e', async = false 
+        serviceUUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e', rxUUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e', txUUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
         // serviceUUID = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E', rxUUID = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E', txUUID = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E', async = false 
         ){
      this.serviceUUID = serviceUUID;
@@ -168,7 +205,6 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
      this.rxchar  = null; //receiver on the BLE device (write to this)
      this.txchar  = null; //transmitter on the BLE device (read from this)
 
-     this.async = async;
  
      this.android = navigator.userAgent.toLowerCase().indexOf("android") > -1; //Use fast mode on android (lower MTU throughput)
  
@@ -192,25 +228,20 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
        .then(sleeper(100)).then(server => server.getPrimaryService(serviceUUID))
        .then(sleeper(100)).then(service => { 
          this.service = service;
-         service.getCharacteristic(rxUUID).then(sleeper(100)).then(tx => {
-           this.rxchar = tx;
+         service.getCharacteristic(rxUUID).then(sleeper(100)).then(characteristic => {
+           this.rxchar = characteristic;
            return true // tx.writeValue(this.encoder.encode("t")); // Send command to start HEG automatically (if not already started)
          });
-         if(this.android == true){
-           service.getCharacteristic(rxUUID).then(sleeper(1000)).then(tx => {
-             return true // tx.writeValue(this.encoder.encode("o")); // Fast output mode for android
-           });
-         }
          return service.getCharacteristic(txUUID) // Get stream source
        })
-       .then(sleeper(1100)).then(characteristic=>{
+       .then(sleeper(1100)).then(characteristic => {
            this.txchar = characteristic;
-           return characteristic.startNotifications(); // Subscribe to stream
+           return this.txchar.startNotifications().then(() => {
+               console.log('notifications started')
+               this.txchar.addEventListener('characteristicvaluechanged', this.onNotificationCallback) //Update page with each notification
+           }); // Subscribe to stream
        })
-       .then(sleeper(100)).then(characteristic => {
-           characteristic.addEventListener('characteristicvaluechanged',
-                                           this.onNotificationCallback) //Update page with each notification
-       }).then(sleeper(100)).then(this.onConnectedCallback())
+       .then(sleeper(100)).then(this.onConnectedCallback())
        .catch(err => {console.error(err); this.onErrorCallback(err);});
        
        function sleeper(ms) {
@@ -220,102 +251,24 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
        }
     }
  
-    onNotificationCallback = (e) => { //Customize this with the UI
-      var val = this.decoder.decode(e.target.value);
-      console.log("BLE MSG: ",val);
+    onNotificationCallback = (e) => {
+        // Set one level up
     }   
  
     onConnectedCallback = () => {
-       //Use this to set up the front end UI once connected here
+       // Set one level up
     }
  
     sendMessage = (msg) => {
-      this.rxchar.writeValue(this.encoder.encode(msg));
+    if (msg[msg.length - 2] != '\n') msg += '\n'
+    console.log(msg)
+     let encoded = this.encoder.encode(msg)
+      this.rxchar.writeValue(encoded);
     }
- 
-    //Async solution fix for slower devices (android). This is slower than the other method on PC. Credit Dovydas Stirpeika
-    async connectAsync() {
-         this.device = await navigator.bluetooth.requestDevice({
-            filters: [
-                {services: [serviceUUID]},
-                {namePrefix: 'Buzz'}
-              ],
-             optionalServices: [this.serviceUUID]
-         });
- 
-         console.log("BLE Device: ", this.device);
-         
-         const btServer = await this.device.gatt?.connect();
-         if (!btServer) throw 'no connection';
-         this.device.addEventListener('gattserverdisconnected', onDisconnected);
-         
-         this.server = btServer;
-         
-         const service = await this.server.getPrimaryService(this.serviceUUID);
-         
-         // Send command to start HEG automatically (if not already started)
-         const tx = await service.getCharacteristic(this.rxUUID);
-        //  await truetx.writeValue(this.encoder.encode("t"));
- 
-        //  if(this.android == true){
-        //    await tx.writeValue(this.encoder.encode("o"));
-        //  }
-         
-         this.characteristic = await service.getCharacteristic(this.txUUID);
-          this.onConnectedCallback();
-         return true;
-     }
  
      disconnect = () => {this.server?.disconnect(); this.onDisconnectedCallback()};
  
      onDisconnectedCallback = () => {
-       console.log("BLE device disconnected!");
-     }
- 
-     async readDeviceAsync () {
-         if (!this.characteristic) {
-             console.log("Buzz not connected");
-             throw "error";
-         }
- 
-         // await this.characteristic.startNotifications();
-         this.doReadBuzz = true;
-         
-         var data = ""
-         while (this.doReadBuzz) {
-             const val = this.decoder.decode(await this.characteristic.readValue());
-             if (val !== this.data) {
-                 data = val;
-                 console.log(data);
-                 //data = data[data.length - 1];
-                 //const arr = data.replace(/[\n\r]+/g, '')
-                 this.n += 1;
-                 this.onReadAsyncCallback(data);
-             }
-         }
-     }
- 
-     onReadAsyncCallback = (data) => {
-       console.log("BLE Data: ",data)
-     }
- 
-     stopReadAsync = () => {
-         this.doReadBuzz = false;
-        //  tx.writeValue(this.encoder.encode("f"));
-     }
- 
-     spsinterval = () => {
-       setTimeout(() => {
-         console.log("SPS", this.n + '');
-         this.n = 0;
-         this.spsinterval();
-       }, 1000);
-     }
- 
-     async initBLEasync() {
-       await this.connectAsync();
-       this.readDeviceasync();
-       this.spsinterval();
-     }
-       
+        // Set one level up
+    }
  }
