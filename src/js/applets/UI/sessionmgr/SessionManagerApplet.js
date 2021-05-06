@@ -43,13 +43,14 @@ export class SessionManagerApplet {
             //Add whatever else
         };
 
-        this.fileloader = new DataLoader(this.bci.atlas);
+        this.dataloader = new DataLoader(this.bci.atlas);
         
         this.state = new StateManager({dirr:[], filelist:[]},1000);
 
         this.looping = false;
         this.sub = null;
         this.sub2 = null;
+        this.uplot = null;
     }
 
     //---------------------------------
@@ -136,7 +137,7 @@ export class SessionManagerApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.fileloader.deinit();
+        this.dataloader.deinit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -271,8 +272,7 @@ export class SessionManagerApplet {
                             this.deleteFile("/data/"+str);
                         } 
                         document.getElementById("mgr_"+str+"analyze").onclick = () => { 
-                            if(str.indexOf('heg') < 0) this.analyzeDBSession(str,'eeg');
-                            else this.analyzeDBSession(str,'heg');
+                            this.scrollFileData(str);
                         } 
                     }
                 });
@@ -301,33 +301,6 @@ export class SessionManagerApplet {
                 }
             }); 
         });
-    }
-
-    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
-        fs.open('/data/'+filename,'r',(e,fd) => {
-            if(e) throw e;
-            fs.read(fd,51200,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
-                if (er) throw er;
-                if(bytesRead !== 0) {
-                    let data = output.toString();
-                    let lines = data.split('\n');
-                    let header = lines[0];
-                    //Now parse the data back into the buffers.
-                    onOpen(header, filename);
-                };
-            }); 
-        });
-    }
-
-    parseDBData = (data,filename,header=true,end=true) => {
-        let lines = data.split('\n');
-        if(header === false) lines.shift(); 
-        if(end === false) lines.pop(); //pop first and last rows if they are likely incomplete
-        if(filename.indexOf('heg') >-1 ) {
-
-        } else { //eeg data
-
-        }
     }
 
     //Write CSV data in chunks to not overwhelm memory
@@ -408,6 +381,40 @@ export class SessionManagerApplet {
         });
     }
 
+    
+    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
+        fs.open('/data/'+filename,'r',(e,fd) => {
+            if(e) throw e;
+            fs.read(fd,65535,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
+                if (er) throw er;
+                if(bytesRead !== 0) {
+                    let data = output.toString();
+                    let lines = data.split('\n');
+                    let header = lines[0];
+                    //Now parse the data back into the buffers.
+                    onOpen(header, filename);
+                };
+            }); 
+        });
+    }
+
+    parseDBData = (data,head,filename,hasend=true) => {
+        let lines = data.split('\n'); 
+        lines.shift(); 
+        if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
+        if(filename.indexOf('heg') >-1 ) {
+            this.dataloader.parseHEGData(lines,head);
+            //this.dataloader.loaded
+        } else { //eeg data
+            this.dataloader.parseEEGData(lines,head);
+        }
+        return this.dataloader.state.data.loaded;
+    }
+
+    mean(arr){
+		var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+	}
     /*
         -> select file
         -> get header
@@ -416,35 +423,34 @@ export class SessionManagerApplet {
         -> update data on change
     */
     scrollFileData = (filename) => {
+        let head = undefined;
+            
+        this.getCSVHeader(filename, (header)=> { 
+            head = header.split(',');
+        });
+
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
             let buffersize = 100000;
             let end = buffersize;
-            let nsec = 10;
+            let nsec = 10; let spsEstimate = 0;
             /*
                 -> get data in window
                 -> check relative sample rate with unix time
                 -> adjust buffer size to that (update rangeend too)
             */
 
-            let head = undefined;
-            
-            this.getCSVHeader(filename, (header)=> { 
-                head = header;
-            });
-
-            const getData = () => {
-                if(end > size) end = size;
-                this.readFromDB(filename,begin,end,(data,file)=>{
-                    this.parseDBData(data,file,begin===0,end===size);
-                });
-            }
-
-            let rangeend = size - buffersize; if(rangend < 0) rangeend = 1;
+            let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
-            <div id='${this.props.id}uplot'></div>
+            <div>
+                <table id=${this.props.id}overlay' style='position:absolute;'>
+                    <tr><td id='${this.props.id}plotmenu'></td></tr>
+                    <tr><td id='${this.props.id}legend'></td></tr>
+                </table>
+                <div id='${this.props.id}uplot' style='background-color:white;'></div>
+            </div>
             <div id='${this.props.id}sessioninfo'>
                 <div id='${this.props.id}sessionname'>${filename}</div>
                 <input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='0' step='1'>
@@ -452,7 +458,121 @@ export class SessionManagerApplet {
             </div>
             `;
 
-            this.plot = new uPlotMaker(this.props.id+'uplot');
+            this.uplot = new uPlotMaker(this.props.id+'uplot');
+            //setup uplot
+            if(filename.indexOf('heg') > -1) { 
+                //loaded.data = {times,red,ir,ratio,ambient,error,rmse,notes,noteTimes}
+                let newSeries = [{}];
+                newSeries.push({
+                    label:"Red",
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb(155,0,0)"
+                });
+                newSeries.push({
+                    label:"IR",
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb(0,155,155)"
+                });
+                newSeries.push({
+                    label:"Ratio",
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb(155,0,155)"
+                });
+                newSeries.push({
+                    label:"Ratio Smoothed",
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb(155,155,0)"
+                });
+                newSeries.push({
+                    label:"Ambient",
+                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                    stroke: "rgb(0,0,0)"
+                });
+
+                let dummyarr = new Array(100).fill(1);
+
+                this.uplot.uPlotData = [
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr,
+                    dummyarr
+                ];
+
+                newSeries[0].label = "t";
+                this.uplot.makeuPlot(
+                    newSeries, 
+                    this.uplot.uPlotData, 
+                    this.plotWidth, 
+                    this.plotHeight
+                );
+
+                this.setLegend();
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+                //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                document.getElementById(this.props.id+'plotmenu').innerHTML = `
+                    <select id='${this.props.id}plotselect'>
+                        <option value='All' selected>All</option>
+                    </select>
+                `;
+            }
+            else {
+                //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                document.getElementById(this.props.id+'plotmenu').innerHTML = `
+                    <select id='${this.props.id}plotselect'>
+                        <option value='Raw'>Raw (Single)</option>
+                        <option value='Stacked' selected>Raw (Stacked)</option>
+                        <option value='FFT'>FFT</option>
+                        <option value='Coherence'>Coherence</option>
+                        <option value='MeanCoherence'>Mean Coherence</option>
+                    </select>
+                `;
+            }
+
+            const getData = () => {
+                if(end > size) end = size;
+                this.readFromDB(filename,begin,end,(data,file)=>{
+                    let loaded = this.parseDBData(data,head,file,end===size);
+                    if(filename.indexOf('heg') > -1) { 
+                        //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
+                        let gmode = document.getElementById(this.props.id+'plotmenu').value;
+                        if(gmode === 'All') {
+                            this.uplot.uPlotData = [
+                                loaded.data.t,
+                                loaded.data.red,
+                                loaded.data.ir,
+                                loaded.data.ratio,
+                                loaded.data.ratiosma,
+                                loaded.data.ambient
+                            ]
+                            this.uplot.plot.setData(this.uplot.uPlotData);
+                        }
+    
+                        let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
+                        let sessionGain = (this.mean(loaded.data.ratiosma)/this.mean(loaded.data.ratiosma.slice(0,200)) - 1)*100;
+
+                        let errCat = "♥ ฅ(=^ᆽ^=ฅ)"; // "(=<ᆽ<=)?" //"(=xᆽx=)"
+
+                        let changecolor = 'red';
+                        let gaincolor = 'red';
+                        if(sessionchange > 0) changecolor = 'green';
+                        if(sessionGain > 0) gaincolor = 'green';
+
+                        
+                        document.getElementById(this.props.id+"sessionstats").innerHTML = `
+                        <span style='color:`+changecolor+`;'>Change: `+sessionchange.toFixed(2)+`%</span>    
+                        | <span style='color:`+gaincolor+`;'>Avg Gain: `+sessionGain.toFixed(2)+`%</span>
+                        | <span>Error: `+loaded.data.error.toFixed(5)+`</span>
+                        | <span>RMSE: `+loaded.data.rmse.toFixed(5)+`</span>
+                        `;
+                    
+                    }
+                    else {
+                        //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                    }
+                });
+            }
 
             document.getElementById(this.props.id+'sessionrange').onchange = () => {
                 let val = document.getElementById(this.props.id+'sessionrange').value;
@@ -462,13 +582,32 @@ export class SessionManagerApplet {
                 getData();
             }
 
-
-
+            getData();
 
         });
     }
 
-  
+    setLegend = () => {
+        document.getElementById(this.props.id+"legend").innerHTML = "";
+        let htmlToAppend = ``;
+        //console.log(this.class.plot.series)
+        this.uplot.plot.series.forEach((ser,i) => {
+          if(i>0){
+            htmlToAppend += `<div id='`+this.props.id+ser.label+`' style='color:`+ser.stroke+`; cursor:pointer;'>`+ser.label+`</div>`;
+          }
+        });
+        document.getElementById(this.props.id+"legend").innerHTML = htmlToAppend;
+        this.uplot.plot.series.forEach((ser,i) => {
+          if(i>0){
+            document.getElementById(this.props.id+ser.label).onclick = () => {
+              if(this.uplot.plot.series[i].show === true){
+                document.getElementById(this.props.id+ser.label).style.opacity = 0.3;
+                this.uplot.plot.setSeries(i,{show:false});
+              } else {this.uplot.plot.setSeries(i,{show:true}); document.getElementById(this.props.id+ser.label).style.opacity = 1;}
+            }
+          }
+        });
+      }
 
 
 

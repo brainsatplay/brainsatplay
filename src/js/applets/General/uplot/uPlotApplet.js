@@ -546,7 +546,7 @@ export class uPlotApplet {
             newSeries.push({
               label:"Ratio",
               value: (u, v) => v == null ? "-" : v.toFixed(1),
-              stroke: "rgb(0,0,0)"
+              stroke: "rgb(155,0,155)"
             });
           }
           else if (i === 4) {
