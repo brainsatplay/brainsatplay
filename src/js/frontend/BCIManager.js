@@ -379,12 +379,12 @@ export class BCIAppManager {
                 if (signedIn){
                     this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
                         this.updateProfileUI(user)
+                        this.removeOverlay()
                     })
+                } else {
+                    this.removeOverlay()
                 }
                 
-                // Remove overlay
-                document.body.querySelector('.loader').style.opacity = 0;
-                this.tutorialManager.initializeTutorial()
             }
         }
         checkIfLoggedIn();
@@ -433,6 +433,12 @@ export class BCIAppManager {
         //     this.tutorialManager.openTutorial()
         //     this.tutorialManager.updateStandaloneTutorialContent(0,0)
         //  }
+    }
+
+    removeOverlay = () => {
+        // Remove overlay
+        document.body.querySelector('.loader').style.opacity = 0;
+        this.tutorialManager.initializeTutorial()
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

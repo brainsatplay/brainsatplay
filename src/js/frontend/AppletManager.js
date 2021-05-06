@@ -660,7 +660,6 @@ export class AppletManager {
             console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
-                console.log(AppletInfo, [select.value])
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
                 this.addApplet(appletCls, appletIdx + 1);
             }

@@ -139,14 +139,10 @@ export class ProfileApplet {
                     let input = document.createElement('input')
                     input.type = 'checkbox'
                     input.name = `${config.company}_${config.name}`
-                    if (data.devices.includes(config.name)) input.checked = true
                     input.id = `${this.props.id}-${config.company}_${config.name}`
-                    input.onchange = (e) => {
-                        this.updateDevices(e.target.name,e.target.checked)
-                    }
                     let label = document.createElement('label')
-                    label.for += config.name
-                    label.innerHTML += config.name
+                    label.for = config.name
+                    label.innerHTML = config.name
                     div.appendChild(input)
                     div.appendChild(label)
 
@@ -158,7 +154,18 @@ export class ProfileApplet {
                     }
                     companyDiv.appendChild(div)
                 })
+
+                let checkboxes = deviceGrid.querySelectorAll(`input[type='checkbox']`)
+
+                for (let box of checkboxes){
+                    box.checked = data.devices.includes(box.name)
+                    box.onchange = (e) => {
+                        console.log('input changed')
+                        this.updateDevices(e.target.name,e.target.checked)
+                    }
+                }
             })
+
         } else {
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 1;
         }
@@ -179,7 +186,6 @@ export class ProfileApplet {
         const collection = mongo.db("brainsatplay").collection("customUserData");
         const filter = {userID: this.session.info.googleAuth.profile.id};
         const updateDoc = (has ? {$addToSet: { devices: device }} : {$pull: { devices: device }})
-        console.log(has,updateDoc)
         await collection.updateOne(filter, updateDoc);
     }
 } 

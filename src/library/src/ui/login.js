@@ -32,6 +32,8 @@ export const LoginWithRealm = async (authResponse) => {
         credentials.payload.redirectUrl = redirectUri
         user = await app.logIn(credentials);
     }
+    let data =  await user.refreshCustomData()
+    console.log(data)
     return user;
 }
 
