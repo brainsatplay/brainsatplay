@@ -19,6 +19,13 @@ How it will work:
 Local files can be analyzed, as in given scores and basic review parameters. 
 These analyses will be automatically backed up on drive as a session record system
 Large CSVs should be backed up in a separate window.
+
+TODO:
+- uPlot options 
+- Analysis options
+- Uploading and comparing analyses over time. 
+   -- if loading session into drive with same name but new analysis, just add the new columns
+   -- Backs up this data only to drive, the rest is manual
 */
 
 //Session reviewer! Yay!
@@ -149,17 +156,22 @@ export class SessionManagerApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.uplot) {
+            let lastseries = this.uplot.plot.series;
             this.uplot.deInit();
             let plotselect = document.getElementById(this.props.id+'plotselect').value;
             let newSeries = this.makeSeries(plotselect,this.dataloader.state.data.loaded.header);
+            lastseries.forEach((ser,j)=> {
+                newSeries[j].show = ser.show;
+            });
             this.uplot.makeuPlot(
                 newSeries, 
                 this.uplot.uPlotData, 
                 this.AppletHTML.node.clientWidth, 
                 400
             );
-            if(plotselect === 'heg' || plotselect.includes('eegraw')) this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime*.00001666667))+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(0) + "s");
-        }
+            if(plotselect === 'heg' || plotselect.includes('eegraw')) {
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(0) + "s");}
+            }
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
@@ -217,8 +229,7 @@ export class SessionManagerApplet {
 
     appendContent(message) {
         var pre = document.getElementById(this.props.id+'content');
-        var textContent = document.insertAdjacentHTML('beforeend',message);
-        pre.appendChild(textContent);
+        pre.insertAdjacentHTML('beforeend',message);
       }
 
     checkFolder() {
