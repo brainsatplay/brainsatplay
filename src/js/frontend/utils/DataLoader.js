@@ -104,6 +104,7 @@ export class DataLoader {
             let v = value.split(';');
             if(v.length > 1) {
                 if(v[1].toLowerCase().indexOf("fft") > -1) {
+                    console.log(v[1], idx)
                     ffts=true;
                     indices.push(idx);
                     dtypes.push('fft');
@@ -117,27 +118,31 @@ export class DataLoader {
                 dtypes.push('signal');
             } else if (v[0].toLowerCase().indexOf('unix') > -1) {
                 dtypes.push('times');
+                names.push('times');
                 indices.push(idx);
             } else if (v[0].toLowerCase().indexOf('note') > -1) {
                 dtypes.push('notes');
+                names.push('notes');
                 indices.push(idx);
             }
         });
 
-        data.forEach((row) => {
+        data.forEach((r) => {
+            let row = r.split(',');
             let j = 0;
             let ffttime = false;
             indices.forEach((idx,j) => {
                 if(dtypes[j] === 'signal') {
-                    channels[names[j]].push(row[idx]);
+                    channels[names[j]].push(parseFloat(row[idx]));
                 } else if (dtypes[j] === 'fft' && row[idx+1]) {
-                    if(!ffttime) {channels.fftTimes.push(row[1]); ffttime = true;}
-
-                    if(indices[idx+1])
-                        channels[names[j]].push(row[idx+1].slice(idx+1,indices[idx+1]));
-                    else channels[names[j]].push(row[idx+1].slice(idx+1));
+                    if(!ffttime) {channels.fftTimes.push(parseFloat(row[1])); ffttime = true;}
+                    console.log(names[j],idx+1,indices[j+1])
+                    if(indices[j+1]) {
+                        channels[names[j]].push([...row.slice(idx+1,indices[j+1])].map(x => parseFloat(x)));
+                    }
+                    else channels[names[j]].push([...row.slice(idx+1)].map(x => parseFloat(x)));
                 } else  if (dtypes[j] === 'times') {
-                    channels.times.push(row[j]);
+                    channels.times.push(parseFloat(row[1]));
                 } else if (dtypes[j] === 'notes' && row[idx]) {
                     channels.notes.push(row[idx]);
                     channels.noteTimes.push(row[1]);

@@ -646,7 +646,7 @@ export class SessionManagerApplet {
                     
                     }
                     else {
-                        //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                        console.log(loaded.data) // {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                     }
                 });
             }
