@@ -448,14 +448,13 @@ export class SessionManagerApplet {
             let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
 
             document.getElementById(this.props.id+'sessionwindow').innerHTML = `
-            <div>
-                <table id=${this.props.id}overlay' style='position:absolute;'>
-                    <tr><td id='${this.props.id}plotmenu'></td></tr>
-                    <tr><td id='${this.props.id}legend'></td></tr>
+            <div width="100%">
+                <table id=${this.props.id}overlay' style='position:absolute; z-index:4;'>
+                    <tr valign='top'><td id='${this.props.id}plotmenu'></td><td id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td></tr>
                 </table>
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
-            <div id='${this.props.id}sessioninfo'>
+            <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
                 <div id='${this.props.id}sessionname'>${filename}</div>
                 <input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='0' step='1'>
                 <div id='${this.props.id}sessionstats'>Stats</div>
@@ -483,7 +482,7 @@ export class SessionManagerApplet {
                     stroke: "rgb(155,0,155)"
                 });
                 newSeries.push({
-                    label:"Ratio Smoothed",
+                    label:"Ratio SMA",
                     value: (u, v) => v == null ? "-" : v.toFixed(1),
                     stroke: "rgb(155,155,0)"
                 });
