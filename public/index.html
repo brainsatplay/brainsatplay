@@ -173,8 +173,9 @@ window.postToWorker = (input,workeridx = null) => {
 /**
  *  Sign out the user upon button click.
  */
-window.handleSignoutClick = function(event) {
-    window.gapi.auth2.getAuthInstance().signOut();
+window.handleSignoutClick = async function(event) {
+    await window.gapi.auth2.getAuthInstance().signOut()
+    return true
 }
 
 window.handleClientLoad = function() {
@@ -192,6 +193,7 @@ window.updateSigninStatus = function(isSignedIn) {
 
 
 window.initClient = function() {
+    window.gapi.auth2.initialized = false;
     // Array of API discovery doc URLs for APIs used by the quickstart
     var DISCOVERY_DOCS = [
         "https://sheets.googleapis.com/$discovery/rest?version=v4",
@@ -206,10 +208,11 @@ window.initClient = function() {
         https://www.googleapis.com/auth/spreadsheets"
     }).then(function () {
         // Listen for sign-in state changes.
-        window.gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-
+        this.auth = window.gapi.auth2.getAuthInstance()
+        this.auth.isSignedIn.listen(updateSigninStatus);
+        window.gapi.auth2.initialized = true;
         // Handle the initial sign-in state.
-        window.updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
+        window.updateSigninStatus(this.auth.isSignedIn.get());
         
     }, function(error) {
         console.log(error);//appendPre(JSON.stringify(error, null, 2));

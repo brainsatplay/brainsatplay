@@ -38,15 +38,18 @@ export class ProfileApplet {
                 <section id="${props.id}-error-screen" style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 50px; background: black; opacity: 1; transition: opacity 1s;">
                 </section>
                 <section id='${props.id}-profile' style="padding: 50px; width: 100%; height: 100%; box-sizing: border-box; oveflow: scroll;">
-                    <div style="display: flex; justify-content: center; align-items: center;">
-                        <img id="${props.id}-picture" style="height: 100%; aspect-ratio: 1 / 1;">
-                        <div style="margin-left: 25px;">
-                            <h1 id="${props.id}-name"></h1>
-                            <div style='font-size: 80%;'>
-                                <p>ID: <span id="${props.id}-customData-userId"></span></p>
-                                <p>Email: <span id="${props.id}-customData-email"></span></p>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
+                        <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+                            <img id="${props.id}-picture" style="height: 100%; aspect-ratio: 1 / 1;">
+                            <div style="margin-left: 25px;">
+                                <h1 id="${props.id}-name"></h1>
+                                <div style='font-size: 80%;'>
+                                    <p>ID: <span id="${props.id}-customData-userId"></span></p>
+                                    <p>Email: <span id="${props.id}-customData-email"></span></p>
+                                </div>
                             </div>
                         </div>
+                        <button id="${props.id}-signout">Sign Out</button>
                     </div>
                     <br>
                     <h2>Username</h2>
@@ -64,6 +67,11 @@ export class ProfileApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.updateProfileInfo()
+
+            document.getElementById(`${props.id}-signout`).onclick = async () => {
+                await window.handleSignoutClick()
+                this.responsive()
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -98,7 +106,7 @@ export class ProfileApplet {
 
     toggleErrorScreen(msg='<h1>Please log in with Google to view your profile.</h1>') {
         let errorScreen = document.getElementById(`${this.props.id}-error-screen`)
-        if (this.session.info.googleAuth != null) {
+        if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()) {
             errorScreen.style.opacity = 0;
             errorScreen.style.pointerEvents = 'none';
         }
@@ -133,20 +141,17 @@ export class ProfileApplet {
                     }
                 }
 
+                deviceGrid.innerHTML = ''
                 deviceList.forEach((config) => {
                     let div = document.createElement('div')
                     div.style = `min-width: 200px; flex-grow: 1;`
                     let input = document.createElement('input')
                     input.type = 'checkbox'
                     input.name = `${config.company}_${config.name}`
-                    if (data.devices.includes(config.name)) input.checked = true
                     input.id = `${this.props.id}-${config.company}_${config.name}`
-                    input.onchange = (e) => {
-                        this.updateDevices(e.target.name,e.target.checked)
-                    }
                     let label = document.createElement('label')
-                    label.for += config.name
-                    label.innerHTML += config.name
+                    label.for = config.name
+                    label.innerHTML = config.name
                     div.appendChild(input)
                     div.appendChild(label)
 
@@ -158,7 +163,17 @@ export class ProfileApplet {
                     }
                     companyDiv.appendChild(div)
                 })
+
+                // Setup Dynamic Checkbox Behavior
+                let checkboxes = deviceGrid.querySelectorAll(`input[type='checkbox']`)
+                for (let box of checkboxes){
+                    box.checked = data.devices.includes(box.name)
+                    box.onchange = (e) => {
+                        this.updateDevices(e.target.name,e.target.checked)
+                    }
+                }
             })
+
         } else {
             document.getElementById(`${this.props.id}-error-screen`).style.opacity = 1;
         }
@@ -179,7 +194,6 @@ export class ProfileApplet {
         const collection = mongo.db("brainsatplay").collection("customUserData");
         const filter = {userID: this.session.info.googleAuth.profile.id};
         const updateDoc = (has ? {$addToSet: { devices: device }} : {$pull: { devices: device }})
-        console.log(has,updateDoc)
         await collection.updateOne(filter, updateDoc);
     }
 } 

@@ -258,8 +258,6 @@ export class AppletManager {
         let currentApplets = this.applets.map(applet => applet.name)
         let isAllNull = (s, a) => s + ((a != null) ? 1 : 0)
 
-        console.log(this.appletConfigs)
-
         this.appletConfigs.forEach(conf => {
             if (typeof conf === 'object') {
                 if (!currentApplets.reduce(isAllNull, 0) && AppletInfo[conf.name] != null) {
@@ -288,8 +286,6 @@ export class AppletManager {
         }
 
         Promise.all(appletPromises).then((configApplets) => {
-
-            console.log(configApplets)
 
             // Check the compatibility of current applets with connected devices
             this.appletsSpawned = 0;
@@ -357,7 +353,6 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
-            console.log(AppletInfo[appletName].folderUrl)
             if (!AppletInfo[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
 
@@ -657,10 +652,8 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = async (e) => {
-            console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
-                console.log(AppletInfo, [select.value])
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
                 this.addApplet(appletCls, appletIdx + 1);
             }

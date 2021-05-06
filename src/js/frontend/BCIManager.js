@@ -162,7 +162,14 @@ export class BCIAppManager {
                 </div>
 
                 <div id="brainstplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
-                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'"><div class="img-cont"><img id="brainsatplay-profile-img" src="${GoogleIcon}" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)"><span id="brainsatplay-profile-label" style="margin-left: 10px; ">Log In</span></div></button>
+                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
+                    <div class="img-cont">
+                    <img id="brainsatplay-profile-img" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)">
+                    <span id="brainsatplay-profile-label" style="margin-left: 10px; ">
+                    Log In
+                    </span>
+                    </div>
+                    </button>
                 </div>
                 `
                 // <div id="profile-menu" class="collapsible-container">
@@ -356,27 +363,24 @@ export class BCIAppManager {
         //     contentChild3
         // );
 
-        let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
-        profileButton.onclick = async (e) => {
-            this.session.loginWithGoogle().then(user => {
-                let profileImg = document.getElementById(`brainsatplay-profile-img`)
-                document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
-                document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
-                profileImg.style.padding = "0"
-                let selector = document.getElementById(`applet0`)
-                let choice = 'Profile Manager'
-                profileButton.onclick = () => {
-                    selector.value = choice
-                    window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
-                    selector.onchange()
+        const checkIfLoggedIn = () => {
+            if (window.gapi.auth2.initialized === false && window.navigator.onLine){
+                setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
+                return;
+            } else {
+                if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()){
+                    this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
+                        this.updateProfileUI(user)
+                        this.removeOverlay()
+                    })
+                } else {
+                    this.updateProfileUI()
+                    this.removeOverlay()
                 }
-                console.log(choice,selector.value)
-                if (selector.value === choice) profileButton.click() // Refresh profile if necessary
-            }).catch((e) => {
-                console.log(e)
-            })
-            
+                
+            }
         }
+        checkIfLoggedIn();
 
         // app.querySelector('#login-button').onclick = () => {
         //     let form = app.querySelector('#login-form')
@@ -424,6 +428,12 @@ export class BCIAppManager {
         //  }
     }
 
+    removeOverlay = () => {
+        // Remove overlay
+        document.body.querySelector('.loader').style.opacity = 0;
+        this.tutorialManager.initializeTutorial()
+    }
+
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
 
         this.session.onconnected = () => {
@@ -449,6 +459,39 @@ export class BCIAppManager {
         this.uiFragments.select.deleteNode();
         this.uiFragments.filemenu.deleteNode();
         this.uiFragments.Buttons.deleteNode();
+    }
+
+    updateProfileUI(user){
+        let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
+        let profileImg = document.getElementById(`brainsatplay-profile-img`)
+        if (user != null){
+            document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
+            document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
+            profileImg.style.padding = "0"
+            let selector = document.getElementById(`applet0`)
+            let choice = 'Profile Manager'
+            profileButton.onclick = () => {
+                selector.value = choice
+                window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
+                selector.onchange()
+            }
+            if (selector.value === choice) profileButton.click() // Refresh profile if necessary
+        } else {
+            document.getElementById(`brainsatplay-profile-img`).src = GoogleIcon
+            document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Log In' // user._profile.data.name
+            profileImg.style.padding = "10px"
+            profileButton.onclick = async (e) => {
+                this.session.loginWithGoogle().then(authResponse => {
+                    this.session.loginWithRealm(authResponse).then(user => {
+                        this.updateProfileUI(user)
+                    }).catch((e) => {
+                        console.log(e)
+                    })
+                }).catch((e) => {
+                    console.log(e)
+                })
+            }
+        }
     }
 
     getConfigsFromHashes() {
@@ -502,10 +545,6 @@ export class BCIAppManager {
             this.appletSelectIds,
             this.session
         )
-
-        // Remove overlay
-        document.body.querySelector('.loader').style.opacity = 0;
-        this.tutorialManager.initializeTutorial()
     }
 
     setApps( //set the apps and create a new UI or recreate the original

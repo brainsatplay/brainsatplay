@@ -50,7 +50,7 @@ import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 import { buzzPlugin } from './devices/neosensory/buzzPlugin';
 
 // MongoDB Realm
-import { LoginWithGoogle } from './ui/login';
+import { LoginWithGoogle, LoginWithRealm} from './ui/login';
 import * as Realm from "realm-web";
 
 
@@ -545,7 +545,11 @@ export class Session {
 	}
 
 	loginWithGoogle = async () => {
-	 	let user = await LoginWithGoogle()
+		return await LoginWithGoogle()
+	}
+
+	loginWithRealm = async (authResponse) => {
+		let user = await LoginWithRealm(authResponse)
 		this.info.googleAuth = user
 		return user	
 	}

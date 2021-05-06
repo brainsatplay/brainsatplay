@@ -82,7 +82,7 @@ export class MultiplayerAppletTemplate {
                             arcRotation = Math.PI
                             p.textAlign(p.LEFT, p.CENTER)
                         }
-                        basePos.y = p.height*(1-data.position.y)
+                        basePos.y = p.height*(1-data.position?.y)
 
                         // Player
                         p.fill('white')
@@ -97,19 +97,21 @@ export class MultiplayerAppletTemplate {
                         // Fireballs
                         p.noStroke()
                         p.fill('red')
-                        data.fireballs.array.forEach(ball => {
-                            let ballPosX;
-                            if (data.username === this.session.info.auth.username){
-                                ballPosX = basePos.x + (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
-                            } else {
-                                ballPosX = basePos.x - (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
-                                if (Math.sqrt(Math.pow(this.position.x - ballPosX,2) +  Math.pow(this.position.y - ball.y,2))){
-                                    if (this.health.percentage > 0) this.health.percentage -= 0.0001
-                                    else this.health.percentage = 0
+                        if (data.fireballs){
+                            data.fireballs.array.forEach(ball => {
+                                let ballPosX;
+                                if (data.username === this.session.info.auth.username){
+                                    ballPosX = basePos.x + (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                                } else {
+                                    ballPosX = basePos.x - (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
+                                    if (Math.sqrt(Math.pow(this.position.x - ballPosX,2) +  Math.pow(this.position.y - ball.y,2))){
+                                        if (this.health.percentage > 0) this.health.percentage -= 0.0001
+                                        else this.health.percentage = 0
+                                    }
                                 }
-                            }
-                            p.ellipse(ballPosX, p.height*(1-ball.y), diameter/5)
-                        })
+                                p.ellipse(ballPosX, p.height*(1-ball.y), diameter/5)
+                            })
+                        }
 
                         // Shield
                         let c = p.color(0,155,255)
@@ -124,8 +126,8 @@ export class MultiplayerAppletTemplate {
                         p.stroke('white')
                         p.strokeWeight(1);
                         p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter, diameter/5)
-                        p.fill(255*(1-data.health.percentage),200*data.health.percentage,255*data.health.percentage)
-                        p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter*data.health.percentage, diameter/5)
+                        p.fill(255*(1-data.health?.percentage),200*data.health?.percentage,255*data.health?.percentage)
+                        p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter*data.health?.percentage, diameter/5)
                     }
 
                     let getLocalData = () => {
@@ -203,13 +205,14 @@ export class MultiplayerAppletTemplate {
                             
                             // Draw Data when Connected to Server
                                 streamInfo.userData.forEach((userData)=> {
+                                    console.log(userData)
                                     if (userData != null){
                                         let username = userData.username
                                         if (username != this.session.info.auth.username){
                                             if (this.userInfo[username] == null) this.userInfo[username] = userData;
                                             presentUsers.push(username)
                                             if (userData.position != null && !isNaN(userData.position.x) && !isNaN(userData.position.y)) {this.userInfo[username].position = userData.position}
-                                            if (userData.fireballs != null && userData.fireballs.array.length >  0) this.userInfo[username].fireballs = userData.fireballs
+                                            if (userData.fireballs != null && userData.fireballs.array?.length >  0) this.userInfo[username].fireballs = userData.fireballs
                                             if (userData.defense != null) this.userInfo[username].defense = userData.defense
                                             if (userData.keysPressed != null) this.userInfo[username].keysPressed = userData.keysPressed
                                             drawPlayer(this.userInfo[username])
