@@ -131,6 +131,8 @@ export class HEGPlotterApplet {
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.plot.deInit();
+        this.plot = null;
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }

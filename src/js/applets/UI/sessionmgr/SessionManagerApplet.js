@@ -48,9 +48,9 @@ export class SessionManagerApplet {
         this.state = new StateManager({dirr:[], filelist:[]},1000);
 
         this.looping = false;
-        this.sub = null;
-        this.sub2 = null;
-        this.uplot = null;
+        this.sub = undefined;
+        this.sub2 = undefined;
+        this.uplot = undefined;
     }
 
     //---------------------------------
@@ -423,6 +423,10 @@ export class SessionManagerApplet {
         -> update data on change
     */
     scrollFileData = (filename) => {
+        if(this.uplot) {     
+            this.uplot.deInit();
+            this.uplot = undefined;
+        }
         let head = undefined;
             
         this.getCSVHeader(filename, (header)=> { 
@@ -432,7 +436,7 @@ export class SessionManagerApplet {
         this.getFileSize(filename, (size)=> {
             console.log(size);
             let begin = 0;
-            let buffersize = 100000;
+            let buffersize = 1000000;
             let end = buffersize;
             let nsec = 10; let spsEstimate = 0;
             /*
@@ -536,10 +540,10 @@ export class SessionManagerApplet {
                     let loaded = this.parseDBData(data,head,file,end===size);
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
-                        let gmode = document.getElementById(this.props.id+'plotmenu').value;
+                        let gmode = document.getElementById(this.props.id+'plotselect').value;
                         if(gmode === 'All') {
                             this.uplot.uPlotData = [
-                                loaded.data.t,
+                                loaded.data.times,
                                 loaded.data.red,
                                 loaded.data.ir,
                                 loaded.data.ratio,
@@ -547,6 +551,7 @@ export class SessionManagerApplet {
                                 loaded.data.ambient
                             ]
                             this.uplot.plot.setData(this.uplot.uPlotData);
+                            console.log(gmode);
                         }
     
                         let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
