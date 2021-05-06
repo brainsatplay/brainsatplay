@@ -47,7 +47,7 @@ import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
-import { buzzPlugin } from './devices/neosensory/buzz/buzzPlugin';
+import { buzzPlugin } from './devices/neosensory/buzzPlugin';
 
 // MongoDB Realm
 import { LoginWithGoogle } from './ui/login';

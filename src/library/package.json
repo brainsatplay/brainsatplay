@@ -3,7 +3,7 @@
   "version": "0.0.5",
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
-  "module": "src/index.js",
+  "module": "brainsatplay.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "webpack --mode production"

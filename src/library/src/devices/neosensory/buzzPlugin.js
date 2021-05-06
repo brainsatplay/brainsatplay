@@ -1,8 +1,8 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {DataAtlas} from '../../../DataAtlas'
-import {Buzz} from './Buzz'
-import {DOMFragment} from '../../../ui/DOMFragment'
+import {DataAtlas} from '../../DataAtlas'
+import {DOMFragment} from '../../ui/DOMFragment'
+import * as neosensory from 'neosensory'
 
 export class buzzPlugin {
     constructor( mode, onconnect=()=>{}, ondisconnect=()=>{}) {
@@ -11,7 +11,6 @@ export class buzzPlugin {
         this.device = null;
         this.filters = [];
         this.ui = null;
-        this.readBuffer = []
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -29,10 +28,8 @@ export class buzzPlugin {
 
     init = (info,pipeToAtlas) => {
         info.deviceType = 'other';
-        this.device = new Buzz(
+        this.device = new neosensory.Buzz(
             (response) => {
-                console.log(response)
-                response = this.device.parseResponse(response)
                 if (response) console.log(response)
             },
             ()=>{ this.atlas.settings.deviceConnected = true; this.onconnect();},
@@ -93,10 +90,10 @@ export class buzzPlugin {
         let setup = () => {
          
             document.getElementById(id+'request').onclick = () => {
-                this.device.requestDeveloperAuthorization()
+                this.device.requestAuthorization()
             }
             document.getElementById(id+'accept').onclick = () => {
-                this.device.acceptDeveloperTerms()
+                this.device.acceptTerms()
             }
             document.getElementById(id+'battery').onclick = () => {
                 this.device.battery()
@@ -105,16 +102,16 @@ export class buzzPlugin {
                 this.device.info()
             }
             document.getElementById(id+'getLEDs').onclick = () => {
-                this.device.leds.get()
+                this.device.getLEDs()
             }
             document.getElementById(id+'setLEDs').onclick = () => {
-                this.device.leds.set([[255,0,0],[0,255,0],[0,0,255]],[1,1,1])
+                this.device.setLEDs([[255,0,0],[0,255,0],[0,0,255]],[1,1,1])
             }
             document.getElementById(id+'motorsStart').onclick = () => {
-                this.device.motors.start()
+                this.device.enableMotors()
             }
             document.getElementById(id+'motorsVibrate').onclick = () => {
-                this.device.motors.vibrate([255,255,255,255])
+                this.device.vibrateMotors([255,255,255,255])
             }
             document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(document.getElementById(id+'buzzcmd').value);
