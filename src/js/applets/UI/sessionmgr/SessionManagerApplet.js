@@ -545,6 +545,89 @@ export class SessionManagerApplet {
         return newSeries;
     }
 
+    backupToDrive = (filename,tags=undefined) => {
+        if(!this.analyze_completed) { //we need RESULTS
+            return false;
+        }
+        let time = this.dataloader.toISOLocal(new Date(this.startTime));
+        //append
+        let toAppend = [];   
+        for(const prop in this.analyze_result) {
+            toAppend.push(this.analyze_result[prop]);
+        }
+
+        let file = "Brainsatplay_Data/";
+        if(filename.includes('eeg')) {
+            file+="EEG_Session_Info";
+        } else if (filename.includes('heg')) {
+            file+="HEG_Session_Info";
+        }
+
+        gapi.client.drive.files.list({
+            q:file,
+            'fields': "files(id, name)"
+        }).then((response) => { 
+            let files = response.data.files;
+            if(files.length>1) {
+                gapi.client.sheets.spreadsheets.values.get({
+                    majorDimension:"ROWS",
+                    "values":[[time]],
+                    range: "A1",
+                    spreadsheetId: files[0].id
+                  }).then((response) => {
+                    var result = response.result;
+                    var numRows = result.values ? result.values.length : 0;
+                    if(numRows === 0) {
+
+                        gapi.client.sheets.spreadsheets.values.append({
+                            "range": "Sheet1",
+                            majorDimension: "ROWS",
+                            "values": [
+                                [[time,this.startTime,tags,...toAppend]]
+                            ]
+                        }).then((response) => {
+
+                        });
+                    }
+                    else {
+                        let newValues = [[...result.values[0],...toAppend]];
+                        gapi.client.sheets.spreadsheets.values.append({
+                            "range": "Sheet1",
+                            majorDimension: "ROWS",
+                            range:result.range[0],
+                            "values": [
+                                newValues
+                            ]
+                        }).then((response) => {
+
+                        });
+                    }
+                  });
+            } else {
+                gapi.client.sheets.spreadsheets.create({
+                    resource: {
+                        properties: { title: file }},
+                    fields: 'spreadsheetId'
+                }, (err, spreadsheet) => {
+                    if (err) return console.log('spreadsheets create error: ' + err)
+                    // The spreadsheet Id will be in ${spreadsheet.data.spreadsheetId}
+                    console.log(`created spreadsheet with id: ${spreadsheet.data.spreadsheetId}`);
+                    //append
+                    gapi.client.sheets.spreadsheets.values.append({
+                        spreadsheetId: spreadsheet.data.spreadsheetId,
+                        "range": "Sheet1",
+                        majorDimension: "ROWS",
+                        "values": [
+                            [[time,this.startTime,...toAppend]]
+                        ]
+                    }).then((response) => {
+
+                    });
+                })
+            }
+        });
+    }
+
     scrollFileData = (filename) => {
         if(this.uplot) {     
             this.uplot.deInit();
@@ -574,7 +657,7 @@ export class SessionManagerApplet {
             let rangeend = size - buffersize; if(rangeend < 0) rangeend = 1;
             let rval = 0; if(rangeend === 1) rval = 1;
 
-            document.getElementById(this.props.id+'sessionwindow').innerHTML = `
+            document.getElementById(this.props.id+'sessionwindow').insertAdjacentHTML('beforeend',`
             <div width="100%">
                 <table id=${this.props.id}overlay' style='position:absolute; z-index:4;'>
                     <tr valign='top'><td><button id='${this.props.id}plotclose' style='pointer:cursor;'>X</button></td><td id='${this.props.id}plotmenu'></td><td id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td></tr>
@@ -592,7 +675,11 @@ export class SessionManagerApplet {
                 </tr>
                 </table>
             </div>
-            `;
+            `);
+
+            if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
+                //pull gapi data or expose the option
+            }
 
             document.getElementById(this.props.id+'plotclose').onclick = () => {
                 if(this.uplot) {     
@@ -650,6 +737,10 @@ export class SessionManagerApplet {
                             document.getElementById(this.props.id+'sessionstatsrow').innerHTML += `
                                 <td>Average Ratio: ${this.analyze_result.ratiomean.toFixed(3)}</td>
                             `;
+
+                            if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
+                                //pull gapi data or expose the option
+                            }
                         }
                     }
                     waitResult();
@@ -823,7 +914,7 @@ export class SessionManagerApplet {
                             if(!this.analyze_result.ratiomean) {this.analyze_result.ratiomean = (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length; console.log(this.analyze_result.ratiomean); this.analyze_result.error = loaded.data.error; this.analyze_result.rmse = loaded.data.rmse; }
                             else { this.analyze_result.ratiomean = (this.analyze_result.ratiomean + (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length)*.5; this.analyze_result.error = (this.analyze_result.error+loaded.data.error)*.5; this.analyze_result.rmse=(this.analyze_result.rmse+loaded.data.rmse)*.5; }
                         } else if (analysisType === 'hrv') {
-
+                            
                         }
                     }
                     else {
