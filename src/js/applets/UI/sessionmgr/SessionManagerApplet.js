@@ -85,9 +85,12 @@ export class SessionManagerApplet {
                 <hr align='left' style='width:25%;'>
                 <div id='${props.id}fs'></div>
                 <hr>
-                <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
                 <hr>
                 <div id='${props.id}content'></div>
+                <hr>
+                <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
+                <hr>
+                
             </div> 
             `;
         }
