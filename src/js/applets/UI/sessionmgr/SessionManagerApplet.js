@@ -754,6 +754,7 @@ export class SessionManagerApplet {
             this.uplot.deInit();
             this.uplot = undefined;
             this.startTime = undefined;
+            document.getElementById(this.props.id+'sessionwindow').innerHTML='';
         }
         let head = undefined;
             
