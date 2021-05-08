@@ -86,7 +86,6 @@ export class SessionManagerApplet {
                 <hr>
                 <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
                 <hr>
-                <p>Google API Test</p>
                 <div id='${props.id}content'></div>
             </div> 
             `;
