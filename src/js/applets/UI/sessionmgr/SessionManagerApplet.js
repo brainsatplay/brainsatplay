@@ -288,13 +288,13 @@ export class SessionManagerApplet {
                 let filediv = document.getElementById(this.props.id+"fs");
                 filediv.innerHTML = "";
                 dirr.forEach((str,i) => {
-                    if(str !== "settings.json"){
+                    if(!str.includes("settings") && !str.includes("History")){
                         filediv.insertAdjacentHTML('beforeend',this.file_template({id:"mgr_"+str}));
                         document.getElementById("mgr_"+str+"svg").onclick = () => {
-                            console.log(str);
+                            //console.log(str);
                             this.writeToCSV(str);
                         } 
-                        console.log('set onclick for ', "mgr_"+str)
+                        //console.log('set onclick for ', "mgr_"+str)
                         document.getElementById("mgr_"+str+"delete").onclick = () => { 
                             this.deleteFile("/data/"+str);
                         } 
@@ -335,7 +335,7 @@ export class SessionManagerApplet {
         fs.stat('/data/'+filename,(e,stats) => {
             if(e) throw e;
             let filesize = stats.size;
-            console.log(filesize)
+            console.log(filename, filesize);
             fs.open('/data/'+filename,'r',(e,fd) => {
                 if(e) throw e;
                 let i = 0;
@@ -545,88 +545,210 @@ export class SessionManagerApplet {
         return newSeries;
     }
 
-    backupToDrive = (filename,tags=undefined) => {
-        if(!this.analyze_completed) { //we need RESULTS
-            return false;
-        }
-        let time = this.dataloader.toISOLocal(new Date(this.startTime));
-        //append
-        let toAppend = [];   
-        for(const prop in this.analyze_result) {
-            toAppend.push(this.analyze_result[prop]);
+    compareSessionHistory = (filename="",tag=undefined, other="") => {
+        let file = "";
+        let head = "";
+        
+        let dataToWrite=[];
+
+        let generateTable = (lines) => {
+            let tbl = document.getElementById(this.props.id+'sessioncomparisons');
+            tbl.innerHTML = '';
+            lines.forEach((line,k)=>{
+                let l = line.split(",");
+                if(k === 0) tbl.innerHTML += "<tr><th>" + l.join('</th><th>') + "</th></tr>"; 
+                else tbl.innerHTML += "<tr><td>" + l.join('</td><td>') + "</td></tr>";
+            });
         }
 
-        let file = "Brainsatplay_Data/";
+        let writeData = () => {
+            let decoder = new TextDecoder();
+            this.getFileSize(file,(size)=>{
+ 
+                    if(size > head.length+1) {
+                        fs.readFile('/data/'+file,(er,output) => {
+                            if(er) throw er;
+                            let lines = output.toString().split('\n');
+                            let lineidx = 0;
+                            let line = lines.find((a,j)=>{
+                                if(a.includes(filename)){
+                                    lineidx = j;
+                                    return true;
+                                }
+                            });
+                            if(line) {
+                                lines[lineidx] = dataToWrite.join(",");    
+                            } else lines.push(dataToWrite.join(","));
+                           
+                            fs.writeFile('/data/'+file,lines.join('\n'),(errr)=>{
+                                if(errr) throw errr;
+                                //now show off the data in lines[]
+                                generateTable(lines);
+                            });
+                        
+                        
+                        });
+                    }
+                    else{
+                        let lines = [head,dataToWrite.join(",")];
+                        let str = lines.join('\n'); 
+                        fs.writeFile('/data/'+file,str,(errr)=>{
+                            if(errr) throw errr;
+                            generateTable(lines);
+                        });
+                        
+                        
+                    }
+
+            });
+        }
+        
+        if(tag) file+= tag+"_";
         if(filename.includes('eeg')) {
-            file+="EEG_Session_Info";
-        } else if (filename.includes('heg')) {
-            file+="HEG_Session_Info";
-        }
+            file+="EEG_Session_History";
+            head = "Session,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Other";
 
-        gapi.client.drive.files.list({
-            q:file,
-            'fields': "files(id, name)"
-        }).then((response) => { 
-            let files = response.data.files;
-            if(files.length>1) {
-                gapi.client.sheets.spreadsheets.values.get({
-                    majorDimension:"ROWS",
-                    "values":[[time]],
-                    range: "A1",
-                    spreadsheetId: files[0].id
-                  }).then((response) => {
-                    var result = response.result;
-                    var numRows = result.values ? result.values.length : 0;
-                    if(numRows === 0) {
+            dataToWrite = [
+                filename,
+                this.analyze_result.bandpowers,
+                this.analyze_result.eegratios,
+                this.analyze_result.eegcoherence,
+                this.analyze_result.eegnoise,
+                this.analyze_result.eegimpedance,
+                this.analyze_result.eegnotes,
+                other
+            ];
 
-                        gapi.client.sheets.spreadsheets.values.append({
-                            "range": "Sheet1",
-                            majorDimension: "ROWS",
-                            "values": [
-                                [[time,this.startTime,tags,...toAppend]]
-                            ]
-                        }).then((response) => {
+            dataToWrite = dataToWrite.map(d => {if(d === undefined){return "";} else if (typeof d === 'number') {return d.toFixed(4);} else { return d;}});
 
-                        });
-                    }
-                    else {
-                        let newValues = [[...result.values[0],...toAppend]];
-                        gapi.client.sheets.spreadsheets.values.append({
-                            "range": "Sheet1",
-                            majorDimension: "ROWS",
-                            range:result.range[0],
-                            "values": [
-                                newValues
-                            ]
-                        }).then((response) => {
-
-                        });
-                    }
-                  });
-            } else {
-                gapi.client.sheets.spreadsheets.create({
-                    resource: {
-                        properties: { title: file }},
-                    fields: 'spreadsheetId'
-                }, (err, spreadsheet) => {
-                    if (err) return console.log('spreadsheets create error: ' + err)
-                    // The spreadsheet Id will be in ${spreadsheet.data.spreadsheetId}
-                    console.log(`created spreadsheet with id: ${spreadsheet.data.spreadsheetId}`);
-                    //append
-                    gapi.client.sheets.spreadsheets.values.append({
-                        spreadsheetId: spreadsheet.data.spreadsheetId,
-                        "range": "Sheet1",
-                        majorDimension: "ROWS",
-                        "values": [
-                            [[time,this.startTime,...toAppend]]
-                        ]
-                    }).then((response) => {
-
+            fs.exists('/data/'+file,(exists)=>{
+                if(!exists) {
+                    fs.appendFile('/data/'+file,head+"\n",(e)=>{
+                        if(e) throw e;
+                        writeData();
                     });
-                })
-            }
-        });
+                } else { writeData();}
+            });
+
+
+        } else if (filename.includes('heg')) {
+            file+="HEG_Session_History";
+            head="Session,Session_Gain,Mean_Gain,Error,RMSE,Mean_Ratio,Mean_Red,Mean_IR,Mean_Ambient,Mean_HR,Mean_HRV,Mean_BR,Mean_BRV,Notes,Other";
+
+            dataToWrite = [
+                filename,
+                this.analyze_result.heggain,
+                this.analyze_result.hegmeangain,
+                this.analyze_result.error,
+                this.analyze_result.rmse,
+                this.analyze_result.meanratio,
+                this.analyze_result.meanred,
+                this.analyze_result.meanir,
+                this.analyze_result.meanambient,
+                this.analyze_result.meanbpm,
+                this.analyze_result.meanhrv,
+                this.analyze_result.meanbrpm,
+                this.analyze_result.meanbrv,
+                this.analyze_result.hegnotes,
+                other
+            ];
+
+            dataToWrite = dataToWrite.map(d => {if(d === undefined){return "";} else if (typeof d === 'number') {return d.toFixed(4);} else { return d;}});
+
+            fs.exists('/data/'+file,(exists)=>{
+                if(!exists) {
+                    fs.appendFile('/data/'+file,head+"\n",(e) => {
+                        if(e) throw e;
+                        writeData();
+                    });
+                } else { writeData(); }
+            });
+
+        }       
     }
+
+    // backupToDrive = (filename,tags=undefined) => {
+    //     if(!this.analyze_completed) { //we need RESULTS
+    //         return false;
+    //     }
+    //     let time = this.dataloader.toISOLocal(new Date(this.startTime));
+    //     //append
+    //     let toAppend = [];   
+    //     for(const prop in this.analyze_result) {
+    //         toAppend.push(this.analyze_result[prop]);
+    //     }
+
+    //     let file = "Brainsatplay_Data/";
+    //     if(filename.includes('eeg')) {
+    //         file+="EEG_Session_History";
+    //     } else if (filename.includes('heg')) {
+    //         file+="HEG_Session_History";
+    //     }
+
+    //     gapi.client.drive.files.list({
+    //         q:file,
+    //         'fields': "files(id, name)"
+    //     }).then((response) => { 
+    //         let files = response.data.files;
+    //         if(files.length>1) {
+    //             gapi.client.sheets.spreadsheets.values.get({
+    //                 majorDimension:"ROWS",
+    //                 "values":[[time]],
+    //                 range: "A1",
+    //                 spreadsheetId: files[0].id
+    //               }).then((response) => {
+    //                 var result = response.result;
+    //                 var numRows = result.values ? result.values.length : 0;
+    //                 if(numRows === 0) {
+
+    //                     gapi.client.sheets.spreadsheets.values.update({
+    //                         "range": "Sheet1",
+    //                         majorDimension: "ROWS",
+    //                         "values": [
+    //                             [[time,this.startTime,tags,...toAppend]]
+    //                         ]
+    //                     }).then((response) => {
+
+    //                     });
+    //                 }
+    //                 else {
+    //                     let newValues = [[...result.values[0],...toAppend]];
+    //                     gapi.client.sheets.spreadsheets.values.append({
+    //                         "range": "Sheet1",
+    //                         majorDimension: "ROWS",
+    //                         range:result.range[0],
+    //                         "values": [
+    //                             newValues
+    //                         ]
+    //                     }).then((response) => {
+
+    //                     });
+    //                 }
+    //               });
+    //         } else {
+    //             gapi.client.sheets.spreadsheets.create({
+    //                 resource: {
+    //                     properties: { title: file }},
+    //                 fields: 'spreadsheetId'
+    //             }, (err, spreadsheet) => {
+    //                 if (err) return console.log('spreadsheets create error: ' + err)
+    //                 // The spreadsheet Id will be in ${spreadsheet.data.spreadsheetId}
+    //                 console.log(`created spreadsheet with id: ${spreadsheet.data.spreadsheetId}`);
+    //                 //append
+    //                 gapi.client.sheets.spreadsheets.values.append({
+    //                     spreadsheetId: spreadsheet.data.spreadsheetId,
+    //                     "range": "Sheet1",
+    //                     majorDimension: "ROWS",
+    //                     "values": [
+    //                         [[time,this.startTime,...toAppend]]
+    //                     ]
+    //                 }).then((response) => {
+
+    //                 });
+    //             })
+    //         }
+    //     });
+    // }
 
     scrollFileData = (filename) => {
         if(this.uplot) {     
@@ -673,6 +795,8 @@ export class SessionManagerApplet {
                 <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
                 </tr>
+                </table>
+                <table id='${this.props.id}sessioncomparisons'>
                 </table>
             </div>
             `);
@@ -725,18 +849,17 @@ export class SessionManagerApplet {
                 `;
 
                 document.getElementById(this.props.id+'sessioninforow').innerHTML += `
-                    <td>Session Analytics: <button id='${this.props.id}sessionratio'>HEG Ratio</button></td>
+                    <td>Session Analytics: <button id='${this.props.id}sessionratio'>Analyze Session</button></td>
                 `;
 
                 document.getElementById(this.props.id+'sessionratio').onclick = () => {
-                    this.analyzeSession(filename,'ratio');
+                    this.analyzeSession(filename);
                     let waitResult = () => {
                         if(!this.analyze_completed) setTimeout(()=>{requestAnimationFrame(waitResult);},15);
                         else {
                             console.log('completed analysis!'); 
-                            document.getElementById(this.props.id+'sessionstatsrow').innerHTML += `
-                                <td>Average Ratio: ${this.analyze_result.ratiomean.toFixed(3)}</td>
-                            `;
+
+                            this.compareSessionHistory(filename,undefined);
 
                             if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
                                 //pull gapi data or expose the option
@@ -804,23 +927,6 @@ export class SessionManagerApplet {
                             this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(2) + "s");
                         }
     
-                        let sessionchange = (this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.mean(loaded.data.ratiosma.slice(0,40)) - 1)*100;
-                        let sessionGain = (this.mean(loaded.data.ratiosma)/this.mean(loaded.data.ratiosma.slice(0,200)) - 1)*100;
-
-                        let errCat = "♥ ฅ(=^ᆽ^=ฅ)"; // "(=<ᆽ<=)?" //"(=xᆽx=)"
-
-                        let changecolor = 'red';
-                        let gaincolor = 'red';
-                        if(sessionchange > 0) changecolor = 'chartreuse';
-                        if(sessionGain > 0) gaincolor = 'chartreuse';
-
-                        
-                        document.getElementById(this.props.id+"sessionstats").innerHTML = `
-                        <span style='color:`+changecolor+`;'>Change: `+sessionchange.toFixed(2)+`%</span>    
-                        | <span style='color:`+gaincolor+`;'>Avg Gain: `+sessionGain.toFixed(2)+`%</span>
-                        | <span>Error: `+loaded.data.error.toFixed(5)+`</span>
-                        | <span>RMSE: `+loaded.data.rmse.toFixed(5)+`</span>
-                        `;
                     
                     }
                     else {
@@ -880,7 +986,7 @@ export class SessionManagerApplet {
     }
 
  
-    analyzeSession = async (filename='', analysisType='ratio') => {
+    analyzeSession = async (filename='', analysisType=undefined) => {
         let head = undefined;
         this.analyze_result = {}; this.analyze_completed = false;
         this.getCSVHeader(filename, (header)=> { 
@@ -909,22 +1015,80 @@ export class SessionManagerApplet {
                     if(!startTime) {
                         startTime = loaded.data.times[0];
                     }
-                    if(filename.indexOf('heg') > -1) {
-                        if(analysisType === 'ratio') { //heg ratio analysis
-                            if(!this.analyze_result.ratiomean) {this.analyze_result.ratiomean = (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length; console.log(this.analyze_result.ratiomean); this.analyze_result.error = loaded.data.error; this.analyze_result.rmse = loaded.data.rmse; }
-                            else { this.analyze_result.ratiomean = (this.analyze_result.ratiomean + (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length)*.5; this.analyze_result.error = (this.analyze_result.error+loaded.data.error)*.5; this.analyze_result.rmse=(this.analyze_result.rmse+loaded.data.rmse)*.5; }
-                        } else if (analysisType === 'hrv') {
-                            
+                    if(filename.includes('heg')) {
+
+                        /*
+                            this.analyze_result.heggain,
+                            this.analyze_result.hegmeangain,
+                            this.analyze_result.error,
+                            this.analyze_result.rmse,
+                            this.analyze_result.meanratio,
+                            this.analyze_result.meanred,
+                            this.analyze_result.meanir,
+                            this.analyze_result.meanambient,
+                            this.analyze_result.meanhrv,
+                            this.analyze_result.meanbrv,
+                            this.analyze_result.hegnotes,
+                        */
+
+                        if(!this.analyze_result.meanratio) {
+                            this.analyze_result.meanratio = (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length; 
+                            this.analyze_result.error = loaded.data.error; this.analyze_result.rmse = loaded.data.rmse; 
                         }
+                        else { 
+                            this.analyze_result.meanratio = (this.analyze_result.meanratio + (loaded.data.ratio.reduce((a,c) => {return a+c}))/loaded.data.ratio.length)*.5; 
+                            this.analyze_result.error = (this.analyze_result.error+loaded.data.error)*.5; 
+                            this.analyze_result.rmse=(this.analyze_result.rmse+loaded.data.rmse)*.5; 
+                        }
+                        
+                        if(!this.analyze_result.meanred) {this.analyze_result.meanred = (loaded.data.red.reduce((a,c) => {return a+c}))/loaded.data.red.length;}
+                        else { this.analyze_result.meanred = (this.analyze_result.meanred + (loaded.data.red.reduce((a,c) => {return a+c}))/loaded.data.red.length)*.5;}
+                        
+                        if(!this.analyze_result.meanir) {this.analyze_result.meanir = (loaded.data.ir.reduce((a,c) => {return a+c}))/loaded.data.ir.length; }
+                        else { this.analyze_result.meanir = (this.analyze_result.meanir + (loaded.data.ir.reduce((a,c) => {return a+c}))/loaded.data.ir.length)*.5;}
+                        
+                        if(!this.analyze_result.meanambient) {this.analyze_result.meanambient = (loaded.data.ambient.reduce((a,c) => {return a+c}))/loaded.data.ambient.length;}
+                        else { this.analyze_result.meanambient = (this.analyze_result.meanambient + (loaded.data.ambient.reduce((a,c) => {return a+c}))/loaded.data.ambient.length)*.5;}
+                        
+                        if(!this.analyze_result.meanred) {this.analyze_result.meanred = (loaded.data.red.reduce((a,c) => {return a+c}))/loaded.data.red.length;}
+                        else { this.analyze_result.meanred = (this.analyze_result.meanred + (loaded.data.red.reduce((a,c) => {return a+c}))/loaded.data.red.length)*.5;}
+                        
+                        if(!this.analyze_result.meanhrv) {this.analyze_result.meanhrv = (loaded.data.hrv.reduce((a,c) => {return a+c}))/loaded.data.hrv.length; }
+                        else { this.analyze_result.meanhrv = (this.analyze_result.meanhrv + (loaded.data.hrv.reduce((a,c) => {return a+c}))/loaded.data.hrv.length)*.5;}
+
+                        if(!this.analyze_result.meanbrv) {this.analyze_result.meanbrv = (loaded.data.brv.reduce((a,c) => {return a+c}))/loaded.data.brv.length; }
+                        else { this.analyze_result.meanbrv = (this.analyze_result.meanbrv + (loaded.data.brv.reduce((a,c) => {return a+c}))/loaded.data.brv.length)*.5;}
+                        
+                        if(!this.analyze_result.meanbpm) {this.analyze_result.meanbpm = (loaded.data.bpm.reduce((a,c) => {return a+c}))/loaded.data.bpm.length; }
+                        else { this.analyze_result.meanbpm = (this.analyze_result.meanbpm + (loaded.data.bpm.reduce((a,c) => {return a+c}))/loaded.data.bpm.length)*.5;}
+
+                        if(!this.analyze_result.meanbrpm) {this.analyze_result.meanbrpm = (loaded.data.brpm.reduce((a,c) => {return a+c}))/loaded.data.brpm.length; }
+                        else { this.analyze_result.meanbrpm = (this.analyze_result.meanbrpm + (loaded.data.brpm.reduce((a,c) => {return a+c}))/loaded.data.brpm.length)*.5;}
+                        
+
+                        if(!this.analyze_result.hegnotes) {this.analyze_result.hegnotes = loaded.data.notes;} else {this.analyze_result.hegnotes.push(loaded.data.notes);}
+                        if(!this.analyze_result.hegnoteTimes) {this.analyze_result.hegnoteTimes = loaded.data.noteTimes;} else {this.analyze_result.hegnoteTimes.push(loaded.data.noteTimes);}
+
+                        if(!this.analyze_result.heggain) {
+                            this.analyze_result.heggain = this.mean(loaded.data.ratiosma.slice(0,40));
+                            this.analyze_result.hegmeangain = this.mean(loaded.data.ratiosma.slice(0,40));
+                        } if( end === size ) { 
+                            this.analyze_result.heggain = 100*(this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.analyze_result.heggain - 1);
+                            this.analyze_result.hegmeangain = 100*(this.analyze_result.meanratio/this.analyze_result.hegmeangain - 1);
+                        }
+
+
                     }
-                    else {
-                        if(analysisType === 'ratio') { //bandpower ratios
-
-                        } else if (analysisType === 'fft') {
-
-                        } else if (analysisType === 'coherence') {
-
-                        }
+                    else if (filename.includes('eeg')) {
+                        /*
+                            this.analyze_result.bandpowers,
+                            this.analyze_result.eegratios,
+                            this.analyze_result.eegcoherence,
+                            this.analyze_result.eegnoise,
+                            this.analyze_result.eegimpedance,
+                            this.analyze_result.eegnotes,
+                        */
+                       //if(analysisType === '') {}
                     }
                     pass = true;
                     if(end === size) { this.analyze_completed = true; } else {begin+= buffersize; end += buffersize;}

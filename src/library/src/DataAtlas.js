@@ -857,8 +857,8 @@ export class DataAtlas {
 							if(bt.beats.length === 0) {
 								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:0, bpm:60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt)), height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 							} else if(bt.beats[bt.beats.length-1].t !== bt.peak_dists[bt.peak_dists.length-2].t) {
-							 let bpm = 60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt));
-							 bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-2].bpm) , bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
+								let bpm = 60/(0.0005*(bt.peak_dists[bt.peak_dists.length-1].dt + bt.val_dists[bt.val_dists.length-1].dt));
+								bt.beats.push({t:bt.peak_dists[bt.peak_dists.length-2].t, hrv:Math.abs(bpm-bt.beats[bt.beats.length-2].bpm) , bpm:bpm, height0:bt.peak_dists[bt.peak_dists.length-2].y0-bt.val_dists[bt.val_dists.length-2].y0,height1:bt.peak_dists[bt.peak_dists.length-2].y1-bt.val_dists[bt.val_dists.length-2].y1});
 							}
 						}
 					}
@@ -1185,6 +1185,7 @@ export class DataAtlas {
 						}
 					}
 					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
+						if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
 						line.push(this.data.other.notes[noteidx].note); 
 						nodeidx++;
 					}
@@ -1201,15 +1202,26 @@ export class DataAtlas {
 	}
 
 	readyHEGDataForWriting = (from=0,to='end',hegIdx=0) => {
-		let header = ["TimeStamps","UnixTime","Red","IR","Ratio","Ambient"];
+		let header = ["TimeStamps","UnixTime","Red","IR","Ratio","Ambient","BPM","HRV","BrPM","BRV"];
 		let data = [];
 		let row = this.data.heg[hegIdx];
+		let noteidx = 0;
+		let beatidx = 0;
+		let breathidx = 0;
 		if(to === 'end') to = row.times.length;
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			let amb = row.ambient[i]; if(!amb) amb = 0;
-			data.push([this.toISOLocal(new Date(t)),t,row.red[i],row.ir[i],row.ratio[i],amb].join(','));
-			
+			let dataToPush = [this.toISOLocal(new Date(t)),t,row.red[i],row.ir[i],row.ratio[i],amb];
+			if(t === row.beat_detect.beats[beatidx]?.t) { 
+				dataToPush.push(row.beat_detect.beats[beatidx]?.bpm,row.beat_detect.beats[beatidx].hrv); 
+				beatidx++;
+			} else {dataToPush.push('','')}
+			if(t === row.beat_detect.breaths[breathidx]?.t) { 
+				dataToPush.push(row.beat_detect.breaths[breathidx].bpm,row.beat_detect.breaths[breathidx].brv); 
+				breathidx++; 
+			} else {dataToPush.push('','')}
+
 			if(this.data.other.notes.length > 0) {
 				if(i === 0) {
 					header.push('Notes');
@@ -1219,11 +1231,13 @@ export class DataAtlas {
 					}
 				}
 				if(this.data.other.notes[noteidx].time <= t) {
-					line.push(this.data.other.notes[noteidx].note); 
+					dataToPush.push(this.data.other.notes[noteidx].note); 
 					nodeidx++;
 				}
 			}
 
+			data.push(dataToPush.join(','));
+			
 		};
 		return [header.join(',')+"\n",data.join('\n')];
 	}

@@ -14,6 +14,8 @@ export class hegduinoPlugin {
         this.filters = [];
         this.ui = null;
 
+        this.refuS = 0;
+
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
         this.setIndicator = (on=true) => {
@@ -53,11 +55,11 @@ export class hegduinoPlugin {
                         coord.ratio.push(parseFloat(data[2]));
                         //ignore the rest for now
                     } else { 
-                        if(coord.times.length === 0) {coord.times.push(Date.now()); coord.refuS = parseFloat(data[0]);} //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
+                        if(coord.times.length === 0) {coord.times.push(Date.now()); this.refuS = parseFloat(data[0]);} //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
                         else {
                             let t = parseFloat(data[0]);
-                            coord.times.push(Math.floor(coord.times[coord.times.length-1]+(t-coord.refuS)*0.001))
-                            coord.refuS = t; //keep times synchronous
+                            coord.times.push(Math.floor(coord.times[coord.times.length-1]+(t-this.refuS)*0.001))
+                            this.refuS = t; //keep times synchronous
                         }
                         coord.red.push(parseFloat(data[1]));
                         coord.ir.push(parseFloat(data[2]));
