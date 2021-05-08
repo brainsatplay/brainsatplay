@@ -615,7 +615,7 @@ export class SessionManagerApplet {
                 this.analyze_result.eegcoherence,
                 this.analyze_result.eegnoise,
                 this.analyze_result.eegimpedance,
-                this.analyze_result.eegnotes,
+                this.analyze_result.eegnotes.join(";"),
                 other
             ];
 
@@ -649,7 +649,7 @@ export class SessionManagerApplet {
                 this.analyze_result.meanhrv,
                 this.analyze_result.meanbrpm,
                 this.analyze_result.meanbrv,
-                this.analyze_result.hegnotes,
+                this.analyze_result.hegnotes.join(";"),
                 other
             ];
 
