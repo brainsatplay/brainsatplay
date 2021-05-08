@@ -1,10 +1,10 @@
 <div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px; background: black; color: white; padding: 30px 25px 10px 25px; width: 100%;">
 <div style="text-align:center; width: 100%;">
-<img src="./logo.png" style="width: 400px;" alt="Brains@Play">
+<img src="./logo.png" style="width: 400px;" alt="Brains@Play"></img>
 <p>The Platform for Brain-Responsive Applications</p>
 
-<a href="https://github.com/brainsatplay/brainsatplay-beta"><img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"></a>
-<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
+<a href="https://github.com/brainsatplay/brainsatplay-beta"><img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"></img></a>
+<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></img></a>
 </div>
 </div>
 

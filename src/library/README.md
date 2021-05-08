@@ -1,12 +1,12 @@
 <div style="display: flex; align-items: center;  justify-content:center;margin-bottom: 25px;">
 <div style="text-align:center; width: 400px;">
-<img src="./logo.png" style="width: 300px;">
+<img src="./logo.png" style="width: 300px;"></img>
 <p>A full-stack framework for developing brain-responsive web apps with JavaScript</p>
 
 <img src="https://img.shields.io/badge/github-source_code-blue.svg?logo=github&logoColor=white"
-href="https://github.com/brainsatplay/brainsatplay">
+href="https://github.com/brainsatplay/brainsatplay"></img>
 <img src="https://img.shields.io/badge/License-MIT-yellow.svg"
-href="https://opensource.org/licenses/MIT">
+href="https://opensource.org/licenses/MIT"></img>
 </div>
 </div>
 
