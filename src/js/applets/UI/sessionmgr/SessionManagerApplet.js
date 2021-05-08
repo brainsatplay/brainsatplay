@@ -593,7 +593,6 @@ export class SessionManagerApplet {
         }
 
         let writeData = () => {
-            let decoder = new TextDecoder();
             this.getFileSize(file,(size)=>{
  
                     if(size > head.length+1) {
@@ -656,6 +655,7 @@ export class SessionManagerApplet {
                 if(!exists) {
                     fs.appendFile('/data/'+file,head+"\n",(e)=>{
                         if(e) throw e;
+                        this.listDBFiles();
                         writeData();
                     });
                 } else { writeData();}
@@ -690,6 +690,7 @@ export class SessionManagerApplet {
                 if(!exists) {
                     fs.appendFile('/data/'+file,head+"\n",(e) => {
                         if(e) throw e;
+                        this.listDBFiles();
                         writeData();
                     });
                 } else { writeData(); }
