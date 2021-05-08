@@ -78,7 +78,7 @@ export class SessionManagerApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return ` 
-            <div id='${props.id}'>
+            <div id='${props.id}' style='overflow: scroll;'>
                 <div id='${props.id}sessionwindow' width='100%' height='25%'></div>
                 <p>Local Files</p>
                 <hr align='left' style='width:25%;'>
