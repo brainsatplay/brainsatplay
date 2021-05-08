@@ -81,14 +81,14 @@ export class SessionManagerApplet {
             return ` 
             <div id='${props.id}' style='overflow: scroll;'>
                 <div id='${props.id}sessionwindow' width='100%' height='25%'></div>
-                <p>Local Files</p>
+                <p style="transform:translateX(10px);">Local Files</p>
                 <hr align='left' style='width:25%;'>
                 <div id='${props.id}fs'></div>
                 <hr>
                 <hr>
                 <div id='${props.id}content'></div>
                 <hr>
-                <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
+                <span>Load Brains@Play CSV into Browser:  <button id='${props.id}loadcsv' style='border-radius:5px; background-color:white;color:black;font-weight:bold;font-size:16px;'>Load</button></span>
                 <hr>
                 
             </div> 
@@ -218,8 +218,8 @@ export class SessionManagerApplet {
     file_template(props={id:Math.random()}) {
         return `
         <div id="`+props.id+`">
-            <div style="display:flex; align-items: center; justify-content: space-between;">
-                <p id="`+props.id+`filename" style='color:white; font-size:80%;'>`+props.id.slice(4)+`</p>
+            <div style="display:flex; align-items: right; justify-content: space-between;">
+                <p id="`+props.id+`filename" style='color:white;transform:translate(10px,8px);'>`+props.id.slice(4)+`</p>
                 <div style="display: flex;">
                     <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">
                     <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
@@ -234,7 +234,7 @@ export class SessionManagerApplet {
         return `
         <div id="`+props.id+`">
             <div style="display:flex; align-items: center; justify-content: space-between;">
-                <p id="`+props.id+`filename" style='color:white; font-size:80%;'>`+props.id.slice(4)+`</p>
+                <p id="`+props.id+`filename" style='color:white; transform:translateX(10px);'>`+props.id.slice(4)+`</p>
                 <div style="display: flex;">
                     <img id="`+props.id+`backup" src="`+drivesvg+`" style="height:40px; width:40px; padding: 10px; margin: 5px; cursor:pointer;">
                     <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
@@ -737,8 +737,9 @@ export class SessionManagerApplet {
                 <table id=${this.props.id}overlay' width='100%' style='position:absolute; z-index:4;'>
                     <tr valign='top'>
                         <td id='${this.props.id}plotmenu' width='10%'></td>
-                        <td width='70%' id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td>
-                        <td width='17.6%'><span style='color:black;font-weight:bold; font-size:14px; width:20%;'>Scroll:</span><input style='width:80%;' id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
+                        <td width='60%' id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td>
+                        <td width='2.5%'><span style='color:black;font-weight:bold; font-size:14px;'>Scroll:</span></td>
+                        <td width='25%'> <input style='width:90%;' id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
                         <td width='2.5%'><button id='${this.props.id}plotclose' style='pointer:cursor; background-color:crimson;color:white;border-radius:5px; border:1px solid black;'>X</button></td>
                     </tr>
                 </table>
