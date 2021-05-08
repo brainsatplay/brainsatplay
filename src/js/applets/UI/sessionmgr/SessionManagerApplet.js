@@ -639,10 +639,11 @@ export class SessionManagerApplet {
         if(seriestag) file+= seriestag+"_";
         if(filename.includes('eeg')) {
             file+="EEG_Session_History";
-            head = "Session,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Tags";
+            head = "Session,Duration,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Tags";
 
             dataToWrite = [
                 filename,
+                this.analyze_result.duration,
                 this.analyze_result.bandpowers,
                 this.analyze_result.eegratios,
                 this.analyze_result.eegcoherence,
@@ -667,10 +668,11 @@ export class SessionManagerApplet {
 
         } else if (filename.includes('heg')) {
             file+="HEG_Session_History";
-            head="Session,Session_Gain,Mean_Gain,Error,RMSE,Mean_Ratio,Mean_Red,Mean_IR,Mean_Ambient,Mean_HR,Mean_HRV,Mean_BR,Mean_BRV,Notes,Tags";
+            head="Session,Duration,Session_Gain,Mean_Gain,Error,RMSE,Mean_Ratio,Mean_Red,Mean_IR,Mean_Ambient,Mean_HR,Mean_HRV,Mean_BR,Mean_BRV,Notes,Tags";
 
             dataToWrite = [
                 filename,
+                this.analyze_result.duration,
                 this.analyze_result.heggain,
                 this.analyze_result.hegmeangain,
                 this.analyze_result.error,
@@ -947,6 +949,18 @@ export class SessionManagerApplet {
         },100);
     }
 
+    msToTime(duration) {
+        var milliseconds = parseInt((duration % 1000) / 100),
+          seconds = Math.floor((duration / 1000) % 60),
+          minutes = Math.floor((duration / (1000 * 60)) % 60),
+          hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+      
+        hours = (hours < 10) ? "0" + hours : hours;
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        seconds = (seconds < 10) ? "0" + seconds : seconds;
+      
+        return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+      }
  
     analyzeSession = async (filename='', analysisType=undefined) => {
         let head = undefined;
@@ -1035,6 +1049,9 @@ export class SessionManagerApplet {
                             this.analyze_result.heggain = this.mean(loaded.data.ratiosma.slice(0,40));
                             this.analyze_result.hegmeangain = this.mean(loaded.data.ratiosma.slice(0,40));
                         } if( end === size ) { 
+
+                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
+
                             this.analyze_result.heggain = 100*(this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.analyze_result.heggain - 1);
                             this.analyze_result.hegmeangain = 100*(this.analyze_result.meanratio/this.analyze_result.hegmeangain - 1);
                         }
@@ -1051,6 +1068,9 @@ export class SessionManagerApplet {
                             this.analyze_result.eegnotes,
                         */
                        //if(analysisType === '') {}
+                       if(end === size) {
+                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
+                       }
                     }
                     pass = true;
                     if(end === size) { this.analyze_completed = true; } else {begin+= buffersize; end += buffersize;}
