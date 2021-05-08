@@ -19,4 +19,4 @@ Navigate to the root directory of the repository and run `npm install` in your t
 Run `npm start` in terminal to build and start a development server.
 
 
-That's it! Head over to [Applets](/applets.md) to get started building your first app.
+That's it! Head over to [Applets](./applets.md) to get started building your first app.
