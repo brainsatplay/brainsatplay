@@ -12,7 +12,7 @@
     "build": "snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
-    "generate-docs": "jsdoc -c jsdoc.config.json",
+    "generate-docs": "jsdoc -c jsdoc.config.json"
   },
   "author": "Joshua Brewster",
   "license": "GPL-v3",
