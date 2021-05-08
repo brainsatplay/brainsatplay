@@ -16,10 +16,10 @@ Our software framework manages the signal acquisition, data processing, and netw
 **Status:** Alpha (give it a few weeks...)
 
 ## Getting Started
-- [Setting Up to Develop](https://docs.brainastplay.com/docs/getting-started/setup)
-- [Creating an Applet](https://docs.brainastplay.com/docs/getting-started/applets)
-- [Connecting to the Brainstorm](https://docs.brainastplay.com/docs/getting-started/brainstorm)
-- [Adding a Device](https://docs.brainastplay.com/docs/getting-started/devices)
+- [Setting Up to Develop](https://docs.brainsatplay.com/docs/getting-started/setup)
+- [Creating an Applet](https://docs.brainsatplay.com/docs/getting-started/applets)
+- [Connecting to the Brainstorm](https://docs.brainsatplay.com/docs/getting-started/brainstorm)
+- [Adding a Device](https://docs.brainsatplay.com/docs/getting-started/devices)
 
 <!-- ### Library Usage
 #### Node.js
