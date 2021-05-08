@@ -5,3 +5,6 @@
 .vscode/settings.json
 .DS_Store
 .env
+_site
+.sass-cache
+.jekyll-metadata
