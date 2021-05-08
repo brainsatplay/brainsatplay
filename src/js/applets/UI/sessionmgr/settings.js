@@ -4,7 +4,7 @@ export const settings = {
     "name": "Session Manager",
     "devices": ["EEG","HEG"],
     "author": "Joshua Brewster",
-    "description": "Review Session History",
+    "description": "Review Data & Session History (WIP)",
     "categories": ["visualize"],
     "module": "SessionManagerApplet",
     "image": featureImg,
