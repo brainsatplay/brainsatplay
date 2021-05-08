@@ -11,6 +11,7 @@ const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 import brainsvg from '../../../../assets/brain-solid.svg'
 import csvsvg from '../../../../assets/file-csv-solid.svg'
 import deletesvg from '../../../../assets/trash-alt-regular.svg'
+import drivesvg from '../../../../assets/Google_Drive_icon_2020.svg'
 
 import {uPlotMaker} from '../../../frontend/UX/eegvisuals'
 
@@ -80,13 +81,16 @@ export class SessionManagerApplet {
             return ` 
             <div id='${props.id}' style='overflow: scroll;'>
                 <div id='${props.id}sessionwindow' width='100%' height='25%'></div>
-                <p>Local Files</p>
+                <p style="transform:translateX(10px);">Local Files</p>
                 <hr align='left' style='width:25%;'>
                 <div id='${props.id}fs'></div>
                 <hr>
-                <span>Load Brainsatplay CSV into Browser:  <button id='${props.id}loadcsv'>Load</button></span>
                 <hr>
                 <div id='${props.id}content'></div>
+                <hr>
+                <span>Load Brains@Play CSV into Browser:  <button id='${props.id}loadcsv' style='border-radius:5px; background-color:white;color:black;font-weight:bold;font-size:16px;'>Load</button></span>
+                <hr>
+                
             </div> 
             `;
         }
@@ -214,10 +218,25 @@ export class SessionManagerApplet {
     file_template(props={id:Math.random()}) {
         return `
         <div id="`+props.id+`">
-            <div style="display:flex; align-items: center; justify-content: space-between;">
-                <p id="`+props.id+`filename" style='color:white; font-size:80%;'>`+props.id.slice(4)+`</p>
+            <div style="display:flex; align-items: right; justify-content: space-between;">
+                <p id="`+props.id+`filename" style='color:white;transform:translate(10px,8px);'>`+props.id.slice(4)+`</p>
                 <div style="display: flex;">
                     <img id="`+props.id+`analyze" src="`+brainsvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">
+                    <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
+                    <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">  
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    file_template2(props={id:Math.random()}) {
+        return `
+        <div id="`+props.id+`">
+            <div style="display:flex; align-items: center; justify-content: space-between;">
+                <p id="`+props.id+`filename" style='color:white; transform:translateX(10px);'>`+props.id.slice(4)+`</p>
+                <div style="display: flex;">
+                    <img id="`+props.id+`backup" src="`+drivesvg+`" style="height:40px; width:40px; padding: 10px; margin: 5px; cursor:pointer;">
                     <img id="`+props.id+`svg" src="`+csvsvg+`" style="height:40px; width:40px; filter: invert(100%);padding: 10px; margin: 5px; cursor:pointer;">
                     <img id="`+props.id+`delete" src="`+deletesvg+`" style="height:40px; width:40px; filter: invert(100%); padding: 10px; margin: 5px; cursor:pointer;">  
                 </div>
@@ -285,7 +304,9 @@ export class SessionManagerApplet {
                 this.state.data.dirr = dirr;
                 console.log("files",dirr)
                 let filediv = document.getElementById(this.props.id+"fs");
+                let historyfilediv = document.getElementById(this.props.id+'content');
                 filediv.innerHTML = "";
+                historyfilediv.innerHTML = "";
                 dirr.forEach((str,i) => {
                     if(!str.includes("settings") && !str.includes("History")){
                         filediv.insertAdjacentHTML('beforeend',this.file_template({id:"mgr_"+str}));
@@ -300,6 +321,20 @@ export class SessionManagerApplet {
                         document.getElementById("mgr_"+str+"analyze").onclick = () => { 
                             this.scrollFileData(str);
                         } 
+                    } else if(str.includes('History')) {
+                        historyfilediv.insertAdjacentHTML('beforeend',this.file_template2({id:"mgr_"+str}));
+                        document.getElementById("mgr_"+str+"svg").onclick = () => {
+                            //console.log(str);
+                            this.writeToCSV(str);
+                        } 
+                        //console.log('set onclick for ', "mgr_"+str)
+                        document.getElementById("mgr_"+str+"delete").onclick = () => { 
+                            this.deleteFile("/data/"+str);
+                        }
+                        document.getElementById("mgr_"+str+"backup").onclick = () => {
+                            //console.log(str);
+                            //this.writeToCSV(str);
+                        }  
                     }
                 });
             }
@@ -544,7 +579,7 @@ export class SessionManagerApplet {
         return newSeries;
     }
 
-    compareSessionHistory = (filename="",tag=undefined, other="") => {
+    compareSessionHistory = (filename="",seriestag=undefined,sessiontags='') => {
         let file = "";
         let head = "";
         
@@ -561,7 +596,6 @@ export class SessionManagerApplet {
         }
 
         let writeData = () => {
-            let decoder = new TextDecoder();
             this.getFileSize(file,(size)=>{
  
                     if(size > head.length+1) {
@@ -602,20 +636,21 @@ export class SessionManagerApplet {
             });
         }
         
-        if(tag) file+= tag+"_";
+        if(seriestag) file+= seriestag+"_";
         if(filename.includes('eeg')) {
             file+="EEG_Session_History";
-            head = "Session,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Other";
+            head = "Session,Duration,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Tags";
 
             dataToWrite = [
                 filename,
+                this.analyze_result.duration,
                 this.analyze_result.bandpowers,
                 this.analyze_result.eegratios,
                 this.analyze_result.eegcoherence,
                 this.analyze_result.eegnoise,
                 this.analyze_result.eegimpedance,
                 this.analyze_result.eegnotes.join(";"),
-                other
+                sessiontags
             ];
 
             dataToWrite = dataToWrite.map(d => {if(d === undefined){return "";} else if (typeof d === 'number') {return d.toFixed(4);} else { return d;}});
@@ -624,6 +659,7 @@ export class SessionManagerApplet {
                 if(!exists) {
                     fs.appendFile('/data/'+file,head+"\n",(e)=>{
                         if(e) throw e;
+                        this.listDBFiles();
                         writeData();
                     });
                 } else { writeData();}
@@ -632,10 +668,11 @@ export class SessionManagerApplet {
 
         } else if (filename.includes('heg')) {
             file+="HEG_Session_History";
-            head="Session,Session_Gain,Mean_Gain,Error,RMSE,Mean_Ratio,Mean_Red,Mean_IR,Mean_Ambient,Mean_HR,Mean_HRV,Mean_BR,Mean_BRV,Notes,Other";
+            head="Session,Duration,Session_Gain,Mean_Gain,Error,RMSE,Mean_Ratio,Mean_Red,Mean_IR,Mean_Ambient,Mean_HR,Mean_HRV,Mean_BR,Mean_BRV,Notes,Tags";
 
             dataToWrite = [
                 filename,
+                this.analyze_result.duration,
                 this.analyze_result.heggain,
                 this.analyze_result.hegmeangain,
                 this.analyze_result.error,
@@ -649,7 +686,7 @@ export class SessionManagerApplet {
                 this.analyze_result.meanbrpm,
                 this.analyze_result.meanbrv,
                 this.analyze_result.hegnotes.join(";"),
-                other
+                sessiontags
             ];
 
             dataToWrite = dataToWrite.map(d => {if(d === undefined){return "";} else if (typeof d === 'number') {return d.toFixed(4);} else { return d;}});
@@ -658,6 +695,7 @@ export class SessionManagerApplet {
                 if(!exists) {
                     fs.appendFile('/data/'+file,head+"\n",(e) => {
                         if(e) throw e;
+                        this.listDBFiles();
                         writeData();
                     });
                 } else { writeData(); }
@@ -666,94 +704,12 @@ export class SessionManagerApplet {
         }       
     }
 
-    // backupToDrive = (filename,tags=undefined) => {
-    //     if(!this.analyze_completed) { //we need RESULTS
-    //         return false;
-    //     }
-    //     let time = this.dataloader.toISOLocal(new Date(this.startTime));
-    //     //append
-    //     let toAppend = [];   
-    //     for(const prop in this.analyze_result) {
-    //         toAppend.push(this.analyze_result[prop]);
-    //     }
-
-    //     let file = "Brainsatplay_Data/";
-    //     if(filename.includes('eeg')) {
-    //         file+="EEG_Session_History";
-    //     } else if (filename.includes('heg')) {
-    //         file+="HEG_Session_History";
-    //     }
-
-    //     gapi.client.drive.files.list({
-    //         q:file,
-    //         'fields': "files(id, name)"
-    //     }).then((response) => { 
-    //         let files = response.data.files;
-    //         if(files.length>1) {
-    //             gapi.client.sheets.spreadsheets.values.get({
-    //                 majorDimension:"ROWS",
-    //                 "values":[[time]],
-    //                 range: "A1",
-    //                 spreadsheetId: files[0].id
-    //               }).then((response) => {
-    //                 var result = response.result;
-    //                 var numRows = result.values ? result.values.length : 0;
-    //                 if(numRows === 0) {
-
-    //                     gapi.client.sheets.spreadsheets.values.update({
-    //                         "range": "Sheet1",
-    //                         majorDimension: "ROWS",
-    //                         "values": [
-    //                             [[time,this.startTime,tags,...toAppend]]
-    //                         ]
-    //                     }).then((response) => {
-
-    //                     });
-    //                 }
-    //                 else {
-    //                     let newValues = [[...result.values[0],...toAppend]];
-    //                     gapi.client.sheets.spreadsheets.values.append({
-    //                         "range": "Sheet1",
-    //                         majorDimension: "ROWS",
-    //                         range:result.range[0],
-    //                         "values": [
-    //                             newValues
-    //                         ]
-    //                     }).then((response) => {
-
-    //                     });
-    //                 }
-    //               });
-    //         } else {
-    //             gapi.client.sheets.spreadsheets.create({
-    //                 resource: {
-    //                     properties: { title: file }},
-    //                 fields: 'spreadsheetId'
-    //             }, (err, spreadsheet) => {
-    //                 if (err) return console.log('spreadsheets create error: ' + err)
-    //                 // The spreadsheet Id will be in ${spreadsheet.data.spreadsheetId}
-    //                 console.log(`created spreadsheet with id: ${spreadsheet.data.spreadsheetId}`);
-    //                 //append
-    //                 gapi.client.sheets.spreadsheets.values.append({
-    //                     spreadsheetId: spreadsheet.data.spreadsheetId,
-    //                     "range": "Sheet1",
-    //                     majorDimension: "ROWS",
-    //                     "values": [
-    //                         [[time,this.startTime,...toAppend]]
-    //                     ]
-    //                 }).then((response) => {
-
-    //                 });
-    //             })
-    //         }
-    //     });
-    // }
-
     scrollFileData = (filename) => {
         if(this.uplot) {     
             this.uplot.deInit();
             this.uplot = undefined;
             this.startTime = undefined;
+            document.getElementById(this.props.id+'sessionwindow').innerHTML = '';
         }
         let head = undefined;
             
@@ -780,20 +736,27 @@ export class SessionManagerApplet {
 
             document.getElementById(this.props.id+'sessionwindow').insertAdjacentHTML('beforeend',`
             <div width="100%">
-                <table id=${this.props.id}overlay' style='position:absolute; z-index:4;'>
-                    <tr valign='top'><td><button id='${this.props.id}plotclose' style='pointer:cursor;'>X</button></td><td id='${this.props.id}plotmenu'></td><td id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td></tr>
+                <table id=${this.props.id}overlay' width='100%' style='position:absolute; z-index:4;'>
+                    <tr valign='top'>
+                        <td id='${this.props.id}plotmenu' width='10%'></td>
+                        <td width='60%' id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td>
+                        <td width='2.5%'><span style='color:black;font-weight:bold; font-size:14px;'>Scroll:</span></td>
+                        <td width='25%'> <input style='width:90%;' id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
+                        <td width='2.5%'><button id='${this.props.id}plotclose' style='pointer:cursor; background-color:crimson;color:white;border-radius:5px; border:1px solid black;'>X</button></td>
+                    </tr>
                 </table>
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
             </div>
             <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
                 <table>
                 <tr id='${this.props.id}sessioninforow'>
-                <td><span id='${this.props.id}sessionname' style='border:1px solid white'>${filename}</span></td>
-                <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
-                <td>Session Analytics: <button id='${this.props.id}analyzeSession'>Analyze Session</button></td><td><input id='${this.props.id}tagsession' type='text' placeholder='Tag'></td>
+                    <td><span id='${this.props.id}sessionname' style='font-weight:bold;border-right:1px solid white; padding:0px 10px;'>${filename}</span></td>
+                    <td>Session Series: <input id='${this.props.id}sessionseries' type='text' placeholder='Enter Series' style='width:100px;'></td>
+                    <td>Session Tag(s):<input id='${this.props.id}tagsession' type='text' placeholder='Enter Tag(s)'  style='width:100px;'></td>
                 </tr>
                 <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
+                    <td><span>Compare Sessions: <button id='${this.props.id}analyzeSession'>Analyze Session</button></span></td>
                 </tr>
                 </table>
                 <table id='${this.props.id}sessioncomparisons'>
@@ -811,6 +774,26 @@ export class SessionManagerApplet {
                     this.uplot = undefined;
                 }
                 document.getElementById(this.props.id+'sessionwindow').innerHTML = "";
+            }
+
+            document.getElementById(this.props.id+'analyzeSession').onclick = () => {
+                this.analyzeSession(filename);
+                let waitResult = () => {
+                    if(!this.analyze_completed) setTimeout(()=>{requestAnimationFrame(waitResult);},15);
+                    else {
+                        console.log('completed analysis!'); 
+                        let val = document.getElementById(this.props.id+'sessionseries').value;
+                        if(val.length === 0) val = undefined;
+                        let val2 = document.getElementById(this.props.id+'sessionseries').value;
+                        if(val2.length === 0) val2 = undefined; else val2 = val2.replaceAll(',',';');
+                        this.compareSessionHistory(filename,val,val2);
+
+                        if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
+                            //pull gapi data or expose the option
+                        }
+                    }
+                }
+                waitResult();
             }
 
             this.uplot = new uPlotMaker(this.props.id+'uplot');
@@ -840,7 +823,7 @@ export class SessionManagerApplet {
                 );
 
                 this.setLegend();
-                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(2) + "s");
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
                     <select id='${this.props.id}plotselect'>
@@ -848,23 +831,7 @@ export class SessionManagerApplet {
                     </select>
                 `;
 
-                document.getElementById(this.props.id+'analyzeSession').onclick = () => {
-                    this.analyzeSession(filename);
-                    let waitResult = () => {
-                        if(!this.analyze_completed) setTimeout(()=>{requestAnimationFrame(waitResult);},15);
-                        else {
-                            console.log('completed analysis!'); 
-                            let val = document.getElementById(this.props.id+'tagsession').value;
-                            if(val.length === 0) val = undefined
-                            this.compareSessionHistory(filename,val);
-
-                            if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
-                                //pull gapi data or expose the option
-                            }
-                        }
-                    }
-                    waitResult();
-                }
+                
             }
             else {
                 let newSeries = this.makeSeries('eegraw',head);
@@ -921,7 +888,7 @@ export class SessionManagerApplet {
                                 loaded.data.ambient
                             ]
                             this.uplot.plot.setData(this.uplot.uPlotData);
-                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(2) + "s");
+                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(1) + "s");
                         }
     
                     
@@ -961,7 +928,7 @@ export class SessionManagerApplet {
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
                         }
-                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(2) + "s");
+                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(1) + "s");
                         
                     }
                 });
@@ -982,6 +949,18 @@ export class SessionManagerApplet {
         },100);
     }
 
+    msToTime(duration) {
+        var milliseconds = parseInt((duration % 1000) / 100),
+          seconds = Math.floor((duration / 1000) % 60),
+          minutes = Math.floor((duration / (1000 * 60)) % 60),
+          hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+      
+        hours = (hours < 10) ? "0" + hours : hours;
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        seconds = (seconds < 10) ? "0" + seconds : seconds;
+      
+        return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+      }
  
     analyzeSession = async (filename='', analysisType=undefined) => {
         let head = undefined;
@@ -1070,6 +1049,9 @@ export class SessionManagerApplet {
                             this.analyze_result.heggain = this.mean(loaded.data.ratiosma.slice(0,40));
                             this.analyze_result.hegmeangain = this.mean(loaded.data.ratiosma.slice(0,40));
                         } if( end === size ) { 
+
+                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
+
                             this.analyze_result.heggain = 100*(this.mean(loaded.data.ratiosma.slice(loaded.data.ratiosma.length-40))/this.analyze_result.heggain - 1);
                             this.analyze_result.hegmeangain = 100*(this.analyze_result.meanratio/this.analyze_result.hegmeangain - 1);
                         }
@@ -1086,6 +1068,9 @@ export class SessionManagerApplet {
                             this.analyze_result.eegnotes,
                         */
                        //if(analysisType === '') {}
+                       if(end === size) {
+                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
+                       }
                     }
                     pass = true;
                     if(end === size) { this.analyze_completed = true; } else {begin+= buffersize; end += buffersize;}
