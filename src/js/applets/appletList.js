@@ -8,11 +8,14 @@ import nexusImage from './../../js/applets/General/threejs/nexus/img/feature.png
 export const AppletInfo = {
     'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
     'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
-    'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['connect']},
-    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['EEG'],           categories:['connect']},
-    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['connect']},
-    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['EEG'],           categories:['connect']},
-    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['EEG'],           categories:['connect']},
+    'Profile Manager': { folderUrl:'./UI/profile',        devices:['EEG','HEG'],     categories:['UI']},
+    'Session Manager': { folderUrl:'./UI/sessionmgr', devices:['EEG','HEG'], categories:['visualize'] },
+    'SSVEP': { folderUrl:'./EEG/ssvep', devices:['EEG'], categories:['play'] },
+    'uPlot': { folderUrl:'./General/uplot',             devices:['EEG','HEG'],     categories:['visualize']},
+    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['EEG'],           categories:['visualize']},
+    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['visualize']},
+    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['EEG'],           categories:['visualize']},
+    'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['EEG'],           categories:['visualize']},
     'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['EEG'],           categories:['train','brainstorm']},
     'Blob': { folderUrl:'./General/threejs/blob',       devices:['EEG','HEG'],           categories:['train']},
     'Enso': { folderUrl:'./General/threejs/enso',       devices:['EEG','HEG'],           categories:['train']},
@@ -27,17 +30,17 @@ export const AppletInfo = {
     'Video': { folderUrl:'./General/video',             devices:['EEG','HEG'],     categories:['train'] },
     'Boids':{ folderUrl:'./HEG/boids',                  devices:['EEG'],           categories:['train'] },
     'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['HEG'],           categories:['train'] },
-    'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['connect'] },
     'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['HEG'],           categories:['train'] },
     'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['HEG'],      categories:['train'] },
-    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['HEG'],           categories:['connect'] },
+    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['HEG'],           categories:['visualize'] },
     'Youtube': { folderUrl:'./General/ytube',           devices:['EEG','HEG'],     categories:['train'] },
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['EEG','HEG'], categories:['play','brainstorm'] },
     'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['EEG'], categories:['train'] },
     'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
     'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
-
 };
+//'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['visualize'] },
+    
 
 export let dynamicImport = async (url) => {
     let module = await import(url);

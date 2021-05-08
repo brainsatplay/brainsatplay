@@ -1,12 +1,12 @@
 import featureImg from './../../../../assets/features/placeholder.png'
 
 export const settings = {
-    "name": "Session Manager",
+    "name": "Sensoriums",
     "devices": ["EEG","HEG"],
     "author": "Joshua Brewster",
-    "description": "Review Data & Session History (WIP)",
-    "categories": ["visualize"],
-    "module": "SessionManagerApplet",
+    "description": "Example",
+    "categories": ["train"],
+    "module": "SensoriumApplet",
     "image": featureImg,
 		"instructions":"Coming soon..."
 }

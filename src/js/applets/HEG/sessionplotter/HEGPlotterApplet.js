@@ -76,7 +76,7 @@ export class HEGPlotterApplet {
                     err = err/ratio.length;
                     let rmse = Math.sqrt(mse/ratiosma.length);
 
-                    console.log(this.plot.uPlotData)
+                    //console.log(this.plot.uPlotData)
                     this.plot.uPlotData = [
                         t,red,ir,ratio,ratiosma,ambient
                     ]
@@ -116,18 +116,23 @@ export class HEGPlotterApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
         this.plot = new uPlotMaker(this.props.id+'uplot');
+
+        let dummyarr = new Array(100).fill(1);
+
         this.plot.uPlotData = [
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1),
-            new Array(100).fill(1)
-        ]
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr,
+            dummyarr
+        ];
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.plot.deInit();
+        this.plot = null;
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }

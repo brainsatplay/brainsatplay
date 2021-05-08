@@ -47,6 +47,12 @@ import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
 import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
+import { buzzPlugin } from './devices/neosensory/buzzPlugin';
+
+// MongoDB Realm
+import { LoginWithGoogle, LoginWithRealm} from './ui/login';
+import * as Realm from "realm-web";
+
 
 // Default Styling
 import './ui/styles/multiplayerIntro.css'
@@ -248,7 +254,7 @@ export class Session {
 			'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
-			'cyton','cyton_daisy', 'ganglion', 
+			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -294,6 +300,8 @@ export class Session {
 					this.connect('cyton_daisy',['eegfft'],onconnect,ondisconnect);
 				} else if (o === 'ganglion') {
 					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
+				} else if (o === 'neosensory_buzz'){
+					this.connect('neosensory_buzz',[],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -532,9 +540,25 @@ export class Session {
 	}
 
 
+	getApp = () =>{
+		return Realm.App.getApp("brainsatplay-tvmdj")
+	}
+
+	loginWithGoogle = async () => {
+		return await LoginWithGoogle()
+	}
+
+	loginWithRealm = async (authResponse) => {
+		let user = await LoginWithRealm(authResponse)
+		this.info.googleAuth = user
+		return user	
+	}
+
+
 
 	//Server login and socket initialization
 	async login(beginStream=false, dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
+
 		//Connect to websocket
 		if (this.socket == null  || this.socket.readyState !== 1){
 			this.socket = this.setupWebSocket(dict);
@@ -970,8 +994,10 @@ export class Session {
                 });
             }
 
-            // Set Up Screen Two (Login)
-            document.getElementById(`${applet.props.id}login-button`).onclick = () => {
+			// Set Up Screen Two (Login)
+			
+			const loginButton = document.getElementById(`${applet.props.id}login-button`)
+            loginButton.onclick = () => {
                 let form = document.getElementById(`${applet.props.id}login-form`)
                 let formDict = {}
                 let formData = new FormData(form);
@@ -1005,7 +1031,17 @@ export class Session {
                 this.login(true).then(() => {
                     onsocketopen(this.socket)
                 })
-            }
+			}
+
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null){
+				this.info.googleAuth.refreshCustomData().then(data => {
+					document.getElementsByName("username")[0].value = data.username
+					loginButton.click()
+				})
+			}
+			
+
 
             exitGame.onclick = () => {
                 gameSelection.style.opacity = 1;
@@ -1225,7 +1261,8 @@ class deviceStream {
 			analysis:analysis, //['eegcoherence','eegfft' etc]
 
 			deviceNum:0,
-			
+
+			googleAuth: null,
 			auth:auth,
 			sps: null,
 			useFilters:useFilters,
@@ -1242,6 +1279,7 @@ class deviceStream {
 			{  name:'cyton', 	   cls:cytonPlugin	      },
 			{  name:'webgazer',    cls:webgazerPlugin     },
 			{  name:'ganglion',    cls:ganglionPlugin     },
+			{  name:'neosensory_buzz',    cls: buzzPlugin     },
 		];
 
 		this.filters = [];   //BiquadChannelFilterer instances 

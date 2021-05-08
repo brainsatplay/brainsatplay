@@ -116,7 +116,7 @@ export class AudioApplet {
                 else{
                     this.useVol = false;
                     this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                    if(this.audio !== null) {
+                    if(this.audio !== undefined) {
                         this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
                     }
                     document.getElementById(props.id+"useVol").style.opacity = "0.3";
@@ -125,7 +125,7 @@ export class AudioApplet {
 
             document.getElementById(props.id+"volSlider").oninput = () => {
                 this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                if(this.audio !== null) {
+                if(this.audio !== undefined) {
                     this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
                 }
             }
@@ -217,7 +217,7 @@ export class AudioApplet {
         if (this.animationId !== null) {
             cancelAnimationFrame(this.animationId);
         }
-        if(this.audio !== null){
+        if(this.audio !== undefined){
             if (this.audio.sourceList.length > 0) {
                 this.audio.sourceList[0].stop(0);
             }
@@ -226,7 +226,6 @@ export class AudioApplet {
 
     createVisualizer(buffer){
         this.audio.finishedLoading([buffer]);
-        console.log(this.audio.sourceList);
         this.audio.sourceList[0].start(0);
         this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
         this.status = 1;

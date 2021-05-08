@@ -91,7 +91,7 @@ export class musePlugin {
         this.device.eegReadings.subscribe(o => {
             if(this.info.useAtlas) {
                 let time = Array(o.samples.length).fill(o.timestamp);
-                time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/10)})	
+                time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/5)})	
                 let coord = this.atlas.getEEGDataByChannel(o.electrode);
                 coord.times.push(...time);
                 coord.raw.push(...o.samples);

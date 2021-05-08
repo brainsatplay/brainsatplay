@@ -52,9 +52,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // // Database Setup
 mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true }).then(db => {
-  app.set('mongoClient', db);
-  dataServ.mongodb = app.get('mongoClient')
-  console.log('Connected to Database')
+  // app.set('mongoClient', db);
+  // dataServ.mongodb = app.get('mongoClient')
+  // console.log('Connected to Database')
   // let b = new brainsatplay.Session()
 }).catch(err => {
   console.log('Error: ' + err)
@@ -67,7 +67,11 @@ app.use(function(req, res, next) {
     'http://localhost:1234',
     'https://brainsatplay.azurewebsites.net',
     'http://brainsatplay.azurewebsites.net',
-    'https://brainsatplay.com'
+    'https://brainsatplay.com',
+    'http://server.brainsatplay.com',
+    'https://server.brainsatplay.com',
+    'https://app.brainsatplay.com',
+
   ];
 
   const origin = req.headers.origin;

@@ -1,8 +1,9 @@
 import { Session } from "../../library/src/Session";
 import { getApplet, presets, AppletInfo, getAppletSettings } from "../applets/appletList"
-import appletSVG from './../../assets/th-large-solid.svg'
-import dragSVG from './../../assets/arrows-alt-solid.svg'
+import appletSVG from '../../assets/th-large-solid.svg'
+import dragSVG from '../../assets/arrows-alt-solid.svg'
 
+import {handleAuthRedirect} from '../../library/src/ui/login'
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -201,6 +202,7 @@ export class AppletManager {
         let preset = undefined;
         let showOptions = true;
 
+
         if (appletConfigs.length === 0) {
             preset = this.appletPresets.find(preset => preset.value === document.getElementById("preset-selector").value);
             if (preset != null) this.appletConfigs = preset.applets;
@@ -208,7 +210,13 @@ export class AppletManager {
         } else {
             // disabled settings reloading for now
             if (appletConfigs.length === 1) {
-                if (typeof appletConfigs[0] === 'string') {
+                
+                if (appletConfigs[0].includes('_baas_client_app_id')){
+                    handleAuthRedirect();
+                    return
+                } 
+                
+                else if (typeof appletConfigs[0] === 'string') {
                     preset = this.appletPresets.find((p) => {
                         if (p.value.toLowerCase() == appletConfigs[0].toLowerCase()) {
                             document.getElementById("preset-selector").value = p.value;
@@ -219,7 +227,8 @@ export class AppletManager {
                             return false
                         }
                     });
-                } else {
+                } 
+                else {
                     this.appletConfigs = appletConfigs;
                 }
             } else {
@@ -242,6 +251,7 @@ export class AppletManager {
                 showOptions = false
             }
         }
+
 
         let appletPromises = []
         // Grab Correct Applets
@@ -343,7 +353,6 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
-            console.log(AppletInfo[appletName].folderUrl)
             if (!AppletInfo[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
 
@@ -629,7 +638,7 @@ export class AppletManager {
         })
 
         appletKeys.forEach((name) => {
-            if (!['Applet Browser','Randomizer'].includes(name)) {
+            if (!['Applet Browser'].includes(name)) {
                 if (this.checkDeviceCompatibility(AppletInfo[name])) {
                     if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;
@@ -643,7 +652,6 @@ export class AppletManager {
         select.innerHTML = newhtml;
 
         select.onchange = async (e) => {
-            console.log('changed')
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
                 let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))

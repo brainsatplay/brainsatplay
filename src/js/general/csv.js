@@ -45,7 +45,7 @@ export class CSV { //data=["1|2","11|22"], or data=[[1,2,"xyz"],[2,3,"abc"],etc]
         hiddenElement.click();
     }
 
-    static openCSV(delimiter = ",", onOpen = (csvDat, header)=>{return csvDat, header;}) {
+    static openCSV(delimiter = ",", onOpen = (csvDat, header, path)=>{return csvDat, header, path;}) {
         var input = document.createElement('input');
         input.accept = '.csv';
         input.type = 'file';
@@ -66,13 +66,32 @@ export class CSV { //data=["1|2","11|22"], or data=[[1,2,"xyz"],[2,3,"abc"],etc]
                         csvDat.push(temp);
                     }
                 });
-                onOpen(csvDat,header);
+                onOpen(csvDat,header,input.value);
+                input.value = '';
             }
             reader.readAsText(file);
-            input.value = '';
         }
         input.click();
     } 
+
+    //Dump CSV data without parsing it.
+    static openCSVRaw(onOpen = (csvDat, path)=>{return csvDat, path;}) {
+        var input = document.createElement('input');
+        input.accept = '.csv';
+        input.type = 'file';
+
+        input.onchange = (e) => {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.onload = (event) => {
+                var tempcsvData = event.target.result;
+                onOpen(tempcsvData, input.value);
+                input.value = '';
+            }
+            reader.readAsText(file);
+        }
+        input.click();
+    }
 
     onOpen(csvDat=[],header=[]) { // Customize this function in your init script, access data with ex. console.log(serialMonitor.csvDat), where var serialMonitor = new chromeSerial(defaultUI=false)
         console.log("CSV Opened!",header, csvDat);

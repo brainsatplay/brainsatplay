@@ -46,7 +46,7 @@ export class SmoothieChartMaker {
 		this.chart = new SmoothieChart({
 			responsive: true,
 			grid: { strokeStyle:gridStrokeStyle, fillStyle:gridFillStyle,
-			lineWidth: 1, millisPerLine: 500, verticalSections: 6, },
+			lineWidth: 1, millisPerLine: 250, verticalSections: 6, },
 			labels: { fillStyle: labelFillStyle }
 		});
 
