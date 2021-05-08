@@ -46,5 +46,5 @@ To add worker responses you can add more if statements in DataAtlas.workeronmess
 
 Brains@Play currently supports EEG and HEG hardware—as well as basic eye tracking. For new and novel devices, there may be additional functionality to add to the DataAtlas so you can store and parse that data correctly. 
 
-We suggest that you study the available plugins. As long as you match those templates as closely as possible, you will be fine. For specific questions about your own hardware, feel free to reach out to [contact@brainsatplay.com](contact@brainsatplay.com) for support.
+We suggest that you study the available plugins. As long as you match those templates as closely as possible, you will be fine. For specific questions about your own hardware, feel free to reach out to [contact@brainsatplay.com](mailto:contact@brainsatplay.com) for support.
 
