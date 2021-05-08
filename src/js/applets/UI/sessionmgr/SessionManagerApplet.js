@@ -90,6 +90,7 @@ export class SessionManagerApplet {
                 <hr>
                 <span>Load Brains@Play CSV into Browser:  <button id='${props.id}loadcsv' style='border-radius:5px; background-color:white;color:black;font-weight:bold;font-size:16px;'>Load</button></span>
                 <hr>
+                <div id='${props.id}drivefiles'></div>
                 
             </div> 
             `;
@@ -140,10 +141,10 @@ export class SessionManagerApplet {
         });
 
         this.sub2 = this.state.subscribe('filelist',(filelist)=>{
-            document.getElementById(this.props.id+'content').innerHTML = ``;
+            document.getElementById(this.props.id+'drivefiles').innerHTML = ``;
             for (var i = 0; i < filelist.length; i++) {
                 var file = filelist[i];
-                this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`);
+                this.appendContent(`<div id=${file.id} style='border: 1px solid white'>${file.name}</div>`,'drivefiles');
             }
         });
     }
@@ -211,7 +212,7 @@ export class SessionManagerApplet {
                 }
             });
             */
-            setTimeout(()=>{this.checkForUpdatedFiles()},1000);
+            setTimeout(()=>{this.checkForUpdatedFiles();},1000);
         }
     }
 
@@ -245,18 +246,20 @@ export class SessionManagerApplet {
         `;
     }
 
-    appendContent(message) {
-        var pre = document.getElementById(this.props.id+'content');
+    appendContent(message,id='content') {
+        var pre = document.getElementById(this.props.id+id);
         pre.insertAdjacentHTML('beforeend',message);
       }
 
-    checkFolder() {
+    checkFolder(onResponse=(result)=>{}) {
         window.gapi.client.drive.files.list({
             q:"name='Brainsatplay_Data' and mimeType='application/vnd.google-apps.folder'",
         }).then((response) => {
             if(response.result.files.length === 0) {
                 this.createFolder();
+                if(onResponse) onResponse(response.result);
             }
+            else if(onResponse) onResponse(response.result);
         });
     }
 
@@ -265,29 +268,32 @@ export class SessionManagerApplet {
         data.name = name;
         data.mimeType = "application/vnd.google-apps.folder";
         gapi.client.drive.files.create({'resource': data}).then((response)=>{
-            console.log(response);
+            console.log(response.result);
         });
     }
 
     //doSomething(){}
     listDriveFiles() {
-        window.gapi.client.drive.files.list({
-            q:"name contains 'Brainsatplay_Data/'",
-            'pageSize': 10,
-            'fields': "nextPageToken, files(id, name)"
-        }).then((response) => {
-            document.getElementById(this.props.id+'content').innerHTML = ``;
-            this.appendContent('Files:');
-            var files = response.result.files;
-            if (files && files.length > 0) {
-              for (var i = 0; i < files.length; i++) {
-                var file = files[i];
-                this.appendContent(`<div id=${file.id} style='border: 1px solid white;'>${file.name}</div>`);
-              }
-            } else {
-                this.appendContent('<p>No files found.</p>');
-            }
-          });
+        this.checkFolder((result)=> {
+            window.gapi.client.drive.files.list({
+                q: `'${result.files[0].id}' in parents`,
+                'pageSize': 10,
+                'fields': "nextPageToken, files(id, name)"
+            }).then((response) => {
+                document.getElementById(this.props.id+'drivefiles').innerHTML = ``;
+                this.appendContent('Drive Files (Brainsatplay_Data folder):','drivefiles');
+                var files = response.result.files;
+                if (files && files.length > 0) {
+                  for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    this.appendContent(`<div id=${file.id} style='border: 1px solid white;'>${file.name}</div>`,'drivefiles');
+                  }
+                } else {
+                    this.appendContent('<p>No files found.</p>','drivefiles');
+                }
+              });
+        })
+        
     }
 
     deleteFile = (path) => {
@@ -334,6 +340,7 @@ export class SessionManagerApplet {
                         document.getElementById("mgr_"+str+"backup").onclick = () => {
                             //console.log(str);
                             //this.writeToCSV(str);
+                            this.backupToDrive(str);
                         }  
                     }
                 });
@@ -425,6 +432,8 @@ export class SessionManagerApplet {
             });
         });
     }
+
+    
 
     
     getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
@@ -577,6 +586,38 @@ export class SessionManagerApplet {
         
         }
         return newSeries;
+    }
+
+    backupToDrive = (filename) => {
+        if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+            fs.readFile('/data/'+filename,(e,output)=>{
+                if(e) throw e;
+                let file = new Blob([output.toString()],{type:'text/csv'});
+                this.checkFolder((result)=>{
+                    let metadata = {
+                        'name':filename+".csv",
+                        'mimeType':'application/vnd.google-apps.spreadsheet',
+                        'parents':[result.files[0].id]
+                    }
+                    let token = gapi.auth.getToken().access_token;
+                    var form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+                    form.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.responseType = 'json';
+                    xhr.onload = () => {
+                        console.log("Uploaded file id: ",xhr.response.id); // Retrieve uploaded file ID.
+                        this.listDriveFiles();
+                    };
+                    xhr.send(form);
+                });   
+            });
+        } else {
+            alert("Sign in with Google first!")
+        }
     }
 
     compareSessionHistory = (filename="",seriestag=undefined,sessiontags='') => {
@@ -1069,7 +1110,7 @@ export class SessionManagerApplet {
                         */
                        //if(analysisType === '') {}
                        if(end === size) {
-                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
+                           this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
                        }
                     }
                     pass = true;
