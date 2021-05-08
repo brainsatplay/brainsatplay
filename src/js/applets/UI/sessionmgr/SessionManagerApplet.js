@@ -791,6 +791,7 @@ export class SessionManagerApplet {
                 <tr id='${this.props.id}sessioninforow'>
                 <td><span id='${this.props.id}sessionname' style='border:1px solid white'>${filename}</span></td>
                 <td>Scroll:<input id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
+                <td>Session Analytics: <button id='${this.props.id}analyzeSession'>Analyze Session</button></td><td><input id='${this.props.id}tagsession' type='text' placeholder='Tag'></td>
                 </tr>
                 <tr id='${this.props.id}sessionstatsrow'>
                     <td colSpan="2"><div id='${this.props.id}sessionstats'>Stats</div></td>
@@ -848,18 +849,15 @@ export class SessionManagerApplet {
                     </select>
                 `;
 
-                document.getElementById(this.props.id+'sessioninforow').innerHTML += `
-                    <td>Session Analytics: <button id='${this.props.id}sessionratio'>Analyze Session</button></td>
-                `;
-
-                document.getElementById(this.props.id+'sessionratio').onclick = () => {
+                document.getElementById(this.props.id+'analyzeSession').onclick = () => {
                     this.analyzeSession(filename);
                     let waitResult = () => {
                         if(!this.analyze_completed) setTimeout(()=>{requestAnimationFrame(waitResult);},15);
                         else {
                             console.log('completed analysis!'); 
-
-                            this.compareSessionHistory(filename,undefined);
+                            let val = document.getElementById(this.props.id+'tagsession').value;
+                            if(val.length === 0) val = undefined
+                            this.compareSessionHistory(filename,val);
 
                             if(window.gapi.client.auth2?.getAuthInstance().isSignedIn.get()) {
                                 //pull gapi data or expose the option
