@@ -2,3 +2,13 @@
   for = "/*"
     [headers.values]
     Access-Control-Allow-Origin = "*"
+
+
+[context.main]
+  base = "docs"
+  publish = "build/"
+  command = "npm run build"
+
+[context.deployment]
+  publish = "build/"
+  command = "npm run build"
