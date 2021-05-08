@@ -1,20 +1,18 @@
-# Connecting to the Brainstorm
+---
+sidebar_position: 3
+---
+
+# Brainstorm
 
 This tutorial will get you started building your first networked application with Brains@Play! 
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Part One</p>
-<h2>Networking with JavaScript</h2>
-</div>
+## Networking with Javascript
 
 ### What is the Brainstorm?
 
 The Brainstorm is the public server hosted by Brains@Play to send data between our users.
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Part Two</p>
-<h2>Integrating Other Development Environments</h2>
-</div>
+## Integrating Other Environments
 
 ### Brainstorm Commands
 

@@ -16,10 +16,10 @@ Our software framework manages the signal acquisition, data processing, and netw
 **Status:** Alpha (give it a few weeks...)
 
 ## Getting Started
-- [Setting Up to Develop]{@tutorial Setup}
-- [Creating an Applet]{@tutorial Applets}
-- [Connecting to the Brainstorm]{@tutorial Brainstorm}
-- [Adding a Device]{@tutorial Devices}
+- [Setting Up to Develop](https://docs.brainastplay.com/docs/getting-started/setup)
+- [Creating an Applet](https://docs.brainastplay.com/docs/getting-started/applets)
+- [Connecting to the Brainstorm](https://docs.brainastplay.com/docs/getting-started/brainstorm)
+- [Adding a Device](https://docs.brainastplay.com/docs/getting-started/devices)
 
 <!-- ### Library Usage
 #### Node.js
@@ -53,7 +53,7 @@ If you have any questions (or would just like to chat about this project), feel 
 # Appendix A: The Brains@Play Ethos
 Everyone has a brain. So why not develop hardware and applications with all of them in mind? Brains@Play is kickstarting a neurotechnology co-development movement where anyone can *join the brainstorm to collectively imagine how to use our brains to function better together*.
 
-To ensure the development of accessible brain-computer interface (BCI) infrastructure, we encourage the creation of web-based [**Applets**](@tutorial Applets)<!-- (shown in the [Brains@Play Starter Kit](https://github.com/brainsatplay/brainsatplay-starter-kit) repository) -->. At the core of each Brains@Play applet is a **Data Atlas** that organizes biosignals streamed over Bluetooth Low Energy (BLE) or Serial and processes them in real-time. This allows users to **train** to modulate their brainwaves and, eventually, **play** games using the power of their minds. 
+To ensure the development of accessible brain-computer interface (BCI) infrastructure, we encourage the creation of web-based [**Applets**](https://docs.brainastplay.com/docs/getting-started/applets)<!-- (shown in the [Brains@Play Starter Kit](https://github.com/brainsatplay/brainsatplay-starter-kit) repository) -->. At the core of each Brains@Play applet is a **Data Atlas** that organizes biosignals streamed over Bluetooth Low Energy (BLE) or Serial and processes them in real-time. This allows users to **train** to modulate their brainwaves and, eventually, **play** games using the power of their minds. 
 
 Distributing applets via the [Brains@Play Platform](https://app.brainsatplay.com) is highly encouraged—though we intend to support standalone app development in the browser and Node.js using [our NPM library](https://www.npmjs.com/package/brainsatplay). Any application built with brainsatplay.js can stream data to the [**Brainstorm**](@tutorial Brainstorm) and allow users from around the world, with varying degrees of motor control, to train and play together. 
 

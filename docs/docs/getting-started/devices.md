@@ -1,12 +1,12 @@
-# Add a Device
+---
+sidebar_position: 4
+---
+
+# Devices
 
 This tutorial will get you started adding device support to Brains@Play! 
 
-
-<div class="brainsatplay-tutorial-subheader">
-<p>Part One</p>
-<h2>Creating a Device Plugin</h2>
-</div>
+## Creating a Device Plugin
 
 You can find all driver plugins created for Brains@Play in the `library/src/devices` directory. To create a new device plugin, copy the devicePluginTemplate and rename it. 
 

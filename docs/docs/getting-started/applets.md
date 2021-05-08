@@ -1,13 +1,14 @@
-# Creating an Applet
+---
+sidebar_position: 2
+---
+
+# Applets
 
 This tutorial will get you started building your first modular applet with Brains@Play! 
 
 While the following steps will show you how to set up your applet for deployment on the Brains@Play Platform, all applets built in this way can also run standalone using only the internal functions and built-in fragment rendering system in our Applet Template. 
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Part One</p>
-<h2>Applet Setup</h2>
-</div>
+## Applet Setup
 
 ### Copy the Template
 First, copy the Applet Template folder located at `src/js/applets/Templates`.
@@ -70,10 +71,7 @@ Run your development environment using `npm start`. If everything is shipshape, 
 
 If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Part Two</p>
-<h2>Writing an Applet</h2>
-</div>
+## Writing an Applet
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
 
