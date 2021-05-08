@@ -821,7 +821,7 @@ export class SessionManagerApplet {
                 );
 
                 this.setLegend();
-                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(2) + "s");
+                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
                     <select id='${this.props.id}plotselect'>
@@ -886,7 +886,7 @@ export class SessionManagerApplet {
                                 loaded.data.ambient
                             ]
                             this.uplot.plot.setData(this.uplot.uPlotData);
-                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(2) + "s");
+                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(1) + "s");
                         }
     
                     
@@ -926,7 +926,7 @@ export class SessionManagerApplet {
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
                         }
-                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(2) + "s");
+                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(1) + "s");
                         
                     }
                 });
