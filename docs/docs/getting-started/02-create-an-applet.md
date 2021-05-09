@@ -2,13 +2,11 @@
 sidebar_position: 2
 ---
 
-# Applets
+# Create an Applet
 
-This tutorial will get you started building your first modular applet with Brains@Play! 
+Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet with brainsatplay.js! 
 
-While the following steps will show you how to set up your applet for deployment on the Brains@Play Platform, all applets built in this way can also run standalone using only the internal functions and built-in fragment rendering system in our Applet Template. 
-
-## Applet Setup
+## Register your Applet
 
 ### Copy the Template
 First, copy the Applet Template folder located at `src/js/applets/Templates`.
@@ -17,7 +15,7 @@ Place this template folder under `src/js/applets/General`. In the future, you ma
 
 Rename the AppletTemplate.js to the name of your app. It should look something like this:
 ```
-MyApplet
+myapp
     settings.js
     MyApplet.js
 ```
@@ -29,49 +27,40 @@ To add an image, place an image under `/src/assets/features` and edit the top im
 
 
 ```js
+
+import featureImg from './img/feature.png'
+
 export const settings = {
-    "name": "My Applet",
+    "name": "My App",
     "devices": ["EEG","HEG"],
     "description": "This is my applet.",
     "categories": ["train"],
     "module": "MyApplet",
     "image": featureImg,
-		"instructions":"Coming soon..."
+	"instructions":"Coming soon..."
 }
 ```
 
 ### Add to Applet Manager
-Now we need to add the app to our Applet Manager. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
+Now we need to add your app to our lookup table for dynamically loading scripts. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
 
 ```js
 export const AppletInfo = {
-    'Applet Browser': { folderUrl:'./UI/browser',       devices:['eeg','heg'],     categories:['UI']},
-    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['eeg','heg'],     categories:['UI']},
-    'uPlot': { folderUrl:'./General/uplot',             devices:['eeg','heg'],     categories:['data']},
-    'Spectrogram': { folderUrl:'./EEG/spectrogram',     devices:['eeg'],           categories:['data']},
-    'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['eeg'],           categories:['data']},
-    'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['eeg'],           categories:['data']},
-    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['eeg'],           categories:['multiplayer','feedback']},
-    ///  Truncated  ...
-    'Blob': { folderUrl:'./General/threejs/blob',       devices:['eeg','heg'],           categories:
-    'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['heg'],           categories:['feedback'] },
-    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['heg'],      categories:['feedback'] },
-    'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['heg'],           categories:['data'] },
-    'Youtube': { folderUrl:'./General/ytube',           devices:['eeg','heg'],     categories:['feedback'] },
-    'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['eeg','heg'], categories:['multiplayer','feedback'] },
-    'TestApp': { folderUrl:'./General/TestApp', devices:['eeg','heg'], categories:['feedback'] },
-
+    'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
+    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
+    'Profile Manager': { folderUrl:'./UI/profile',        devices:['EEG','HEG'],     categories:['UI']},
+    'Session Manager': { folderUrl:'./UI/sessionmgr', devices:['EEG','HEG'], categories:['visualize'] },
+    // Truncated  ...
+    'My App': { folderUrl:'./General/myapp', devices:['EEG','HEG'], categories:['train'] },
 };
 ```
-
-This is our quick lookup table for dynamically loading scripts.
 
 ### Test Applet Configuration
 Run your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
 
-If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
+If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20App` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
-## Writing an Applet
+## Write your Applet
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
 

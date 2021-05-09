@@ -34,7 +34,7 @@ export default function Home() {
       description="Neurotechnology with Everyone">
       <HomepageHeader />
       <main>
-        {/* <HomepageFeatures /> */}
+        <HomepageFeatures />
       </main>
     </Layout>
   );

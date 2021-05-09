@@ -1,8 +1,4 @@
----
-sidebar_position: 4
----
-
-# Devices
+# Add Device Support
 
 This tutorial will get you started adding device support to Brains@Play! 
 

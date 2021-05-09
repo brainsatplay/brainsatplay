@@ -46,14 +46,14 @@
 
 .hero {
   /* height: 70vh; */
-  background-image: url("../../static/nasa.jpg");
+  background-image: url("../../static/img/nasa.jpg");
   position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   color: white;
-  width: 100vw;
-  height: 70vh;
+  /* width: 100vw; */
+  /* height: 70vh; */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
