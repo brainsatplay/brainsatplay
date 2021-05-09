@@ -286,14 +286,58 @@ export class SessionManagerApplet {
                 if (files && files.length > 0) {
                   for (var i = 0; i < files.length; i++) {
                     var file = files[i];
-                    this.appendContent(`<div id=${file.id} style='border: 1px solid white;'>${file.name}</div>`,'drivefiles');
-                  }
+                    this.appendContent(`<div id=${file.id} style='border: 1px solid white;'>${file.name}<button id='${file.id}dload'>Download</button></div>`,'drivefiles');
+                    document.getElementById(file.id+'dload').onclick = () => {
+                          
+                        //Get CSV data from drive
+                        var request = gapi.client.drive.files.export({'fileId': file.id, 'mimeType':'text/csv'});
+                          request.then((resp) => {
+                            let filename = file.name;
+                            fs.appendFile('/data/'+filename,resp.body,(e)=>{
+                                if(e) throw e;
+                                this.listDBFiles();
+                            });
+                        });
+                    }
+                }
                 } else {
                     this.appendContent('<p>No files found.</p>','drivefiles');
                 }
               });
         })
         
+    }
+
+    backupToDrive = (filename) => {
+        if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+            fs.readFile('/data/'+filename,(e,output)=>{
+                if(e) throw e;
+                let file = new Blob([output.toString()],{type:'text/csv'});
+                this.checkFolder((result)=>{
+                    let metadata = {
+                        'name':filename+".csv",
+                        'mimeType':'application/vnd.google-apps.spreadsheet',
+                        'parents':[result.files[0].id]
+                    }
+                    let token = gapi.auth.getToken().access_token;
+                    var form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+                    form.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.responseType = 'json';
+                    xhr.onload = () => {
+                        console.log("Uploaded file id: ",xhr.response.id); // Retrieve uploaded file ID.
+                        this.listDriveFiles();
+                    };
+                    xhr.send(form);
+                });   
+            });
+        } else {
+            alert("Sign in with Google first!")
+        }
     }
 
     deleteFile = (path) => {
@@ -496,130 +540,6 @@ export class SessionManagerApplet {
         });
       }
 
-    /*
-        -> select file
-        -> get header
-        -> begin scrolling file data
-        -> wait for user to change the window
-        -> update data on change
-    */
-    makeSeries = (type='heg' , head=undefined) => {
-        let newSeries = [{}];
-        if(type==='heg'){
-            newSeries.push({
-                label:"Red",
-                show:false,
-                value: (u, v) => v == null ? "-" : v.toFixed(1),
-                stroke: "rgb(155,0,0)"
-            });
-            newSeries.push({
-                label:"IR",
-                show:false,
-                value: (u, v) => v == null ? "-" : v.toFixed(1),
-                stroke: "rgb(0,155,155)"
-            });
-            newSeries.push({
-                label:"Ratio",
-                value: (u, v) => v == null ? "-" : v.toFixed(1),
-                stroke: "rgb(155,0,155)"
-            });
-            newSeries.push({
-                label:"Ratio SMA",
-                value: (u, v) => v == null ? "-" : v.toFixed(1),
-                stroke: "rgb(155,155,0)"
-            });
-            newSeries.push({
-                label:"Ambient",
-                show:false,
-                value: (u, v) => v == null ? "-" : v.toFixed(1),
-                stroke: "rgb(0,0,0)"
-            });  
-        } else if(head) {
-            let fft = false;
-            console.log(type)
-            if (type.includes('eegraw')) {
-                head.forEach((value, idx) => {
-                    let val = value.split(';');
-                    if(val.length > 1) {
-                        fft=true;
-                    } else if (idx > 1 && fft === false) {
-                        newSeries.push({
-                            label:val[0],
-                            value: (u, v) => v == null ? "-" : v.toFixed(1),
-                            stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
-                        });
-                    } 
-                });
-            }
-            else if (type.includes('eegfft')) {
-                head.forEach((value, idx) => {
-                    let val = value.split(';');
-                    if(val.length > 1) {
-                        if(val[1].toLowerCase().indexOf("fft") > -1) {
-                            if(val[0].indexOf('::') < 0) {
-                                newSeries.push({
-                                    label:val[0],
-                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
-                                });
-                            }
-                        }
-                    }
-                });
-            } 
-            else if (type.includes('eegcoh')) {
-                head.forEach((value, idx) => {
-                    let val = value.split(';');
-                    if(val.length > 1) {
-                        if(val[1].toLowerCase().indexOf("fft") > -1) {
-                            if(val[0].indexOf('::') > -1) {
-                                newSeries.push({
-                                    label:val[0],
-                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
-                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-        
-        }
-        return newSeries;
-    }
-
-    backupToDrive = (filename) => {
-        if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
-            fs.readFile('/data/'+filename,(e,output)=>{
-                if(e) throw e;
-                let file = new Blob([output.toString()],{type:'text/csv'});
-                this.checkFolder((result)=>{
-                    let metadata = {
-                        'name':filename+".csv",
-                        'mimeType':'application/vnd.google-apps.spreadsheet',
-                        'parents':[result.files[0].id]
-                    }
-                    let token = gapi.auth.getToken().access_token;
-                    var form = new FormData();
-                    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
-                    form.append('file', file);
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.responseType = 'json';
-                    xhr.onload = () => {
-                        console.log("Uploaded file id: ",xhr.response.id); // Retrieve uploaded file ID.
-                        this.listDriveFiles();
-                    };
-                    xhr.send(form);
-                });   
-            });
-        } else {
-            alert("Sign in with Google first!")
-        }
-    }
-
     compareSessionHistory = (filename="",seriestag=undefined,sessiontags='') => {
         let file = "";
         let head = "";
@@ -745,6 +665,13 @@ export class SessionManagerApplet {
         }       
     }
 
+    /*
+        -> select file
+        -> get header
+        -> begin scrolling file data
+        -> wait for user to change the window
+        -> update data on change
+    */
     scrollFileData = (filename) => {
         if(this.uplot) {     
             this.uplot.deInit();
@@ -787,6 +714,7 @@ export class SessionManagerApplet {
                     </tr>
                 </table>
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
+                <div id='${this.props.id}uplot' style='background-color:white;display:none;'></div>
             </div>
             <div id='${this.props.id}sessioninfo' style='background-color:rgba(50,50,50,1);'>
                 <table>
@@ -1132,6 +1060,150 @@ export class SessionManagerApplet {
         });
     }
 
-    
+    makeSeries = (type='heg' , head=undefined) => {
+        let newSeries = [{}];
+        if(type==='heg'){
+            newSeries.push({
+                label:"Red",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,0,0)"
+            });
+            newSeries.push({
+                label:"IR",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(0,155,155)"
+            });
+            newSeries.push({
+                label:"Ratio",
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,0,155)"
+            });
+            newSeries.push({
+                label:"Ratio SMA",
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(155,155,0)"
+            });
+            newSeries.push({
+                label:"Ambient",
+                show:false,
+                value: (u, v) => v == null ? "-" : v.toFixed(1),
+                stroke: "rgb(0,0,0)"
+            });  
+        } else if(head) {
+            let fft = false;
+            console.log(type)
+            if (type.includes('eegraw')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        fft=true;
+                    } else if (idx > 1 && fft === false) {
+                        newSeries.push({
+                            label:val[0],
+                            value: (u, v) => v == null ? "-" : v.toFixed(1),
+                            stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                        });
+                    } 
+                });
+            }
+            else if (type.includes('eegfft')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        if(val[1].toLowerCase().indexOf("fft") > -1) {
+                            if(val[0].indexOf('::') < 0) {
+                                newSeries.push({
+                                    label:val[0],
+                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                                });
+                            }
+                        }
+                    }
+                });
+            } 
+            else if (type.includes('eegcoh')) {
+                head.forEach((value, idx) => {
+                    let val = value.split(';');
+                    if(val.length > 1) {
+                        if(val[1].toLowerCase().indexOf("fft") > -1) {
+                            if(val[0].indexOf('::') > -1) {
+                                newSeries.push({
+                                    label:val[0],
+                                    value: (u, v) => v == null ? "-" : v.toFixed(1),
+                                    stroke: 'rgb('+Math.random()*155+','+Math.random()*155+','+Math.random()*155+')'
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+        
+        }
+        return newSeries;
+    }
+
+    setuPlot = () => {
+        /*
+            <option value='eegraw'>Raw (Single)</option>
+            <option value='Stackedeegraw' selected>Raw (Stacked)</option>
+            <option value='eegfft'>FFT</option>
+            <option value='eegcoh'>Coherence</option>
+            <option value='meaneegcoh'>Mean Coherence</option>
+        */
+        let gmode = document.getElementById(this.props.id+'plotselect').value;
+        if(gmode === 'heg') {
+            let newSeries = this.makeSeries('heg');
+
+            let dummyarr = new Array(100).fill(1);
+
+            this.uplot.uPlotData = [
+                dummyarr,
+                dummyarr,
+                dummyarr,
+                dummyarr,
+                dummyarr,
+                dummyarr
+            ];
+
+            newSeries[0].label = "t";
+            this.uplot.makeuPlot(
+                newSeries, 
+                this.uplot.uPlotData, 
+                this.AppletHTML.node.clientWidth, 
+                400
+            );
+
+            this.setLegend();
+            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+            //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+        }
+        else if (gmode === 'eegraw') {
+            let newSeries = this.makeSeries('eegraw',head);
+            newSeries[0].label = "t";
+            let dummyarr = new Array(100).fill(1);
+            newSeries.forEach((s)=>{
+                this.uplot.uPlotData.push(dummyarr);
+            })
+
+            this.uplot.makeuPlot(
+                newSeries, 
+                this.uplot.uPlotData, 
+                this.AppletHTML.node.clientWidth, 
+                400
+            );
+
+            //console.log(newSeries);
+            this.setLegend();
+            
+        }
+    }
+
+    updateuPlot = () => {
+
+    }
    
+
 } 
