@@ -1,6 +1,6 @@
 # Add Device Support
 
-This tutorial will get you started adding device support to Brains@Play! 
+This tutorial will get you started adding device support to brainatplay.js.
 
 ## Creating a Device Plugin
 ---

@@ -6,7 +6,7 @@ module.exports = {
       collapsed: false,
       items: [
         'intro',
-        'design-principles'
+        // 'design-principles'
       ],
     },
     {

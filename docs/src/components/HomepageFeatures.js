@@ -8,16 +8,16 @@ const FeatureList = [
     Svg: require('../../static/img/thoughtprocess.svg').default,
     description: (
       <>
-        Brains@Play has been created to support anyone in their development of brain-responsive applications.
+        Brains@Play was created to support anyone in their development of brain-responsive applications.
       </>
     ),
   },
   {
-    title: 'Join the Brainstorm',
+    title: 'Connect to the Brainstorm',
     Svg: require('../../static/img/connection.svg').default,
     description: (
       <>
-        Brains@Play is the only neurotechnology framework to encourage and build community around social apps.
+        Brains@Play is the only neurotechnology framework to encourage and build community around social applications.
       </>
     ),
   },
