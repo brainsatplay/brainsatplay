@@ -23,10 +23,8 @@ Do the same for the `disconnect()` function. Be sure to add any exception handli
 ### addControls()
 The last function you may want to customize is addControls(), like in the case of the HEGduino which can be turned on or off or switched into different streaming modes via commands. 
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Part Two</p>
-<h2>Adding Session Support</h2>
-</div>
+## Adding Session Support
+---
 
 Now to add support to the Session frontend, open Session.js and find the deviceStream class. Add your device name and plugin class (be sure import it) to the this.deviceConfigs array. Then go up to makeConnectOptions and add specification for the new device in the deviceOptions array with the list of device names, and then add the connect response to the `brainsatplay-${o}`.onclick function just below. You will notice that the devices here have arrays specifying things like 'eegfft' or 'eegcoherence', these are additional postprocessing algorithms you can add which will run in a separate loop and utilize our web workers. Leave the array empty for no additional processing. We are still adding more supported algorithms and optimizing what we do have so we can create a robust and automated data processing system.
 

@@ -47,7 +47,7 @@ module.exports = {
           position: 'left',
           label: 'Reference',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        // {to: '/blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/brainsatplay/brainsatplay',
           label: 'GitHub',
