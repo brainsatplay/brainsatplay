@@ -13,7 +13,7 @@ require('dotenv').config();
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // New Server Code
-const DataServer = require('./src/library/src/server/DataServer.js'); 
+const DataServer = require('./src/library/src/DataServer.js'); 
 const auth = require('./src/library/src/server/auth.js'); 
 let dataServ = new DataServer();
 

@@ -6,15 +6,15 @@ sidebar_position: 1
 
 Brains@Play is creating the platform for brain-responsive applications.
 
-## What Can Brains@Play Do?
+## What can Brains@Play do?
 
-Here are some examples of what you can acheive with brainsatplay.js,
+Here are some examples of what you can acheive with brainsatplay.js:
 
 - **Signal Acquisition:** Send brain data to Chromium browsers over Bluetooth Low Energy or Serial. 
 - **Algorithms:** Process brain data into useful metrics directly on the browser. 
 - **Applications:** Create high-quality user experiences informed by the brain. 
 
-## How to Contribute to Brains@Play?
+## How to contribute to Brains@Play?
 
 Brains@Play provides a full-stack solution to developing, deploying, and enjoying brain-responsive applications—though there's still a ton of work that most go into creating high-quality experiences for our users! Here's what each section of our documentation can help you with:
 

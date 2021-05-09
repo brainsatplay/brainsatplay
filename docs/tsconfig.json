@@ -8,9 +8,9 @@
       "target": "es6",                         /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */
       "module": "commonjs",                       /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
       "lib": ["es2017", "dom"],                   /* Specify library files to be included in the compilation:  */
-      "rootDir": "src",                         /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+      "rootDir": "../src/library",                         /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
       "jsx": "react",                          /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
-      // "outDir": "dist/",                          /* Redirect output structure to the directory. */
+      "outDir": "dist/",                          /* Redirect output structure to the directory. */
       "sourceMap": true,                          /* Generates corresponding '.map' file. */
       "allowJs": true,                         /* Allow javascript files to be compiled. */
       // "checkJs": true,                         /* Report errors in .js files. */
@@ -46,9 +46,6 @@
       
     },
     "include": [
-      "src"
+      "../src/library"
     ],
-    "exclude": [
-      "node_modules", "**/applets/**"
-    ]
   }

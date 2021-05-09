@@ -6771,7 +6771,7 @@
   "resolved" "https://registry.npmjs.org/pretty-time/-/pretty-time-1.1.0.tgz"
   "version" "1.1.0"
 
-"prism-react-renderer@^1.1.1":
+"prism-react-renderer@^1.1.1", "prism-react-renderer@^1.2.0":
   "integrity" "sha512-GHqzxLYImx1iKN1jJURcuRoA/0ygCcNhfGw1IT8nPIMzarmKQ3Nc+JcG0gi8JXQzuh0C5ShE4npMIoqNin40hg=="
   "resolved" "https://registry.npmjs.org/prism-react-renderer/-/prism-react-renderer-1.2.0.tgz"
   "version" "1.2.0"
@@ -8395,7 +8395,7 @@
     "shiki" "^0.9.3"
     "typedoc-default-themes" "^0.12.10"
 
-"typescript@3.9.x || 4.0.x || 4.1.x || 4.2.x":
+"typescript@^4.2.4", "typescript@3.9.x || 4.0.x || 4.1.x || 4.2.x":
   "integrity" "sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg=="
   "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.2.4.tgz"
   "version" "4.2.4"

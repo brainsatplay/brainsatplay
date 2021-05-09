@@ -10,6 +10,9 @@ module.exports = {
   organizationName: 'brainsatplay', // Usually your GitHub org/user name.
   projectName: 'brainsatplay', // Usually your repo name.
   themeConfig: {
+    prism: {
+      theme: require('prism-react-renderer/themes/vsDark'),
+    },
     colorMode: {
       defaultMode: 'light',
       disableSwitch: true,
@@ -36,7 +39,13 @@ module.exports = {
           type: 'doc',
           docId: 'intro',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Docs',
+        },
+        {
+          type: 'doc',
+          docId: 'reference/index',
+          position: 'left',
+          label: 'Reference',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -124,16 +133,20 @@ module.exports = {
 
       // Plugin / TypeDoc options
       {
-        entryPoints: ['../src/library/brainsatplay.js'],
-        tsconfig: '../tsconfig.json',
+        entryPoints: [
+          '../src/library/brainsatplay.js',
+        ],
+        tsconfig: './tsconfig.json',
         out: 'reference',
+        toc: ["classes"],
         sidebar: {
-        categoryLabel: 'Reference',
-        position: 4,
-        fullNames: true,
-        readme: '../README.md',
+          categoryLabel: 'Reference',
+          position: 4,
+          fullNames: true,
+        },
+        disableOutputCheck: true,
+        readme: 'none'
       },
-    },
     ],
   ],
 };

@@ -1,16 +1,11 @@
-// file1.ts
 /**
- * This is the doc comment for file1.ts
- *
- * Specify this is a module comment and rename it to my-module:
- * @module my-module
- * Specify this is a module comment without renaming it:
- * @module
+ * Module for creating BCI application in Javascript.
+ * @module brainsatplay
  */
 
-// import * as Workers from './src/Workers.js'
-
+ 
+import * as Workers from './src/Workers.js'
 export {Session} from './src/Session.js'
-// export {Workers}
+export {Workers}
 
 // export * from './src/analysis/eegmath'

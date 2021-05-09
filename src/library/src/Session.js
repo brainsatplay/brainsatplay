@@ -58,6 +58,13 @@ import * as Realm from "realm-web";
 import './ui/styles/multiplayerIntro.css'
 
 
+
+/**
+ * ```javascript
+ * import {Session} from 'brainsatplay'
+ * ```
+ */
+
 export class Session {
 	/**
      * @constructor 
@@ -70,6 +77,13 @@ export class Session {
      * @param {string} localHostURL Local URL
 	 * @example session = new Session();
      */
+
+	 /**
+	 * ```javascript
+	 * let session = new Session();
+	 * ```
+	 */
+
 	constructor(
 		username='',
 		password='',
