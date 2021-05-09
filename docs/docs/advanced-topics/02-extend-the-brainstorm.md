@@ -1,12 +1,13 @@
 # Extend the Brainstorm
 The Brainstorm is the public server hosted by Brains@Play to send data between our users.
 
-### Brainstorm Commands
+## Brainstorm Commands
+---
 
-#### Input
+### Input
 **Count:** 18
 
-#### Output
+### Output
 **Count:** 16
 
 *Details coming soon...*

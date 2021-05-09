@@ -3,6 +3,7 @@
 This tutorial will get you started adding device support to Brains@Play! 
 
 ## Creating a Device Plugin
+---
 
 You can find all driver plugins created for Brains@Play in the `library/src/devices` directory. To create a new device plugin, copy the devicePluginTemplate and rename it. 
 
@@ -35,10 +36,8 @@ Now you need to add an analyzer function to the analysis loop in DataAtlas.js. Y
 
 To add worker responses you can add more if statements in DataAtlas.workeronmessage() to process different messages form the worker. Less intuitively you can push functions to the workerResponses array (seen in the constructor of DataAtlas) and parse the responses according to the result in msg.foo and if the msg.origin matches, which requires a bit more internal knowledge of the framework.
 
-<div class="brainsatplay-tutorial-subheader">
-<p>Addendum</p>
-<h2>Novel Device Support</h2>
-</div>
+## Novel Device Support
+---
 
 Brains@Play currently supports EEG and HEG hardware—as well as basic eye tracking. For new and novel devices, there may be additional functionality to add to the DataAtlas so you can store and parse that data correctly. 
 

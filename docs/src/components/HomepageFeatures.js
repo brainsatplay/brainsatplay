@@ -8,7 +8,7 @@ const FeatureList = [
     Svg: require('../../static/img/thoughtprocess.svg').default,
     description: (
       <>
-        Brains@Play has been architected to support anyone in their creation of brain-responsive applications.
+        Brains@Play has been created to support anyone in their development of brain-responsive applications.
       </>
     ),
   },

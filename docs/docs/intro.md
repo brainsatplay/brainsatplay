@@ -2,38 +2,42 @@
 sidebar_position: 1
 ---
 
-# Introduction
+# Overview
+**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source framework for creating brain-responsive applications using modern web technologies.** With this framework, we have developed [The Brains@Play Platform](https://app.brainsatplay.com) to streamline the deployment of applications built by and for our community.
 
-## What is Brains@Play?
-**Brains@Play is the platform for brain-responsive applications.** The entire software stack behind our platform has been released as **brainsatplay.js**: an open-source framework for creating brain-responsive applications using modern web technologies. 
+## Why Brains@Play?
+---
 
-Here are some examples of what you can acheive with brainsatplay.js:
+**Everyone has a brain.** So why not develop applications accessible to all of them? The main benefits of brainsatplay.js include:
 
-- **Signal Acquisition:**
+### Device-Agnostic Data Acquisition
 Stream raw data from a wide array of commercial brain-sensing devices over Bluetooth Low Energy or Serial. 
 
-- **Algorithms:**
+### Plug-and-Play Algorithms
 Derive useful metrics from brain data in real-time—directly on the browser.
 
-- **Networking:**
-Stream brain data over the internet to support social experiences and/or remote data collection. 
+### Advanced Networking Capabilities
+Securely stream brain data over the internet to support social experiences and/or remote data collection. 
 
-- **Applications:** Create high-quality user experiences informed by the brain.
+### Rapid App Development
+Worry less about the basics and focus on creating high-quality user experiences!
 
-## How to Contribute?
-
-There are many ways to contribute to the Brains@Play ecosystem. Here are a few ideas to get you started:
+## How to Contribute
+---
 
 ### Build an Application
 Head over to **Getting Started** to learn how to build your first application with brainsatplay.js.
+
 ### Expand the Ecosystem 
 Explore **Advanced Topics** to begin extending the functionality of brainsatplay.js for other developers.
 
-### 
-- **Guides** includes in-depth discussions on how to effectively contribute to the Brains@Play ecosystem.
+### Claim BCI Bounties
+*Coming soon...*
 
-## Let's Get Started!
-We're so excited to have you as part of the Brains@Play community! Head over to [**Setup**](./getting-started/setup) to clone our Github repository and participate in the future of neurotechnology!
+## Getting Started
+---
+
+We're so excited to have you as part of the Brains@Play community! Head over to [**Setup**](./getting-started/setup) to clone our Github repository and begin participating in the future of neurotechnology!
 
 ### Explore the Reference
 Extensive references to the brainsatplay.js software library can be found on our [**Reference**](./reference) page.

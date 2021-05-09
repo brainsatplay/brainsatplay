@@ -7,6 +7,7 @@ sidebar_position: 2
 Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet with brainsatplay.js! 
 
 ## Register your Applet
+---
 
 ### Copy the Template
 First, copy the Applet Template folder located at `src/js/applets/Templates`.
@@ -61,6 +62,7 @@ Run your development environment using `npm start`. If everything is shipshape, 
 If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20App` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
 ## Write your Applet
+---
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
 
