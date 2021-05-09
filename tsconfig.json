@@ -12,7 +12,7 @@
       "jsx": "react",                          /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
       "outDir": "dist/",                          /* Redirect output structure to the directory. */
       "sourceMap": true,                          /* Generates corresponding '.map' file. */
-      // "allowJs": true,                         /* Allow javascript files to be compiled. */
+      "allowJs": true,                         /* Allow javascript files to be compiled. */
       // "checkJs": true,                         /* Report errors in .js files. */
       "declaration": true,                        /* Generates corresponding '.d.ts' file. */
       // "outFile": "./index.js",                 /* Concatenate and emit output to single file. */
@@ -69,7 +69,7 @@
     //   "./src/**/*"
     // ],
     "include": [
-      "./src/**/*", "webpack.config.js"
+      "./src/**/*"
     ],
     "exclude": [
       "./node_modules",

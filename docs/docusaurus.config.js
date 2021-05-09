@@ -118,4 +118,22 @@ module.exports = {
       },
     ],
   ],
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+
+      // Plugin / TypeDoc options
+      {
+        entryPoints: ['../src/library/brainsatplay.js'],
+        tsconfig: '../tsconfig.json',
+        out: 'reference',
+        sidebar: {
+        categoryLabel: 'Reference',
+        position: 4,
+        fullNames: true,
+        readme: '../README.md',
+      },
+    },
+    ],
+  ],
 };

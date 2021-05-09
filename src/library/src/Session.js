@@ -68,6 +68,7 @@ export class Session {
      * @param {string} appname App name
      * @param {string} remoteHostURL Server URL
      * @param {string} localHostURL Local URL
+	 * @example session = new Session();
      */
 	constructor(
 		username='',
