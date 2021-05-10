@@ -38,13 +38,13 @@ module.exports = {
         {
           type: 'doc',
           docId: 'intro',
-          position: 'left',
+          position: 'right',
           label: 'Docs',
         },
         {
           type: 'doc',
           docId: 'reference/index',
-          position: 'left',
+          position: 'right',
           label: 'Reference',
         },
         // {to: '/blog', label: 'Blog', position: 'left'},

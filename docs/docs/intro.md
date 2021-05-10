@@ -49,7 +49,16 @@ Head over to **Getting Started** to learn how to build your first application wi
 Explore **Advanced Topics** to begin extending the functionality of brainsatplay.js for other developers.
 
 ### Claim BCI Bounties
-*Coming soon...*
+The [USC Bridge Arts and Science Alliance](https://uscbasa.wixsite.com/mysite) has generously provided $2000 to fund "BCI Bounties" to solve hard problems in the neurotechnology space with Brains@Play. While we have yet to release this initiative, you can expect bounties on the following topics:
+
+- ERP Recognition, specifically P300 ($250)
+- An SSVEP speller ($250)
+- [WebRTC](https://webrtc.org/) implementation for peer-to-peer data streaming ($250)
+- Unity, Unreal, and Godot plugins ($100 each)
+- [Timeflux UI](https://github.com/timeflux/timeflux_ui) integration ($100)
+- Project [Warioware](https://www.youtube.com/watch?v=tdyq57OCXn8): "Micro-games" for single and multiplayer use ($5 per entry)
+
+Each technical bounty must be accompanied by a demo applet showcasing the new feature.
 
 ## Getting Started
 ---
