@@ -25,13 +25,11 @@ Stream raw data over Bluetooth Low Energy or Serial. We currently support a wide
 - **Neosensory:** Buzz
 
 ### Plug-and-Play Algorithms
-Derive useful metrics from brain data in real-time—directly on the browser.
+Derive useful information from brain data in real-time—all locally on your web browser!
 
-#### GPU
 - Fast Fourier Transform (FFT), including bandpowers
-
-#### CPU
 - Coherence
+- Blinks
 
 ### Advanced Networking Capabilities
 Securely stream brain data over the internet to support social experiences and/or remote data collection. 
@@ -51,11 +49,14 @@ Explore **Advanced Topics** to begin extending the functionality of brainsatplay
 ### Claim BCI Bounties
 The [USC Bridge Arts and Science Alliance](https://uscbasa.wixsite.com/mysite) has generously provided $2000 to fund "BCI Bounties" to solve hard problems in the neurotechnology space with Brains@Play. While we have yet to release this initiative, you can expect bounties on the following topics:
 
-- ERP Recognition, specifically P300 ($250)
-- An SSVEP speller ($250)
+- [ERP Recognition](https://www.frontiersin.org/articles/10.3389/fnins.2017.00109/full) over Web BLE by replicating [Brain Invaders](https://arxiv.org/pdf/1409.0107.pdf) ($250)
+- An [SSVEP](https://ieeexplore.ieee.org/document/8553012) speller ($250)
 - [WebRTC](https://webrtc.org/) implementation for peer-to-peer data streaming ($250)
-- Unity, Unreal, and Godot plugins ($100 each)
-- [Timeflux UI](https://github.com/timeflux/timeflux_ui) integration ($100)
+- [Automated artifact rejection](https://gitlab.ciirc.cvut.cz/open-source/rps) for online BCI experiments ($100)
+- Unity, Unreal, and Godot plugins ($50 each)
+- [Timeflux UI](https://github.com/timeflux/timeflux_ui) integration ($50)
+- [BCI2000](https://www.bci2000.org/) integration via [BCI2000Web](https://github.com/cronelab/bci2000web) ($50).
+- [MOABB](https://github.com/NeuroTechX/moabb) integration ($50).
 - Project [Warioware](https://www.youtube.com/watch?v=tdyq57OCXn8): "Micro-games" for single and multiplayer use ($5 per entry)
 
 Each technical bounty must be accompanied by a demo applet showcasing the new feature.
