@@ -1,11 +1,11 @@
-const uuid = require('uuid');
-var bcrypt = require('bcrypt-nodejs');
+import uuid from 'uuid'
+import bcrypt from 'bcrypt-nodejs'
 
 const dbName = "brainsatplay";
 
 var SALT_FACTOR = 5;
 
-module.exports.check = async (auth, mongodb) => {
+export const check = async (auth, mongodb) => {
     let username = auth.username
     let password = auth.password
     let profile;

@@ -1,21 +1,61 @@
-const express = require('express');
-const debug = require('debug')('myexpressapp:server');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const cors = require("cors")
-const WebSocket = require('ws');
-const mongodb = require('mongodb');
-const fs = require('fs')
+import express from 'express';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import WebSocket from 'ws';
+import mongodb from 'mongodb';
+import fs from 'fs';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+import dotenv from 'dotenv';
+dotenv.config()
+
+import debug from 'debug';
+debug('myexpressapp:server')
+
+import {getAppletSettings} from './src/applets/appletList.mjs'
+
 const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
-require('dotenv').config();
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
+// console.log(appletList)
 // New Server Code
-const DataServer = require('./src/library/src/DataServer.js');
-const auth = require('./src/library/src/server/auth.js');
+import {DataServer} from './src/library/src/DataServer.js'
+import * as auth from './src/library/src/server/auth.js'
 let dataServ = new DataServer();
+
+
+// Generate Applet Dictionary
+let appletDict = {}
+// let appletDir = path.join(__dirname,'src','applets')
+// let categories = fs.readdirSync(appletDir)
+// console.log(categories)
+
+// categories = categories.filter(c => !c.match(/.js/))
+// console.log(categories)
+
+// categories.forEach(category => {
+//   let categoryDir = path.join(appletDir,category)
+//   let files = fs.readdirSync(categoryDir)
+//     console.log(files)
+//   files.forEach(async file => {
+//     console.log(file)
+//     let dir = path.join(appletDir,category,file)
+//     let settings = await getAppletSettings(dir)
+//     console.log(settings)
+
+//     appsDict[file] = settings
+//     appsDict[file].path = dir
+//     });
+// })
+
+
 
 // Settings
 let protocol = 'http';
@@ -29,7 +69,7 @@ const app = express();
 
 // Snowpack
 let snowServer;
-const {startServer,loadConfiguration} = require('snowpack');
+import {startServer,loadConfiguration} from 'snowpack';
 (async () => {
   const config = await loadConfiguration({},'snowpack.config.js')
   snowServer = await startServer({config});
@@ -87,8 +127,8 @@ app.use(function(req, res, next) {
 });
 
 // Set Routes
-const initRoutes = require("./src/platform/routes/web.js");
-initRoutes(app);
+import {routes} from "./src/platform/routes/web.mjs";
+routes(app);
 
 // development error handler
 if (app.get('env') === 'development') {
@@ -113,7 +153,7 @@ app.set('port', port);
 // const http = require('http'); 
 // let server = http.createServer(app);  
 
-const https = require('https')
+import https from 'https'
 let server = https.createServer(credentials, app)
 
 // Websocket

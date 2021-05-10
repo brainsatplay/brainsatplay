@@ -7,8 +7,8 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
     //By Joshua Brewster, Garrett Flynn (GPL)
 */
 
-class DataServer { 
-       /**
+export class DataServer {
+    /**
      * @constructor
      * @alias DataServer
      * @description Class for managing incoming requests to the WebBCI server.
@@ -845,5 +845,3 @@ class DataServer {
     }
 
 }
-
-module.exports = DataServer

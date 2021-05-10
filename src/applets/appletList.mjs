@@ -1,8 +1,4 @@
 
-import placeholderImg from '../platform/assets/features/placeholder.png'
-import eegNFImage from '../platform/assets/features/eegNF.png'
-import HEGImage from '../platform/assets/features/hegbiofeedback.png'
-import nexusImage from './General/threejs/nexus/img/feature.png'
 
 // { folderUrl:'', name:'', categories:[] }
 export const AppletInfo = {
@@ -16,10 +12,10 @@ export const AppletInfo = {
     'Brain Map': { folderUrl:'./EEG/brainmap',          devices:['EEG'],           categories:['visualize']},
     'Smoothie': { folderUrl:'./EEG/smoothie',           devices:['EEG'],           categories:['visualize']},
     'Bar Chart': { folderUrl:'./EEG/barcharts',         devices:['EEG'],           categories:['visualize']},
-    'Nexus': { folderUrl:'./General/threejs/nexus',     devices:['EEG'],           categories:['train','brainstorm']},
-    'Blob': { folderUrl:'./General/threejs/blob',       devices:['EEG','HEG'],           categories:['train']},
-    'Enso': { folderUrl:'./General/threejs/enso',       devices:['EEG','HEG'],           categories:['train']},
-    'Cosmos': { folderUrl:'./General/threejs/cosmos',   devices:['EEG','HEG'],           categories:['train']},
+    'Nexus': { folderUrl:'./General/nexus',     devices:['EEG'],           categories:['train','brainstorm']},
+    'Blob': { folderUrl:'./General/blob',       devices:['EEG','HEG'],           categories:['train']},
+    'Enso': { folderUrl:'./General/enso',       devices:['EEG','HEG'],           categories:['train']},
+    'Cosmos': { folderUrl:'./General/cosmos',   devices:['EEG','HEG'],           categories:['train']},
     'Blink': { folderUrl:'./EEG/blink',                 devices:['EEG'],           categories:['train']},
     'Band Ring': { folderUrl:'./EEG/bandring',          devices:['EEG'],           categories:['train'] },
     'Brain Art': { folderUrl:'./EEG/brainart',          devices:['EEG'],           categories:['train'] },
@@ -31,13 +27,13 @@ export const AppletInfo = {
     'Boids':{ folderUrl:'./HEG/boids',                  devices:['EEG'],           categories:['train'] },
     'Hill Climber': { folderUrl:'./HEG/hillclimber',    devices:['HEG'],           categories:['train'] },
     'Text Scroller': { folderUrl:'./HEG/textscroller',  devices:['HEG'],           categories:['train'] },
-    'Sunrise': { folderUrl:'./General/threejs/ThreeSunrise', devices:['HEG'],      categories:['train'] },
+    'Sunrise': { folderUrl:'./General/ThreeSunrise', devices:['HEG'],      categories:['train'] },
     'Pulse Monitor': { folderUrl:'./HEG/pulsemonitor',  devices:['HEG'],           categories:['visualize'] },
     'Youtube': { folderUrl:'./General/ytube',           devices:['EEG','HEG'],     categories:['train'] },
     'Multiplayer Example': { folderUrl:'./Templates/Multiplayer', devices:['EEG','HEG'], categories:['play','brainstorm'] },
-    'Three.js Gallery': { folderUrl:'./General/threejs/gallery', devices:['EEG'], categories:['train'] },
-    'VR Applet': { folderUrl:'./General/threejs/vr', devices:['EEG','HEG'], categories:['train'] },
-    'Attractors': { folderUrl:'./General/threejs/attractors', devices:['EEG','HEG'], categories:['train'] },
+    'Three.js Gallery': { folderUrl:'./General/gallery', devices:['EEG'], categories:['train'] },
+    'VR Applet': { folderUrl:'./General/vr', devices:['EEG','HEG'], categories:['train'] },
+    'Attractors': { folderUrl:'./General/attractors', devices:['EEG','HEG'], categories:['train'] },
 };
 //'HEG Session Plotter': { folderUrl:'./HEG/sessionplotter',    devices:['HEG'],           categories:['visualize'] },
     
@@ -93,7 +89,7 @@ export let presets = [
         ],
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
-        image: eegNFImage,
+        image: './assets/features/eegNF.png',
         lock: false
     },
     {
@@ -107,7 +103,7 @@ export let presets = [
         ],
         description: "Brain blood flow training!",
         type: "HEG",
-        image: HEGImage,
+        image: './assets/features/hegbiofeedback.png',
         lock: false
     },
     {
@@ -118,7 +114,7 @@ export let presets = [
         ],
         description: "Experience a random applet every 10 seconds!",
         type: "All",
-        image: placeholderImg,
+        image: './assets/features/placeholder.png',
         lock: true	
     }
 ]

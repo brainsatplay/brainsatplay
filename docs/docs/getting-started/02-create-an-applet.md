@@ -10,9 +10,9 @@ Now that you've set up a local version of The Brains@Play Platform, this tutoria
 ---
 
 ### Copy the Template
-First, copy the Applet Template folder located at `src/js/applets/Templates`.
+First, copy the Applet Template folder located at `src/applets/Templates`.
 
-Place this template folder under `src/js/applets/General`. In the future, you may place your applet anywhere under the `src/js/applets` folder. 
+Place this template folder under `src/applets/General`. In the future, you may place your applet anywhere under the `src/applets` folder. 
 
 Rename the AppletTemplate.js to the name of your app. It should look something like this:
 ```
@@ -24,7 +24,7 @@ myapp
 ### Edit Applet Metadata
 Give your applet a name by editing the settings object in the `settings.js` file. This information edits what appears on the thumbnail.
 
-To add an image, place an image under `/src/assets/features` and edit the top import line at the top of the file to point to the correct location:
+To add an image, place an image within your applet directory and edit the top import line at the top of the file to point to the correct location:
 
 
 ```js

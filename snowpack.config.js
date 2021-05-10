@@ -25,7 +25,8 @@ module.exports = {
   devOptions: {
     port:1234,
     secure: true,
-    open: "chrome"
+    open: "chrome",
+    output: 'stream'
   },
   buildOptions: {
     out: 'dist',

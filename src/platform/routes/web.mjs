@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express"
 const router = express.Router();
-const auth = require("../../library/src/server/auth");
-const path = require("path");
+// import * as auth from "../../library/src/server/auth"
+import path from "path"
 
-let routes = app => {
+export const routes = app => {
 
 router.get("/", (req, res, next) => {
   return res.sendFile(path.join(`${__dirname}/../../../public/index.html`));
@@ -16,4 +16,3 @@ router.post("/login", async (req,res,next) => {
   return app.use("/", router);
 };
 
-module.exports = routes;

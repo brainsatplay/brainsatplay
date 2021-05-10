@@ -1,5 +1,5 @@
 import * as brainsatplay from '../library/src/Session'
-import {BlobApplet} from '../applets/General/threejs/blob/BlobApplet'
+import {BlobApplet} from '../applets/General/blob/BlobApplet'
 // import {uPlotApplet} from './js/applets/General/uplot/uPlotApplet'
 
 
