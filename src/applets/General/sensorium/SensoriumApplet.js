@@ -4,7 +4,8 @@ import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
 import * as PIXI from 'pixi.js';
 import * as settingsFile from './settings'
 import vertexSrc from "./shaders/vertex.glsl"
-import fragmentSrc from "./shaders/fractalGalaxy/fragment.glsl"
+// import fragmentSrc from "./shaders/fractalGalaxy/fragment.glsl"
+import fragmentSrc from "./shaders/network/fragment.glsl"
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {

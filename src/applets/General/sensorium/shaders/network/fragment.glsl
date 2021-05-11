@@ -1,4 +1,6 @@
 #define HISTORY 5
+#define NODES 5
+#define THICKNESS 0.005
 
 precision mediump float;
 varying vec2 vUvs;
@@ -12,12 +14,29 @@ uniform vec3 colors[HISTORY];
 uniform float times[HISTORY];
 uniform float noiseIntensity[HISTORY];
 
-float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
+float circle(vec2 _center, vec2 _uv, float _Diameter){
     vec2 dist = _uv-_center;
 	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
                          _Diameter+(_Diameter*0.01),
                          dot(dist,dist)*4.0);
 }
+
+float drawLine(vec2 _uv, vec2 p1, vec2 p2) {
+  float a = abs(distance(p1, _uv));
+  float b = abs(distance(p2, _uv));
+  float c = abs(distance(p1, p2));
+
+  if ( a >= c || b >=  c ) return 0.0;
+
+  float p = (a + b + c) * 0.5;
+
+  // median to (p1, p2) vector
+  float h = 2.0 / c * sqrt( p * ( p - a) * ( p - b) * ( p - c));
+
+  return mix(1.0, 0.0, smoothstep(0.5 * THICKNESS, 1.5 * THICKNESS, h));
+}
+
+
 //	Classic Perlin 3D Noise 
 //	by Stefan Gustavson
 //
@@ -97,36 +116,37 @@ float cnoise(vec3 P){
 float minDiameter= 0.0;
 float maxDiameter = 0.7;
 float historyInterval = 0.1;
+float time = times[HISTORY-1]/5.0;
 
 void main()
 {
     //Offset uv so that drawn objects are always the same size despite canvas size
     vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
     vec2 uv = vUvs*responsiveScaling;
-    float angle = atan(uv.y,uv.x);
-
-    
     vec4 outColor = vec4(0.);
-    for (int i = 0; i < HISTORY; i++){
+    float innerDiameter = 0.001;
+    float outerDiameter = innerDiameter + 0.001;
 
-        float i_float = float(i);
-        // Noisy Diameter
-        // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
-        float innerDiameter = 0.3;
-        float outerDiameter = innerDiameter + 0.02;
-        float noiseScaling = (maxDiameter - minDiameter) - (outerDiameter-innerDiameter);
+    for (int i = 0; i < NODES; i++){
+        vec2 noise = vec2(cnoise(vec3((10*i)+25,(30*i)+25,time)),cnoise(vec3((40*i)+500,(20*i)+500,time)));
+        vec2 circlePos = mouse + noise;
 
-        // Noisy Circle
-        float alpha = i_float/float(HISTORY);
-        float xoff = cos(angle) + 1.0;
-        float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(noiseIntensity[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
-        // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
-        // float noise = 0.0;
+        // Draw Edges
+        for (int j = 0; j < NODES; j++){
+            if (j > i){
+                vec2 otherCirclePos = mouse + vec2(cnoise(vec3((10*j)+25,(30*j)+25,time)),cnoise(vec3((40*j)+500,(20*j)+500,time)));
+                float interactionStrength = (1.0-distance(circlePos,otherCirclePos));
+                vec3 c = vec3(drawLine(uv,circlePos,otherCirclePos));
+                c.gb *= (1.0-interactionStrength*(0.5 + 0.5*sin(time*20.0))); // Pulse
+                outColor += vec4(c,1.0);
+            }
+        }
 
-        outColor += vec4(colors[i]*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
-        outColor -= vec4(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise)), alpha); // Inner Diameter
+        // Draw Circle
+        outColor += vec4(vec3(circle(circlePos,uv,outerDiameter)),1.0);
+        // outColor -= vec4(vec3(circle(mouse + noise,uv,innerDiameter)),1.0);
     }
+
     gl_FragColor = vec4(outColor);
 
 }

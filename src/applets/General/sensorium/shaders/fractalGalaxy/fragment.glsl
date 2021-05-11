@@ -12,6 +12,7 @@ uniform vec3 colors[HISTORY];
 uniform float times[HISTORY];
 uniform float noiseIntensity[HISTORY];
 
+//Inspired by JoshP's Simplicity shader: https://www.shadertoy.com/view/lslGWr
 // http://www.fractalforums.com/new-theories-and-research/very-simple-formula-for-fractal-patterns/
 float field(in vec3 p) {
 	float strength = 7. + .03 * log(1.e-6 + fract(sin(times[HISTORY-1]) * 4373.11));
