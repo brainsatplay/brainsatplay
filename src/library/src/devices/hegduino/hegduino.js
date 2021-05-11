@@ -406,68 +406,6 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
        
  }
 
- 
-class bleUpdater {
-
-        
-
-    constructor () {
-                
-        this.myESP32 = '6e400001-b5a3-f393-e0a9-e50e24dcca9e'
-
-        this.otaServiceUuid = '6E400004-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
-        this.versionCharacteristicUuid = '6E400007-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
-        this.fileCharacteristicUuid = '6E400006-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
-
-        this.esp32Device = null;
-        this.esp32Service = null;
-        this.readyFlagCharacteristic = null;
-        this.dataToSend = null;
-        this.updateData = null;
-
-        this.totalSize;
-        this.remaining;
-        this.amountToWrite;
-        this.currentPosition;
-
-        this.currentHardwareVersion = "N/A";
-        this.softwareVersion = "N/A";
-        this.latestCompatibleSoftware = "N/A";
-
-        this.characteristicSize = 512; //MTUs //20 byte limit on android   
-
-    }
-
-    /* BTConnect
-        * Brings up the bluetooth connection window and filters for the esp32
-        */
-    BTConnect(){
-        window.navigator.bluetooth.requestDevice({
-          filters: [{
-            services: [this.myESP32]
-          }],
-          optionalServices: [this.otaServiceUuid]
-        })
-        .then(device => {
-          return device.gatt.connect()
-        })
-        .then(server => server.getPrimaryService(this.otaServiceUuid))
-        .then(service => {
-            this.esp32Service = service;
-        })
-        .then(service => {
-          return service;
-        })
-        .then(_ => {
-          return this.CheckVersion();
-        })
-        .catch(error => { console.log(error); });
-      }
-
-      
-}
-
-
  export class EventSourceUtil {
     constructor(hostUrl='http://192.168.4.1/events', onOpen=this.onOpen, onError=this.onError, onMsg=this.onMsg, customCallbacks=[]) { //Add custom callbacks like [{tag:'heg',callback:(e) => {console.log(e.data);}}]
         this.hostUrl = hostUrl;
