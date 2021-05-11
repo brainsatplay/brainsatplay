@@ -8,7 +8,7 @@
     "url": "git+https://github.com/moothyknight/eegpwa"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node app.mjs",
     "build": "snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",

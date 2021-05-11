@@ -11,25 +11,14 @@ sidebar_position: 1
 **Everyone has a brain.** So why not develop applications accessible to all of them? The main benefits of brainsatplay.js include:
 
 ### Device-Agnostic Data Acquisition
-Stream raw data over Bluetooth Low Energy or Serial. We currently support a wide array of commercial brain-sensing devices—and are set to add new devices over time.
-
-#### EEG
-- **FreeEEG32:** FreeEEG32
-- **OpenBCI:** Ganglion, Cyton, and Daisy-Cyton
-- **InteraXon:** Muse 2 and Muse S
-
-#### HEG
-- **HEGAlpha:** HEGduino
-
-#### Other
-- **Neosensory:** Buzz
+Stream raw data over Bluetooth Low Energy or Serial. We currently support hardware from a variety of popular neurotechnology companies (e.g. [OpenBCI](https://openbci.com/), [Muse](https://choosemuse.com/), [Neosensory](https://neosensory.com/), [FreeEEG](https://www.crowdsupply.com/neuroidss/freeeeg32), [HEGAlpha](https://www.hegalpha.com/)) and have documentation to rapidly [add your device](./advanced-topics/add-device-support) to this list.
 
 ### Plug-and-Play Algorithms
 Derive useful information from brain data in real-time—all locally on your web browser!
 
 - Fast Fourier Transform (FFT), including bandpowers
 - Coherence
-- Blinks
+- Blink Detection
 
 ### Advanced Networking Capabilities
 Securely stream brain data over the internet to support social experiences and/or remote data collection. 

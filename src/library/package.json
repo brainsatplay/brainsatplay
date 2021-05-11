@@ -4,6 +4,7 @@
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",
+  "type":"module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "webpack --mode production"
