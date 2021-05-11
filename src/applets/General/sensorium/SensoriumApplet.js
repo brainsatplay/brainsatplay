@@ -32,6 +32,8 @@ export class SensoriumApplet {
         this.controls = [];
         this.indices = [];
 
+        this.looping = false;
+
     }
 
     //---------------------------------
@@ -75,11 +77,16 @@ export class SensoriumApplet {
 
 
         //Add whatever else you need to initialize
-    
+        this.looping = true;
+        this.animate();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        this.looping = false;
+        this.indices.forEach((i)=>{
+            this.audio.stopSound(i);
+        });
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -170,8 +177,14 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'stop'+idx).onclick = () => {
             this.audio.stopSound(len);
             this.inputs[len].parentNode.removeChild(this.inputs[len]);
-            this.controls[len].parentNode.removeChild(this.controsl[len]);
+            this.controls[len].parentNode.removeChild(this.controls[len]);
+            if(this.indices.length-1 !== len) { 
+                this.indices.map((el,i)=>{
+                    if(i > len) { return el--; } //subtract off these indices
+                });  
+            }
             this.indices.splice(len,1);
+            
         }
         document.getElementById(this.props.id+'mute'+idx).onclick = () => {
             if(this.audio.sourceGains[len].gain !== 0){
@@ -182,58 +195,62 @@ export class SensoriumApplet {
     };
 
     animate = () => {
-        this.indices.forEach((idx)=> {
-            let option = document.getElementById(this.props.id+'select'+idx).value;
-            if(!this['muted'+idx]){
-                if(this.bci.atlas.data.heg.length>0) {
-                    if(option === 'hr') {
-                        this.audio.sourceGains[len].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
-                            Math.max(0,Math.min(1/(0.001*(Date.now()-this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
-                            this.audio.ctx.currentTime
-                        );
-                    } else if (option === 'heg') { //Raise HEG ratio compared to baseline
-                        if(!this['hegbaseline'+idx]) this['hegbaseline'+idx] = this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1];
-                        this.audio.sourceGains[len].gain.setValueAtTime(
-                            Math.min(Math.max(0,this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1]-this['hegbaseline'+idx]),1), //
-                            this.audio.ctx.currentTime
-                        );
-                    } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
-                        this.audio.sourceGains[len].gain.setValueAtTime(
-                            Math.max(0,Math.min(this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
-                            this.audio.ctx.currentTime
-                        );
-                    } 
-                }
-                if(this.bci.atlas.settings.eeg === true && this.bci.atlas.settings.analyzing === true) { 
-                    if (option === 'delta') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
-                    } else if (option === 'theta') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'alpha1') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'alpha2') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'beta') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'gamma') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === '40hz') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'tb') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'a12') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (option === 'ab') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
-                    } else if (this.bci.atlas.settings.coherence === true && option === 'acoh') {
-                        this.audio.sourceGains[len].gain.setValueAtTime(
-                            Math.max(Math.min(0,this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')),1), 
-                            this.audio.ctx.currentTime
-                        );
+        if(this.looping){
+            this.indices.forEach((idx)=> {
+                let option = document.getElementById(this.props.id+'select'+idx).value;
+                if(!this['muted'+idx]){
+                    if(this.bci.atlas.data.heg.length>0) {
+                        if(option === 'hr') {
+                            this.audio.sourceGains[len].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+                                Math.max(0,Math.min(1/(0.001*(Date.now()-this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
+                                this.audio.ctx.currentTime
+                            );
+                        } else if (option === 'heg') { //Raise HEG ratio compared to baseline
+                            if(!this['hegbaseline'+idx]) this['hegbaseline'+idx] = this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1];
+                            this.audio.sourceGains[len].gain.setValueAtTime(
+                                Math.min(Math.max(0,this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1]-this['hegbaseline'+idx]),1), //
+                                this.audio.ctx.currentTime
+                            );
+                        } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
+                            this.audio.sourceGains[len].gain.setValueAtTime(
+                                Math.max(0,Math.min(this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
+                                this.audio.ctx.currentTime
+                            );
+                        } 
+                    }
+                    if(this.bci.atlas.settings.eeg === true && this.bci.atlas.settings.analyzing === true) { 
+                        if (option === 'delta') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                        } else if (option === 'theta') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'alpha1') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'alpha2') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'beta') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'gamma') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === '40hz') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'tb') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'a12') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (option === 'ab') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                        } else if (this.bci.atlas.settings.coherence === true && option === 'acoh') {
+                            this.audio.sourceGains[len].gain.setValueAtTime(
+                                Math.max(Math.min(0,this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')),1), 
+                                this.audio.ctx.currentTime
+                            );
+                        }
                     }
                 }
-            }
-        });
+            });
+        
+            setTimeout(()=>{this.animate();},16);
+        }
     }
-   
+
 } 
