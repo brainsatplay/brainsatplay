@@ -609,7 +609,7 @@ export class DataAtlas {
 		return sum / arr.length;
 	}
 
-	//Compare moving average to current data for simple scoring
+	//Report moving average of frontal coherence
 	getCoherenceScore = (coh_data,band='alpha1') => {
 		if(coh_data.fftCount > 0) {
 			let ct = coh_data.fftCount;

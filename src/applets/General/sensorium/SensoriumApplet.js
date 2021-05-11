@@ -7,9 +7,6 @@ import * as settingsFile from './settings'
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
 
-    
-    
-
     constructor(
         parent=document.body,
         bci=new Session(),
@@ -31,6 +28,9 @@ export class SensoriumApplet {
 
         //etc..
         this.audio = null;
+        this.inputs = [];
+        this.controls = [];
+        this.indices = [];
 
     }
 
@@ -43,36 +43,13 @@ export class SensoriumApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id='${props.id}' style='height:100%; width:100%;'>
+            return `
+            <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
-                    <div id='`+props.id+`fileWrapper0' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo0'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile0'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper1' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo1'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile1'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper2' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo2'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile2'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper3' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo2'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile2'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper4' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo5'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile5'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper5' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo2'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile5'></input> 
-                    </div>
-                    <div id='`+props.id+`fileWrapper6' style='font-size:10px;'> 
-                        <div id='`+props.id+`fileinfo6'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile6'></input> 
+                    <button id='${props.id}addsound'>Add Sound</button>
+                    <div id='${props.id}filemenu'></div>
+                    <div id='${props.id}soundcontrols'></div> 
                     </div>
                 </div>     
             </div>`;
@@ -80,7 +57,9 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            document.getElementById(props.id+'addsound'),onclick = () => {
+                this.addSoundInput();
+            };
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -122,38 +101,139 @@ export class SensoriumApplet {
     //--Add anything else for internal use below--
     //--------------------------------------------
 
+    
+    addSoundInput = () => {
+        let fileinput = (idx=0, props=this.props) => {
+            return `
+                <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
+                    <div id='${props.id}fileinfo${idx}'></div> 
+                    <input type="file" id='${props.id}uploadedFile${idx}'></input> 
+                </div>
+            `;
+        }
+
+        let controls = (idx=0, props=this.props) => {
+            return `
+                <div id='${props.id}controlWrapper${idx}'>
+                    <button id='${props.id}play${idx}'>Play ${idx}</button>
+                    <button id='${props.id}mute${idx}'>Mute ${idx}</button>
+                    <button id='${props.id}stop${idx}'>Remove ${idx}</button>
+                    Feedback ${idx}:
+                    <select id='${props.id}select${idx}'>
+                        <option value='none'>None</option>
+                        <option value='hr'>Heart Beat</option>
+                        <option value='heg'>HEG Ratio</option>
+                        <option value='hrv'>Heart Rate Variability</option>
+                        <option value='delta'>Delta Bandpower</option>
+                        <option value='theta'>Theta Bandpower</option>
+                        <option value='alpha1'>Alpha1 Bandpower</option>
+                        <option value='alpha2'>Alpha2 Bandpower</option>
+                        <option value='beta'>Beta Bandpower</option>
+                        <option value='gamma'>Low Gamma Bandpower</option>
+                        <option value='40hz'>40Hz Bandpower</option>
+                        <option value='tb'>Theta/Beta Ratio</option>
+                        <option value='a12'>Alpha 2/1 Ratio</option>
+                        <option value='ab'>Alpha/Beta Ratio</option>
+                        <option value='acoh'>Frontal Alpha Coherence</option>
+                    </select>
+                </div>
+            `;
+        }
+
+        let idx = this.inputs.length;
+
+        document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
+        document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
+        document.getElementById(this.props.id+'fileWrapper'+idx).onchange = () => {
+            let url = document.getElementById(this.props.id+'uploadedFile'+idx).value;
+            this.loadSound(url,idx);
+        }
+        
+        this['muted'+idx] = false;
+
+        this.indices.push(idx);
+        this.inputs.push(document.getElementById(this.props.id+'fileWrapper'+idx));
+        this.controls.push(document.getElementById(this.props.id+'controlWrapper'+idx));
+    }
+
+
     //doSomething(){}
-    loadSound = (idx=0) => {
+    loadSound = (url, idx=0) => {
         if(!this.audio) this.audio = new SoundJS();
         if (this.audio.ctx===null) {return;};
         
-        //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
-        if (audioInput.files.length !== 0) {
-            //only process the first file
-            this.file = audioInput.files[0];
-            this.fileName = this.file.name;
-            if (this.status === 1) {
-                //the sound is still playing but we uploaded another file, so set the forceStop flag to true
-                this.forceStop = true;
-                this.endAudio();
-            };
-            document.getElementById(this.props.id+'fileWrapper'+idx).style.opacity = 1;
-            this.updateInfo('Uploading', true);
-            //once the file is ready, start the visualizer
-            this.decodeAudio(idx);
-        };
+        this.audio.addSounds([url]);
+        let len = this.audio.sourceList.length-1;
+        document.getElementById(this.props.id+'play'+idx).onclick = () => {
+            this.audio.playSound(len,0,true);
+        }
+        document.getElementById(this.props.id+'stop'+idx).onclick = () => {
+            this.audio.stopSound(len);
+            this.inputs[len].parentNode.removeChild(this.inputs[len]);
+            this.controls[len].parentNode.removeChild(this.controsl[len]);
+            this.indices.splice(len,1);
+        }
+        document.getElementById(this.props.id+'mute'+idx).onclick = () => {
+            if(this.audio.sourceGains[len].gain !== 0){
+                this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                this['muted'+idx] = true;
+            } else { this['muted'+idx] = false; }
+        }
     };
 
-    decodeAudio(idx=0) {
-
-    }
-
-    endAudio(idx=0) {
-
-    }
-
-    draw = () => {
-
+    animate = () => {
+        this.indices.forEach((idx)=> {
+            let option = document.getElementById(this.props.id+'select'+idx).value;
+            if(!this['muted'+idx]){
+                if(this.bci.atlas.data.heg.length>0) {
+                    if(option === 'hr') {
+                        this.audio.sourceGains[len].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+                            Math.max(0,Math.min(1/(0.001*(Date.now()-this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
+                            this.audio.ctx.currentTime
+                        );
+                    } else if (option === 'heg') { //Raise HEG ratio compared to baseline
+                        if(!this['hegbaseline'+idx]) this['hegbaseline'+idx] = this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1];
+                        this.audio.sourceGains[len].gain.setValueAtTime(
+                            Math.min(Math.max(0,this.bci.atlas.data.heg[0].ratio[this.bci.atlas.data.heg[0].ratio.length-1]-this['hegbaseline'+idx]),1), //
+                            this.audio.ctx.currentTime
+                        );
+                    } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
+                        this.audio.sourceGains[len].gain.setValueAtTime(
+                            Math.max(0,Math.min(this.bci.atlas.data.heg[0].beat_detect.beats[this.bci.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
+                            this.audio.ctx.currentTime
+                        );
+                    } 
+                }
+                if(this.bci.atlas.settings.eeg === true && this.bci.atlas.settings.analyzing === true) { 
+                    if (option === 'delta') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                    } else if (option === 'theta') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'alpha1') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'alpha2') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'beta') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'gamma') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === '40hz') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'tb') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'a12') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (option === 'ab') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                    } else if (this.bci.atlas.settings.coherence === true && option === 'acoh') {
+                        this.audio.sourceGains[len].gain.setValueAtTime(
+                            Math.max(Math.min(0,this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')),1), 
+                            this.audio.ctx.currentTime
+                        );
+                    }
+                }
+            }
+        });
     }
    
 } 

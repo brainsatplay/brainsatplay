@@ -1,5 +1,5 @@
 
-//By Joshua Brewster (GPL)
+//By Joshua Brewster (GPL). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
 export class SoundJS { //Only one Audio context at a time!
     constructor(){
       window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
@@ -58,6 +58,11 @@ export class SoundJS { //Only one Audio context at a time!
       }
     }
   
+    addSounds(urlList=['']){
+      var bufferLoader = new BufferLoader(this.ctx, urlList, this.finishedLoading)
+      bufferLoader.load();
+    }
+
     finishedLoading = (bufferList) => {
       bufferList.forEach((element) => {
         this.sourceList.push(this.ctx.createBufferSource()); 
@@ -76,12 +81,7 @@ export class SoundJS { //Only one Audio context at a time!
       
     }
   
-    addSounds(urlList=['']){
-      var bufferLoader = new BufferLoader(this.ctx, urlList, this.finishedLoading)
-      bufferLoader.load();
-    }
-  
-    playSound(bufferIndex, seconds=0, repeat=false, startTime=this.ctx.currentTime){//Plays sounds loaded in buffer by index. Sound buffers are single use items.
+    playSound(bufferIndex, seconds=0, repeat=false, startTime=this.ctx.currentTime){ //Plays sounds loaded in buffer by index. Sound buffers are single use items.
       if(repeat === true){
         this.sourceList[bufferIndex].loop = true;
       }
