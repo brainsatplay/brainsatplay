@@ -1,5 +1,3 @@
-import featureImg from "../../../platform/assets/features/placeholder.png"
-
 export const settings = {
     "name": "Applet Browser",
     "author": "Garrett Flynn",
@@ -7,6 +5,5 @@ export const settings = {
     "description": "Choose an applet.",
     "categories": ["UI"],
     "module": "AppletBrowser",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

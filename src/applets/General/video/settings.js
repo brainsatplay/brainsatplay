@@ -1,3 +1,4 @@
+
 import featureImg from './img/feature.png'
 
 export const settings = {
@@ -7,6 +8,6 @@ export const settings = {
     "description": "HEG ratio and EEG Coherence feedback.",
     "categories": ["train"],
     "module": "VideoApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

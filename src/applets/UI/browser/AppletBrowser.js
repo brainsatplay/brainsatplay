@@ -1,6 +1,9 @@
 import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
-import { presets , AppletInfo, getAppletSettings} from "../../appletList"
+import {presetManifest} from '../../../platform/presetManifest'
+import {appletManifest} from '../../../platform/appletManifest'
+import placeholderImage from '../../../platform/assets/features/placeholder.png'
+import {getAppletSettings} from "../../../platform/js/general/importUtils"
 import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
@@ -138,7 +141,7 @@ export class AppletBrowser {
             `
 
             if (this.showPresets){
-                presets.forEach(preset => {
+                presetManifest.forEach(preset => {
                         presetHTML += `
                         <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
                             <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
@@ -157,8 +160,8 @@ export class AppletBrowser {
         // let eegHTML = ``
         // let hegHTML = ``
 
-        var appletInfoArray = Object.keys(AppletInfo).map(function(key) {
-        return [key, AppletInfo[key]];
+        var appletInfoArray = Object.keys(appletManifest).map(function(key) {
+        return [key, appletManifest[key]];
         });
 
         appletInfoArray.sort(function(first, second) {
@@ -181,11 +184,12 @@ export class AppletBrowser {
         let appletSettingsArray = appletInfoArray.map(async (arr) => {
             return await getAppletSettings(arr[1].folderUrl)
         })
+
         Promise.all(appletSettingsArray).then((appletSettings) => {
 
             let categoryArray = []
             let deviceArray = []
-            appletSettings.forEach(settings => {
+            appletSettings.forEach(async settings => {
                 if (!settings.categories.includes('UI')){
                     let type;
                     if (settings.devices.length > 1){
@@ -199,9 +203,10 @@ export class AppletBrowser {
                     let author = settings.author
                     if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
 
+                    let img = settings.image ?? placeholderImage
                     let html = `
                     <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
-                        <img src="${settings.image}" style="${imgStyle}">
+                        <img src="${img}" style="${imgStyle}">
                         <div style="${infoStyle}">
                             <h2 style="margin-bottom: 5px;">${settings.name}</h2>
                             <p style="font-size: 80%; margin: 0px;">By ${author}</p>

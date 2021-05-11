@@ -1,3 +1,4 @@
+
 import featureImg from './feature.PNG'
 
 export const settings = {
@@ -7,6 +8,6 @@ export const settings = {
     "description": "Plot HEG sessions",
     "categories": ["visualize"],
     "module": "HEGPlotterApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

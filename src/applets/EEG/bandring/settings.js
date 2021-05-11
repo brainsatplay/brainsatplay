@@ -7,6 +7,6 @@ export const settings = {
     "description": "Bandpower visualizer.",
     "categories": ["visualize"],
     "module": "BandRingApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

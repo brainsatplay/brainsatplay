@@ -1,4 +1,3 @@
-import featureImg from '../../../platform/assets/features/placeholder.png'
 
 export const settings = {
     "name": "Brain Map",
@@ -7,6 +6,5 @@ export const settings = {
     "description": "Bandpower and coherence mapping.",
     "categories": ["visualize"],
     "module": "BrainMapApplet",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

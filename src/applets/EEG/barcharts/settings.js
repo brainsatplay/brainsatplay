@@ -7,6 +7,6 @@ export const settings = {
     "description": "See EEG bandpowers.",
     "categories": ["visualize"],
     "module": "BarChartApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

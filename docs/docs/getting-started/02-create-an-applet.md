@@ -10,11 +10,9 @@ Now that you've set up a local version of The Brains@Play Platform, this tutoria
 ---
 
 ### Copy the Template
-First, copy the Applet Template folder located at `src/applets/Templates`.
+First, copy the Applet Template folder, located at `src/applets/Templates`, anywhere under the `src/applets` directory. 
 
-Place this template folder under `src/applets/General`. In the future, you may place your applet anywhere under the `src/applets` folder. 
-
-Rename the AppletTemplate.js to the name of your app. It should look something like this:
+Rename template files according to the details of your app. It should look something like this:
 ```
 myapp
     settings.js
@@ -22,40 +20,26 @@ myapp
 ```
 
 ### Edit Applet Metadata
-Give your applet a name by editing the settings object in the `settings.js` file. This information edits what appears on the thumbnail.
-
-To add an image, place an image within your applet directory and edit the top import line at the top of the file to point to the correct location:
-
+Information contained in `settings.js` is used to populate an Applet Manifest used to quickly reference information about applets on The Brains@Play Platform.  Specify a name (and other metadata) for your applet here!
 
 ```js
 
-import featureImg from './img/feature.png'
+// import featureImg from './feature.png'
 
 export const settings = {
     "name": "My App",
     "devices": ["EEG","HEG"],
-    "description": "This is my applet.",
-    "author": "My Name",
+    "author": "Me",
+    "description": "This is my app.",
     "categories": ["train"],
     "module": "MyApplet",
-    "image": featureImg,
+    // "image":  featureImg,
 	"instructions":"Coming soon..."
 }
+
 ```
 
-### Add to Applet Manager
-Now we need to add your app to our lookup table for dynamically loading scripts. Open `/src/js/applets/appletList.js` and add your app to the end of the `AppletInfo` object
-
-```js
-export const AppletInfo = {
-    'Applet Browser': { folderUrl:'./UI/browser',       devices:['EEG','HEG'],     categories:['UI']},
-    'Randomizer': { folderUrl:'./UI/randomizer',        devices:['EEG','HEG'],     categories:['UI']},
-    'Profile Manager': { folderUrl:'./UI/profile',        devices:['EEG','HEG'],     categories:['UI']},
-    'Session Manager': { folderUrl:'./UI/sessionmgr', devices:['EEG','HEG'], categories:['visualize'] },
-    // Truncated  ...
-    'My App': { folderUrl:'./General/myapp', devices:['EEG','HEG'], categories:['train'] },
-};
-```
+To specify a custom thumbnail image, place your image within your applet's directory and edit the commented code in `settings.js` to point to it.
 
 ### Test Applet Configuration
 Run your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 

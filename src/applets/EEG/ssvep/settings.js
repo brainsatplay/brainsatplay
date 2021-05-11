@@ -1,4 +1,3 @@
-import featureImg from '../../../platform/assets/features/placeholder.png'
 
 export const settings = {
     "name": "SSVEP",
@@ -7,6 +6,5 @@ export const settings = {
     "description": "Select flashing objects with your brain.",
     "categories": ["play"],
     "module": "SSVEPApplet",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

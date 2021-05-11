@@ -1,5 +1,7 @@
 import { Session } from "../../../library/src/Session";
-import { getApplet, presets, AppletInfo, getAppletSettings } from "../../../applets/appletList"
+import {presetManifest} from '../../presetManifest'
+import {appletManifest} from '../../appletManifest'
+import { getApplet, getAppletSettings } from "../general/importUtils"
 import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
 
@@ -120,7 +122,7 @@ export class AppletManager {
             }
         }
 
-        this.appletPresets = presets
+        this.appletPresets = presetManifest
 
         document.getElementById("preset-selector").innerHTML += `
         <option value='default' disabled selected>Browse presets</option>
@@ -167,18 +169,18 @@ export class AppletManager {
     deinitUI = () => { }
 
     // Check class compatibility with current devices
-    checkDeviceCompatibility = (appletInfo, devices = this.session.devices) => {
+    checkDeviceCompatibility = (appletManifest, devices = this.session.devices) => {
         let compatible = false
         if (this.session.devices.length === 0) compatible = true
         else {
             this.session.devices.forEach((device) => {
-                if (Array.isArray(appletInfo.devices)) { // Check devices only
-                    if (appletInfo.devices.includes(device.info.deviceType) || appletInfo.devices.includes(device.info.deviceName)) compatible = true
+                if (Array.isArray(appletManifest.devices)) { // Check devices only
+                    if (appletManifest.devices.includes(device.info.deviceType) || appletManifest.devices.includes(device.info.deviceName)) compatible = true
                 }
-                else if (typeof appletInfo.devices === 'object') { // Check devices AND specific channel tags
-                    if (appletInfo.devices.includes(device.info.devices.deviceType) || appletInfo.devices.devices.includes(device.info.deviceName)) {
-                        if (appletInfo.devices.eegChannelTags) {
-                            appletInfo.devices.eegChannelTags.forEach((tag, k) => {
+                else if (typeof appletManifest.devices === 'object') { // Check devices AND specific channel tags
+                    if (appletManifest.devices.includes(device.info.devices.deviceType) || appletManifest.devices.devices.includes(device.info.deviceName)) {
+                        if (appletManifest.devices.eegChannelTags) {
+                            appletManifest.devices.eegChannelTags.forEach((tag, k) => {
                                 let found = o.atlas.eegshared.eegChannelTags.find((t) => {
                                     if (t.tag === tag) {
                                         return true;
@@ -260,18 +262,19 @@ export class AppletManager {
 
         this.appletConfigs.forEach(conf => {
             if (typeof conf === 'object') {
-                if (!currentApplets.reduce(isAllNull, 0) && AppletInfo[conf.name] != null) {
+                if (!currentApplets.reduce(isAllNull, 0) && appletManifest[conf.name] != null) {
                     appletPromises.push(new Promise(async (resolve, reject) => {
-                        let settings = await getAppletSettings(AppletInfo[conf.name].folderUrl)
+                        console.log(appletManifest)
+                        let settings = await getAppletSettings(appletManifest[conf.name].folderUrl)
                         let applet = await getApplet(settings)
                         if (applet != null) return resolve(applet)
                         else return reject('applet does not exist')
                     }))
                 }
             }
-            else if (!currentApplets.reduce(isAllNull, 0) && AppletInfo[conf] != null) {
+            else if (!currentApplets.reduce(isAllNull, 0) && appletManifest[conf] != null) {
                 appletPromises.push(new Promise(async (resolve, reject) => {
-                    let settings = await getAppletSettings(AppletInfo[conf].folderUrl)
+                    let settings = await getAppletSettings(appletManifest[conf].folderUrl)
                     let applet = await getApplet(settings)
                     if (applet != null) return resolve(applet)
                     else return reject('applet does not exist')
@@ -281,7 +284,8 @@ export class AppletManager {
 
         // If no applets have been configured, redirect to base URL
         if (appletPromises.length == 0) {
-            appletPromises = [(async () => { return getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)) })()]
+            console.log(appletManifest)
+            appletPromises = [(async () => { return getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)) })()]
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' }, '', window.location.origin)
         }
 
@@ -290,7 +294,7 @@ export class AppletManager {
             // Check the compatibility of current applets with connected devices
             this.appletsSpawned = 0;
             currentApplets.forEach(async (appname, i) => {
-                let appletSettings = (appname != null) ? AppletInfo[appname] : null
+                let appletSettings = (appname != null) ? appletManifest[appname] : null
                 let compatible = false;
                 if (appletSettings != null) compatible = this.checkDeviceCompatibility(appletSettings) // Check if applet is compatible with current device(s)
                 // else if (currentApplets.reduce((tot,cur) => tot + (cur == undefined)) != currentApplets.length-1) compatible = true // If all applets are not undefined, keep same layout
@@ -353,8 +357,8 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
-            if (!AppletInfo[appletName].folderUrl.includes('/UI/')) {
-                getAppletSettings(AppletInfo[appletName].folderUrl).then(appletSettings => {
+            if (!appletManifest[appletName].folderUrl.includes('/UI/')) {
+                getAppletSettings(appletManifest[appletName].folderUrl).then(appletSettings => {
 
                     var div = document.createElement('div');
 
@@ -416,7 +420,7 @@ export class AppletManager {
                             infoMask.style.opacity = 0;
                             infoMask.style.pointerEvents = 'none';
                             if (instance == null) {
-                                await getApplet(await getAppletSettings(AppletInfo['Applet Browser'].folderUrl)).then((browser) => {
+                                await getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)).then((browser) => {
                                     instance = new browser(appletMask, this.session, [
                                         {
                                             appletIdx: appletIdx,
@@ -629,7 +633,7 @@ export class AppletManager {
         const select = document.getElementById(selectId);
         select.innerHTML = "";
         let newhtml = `<option value='None'>None</option>`;
-        let appletKeys = Object.keys(AppletInfo)
+        let appletKeys = Object.keys(appletManifest)
 
         let arrayAppletIdx = this.applets.findIndex((o, i) => {
             if (o.appletIdx === appletIdx+1) {
@@ -639,7 +643,7 @@ export class AppletManager {
 
         appletKeys.forEach((name) => {
             if (!['Applet Browser'].includes(name)) {
-                if (this.checkDeviceCompatibility(AppletInfo[name])) {
+                if (this.checkDeviceCompatibility(appletManifest[name])) {
                     if (this.applets[arrayAppletIdx] && this.applets[arrayAppletIdx].name === name) {
                         newhtml += `<option value='` + name + `' selected="selected">` + name + `</option>`;
                     }
@@ -654,7 +658,7 @@ export class AppletManager {
         select.onchange = async (e) => {
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
-                let appletCls = await getApplet(await getAppletSettings(AppletInfo[select.value].folderUrl))
+                let appletCls = await getApplet(await getAppletSettings(appletManifest[select.value].folderUrl))
                 this.addApplet(appletCls, appletIdx + 1);
             }
         }

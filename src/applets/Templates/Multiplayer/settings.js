@@ -1,3 +1,4 @@
+
 import featureImg from './img/feature.png'
 
 export const settings = {
@@ -13,6 +14,6 @@ export const settings = {
 
      // Asset Pointers
     "module": "MultiplayerAppletTemplate",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }
