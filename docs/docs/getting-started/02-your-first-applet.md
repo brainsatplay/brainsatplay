@@ -2,19 +2,19 @@
 sidebar_position: 2
 ---
 
-# Create an Applet
+# Your First Applet
 
-Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet with brainsatplay.js.
+Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet using brainsatplay.js.
 
 ## Create your Applet
 ---
 
 ### Copy the Template
-First, copy the Applet Template folder, located at `src/applets/Templates`, into the relevant category folder of the `src/applets` directory. 
+First, copy the Applet Template folder (`src/applets/Templates/app`) into the relevant category folder of the `src/applets` directory. 
 
-Rename template files according to the details of your app. It should look something like this:
+Rename the template according to the details of your applet. It should look something like this:
 ```
-myapp
+myapplet
     settings.js
     MyApplet.js
 ```
@@ -27,10 +27,10 @@ Information contained in `settings.js` is used to populate an Applet Manifest us
 // import featureImg from './feature.png'
 
 export const settings = {
-    "name": "My App",
+    "name": "My Applet",
     "devices": ["EEG","HEG"],
     "author": "Me",
-    "description": "This is my app.",
+    "description": "This is my applet.",
     "categories": ["train"],
     "module": "MyApplet",
     // "image":  featureImg,
@@ -52,7 +52,7 @@ If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
 
 ### constructor()
-On initialization, applets are passed a Brains@Play Session that contains all information about device streams and references **Data Atlases** where all current user data is stored.
+On initialization, applets are passed a [**Session**](../reference/classes/session) that contains all information about device streams and references a **Data Atlas** where all current user data is stored.
 
 ``` javascript
 import {Session} from './../../../../library/src/Session'
@@ -154,12 +154,12 @@ configure(settings=[]) { //For configuring from the address bar or saved setting
 In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"My Applet","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
 
 ## Incorporate Biosignals
-Now that you understand how an applet is organized, it's time to use brain data from your session's **Data Atlas**. Here we'll create an animation loop to get *frontal alpha coherence* if it is in the atlas.
+Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll create an animation loop to get *frontal alpha coherence*.
 
 ``` javascript
 init() {
-    // Truncated...
-    //Add whatever else you need to initialize
+
+    // ...
 
     let animate = () => {
         let alphaCoherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
@@ -174,9 +174,9 @@ init() {
 }
 ```
 
-To get the specific data you're interested in, head over to the [reference](../reference) page of our documentation.
+To get the specific data you're interested in, head over to the [**Reference**](../reference) page of our documentation.
 
 ## Conclusion
-Congratulations on creating your first application with Brains@Play! Of course, there's much more that can be done with this framework—but we hope we've inspired you to dive deeper into brainsatplay.js and begin developing fully-featured applications. 
+Congratulations on creating your first application with Brains@Play! Of course, there's much more that can be done with our framework—but we hope this has inspired you to dive deeper into the growing field of neurotechnology and begin developing fully-featured applications. 
 
 We're so excited to see what you dream up!

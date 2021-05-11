@@ -14,7 +14,7 @@ custom_edit_url: null
 
 • `Let` **workerResponses**: *any*[]= []
 
-Defined in: [src/Workers.js:5](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L5)
+Defined in: [src/Workers.js:5](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L5)
 
 ___
 
@@ -22,7 +22,7 @@ ___
 
 • `Let` **workerThreadrot**: *number*= 0
 
-Defined in: [src/Workers.js:8](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L8)
+Defined in: [src/Workers.js:8](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L8)
 
 ___
 
@@ -30,7 +30,7 @@ ___
 
 • `Let` **workerThreads**: *number*= 2
 
-Defined in: [src/Workers.js:7](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L7)
+Defined in: [src/Workers.js:7](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L7)
 
 ___
 
@@ -38,7 +38,7 @@ ___
 
 • `Let` **workers**: *any*[]= []
 
-Defined in: [src/Workers.js:6](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L6)
+Defined in: [src/Workers.js:6](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L6)
 
 ## Functions
 
@@ -54,7 +54,7 @@ Defined in: [src/Workers.js:6](https://github.com/brainsatplay/brainsatplay/blob
 
 **Returns:** *undefined* \| *number*
 
-Defined in: [src/Workers.js:33](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L33)
+Defined in: [src/Workers.js:33](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L33)
 
 ___
 
@@ -71,4 +71,4 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Workers.js:57](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Workers.js#L57)
+Defined in: [src/Workers.js:57](https://github.com/brainsatplay/brainsatplay/blob/c67ba08/src/library/src/Workers.js#L57)

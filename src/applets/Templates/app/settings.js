@@ -2,12 +2,12 @@
 // import featureImg from './feature.png'
 
 export const settings = {
-    "name": "Example",
+    "name": "Applet",
     "devices": ["EEG","HEG"],
-    "author": "Joshua Brewster",
-    "description": "Example",
+    "author": "",
+    "description": "This is an applet.",
     "categories": ["train"],
-    "module": "AppletTemplate",
+    "module": "Applet",
     // "image":  featureImg,
 		"instructions":"Coming soon..."
 }
