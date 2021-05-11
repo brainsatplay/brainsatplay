@@ -11,12 +11,12 @@ export class AppletTemplate {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;

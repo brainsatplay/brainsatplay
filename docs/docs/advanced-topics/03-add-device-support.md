@@ -5,7 +5,7 @@ This tutorial will get you started adding device support to brainatplay.js.
 ## Creating a Device Plugin
 ---
 
-You can find all driver plugins created for Brains@Play in the `library/src/devices` directory. To create a new device plugin, copy the devicePluginTemplate and rename it. 
+You can find all driver plugins created for Brains@Play in the `src/library/src/devices` directory. To create a new device plugin, copy the devicePluginTemplate and rename it. 
 
 ### init()
 In the `init()` function, set info.sps and info.deviceType to the correct specifications. 

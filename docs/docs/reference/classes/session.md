@@ -35,7 +35,7 @@ let session = new Session();
 
 **Returns:** [*Session*](session.md)
 
-Defined in: [src/Session.js:68](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L68)
+Defined in: [src/Session.js:68](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L68)
 
 ## Properties
 
@@ -110,7 +110,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:357](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L357)
+Defined in: [src/Session.js:357](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L357)
 
 ▸ **addAnalysisMode**(`mode?`: *string*, `deviceName?`: *any*, `n?`: *number*): *void*
 
@@ -124,7 +124,7 @@ Defined in: [src/Session.js:357](https://github.com/brainsatplay/brainsatplay/bl
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:468](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L468)
+Defined in: [src/Session.js:468](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L468)
 
 ___
 
@@ -141,7 +141,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:483](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L483)
+Defined in: [src/Session.js:483](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L483)
 
 ___
 
@@ -159,7 +159,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:525](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L525)
+Defined in: [src/Session.js:525](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L525)
 
 ___
 
@@ -175,7 +175,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:532](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L532)
+Defined in: [src/Session.js:532](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L532)
 
 ___
 
@@ -191,7 +191,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:329](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L329)
+Defined in: [src/Session.js:329](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L329)
 
 ___
 
@@ -207,7 +207,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: [src/Session.js:1248](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1248)
+Defined in: [src/Session.js:1248](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1248)
 
 ___
 
@@ -223,7 +223,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: [src/Session.js:1241](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1241)
+Defined in: [src/Session.js:1241](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1241)
 
 ___
 
@@ -233,7 +233,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1223](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1223)
+Defined in: [src/Session.js:1223](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1223)
 
 ___
 
@@ -250,7 +250,7 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: [src/Session.js:1154](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1154)
+Defined in: [src/Session.js:1154](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1154)
 
 ___
 
@@ -277,7 +277,7 @@ ___
 
 **Returns:** *undefined* \| ``false``
 
-Defined in: [src/Session.js:154](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L154)
+Defined in: [src/Session.js:154](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L154)
 
 ___
 
@@ -298,7 +298,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:246](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L246)
+Defined in: [src/Session.js:246](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L246)
 
 ___
 
@@ -308,7 +308,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:337](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L337)
+Defined in: [src/Session.js:337](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L337)
 
 ___
 
@@ -318,7 +318,7 @@ ___
 
 **Returns:** *App*<DefaultFunctionsFactory, any\>
 
-Defined in: [src/Session.js:558](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L558)
+Defined in: [src/Session.js:558](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L558)
 
 ___
 
@@ -335,7 +335,7 @@ ___
 
 **Returns:** *undefined*
 
-Defined in: [src/Session.js:342](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L342)
+Defined in: [src/Session.js:342](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L342)
 
 ___
 
@@ -353,7 +353,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:390](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L390)
+Defined in: [src/Session.js:390](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L390)
 
 ___
 
@@ -370,7 +370,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:812](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L812)
+Defined in: [src/Session.js:812](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L812)
 
 ___
 
@@ -387,7 +387,7 @@ ___
 
 **Returns:** *object*
 
-Defined in: [src/Session.js:403](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L403)
+Defined in: [src/Session.js:403](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L403)
 
 ___
 
@@ -403,7 +403,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:898](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L898)
+Defined in: [src/Session.js:898](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L898)
 
 ___
 
@@ -421,7 +421,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1136](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1136)
+Defined in: [src/Session.js:1136](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1136)
 
 ___
 
@@ -445,7 +445,7 @@ ___
 
 **Returns:** *Promise*<undefined \| WebSocket\>
 
-Defined in: [src/Session.js:575](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L575)
+Defined in: [src/Session.js:575](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L575)
 
 ___
 
@@ -455,7 +455,7 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:562](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L562)
+Defined in: [src/Session.js:562](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L562)
 
 ___
 
@@ -471,7 +471,7 @@ ___
 
 **Returns:** *Promise*<User<DefaultFunctionsFactory, any, DefaultUserProfileData\>\>
 
-Defined in: [src/Session.js:566](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L566)
+Defined in: [src/Session.js:566](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L566)
 
 ___
 
@@ -493,7 +493,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:261](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L261)
+Defined in: [src/Session.js:261](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L261)
 
 ___
 
@@ -512,7 +512,7 @@ ___
 
 **Returns:** ``null`` \| HTMLElement
 
-Defined in: [src/Session.js:1099](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1099)
+Defined in: [src/Session.js:1099](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1099)
 
 ___
 
@@ -522,7 +522,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:222](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L222)
+Defined in: [src/Session.js:222](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L222)
 
 ___
 
@@ -538,7 +538,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1227](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1227)
+Defined in: [src/Session.js:1227](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1227)
 
 ___
 
@@ -548,7 +548,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:224](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L224)
+Defined in: [src/Session.js:224](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L224)
 
 ___
 
@@ -564,7 +564,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:649](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L649)
+Defined in: [src/Session.js:649](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L649)
 
 ___
 
@@ -585,7 +585,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:233](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L233)
+Defined in: [src/Session.js:233](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L233)
 
 ___
 
@@ -604,7 +604,7 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:618](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L618)
+Defined in: [src/Session.js:618](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L618)
 
 ___
 
@@ -621,7 +621,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1213](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L1213)
+Defined in: [src/Session.js:1213](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L1213)
 
 ___
 
@@ -644,7 +644,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:133](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L133)
+Defined in: [src/Session.js:133](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L133)
 
 ___
 
@@ -666,7 +666,7 @@ ___
 
 **Returns:** *undefined* \| WebSocket
 
-Defined in: [src/Session.js:719](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L719)
+Defined in: [src/Session.js:719](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L719)
 
 ___
 
@@ -683,7 +683,7 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:592](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L592)
+Defined in: [src/Session.js:592](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L592)
 
 ___
 
@@ -699,7 +699,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:374](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L374)
+Defined in: [src/Session.js:374](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L374)
 
 ___
 
@@ -717,7 +717,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: [src/Session.js:498](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L498)
+Defined in: [src/Session.js:498](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L498)
 
 ___
 
@@ -736,7 +736,7 @@ ___
 
 **Returns:** *undefined*
 
-Defined in: [src/Session.js:422](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L422)
+Defined in: [src/Session.js:422](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L422)
 
 ___
 
@@ -755,7 +755,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:837](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L837)
+Defined in: [src/Session.js:837](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L837)
 
 ___
 
@@ -774,7 +774,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:763](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L763)
+Defined in: [src/Session.js:763](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L763)
 
 ___
 
@@ -791,7 +791,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:459](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L459)
+Defined in: [src/Session.js:459](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L459)
 
 ___
 
@@ -807,7 +807,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:464](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L464)
+Defined in: [src/Session.js:464](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L464)
 
 ___
 
@@ -824,7 +824,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:878](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L878)
+Defined in: [src/Session.js:878](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L878)
 
 ___
 
@@ -843,4 +843,4 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:793](https://github.com/brainsatplay/brainsatplay/blob/c1f0e1f/src/library/src/Session.js#L793)
+Defined in: [src/Session.js:793](https://github.com/brainsatplay/brainsatplay/blob/cb1d123/src/library/src/Session.js#L793)

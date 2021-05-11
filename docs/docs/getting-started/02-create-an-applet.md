@@ -6,11 +6,11 @@ sidebar_position: 2
 
 Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet with brainsatplay.js.
 
-## Register your Applet
+## Create your Applet
 ---
 
 ### Copy the Template
-First, copy the Applet Template folder, located at `src/applets/Templates`, anywhere under the `src/applets` directory. 
+First, copy the Applet Template folder, located at `src/applets/Templates`, into the relevant category folder of the `src/applets` directory. 
 
 Rename template files according to the details of your app. It should look something like this:
 ```
@@ -46,7 +46,7 @@ Run your development environment using `npm start`. If everything is shipshape, 
 
 If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20App` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
-## Write your Applet
+## Customize your Applet
 ---
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
@@ -64,12 +64,12 @@ export class MyApplet {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -81,9 +81,6 @@ export class MyApplet {
             //Add whatever else
         };
     }
-
-    // Truncated...
-
 }
 ```
 
@@ -154,4 +151,32 @@ configure(settings=[]) { //For configuring from the address bar or saved setting
 }
 ```
 
-In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"Applet Template","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
+In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"My Applet","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
+
+## Incorporate Biosignals
+Now that you understand how an applet is organized, it's time to use brain data from your session's **Data Atlas**. Here we'll create an animation loop to get *frontal alpha coherence* if it is in the atlas.
+
+``` javascript
+init() {
+    // Truncated...
+    //Add whatever else you need to initialize
+
+    let animate = () => {
+        let alphaCoherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
+
+        console.log(alphaCoherence)
+
+        requestAnimationFrame(animate)
+    }
+
+    animate()
+
+}
+```
+
+To get the specific data you're interested in, head over to the [reference](../reference) page of our documentation.
+
+## Conclusion
+Congratulations on creating your first application with Brains@Play! Of course, there's much more that can be done with this framework—but we hope we've inspired you to dive deeper into brainsatplay.js and begin developing fully-featured applications. 
+
+We're so excited to see what you dream up!
