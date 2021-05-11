@@ -60,7 +60,7 @@ import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
-export class AppletTemplate {
+export class MyApplet {
 
     constructor(
         parent=document.body,
