@@ -112,6 +112,39 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
      this.android = navigator.userAgent.toLowerCase().indexOf("android") > -1; //Use fast mode on android (lower MTU throughput)
  
      this.n; //nsamples
+
+
+    //BLE Updater modified from this sparkfun tutorial: https://learn.sparkfun.com/tutorials/esp32-ota-updates-over-ble-from-a-react-web-application/all
+    
+    //See original copyright:
+    /*************************************************** 
+     This is a React WebApp written to Flash an ESP32 via BLE
+    
+    Written by Andrew England (SparkFun)
+    BSD license, all text above must be included in any redistribution.
+    *****************************************************/
+
+    this.otaServiceUuid = serviceUUID.toLowerCase();
+    this.versionCharacteristicUuid = '6E400007-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
+    this.fileCharacteristicUuid = '6E400006-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
+
+    this.esp32Device = null;
+    this.esp32otaService = null;
+    this.readyFlagCharacteristic = null;
+    this.dataToSend = null;
+    this.updateData = null;
+
+    this.totalSize;
+    this.remaining;
+    this.amountToWrite;
+    this.currentPosition;
+
+    this.currentHardwareVersion = "N/A";
+    this.softwareVersion = "N/A";
+    this.latestCompatibleSoftware = "N/A";
+
+    this.characteristicSize = 512; //MTUs //20 byte limit on android   
+
  
      if(defaultUI === true){
        this.initUI(parentId, buttonId);
@@ -120,22 +153,22 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
     }
  
     initUI(parentId, buttonId) {
-     if(this.device !== null){
-       if (this.device.gatt.connected) {
-         this.device.gatt.disconnect();
-         console.log("device disconnected")
-       }
-     }
-     var HTMLtoAppend = '<button id="'+buttonId+'">BLE Connect</button>';
-     HEGwebAPI.appendFragment(HTMLtoAppend,parentId);
-     document.getElementById(buttonId).onclick = () => { 
-       if(this.async === false) {
-         this.connect();
-       } 
-       else{
-         this.initBLEasync();
-       } 
-     }
+        if(this.device !== null){
+            if (this.device.gatt.connected) {
+                this.device.gatt.disconnect();
+                console.log("device disconnected")
+            }
+        }
+        var HTMLtoAppend = '<button id="'+buttonId+'">BLE Connect</button>';
+        HEGwebAPI.appendFragment(HTMLtoAppend,parentId);
+        document.getElementById(buttonId).onclick = () => { 
+            if(this.async === false) {
+                this.connect();
+            } 
+            else{
+                this.initBLEasync();
+            } 
+        }
     }
  
     //Typical web BLE calls
@@ -152,6 +185,7 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
        .then(sleeper(100)).then(server => server.getPrimaryService(serviceUUID))
        .then(sleeper(100)).then(service => { 
          this.service = service;
+         this.esp32otaService = service;
          service.getCharacteristic(rxUUID).then(sleeper(100)).then(tx => {
            this.rxchar = tx;
            return tx.writeValue(this.encoder.encode("t")); // Send command to start HEG automatically (if not already started)
@@ -170,7 +204,8 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
        .then(sleeper(100)).then(characteristic => {
            characteristic.addEventListener('characteristicvaluechanged',
                                            this.onNotificationCallback) //Update page with each notification
-       }).then(sleeper(100)).then(this.onConnectedCallback())
+       }).then(sleeper(100))
+       .then(this.onConnectedCallback())
        .catch(err => {console.error(err); this.onErrorCallback(err);});
        
        function sleeper(ms) {
@@ -192,6 +227,100 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
     sendMessage = (msg) => {
       this.rxchar.writeValue(this.encoder.encode(msg));
     }
+
+    //get the file to start the update process
+    getFile() {
+        var input = document.createElement('input');
+        input.accept = '.bin';
+        input.type = 'file';
+
+        input.onchange = (e) => {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.onload = (event) => {
+                this.updateData = event.target.result;
+                this.SendFileOverBluetooth();
+                input.value = '';
+            }
+            reader.readAsArrayBuffer(file);
+        }
+        input.click();
+    }
+
+    /* SendFileOverBluetooth(data)
+    * Figures out how large our update binary is, attaches an eventListener to our dataCharacteristic so the Server can tell us when it has finished writing the data to memory
+    * Calls SendBufferedData(), which begins a loop of write, wait for ready flag, write, wait for ready flag...
+    */
+    SendFileOverBluetooth() {
+        if(!this.esp32otaService)
+        {
+            console.log("No ota Service");
+            return;
+        }
+        
+        this.totalSize = this.updateData.byteLength;
+        this.remaining = this.totalSize;
+        this.amountToWrite = 0;
+        this.currentPosition = 0;
+
+        this.esp32otaService.getCharacteristic(this.fileCharacteristicUuid)
+        .then(characteristic => {
+            this.readyFlagCharacteristic = characteristic;
+            return characteristic.startNotifications()
+            .then(_ => {
+                this.readyFlagCharacteristic.addEventListener('characteristicvaluechanged', this.SendBufferedData)
+            });
+        })
+        .catch(error => { 
+            console.log(error); 
+        });
+        this.SendBufferedData();
+    }
+
+    /* SendBufferedData()
+    * An ISR attached to the same characteristic that it writes to, this function slices data into characteristic sized chunks and sends them to the Server
+    */
+    SendBufferedData() {
+        if (this.remaining > 0) {
+            if (this.remaining >= this.characteristicSize) {
+                this.amountToWrite = this.characteristicSize
+            }
+            else {
+                this.amountToWrite = this.remaining;
+            }
+
+            this.dataToSend = this.updateData.slice(this.currentPosition, this.currentPosition + this.amountToWrite);
+            this.currentPosition += this.amountToWrite;
+            this.remaining -= this.amountToWrite;
+            console.log("remaining: " + this.remaining);
+
+            this.esp32otaService.getCharacteristic(this.fileCharacteristicUuid)
+            .then(characteristic => this.RecursiveSend(characteristic, this.dataToSend))
+            .then(_ => {
+                let progress = (100 * (this.currentPosition/this.totalSize)).toPrecision(3) + '%';
+                this.onProgress(progress);
+                return;
+            })
+            .catch(error => { 
+                console.log(error); 
+            });
+        }
+    }
+
+    onProgress(progress) {
+        console.log("ESP32 Update Progress: ", progress);
+    }
+
+    RecursiveSend(characteristic, data) {
+        return characteristic.writeValue(data)
+        .catch(error => {
+            return this.RecursiveSend(characteristic, data);
+        });
+    }
+
+
+
+
  
     //Async solution fix for slower devices (android). This is slower than the other method on PC. Credit Dovydas Stirpeika
     async connectAsync() {
@@ -276,6 +405,67 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
      }
        
  }
+
+ 
+class bleUpdater {
+
+        
+
+    constructor () {
+                
+        this.myESP32 = '6e400001-b5a3-f393-e0a9-e50e24dcca9e'
+
+        this.otaServiceUuid = '6E400004-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
+        this.versionCharacteristicUuid = '6E400007-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
+        this.fileCharacteristicUuid = '6E400006-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase();
+
+        this.esp32Device = null;
+        this.esp32Service = null;
+        this.readyFlagCharacteristic = null;
+        this.dataToSend = null;
+        this.updateData = null;
+
+        this.totalSize;
+        this.remaining;
+        this.amountToWrite;
+        this.currentPosition;
+
+        this.currentHardwareVersion = "N/A";
+        this.softwareVersion = "N/A";
+        this.latestCompatibleSoftware = "N/A";
+
+        this.characteristicSize = 512; //MTUs //20 byte limit on android   
+
+    }
+
+    /* BTConnect
+        * Brings up the bluetooth connection window and filters for the esp32
+        */
+    BTConnect(){
+        window.navigator.bluetooth.requestDevice({
+          filters: [{
+            services: [this.myESP32]
+          }],
+          optionalServices: [this.otaServiceUuid]
+        })
+        .then(device => {
+          return device.gatt.connect()
+        })
+        .then(server => server.getPrimaryService(this.otaServiceUuid))
+        .then(service => {
+            this.esp32Service = service;
+        })
+        .then(service => {
+          return service;
+        })
+        .then(_ => {
+          return this.CheckVersion();
+        })
+        .catch(error => { console.log(error); });
+      }
+
+      
+}
 
 
  export class EventSourceUtil {
@@ -783,3 +973,4 @@ export class webSerial {
         alert("CSV Opened!");
     }
 }
+

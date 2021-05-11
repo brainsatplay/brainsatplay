@@ -159,13 +159,21 @@ export class hegduinoPlugin {
     addControls = (parentNode=document.body) => {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
         let template = () => {
-            return `
+            let t = `
             <div id='`+id+`hegduinoControls'>
                 <button id='`+id+`hegon'>On</button>
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
-            </div>
             `;
+            if(this.mode === 'hegduinoble') {
+                t+= `
+                <button id='`+id+`hegupdate'>Update Firmware (.bin)</button>
+                </div>
+                `;
+            }
+            else { t+=`</div>`;}
+            
+            return t;
         }
 
         let setup = () => {
@@ -178,6 +186,11 @@ export class hegduinoPlugin {
             }
             document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(elm(id+'hegcmd').value);
+            }
+            if(this.mode === 'hegduinoble') {
+                document.getElementById(id+'hegupdate').onclick = () => {
+                    this.device.getFile();
+                }
             }
         }
 
