@@ -1,4 +1,5 @@
-import featureImg from '../../../platform/assets/features/placeholder.png'
+
+// import featureImg from './feature.png'
 
 export const settings = {
     "name": "Example",
@@ -7,6 +8,6 @@ export const settings = {
     "description": "Example",
     "categories": ["train"],
     "module": "AppletTemplate",
-    "image": featureImg,
+    // "image":  featureImg,
 		"instructions":"Coming soon..."
 }

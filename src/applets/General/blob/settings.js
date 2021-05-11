@@ -1,4 +1,5 @@
-import featureImg from "./img/feature.png"
+
+import featureImg from './img/feature.png'
 
 export const settings = {
     "name": "Blob",
@@ -7,6 +8,6 @@ export const settings = {
     "description": "Calm the blob!",
     "categories": ["train"],
     "module": "BlobApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

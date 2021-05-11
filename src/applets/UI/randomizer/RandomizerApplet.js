@@ -2,8 +2,8 @@ import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
 import logo from '../../../platform/assets/logo_and_sub(v3).png'
 import * as settingsFile from './settings'
-
-import { getApplet, AppletInfo, getAppletSettings} from "../../appletList"
+import {appletManifest} from '../../../platform/appletManifest'
+import { getApplet, getAppletSettings} from "../../../platform/js/general/importUtils"
 
 export class RandomizerApplet {
     constructor(
@@ -153,8 +153,8 @@ export class RandomizerApplet {
     }
 
     getNewApplet = async () => {
-        let appletKeys = Object.keys(AppletInfo)
-        let settings = await getAppletSettings(AppletInfo[appletKeys[Math.floor(Math.random() * appletKeys.length)]].folderUrl)
+        let appletKeys = Object.keys(appletManifest)
+        let settings = await getAppletSettings(appletManifest[appletKeys[Math.floor(Math.random() * appletKeys.length)]].folderUrl)
         // Check that the chosen applet is not prohibited, compatible with current devices, and not the same applet as last time
         let prohibitedApplets = ['Randomizer','Applet Browser', 'Sunrise'] // Sunrise takes too long to load
         let compatible = true

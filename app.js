@@ -1,61 +1,87 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import WebSocket from 'ws';
-import mongodb from 'mongodb';
-import fs from 'fs';
-import path from 'path';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+// import express from 'express';
+// import bodyParser from 'body-parser';
+// import cookieParser from 'cookie-parser';
+// import cors from 'cors';
+// import WebSocket from 'ws';
+// import mongodb from 'mongodb';
+// import fs from 'fs';
+// import path from 'path';
+// import { dirname } from 'path';
+// import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// const __dirname = dirname(fileURLToPath(import.meta.url));
 
-import dotenv from 'dotenv';
-dotenv.config()
+// import dotenv from 'dotenv';
+// dotenv.config()
 
-import debug from 'debug';
-debug('myexpressapp:server')
+// import debug from 'debug';
+// debug('myexpressapp:server')
 
-import {getAppletSettings} from './src/applets/appletList.mjs'
+const express = require('express')
+const debug = require('debug')('myexpressapp:server')
+const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
+const WebSocket = require('ws')
+const mongodb = require('mongodb')
+const fs = require('fs')
+const path = require('path')
+require('dotenv').config()
+
+// Generate Applet Manifest
+let appletDict = {}
+let appletDir = path.join(__dirname,'src','applets')
+let categories = fs.readdirSync(appletDir)
+categories = categories.filter(c => !c.match(/.js|Templates/))
+
+categories.forEach((category,indOut) => {
+  let categoryDir = path.join(appletDir,category)
+  let files = fs.readdirSync(categoryDir)
+  var bar = new Promise((resolve, reject) => {
+    files.forEach((file,indIn) => {
+      let dir = path.join(appletDir,category,file)
+      let data = fs.readFileSync(path.join(dir,'settings.js'))
+      let decoded = data.toString('utf-8')
+      let nameStr = decoded.split('"name": ')[1].split('\n')[0]
+      let name = nameStr.slice(1,nameStr.lastIndexOf(nameStr[0]))
+      appletDict[name] = {}
+      appletDict[name].folderUrl = '../../../' + dir.split(path.join(__dirname,'/src/'))[1]
+      let devicesString1 = decoded.split('"devices": [')[1].split('\n')[0]
+      let deviceSubstring = devicesString1.substring(0,devicesString1.lastIndexOf(']'))
+      let deviceArray = Array.from(deviceSubstring.replace(/'|"|`/g,'').split(','))
+      appletDict[name].devices = deviceArray 
+      let categoryString1 = decoded.split('"categories": [')[1].split('\n')[0]
+      let categorySubstring = categoryString1.substring(0,categoryString1.lastIndexOf(']'))
+      let categoryArray = Array.from(categorySubstring.replace(/'|"|`/g,'').split(','))
+      appletDict[name].categories = categoryArray 
+      if (indIn === files.length-1) resolve()
+      });
+  })
+  bar.then(() => {
+    if (indOut === categories.length-1){
+    fs.writeFile('./src/platform/appletManifest.js', 'export const appletManifest = ' + JSON.stringify(appletDict), err => {
+      if (err) {
+        console.error(err)
+        return
+      }
+      console.log('applet manifest created')
+    })
+  }
+  })
+})
 
 const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
-// console.log(appletList)
 // New Server Code
-import {DataServer} from './src/library/src/DataServer.js'
-import * as auth from './src/library/src/server/auth.js'
+const DataServer = require('./src/library/src/DataServer.js');
+let auth = require('./src/platform/server/middleware/auth.js')
+
+// import {DataServer} from './src/library/src/DataServer.js'
+// import * as auth from './src/platform/server/middleware/auth.mjs'
 let dataServ = new DataServer();
-
-
-// Generate Applet Dictionary
-let appletDict = {}
-// let appletDir = path.join(__dirname,'src','applets')
-// let categories = fs.readdirSync(appletDir)
-// console.log(categories)
-
-// categories = categories.filter(c => !c.match(/.js/))
-// console.log(categories)
-
-// categories.forEach(category => {
-//   let categoryDir = path.join(appletDir,category)
-//   let files = fs.readdirSync(categoryDir)
-//     console.log(files)
-//   files.forEach(async file => {
-//     console.log(file)
-//     let dir = path.join(appletDir,category,file)
-//     let settings = await getAppletSettings(dir)
-//     console.log(settings)
-
-//     appsDict[file] = settings
-//     appsDict[file].path = dir
-//     });
-// })
-
-
 
 // Settings
 let protocol = 'http';
@@ -69,9 +95,11 @@ const app = express();
 
 // Snowpack
 let snowServer;
-import {startServer,loadConfiguration} from 'snowpack';
+// import {startServer,loadConfiguration} from 'snowpack';
+const {startServer,loadConfiguration} = require('snowpack');
 (async () => {
   const config = await loadConfiguration({},'snowpack.config.js')
+  // const config = await loadConfiguration({},'snowpack.config.cjs')
   snowServer = await startServer({config});
 })()
 
@@ -127,8 +155,9 @@ app.use(function(req, res, next) {
 });
 
 // Set Routes
-import {routes} from "./src/platform/routes/web.mjs";
-routes(app);
+// import {routes} from "./src/platform/server/routes/web.mjs";
+let initRoutes = require("./src/platform/server/routes/web.js")
+initRoutes(app);
 
 // development error handler
 if (app.get('env') === 'development') {
@@ -153,7 +182,8 @@ app.set('port', port);
 // const http = require('http'); 
 // let server = http.createServer(app);  
 
-import https from 'https'
+let https = require('https')
+// import https from 'https'
 let server = https.createServer(credentials, app)
 
 // Websocket

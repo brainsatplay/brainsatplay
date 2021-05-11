@@ -1,4 +1,3 @@
-import featureImg from '../../../platform/assets/features/placeholder.png'
 
 export const settings = {
     "name": "Sensorium",
@@ -7,6 +6,5 @@ export const settings = {
     "description": "Example",
     "categories": ["train"],
     "module": "SensoriumApplet",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

@@ -1,3 +1,4 @@
+
 import featureImg from './img/feature.jpg'
 
 export const settings = {
@@ -7,6 +8,6 @@ export const settings = {
     "description": "Bandpower and coherence visualizer.",
     "categories": ["visualize"],
     "module": "SpectrogramApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

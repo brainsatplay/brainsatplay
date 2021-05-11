@@ -7,6 +7,6 @@ export const settings = {
     "description": "Staring contest (with yourself...)",
     "categories": ["train"],
     "module": "BlinkApplet",
-    "image": featureImg,
+    "image":  featureImg,
 		"instructions":"Coming soon..."
 }

@@ -183,7 +183,7 @@ export class uPlotApplet {
         );  
 
         
-        this.AppletHTML.appendStylesheet("./_dist_/styles/css/uPlot.min.css");
+        this.AppletHTML.appendStylesheet("./_dist_/platform/styles/css/uPlot.min.css");
 
         
         if(this.bci.atlas.data.eegshared.frequencies.length === 0) {

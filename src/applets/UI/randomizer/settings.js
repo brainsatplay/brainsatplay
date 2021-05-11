@@ -1,4 +1,3 @@
-import featureImg from "../../../platform/assets/features/placeholder.png"
 
 export const settings = {
     "name": "Randomizer",
@@ -7,6 +6,5 @@ export const settings = {
     "description": "Choose an applet.",
     "categories": ["UI"],
     "module": "RandomizerApplet",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

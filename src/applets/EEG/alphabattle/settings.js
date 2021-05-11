@@ -4,7 +4,7 @@ import featureImg from './img/feature.png'
 export const settings = {
 
     // Descriptive Information
-    "name": "Multiplayer Example",
+    "name": "Alpha Battle",
     "author": "Garrett Flynn",
     "description": "A simple fighting game to control your alpha and beta coherence.",
     "categories": ['play', 'brainstorm'],
@@ -13,7 +13,7 @@ export const settings = {
     "devices": ['EEG'],
 
      // Asset Pointers
-    "module": "MultiplayerAppletTemplate",
+    "module": "AlphaBattleApplet",
     "image":  featureImg,
 		"instructions":"Coming soon..."
 }

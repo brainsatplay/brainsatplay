@@ -4,7 +4,6 @@
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",
-  "type":"module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "webpack --mode production"
@@ -15,5 +14,5 @@
     "accessibility"
   ],
   "author": "Garrett Flynn",
-  "license": "GPL-v3"
+  "license": "GPL-3.0-only"
 }

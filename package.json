@@ -8,14 +8,14 @@
     "url": "git+https://github.com/moothyknight/eegpwa"
   },
   "scripts": {
-    "start": "node app.mjs",
+    "start": "node app.js",
     "build": "snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
   },
   "author": "Joshua Brewster",
-  "license": "GPL-v3",
+  "license": "GPL-3.0-only",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
     "@giveback007/util-lib": "^0.16.4",
@@ -25,7 +25,6 @@
     "@snowpack/plugin-typescript": "^1.2.1",
     "@tensorflow-models/facemesh": "0.0.5",
     "@tensorflow/tfjs": "^3.3.0",
-    "bcrypt-nodejs": "0.0.3",
     "brainsatplay": "^0.0.5",
     "browserfs": "^1.4.3",
     "bufferutil": "^4.0.3",

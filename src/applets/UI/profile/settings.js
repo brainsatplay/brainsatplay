@@ -1,4 +1,3 @@
-import featureImg from "../../../platform/assets/features/placeholder.png"
 
 export const settings = {
     "name": "Profile Manager",
@@ -7,6 +6,5 @@ export const settings = {
     "description": "Manage your Brains@Play Profile.",
     "categories": ["UI"],
     "module": "ProfileApplet",
-    "image": featureImg,
 		"instructions":"Coming soon..."
 }

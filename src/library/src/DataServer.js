@@ -7,7 +7,7 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
     //By Joshua Brewster, Garrett Flynn (GPL)
 */
 
-export class DataServer {
+class DataServer {
     /**
      * @constructor
      * @alias DataServer
@@ -845,3 +845,5 @@ export class DataServer {
     }
 
 }
+
+module.exports = DataServer
