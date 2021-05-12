@@ -14,28 +14,59 @@ Brain farts ahead! This tutorial has not been thoroughly tested. 🧠💨
 :::
 
 ## Welcome to The Brainstorm
-### Add a Welcome Screen
+
+### Update your Settings
+``` javascript
+export const settings = {
+    
+    // ...
+
+    "categories": ["train","brainstorm"], // Add the 'brainstorm' category
+
+    // ...
+}
+
+```
+
+### Add Default Intro Sequence
+To make it easier for developers to create a fully-functional networked game, we've provided a helper function to automate the process of (1) presenting a welcome screen, (2) choosing a username, and (3) selecting an available game session: 
+
 ``` javascript
 constructor(){
-    ...
+
+    // ...
+
     //-------Required Multiplayer Properties------- 
-    this.subtitle = 'My First Brainstorm'
-    this.streams = ['coherence']
+    this.subtitle = 'A Simple Networked Game' // Specify a subtitle for the title screen
+    this.streams = ['coherence'] // Register your app data streams
     //----------------------------------------------
-    ...
+    
+    // ...
+
 }
 
 init(){
-    ...
+
+    /// ...
+
     //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
     let setupHTML = (props=this.props) => {
         this.session.insertMultiplayerIntro(this)
     }
-    ...
+
+    ///...
+
 }
 ```
+
+After implementing the above code, you should be able to navigate through the default intro sequence on your applet:
+
+![Title Screen](../../static/img/03-your-first-brainstorm/title.png)
+![Username Screen](../../static/img/03-your-first-brainstorm/username.png)
+![Session Selection Screen](../../static/img/03-your-first-brainstorm/choose.png)
+
 ## Listen to the Brainstorm
-Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through data in `this.session.state.data`.
+Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data in `this.session.state.data.commandResult`.
 
 ``` javascript
 init() {
@@ -49,67 +80,151 @@ init() {
                 console.log(userData)
             })
         } 
-        requestAnimationFrame(animate)
+        setTimeout(() => {requestAnimationFrame(animate)},1000/60)
     }
-
-    animate()
 }
 ```
 
-## Adding a Stream Function
-In some cases, you'll want to automatically compute and stream new values to the Brainstorm. To do this, add a custom streaming function using `this.session.addStreamFunc()`. 
+Now if you open two Chrome windows and connect a synthetic stream from different usernames, you should see `userData` passed between app clients in the Chrome developer console:
 
-For this example, you'll want to transfer your alpha coherence calculations from the `animate()` loop to `this.session.addStreamFunc()`
+![Console Output v1](../../static/img/03-your-first-brainstorm/console1.png)
+
+But, you may be asking yourself, where's the coherence data?!
+
+
+## Adding a Data Stream
+In this cases, you'll want to automatically compute and stream data to the Brainstorm. To do this, add a custom streaming function using `this.session.addStreamFunc()`. 
+
+Specifically, you'll want to pass the function that we used to compute frontal alpha coherence:
 
 ``` javascript
+
+init() {
+
+    // ...
+
     this.session.addStreamFunc(
         'coherence', 
         () => {
             return this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
         }
     )
+
+    let animate = () => {
+        // ...
+    }
+}
 ```
 
-## Streaming App States
-Game states can also be streamed over the Brainstorm. To do this, you'll have to track your states within a Javascript object.
+Now let's check out the console again:
 
-### Track App States
+![Console Output v2](../../static/img/03-your-first-brainstorm/console2.png)
+
+If everything has gone smoothly, you should now see coherence values passed between your simulated clients!
+
+
+## Adding an App Stream
+You can also add an app stream to send data/events (e.g button clicks, player health, etc.) over the Brainstorm. 
+
+To take advantage of this functionality, you'll have to create a Javascript object to hold the data you'd like to pass:
+
 ``` javascript
 constructor(){
-    ...
+    
+    /// ...
+
     this.stateIds = []
-    this.appStates = {
+    this.appEvents = {
         spacebar: false
-    } // name whatever you want
+    }
+
 }
 
+// ...
+
 deinit(){
+
     this.stateIds.forEach(id => {
         this.session.state.unsubscribeAll(id);
     })
-    this.AppletHTML.deleteNode();
+
+    // ...
 }
 ```
 
-### Add States to App Stream
-Move your alpha coherence calculations out of the `animate()` loop and assign to a custom stream function using `this.session.addStreamFunc`.
+The app will listen for changes to this object and send them through the Brainstorm to other users. But first, we have to register the object in our app:
 
 
 ``` javascript
-    this.stateIds.push(this.session.streamAppData('appStates', this.appStates,(newData) => {}))
+constructor(){
+
+    // ...
+
+    this.streams = ['coherence','appEvents'] // Register your app data streams
+    
+    // ...
+
+}
+
+init() {
+
+    // ...
+
+    this.stateIds.push(this.session.streamAppData('appEvents', this.appEvents,(newData) => {console.log('new data!')}))
+
+    let animate = () => {
+        // ...
+    }
+}
 ```
 
-Now you can change the `appStates` variable and it will be automatically updated in the app stream.
+Since we've added a new stream parameter to the app, you'll have to (1) create a new Game Session or (2) restart the server for this change to take effect. 
+
+After this, you can now change the `appEvents` variable and it will be automatically updated in the app stream.
 
 ``` javascript
-document.addEventListener('keydown',(k => {
-    if (k.code === 'Space' && this.appStates.spacebar != true) this.appStates.spacebar = true
-}))
 
-document.addEventListener('keyup',(k => {
-    if (k.code === 'Space') this.appStates.spacebar = false
-}))
+init() {
+
+    // ...
+
+    document.addEventListener('keydown',this.handleKeyDown)
+
+    document.addEventListener('keyup',this.handleKeyUp)
+
+    let animate = () => {
+        // ...
+    }
+}
+
+deinit(){
+    // ...
+
+    document.removeEventListener('keydown',this.handleKeyDown)
+    document.removeEventListener('keyup',this.handleKeyDown)
+}
+
+handleKeyDown = (k) => {
+    if (k.code === 'Space' && this.appEvents.spacebar != true) this.appEvents.spacebar = true
+}
+
+handleKeyUp = (k) => {
+    if (k.code === 'Space') this.appEvents.spacebar = false
+}
+
 ```
+
+In the console, you should now see the following response:
+
+![Console Output v3](../../static/img/03-your-first-brainstorm/console3.png)
+
+:::note App Stream Behavior
+
+All streams are updated every few hundred milliseconds. However, **App Streams** are cleared unless there is new data present.
+
+:::
+
+
 
 ## Conclusion
 

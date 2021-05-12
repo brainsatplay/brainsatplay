@@ -31,4 +31,4 @@ const check = async (auth, mongodb) => {
 return dict
 }
 
-module.exports = check
+exports.check = check

@@ -916,7 +916,7 @@ export class Session {
 						<div class='flex'>
 							<form id="${applet.props.id}login-form" action="">
 								<div class="login-element" style="margin-left: 0px; margin-right: 0px">
-									<input type="text" name="username" autocomplete="off" placeholder="Username or email"/>
+									<input type="text" name="username" autocomplete="off" placeholder="Enter a username"/>
 								</div>
 							</form>
 						</div>
@@ -1015,6 +1015,22 @@ export class Session {
 			// Set Up Screen Two (Login)
 			
 			const loginButton = document.getElementById(`${applet.props.id}login-button`)
+			let form = document.getElementById(`${applet.props.id}login-form`)
+			const usernameInput = form.querySelector('input')
+
+			form.addEventListener("keyup", function(event) {
+				if (event.keyCode === 13) {
+				  event.preventDefault();
+				}
+			  });
+
+			usernameInput.addEventListener("keyup", function(event) {
+				if (event.keyCode === 13) {
+				  event.preventDefault();
+				  loginButton.click();
+				}
+			  });
+
             loginButton.onclick = () => {
                 let form = document.getElementById(`${applet.props.id}login-form`)
                 let formDict = {}
@@ -1170,13 +1186,14 @@ export class Session {
 				this.streamObj.streamLoop();
 			}
 		} else {
+
 			deviceTypes.forEach((name,i) => { // configure named device
 				d = this.devices.find((o,j) => {
-					if(o.info.deviceType === name) {
+					if(o.info.deviceType.toLowerCase() === name.toLowerCase()) {
 						let deviceParams = [];
 						params.forEach((p) => {
 							if(p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
-								if(o.info.deviceType === 'eeg') {
+								if('eeg' === o.info.deviceType.toLowerCase()) {
 									o.atlas.data.eegshared.eegChannelTags.find((o) => {
 										if(o.tag === p[1] || o.ch === p[1]) {
 											deviceParams.push(p);
