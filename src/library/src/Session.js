@@ -663,7 +663,6 @@ export class Session {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-			// console.log('Received', parsed.userData)
 			parsed.userData.forEach((o,i) => {
 				let user = o.username
 				for(const prop in o) {
@@ -710,8 +709,6 @@ export class Session {
 			this.state.data.commandResult = parsed;
 		}else if (parsed.msg === 'resetUsername') {
 			this.info.auth.username = parsed.username;
-		}
-		else if (parsed.msg === 'ping') {
 		}
 		else {
 			console.log(parsed);
@@ -995,7 +992,7 @@ export class Session {
                         connectButton.onclick = () => {
 							let spectate = true
 							
-							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming NOT spectating')}
+							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
 							else console.log('spectating')
                             this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
                                 onjoined(g);
@@ -1110,6 +1107,34 @@ export class Session {
 					hero.style.pointerEvents = 'none'
 				}
 			}, loadTime)
+	}
+
+
+	getBrainstormData(name){
+		let arr = []
+		if (name != null){
+			var regex = new RegExp(name);
+			let appStates = Object.keys(this.state.data).filter(k => regex.test(k))
+
+			let usedNames = []
+
+			appStates.forEach(str => {
+				const match = str.match(/(.+)_(.+)_(.+)_(.+)/);
+				if (!usedNames.includes(match[3])) {
+					usedNames.push(match[3])
+					arr.push({username:match[3]})
+				}
+
+				arr.find(o => {
+					if (o.username === match[3]){
+						o[match[4]] = this.state.data[str]
+					}
+				})
+			})
+		} else {
+			console.error('please specify an app to get data from')
+		}
+		return arr
 	}
 
 

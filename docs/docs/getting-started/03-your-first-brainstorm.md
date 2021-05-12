@@ -61,7 +61,7 @@ After implementing the above code, you should be able to navigate through the de
 ![Session Selection Screen](../../static/img/03-your-first-brainstorm/choose.png)
 
 ## Listen to the Brainstorm
-Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data in `this.session.state.data.commandResult`.
+Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data from `this.session.getBrainstorm()`.
 
 ``` javascript
 init() {
@@ -69,7 +69,7 @@ init() {
     // ...
 
     let animate = () => {
-        let userData = this.session.state.data.commandResult?.userData
+        let userData = this.session.getBrainstormData(this.info.name)
         if (userData){
             userData.forEach((data)=> {
                 console.log(data)
