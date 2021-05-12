@@ -29,4 +29,4 @@ Navigate to the root directory of the repository and run `npm install` in your t
 
 Run `npm start` in terminal to build and start a development server. 
 
-Now you're ready to [**create your first applet**](./create-an-applet) using brainsatplay.js!
+Now you're ready to [**create your first applet**](./your-first-applet) using brainsatplay.js!
