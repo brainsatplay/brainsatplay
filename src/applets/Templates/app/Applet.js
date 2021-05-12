@@ -1,71 +1,49 @@
-import {Session} from './../../../Session'
-import {DOMFragment} from './../../../ui/DOMFragment'
+import {Session} from '../../../library/src/Session'
+import {DOMFragment} from '../../../library/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 
 
 //Example Applet for integrating with the UI Manager
-export class AppletExample {
-
-    
-    
+export class Applet {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
+        this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            buttonOutput: 0 //Add whatever else
+            //Add whatever else
         };
 
         //etc..
-        this.sub1 = undefined;
+
     }
 
     //---------------------------------
     //---Required template functions---
     //---------------------------------
 
-     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
+    //Initalize the applet with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let name = 'BCI App'; if(this.bci) if(this.bci.devices.length > 0) name = "BCI App for "+this.bci.devices[0].info.deviceName;
-            return `
-                <div id='Example_${props.id}' style='height:100%; width:100%; border:2px solid black; background-color:blue; color:white;'>
-                    Test `+name+`
-                    <div id='Output_`+props.id+`'>`+props.buttonOutput+`</div>
-                    <button id='Button_`+props.id+`'>ClickMe</button>
-                    <button id='Button2_`+props.id+`'>Subscribe</button>
-                    <div id='Output2_`+props.id+`'>Awaiting FP1 data</div>
-                </div>
-            `;
+            return `<div id='${props.id}' style='height:100%; width:100%;'></div>`;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById("Button_"+props.id).onclick = () => {
-                props.buttonOutput++;
-                document.getElementById('Output_'+props.id).innerHTML = props.buttonOutput; //Alternatively could set the DOMFragment to update
-            }   
-            document.getElementById("Button2_"+props.id).onclick = () => {
-                this.sub1 = this.bci.subscribe('eeg','all', undefined, (newData)=>{
-                    document.getElementById('Output2_'+props.id).innerHTML = newData;
-                });    
-                if(this.sub1 === undefined) {
-                    document.getElementById('Output2_'+props.id).innerHTML = 'EEG not found, run it first';
-                }
-            }   
+            document.getElementById(props.id);
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -77,7 +55,7 @@ export class AppletExample {
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
+        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 
         //Add whatever else you need to initialize
