@@ -27,8 +27,8 @@ Information contained in `settings.js` is used to populate an Applet Manifest us
 // import featureImg from './feature.png'
 
 export const settings = {
-    "name": "My First Applet", // The name of your applet
-    "devices": ["EEG","HEG"], // Compatible devices for your applet
+    "name": "My First App", // The name of your applet
+    "devices": ["EEG"], // Compatible devices for your applet
     "author": "Me", // The author of your applet
     "description": "This is my first applet.", // A short description of your applet
     "categories": ["train"], // Category tags for your applet
@@ -43,6 +43,9 @@ To specify a custom thumbnail image, place your image within your applet's direc
 
 ### Test Applet Configuration
 Restart your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
+
+![Applet Browser](../../static/img/02-your-first-applet/browser.png)
+
 
 If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20First%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
