@@ -197,7 +197,8 @@ export class SensoriumApplet {
             return `
                 <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
                     <div id='${props.id}fileinfo${idx}'></div> 
-                    <input type="file" id='${props.id}uploadedFile${idx}'></input> 
+                    <button id='${props.id}uploadedFile${idx}'>Add File</button>
+                    <select id='${props.id}select${idx}'></select> 
                 </div>
             `;
         }
@@ -234,7 +235,7 @@ export class SensoriumApplet {
 
         document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
         document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
-        document.getElementById(this.props.id+'fileWrapper'+idx).onchange = () => {
+        document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
             if(!this.audio) this.audio = new SoundJS();
             if (this.audio.ctx===null) {return;};
             this.audio.decodeLocalAudioFile();
