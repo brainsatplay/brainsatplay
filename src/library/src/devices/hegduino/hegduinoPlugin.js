@@ -65,6 +65,7 @@ export class hegduinoPlugin {
                         coord.ir.push(parseFloat(data[2]));
                         coord.ratio.push(parseFloat(data[3]));
                         coord.ambient.push(parseFloat(data[4]));
+                        coord.temp.push(parseFloat(data[5])); // temp is on new firmware
                         //ignore the rest for now
                     }
 

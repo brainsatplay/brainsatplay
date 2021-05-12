@@ -854,8 +854,9 @@ export class SessionManagerApplet {
                                 loaded.data.ir,
                                 loaded.data.ratio,
                                 loaded.data.ratiosma,
-                                loaded.data.ambient
-                            ]
+                                loaded.data.ambient,
+                                loaded.data.temp
+                            ];
                             this.uplot.plot.setData(this.uplot.uPlotData);
                             this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(1) + "s");
                         }

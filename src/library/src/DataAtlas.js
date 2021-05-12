@@ -320,7 +320,7 @@ export class DataAtlas {
 	}
 
 	genHEGStruct(tag,x,y,z) {
-		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],beat_detect:{beats:[],breaths:[],rir:[],rir2:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
+		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],temp:[],beat_detect:{beats:[],breaths:[],rir:[],rir2:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
 	}
 
 	addHEGCoord(tag="heg1",x,y,z) {
@@ -1202,7 +1202,7 @@ export class DataAtlas {
 	}
 
 	readyHEGDataForWriting = (from=0,to='end',hegIdx=0) => {
-		let header = ["TimeStamps","UnixTime","Red","IR","Ratio","Ambient","BPM","HRV","BrPM","BRV"];
+		let header = ["TimeStamps","UnixTime","Red","IR","Ratio","Ambient","Temp","BPM","HRV","BrPM","BRV"];
 		let data = [];
 		let row = this.data.heg[hegIdx];
 		let noteidx = 0;
@@ -1212,7 +1212,7 @@ export class DataAtlas {
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			let amb = row.ambient[i]; if(!amb) amb = 0;
-			let dataToPush = [this.toISOLocal(new Date(t)),t,row.red[i],row.ir[i],row.ratio[i],amb];
+			let dataToPush = [this.toISOLocal(new Date(t)),t,row.red[i],row.ir[i],row.ratio[i],amb,row.temp[i]];
 			if(t === row.beat_detect.beats[beatidx]?.t) { 
 				dataToPush.push(row.beat_detect.beats[beatidx]?.bpm,row.beat_detect.beats[beatidx].hrv); 
 				beatidx++;

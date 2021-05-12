@@ -58,9 +58,42 @@ export class SoundJS { //Only one Audio context at a time!
       }
     }
   
+    //Add a sound file from the app assets or a website url
     addSounds(urlList=['']){
       var bufferLoader = new BufferLoader(this.ctx, urlList, this.finishedLoading)
       bufferLoader.load();
+    }
+
+    //Get a file off the user's computer and decode it into the sound system
+    decodeLocalAudioFile(){
+
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'audio/*';
+
+      input.onchange = (e) => {
+        if(e.files.length !== 0){
+          var file = e.files[0];
+          var fr = new FileReader();
+          fr.onload = (ev) => {
+              var fileResult = ev.target.result;
+              if (this.ctx === null) {
+                  return;
+              };
+              this.ctx.decodeAudioData(fileResult, (buffer) => {
+                this.finishedLoading([buffer]);
+              }, (er) => {
+                  console.error(er);
+              });
+          };
+          fr.onerror = function(er) {
+              console.error(er);
+          };
+          //assign the file to the reader
+          fr.readAsArrayBuffer(file);
+        }
+      }
+      input.click();
     }
 
     finishedLoading = (bufferList) => {

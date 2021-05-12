@@ -235,8 +235,10 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
         document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
         document.getElementById(this.props.id+'fileWrapper'+idx).onchange = () => {
-            let url = document.getElementById(this.props.id+'uploadedFile'+idx).value;
-            this.loadSound(url,idx);
+            if(!this.audio) this.audio = new SoundJS();
+            if (this.audio.ctx===null) {return;};
+            this.audio.decodeLocalAudioFile();
+            this.loadSoundControls(idx)
         }
         
         this['muted'+idx] = false;
@@ -248,11 +250,8 @@ export class SensoriumApplet {
 
 
     //doSomething(){}
-    loadSound = (url, idx=0) => {
-        if(!this.audio) this.audio = new SoundJS();
-        if (this.audio.ctx===null) {return;};
+    loadSoundControls = (idx=0) => {
         
-        this.audio.addSounds([url]);
         let len = this.audio.sourceList.length-1;
         document.getElementById(this.props.id+'play'+idx).onclick = () => {
             this.audio.playSound(len,0,true);
