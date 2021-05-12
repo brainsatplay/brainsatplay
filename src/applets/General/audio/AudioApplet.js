@@ -77,7 +77,7 @@ export class AudioApplet {
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <div id='`+props.id+`fileWrapper' style='font-size:10px;'> 
                         <div id='`+props.id+`fileinfo'></div> 
-                        <input type="file" id='`+props.id+`uploadedFile'></input> 
+                        <input type="file" accept="audio/*" id='`+props.id+`uploadedFile'></input> 
                     </div> 
                     <table id='`+props.id+`table' style='color:white;'>
                         <tr><td>Feedback: </td></tr> 

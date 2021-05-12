@@ -65,23 +65,25 @@ export class SoundJS { //Only one Audio context at a time!
     }
 
     //Get a file off the user's computer and decode it into the sound system
-    decodeLocalAudioFile(){
+    decodeLocalAudioFile(onReady=()=>{}, onBeginDecoding=()=>{}){
 
       var input = document.createElement('input');
       input.type = 'file';
       input.accept = 'audio/*';
 
       input.onchange = (e) => {
-        if(e.files.length !== 0){
-          var file = e.files[0];
+        if(e.target.files.length !== 0){
+          var file = e.target.files[0];
           var fr = new FileReader();
           fr.onload = (ev) => {
               var fileResult = ev.target.result;
               if (this.ctx === null) {
                   return;
               };
+              onBeginDecoding();
               this.ctx.decodeAudioData(fileResult, (buffer) => {
                 this.finishedLoading([buffer]);
+                onReady();
               }, (er) => {
                   console.error(er);
               });
@@ -126,11 +128,13 @@ export class SoundJS { //Only one Audio context at a time!
     }
   
     stopSound(bufferIndex){
-      this.sourceList[bufferIndex].stop(0);
+      if(this.sourceList[bufferIndex])
+        this.sourceList[bufferIndex].stop(0);
     }
   
     setPlaybackRate(bufferIndex, rate){
-      this.sourceList[bufferIndex].playbackRate.value = rate;
+      if(this.sourceList[bufferIndex])
+        this.sourceList[bufferIndex].playbackRate.value = rate;
     }
   
     record(name = new Date().toISOString(), args={audio:true, video:false}, type=null, streamElement=null){ // video settings vary e.g. video:{width:{min:1024,ideal:1280,max:1920},height:{min:576,ideal:720,max:1080}}
