@@ -1,4 +1,5 @@
 /src/applets/Examples
+/src/platform/appletManifest.js
 /node_modules/
 /dist/
 /.cache/
