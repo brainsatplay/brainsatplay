@@ -65,6 +65,7 @@ export class DataLoader {
             red.push(parseFloat(row[2]));
             ir.push(parseFloat(row[3]));
             ratio.push(parseFloat(row[4]));
+            temp.push(parseFloat(row[5]));
             if(row[6] && row[6] !== "") {bpm.push(parseFloat(row[6]));hrv.push(parseFloat(row[7])); beatTimes.push(t[t.length-1]);}
             if(row[8] && row[8] !== "") {brpm.push(parseFloat(row[8]));brv.push(parseFloat(row[9])); breathTimes.push(t[t.length-1]);}
 
@@ -87,7 +88,7 @@ export class DataLoader {
         this.state.data.type = 'heg';
         this.state.data.loaded.header = header;
         this.state.data.loaded.data = { 
-            times:t, red:red, ir:ir, ratio:ratio, ratiosma:ratiosma, ambient:ambient, error:err, rmse:rmse, notes:notes, noteTimes:noteTimes, 
+            times:t, red:red, ir:ir, ratio:ratio, ratiosma:ratiosma, ambient:ambient, temp:temp, error:err, rmse:rmse, notes:notes, noteTimes:noteTimes, 
             bpm:bpm, hrv:hrv, brpm:brpm, brv:brv, beatTimes:beatTimes, breathTimes:breathTimes
         };
     }

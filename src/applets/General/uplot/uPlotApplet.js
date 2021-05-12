@@ -346,7 +346,7 @@ export class uPlotApplet {
               break;
             }
           }
-          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j)];
+          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j),heg.temp.slice(j)];
           if(heg.ambient.length > 0) {
             this.class.uPlotData.push(heg.ambient.slice(j))
           }
@@ -514,7 +514,7 @@ export class uPlotApplet {
               break;
             }
           }
-          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j)];
+          this.class.uPlotData = [heg.times.slice(j),heg.red.slice(j),heg.ir.slice(j),heg.ratio.slice(j),heg.temp.slice(j)];
           if(heg.ambient.length > 0) {
             this.class.uPlotData.push(heg.ambient.slice(j))
           }
@@ -554,6 +554,13 @@ export class uPlotApplet {
               label:"Ambient",
               value: (u, v) => v == null ? "-" : v.toFixed(1),
               stroke: "rgb(0,0,0)"
+            });
+          }
+          else if (i === 5) {
+            newSeries.push({
+              label:"Temp (C)",
+              value: (u, v) => v == null ? "-" : v.toFixed(1),
+              stroke: "rgb(155,50,50)"
             });
           }
         });
