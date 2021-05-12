@@ -27,26 +27,26 @@ Information contained in `settings.js` is used to populate an Applet Manifest us
 // import featureImg from './feature.png'
 
 export const settings = {
-    "name": "My Applet",
-    "devices": ["EEG","HEG"],
-    "author": "Me",
-    "description": "This is my applet.",
-    "categories": ["train"],
-    "module": "MyApplet",
+    "name": "My First Applet", // The name of your applet
+    "devices": ["EEG","HEG"], // Compatible devices for your applet
+    "author": "Me", // The author of your applet
+    "description": "This is my first applet.", // A short description of your applet
+    "categories": ["train"], // Category tags for your applet
+    "module": "Applet", // The module name for your applet (must match the Applet.js file name)
     // "image":  featureImg,
-	"instructions":"Coming soon..."
+	"instructions":"Coming soon..." // Extended instructions on how to use your applet
 }
 
 ```
 
-To specify a custom thumbnail image, place your image within your applet's directory and edit the commented code in `settings.js` to point to it.
+To specify a custom thumbnail image, place your image within your applet's directory and edit the commented code in `settings.js` to point to it. When left unspecified, this will default to a placeholder thumbnail.
 
 ### Test Applet Configuration
-Run your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
+Restart your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
 
-If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20App` will appear in the address bar to ensure that you return to your applet when refreshing the page.
+If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20First%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
 
-## Customize your Applet
+## Review Applet Methods
 ---
 
 Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
@@ -60,7 +60,7 @@ import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 
 //Example Applet for integrating with the UI Manager
-export class MyApplet {
+export class Applet {
 
     constructor(
         parent=document.body,
@@ -154,29 +154,72 @@ configure(settings=[]) { //For configuring from the address bar or saved setting
 In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"My Applet","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
 
 ## Incorporate Biosignals
-Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll create an animation loop to get *frontal alpha coherence*.
+Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll set up our applet to display the current *frontal alpha coherence*.
 
 ``` javascript
 init() {
 
+    let HTMLtemplate = (props=this.props) => { 
+        return `
+            <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
+                <div>
+                    <h1>Frontal Alpha Coherence</h1>
+                    <p id="${props.id}-coherence"></p>
+                </div>
+            </div>
+        `;
+    }
+
     // ...
 
     let animate = () => {
-        let alphaCoherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
 
-        console.log(alphaCoherence)
+        // Get Frontal Alpha Coherence
+        let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
 
-        requestAnimationFrame(animate)
+        // Display Alpha Coherence
+        document.getElementById(`${this.props.id}-coherence`).innerHTML = coherence
+
+        // Continue Animation
+        setTimeout(this.animation = window.requestAnimationFrame(animate),1000/60) // Limit framerate to 60fps
     }
 
+    // Start Animation
     animate()
 
 }
 ```
 
-To get the specific data you're interested in, head over to the [**Reference**](../reference) page of our documentation.
+Don't forget to clean up after yourself!
+``` javascript
+deinit() {
+
+    // Stop Animation
+    if (this.animation){
+        window.cancelAnimationFrame(this.animation)
+        this.animation = undefined  
+    }
+
+    // Delete Applet HTML
+    this.AppletHTML.deleteNode();
+}
+```
+
+After adding this code, your applet should look like this:
+
+![Applet UI](../../static/img/02-your-first-applet/ui.png)
+
+## Test Out your Hard Work
+After everything is wired up, head over to your applet and activate the **Synthetic Stream** from the Device Manager. 
+
+![Applet Readout](../../static/img/02-your-first-applet/devices.png)
+
+This should begin updating the real-time readout on your applet.
+
+![Applet Readout](../../static/img/02-your-first-applet/readout.png)
+
 
 ## Conclusion
 Congratulations on creating your first application with Brains@Play! Of course, there's much more that can be done with our framework—but we hope this has inspired you to dive deeper into the growing field of neurotechnology and begin developing fully-featured applications. 
 
-We're so excited to see what you dream up!
+To get the specific data required by your application, head over to the [**Reference**](../reference) page of our documentation. We're so excited to experience what you dream up!

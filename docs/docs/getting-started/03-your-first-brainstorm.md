@@ -6,6 +6,13 @@ sidebar_position: 3
 
 This tutorial will get you started building your first networked application with brainsatplay.js! 
 
+
+:::warning Untested Tutorial
+
+Brain farts ahead! This tutorial has not been thoroughly tested. 🧠💨
+
+:::
+
 ## Welcome to The Brainstorm
 ### Add a Welcome Screen
 ``` javascript
