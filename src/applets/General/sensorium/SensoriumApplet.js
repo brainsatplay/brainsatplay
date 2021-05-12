@@ -83,7 +83,7 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id+'addsound'),onclick = () => {
+            document.getElementById(props.id+'addsound').onclick = () => {
                 this.addSoundInput();
             };
         }
@@ -198,7 +198,8 @@ export class SensoriumApplet {
                 <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
                     <div id='${props.id}fileinfo${idx}'></div> 
                     <button id='${props.id}uploadedFile${idx}'>Add File</button>
-                    <select id='${props.id}select${idx}'></select> 
+                    Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
+                    <div id='${props.id}status${idx}'></div>
                 </div>
             `;
         }
@@ -234,12 +235,15 @@ export class SensoriumApplet {
         let idx = this.inputs.length;
 
         document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
-        document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
         document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
             if(!this.audio) this.audio = new SoundJS();
             if (this.audio.ctx===null) {return;};
-            this.audio.decodeLocalAudioFile();
-            this.loadSoundControls(idx)
+            this.audio.decodeLocalAudioFile(()=>{    
+                document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
+                this.loadSoundControls(idx);
+                document.getElementById(this.props.id+'status'+idx).innerHTML = "";
+            }, ()=> { document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." });
+            
         }
         
         this['muted'+idx] = false;
@@ -253,27 +257,31 @@ export class SensoriumApplet {
     //doSomething(){}
     loadSoundControls = (idx=0) => {
         
-        let len = this.audio.sourceList.length-1;
+        let i = this.audio.sourceList.length-1;
         document.getElementById(this.props.id+'play'+idx).onclick = () => {
-            this.audio.playSound(len,0,true);
+            console.log(i)
+            this.audio.playSound(i,0,true);
         }
         document.getElementById(this.props.id+'stop'+idx).onclick = () => {
-            this.audio.stopSound(len);
-            this.inputs[len].parentNode.removeChild(this.inputs[len]);
-            this.controls[len].parentNode.removeChild(this.controls[len]);
-            if(this.indices.length-1 !== len) { 
+            if(this.audio) this.audio.stopSound(i);
+            
+            this.inputs[i].parentNode.removeChild(this.inputs[i]);
+            this.controls[i].parentNode.removeChild(this.controls[i]);
+            if(this.indices.length-1 !== i) { 
                 this.indices.map((el,i)=>{
-                    if(i > len) { return el--; } //subtract off these indices
+                    if(i > i) { return el--; } //subtract off these indices
                 });  
             }
-            this.indices.splice(len,1);
+            this.indices.splice(i,1);
             
         }
         document.getElementById(this.props.id+'mute'+idx).onclick = () => {
-            if(this.audio.sourceGains[len].gain !== 0){
-                this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+            if(this.audio.sourceGains[i].gain.value !== 0){
+                this['lastgain'+idx] = this.audio.sourceGains[i].gain.value;
+                this.audio.sourceGains[i].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                 this['muted'+idx] = true;
-            } else { this['muted'+idx] = false; }
+                
+            } else { this['muted'+idx] = false; this.audio.sourceGains[i].gain.setValueAtTime(this['lastgain'+idx], this.audio.ctx.currentTime); }
         }
     };
 
