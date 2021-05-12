@@ -197,8 +197,8 @@ export class SensoriumApplet {
             return `
                 <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
                     <div id='${props.id}fileinfo${idx}'></div> 
-                    <button id='${props.id}uploadedFile${idx}'>Add File</button>
                     Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
+                    <button id='${props.id}uploadedFile${idx}'>Add File</button>
                     <div id='${props.id}status${idx}'></div>
                 </div>
             `;
@@ -240,17 +240,16 @@ export class SensoriumApplet {
             if (this.audio.ctx===null) {return;};
             this.audio.decodeLocalAudioFile(()=>{    
                 document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
+                
+                this['muted'+idx] = false;
+                this.controls.push(document.getElementById(this.props.id+'controlWrapper'+idx));
                 this.loadSoundControls(idx);
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "";
             }, ()=> { document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." });
             
         }
-        
-        this['muted'+idx] = false;
-
         this.indices.push(idx);
         this.inputs.push(document.getElementById(this.props.id+'fileWrapper'+idx));
-        this.controls.push(document.getElementById(this.props.id+'controlWrapper'+idx));
     }
 
 
@@ -263,8 +262,11 @@ export class SensoriumApplet {
             this.audio.playSound(i,0,true);
         }
         document.getElementById(this.props.id+'stop'+idx).onclick = () => {
-            if(this.audio) this.audio.stopSound(i);
-            
+            if(this.audio.sourceList[i]) {
+                try{this.audio.playSound(i,0,false);} catch(er) {}
+                this.audio.stopSound(i);
+                
+            }
             this.inputs[i].parentNode.removeChild(this.inputs[i]);
             this.controls[i].parentNode.removeChild(this.controls[i]);
             if(this.indices.length-1 !== i) { 
