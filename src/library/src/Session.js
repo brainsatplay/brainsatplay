@@ -48,6 +48,7 @@ import { cytonPlugin } from './devices/cyton/cytonPlugin';
 import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 import { buzzPlugin } from './devices/buzzPlugin';
+import { syntheticPlugin } from './devices/synthetic/syntheticPlugin';
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm} from './ui/login';
@@ -269,7 +270,8 @@ export class Session {
 			'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
-			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz'
+			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz',
+			'synthetic'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -317,6 +319,8 @@ export class Session {
 					this.connect('ganglion',['eegcoherence'],onconnect,ondisconnect);
 				} else if (o === 'neosensory_buzz'){
 					this.connect('neosensory_buzz',[],onconnect,ondisconnect);
+				} else if (o === 'synthetic'){
+					this.connect('synthetic',[],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -1295,6 +1299,8 @@ class deviceStream {
 			{  name:'webgazer',    cls:webgazerPlugin     },
 			{  name:'ganglion',    cls:ganglionPlugin     },
 			{  name:'neosensory_buzz',    cls: buzzPlugin     },
+			{  name:'synthetic',    cls: syntheticPlugin     },
+
 		];
 
 		this.filters = [];   //BiquadChannelFilterer instances 

@@ -368,16 +368,15 @@ export class BCIAppManager {
                 setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
                 return;
             } else {
-                if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()){
-                    this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
-                        this.updateProfileUI(user)
-                        this.removeOverlay()
-                    })
-                } else {
-                    this.updateProfileUI()
-                    this.removeOverlay()
-                }
-                
+                    if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()){
+                        this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
+                            this.updateProfileUI(user)
+                            this.updateOverlay()
+                        })
+                    } else {
+                        this.updateProfileUI()
+                        this.updateOverlay()
+                    }
             }
         }
         checkIfLoggedIn();
@@ -428,10 +427,15 @@ export class BCIAppManager {
         //  }
     }
 
-    removeOverlay = () => {
-        // Remove overlay
-        document.body.querySelector('.loader').style.opacity = 0;
-        this.tutorialManager.initializeTutorial()
+    updateOverlay = () => {
+        // Remove overlay only if on Chrome
+        if (window.isChrome){
+            document.body.querySelector('.loader').style.opacity = 0;
+            this.tutorialManager.initializeTutorial()
+        } else {
+            document.body.querySelector('.loader-error').innerHTML = 'Error: Please switch to Google Chrome';
+            document.body.querySelector('.loader-error').style.opacity = 1;
+        }
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things

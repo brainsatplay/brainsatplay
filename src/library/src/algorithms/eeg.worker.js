@@ -1,7 +1,3 @@
-//var full = location.protocol + location.pathname;
-//var localpath = full.substr(0,full.lastIndexOf("/"));
-//var parentpath = localpath.substr(0,localpath.lastIndexOf("/"));
-
 import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 

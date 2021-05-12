@@ -5,18 +5,17 @@ This tutorial will teach you how to add support for your device to brainatplay.j
 ## Creating a Device Plugin
 ---
 
-You can find all driver plugins created for Brains@Play in the `src/library/src/devices` directory. To create a new device plugin, copy the devicePluginTemplate from the aforementioned directory and rename it. 
+You can find all driver plugins created for Brains@Play in the `src/library/src/devices` directory. To create a new device plugin, copy the `devicePluginTemplate.js` file from the aforementioned directory and rename it. 
 
 ### init()
-In the `init()` function, set `info.sps` and `info.deviceType` to the correct specifications. 
+In the `init()` function, set `info.sps` and `info.deviceType` to the correct specifications. Additionally, here are some examples for the other functions you will have to set up in `init()`:
 
-#### Examples
 - In `musePlugin.js`, you will see how to add specifications for what channels correspond to what—as well as how to specify additional biquad filters to filter raw data automatically. 
 
 - In `cyton/cytonPlugin.js` or `freeeeg32/freeeeg32Plugin.js`, you will see how we handled setting up USB with custom data stream drivers found within the same directories. Then we set it up to pipe data into our DataAtlas system which will handle the rest for the front end.
 
 ### connect()
-Customize the `connect()` function to run the connection protocol for your selected device. Leave the onconnect and setIndicator functions alone, the onconnect is customized externally to link in with the rest of the frontend.
+Customize the `connect()` function to run the connection protocol for your selected device. Leave the `onconnect()` and `setIndicator()` functions alone, as `onconnect()` is customized externally to link in with the rest of the frontend.
 
 ### disconnect()
 Do the same for the `disconnect()` function. Be sure to add any exception handling you may need for connection errors.
@@ -27,7 +26,7 @@ The last function you may want to customize is `addControls()`, like in the case
 ## Adding Session Support
 ---
 
-Now to add support to the Session frontend, open `src/library/src/Session.js` and find the deviceStream class. Add your device name and plugin class (be sure import it) to the this.deviceConfigs array. Then go up to makeConnectOptions and add specification for the new device in the deviceOptions array with the list of device names, and then add the connect response to the `brainsatplay-${o}.onclick` function just below. You will notice that the devices here have arrays specifying things like 'eegfft' or 'eegcoherence', these are additional postprocessing algorithms you can add which will run in a separate loop and utilize our web workers. Leave the array empty for no additional processing. We are still adding more supported algorithms and optimizing what we do have so we can create a robust and automated data processing system.
+Now to add support to the Session frontend, open `src/library/src/Session.js` and find the `deviceStream` class. Add your device name and plugin class (be sure import it) to the this.deviceConfigs array. Then go up to `makeConnectOptions()` and add specification for the new device in the deviceOptions array with the list of device names, and then add the connect response to the `brainsatplay-${o}.onclick` function just below. You will notice that the devices here have arrays specifying things like 'eegfft' or 'eegcoherence', these are additional postprocessing algorithms you can add which will run in a separate loop and utilize our web workers. Leave the array empty for no additional processing. We are still adding more supported algorithms and optimizing what we do have so we can create a robust and automated data processing system.
 
 > **A Note on Web Workers:**  If you want to add new analysis functions that require intensive computations, they need to be offloaded to workers. You will find eeg.worker.js in library/src/algorithms. Within this you will see a switch case list that calls different functions then reports them back generically in an object. 
 

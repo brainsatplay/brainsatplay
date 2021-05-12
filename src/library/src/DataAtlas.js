@@ -73,12 +73,12 @@ export class DataAtlas {
 
         if(config === '10_20') {
 			this.settings.eeg = true;
-			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);//this.genBigAtlas();//
+			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
         }
 		else if (config === 'muse') {
 			
 			this.settings.eeg = true;
-			this.data.eeg = this.genMuseAtlas();// this.genBigAtlas();
+			this.data.eeg = this.genMuseAtlas();
 		}
 		else if (config === 'big') {
 			this.settings.eeg = true;
@@ -91,6 +91,13 @@ export class DataAtlas {
 		else if (config === 'eyetracker') {
 			this.settings.eyetracker = true;
 			this.addEyeTracker(this.data.eyetracker.length);
+		}
+
+		if (!Array.isArray(this.data.eegshared.eegChannelTags)){
+			this.data.eegshared.eegChannelTags = []
+			this.data.eeg.forEach((d,i) => {
+				this.data.eegshared.eegChannelTags.push({ch:i,tag:d.tag,analyze: true})
+			})
 		}
 
         if(useCoherence === true) {
@@ -263,11 +270,13 @@ export class DataAtlas {
 		if (channelDicts == null){
 			for(const prop in eegCoordinates) eegmap.push(this.genEEGCoordinateStruct(prop,eegCoordinates[prop][0],eegCoordinates[prop][1],eegCoordinates[prop][2]));
 		} else {
-			channelDicts.forEach(channelDict => {
-				let tag = channelDict.tag
-				if(eegCoordinates[tag])
-					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
-			});
+			if (Array.isArray(channelDicts)){
+				channelDicts.forEach(channelDict => {
+					let tag = channelDict.tag
+					if(eegCoordinates[tag])
+						eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
+				});
+			}
 			let tentwenty = ["FP1","FP2","FZ","F3","F4","F7","F8",
 			"CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
 			tentwenty.forEach((tag,i) => {
@@ -307,6 +316,7 @@ export class DataAtlas {
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
+				
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;

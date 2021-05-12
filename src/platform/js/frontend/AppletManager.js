@@ -175,10 +175,11 @@ export class AppletManager {
         else {
             this.session.devices.forEach((device) => {
                 if (Array.isArray(appletManifest.devices)) { // Check devices only
-                    if (appletManifest.devices.includes(device.info.deviceType) || appletManifest.devices.includes(device.info.deviceName)) compatible = true
+                    var regex = new RegExp( appletManifest.devices.join( "|" ), "i");
+                    if (regex.test(device.info.deviceType) || regex.test(device.info.deviceName)) compatible = true
                 }
                 else if (typeof appletManifest.devices === 'object') { // Check devices AND specific channel tags
-                    if (appletManifest.devices.includes(device.info.devices.deviceType) || appletManifest.devices.devices.includes(device.info.deviceName)) {
+                    if (appletManifest.devices.includes(device.info.devices.deviceType) || appletManifest.devices.includes(device.info.deviceName)) {
                         if (appletManifest.devices.eegChannelTags) {
                             appletManifest.devices.eegChannelTags.forEach((tag, k) => {
                                 let found = o.atlas.eegshared.eegChannelTags.find((t) => {
@@ -264,7 +265,6 @@ export class AppletManager {
             if (typeof conf === 'object') {
                 if (!currentApplets.reduce(isAllNull, 0) && appletManifest[conf.name] != null) {
                     appletPromises.push(new Promise(async (resolve, reject) => {
-                        console.log(appletManifest)
                         let settings = await getAppletSettings(appletManifest[conf.name].folderUrl)
                         let applet = await getApplet(settings)
                         if (applet != null) return resolve(applet)
@@ -634,7 +634,7 @@ export class AppletManager {
         select.innerHTML = "";
         let newhtml = `<option value='None'>None</option>`;
         let appletKeys = Object.keys(appletManifest)
-
+        
         let arrayAppletIdx = this.applets.findIndex((o, i) => {
             if (o.appletIdx === appletIdx+1) {
                 return true

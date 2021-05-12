@@ -32,11 +32,13 @@ require('dotenv').config()
 let appletDict = {}
 let appletDir = path.join(__dirname,'src','applets')
 let categories = fs.readdirSync(appletDir)
-categories = categories.filter(c => !c.match(/.js|Templates/))
+categories = categories.filter(c => (!c.match(/Templates/) && (fs.existsSync(path.join(appletDir,c)) && fs.lstatSync(path.join(appletDir,c)).isDirectory())))
 
 categories.forEach((category,indOut) => {
   let categoryDir = path.join(appletDir,category)
   let files = fs.readdirSync(categoryDir)
+  files = files.filter(f => (fs.existsSync(path.join(categoryDir,f)) && fs.lstatSync(path.join(categoryDir,f)).isDirectory()))
+
   var bar = new Promise((resolve, reject) => {
     files.forEach((file,indIn) => {
       let dir = path.join(appletDir,category,file)
