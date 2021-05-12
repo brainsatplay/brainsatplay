@@ -5,14 +5,116 @@ This tutorial will teach you how to add support for your device to brainatplay.j
 ## Creating a Device Plugin
 ---
 
-You can find all driver plugins created for Brains@Play in the `src/library/src/devices` directory. To create a new device plugin, copy the `devicePluginTemplate.js` file from the aforementioned directory and rename it. 
+:::note 
+
+All device plugins included in brainsatplay.js (including the template plugin) can be found in the `src/library/src/devices` directory. 
+
+:::
+
+To create a new device plugin, copy the `devicePluginTemplate.js` file and rename it. In the following example code, we'll show how the `musePlugin.js` was created.
 
 ### init()
-In the `init()` function, set `info.sps` and `info.deviceType` to the correct specifications. Additionally, here are some examples for the other functions you will have to set up in `init()`:
+In the `init()` function, set `info.sps` and `info.deviceType` to the correct specifications. 
 
-- In `musePlugin.js`, you will see how to add specifications for what channels correspond to what—as well as how to specify additional biquad filters to filter raw data automatically. 
+``` javascript
+init = (info,pipeToAtlas) => {
+    info.sps = 256;
+    info.deviceType = 'eeg'; // Options: 'eeg','heg','other'
 
-- In `cyton/cytonPlugin.js` or `freeeeg32/freeeeg32Plugin.js`, you will see how we handled setting up USB with custom data stream drivers found within the same directories. Then we set it up to pipe data into our DataAtlas system which will handle the rest for the front end.
+    // ...
+}
+```
+
+Here are some additional device properties you will have to set up in `init()`:
+
+#### Channel Tags
+``` javascript
+init = (info,pipeToAtlas) => {
+
+    // ... 
+
+    info.eegChannelTags = [
+        {ch: 0, tag: "TP9", analyze:true},
+        {ch: 1, tag: "AF7", analyze:true},
+        {ch: 2, tag: "AF8", analyze:true},
+        {ch: 3, tag: "TP10", analyze:true}
+    ];
+
+     // ... 
+}
+```
+
+**Device Drivers**
+``` javascript
+import { MuseClient } from 'muse-js'
+// ... 
+
+init = (info,pipeToAtlas) => {
+
+    // ... 
+
+    this.device = new MuseClient();
+
+    // ...
+}
+```
+
+#### Default Biquad Filters
+``` javascript
+init = (info,pipeToAtlas) => {
+
+    // ... 
+
+    if(info.useFilters === true) {
+        info.eegChannelTags.forEach((row,i) => {
+            this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+        });
+    }
+
+    // ...
+}
+```
+
+#### Data Atlas Configuration
+
+
+``` javascript
+init = (info,pipeToAtlas) => {
+
+    // ... 
+
+    if(pipeToAtlas === true) { //New Atlas
+        let config = 'muse';
+        this.atlas = new DataAtlas(
+            location+":"+this.mode,
+            {eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
+            config,true,true,
+            info.analysis
+            );
+        info.useAtlas = true;
+    } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
+        this.atlas = pipeToAtlas; //External atlas reference
+        this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
+        this.atlas.data.eegshared.sps = info.sps;
+        this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+        this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
+        this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
+        this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
+        this.atlas.settings.coherence = true;
+        this.atlas.settings.eeg = true;
+        info.useAtlas = true;
+        if(info.analysis.length > 0 ) {
+            this.atlas.settings.analysis.push(...info.analysis);
+            if(!this.atlas.settings.analyzing) { 
+                this.atlas.settings.analyzing = true;
+                this.atlas.analyzer();
+            }
+        }
+    }
+
+    this.info = info;
+}
+```
 
 ### connect()
 Customize the `connect()` function to run the connection protocol for your selected device. Leave the `onconnect()` and `setIndicator()` functions alone, as `onconnect()` is customized externally to link in with the rest of the frontend.

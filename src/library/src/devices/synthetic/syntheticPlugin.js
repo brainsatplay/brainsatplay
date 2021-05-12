@@ -174,10 +174,8 @@ export class syntheticPlugin {
             }
     
             if (typeof window === 'undefined') {
-                // this.simulateData()
                 setTimeout(()=>{this.simulateData}, delay)
             } else {
-                // requestAnimationFrame(this.simulateData)
                 setTimeout(requestAnimationFrame(this.simulateData),delay);
             }
           }
