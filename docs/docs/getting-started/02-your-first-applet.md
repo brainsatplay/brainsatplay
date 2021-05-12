@@ -157,7 +157,7 @@ configure(settings=[]) { //For configuring from the address bar or saved setting
 In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"My Applet","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
 
 ## Incorporate Biosignals
-Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll set up our applet to display the current *frontal alpha coherence*.
+Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll set up our applet to display frontal alpha coherence.
 
 ``` javascript
 init() {

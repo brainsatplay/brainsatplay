@@ -6,16 +6,11 @@ sidebar_position: 3
 
 This tutorial will get you started building your first networked application with brainsatplay.js! 
 
-
-:::warning Untested Tutorial
-
-Brain farts ahead! This tutorial has not been thoroughly tested. 🧠💨
-
-:::
-
 ## Welcome to The Brainstorm
 
 ### Update your Settings
+Before we begin, update your settings file to tag your applet with the `brainstorm` category tag.
+
 ``` javascript
 export const settings = {
     
@@ -74,10 +69,10 @@ init() {
     // ...
 
     let animate = () => {
-        let streamInfo = this.session.state.data?.commandResult
-        if (streamInfo.userData != null && streamInfo.userData.length !== 0 && Array.isArray(streamInfo.userData)){
-            streamInfo.userData.forEach((userData)=> {
-                console.log(userData)
+        let userData = this.session.state.data.commandResult?.userData
+        if (userData){
+            userData.forEach((data)=> {
+                console.log(data)
             })
         } 
         setTimeout(() => {requestAnimationFrame(animate)},1000/60)
@@ -218,14 +213,8 @@ In the console, you should now see the following response:
 
 ![Console Output v3](../../static/img/03-your-first-brainstorm/console3.png)
 
-:::note App Stream Behavior
-
-All streams are updated every few hundred milliseconds. However, **App Streams** are cleared unless there is new data present.
-
-:::
-
-
-
 ## Conclusion
 
-You should now have an applet that logs (1) frontal coherence and (2) spacebar clicks from any user connected to the Brainstorm!
+You should now have an applet that logs (1) frontal alpha coherence and (2) spacebar clicks from any user connected to the Brainstorm! 
+
+**Our challenge is for you to customize our default UI and create a game with these mechanics.** What will you create?
