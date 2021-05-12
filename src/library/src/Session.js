@@ -267,11 +267,10 @@ export class Session {
 		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
 	
 		let deviceOptions = [
-			'muse',
+			'synthetic', 'muse',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
 			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz',
-			'synthetic'
 		];
 
 		deviceOptions.forEach((o,i) => {
@@ -320,7 +319,7 @@ export class Session {
 				} else if (o === 'neosensory_buzz'){
 					this.connect('neosensory_buzz',[],onconnect,ondisconnect);
 				} else if (o === 'synthetic'){
-					this.connect('synthetic',[],onconnect,ondisconnect);
+					this.connect('synthetic',['eegcoherence'],onconnect,ondisconnect);
 				}
 			}
 		});

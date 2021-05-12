@@ -167,17 +167,18 @@ export class syntheticPlugin {
                     //             latestFiltered[k] = this.filters[o.tag].apply(sample); 
                     //         });
                     //     }
+                    //     console.log(latestFiltered)
                     //     coord.filtered.push(...latestFiltered);
                     // }
                 })
             }
     
             if (typeof window === 'undefined') {
-                this.simulateData()
-                // setTimeout(()=>{this.simulateData}, delay)
+                // this.simulateData()
+                setTimeout(()=>{this.simulateData}, delay)
             } else {
-                requestAnimationFrame(this.simulateData)
-                // setTimeout(requestAnimationFrame(this.simulateData),delay);
+                // requestAnimationFrame(this.simulateData)
+                setTimeout(requestAnimationFrame(this.simulateData),delay);
             }
           }
     
