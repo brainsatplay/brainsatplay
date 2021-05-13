@@ -284,11 +284,11 @@ this.controls.minDistance = this.baseCameraPos.z; // radians
 this.controls.maxDistance = this.baseCameraPos.z*10; // radians
 
 // Plane
-const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
-let tStart = Date.now()
+const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+let tStart = Date.now();
 
-let shaderKeys = Object.keys(this.shaders)
-let numShaders = shaderKeys.length
+let shaderKeys = Object.keys(this.shaders);
+let numShaders = shaderKeys.length;
 shaderKeys.forEach((k,i) => {
 
     if (i === 0){
@@ -313,7 +313,7 @@ shaderKeys.forEach((k,i) => {
         this.three.planes.push(plane)
         this.three.scene.add(plane)
     }
-})
+});
 
 // Animate
 this.startTime = Date.now()
@@ -395,31 +395,73 @@ this.render = () => {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
-    updateMaterialUniforms = (material) => {
+    updateShader = (planeIdx=0,modifiers={}) => {
+
+        let newMaterial = new THREE.ShaderMaterial({
+            vertexShader: this.currentShader.vertexShader,
+            fragmentShader: this.currentShader.fragmentShader,
+            side: THREE.DoubleSide,
+            transparent: true,
+        })
+
+        this.updateMaterialUniforms(newMaterial,modifiers);
+
+        let p = this.three.planes[planeIdx];
+            p.material.dispose();
+            p.material = newMaterial;
+    }
+
+    getData(u) {
+        if (u === 'iNeurofeedback'){
+            return this.getNeurofeedback(); // Defined dynamically via the UI
+        }
+        else if (u === 'iFFT'){
+            let channel;
+            if(!ch) {
+                channel = this.session.atlas.getLatestFFTData()[0];
+            } else { channel = this.session.atlas.getLatestFFTData(ch); }
+            return  channel.fft;
+        }
+        else if (u === 'iHRV'){
+            return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv;
+        }
+        // Defaults
+        else if (u === 'iTime'){
+            return  (Date.now() - this.startTime)/1000; // Seconds
+        }
+        else if (u === 'iResolution'){
+            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+        }
+    }
+
+    updateMaterialUniforms = (material,modifiers={}) => {
         ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
 
             if (material.uniforms[u] == null) material.uniforms[u] = {}
 
-            if (u === 'iNeurofeedback'){
-                material.uniforms[u].value = this.getNeurofeedback() // Defined dynamically via the UI
+            else if (u === 'iNeurofeedback' && modifiers.iNeurofeedback){
+                material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
             }
 
-            if (u === 'iFFT'){
-                let channel = this.session.atlas.getEEGDataByChannel(0)
-                material.uniforms[u].value = channel.ffts[channel.fftCount-1]
+            /* 
+                How about a uniform that lets you update 7 values? e.g. [scp, delta, theta, alpha1, alpha2, beta, lowgamma]. Then that can be updated procedurally, with 0's or 1's in place
+                for non-updated values.. ?
+            */
+
+            else if (u === 'iFFT' && modifiers.iFFT){
+                material.uniforms[u].value = modifiers.iFFT;
             }
 
-            if (u === 'iHRV'){
-                material.uniforms[u].value = undefined
+            else if (u === 'iHRV' && modifiers.iHRV){
+                material.uniforms[u].value = modifiers.iHRV;
             }
-
             // Defaults
-            if (u === 'iTime'){
-                material.uniforms[u].value = (Date.now() - this.startTime)/1000 // Seconds
+            else if (u === 'iTime'){
+                material.uniforms[u].value = (Date.now() - this.startTime)/1000; // Seconds
             }
 
-            if (u === 'iResolution'){
-                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
+            else if (u === 'iResolution'){
+                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
             }
         })
 
@@ -541,6 +583,7 @@ this.render = () => {
 
     animate = () => {
         if(this.looping){
+            let modifiers = {};
             this.sounds.forEach((soundStruct)=> {
                 let option = document.getElementById(this.props.id+'select'+soundStruct.uiIdx).value;
                 if(!soundStruct.muted){
@@ -561,9 +604,11 @@ this.render = () => {
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
                                 window.audio.ctx.currentTime
                             );
+                            modifiers.iHRV = this.getData("iHRV");
                         } 
                     }
                     if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
+                        //???
                         if (option === 'delta') {
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
                         } else if (option === 'theta') {
@@ -589,11 +634,14 @@ this.render = () => {
                                 Math.max(Math.min(0,this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')),1), 
                                 window.audio.ctx.currentTime
                             );
-                        }
+                        } else if (option === 'bandpowers') {
+                            //???
+                            modifiers.iFFT = this.getData("iFFT");
+                        } 
                     }
                 }
             });
-        
+            this.updateShader(0,modifiers);
             setTimeout(()=>{this.animate();},16);
         }
     }
@@ -618,25 +666,6 @@ this.render = () => {
         this.three.renderer.domElement = null;
         this.three.renderer = null;
     }
-
-
-    updateShader = () => {
-
-        let newMaterial = new THREE.ShaderMaterial({
-            vertexShader: this.currentShader.vertexShader,
-            fragmentShader: this.currentShader.fragmentShader,
-            side: THREE.DoubleSide,
-            transparent: true,
-        })
-
-        this.updateMaterialUniforms(newMaterial)
-
-        this.three.planes.forEach(p => {
-            p.material.dispose()
-            p.material = newMaterial
-        })
-    }
-
 
     setBrainData(eeg_data){
         this.brainData = []
