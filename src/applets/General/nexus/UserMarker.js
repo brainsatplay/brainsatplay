@@ -98,7 +98,6 @@ export class UserMarker {
   }
 
   setElement(camera=this.camera, controls=this.controls){
-    console.log(this.name)
     this.element = document.getElementById(`${this.id}`).querySelector(`.nexus-point-${this.name}`)
     if (camera != null && controls != null){
       if (this.camera == null) this.camera = camera

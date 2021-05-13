@@ -408,9 +408,9 @@ const animateUsers = () => {
             this.three.scene.remove( group );
         })
 
-        // Add new marker
-        this.three.scene.add(point.marker)
-        this.three.scene.add(point.neurofeedbackGroup)
+        // // Add new marker
+        if (this.three.scene.getObjectById(point.marker.id) == null) this.three.scene.add(point.marker)
+        if (this.three.scene.getObjectById(point.neurofeedbackGroup.id) == null) this.three.scene.add(point.neurofeedbackGroup)
         point.neurofeedbackGroup.rotateZ(0.01);
     })
 }
@@ -550,14 +550,14 @@ this.three.getGeolocation = () => {
         if (!this.points.has(username)){
             this.points.set(username, new UserMarker(this.props.id, styles, {name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
         }
+        let user = this.points.get(username)
 
-        if (location != null){
-            let user = this.points.get(username)
-            if (username === "LosAngeles"){
-                user.setGeolocation({latitude: 34.0522, longitude: -118.2437})
-            } else {
-                user.setGeolocation(location)
-            }
+        if (username === "LosAngeles"){
+            location = {latitude: 34.0522, longitude: -118.2437}
+        }
+
+        if (location != null && (user.latitude != location.latitude || user.longitude != location.longitude)){
+            user.setGeolocation(location)
             user.setElement(this.camera,this.controls)
             user.active = true
             this.responsive()

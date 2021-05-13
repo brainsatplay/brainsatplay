@@ -815,9 +815,7 @@ export class Session {
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
-					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {
-						
-						console.log(newResult.gameInfo);
+					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {						
 						onsuccess(newResult); //list games, then subscrie to game by id
 						this.state.unsubscribe('commandResult',sub);
 						return newResult.gameInfo
@@ -931,7 +929,9 @@ export class Session {
 				column-gap: 15px;
 				grid-template-columns: repeat(2,1fr)">
 					<h2>Choose a Game</h2>
-					<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game session</button>
+					<div>
+						<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game Session</button>
+					</div>
 				</div>
 				</div>
 			</div></div>
@@ -965,17 +965,19 @@ export class Session {
             }
             let onleave = () => {
 				console.log('Left game!', applet.info.name)
+				gameSearch.click()
                 gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
+				gameSelection.style.pointerEvents = 'auto'
             }
 
             let gameSearch = document.getElementById(`${baseBrowserId}search`)
 
             gameSearch.onclick = () => {
-    
+
                 this.getGames(applet.info.name, (result) => {
+
                     let gridhtml = '';
-                    
+					
                     result.gameInfo.forEach((g,i) => {
                         if (g.usernames.length < 10){ // Limit connections to the same game server
                             gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-multiplayerintro-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
@@ -1070,9 +1072,8 @@ export class Session {
 					loginButton.click()
 				})
 			}
+
 			
-
-
             exitGame.onclick = () => {
                 gameSelection.style.opacity = 1;
                 gameSelection.style.pointerEvents = 'auto'
