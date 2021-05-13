@@ -418,7 +418,7 @@ this.render = () => {
                     Feedback ${idx}:
                     <select id='${props.id}select${idx}'>
                         <option value='none'>None</option>
-                        <option value='audio'>Audio (replaces FFTs)</option>
+                        <option value='audio'>Audio FFT</option>
                         <option value='heg_heartbeat'>Heart Beat</option>
                         <option value='heg_hr'>Heart Rate</option>
                         <option value='heg'>HEG Ratio</option>
@@ -536,8 +536,9 @@ this.render = () => {
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
+                            modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
-                                Math.max(0,Math.min(1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
+                                Math.max(0,Math.min(modifiers.iHB,1)), 
                                 window.audio.ctx.currentTime
                             ); 
                             this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
@@ -548,8 +549,9 @@ this.render = () => {
                         }
                          else if (option === 'heg') { //Raise HEG ratio compared to baseline
                             if(!soundStruct.hegbaseline) soundStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline;
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline),1), //
+                                Math.min(Math.max(0,hegscore),1), //
                                 window.audio.ctx.currentTime
                             );
                             this.modifiers.iHEG = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
