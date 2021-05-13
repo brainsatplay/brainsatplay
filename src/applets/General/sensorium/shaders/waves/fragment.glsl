@@ -9,6 +9,7 @@ precision mediump float;
 varying vec2 vUv;
 uniform vec3 colors[HISTORY];
 uniform float neurofeedback[HISTORY];
+uniform float aspect;
 
 // taken from: http://www.chilliant.com/rgb2hsv.html
 vec3 HUEtoRGB(in float H)
@@ -19,10 +20,12 @@ vec3 HUEtoRGB(in float H)
     return vec3(R, G, B);
 }
 
+
 void main()
 {
-    //Offset uv so that center is 0,0 and edges are -1,1
-    vec2 uv = (vUv-vec2(0.5))*2.0;
+    
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
     
     vec3 outColor = vec3(0.);
 

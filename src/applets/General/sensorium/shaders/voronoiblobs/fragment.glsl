@@ -6,6 +6,7 @@
 precision mediump float;
 varying vec2 vUv;
 uniform float times[HISTORY];
+uniform float aspect;
 
 vec2 random2( vec2 p )
  {
@@ -41,7 +42,8 @@ float voronoi(vec2 i_stP, vec2 f_stP, vec2 stP, float scalarP)
 
 
 void main(){
-    vec2 uv = vUv.xy;
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = vUv.xy*responsiveScaling;
     vec3 color = vec3(.0);
 
     float scalar = 10.;

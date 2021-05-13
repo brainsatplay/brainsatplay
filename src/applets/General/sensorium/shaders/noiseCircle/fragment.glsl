@@ -5,6 +5,7 @@ varying vec2 vUv;
 
 uniform float amplitude;
 uniform float historyLength;
+uniform float aspect;
 uniform vec2 mouse;
 uniform vec3 colors[HISTORY];
 uniform float times[HISTORY];
@@ -99,13 +100,11 @@ float history_float = float(HISTORY);
 
 void main()
 {
-    vec2 uv = vUv;
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
     
     vec4 outColor = vec4(0.);
     for (int i = 0; i < HISTORY; i++){
-
-        vec2 uv = (vUv-vec2(0.5))*2.0;
-
         float i_float = float(i);
 
         // Noisy Diameter

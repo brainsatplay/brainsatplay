@@ -6,7 +6,7 @@
 precision mediump float;
 varying vec2 vUv;
 uniform float times[HISTORY];
-
+uniform float aspect;
 
 float opSmoothUnion( float d1, float d2, float k )
 {
@@ -46,10 +46,12 @@ vec3 calcNormal( in vec3 p )
 
 void main()
 {
-    vec2 uv = vUv.xy;
+	vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = (vUv-0.5)*responsiveScaling;
+
     float aspect = 1.0; //iResolution.x/iResolution.y;
     // screen size is 6m x 6m
-	vec3 rayOri = vec3((uv - 0.5) * vec2(aspect, 1.0) * 6.0, 3.0);
+	vec3 rayOri = vec3((uv) * vec2(aspect, 1.0) * 6.0, 3.0);
 	vec3 rayDir = vec3(0.0, 0.0, -1.0);
 	
 	float depth = 0.0;

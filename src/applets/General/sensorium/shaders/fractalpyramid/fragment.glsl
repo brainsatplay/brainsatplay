@@ -5,6 +5,8 @@
 #define HISTORY 5
 precision mediump float;
 varying vec2 vUv;
+
+uniform float aspect;
 uniform float times[HISTORY];
 
 vec3 palette(float d){
@@ -49,7 +51,8 @@ vec4 rm (vec3 ro, vec3 rd){
 }
 void main()
 {
-    vec2 uv = (vUv.xy - 0.5);
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = (vUv.xy - 0.5)*responsiveScaling;
 	vec3 ro = vec3(0.,0.,-50.);
     ro.xz = rotate(ro.xz,times[HISTORY-1]);
     vec3 cf = normalize(-ro);
