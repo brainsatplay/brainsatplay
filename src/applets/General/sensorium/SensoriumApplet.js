@@ -661,7 +661,7 @@ this.render = () => {
 
             if (material.uniforms[u] == null) material.uniforms[u] = {}
 
-            else if (u === 'iNeurofeedback' && modifiers.iNeurofeedback){
+            else if (u === 'iNeurofeedback'){ //this should be replaced with all of the specific uniforms in the animate loop that set the modifiers
                 material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
             }
 
