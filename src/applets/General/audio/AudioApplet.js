@@ -35,8 +35,6 @@ export class AudioApplet {
         this.file = null; //the current file
         this.fileName = null; //the current file name
 
-        this.audio = undefined;
-
         this.fileInfo = null;
         this.menu = null;
 
@@ -116,8 +114,8 @@ export class AudioApplet {
                 else{
                     this.useVol = false;
                     this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                    if(this.audio !== undefined) {
-                        this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
+                    if(window.audio !== undefined) {
+                        window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
                     }
                     document.getElementById(props.id+"useVol").style.opacity = "0.3";
                 }
@@ -125,8 +123,8 @@ export class AudioApplet {
 
             document.getElementById(props.id+"volSlider").oninput = () => {
                 this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                if(this.audio !== undefined) {
-                    this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
+                if(window.audio !== undefined) {
+                    window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
                 }
             }
 
@@ -213,19 +211,20 @@ export class AudioApplet {
         if (this.animationId !== null) {
             cancelAnimationFrame(this.animationId);
         }
-        if(this.audio !== undefined){
-            if (this.audio.sourceList.length > 0) {
-                this.audio.sourceList[0].stop(0);
+        if(window.audio !== undefined){
+            if (window.audio.sourceList.length > 0) {
+                this.sourceNode.stop(0);
             }
         }
     }
 
     createVisualizer(buffer){
-        this.audio.finishedLoading([buffer]);
-        this.audio.sourceList[0].start(0);
-        this.audio.gainNode.gain.setValueAtTime(this.maxVol, this.audio.ctx.currentTime);
+        window.audio.finishedLoading([buffer]);
+        this.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1]
+        this.sourceNode.start(0);
+        window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
         this.status = 1;
-        this.audio.sourceList[0].onended = () => {
+        this.sourceNode.onended = () => {
             this.endAudio();
         };
         this.updateInfo('Playing ' + this.fileName, false);
@@ -236,7 +235,7 @@ export class AudioApplet {
 
     onData(score){
         if(this.useVol == true) {
-            var newVol = this.audio.gainNode.gain.value + score;
+            var newVol = window.audio.gainNode.gain.value + score;
             if(newVol > this.maxVol){
                 newVol = this.maxVol;
             }
@@ -246,7 +245,7 @@ export class AudioApplet {
             if(this.defaultUI == true) {
               document.getElementById(this.props.id+"volSlider").value = newVol * 100;
             }
-            this.audio.gainNode.gain.value = newVol;
+            window.audio.gainNode.gain.value = newVol;
         }
     }
 
@@ -258,7 +257,7 @@ export class AudioApplet {
             return;
         };
         this.status = 0;
-        if(this.audio.sourceList.length > 0) this.audio.sourceList.shift();
+        if(window.audio.sourceList.length > 0) {try {this.sourceNode.stop(0);} catch(er){}}
         var text = 'Song ended...';
         let div = document.getElementById(this.props.id+'fileWrapper');
         if(div){
@@ -296,11 +295,11 @@ export class AudioApplet {
         var fr = new FileReader();
         fr.onload = (e) => {
             var fileResult = e.target.result;
-            if (this.audio.ctx === null) {
+            if (window.audio.ctx === null) {
                 return;
             };
             this.updateInfo('Decoding the audio', true);
-            this.audio.ctx.decodeAudioData(fileResult, (buffer) => {
+            window.audio.ctx.decodeAudioData(fileResult, (buffer) => {
             this.updateInfo('Decode successful, starting the visualizer', true);
             this.createVisualizer(buffer);
             }, (e) => {
@@ -323,8 +322,8 @@ export class AudioApplet {
         var dropContainer = document.getElementById(this.props.id+"canvas");
         //listen the file upload
         audioInput.onchange = () => {
-            if(!this.audio) this.audio = new SoundJS();
-            if (this.audio.ctx===null) {return;};
+            if(!window.audio) window.audio = new SoundJS();
+            if (window.audio.ctx===null) {return;};
             
             //the if statement fixes the file selection cancel, because the onchange will trigger even if the file selection has been cancelled
             if (audioInput.files.length !== 0) {
@@ -360,7 +359,7 @@ export class AudioApplet {
         dropContainer.addEventListener("drop", (e) => {
             e.stopPropagation();
             e.preventDefault();
-            if (this.audio.ctx===null) {return;};
+            if (window.audio.ctx===null) {return;};
             document.getElementById(this.props.id+'fileWrapper').style.opacity = 1;
             this.updateInfo('Uploading', true);
             //get the dropped file
@@ -381,8 +380,8 @@ export class AudioApplet {
 
         var meterWidthScale = cwidth/this.relativeWidth;
 
-        var array = new Uint8Array(this.audio.analyserNode.frequencyBinCount);
-        this.audio.analyserNode.getByteFrequencyData(array);
+        var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+        window.audio.analyserNode.getByteFrequencyData(array);
         if (this.status === 0) {
             //fix when some sounds stop and the value is still not back to zero
             for (var i = array.length - 1; i >= 0; i--) {
@@ -425,8 +424,8 @@ export class AudioApplet {
 
         var meterWidthScale = cwidth/this.relativeWidth;
 
-        var array = new Uint8Array(this.audio.analyserNode.frequencyBinCount);
-        this.audio.analyserNode.getByteFrequencyData(array);
+        var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+        window.audio.analyserNode.getByteFrequencyData(array);
         if (this.status === 0) {
             //fix when some sounds stop and the value is still not back to zero
             for (var i = array.length - 1; i >= 0; i--) {
@@ -463,8 +462,8 @@ export class AudioApplet {
         var center_y = this.c.height * 0.5;
         var radius = 150;
         
-        var array = new Uint8Array(this.audio.analyserNode.frequencyBinCount);
-        this.audio.analyserNode.getByteFrequencyData(array);
+        var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+        window.audio.analyserNode.getByteFrequencyData(array);
 
         // style the background
         var gradient = this.ctx.createRadialGradient(center_x,center_y,2,center_x,center_y,600+array[100]);
