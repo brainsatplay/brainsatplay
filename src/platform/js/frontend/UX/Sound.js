@@ -65,7 +65,7 @@ export class SoundJS { //Only one Audio context at a time!
     }
 
     //Get a file off the user's computer and decode it into the sound system
-    decodeLocalAudioFile(onReady=()=>{}, onBeginDecoding=()=>{}){
+    decodeLocalAudioFile(onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
 
       var input = document.createElement('input');
       input.type = 'file';
@@ -83,7 +83,7 @@ export class SoundJS { //Only one Audio context at a time!
               onBeginDecoding();
               this.ctx.decodeAudioData(fileResult, (buffer) => {
                 this.finishedLoading([buffer]);
-                onReady();
+                onReady(this.sourceList.length-1);
               }, (er) => {
                   console.error(er);
               });
@@ -102,16 +102,29 @@ export class SoundJS { //Only one Audio context at a time!
       bufferList.forEach((element) => {
         this.sourceList.push(this.ctx.createBufferSource()); 
         var idx = this.sourceList.length - 1;
-        this.sourceList[idx].buffer = element;
-        this.sourceList[idx].onended = () => {
-          this.sourceList[idx].disconnect();
-          this.sourceGains[idx].disconnect();
-          this.sourceList.splice(idx, 1);
-          this.sourceGains.splice(idx,1);
-        };
+        let sauce = this.sourceList[idx];
         this.sourceGains.push(this.ctx.createGain()); //Allows control of individual sound file volumes
-        this.sourceList[idx].connect(this.sourceGains[idx]); //Attach to volume node
-        this.sourceGains[idx].connect(this.gainNode);
+        let gainz = this.sourceGains[idx];
+        sauce.buffer = element;
+        sauce.onended = () => {
+          sauce.disconnect();
+          gainz.disconnect();
+          let l = 0, k=0;
+          this.sourceList.find((o,j)=> {
+            if(JSON.stringify(o) === JSON.stringify(sauce)) {
+              l=j;
+              return true;
+            }
+          }); this.sourceList.splice(l,1);
+          this.sourceGains.find((o,j)=> {
+            if(JSON.stringify(o) === JSON.stringify(gainz)) {
+              k=j;
+              return true;
+            }
+          }); this.sourceGains.splice(k,1);
+        };
+        sauce.connect(gainz); //Attach to volume node
+        gainz.connect(this.gainNode);
       });
       
     }

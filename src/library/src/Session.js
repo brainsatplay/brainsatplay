@@ -1379,24 +1379,6 @@ class deviceStream {
 
 	ondisconnect() {}
 
-	simulateData() {
-		let delay = 100;
-		if(this.info.simulating === true) {
-			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
-			for(let i = 0; i<nSamplesToSim; i++) {
-				//For each tagged channel generate fake data
-				//let sample = Math.sin(i*Math.PI/180);
-			}
-
-			if (typeof window === 'undefined') {
-				setTimeout(()=>{this.simulateData}, delay)
-			} else {
-				setTimeout(requestAnimationFrame(this.simulateData),delay);
-			}
-		}
-	}
-
-
 }
 
 

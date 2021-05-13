@@ -47,7 +47,7 @@ export class DataLoader {
 	}
 
     parseHEGData = (data=[], header=[]) => {
-        let t = [], red = [], ir = [], ratio = [], ratiosma = [], ambient = [], bpm=[], hrv=[], brpm=[], brv=[], beatTimes=[], breathTimes=[], notes=[], noteTimes=[];
+        let t = [], red = [], ir = [], ratio = [], temp=[], ratiosma = [], ambient = [], bpm=[], hrv=[], brpm=[], brv=[], beatTimes=[], breathTimes=[], notes=[], noteTimes=[];
         let err = 0;
         let mse = 0;
 
