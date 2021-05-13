@@ -320,9 +320,9 @@ export class SensoriumApplet {
                                 this.audio.ctx.currentTime
                             );
                         } else if (option === 'heg') { //Raise HEG ratio compared to baseline
-                            if(!this['hegbaseline'+idx]) this['hegbaseline'+idx] = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            if(!soundStruct.hegbaseline) soundStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
                             this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-this['hegbaseline'+idx]),1), //
+                                Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline),1), //
                                 this.audio.ctx.currentTime
                             );
                         } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
