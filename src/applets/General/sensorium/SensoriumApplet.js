@@ -45,6 +45,7 @@ export class SensoriumApplet {
         this.sounds = [];//array of soundStructs
 
         this.looping = false;
+        this.hidden = false;
 
         // UI
         this.three = {}
@@ -173,7 +174,7 @@ export class SensoriumApplet {
             }
 
             let showhide = document.getElementById(props.id+'showhide');
-            
+
             showhide.onclick = () => {
                 if(this.hidden == false) {
                     this.hidden = true;

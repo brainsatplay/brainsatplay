@@ -1,3 +1,4 @@
+import img from './feature.png'
 
 export const settings = {
     "name": "Sensorium",
@@ -6,5 +7,6 @@ export const settings = {
     "description": "Example",
     "categories": ["train"],
     "module": "SensoriumApplet",
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "image":img
 }
