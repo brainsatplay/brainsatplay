@@ -364,7 +364,7 @@ export class BCIAppManager {
         // );
 
         const checkIfLoggedIn = () => {
-            if (window.gapi.auth2.initialized === false && window.navigator.onLine){
+            if (window.gapi.auth2?.initialized !== true && window.navigator.onLine){
                 setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
                 return;
             } else {

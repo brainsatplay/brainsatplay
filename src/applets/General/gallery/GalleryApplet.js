@@ -50,7 +50,7 @@ export class GalleryApplet {
                 fragmentShader: wavesFragmentShader,
                 credit: 'Pixi.js'
             },
-            box: {
+            noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,

@@ -563,31 +563,33 @@ export class DataAtlas {
 		return dat;
 	}
 
-	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
+	//return data object for FP1 to FP2 (AF7 to AF8 on Muse)
 	getFrontalData = () => {
-		let fp_data = undefined;
+		let frontalData = [];
 		if(this.settings.eeg) {
-            let fp1 = this.getEEGDataByTag('FP1');
-			let fp2 = this.getEEGDataByTag('FP2');
-			if(!fp1 || !fp2) {
-				fp1 = this.getEEGDataByTag('AF7');
-				fp2 = this.getEEGDataByTag('AF8');
-			}
-			if(fp1 && fp2) {
-				fp_data = [fp1,fp2];
-			}
+			let regex = new RegExp('([F]|[F][A-Za-z]|[A-Za-z][F])([0-9]|[0-9][0-9])','i')
+			let frontalTags = this.data.eegshared.eegChannelTags.filter(({tag}) => tag.match(regex))
+			frontalTags.forEach((o) => {
+				frontalData.push(this.getEEGDataByTag(o.tag))
+			})
         }
-		return fp_data;
+		return frontalData;
 	}
 
 
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
 	getFrontalCoherenceData = () => {
-		let coh_ref_ch = undefined;
+		let coherenceData = []
 		if(this.settings.coherence) {
-            coh_ref_ch = this.getCoherenceByTag('FP2::FP1') ?? this.getCoherenceByTag('FP1::FP2') ?? this.getCoherenceByTag('AF7::AF8') ?? this.getCoherenceByTag('AF8::AF7')
+			let regex = new RegExp('([F]|[F][A-Za-z]|[A-Za-z][F])([0-9]|[0-9][0-9])','i')
+			let frontalTags = this.data.eegshared.eegChannelTags.filter(({tag}) => tag.match(regex))
+			frontalTags.forEach((o,i) => {
+				for (let j = i+1; j < frontalTags.length; j++) 	{	
+				coherenceData.push(this.getCoherenceByTag(`${o.tag}::${frontalTags[j].tag}`))
+				}
+			})
 		}
-		return coh_ref_ch;
+		return coherenceData;
 	}
 
 	//C3_C4 coherence data (cranial nervs)
@@ -615,20 +617,28 @@ export class DataAtlas {
 
 	//get the average of an array
 	mean(arr){
-		var sum = arr.reduce((prev,curr)=> curr += prev);
+		if (arr.length > 0){
+			var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
+		} else {
+			return 0
+		}
 	}
 
 	//Report moving average of frontal coherence
 	getCoherenceScore = (coh_data,band='alpha1') => {
-		if(coh_data.fftCount > 0) {
-			let ct = coh_data.fftCount;
-			let avg = Math.min(20,ct)
-			let slice = coh_data.means[band].slice(ct-avg);
-			// let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
-			return this.mean(slice);
-		}
-		else return 0;
+		let scores = []
+		if (!Array.isArray(coh_data)) coh_data = [coh_data]
+		coh_data.forEach(data => {
+			if(data.fftCount > 0) {
+				let ct = data.fftCount;
+				let avg = Math.min(20,ct)
+				let slice = data.means[band].slice(ct-avg);
+				// let score = coh_data.means.alpha1[ct-1] - this.mean(slice);
+				scores.push(this.mean(slice));
+			}
+		})
+		return this.mean(scores)
 	}
 
 	//Get alpha2/alpha1 ratio from bandpower averages

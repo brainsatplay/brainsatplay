@@ -1,11 +1,20 @@
 import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
 import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
-import * as PIXI from 'pixi.js';
 import * as settingsFile from './settings'
-import vertexSrc from "./shaders/vertex.glsl"
-// import fragmentSrc from "./shaders/fractalGalaxy/fragment.glsl"
-import fragmentSrc from "./shaders/network/fragment.glsl"
+
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import vertexShader from './shaders/vertex.glsl'
+import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
+import whiteFragmentShader from "./shaders/white/fragment.glsl"
+import wavesFragmentShader from './shaders/waves/fragment.glsl'
+import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
+import creationFragmentShader from './shaders/creation/fragment.glsl'
+import blobFragmentShader from './shaders/voronoiblobs/fragment.glsl'
+import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl'
+import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
+import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
@@ -29,13 +38,76 @@ export class SensoriumApplet {
             //Add whatever else
         };
 
-        //etc..
+        // Audio
         this.audio = null;
         this.inputs = [];
         this.controls = [];
         this.indices = [];
 
         this.looping = false;
+
+        // UI
+        this.three = {}
+        this.currentShader = null;
+
+        this.three.planes = []
+
+        this.shaders = {
+            white: {
+                name: 'Whiteout',
+                vertexShader: vertexShader,
+                fragmentShader: whiteFragmentShader,
+                credit: 'Garrett Flynn'
+            },
+            waves: {
+                name: 'Rainbow Waves',
+                vertexShader: vertexShader,
+                fragmentShader: wavesFragmentShader,
+                credit: 'Pixi.js'
+            },
+            noisecircle: {
+                name: 'Noise Circle',
+                vertexShader: vertexShader,
+                fragmentShader: noiseCircleFragmentShader,
+                credit: 'Garrett Flynn'
+            },
+            creation: {
+                name: 'Creation',
+                vertexShader: vertexShader,
+                fragmentShader: creationFragmentShader,
+                credit: 'Danilo Guanabara (Shadertoy)'
+            },
+            octagrams: {
+                name: 'Octagrams',
+                vertexShader: vertexShader,
+                fragmentShader: octagramsFragmentShader,
+                credit: 'whisky_shusuky (Shadertoy)'
+            },
+            cineshaderlava: {
+                name: 'Cineshader Lava',
+                vertexShader: vertexShader,
+                fragmentShader: cineshaderlavaFragmentShader,
+                credit: 'edankwan (Shadertoy)'
+            },
+            fractalpyramid: {
+                name: 'Fractal Pyramid',
+                vertexShader: vertexShader,
+                fragmentShader: fractalpyramidFragmentShader,
+                credit: 'bradjamesgrant (Shadertoy)'
+            },
+            voronoiblobs: {
+                name: 'Voronoi Blobs',
+                vertexShader: vertexShader,
+                fragmentShader: blobFragmentShader,
+                credit: 'Elise (Shadertoy)'
+            },
+            galaxy: {
+                name: 'Galaxy',
+                vertexShader: vertexShader,
+                fragmentShader: galaxyFragmentShader,
+                credit: 'JoshP (Shadertoy)'
+            }
+        }
 
         // Setup Neurofeedback
         this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/2000)} // default neurofeedback function
@@ -49,12 +121,12 @@ export class SensoriumApplet {
             {name:'alpha2',label: 'High Alpha',color: [0,1,0]}, // Green
             {name:'beta',label: 'Beta',color: [1,1,0]}, // Yellow
             {name:'lowgamma',label: 'Gamma',color: [1,0,0]} // Red
-            ]
-            this.brainData = []   
-            this.lastColorSwitch=Date.now() 
+        ]
 
-            this.history = 5
+        this.brainData = []   
+        this.lastColorSwitch=Date.now() 
 
+        this.history = 5 
     }
 
     //---------------------------------
@@ -68,8 +140,10 @@ export class SensoriumApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <canvas id='${props.id}-canvas' style="position: absolute; top: 0; left: 0;"></canvas>
             <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
+            <div style="position:absolute; top: 50px; right: 0px; z-index: 1;">
+                <select id='${props.id}selector'></select>
+            </div>
             </div> 
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
@@ -86,6 +160,24 @@ export class SensoriumApplet {
             document.getElementById(props.id+'addsound').onclick = () => {
                 this.addSoundInput();
             };
+
+            let selector = document.getElementById(`${this.props.id}selector`)
+            Object.keys(this.shaders).forEach((k) => {
+                selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
+            })
+            
+            this.currentShader = this.shaders[selector.value]
+
+            selector.onchange = (e) => {
+                if (e.target.value != 'Gallery'){
+                    this.shaders[0] = this.shaders[e.target.value]
+                    this.shaders[e.target.value] = this.currentShader
+                    this.currentShader = this.shaders[0]
+                    this.updateShader()
+                } else {
+                    
+                }
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -103,57 +195,145 @@ export class SensoriumApplet {
         //Add whatever else you need to initialize
         this.looping = true;
 
-        const canvas = document.getElementById(`${this.props.id}-canvas`); 
-        this.app = new PIXI.Application({view: canvas});
+/**
+ * Three.js Shader
+ */
 
-        this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
-        this.timeBuffer = Array.from({length: this.history}, e => 0)
-        this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
+this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
+this.timeBuffer = Array.from({length: this.history}, e => 0)
+this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
 
-        const uniforms = {
-            amplitude: 0.75,
-            times: this.timeBuffer,
-            aspect: this.app.renderer.view.width/this.app.renderer.view.height,  
-            colors: this.colorBuffer.flat(1),
-            mouse: [0,0], //[this.mouse.x, this.mouse.y],
-            noiseIntensity: this.noiseBuffer
-        };
-        this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
-        // this.responsive()
-        this.generateShaderElements()
-        let startTime = Date.now();
-        this.app.ticker.add((delta) => {
+this.appletContainer = document.getElementById(this.props.id)
 
-            // Organize Brain Data 
-            this.setBrainData(this.session.atlas.data.eeg)
+/**
+ * Scene
+ */
+this.three.scene = new THREE.Scene()
 
-            // Change Color
-            let c = this.getColor()
-            this.colorBuffer.shift()
-            this.colorBuffer.push(c)
+/**
+ * Camera
+ */
 
-            this.timeBuffer.shift()
-            this.timeBuffer.push((Date.now() - startTime)/1000)
+this.baseCameraPos = new THREE.Vector3(0,0,3)
+this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
+this.camera.position.z = this.baseCameraPos.z//*1.5
 
-            this.noiseBuffer.shift()
-            let neurofeedback = this.getNeurofeedback()
-            this.noiseBuffer.push(5.0 * neurofeedback)
-                
-            // Set Uniforms
-            this.shaderQuad.shader.uniforms.colors = this.colorBuffer.flat(1) 
-            this.shaderQuad.shader.uniforms.times = this.timeBuffer
-            this.shaderQuad.shader.uniforms.noiseIntensity = this.noiseBuffer
+/**
+ * Texture Params
+ */
 
-            // this.shaderQuad.shader.uniforms.mouse = [this.mouse.x,this.mouse.y]
+ let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
 
-            // Draw
-            this.app.renderer.render(this.shaderQuad, this.shaderTexture);
-        });
+ // Square
+//  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
 
+// Fit Screen
+this.three.meshWidth = this.fov_y * this.camera.aspect
+this.three.meshHeight = this.three.meshWidth/containerAspect
 
+// Renderer
+this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
+this.appletContainer.appendChild( this.three.renderer.domElement );
+this.three.renderer.domElement.style.width = '100%'
+this.three.renderer.domElement.style.height = '100%'
+this.three.renderer.domElement.id = `${this.props.id}canvas`
+this.three.renderer.domElement.style.opacity = '0'
+this.three.renderer.domElement.style.transition = 'opacity 1s'
 
-        this.animate();
+// Controls
+this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
+this.controls.enablePan = false
+this.controls.enableDamping = true
+this.controls.enabled = false;
+this.controls.minPolarAngle = 2*Math.PI/6; // radians
+this.controls.maxPolarAngle = 4*Math.PI/6; // radians
+this.controls.minDistance = this.baseCameraPos.z; // radians
+this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+
+// Plane
+const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+let tStart = Date.now()
+
+let shaderKeys = Object.keys(this.shaders)
+let numShaders = shaderKeys.length
+shaderKeys.forEach((k,i) => {
+
+    if (i === 0){
+        this.material = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
+            vertexShader: this.shaders[k].vertexShader,
+            fragmentShader: this.shaders[k].fragmentShader,
+            uniforms:
+            {
+                aspect: {value: this.three.meshWidth / this.three.meshHeight},
+                amplitude: {value: 0.75},
+                times: {value: this.timeBuffer},
+                colors: {value: this.colorBuffer.flat(1)},
+                mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
+                neurofeedback: {value: this.noiseBuffer}
+            }
+        })
+
+        let radius = 0;//10
+        let plane = new THREE.Mesh(planeGeometry, this.material)
+        let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+        plane.rotation.set(0,-angle - Math.PI/2,0)
+        this.three.planes.push(plane)
+        this.three.scene.add(plane)
     }
+})
+
+// Animate
+let startTime = Date.now()
+this.render = () => {
+
+    // setTimeout( () => {
+        if (this.three.renderer.domElement != null){
+
+                // Organize Brain Data 
+                this.setBrainData(this.session.atlas.data.eeg)
+
+                // Change Color
+                let c = this.getColor()
+                this.colorBuffer.shift()
+                this.colorBuffer.push(c)
+
+                this.timeBuffer.shift()
+                this.timeBuffer.push((Date.now() - startTime)/1000)
+
+                this.noiseBuffer.shift()
+                let neurofeedback = this.getNeurofeedback()
+                this.noiseBuffer.push(neurofeedback)
+                    
+                // Set Uniforms
+                this.three.planes.forEach(plane => {
+                    plane.material.uniforms.colors.value = this.colorBuffer.flat(1) 
+                    plane.material.uniforms.times.value = this.timeBuffer
+                    plane.material.uniforms.neurofeedback.value = this.noiseBuffer
+                })
+
+                this.controls.update()
+                this.three.renderer.render( this.three.scene, this.camera );
+        }
+    // }, 1000 / 60 );
+};
+
+    let animate = () => {
+        this.three.renderer.setAnimationLoop( this.render );
+    }
+
+    animate()
+    setTimeout(() => {
+        this.three.renderer.domElement.style.opacity = '1'
+        this.controls.enabled = true;
+    }, 100)
+    
+}
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
@@ -161,23 +341,33 @@ export class SensoriumApplet {
         this.indices.forEach((i)=>{
             this.audio.stopSound(i);
         });
+        this.three.renderer.setAnimationLoop( null );
+        this.clearThree()
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        const containerElement = document.getElementById(this.props.id);
-        let w = containerElement.offsetWidth
-        let h = containerElement.offsetHeight
-        this.app.renderer.view.width = w;
-        this.app.renderer.view.height = h;
-        this.app.renderer.view.style.width = w + 'px';
-        this.app.renderer.view.style.height = h + 'px';
-        this.app.renderer.resize(w,h)
-        this.aspect = this.app.renderer.view.width/this.app.renderer.view.height
-        this.shaderQuad.shader.uniforms.aspect = this.aspect
-        this.generateShaderElements()
+        if(this.three.renderer) {
+            this.camera.aspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+            this.camera.updateProjectionMatrix()
+            // Resize Plane Geometry
+            let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+            // let fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
+            // this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
+            this.three.meshWidth = this.fov_y * this.camera.aspect
+            this.three.meshHeight = this.three.meshWidth/containerAspect
+
+            let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+            this.three.planes.forEach(p => {
+                p.geometry.dispose()
+                p.geometry = newGeometry
+                p.material.uniforms.aspect.value = this.three.meshWidth / this.three.meshHeight
+            })
+            
+            this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
+        }
         this.session.atlas.makeFeedbackOptions(this)
     }
 
@@ -348,48 +538,38 @@ export class SensoriumApplet {
 
 
 
-    // Shader Stuff
-    generateShaderElements() {
-        const containerElement = document.getElementById(this.props.id);
-        const w = containerElement.offsetWidth
-        const h = containerElement.offsetHeight
-        
+    /* 
+    UI Stuff
+    */
 
-        this.geometry = new PIXI.Geometry()
-                .addAttribute('aVertexPosition', // the attribute name
-                    [0, 0, // x, y
-                        w, 0, // x, y
-                        w, h,
-                        0, h], // x, y
-                    2) // the size of the attribute
-                .addAttribute('aUvs', // the attribute name
-                    [-1, -1, // u, v
-                        1, -1, // u, v
-                        1, 1,
-                        -1, 1], // u, v
-                    2) // the size of the attribute
-                .addIndex([0, 1, 2, 0, 2, 3]);
-
-        // if (this.shaderContainer == null) 
-        this.shaderTexture = PIXI.RenderTexture.create(w,h);
-        // if (this.shaderQuad == null)  
-        this.shaderQuad = new PIXI.Mesh(this.geometry, this.shader);
-
-        if (this.shaderContainer != null) this.app.stage.removeChild(this.shaderContainer)
-        this.shaderContainer = new PIXI.Container();
-        this.shaderContainer.addChild(this.shaderQuad);
-        this.app.stage.addChild(this.shaderContainer);
-
-        // Final combination pass
-        // const combineUniforms = {
-        //     texNoise: noiseTexture,
-        //     texWave: waveTexture,
-        // };
-        // const combineShader = PIXI.Shader.from(vertexSrc, fragmentCombineSrc, combineUniforms);
-        // const combineQuad = new PIXI.Mesh(this.geometry, combineShader);
-
-        // this.shaderContainer.position.set((containerElement.offsetWidth - Math.min(w,h))/2, (containerElement.offsetHeight - Math.min(w,h))/2);
+    // Clear Three.js Scene Completely
+    clearThree(){
+        for (let i = this.three.scene.children.length - 1; i >= 0; i--) {
+            const object = this.three.scene.children[i];
+            if (object.type === 'Mesh') {
+                object.geometry.dispose();
+                object.material.dispose();
+            }
+            this.three.scene.remove(object);
+        }
+        this.three.scene = null;
+        this.three.renderer.domElement = null;
+        this.three.renderer = null;
     }
+
+
+    updateShader = () => {
+
+        let newMaterial = new THREE.ShaderMaterial({
+            vertexShader: this.currentShader.vertexShader,
+            fragmentShader: this.currentShader.fragmentShader,
+            transparent: this.three.planes[0].material.transparent,
+            uniforms: this.three.planes[0].material.uniforms
+        })
+        this.three.planes[0].material.dispose()
+        this.three.planes[0].material = newMaterial
+    }
+
 
     setBrainData(eeg_data){
         this.brainData = []
@@ -425,24 +605,6 @@ export class SensoriumApplet {
         }
     }
     return currentColor
-}
-
-indexOfMax(arr) {
-    if (arr.length === 0) {
-        return -1;
-    }
-
-    var max = arr[0];
-    var maxIndex = 0;
-
-    for (var i = 1; i < arr.length; i++) {
-        if (arr[i] > max) {
-            maxIndex = i;
-            max = arr[i];
-        }
-    }
-
-    return maxIndex;
 }
 
 } 

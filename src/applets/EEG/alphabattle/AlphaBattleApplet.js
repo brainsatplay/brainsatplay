@@ -329,17 +329,7 @@ export class AlphaBattleApplet {
 
 
         this.getCoherence = (band) => {
-            let score = null;
-            if(this.session.atlas.settings.coherence) {
-                let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
-                if(coherenceBuffer != null && coherenceBuffer.length > 0) {
-                    let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-                    let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-                    let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
-                    score = slice[slice.length-1] - mean
-                }
-            }
-            return score;
+            return this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),band)
         }
 
         // Set Up Combat Variables

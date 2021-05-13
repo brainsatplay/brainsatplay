@@ -59,7 +59,7 @@ export class AudioApplet {
         
         this.mode = 2;
 
-        this.coh_ref_ch = undefined;
+        this.cohScore = undefined;
     }
 
     //---------------------------------
@@ -191,10 +191,6 @@ export class AudioApplet {
     responsive() {
         this.c.width = this.AppletHTML.node.clientWidth;
         this.c.height = this.AppletHTML.node.clientHeight;
-
-        if(this.bci.atlas.settings.coherence) {
-            this.coh_ref_ch = this.bci.atlas.getFrontalCoherenceData();
-        }
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -549,14 +545,9 @@ export class AudioApplet {
                     this.onData(score);
                 }
             }
-            else if (this.bci.atlas.analyzing && this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
-                let ct = this.coh_ref_ch.fftCount;
-                if(ct > 1) {
-                    let avg = 20; if(ct < avg) { avg = ct; }
-                    let slice = this.coh_ref_ch.means.alpha1.slice(ct-avg);
-                    let score = this.coh_ref_ch.means.alpha1[ct-1] - this.mean(slice);
-                    this.onData(score);
-                }
+            else if (this.bci.atlas.settings.coherence) {
+                this.cohScore = this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')
+                this.onData(this.cohScore);
             }
 
             if(this.mode == 0){

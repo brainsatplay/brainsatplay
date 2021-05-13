@@ -277,23 +277,7 @@ function regenerateGeometry() {
     mesh.geometry = newGeometry
 }
 
-// Coherence
-const getCoherence = (band='alpha1') => {
-    let coherence = null;
-    if(this.bci.atlas.settings.coherence) {
-        let coherenceBuffer = this.bci.atlas.getFrontalCoherenceData().means[band]
-        if(coherenceBuffer.length > 0) {
-            let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-            let slicedBuffer = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-            coherence = slicedBuffer.reduce((tot,val) => tot + val)/samplesToSmooth ?? 1
-        }
-    }
-    return coherence
-}
-
 // Animate
-
-
 var animate = () => {
 
     // Limit Framerate
