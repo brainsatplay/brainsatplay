@@ -315,18 +315,18 @@ export class SensoriumApplet {
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'hr') {
-                            this.audio.sourceGains[len].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
                                 Math.max(0,Math.min(1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
                                 this.audio.ctx.currentTime
                             );
                         } else if (option === 'heg') { //Raise HEG ratio compared to baseline
                             if(!this['hegbaseline'+idx]) this['hegbaseline'+idx] = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                            this.audio.sourceGains[len].gain.setValueAtTime(
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-this['hegbaseline'+idx]),1), //
                                 this.audio.ctx.currentTime
                             );
                         } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
-                            this.audio.sourceGains[len].gain.setValueAtTime(
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
                                 this.audio.ctx.currentTime
                             );
@@ -334,27 +334,27 @@ export class SensoriumApplet {
                     }
                     if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
                         if (option === 'delta') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
                         } else if (option === 'theta') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'alpha1') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'alpha2') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'beta') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'gamma') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === '40hz') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'tb') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'a12') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (option === 'ab') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
                         } else if (this.session.atlas.settings.coherence === true && option === 'acoh') {
-                            this.audio.sourceGains[len].gain.setValueAtTime(
+                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(Math.min(0,this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')),1), 
                                 this.audio.ctx.currentTime
                             );
