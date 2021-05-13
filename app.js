@@ -80,7 +80,7 @@ var credentials = {key, cert};
 // New Server Code
 const DataServer = require('./src/library/src/DataServer.js');
 let auth = require('./src/platform/server/middleware/auth.js')
-console.log(auth)
+
 // import {DataServer} from './src/library/src/DataServer.js'
 // import * as auth from './src/platform/server/middleware/auth.mjs'
 let dataServ = new DataServer();

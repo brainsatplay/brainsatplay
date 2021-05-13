@@ -392,7 +392,6 @@ export class Session {
 	//get data for a particular device	
 	getDeviceData = (deviceType='eeg', tag='all', deviceIdx=0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
 		this.devices.forEach((d,i) => {
-			console.log('get')
 			if(d.info.deviceType.indexOf(deviceType) > -1 && d.info.deviceNum === deviceIdx) {
 				if(tag === 'all') {
 					return d.atlas.data[deviceType]; //Return all objects
@@ -965,7 +964,7 @@ export class Session {
                 gameSelection.style.pointerEvents = 'none'
             }
             let onleave = () => {
-                console.log('Left game!', applet.info.name)
+				console.log('Left game!', applet.info.name)
                 gameSelection.style.opacity = 1;
                 gameSelection.style.pointerEvents = 'auto'
             }
@@ -1119,15 +1118,15 @@ export class Session {
 			let usedNames = []
 
 			appStates.forEach(str => {
-				const match = str.match(/(.+)_(.+)_(.+)_(.+)/);
-				if (!usedNames.includes(match[3])) {
-					usedNames.push(match[3])
-					arr.push({username:match[3]})
+				const strArr = str.split('_')
+				if (!usedNames.includes(strArr[2])) {
+					usedNames.push(strArr[2])
+					arr.push({username:strArr[2]})
 				}
 
 				arr.find(o => {
-					if (o.username === match[3]){
-						o[match[4]] = this.state.data[str]
+					if (o.username === strArr[2]){
+						o[strArr.slice(3).join('_')] = this.state.data[str]
 					}
 				})
 			})
@@ -1135,46 +1134,6 @@ export class Session {
 			console.error('please specify an app to get data from')
 		}
 		return arr
-	}
-
-
-
-	//Browse multiplayer instances for an app
-	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
-		let id = Math.floor(Math.random()*1000000)+appname;
-		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
-		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
-		parentNode.insertAdjacentHTML('beforeend',html);
-
-		document.getElementById(id+'search').onclick = async () => {
-
-			let games = this.getGames(appname, (result) => {
-				let tablehtml = '';
-				result.gameInfo.forEach((g) => {
-					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
-				});
-
-				document.getElementById(id+'browser').innerHTML = ''
-				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
-
-				result.gameInfo.forEach((g) => { 
-					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,undefined,(subresult) => {
-							onjoined(g);
-							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
-							document.getElementById(id+'disconnect').onclick = () => {
-								this.unsubscribeFromGame(g.id,()=>{
-									onleave(g);
-									let node = document.getElementById(id+'disconnect');
-									node.parentNode.removeChild(node);
-								});
-							}
-						});
-					}
-				});
-			});
-		}
-		return document.getElementById(id)
 	}
 
 	kickPlayerFromGame = (gameId, userToKick, onsuccess=(newResult)=>{}) => {

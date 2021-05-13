@@ -53,11 +53,11 @@ export class SensoriumApplet {
         this.three.planes = []
 
         this.shaders = {
-            white: {
-                name: 'Whiteout',
+            galaxy: {
+                name: 'Galaxy',
                 vertexShader: vertexShader,
-                fragmentShader: whiteFragmentShader,
-                credit: 'Garrett Flynn'
+                fragmentShader: galaxyFragmentShader,
+                credit: 'JoshP (Shadertoy)'
             },
             waves: {
                 name: 'Rainbow Waves',
@@ -101,12 +101,6 @@ export class SensoriumApplet {
                 fragmentShader: blobFragmentShader,
                 credit: 'Elise (Shadertoy)'
             },
-            galaxy: {
-                name: 'Galaxy',
-                vertexShader: vertexShader,
-                fragmentShader: galaxyFragmentShader,
-                credit: 'JoshP (Shadertoy)'
-            }
         }
 
         // Setup Neurofeedback
@@ -331,7 +325,7 @@ this.render = () => {
     animate()
     setTimeout(() => {
         this.three.renderer.domElement.style.opacity = '1'
-        this.controls.enabled = true;
+        // this.controls.enabled = true;
     }, 100)
     
 }
@@ -582,6 +576,7 @@ this.render = () => {
         let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.currentShader.vertexShader,
             fragmentShader: this.currentShader.fragmentShader,
+            side: THREE.DoubleSide,
             transparent: this.three.planes[0].material.transparent,
             uniforms: this.three.planes[0].material.uniforms
         })
