@@ -395,79 +395,7 @@ this.render = () => {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
-    updateShader = (planeIdx=0,modifiers={}) => {
 
-        let newMaterial = new THREE.ShaderMaterial({
-            vertexShader: this.currentShader.vertexShader,
-            fragmentShader: this.currentShader.fragmentShader,
-            side: THREE.DoubleSide,
-            transparent: true,
-        })
-
-        this.updateMaterialUniforms(newMaterial,modifiers);
-
-        let p = this.three.planes[planeIdx];
-            p.material.dispose();
-            p.material = newMaterial;
-    }
-
-    getData(u) {
-        if (u === 'iNeurofeedback'){
-            return this.getNeurofeedback(); // Defined dynamically via the UI
-        }
-        else if (u === 'iFFT'){
-            let channel;
-            if(!ch) {
-                channel = this.session.atlas.getLatestFFTData()[0];
-            } else { channel = this.session.atlas.getLatestFFTData(ch); }
-            return  channel.fft;
-        }
-        else if (u === 'iHRV'){
-            return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv;
-        }
-        // Defaults
-        else if (u === 'iTime'){
-            return  (Date.now() - this.startTime)/1000; // Seconds
-        }
-        else if (u === 'iResolution'){
-            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
-        }
-    }
-
-    updateMaterialUniforms = (material,modifiers={}) => {
-        ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
-
-            if (material.uniforms[u] == null) material.uniforms[u] = {}
-
-            else if (u === 'iNeurofeedback' && modifiers.iNeurofeedback){
-                material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
-            }
-
-            /* 
-                How about a uniform that lets you update 7 values? e.g. [scp, delta, theta, alpha1, alpha2, beta, lowgamma]. Then that can be updated procedurally, with 0's or 1's in place
-                for non-updated values.. ?
-            */
-
-            else if (u === 'iFFT' && modifiers.iFFT){
-                material.uniforms[u].value = modifiers.iFFT;
-            }
-
-            else if (u === 'iHRV' && modifiers.iHRV){
-                material.uniforms[u].value = modifiers.iHRV;
-            }
-            // Defaults
-            else if (u === 'iTime'){
-                material.uniforms[u].value = (Date.now() - this.startTime)/1000; // Seconds
-            }
-
-            else if (u === 'iResolution'){
-                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
-            }
-        })
-
-        return material
-    }
-    
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
@@ -646,6 +574,79 @@ this.render = () => {
         }
     }
 
+    updateShader = (planeIdx=0,modifiers={}) => {
+
+        let newMaterial = new THREE.ShaderMaterial({
+            vertexShader: this.currentShader.vertexShader,
+            fragmentShader: this.currentShader.fragmentShader,
+            side: THREE.DoubleSide,
+            transparent: true,
+        })
+
+        this.updateMaterialUniforms(newMaterial,modifiers);
+
+        let p = this.three.planes[planeIdx];
+            p.material.dispose();
+            p.material = newMaterial;
+    }
+
+    getData(u) {
+        if (u === 'iNeurofeedback'){
+            return this.getNeurofeedback(); // Defined dynamically via the UI
+        }
+        else if (u === 'iFFT'){
+            let channel;
+            if(!ch) {
+                channel = this.session.atlas.getLatestFFTData()[0];
+            } else { channel = this.session.atlas.getLatestFFTData(ch); }
+            return  channel.fft;
+        }
+        else if (u === 'iHRV'){
+            return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv;
+        }
+        // Defaults
+        else if (u === 'iTime'){
+            return  (Date.now() - this.startTime)/1000; // Seconds
+        }
+        else if (u === 'iResolution'){
+            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+        }
+    }
+
+    updateMaterialUniforms = (material,modifiers={}) => {
+        ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
+
+            if (material.uniforms[u] == null) material.uniforms[u] = {}
+
+            else if (u === 'iNeurofeedback' && modifiers.iNeurofeedback){
+                material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
+            }
+
+            /* 
+                How about a uniform that lets you update 7 values? e.g. [scp, delta, theta, alpha1, alpha2, beta, lowgamma]. Then that can be updated procedurally, with 0's or 1's in place
+                for non-updated values.. ?
+            */
+
+            else if (u === 'iFFT' && modifiers.iFFT){
+                material.uniforms[u].value = modifiers.iFFT;
+            }
+
+            else if (u === 'iHRV' && modifiers.iHRV){
+                material.uniforms[u].value = modifiers.iHRV;
+            }
+            // Defaults
+            else if (u === 'iTime'){
+                material.uniforms[u].value = (Date.now() - this.startTime)/1000; // Seconds
+            }
+
+            else if (u === 'iResolution'){
+                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+            }
+        })
+
+        return material
+    }
+    
 
 
     /* 
