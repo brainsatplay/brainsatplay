@@ -566,7 +566,7 @@ this.render = () => {
                         let channel = document.getElementById(this.props.id+'channel'+soundStruct.uiIdx).value;
                         if (option === 'eeg_delta') {
                             modifiers.iDelta = this.session.atlas.getLatestFFTData(channel)[0].mean.delta;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iDelta/50,1))), window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iDelta/50,1)), window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
                         } else if (option === 'eeg_theta') {
                             modifiers.iTheta = this.session.atlas.getLatestFFTData(channel)[0].mean.theta;
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iTheta/30,1)), window.audio.ctx.currentTime);
