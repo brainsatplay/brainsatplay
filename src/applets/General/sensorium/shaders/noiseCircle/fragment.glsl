@@ -11,11 +11,16 @@ uniform float iTime;
 uniform float iNeurofeedback;
 uniform float iFFT[FFTCOUNT];
 
-float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
+float circle(in vec2 _center, in vec2 _uv, in float _Diameter, in float Thickness, in float Glow){
     vec2 dist = _uv-_center;
-	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
-                         _Diameter+(_Diameter*0.01),
+    float outer = 1.-smoothstep(_Diameter-(_Diameter*(1.-Glow)),
+                         _Diameter+(_Diameter*(1.-Glow)),
                          dot(dist,dist)*4.0);
+    float innerDiameter = _Diameter - Thickness;
+    float inner = 1.-smoothstep(innerDiameter-(innerDiameter*(1.-Glow)),
+                         innerDiameter+(innerDiameter*(1.-Glow)),
+                         dot(dist,dist)*4.0);
+	return 10.*Glow*(outer - inner);
 }
 //	Classic Perlin 3D Noise 
 //	by Stefan Gustavson
@@ -122,9 +127,10 @@ void main()
 
         // Noisy Diameter
         // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
-        float innerDiameter = 0.3;
-        float outerDiameter = innerDiameter + 0.1;
-        float noiseScaling = ((maxDiameter - minDiameter) - (outerDiameter-innerDiameter));
+        float diameter = 0.3;
+        float Thickness = 0.1;
+        float Glow = 0.5;
+        float noiseScaling = ((maxDiameter - minDiameter) - (Thickness));
 
         // Noisy Circle
         float alpha = 1.0; //i_float/history_float;
@@ -135,8 +141,7 @@ void main()
         // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
         // float noise = 0.0;
         vec3 color = 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*iTime/3.0));
-        outColor += vec4(color*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
-        outColor.rgb -= vec3(color*alpha*vec3(circle(mouse,uv,innerDiameter + noise))); // Inner Diameter
+        outColor += vec4(color*alpha*vec3(circle(mouse,uv,diameter + noise, Thickness, Glow)), alpha);
     // }
 
     gl_FragColor = vec4(outColor);
