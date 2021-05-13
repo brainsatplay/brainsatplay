@@ -419,7 +419,7 @@ this.render = () => {
                     Feedback ${idx}:
                     <select id='${props.id}select${idx}'>
                         <option value='none'>None</option>
-                        <option value='audio'>Audio (replaces FFTs)</option>
+                        <option value='audio'>Audio FFT</option>
                         <option value='heg_heartbeat'>Heart Beat</option>
                         <option value='heg_hr'>Heart Rate</option>
                         <option value='heg'>HEG Ratio</option>
