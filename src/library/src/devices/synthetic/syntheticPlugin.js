@@ -8,7 +8,7 @@ import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
 export class syntheticPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
-        this.mode = mode;
+        this.mode = mode; //syntheticeeg, syntheticheg, replay
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -113,22 +113,25 @@ export class syntheticPlugin {
 
     addControls = (parentNode = document.body) => {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
-        let template = () => {
-            return `
-            `;
+
+        if(this.mode === 'replay') {
+            let template = () => {
+                return `
+                `;
+            }
+
+            let setup = () => {
+            
+
+            }
+
+            this.ui = new DOMFragment(
+                template,
+                parentNode,
+                undefined,
+                setup
+            );
         }
-
-        let setup = () => {
-           
-
-        }
-
-        this.ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
         
     }
 
@@ -182,5 +185,9 @@ export class syntheticPlugin {
     
           simulate()
     }
+
+    replayData() {
+		
+	}
 
 }

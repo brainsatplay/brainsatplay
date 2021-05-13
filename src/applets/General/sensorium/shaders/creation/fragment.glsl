@@ -4,20 +4,21 @@
 
 precision mediump float;
 varying vec2 vUv;
-uniform float times[HISTORY];
+uniform vec2 iResolution;
+uniform float iTime;
 
 void main(){
-    float t = times[HISTORY-1];
+    float t = iTime;
 	vec3 c;
 	float l,z=t;
+	float aspect = iResolution.x/iResolution.y;
+	vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv;
+    vec2 p = (vUv.xy - 0.5)*responsiveScaling;
 	for(int i=0;i<3;i++) {
-		vec2 uv,p=vUv.xy;
-		uv=p;
-		p-=.5;
-		p.x*=1.0;
 		z+=.07;
 		l=length(p);
-		uv+=p/l*(sin(z)+1.)*abs(sin(l*9.-z*2.));
+		uv=p/l*(sin(z)+1.)*abs(sin(l*9.-z*2.));
 		c[i]=.01/length(abs(mod(uv,1.)-.5));
 	}
 	gl_FragColor=vec4(c/l,t);

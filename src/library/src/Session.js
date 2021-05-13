@@ -392,7 +392,6 @@ export class Session {
 	//get data for a particular device	
 	getDeviceData = (deviceType='eeg', tag='all', deviceIdx=0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
 		this.devices.forEach((d,i) => {
-			console.log('get')
 			if(d.info.deviceType.indexOf(deviceType) > -1 && d.info.deviceNum === deviceIdx) {
 				if(tag === 'all') {
 					return d.atlas.data[deviceType]; //Return all objects
@@ -663,13 +662,21 @@ export class Session {
 			}
 		}
 		else if (parsed.msg === 'gameData') {
-			// console.log('Received', parsed.userData)
 			parsed.userData.forEach((o,i) => {
 				let user = o.username
 				for(const prop in o) {
 					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`]= o[prop]
 				}
 			});
+
+			if (parsed.userLeft){
+				for(const prop in this.state.data) {
+					if(prop.indexOf(parsed.userLeft) > -1) {
+						this.state.unsubscribeAll(prop);
+						delete this.state.data[prop]
+					}
+				}
+			}
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
@@ -710,8 +717,6 @@ export class Session {
 			this.state.data.commandResult = parsed;
 		}else if (parsed.msg === 'resetUsername') {
 			this.info.auth.username = parsed.username;
-		}
-		else if (parsed.msg === 'ping') {
 		}
 		else {
 			console.log(parsed);
@@ -819,9 +824,7 @@ export class Session {
 			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
-					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {
-						
-						console.log(newResult.gameInfo);
+					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {						
 						onsuccess(newResult); //list games, then subscrie to game by id
 						this.state.unsubscribe('commandResult',sub);
 						return newResult.gameInfo
@@ -887,7 +890,7 @@ export class Session {
 					for(const prop in this.state.data) {
 						if(prop.indexOf(gameId) > -1) {
 							this.state.unsubscribeAll(prop);
-							this.state.data[prop] = undefined;
+							delete this.state.data[prop]
 						}
 					}
 					onsuccess(newResult);
@@ -935,7 +938,9 @@ export class Session {
 				column-gap: 15px;
 				grid-template-columns: repeat(2,1fr)">
 					<h2>Choose a Game</h2>
-					<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game session</button>
+					<div>
+						<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game Session</button>
+					</div>
 				</div>
 				</div>
 			</div></div>
@@ -968,18 +973,20 @@ export class Session {
                 gameSelection.style.pointerEvents = 'none'
             }
             let onleave = () => {
-                console.log('Left game!', applet.info.name)
+				console.log('Left game!', applet.info.name)
+				gameSearch.click()
                 gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
+				gameSelection.style.pointerEvents = 'auto'
             }
 
             let gameSearch = document.getElementById(`${baseBrowserId}search`)
 
             gameSearch.onclick = () => {
-    
+
                 this.getGames(applet.info.name, (result) => {
+
                     let gridhtml = '';
-                    
+					
                     result.gameInfo.forEach((g,i) => {
                         if (g.usernames.length < 10){ // Limit connections to the same game server
                             gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-multiplayerintro-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
@@ -995,7 +1002,7 @@ export class Session {
                         connectButton.onclick = () => {
 							let spectate = true
 							
-							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming NOT spectating')}
+							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
 							else console.log('spectating')
                             this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
                                 onjoined(g);
@@ -1074,9 +1081,8 @@ export class Session {
 					loginButton.click()
 				})
 			}
+
 			
-
-
             exitGame.onclick = () => {
                 gameSelection.style.opacity = 1;
                 gameSelection.style.pointerEvents = 'auto'
@@ -1113,43 +1119,31 @@ export class Session {
 	}
 
 
+	getBrainstormData(name){
+		let arr = []
+		if (name != null){
+			var regex = new RegExp(name);
+			let appStates = Object.keys(this.state.data).filter(k => regex.test(k))
 
-	//Browse multiplayer instances for an app
-	makeGameBrowser = (appname, parentNode, onjoined=(gameInfo)=>{}, onleave=(gameInfo)=>{}) => {
-		let id = Math.floor(Math.random()*1000000)+appname;
-		let html = `<div id='`+id+`'><button id='`+id+`search'>Search</button><table id='`+id+`browser'></table></div>`;
-		if (typeof parentNode === 'string' || parentNode instanceof String) parentNode = document.getElementById(parentNode)
-		parentNode.insertAdjacentHTML('beforeend',html);
+			let usedNames = []
 
-		document.getElementById(id+'search').onclick = async () => {
+			appStates.forEach(str => {
+				const strArr = str.split('_')
+				if (!usedNames.includes(strArr[2])) {
+					usedNames.push(strArr[2])
+					arr.push({username:strArr[2]})
+				}
 
-			let games = this.getGames(appname, (result) => {
-				let tablehtml = '';
-				result.gameInfo.forEach((g) => {
-					tablehtml += `<tr><td>`+g.id+`</td><td>`+g.usernames.length+`</td><td><button id='`+g.id+`connect'>Connect</button>Spectate:<input id='`+id+`spectate' type='checkbox'></td></tr>`
-				});
-
-				document.getElementById(id+'browser').innerHTML = ''
-				document.getElementById(id+'browser').insertAdjacentHTML('afterbegin',tablehtml);
-
-				result.gameInfo.forEach((g) => { 
-					document.getElementById(g.id+'connect').onclick = () => {
-						this.subscribeToGame(g.id,document.getElementById(id+'spectate').checked,undefined,(subresult) => {
-							onjoined(g);
-							document.getElementById(id).insertAdjacentHTML('afterbegin',`<button id='`+id+`disconnect'>Disconnect</button>`)
-							document.getElementById(id+'disconnect').onclick = () => {
-								this.unsubscribeFromGame(g.id,()=>{
-									onleave(g);
-									let node = document.getElementById(id+'disconnect');
-									node.parentNode.removeChild(node);
-								});
-							}
-						});
+				arr.find(o => {
+					if (o.username === strArr[2]){
+						o[strArr.slice(3).join('_')] = this.state.data[str]
 					}
-				});
-			});
+				})
+			})
+		} else {
+			console.error('please specify an app to get data from')
 		}
-		return document.getElementById(id)
+		return arr
 	}
 
 	kickPlayerFromGame = (gameId, userToKick, onsuccess=(newResult)=>{}) => {
@@ -1353,24 +1347,6 @@ class deviceStream {
 	onconnect() {}
 
 	ondisconnect() {}
-
-	simulateData() {
-		let delay = 100;
-		if(this.info.simulating === true) {
-			let nSamplesToSim = Math.floor(this.info.sps*delay/1000);
-			for(let i = 0; i<nSamplesToSim; i++) {
-				//For each tagged channel generate fake data
-				//let sample = Math.sin(i*Math.PI/180);
-			}
-
-			if (typeof window === 'undefined') {
-				setTimeout(()=>{this.simulateData}, delay)
-			} else {
-				setTimeout(requestAnimationFrame(this.simulateData),delay);
-			}
-		}
-	}
-
 
 }
 

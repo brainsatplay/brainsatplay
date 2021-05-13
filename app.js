@@ -42,20 +42,23 @@ categories.forEach((category,indOut) => {
   var bar = new Promise((resolve, reject) => {
     files.forEach((file,indIn) => {
       let dir = path.join(appletDir,category,file)
-      let data = fs.readFileSync(path.join(dir,'settings.js'))
-      let decoded = data.toString('utf-8')
-      let nameStr = decoded.split('"name": ')[1].split('\n')[0]
-      let name = nameStr.slice(1,nameStr.lastIndexOf(nameStr[0]))
-      appletDict[name] = {}
-      appletDict[name].folderUrl = '../../../' + dir.split(path.join(__dirname,'/src/'))[1]
-      let devicesString1 = decoded.split('"devices": [')[1].split('\n')[0]
-      let deviceSubstring = devicesString1.substring(0,devicesString1.lastIndexOf(']'))
-      let deviceArray = Array.from(deviceSubstring.replace(/'|"|`/g,'').split(','))
-      appletDict[name].devices = deviceArray 
-      let categoryString1 = decoded.split('"categories": [')[1].split('\n')[0]
-      let categorySubstring = categoryString1.substring(0,categoryString1.lastIndexOf(']'))
-      let categoryArray = Array.from(categorySubstring.replace(/'|"|`/g,'').split(','))
-      appletDict[name].categories = categoryArray 
+      let settingsFile = path.join(dir,'settings.js')
+      if(fs.existsSync(settingsFile)){
+        let data = fs.readFileSync(settingsFile)
+        let decoded = data.toString('utf-8')
+        let nameStr = decoded.split('"name": ')[1].split('\n')[0]
+        let name = nameStr.slice(1,nameStr.lastIndexOf(nameStr[0]))
+        appletDict[name] = {}
+        appletDict[name].folderUrl = '../../../' + dir.split(path.join(__dirname,'/src/'))[1]
+        let devicesString1 = decoded.split('"devices": [')[1].split('\n')[0]
+        let deviceSubstring = devicesString1.substring(0,devicesString1.lastIndexOf(']'))
+        let deviceArray = Array.from(deviceSubstring.replace(/'|"|`/g,'').split(','))
+        appletDict[name].devices = deviceArray 
+        let categoryString1 = decoded.split('"categories": [')[1].split('\n')[0]
+        let categorySubstring = categoryString1.substring(0,categoryString1.lastIndexOf(']'))
+        let categoryArray = Array.from(categorySubstring.replace(/'|"|`/g,'').split(','))
+        appletDict[name].categories = categoryArray 
+      }
       if (indIn === files.length-1) resolve()
       });
   })
@@ -80,7 +83,7 @@ var credentials = {key, cert};
 // New Server Code
 const DataServer = require('./src/library/src/DataServer.js');
 let auth = require('./src/platform/server/middleware/auth.js')
-console.log(auth)
+
 // import {DataServer} from './src/library/src/DataServer.js'
 // import * as auth from './src/platform/server/middleware/auth.mjs'
 let dataServ = new DataServer();

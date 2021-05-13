@@ -5,7 +5,8 @@
 #define HISTORY 5
 precision mediump float;
 varying vec2 vUv;
-uniform float times[HISTORY];
+uniform float iTime;
+uniform vec2 iResolution;
 
 vec2 random2( vec2 p )
  {
@@ -19,7 +20,7 @@ float voronoi(vec2 i_stP, vec2 f_stP, vec2 stP, float scalarP)
         for (int x= -1; x <= 1; x++) {
             vec2 neighbor = vec2(float(x),float(y));
             vec2 point = random2(i_stP + neighbor );
-            point = 0.5 + 0.5*sin(times[HISTORY-1] + 6.2831*point);
+            point = 0.5 + 0.5*sin(iTime + 6.2831*point);
             vec2 diff = neighbor + point - f_stP;
             float dist = length(diff);
             if(dist *m_distP < m_distP)
@@ -41,7 +42,9 @@ float voronoi(vec2 i_stP, vec2 f_stP, vec2 stP, float scalarP)
 
 
 void main(){
-    vec2 uv = vUv.xy;
+    	float aspect = iResolution.x/iResolution.y;
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = vUv.xy*responsiveScaling;
     vec3 color = vec3(.0);
 
     float scalar = 10.;

@@ -1,20 +1,26 @@
-#define HISTORY 5
+#define FFTCOUNT 128
 
 precision mediump float;
 varying vec2 vUv;
 
 uniform float amplitude;
 uniform float historyLength;
+uniform vec2 iResolution;
 uniform vec2 mouse;
-uniform vec3 colors[HISTORY];
-uniform float times[HISTORY];
-uniform float neurofeedback[HISTORY];
+uniform float iTime;
+uniform float iNeurofeedback;
+uniform float iFFT[FFTCOUNT];
 
-float circle(in vec2 _center, in vec2 _uv, in float _Diameter){
+float circle(in vec2 _center, in vec2 _uv, in float _Diameter, in float Thickness, in float Glow){
     vec2 dist = _uv-_center;
-	return 1.-smoothstep(_Diameter-(_Diameter*0.01),
-                         _Diameter+(_Diameter*0.01),
+    float outer = 1.-smoothstep(_Diameter-(_Diameter*(1.-Glow)),
+                         _Diameter+(_Diameter*(1.-Glow)),
                          dot(dist,dist)*4.0);
+    float innerDiameter = _Diameter - Thickness;
+    float inner = 1.-smoothstep(innerDiameter-(innerDiameter*(1.-Glow)),
+                         innerDiameter+(innerDiameter*(1.-Glow)),
+                         dot(dist,dist)*4.0);
+	return 10.*Glow*(outer - inner);
 }
 //	Classic Perlin 3D Noise 
 //	by Stefan Gustavson
@@ -90,42 +96,53 @@ float cnoise(vec3 P){
   float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
   return 2.2 * n_xyz;
 }
-
+// taken from: http://www.chilliant.com/rgb2hsv.html
+vec3 HUEtoRGB(in float H)
+{
+    float R = abs(H * 6.0 - 3.0) - 1.0;
+    float G = 2.0 - abs(H * 6.0 - 2.0);
+    float B = 2.0 - abs(H * 6.0 - 4.0);
+    return vec3(R, G, B);
+}
 
 float minDiameter= 0.0;
 float maxDiameter = 1.0;
 float historyInterval = 0.1;
-float history_float = float(HISTORY);
+// float history_float = float(HISTORY);
+
+float overlap = 2. * float(1/FFTCOUNT);
 
 void main()
 {
-    vec2 uv = vUv;
+    float aspect = iResolution.x/iResolution.y;
+    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
     
     vec4 outColor = vec4(0.);
-    for (int i = 0; i < HISTORY; i++){
 
-        vec2 uv = (vUv-vec2(0.5))*2.0;
-
+    // Noisy Circle
+    int i = 1;
+    // for (int i = 0; i < HISTORY; i++){
         float i_float = float(i);
 
         // Noisy Diameter
         // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
-        float innerDiameter = 0.3;
-        float outerDiameter = innerDiameter + 0.02;
-        float noiseScaling = ((maxDiameter - minDiameter) - (outerDiameter-innerDiameter));
+        float diameter = 0.3;
+        float Thickness = 0.1;
+        float Glow = 0.5;
+        float noiseScaling = ((maxDiameter - minDiameter) - (Thickness));
 
         // Noisy Circle
-        float alpha = i_float/history_float;
+        float alpha = 1.0; //i_float/history_float;
         float angle = atan(uv.y,uv.x);
         float xoff = cos(angle) + 1.0;
         float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*neurofeedback[i]*vec2(xoff,yoff),times[i]-(1.0-i_float)*historyInterval)));
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*iNeurofeedback*vec2(xoff,yoff),iTime-(1.0-i_float)*historyInterval)));
         // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
         // float noise = 0.0;
-
-        outColor += vec4(colors[i]*alpha*vec3(circle(mouse,uv,outerDiameter + noise)), alpha); // Outer Diameter
-        outColor.rgb -= vec3(colors[i]*alpha*vec3(circle(mouse,uv,innerDiameter + noise))); // Inner Diameter
-    }
+        vec3 color = 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*iTime/3.0));
+        outColor += vec4(color*alpha*vec3(circle(mouse,uv,diameter + noise, Thickness, Glow)), alpha);
+    // }
 
     gl_FragColor = vec4(outColor);
 }

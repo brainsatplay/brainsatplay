@@ -1,16 +1,12 @@
-precision mediump float;
 
-attribute vec2 aVertexPosition;
-attribute vec2 aUvs;
+varying vec2 vUv;
 
-uniform mat3 translationMatrix;
-uniform mat3 projectionMatrix;
+void main()
+{
+    vUv = uv;
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
 
-varying vec2 vUvs;
-
-void main() {
-
-    vUvs = aUvs;
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
-
+    gl_Position = projectedPosition;
 }

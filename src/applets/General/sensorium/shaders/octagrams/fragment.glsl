@@ -4,7 +4,8 @@
 #define HISTORY 5
 precision mediump float;
 varying vec2 vUv;
-uniform float times[HISTORY];
+uniform float iTime;
+uniform vec2 iResolution;
 
 float gTime = 0.;
 const float REPEAT = 5.0;
@@ -67,8 +68,12 @@ float map(vec3 pos, float iTime) {
 
 
 void main() {
-    float iTime = times[HISTORY-1];
-	vec2 p = (vUv.xy - 0.5)/0.5;
+		float aspect = iResolution.x/iResolution.y;
+
+	vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 p = ((vUv.xy- 0.5)/0.5)*responsiveScaling;
+	
+    float iTime = iTime;
 	vec3 ro = vec3(0., -0.2 ,iTime * 4.);
 	vec3 ray = normalize(vec3(p, 1.5));
 	ray.xy = ray.xy * rot(sin(iTime * .03) * 5.);

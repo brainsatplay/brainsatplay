@@ -1,4 +1,4 @@
-import * as brainsatplay from '../../../library/dist/brainsatplay'
+import {Session} from '../../../library/src/Session'
 import {DOMFragment} from '../../../library/src/ui/DOMFragment'
 import p5 from 'p5';
 import * as settingsFile from './settings'
@@ -9,7 +9,7 @@ export class AlphaBattleApplet {
 
     constructor(
         parent=document.body,
-        session=new brainsatplay.Session(),
+        session=new Session(),
         settings=[]
     ) {
     
@@ -38,26 +38,7 @@ export class AlphaBattleApplet {
         }
 
         this.stateIds = []
-        this.keysPressed = {
-            up: {
-                pressed: false,
-                lastOn: null
-            }
-        }
-        this.position = {
-            x: 0.25,
-            y: 0.5
-        }
-
-        this.health = {
-            percentage: 1
-        }
-
-        this.fireballs = {
-            array: []
-        }
-
-        this.userInfo = {}
+        this.resetGame()
 
         // Visualization
 
@@ -126,6 +107,7 @@ export class AlphaBattleApplet {
                         p.stroke('white')
                         p.strokeWeight(1);
                         p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter, diameter/5)
+                        if (data.health?.percentage === 0) {this.gameOver = true}
                         p.fill(255*(1-data.health?.percentage),200*data.health?.percentage,255*data.health?.percentage)
                         p.rect(basePos.x - diameter, basePos.y + diameter, 2*diameter*data.health?.percentage, diameter/5)
                     }
@@ -149,17 +131,32 @@ export class AlphaBattleApplet {
                     };
                 
                     p.draw = () => {
+
                         p.background(0);
                         p.textAlign(p.CENTER)
 
+                        if (this.animate) {
+
                         // Death Text
-                        if (this.health.percentage === 0){
+                        if (this.gameOver || this.health.percentage === 0){
                             p.textAlign(p.CENTER)
                             p.noStroke()
                             p.fill('white')
-                            p.text('Ope. You Died.', p.width/2, p.height/2)
+                            if (this.health.percentage === 0){
+                                p.text('Ope. You Died.', p.width/2, p.height/2)
+                            } else{
+                                p.text('Congratulations. You Won!', p.width/2, p.height/2)
+                            }
                             this.fireballs.array = []
-                        } else {
+
+                            setTimeout(() => {
+                                let exitButton = document.getElementById(`${this.props.id}exitGame`)
+                                if (exitButton) exitButton.click()
+                            }, 1000)
+
+                            setTimeout(() => {this.animate = false;this.resetGame()},2000)
+                        }
+                        else {
 
                         // Jump
                         if (this.keysPressed.up.lastOn != null){
@@ -189,33 +186,16 @@ export class AlphaBattleApplet {
 
 
                         // Draw
-                        let streamInfo = this.session.state.data?.commandResult
-                        if (streamInfo.userData != null && streamInfo.userData.length !== 0 && Array.isArray(streamInfo.userData)){
-
-                            // Filter non-existent users
-                            let presentUsers = streamInfo.usernames
-                            streamInfo.spectators.forEach((s) =>{
-                                presentUsers.filter(e => e !== s);
-                            })
-                            Object.keys(this.userInfo).forEach(user => {
-                                if (!presentUsers.includes(user)){
-                                    delete presentUsers[user]
-                                }
-                            })
+                        let userData = this.session.getBrainstormData(this.info.name)
+                        if (userData){
                             
                             // Draw Data when Connected to Server
-                                streamInfo.userData.forEach((userData)=> {
-                                    console.log(userData)
-                                    if (userData != null){
-                                        let username = userData.username
+                                userData.forEach((data)=> {
+                                    // console.log(data)
+                                    if (data != null){
+                                        let username = data.username
                                         if (username != this.session.info.auth.username){
-                                            if (this.userInfo[username] == null) this.userInfo[username] = userData;
-                                            presentUsers.push(username)
-                                            if (userData.position != null && !isNaN(userData.position.x) && !isNaN(userData.position.y)) {this.userInfo[username].position = userData.position}
-                                            if (userData.fireballs != null && userData.fireballs.array?.length >  0) this.userInfo[username].fireballs = userData.fireballs
-                                            if (userData.defense != null) this.userInfo[username].defense = userData.defense
-                                            if (userData.keysPressed != null) this.userInfo[username].keysPressed = userData.keysPressed
-                                            drawPlayer(this.userInfo[username])
+                                            drawPlayer(data)
                                         } else {
                                             drawPlayer(getLocalData())
                                         }
@@ -227,6 +207,7 @@ export class AlphaBattleApplet {
                             }
                          }
                         };
+                        }
                     },
                 stop: () => {
 
@@ -329,17 +310,7 @@ export class AlphaBattleApplet {
 
 
         this.getCoherence = (band) => {
-            let score = null;
-            if(this.session.atlas.settings.coherence) {
-                let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
-                if(coherenceBuffer != null && coherenceBuffer.length > 0) {
-                    let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-                    let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-                    let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
-                    score = slice[slice.length-1] - mean
-                }
-            }
-            return score;
+            return this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),band)
         }
 
         // Set Up Combat Variables
@@ -355,6 +326,32 @@ export class AlphaBattleApplet {
         this.generatorFunction = this.generatorFuncs[0]
         this.sketch = new p5(this.generatorFunction.start, containerElement) // Or basic animation loop
     
+    }
+
+    resetGame() {
+
+        this.gameOver = false
+
+        this.keysPressed = {
+            up: {
+                pressed: false,
+                lastOn: null
+            }
+        }
+        this.position = {
+            x: 0.25,
+            y: 0.5
+        }
+
+        this.health = {
+            percentage: 1
+        }
+
+        this.fireballs = {
+            array: []
+        }
+        
+        this.animate = true;
     }
 
     //Delete all event listeners and loops here and delete the HTML block

@@ -44,7 +44,7 @@ export class NexusApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = 'Neurofeedback + Group Meditation'
-        this.streams = ['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencesc','dynamicProps']
+        this.streams = ['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencescore','dynamicProps']
         //----------------------------------------------
 
 
@@ -105,17 +105,7 @@ export class NexusApplet {
         this.session.addStreamFunc(
             'frontalcoherencescore', 
             (band='alpha1') => {
-                let score = null;
-                if(this.session.atlas.settings.coherence) {
-                    let coherenceBuffer = this.session.atlas.getFrontalCoherenceData().means[band]
-                    if(coherenceBuffer.length > 0) {
-                        let samplesToSmooth = Math.min(20,coherenceBuffer.length);
-                        let slice = coherenceBuffer.slice(coherenceBuffer.length-samplesToSmooth)
-                        let mean = slice.reduce((tot,val) => tot + val)/samplesToSmooth
-                        score = slice[slice.length-1] - mean
-                    }
-                }
-            return score;
+                return this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),band)
             }
         )
 /**
@@ -418,9 +408,9 @@ const animateUsers = () => {
             this.three.scene.remove( group );
         })
 
-        // Add new marker
-        this.three.scene.add(point.marker)
-        this.three.scene.add(point.neurofeedbackGroup)
+        // // Add new marker
+        if (this.three.scene.getObjectById(point.marker.id) == null) this.three.scene.add(point.marker)
+        if (this.three.scene.getObjectById(point.neurofeedbackGroup.id) == null) this.three.scene.add(point.neurofeedbackGroup)
         point.neurofeedbackGroup.rotateZ(0.01);
     })
 }
@@ -526,52 +516,48 @@ this.three.getGeolocation = () => {
 
     //doSomething(){}
     manageMultiplayer(){
-        let streamInfo = this.session.state.data?.commandResult
-        // Update UI if results are different
-        if ((!streamInfo != null) && Object.keys(streamInfo).length !== 0 && streamInfo.constructor === Object){
-            if (Array.isArray(streamInfo.userData)){
-                streamInfo.userData.forEach((user) => {
-                    this.removeAbsentUsers(streamInfo)
-                    this.updatePoints(user.username, user.dynamicProps?.location)
-                    this.updateNeurofeedback(user)
-                    this.updateEdges()
-                })
-            }
-        }
-    }
+        let userData = this.session.getBrainstormData(this.info.name)
 
-    removeAbsentUsers(streamInfo){
-        Array.from( this.points.keys() ).forEach((username) => {
-            if (!streamInfo.usernames.includes(username)){
-                let toDelete = this.points.get(username)
-                toDelete.element.remove();
-                toDelete.prevMarkers.forEach((obj) => {
-                  obj.geometry.dispose();
-                  obj.material.dispose();
-                  this.three.scene.remove( obj );
-                })
-                toDelete.prevGroups.forEach((group) => {
-                    this.three.scene.remove( group );
-                })
-                this.points.delete(username)
-                this.responsive()
-            }
+        // Update UI if results are different
+        userData.forEach((user) => {
+            this.updatePoints(user.username, user.dynamicProps?.location)
+            this.updateNeurofeedback(user)
+            this.updateEdges()
         })
     }
+
+    // removeAbsentUsers(streamInfo){
+    //     Array.from( this.points.keys() ).forEach((username) => {
+    //         if (!streamInfo.usernames.includes(username)){
+    //             let toDelete = this.points.get(username)
+    //             toDelete.element.remove();
+    //             toDelete.prevMarkers.forEach((obj) => {
+    //               obj.geometry.dispose();
+    //               obj.material.dispose();
+    //               this.three.scene.remove( obj );
+    //             })
+    //             toDelete.prevGroups.forEach((group) => {
+    //                 this.three.scene.remove( group );
+    //             })
+    //             this.points.delete(username)
+    //             this.responsive()
+    //         }
+    //     })
+    // }
 
     updatePoints(username, location){
 
         if (!this.points.has(username)){
             this.points.set(username, new UserMarker(this.props.id, styles, {name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
         }
+        let user = this.points.get(username)
 
-        if (location != null){
-            let user = this.points.get(username)
-            if (username === "LosAngeles"){
-                user.setGeolocation({latitude: 34.0522, longitude: -118.2437})
-            } else {
-                user.setGeolocation(location)
-            }
+        if (username === "LosAngeles"){
+            location = {latitude: 34.0522, longitude: -118.2437}
+        }
+
+        if (location != null && (user.latitude != location.latitude || user.longitude != location.longitude)){
+            user.setGeolocation(location)
             user.setElement(this.camera,this.controls)
             user.active = true
             this.responsive()
@@ -589,25 +575,33 @@ this.three.getGeolocation = () => {
             this.material.uniforms.colorThresholds.value[Array.from(this.points.keys()).indexOf(userData.username)] = this.colorReachBase + this.colorReachBase*coherence
         }
 
-        let dataObj = userData['eegfftbands_FP1_all'] ?? userData['eegfftbands_FP2_all'] ?? userData['eegfftbands_AF7_all'] ?? userData['eegfftbands_AF8_all']
-        if (dataObj?.bandpowers != null) {
-            currentUser.neurofeedbackDimensions.forEach(key => {
-                scaling[key] = dataObj.bandpowers[key]
-            })
-
-            let scalingMax = Math.max(...Object.values(scaling))
-            currentUser.neurofeedbackDimensions.forEach(key => {
-                let nfscale = scaling[key]
-                nfscale = nfscale/scalingMax
-                currentUser.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
-                currentUser.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
-                currentUser.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
-            })
-
-            if (userData.username === this.session.info.auth.username){
-                this.glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
+        let bandDict = {}
+        Object.keys(userData).forEach(k => {
+            if (k.includes('eegfftbands')){
+                if (userData[k]?.bandpowers != null){
+                    Object.keys(userData[k].bandpowers).forEach(band => {
+                        if (bandDict[band] == null) bandDict[band] = []
+                        bandDict[band].push(userData[k].bandpowers[band])
+                    })
+                }
             }
-        }
+        })
+
+        Object.keys(bandDict).forEach((d) => {
+            bandDict[d] = this.session.atlas.mean(bandDict[d])
+        })
+        let scalingMax = Math.max(...Object.values(bandDict))
+        currentUser.neurofeedbackDimensions.forEach(key => {
+            let nfscale = bandDict[key]
+            nfscale = nfscale/scalingMax
+            currentUser.neurofeedbackGroup.getObjectByName(key).material.opacity = nfscale
+            currentUser.neurofeedbackGroup.getObjectByName(key).material.color = new THREE.Color(1,1,1).lerp(new THREE.Color(...this.neurofeedbackColors[key]),nfscale)
+            currentUser.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
+        })
+
+        // if (userData.username === this.session.info.auth.username){
+        //     this.glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
+        // }
     }
 
     updateEdges(){

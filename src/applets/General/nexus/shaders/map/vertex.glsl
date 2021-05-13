@@ -28,7 +28,7 @@ void main()
             if (dist <= colorThresholds[p]){
                 colorOffset = dist;
                 modelPosition.z += max(textureElevation.r*displacementHeight,displacementHeight);
-                modelPosition.z = min(modelPosition.z, 0.3);
+                modelPosition.z = min(modelPosition.z, 0.04);
             }
           }
     }
