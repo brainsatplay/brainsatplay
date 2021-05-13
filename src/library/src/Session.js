@@ -668,6 +668,15 @@ export class Session {
 					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`]= o[prop]
 				}
 			});
+
+			if (parsed.userLeft){
+				for(const prop in this.state.data) {
+					if(prop.indexOf(parsed.userLeft) > -1) {
+						this.state.unsubscribeAll(prop);
+						delete this.state.data[prop]
+					}
+				}
+			}
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'getUsersResult') {		
@@ -881,7 +890,7 @@ export class Session {
 					for(const prop in this.state.data) {
 						if(prop.indexOf(gameId) > -1) {
 							this.state.unsubscribeAll(prop);
-							this.state.data[prop] = undefined;
+							delete this.state.data[prop]
 						}
 					}
 					onsuccess(newResult);
