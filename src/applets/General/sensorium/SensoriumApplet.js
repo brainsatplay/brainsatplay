@@ -565,7 +565,6 @@ this.render = () => {
                                 window.audio.ctx.currentTime
                             );
                         } else if (option === 'bandpowers') {
-                            //???
                             modifiers.iFFT = this.getData("iFFT");
                         } 
                     }
@@ -628,9 +627,8 @@ this.render = () => {
                 material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
             }
 
-            /* 
-                How about a uniform that lets you update 7 values? e.g. [scp, delta, theta, alpha1, alpha2, beta, lowgamma]. Then that can be updated procedurally, with 0's or 1's in place
-                for non-updated values.. ?
+            /* todo
+                add Uniforms for each selector value
             */
 
             else if (u === 'iFFT' && modifiers.iFFT){
