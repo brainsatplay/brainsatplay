@@ -537,11 +537,12 @@ this.render = () => {
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
+                            modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
-                                Math.max(0,Math.min(1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
+                                Math.max(0,Math.min(modifiers.iHB,1)), 
                                 window.audio.ctx.currentTime
                             ); 
-                            modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
+                           //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
                         } else if (option === 'heg_hr') { //Heart rate modifies play speed
                             let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                             soundStruct.source.playBackRate.value = hr_mod;
