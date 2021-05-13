@@ -550,11 +550,12 @@ this.render = () => {
                         }
                          else if (option === 'heg') { //Raise HEG ratio compared to baseline
                             if(!soundStruct.hegbaseline) soundStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline;
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline),1), //
+                                Math.min(Math.max(0,hegscore),1), //
                                 window.audio.ctx.currentTime
                             );
-                            modifiers.iHEG = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            modifiers.iHEG = hegscore;
                         } else if (option === 'heg_hrv') { //Maximize HRV, set the divider to set difficulty
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
