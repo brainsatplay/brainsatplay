@@ -61,7 +61,7 @@ After implementing the above code, you should be able to navigate through the de
 ![Session Selection Screen](../../static/img/03-your-first-brainstorm/choose.png)
 
 ## Listen to the Brainstorm
-Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data from `this.session.getBrainstorm()`.
+Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data from `this.session.getBrainstorm()`. Let's also chane how we're updating the HTML to support more than one user's data.
 
 ``` javascript
 init() {
@@ -71,18 +71,21 @@ init() {
     let animate = () => {
         let userData = this.session.getBrainstormData(this.info.name)
         if (userData){
+            let html = ''
             userData.forEach((data)=> {
-                console.log(data)
+                html += `<p>${data.username}: ${data.coherence}</p>`
             })
+            document.getElementById(`${this.props.id}-coherence`).innerHTML = html
         } 
-        setTimeout(() => {requestAnimationFrame(animate)},1000/60)
+
+        setTimeout(this.animation = window.requestAnimationFrame(animate),1000/60)
     }
 }
 ```
 
-Now if you open two Chrome windows and connect a synthetic stream from different usernames, you should see `userData` passed between app clients in the Chrome developer console:
+Now, if you use two Chrome windows to connect synthetic streams from different usernames, you should see `userData` passed between these clients on the coherence readout:
 
-![Console Output v1](../../static/img/03-your-first-brainstorm/console1.png)
+![Applet View 2](../../static/img/03-your-first-brainstorm/view1.png)
 
 But, you may be asking yourself, where's the coherence data?!
 
@@ -111,9 +114,9 @@ init() {
 }
 ```
 
-Now let's check out the console again:
+Now let's check out our applet again:
 
-![Console Output v2](../../static/img/03-your-first-brainstorm/console2.png)
+![Applet View 2](../../static/img/03-your-first-brainstorm/view2.png)
 
 If everything has gone smoothly, you should now see coherence values passed between your simulated clients!
 
@@ -175,7 +178,7 @@ init() {
 
 Since we've added a new stream parameter to the app, you'll have to (1) create a new Game Session or (2) restart the server for this change to take effect. 
 
-After this, you can now change the `appEvents` variable and it will be automatically updated in the app stream.
+After this, you can now change the `appEvents` variable and it will be automatically updated in the app stream. Let's change the color of each user's text when they press the spacebar!
 
 ``` javascript
 
@@ -188,7 +191,16 @@ init() {
     document.addEventListener('keyup',this.handleKeyUp)
 
     let animate = () => {
+
         // ...
+
+        userData.forEach((data)=> {
+            let inlineStyle = (data.appEvents?.spacebar ? "color: red;" : "")
+            html += `<p style="${inlineStyle}">${data.username}: ${data.coherence}</p>`
+        })
+        
+        // ...
+
     }
 }
 
@@ -209,12 +221,12 @@ handleKeyUp = (k) => {
 
 ```
 
-In the console, you should now see the following response:
+Press the spacebar to change the text color across different clients!
 
-![Console Output v3](../../static/img/03-your-first-brainstorm/console3.png)
+![Applet View 3](../../static/img/03-your-first-brainstorm/view3.png)
 
 ## Conclusion
 
-You should now have an applet that logs (1) frontal alpha coherence and (2) spacebar clicks from any user connected to the Brainstorm! 
+You should now have an applet that passes (1) frontal alpha coherence and (2) spacebar clicks to all users connected to your app session on the Brainstorm! 
 
-**Our challenge is for you to customize our default UI and create a game with these mechanics.** What will you create?
+**We challenge you to customize this default UI and create a game with the above mechanics.** What will you create?
