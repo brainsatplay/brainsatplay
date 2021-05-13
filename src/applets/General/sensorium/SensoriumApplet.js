@@ -134,8 +134,8 @@ export class SensoriumApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
-            <div style="position:absolute; top: 50px; right: 0px; z-index: 1;">
+            <div id='${props.id}nfb' class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
+            <div id='${props.id}selectorcontainer' style="position:absolute; top: 50px; right: 0px; z-index: 1;">
                 <select id='${props.id}selector'></select>
             </div>
             </div> 
@@ -180,6 +180,8 @@ export class SensoriumApplet {
                     this.hidden = true;
                     document.getElementById(props.id+"showhide").innerHTML = "Show UI";
                     document.getElementById(props.id+'addsound').style.display = "none";
+                    document.getElementById(props.id+'selectorcontainer').style.display = "none";
+                    document.getElementById(props.id+'nfb').style.display = "none";
                     document.getElementById(props.id+'filemenu').style.display = "none";
                     document.getElementById(props.id+'soundcontrols').style.display = "none";
                 }
@@ -187,6 +189,8 @@ export class SensoriumApplet {
                     this.hidden = false;
                     document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
                     document.getElementById(props.id+'addsound').style.display = "";
+                    document.getElementById(props.id+'selectorcontainer').style.display = "";
+                    document.getElementById(props.id+'nfb').style.display = "";
                     document.getElementById(props.id+'filemenu').style.display = "";
                     document.getElementById(props.id+'soundcontrols').style.display = "";
                 }
