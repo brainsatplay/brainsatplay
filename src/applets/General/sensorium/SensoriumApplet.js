@@ -171,6 +171,32 @@ export class SensoriumApplet {
                     
                 }
             }
+
+            let showhide = document.getElementById(props.id+'showhide');
+            
+            showhide.onclick = () => {
+                if(this.hidden == false) {
+                    this.hidden = true;
+                    document.getElementById(props.id+"showhide").innerHTML = "Show UI";
+                    document.getElementById(props.id+'addsound').style.display = "none";
+                    document.getElementById(props.id+'filemenu').style.display = "none";
+                    document.getElementById(props.id+'soundcontrols').style.display = "none";
+                }
+                else{
+                    this.hidden = false;
+                    document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
+                    document.getElementById(props.id+'addsound').style.display = "";
+                    document.getElementById(props.id+'filemenu').style.display = "";
+                    document.getElementById(props.id+'soundcontrols').style.display = "";
+                }
+            }
+
+            showhide.onmouseover = () => {
+                showhide.style.opacity = 1.0;
+            }
+            showhide.onmouseleave = () => {
+                showhide.style.opacity = 0.2;
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
