@@ -417,9 +417,11 @@ this.render = () => {
                     Feedback ${idx}:
                     <select id='${props.id}select${idx}'>
                         <option value='none'>None</option>
+                        <option value='audio'>Audio (replaces FFTs)</option>
                         <option value='hr'>Heart Beat</option>
                         <option value='heg'>HEG Ratio</option>
                         <option value='hrv'>Heart Rate Variability</option>
+                        <option value='bandpowers'>EEG Bandpower FFT</option>
                         <option value='delta'>Delta Bandpower</option>
                         <option value='theta'>Theta Bandpower</option>
                         <option value='alpha1'>Alpha1 Bandpower</option>
@@ -563,9 +565,12 @@ this.render = () => {
                                 window.audio.ctx.currentTime
                             );
                         } else if (option === 'bandpowers') {
-                            //???
                             modifiers.iFFT = this.getData("iFFT");
                         } 
+                    }
+                    if(option === 'audio') {
+                        var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+                        modifiers.iFFT = window.audio.analyserNode.getByteFrequencyData(array);
                     }
                 }
             });
@@ -622,9 +627,8 @@ this.render = () => {
                 material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
             }
 
-            /* 
-                How about a uniform that lets you update 7 values? e.g. [scp, delta, theta, alpha1, alpha2, beta, lowgamma]. Then that can be updated procedurally, with 0's or 1's in place
-                for non-updated values.. ?
+            /* todo
+                add Uniforms for each selector value
             */
 
             else if (u === 'iFFT' && modifiers.iFFT){
