@@ -7,7 +7,6 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
-import whiteFragmentShader from "./shaders/white/fragment.glsl"
 import wavesFragmentShader from './shaders/waves/fragment.glsl'
 import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
 import creationFragmentShader from './shaders/creation/fragment.glsl'
@@ -57,48 +56,56 @@ export class SensoriumApplet {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
+                uniforms: [],
                 credit: 'JoshP (Shadertoy)'
             },
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
+                uniforms: ['iNeurofeedback'],
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
+                uniforms: ['iNeurofeedback','iFFT'],
                 credit: 'Garrett Flynn'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
+                uniforms: [],
                 credit: 'Danilo Guanabara (Shadertoy)'
             },
             octagrams: {
                 name: 'Octagrams',
                 vertexShader: vertexShader,
                 fragmentShader: octagramsFragmentShader,
+                uniforms: [],
                 credit: 'whisky_shusuky (Shadertoy)'
             },
             cineshaderlava: {
                 name: 'Cineshader Lava',
                 vertexShader: vertexShader,
                 fragmentShader: cineshaderlavaFragmentShader,
+                uniforms: [],
                 credit: 'edankwan (Shadertoy)'
             },
             fractalpyramid: {
                 name: 'Fractal Pyramid',
                 vertexShader: vertexShader,
                 fragmentShader: fractalpyramidFragmentShader,
+                uniforms: [],
                 credit: 'bradjamesgrant (Shadertoy)'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
+                uniforms: [],
                 credit: 'Elise (Shadertoy)'
             },
         }
@@ -133,11 +140,10 @@ export class SensoriumApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;">
-            <div style="position:absolute; top: 50px; right: 0px; z-index: 1;">
-                <select id='${props.id}selector'></select>
+            <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;"></div> 
+            <div style="position:absolute; top: 75px; right: 25px; z-index: 1;">
+                <select id='${props.id}shaderSelector'></select>
             </div>
-            </div> 
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <button id='${props.id}addsound'>Add Sound</button>
@@ -154,7 +160,7 @@ export class SensoriumApplet {
                 this.addSoundInput();
             };
 
-            let selector = document.getElementById(`${this.props.id}selector`)
+            let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             })
@@ -162,10 +168,9 @@ export class SensoriumApplet {
             this.currentShader = this.shaders[selector.value]
 
             selector.onchange = (e) => {
+                console.log('changed')
                 if (e.target.value != 'Gallery'){
-                    this.shaders[0] = this.shaders[e.target.value]
-                    this.shaders[e.target.value] = this.currentShader
-                    this.currentShader = this.shaders[0]
+                    this.currentShader = this.shaders[selector.value]
                     this.updateShader()
                 } else {
                     
@@ -262,19 +267,16 @@ shaderKeys.forEach((k,i) => {
             side: THREE.DoubleSide,
             vertexShader: this.shaders[k].vertexShader,
             fragmentShader: this.shaders[k].fragmentShader,
-            uniforms:
+            uniforms: // Default Uniforms
             {
-                aspect: {value: this.three.meshWidth / this.three.meshHeight},
-                amplitude: {value: 0.75},
-                times: {value: this.timeBuffer},
-                colors: {value: this.colorBuffer.flat(1)},
-                mouse: {value: [0,0]}, //[this.mouse.x, this.mouse.y],
-                neurofeedback: {value: this.noiseBuffer}
+                iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
+                iTime: {value: 0},
             }
         })
 
         let radius = 0;//10
         let plane = new THREE.Mesh(planeGeometry, this.material)
+        plane.name = k
         let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
         plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
         plane.rotation.set(0,-angle - Math.PI/2,0)
@@ -284,7 +286,7 @@ shaderKeys.forEach((k,i) => {
 })
 
 // Animate
-let startTime = Date.now()
+this.startTime = Date.now()
 this.render = () => {
 
     // setTimeout( () => {
@@ -293,23 +295,11 @@ this.render = () => {
                 // Organize Brain Data 
                 this.setBrainData(this.session.atlas.data.eeg)
 
-                // Change Color
-                let c = this.getColor()
-                this.colorBuffer.shift()
-                this.colorBuffer.push(c)
+                // console.log(this.brainData)
 
-                this.timeBuffer.shift()
-                this.timeBuffer.push((Date.now() - startTime)/1000)
-
-                this.noiseBuffer.shift()
-                let neurofeedback = this.getNeurofeedback()
-                this.noiseBuffer.push(neurofeedback)
-                    
                 // Set Uniforms
                 this.three.planes.forEach(plane => {
-                    plane.material.uniforms.colors.value = this.colorBuffer.flat(1) 
-                    plane.material.uniforms.times.value = this.timeBuffer
-                    plane.material.uniforms.neurofeedback.value = this.noiseBuffer
+                    this.updateMaterialUniforms(plane.material)
                 })
 
                 this.controls.update()
@@ -358,7 +348,7 @@ this.render = () => {
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
-                p.material.uniforms.aspect.value = this.three.meshWidth / this.three.meshHeight
+                p.material.uniforms.iResolution.value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
             })
             
             this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
@@ -375,7 +365,36 @@ this.render = () => {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+    updateMaterialUniforms = (material) => {
+        ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
 
+            if (material.uniforms[u] == null) material.uniforms[u] = {}
+
+            if (u === 'iNeurofeedback'){
+                material.uniforms[u].value = this.getNeurofeedback() // Defined dynamically via the UI
+            }
+
+            if (u === 'iFFT'){
+                let channel = this.session.atlas.getEEGDataByChannel(0)
+                material.uniforms[u].value = channel.ffts[channel.fftCount-1]
+            }
+
+            if (u === 'iHRV'){
+                material.uniforms[u].value = undefined
+            }
+
+            // Defaults
+            if (u === 'iTime'){
+                material.uniforms[u].value = (Date.now() - this.startTime)/1000 // Seconds
+            }
+
+            if (u === 'iResolution'){
+                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
+            }
+        })
+
+        return material
+    }
     
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
@@ -577,11 +596,15 @@ this.render = () => {
             vertexShader: this.currentShader.vertexShader,
             fragmentShader: this.currentShader.fragmentShader,
             side: THREE.DoubleSide,
-            transparent: this.three.planes[0].material.transparent,
-            uniforms: this.three.planes[0].material.uniforms
+            transparent: true,
         })
-        this.three.planes[0].material.dispose()
-        this.three.planes[0].material = newMaterial
+
+        this.updateMaterialUniforms(newMaterial)
+
+        this.three.planes.forEach(p => {
+            p.material.dispose()
+            p.material = newMaterial
+        })
     }
 
 
@@ -598,27 +621,4 @@ this.render = () => {
             else return 1
         })  
   }
-
-  getColor(){
-    let currentColor = [0,0,0]
-    let distances = this.brainData
-    let maxDist = Math.max(...distances)
-    if (distances.every(d => d == maxDist)) {
-        currentColor = [0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/1000)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/500)),0.25 + 0.75*(0.5 + 0.5*Math.sin(Date.now()/200))]
-    } else {
-        // let ind = this.indexOfMax(distances)
-        // if (this.currentColors == null) this.currentColors = [{ind: ind, color: this.brainMetrics[ind].color},{ind: ind, color: this.brainMetrics[ind].color}]
-        // if (ind != this.currentColors[1].ind) {this.currentColors.shift(); this.currentColors.push({ind: ind, color: this.brainMetrics[ind].color}); this.lastColorSwitch=Date.now()}
-        // for (let i = 0; i < 3; i++){
-        //     currentColor[i] = this.currentColors[0].color[i] + (this.currentColors[1].color[i] + this.currentColors[0].color[i]) * Math.min(1,(Date.now() - this.lastColorSwitch)/100000)
-        // }
-        for (let i = 0; i < 3; i++){
-            this.brainMetrics.forEach((dict,ind) => {
-                currentColor[i] += (dict.color[i] * distances[ind]/maxDist)
-            })
-        }
-    }
-    return currentColor
-}
-
 } 

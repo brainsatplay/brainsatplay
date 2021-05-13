@@ -6,8 +6,8 @@
 precision mediump float;
 varying vec2 vUv;
 
-uniform float aspect;
-uniform float times[HISTORY];
+uniform vec2 iResolution;
+uniform float iTime;
 
 vec3 palette(float d){
 	return mix(vec3(0.2,0.7,0.9),vec3(1.,0.,1.),d);
@@ -21,7 +21,7 @@ vec2 rotate(vec2 p,float a){
 
 float map(vec3 p){
     for( int i = 0; i<8; ++i){
-        float t = times[HISTORY-1]*0.2;
+        float t = iTime*0.2;
         p.xz =rotate(p.xz,t);
         p.xy =rotate(p.xy,t*1.89);
         p.xz = abs(p.xz);
@@ -51,10 +51,11 @@ vec4 rm (vec3 ro, vec3 rd){
 }
 void main()
 {
+	float aspect = iResolution.x/iResolution.y;
     vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
     vec2 uv = (vUv.xy - 0.5)*responsiveScaling;
 	vec3 ro = vec3(0.,0.,-50.);
-    ro.xz = rotate(ro.xz,times[HISTORY-1]);
+    ro.xz = rotate(ro.xz,iTime);
     vec3 cf = normalize(-ro);
     vec3 cs = normalize(cross(cf,vec3(0.,1.,0.)));
     vec3 cu = normalize(cross(cf,cs));

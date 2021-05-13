@@ -4,14 +4,14 @@
 
 precision mediump float;
 varying vec2 vUv;
-uniform float aspect;
-uniform float times[HISTORY];
+uniform vec2 iResolution;
+uniform float iTime;
 
 void main(){
-    float t = times[HISTORY-1];
+    float t = iTime;
 	vec3 c;
 	float l,z=t;
-
+	float aspect = iResolution.x/iResolution.y;
 	vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
     vec2 uv;
     vec2 p = (vUv.xy - 0.5)*responsiveScaling;

@@ -5,8 +5,8 @@
 #define HISTORY 5
 precision mediump float;
 varying vec2 vUv;
-uniform float times[HISTORY];
-uniform float aspect;
+uniform float iTime;
+uniform vec2 iResolution;
 
 float opSmoothUnion( float d1, float d2, float k )
 {
@@ -24,7 +24,7 @@ float map(vec3 p)
 	float d = 2.0;
 	for (int i = 0; i < 16; i++) {
 		float fi = float(i);
-		float time = times[HISTORY-1] * (fract(fi * 412.531 + 0.513) - 0.5) * 2.0;
+		float time = iTime * (fract(fi * 412.531 + 0.513) - 0.5) * 2.0;
 		d = opSmoothUnion(
             sdSphere(p + sin(time + fi * vec3(52.5126, 64.62744, 632.25)) * vec3(2.0, 2.0, 0.8), mix(0.5, 1.0, fract(fi * 412.531 + 0.5124))),
 			d,
@@ -46,10 +46,10 @@ vec3 calcNormal( in vec3 p )
 
 void main()
 {
+	float aspect = iResolution.x/iResolution.y;
 	vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
     vec2 uv = (vUv-0.5)*responsiveScaling;
 
-    float aspect = 1.0; //iResolution.x/iResolution.y;
     // screen size is 6m x 6m
 	vec3 rayOri = vec3((uv) * vec2(aspect, 1.0) * 6.0, 3.0);
 	vec3 rayDir = vec3(0.0, 0.0, -1.0);
@@ -69,7 +69,7 @@ void main()
     depth = min(6.0, depth);
 	vec3 n = calcNormal(p);
     float b = max(0.0, dot(n, vec3(0.577)));
-    vec3 col = (0.5 + 0.5 * cos((b + times[HISTORY-1] * 3.0) + uv.xyx * 2.0 + vec3(0,2,4))) * (0.85 + b * 0.35);
+    vec3 col = (0.5 + 0.5 * cos((b + iTime * 3.0) + uv.xyx * 2.0 + vec3(0,2,4))) * (0.85 + b * 0.35);
     col *= exp( -depth * 0.15 );
 	
     // maximum thickness is 2m in alpha channel

@@ -6,16 +6,13 @@ varying vec2 vTextureCoord;
 varying vec2 resolution;
 
 uniform float amplitude;
-uniform float aspect;
-uniform vec2 mouse;
-uniform vec3 colors[HISTORY];
-uniform float times[HISTORY];
-uniform float noiseIntensity[HISTORY];
+uniform vec2 iResolution;
+uniform float iTime;
 
 //Inspired by JoshP's Simplicity shader: https://www.shadertoy.com/view/lslGWr
 // http://www.fractalforums.com/new-theories-and-research/very-simple-formula-for-fractal-patterns/
 float field(in vec3 p) {
-	float strength = 7. + .03 * log(1.e-6 + fract(sin(times[HISTORY-1]) * 4373.11));
+	float strength = 7. + .03 * log(1.e-6 + fract(sin(iTime) * 4373.11));
 	float accum = 0.;
 	float prev = 0.;
 	float tw = 0.;
@@ -31,10 +28,11 @@ float field(in vec3 p) {
 }
 
 void main() {
+	float aspect = iResolution.x/iResolution.y;
     vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
-    vec2 uv = vUv*responsiveScaling;
+    vec2 uv = 2.*vUv*responsiveScaling;
 	vec3 p = vec3(uv / 4., 0) + vec3(1., -1.3, 0.);
-	p += .2 * vec3(sin(times[HISTORY-1] / 16.), sin(times[HISTORY-1] / 12.),  sin(times[HISTORY-1] / 128.));
+	p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
 	float t = field(p);
 	float v = (1. - exp((abs(vUv.x) - 1.) * 6.)) * (1. - exp((abs(vUv.y) - 1.) * 6.));
 	gl_FragColor = mix(.4, 1., v) * vec4(1.8 * t * t * t, 1.4 * t * t, t, 1.0);
