@@ -103,28 +103,36 @@ class DataServer {
 
     removeUserFromGame(id='',username='') {
         let found = false;
-        let sub = this.gameSubscriptions.find((o,i) => {
+        let game = this.gameSubscriptions.find((o,i) => {
             if(o.id === id) {
                 let uidx = o.usernames.indexOf(username);
                 if(uidx > -1) o.usernames.splice(uidx,1);
                 let sidx = o.spectators.indexOf(username);
                 if(sidx > -1) o.spectators.splice(sidx,1);
                 found = true;
-                return true;
+                return o;
             }
         });
 
         if(!found) {
-            let sub = this.hostSubscriptions.find((o,i) => {
+            game = this.hostSubscriptions.find((o,i) => {
                 if(o.id === id) {
                     let uidx = o.usernames.indexOf(username);
                     if(uidx > -1) o.usernames.splice(uidx,1);
                     let sidx = o.spectators.indexOf(username);
                     if(sidx > -1) o.spectators.splice(sidx,1);
                     found = true;
-                    return true;
+                    return o;
                 }
             });
+        }
+
+        if (found) {
+            let gameData =this.getGameData(id)
+            gameData.userLeft = username
+            game.usernames.forEach(u => {
+                this.userData.get(u).socket.send(JSON.stringify(gameData));
+            })
         }
 
         return found;
