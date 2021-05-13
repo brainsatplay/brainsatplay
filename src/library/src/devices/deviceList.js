@@ -4,6 +4,6 @@ export const deviceList = [
     {'name': 'Cyton', company:'OpenBCI'},
     {'name': 'Daisy-Cyton', company:'OpenBCI'},
     {'name': 'HEGduino', company:'Brains@Play'},
-    {'name': 'FreeEEG', company:'Brains@Play'},
+    {'name': 'FreeEEG', company:'Neuroidss'},
     {'name': 'Buzz', company:'Neosensory'},
 ]
