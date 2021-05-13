@@ -417,9 +417,11 @@ this.render = () => {
                     Feedback ${idx}:
                     <select id='${props.id}select${idx}'>
                         <option value='none'>None</option>
+                        <option value='audio'>Audio (replaces FFTs)</option>
                         <option value='hr'>Heart Beat</option>
                         <option value='heg'>HEG Ratio</option>
                         <option value='hrv'>Heart Rate Variability</option>
+                        <option value='bandpowers'>EEG Bandpower FFT</option>
                         <option value='delta'>Delta Bandpower</option>
                         <option value='theta'>Theta Bandpower</option>
                         <option value='alpha1'>Alpha1 Bandpower</option>
@@ -566,6 +568,10 @@ this.render = () => {
                             //???
                             modifiers.iFFT = this.getData("iFFT");
                         } 
+                    }
+                    if(option === 'audio') {
+                        var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+                        modifiers.iFFT = window.audio.analyserNode.getByteFrequencyData(array);
                     }
                 }
             });
