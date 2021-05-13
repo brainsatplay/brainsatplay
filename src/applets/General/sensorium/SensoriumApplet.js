@@ -555,7 +555,7 @@ this.render = () => {
                                 Math.min(Math.max(0,hegscore),1), //
                                 window.audio.ctx.currentTime
                             );
-                            modifiers.iHEG = hegscore;
+                            modifiers.iHEG = hegscore; //starts at 0
                         } else if (option === 'heg_hrv') { //Maximize HRV, set the divider to set difficulty
                             window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
