@@ -32,10 +32,8 @@ export class SensoriumApplet {
         //etc..
         this.audio = null;
         this.soundStruct = { source:{}, input:{}, controls:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
+        this.visuals = [];
         this.sounds = [];//array of soundStructs
-        this.inputs = [];
-        this.controls = [];
-        this.indices = [];
 
         this.looping = false;
 
@@ -50,11 +48,12 @@ export class SensoriumApplet {
             {name:'alpha2',label: 'High Alpha',color: [0,1,0]}, // Green
             {name:'beta',label: 'Beta',color: [1,1,0]}, // Yellow
             {name:'lowgamma',label: 'Gamma',color: [1,0,0]} // Red
-            ]
-            this.brainData = []   
-            this.lastColorSwitch=Date.now() 
+        ]
 
-            this.history = 5
+        this.brainData = []   
+        this.lastColorSwitch=Date.now() 
+
+        this.history = 5
 
     }
 
@@ -121,6 +120,7 @@ export class SensoriumApplet {
             mouse: [0,0], //[this.mouse.x, this.mouse.y],
             noiseIntensity: this.noiseBuffer
         };
+        
         this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
         // this.responsive()
         this.generateShaderElements()
@@ -161,8 +161,8 @@ export class SensoriumApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.indices.forEach((i)=>{
-            this.audio.stopSound(i);
+        this.sounds.forEach((struct)=>{
+            this.audio.stopSound(struct.sourceIdx);
         });
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
