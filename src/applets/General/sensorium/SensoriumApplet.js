@@ -39,7 +39,6 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.audio = null;
         this.soundStruct = { source:{}, input:{}, controls:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
         this.visuals = [];
         this.sounds = [];//array of soundStructs
@@ -365,7 +364,7 @@ this.render = () => {
     deinit() {
         this.looping = false;
         this.sounds.forEach((struct)=>{
-            this.audio.stopSound(struct.sourceIdx);
+            window.audio.stopSound(struct.sourceIdx);
         });
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
@@ -458,14 +457,14 @@ this.render = () => {
         newSound.input = document.getElementById(this.props.id+'fileWrapper'+idx);
 
         document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
-            if(!this.audio) this.audio = new SoundJS();
-            if (this.audio.ctx===null) {return;};
+            if(!window.audio) window.audio = new SoundJS();
+            if (window.audio.ctx===null) {return;};
 
-            this.audio.decodeLocalAudioFile((sourceListIdx)=>{    
+            window.audio.decodeLocalAudioFile((sourceListIdx)=>{    
                 document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
                 newSound.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
                 
-                newSound.source = this.audio.sourceList[sourceListIdx]; 
+                newSound.source = window.audio.sourceList[sourceListIdx]; 
                 newSound.sourceIdx = sourceListIdx;
                 newSound.input.style.display='none';
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
@@ -487,13 +486,13 @@ this.render = () => {
     loadSoundControls = (newSound) => {
         
         document.getElementById(this.props.id+'play'+newSound.uiIdx).onclick = () => {
-            this.audio.playSound(newSound.sourceIdx,0,true);
+            window.audio.playSound(newSound.sourceIdx,0,true);
         }
 
         document.getElementById(this.props.id+'stop'+newSound.uiIdx).onclick = () => {
             
-            try{this.audio.playSound(newSound.sourceIdx,0,false);} catch(er) {}
-            this.audio.stopSound(newSound.sourceIdx);
+            try{window.audio.playSound(newSound.sourceIdx,0,false);} catch(er) {}
+            window.audio.stopSound(newSound.sourceIdx);
             
             newSound.input.parentNode.removeChild(newSound.input);
             newSound.controls.parentNode.removeChild(newSound.controls);
@@ -512,12 +511,12 @@ this.render = () => {
         }
 
         document.getElementById(this.props.id+'mute'+newSound.uiIdx).onclick = () => {
-            if(this.audio.sourceGains[newSound.sourceIdx].gain.value !== 0){
-                newSound.lastGain = this.audio.sourceGains[newSound.sourceIdx].gain.value;
-                this.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+            if(window.audio.sourceGains[newSound.sourceIdx].gain.value !== 0){
+                newSound.lastGain = window.audio.sourceGains[newSound.sourceIdx].gain.value;
+                window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                 newSound.muted = true;
                 
-            } else {  newSound.muted = false; this.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(newSound.lastGain, this.audio.ctx.currentTime); }
+            } else {  newSound.muted = false; window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(newSound.lastGain, window.audio.ctx.currentTime); }
         }
     };
 
@@ -528,48 +527,48 @@ this.render = () => {
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'hr') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
                                 Math.max(0,Math.min(1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)),1)), 
-                                this.audio.ctx.currentTime
+                                window.audio.ctx.currentTime
                             );
                         } else if (option === 'heg') { //Raise HEG ratio compared to baseline
                             if(!soundStruct.hegbaseline) soundStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.min(Math.max(0,this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline),1), //
-                                this.audio.ctx.currentTime
+                                window.audio.ctx.currentTime
                             );
                         } else if (option === 'hrv') { //Maximize HRV, set the divider to set difficulty
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
-                                this.audio.ctx.currentTime
+                                window.audio.ctx.currentTime
                             );
                         } 
                     }
                     if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
                         if (option === 'delta') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
                         } else if (option === 'theta') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'alpha1') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'alpha2') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'beta') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'gamma') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === '40hz') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'tb') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'a12') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (option === 'ab') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, this.audio.ctx.currentTime);
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
                         } else if (this.session.atlas.settings.coherence === true && option === 'acoh') {
-                            this.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(Math.min(0,this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')),1), 
-                                this.audio.ctx.currentTime
+                                window.audio.ctx.currentTime
                             );
                         }
                     }
