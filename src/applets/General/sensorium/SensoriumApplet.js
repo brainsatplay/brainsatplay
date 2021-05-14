@@ -65,14 +65,14 @@ export class SensoriumApplet {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
-                uniforms: ['iNeurofeedback'],
+                uniforms: [],
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
-                uniforms: ['iNeurofeedback','iFFT'],
+                uniforms: ['iFFT'],
                 credit: 'Garrett Flynn'
             },
             creation: {
@@ -114,10 +114,6 @@ export class SensoriumApplet {
 
         this.modifiers = {}
 
-        // Setup Neurofeedback
-        this.defaultNeurofeedback = function defaultNeurofeedback(){return 0.5 + 0.5*Math.sin(Date.now()/2000)} // default neurofeedback function
-        this.getNeurofeedback = this.defaultNeurofeedback;
-
         this.brainMetrics = [
             {name:'delta',label: 'Delta', color: [0,0.5,1]}, // Blue-Cyan
             {name:'theta',label: 'Theta',color: [1,0,1]}, // Purple
@@ -144,7 +140,6 @@ export class SensoriumApplet {
         let HTMLtemplate = (props=this.props) => { 
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <div class="brainsatplay-neurofeedback-container" style="position:absolute; top: 25px; right: 25px;"></div> 
             <div style="position:absolute; top: 75px; right: 25px; z-index: 1;">
                 <select id='${props.id}shaderSelector'></select>
             </div>
@@ -634,10 +629,7 @@ this.render = () => {
     }
 
     getData(u) {
-        if (u === 'iNeurofeedback'){
-            return this.getNeurofeedback(); // Defined dynamically via the UI
-        }
-        else if (u === 'iFFT'){
+        if (u === 'iFFT'){
             let channel;
             if(!ch) {
                 channel = this.session.atlas.getLatestFFTData()[0];
@@ -660,10 +652,6 @@ this.render = () => {
         ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
 
             if (material.uniforms[u] == null) material.uniforms[u] = {}
-
-            else if (u === 'iNeurofeedback'){ //this should be replaced with all of the specific uniforms in the animate loop that set the modifiers
-                material.uniforms[u].value = modifiers.iNeurofeedback // Defined dynamically via the UI
-            }
 
             /* todo
                 add Uniforms for each selector value
