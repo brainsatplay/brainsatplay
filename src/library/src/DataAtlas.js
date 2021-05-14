@@ -174,12 +174,13 @@ export class DataAtlas {
 			return midpoint;
 		}
 
-		let tags = ['AF7','AF8','TP9','TP10'];
+		let tags = ['AF7','AF8','TP9','TP10','AUX'];
 		let coords = [
 			mid(c[0],c[2]), //estimated
 			mid(c[1],c[3]), //estimated
 			[-80.2,-31.3,-10.7], //estimated
-			[81.9,-34.2,-8.2] //estimated
+			[81.9,-34.2,-8.2], //estimated
+			[NaN,NaN,NaN]
 		];
 
 		tags.forEach((tag,i) => {

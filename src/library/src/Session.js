@@ -203,6 +203,7 @@ export class Session {
 			}
 
 			this.devices[i].ondisconnect = () => {
+				console.log('disconnecting outside')
 				ondisconnect();
 				this.ondisconnected();
 				if(this.devices[i].info.analysis.length > 0) {
@@ -267,7 +268,7 @@ export class Session {
 		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
 	
 		let deviceOptions = [
-			'synthetic', 'muse',
+			'synthetic', 'muse','muse_aux',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
 			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz',
@@ -293,6 +294,8 @@ export class Session {
 			document.getElementById(`brainsatplay-${o}`).onclick = () => {
 				if(o === 'muse') {
 					this.connect('muse',['eegcoherence'],onconnect,ondisconnect);
+				} else if(o === 'muse_aux') {
+					this.connect('muse_aux',['eegcoherence'],onconnect,ondisconnect);
 				}
 				else if (o === 'freeeeg32_2') {
 					this.connect('freeeeg32_2',['eegcoherence'],onconnect,ondisconnect);
@@ -1007,12 +1010,22 @@ export class Session {
                             this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
                                 onjoined(g);
 
-                                exitGame.onclick = () => {
-                                    this.unsubscribeFromGame(g.id,()=>{
+								
+								let leaveOnRefresh = () => {
+									exitGame.click()
+								}					
+								
+								let leaveGame = () => {
+									this.unsubscribeFromGame(g.id,()=>{
                                         onleave(g);
-                                        exitGame.onclick=null
+										exitGame.removeEventListener('click', leaveGame)
+										window.removeEventListener('beforeunload',leaveOnRefresh)
                                     });
-                                }
+								}
+
+                                exitGame.onclick = leaveGame
+
+								window.onbeforeunload = leaveOnRefresh;
                             });
                         }
                     });

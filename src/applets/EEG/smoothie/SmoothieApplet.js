@@ -226,7 +226,7 @@ export class SmoothieApplet {
               var r = Math.random()*255, g = Math.random()*255, b = Math.random()*255;
               let stroke = 'rgb('+r+","+g+","+b+")"; let fill = 'rgba('+r+','+g+','+b+","+"0.2)";
               this.charts[0].seriesColors.push(stroke); // For reference
-              this.charts[0].addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
+              if (this.series) this.charts[0].addTimeSeries(this.series[this.series.length-1], {strokeStyle: stroke, fillStyle: fill, lineWidth: 2 });
             }
           }
           if(graphmode === "alpha"){
