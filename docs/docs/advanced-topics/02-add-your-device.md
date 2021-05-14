@@ -12,7 +12,7 @@ This tutorial will teach you how to add support for your device to brainatplay.j
 
 :::note 
 
-If your device cannot communicate directly over Serial, Bluetooth, WiFi, reference [Extending the Brainstorm]('./extend-the-brainstorm') instead to set up a Websocket stream (or other streaming protocol) to take advantage of brainsatplay.js.
+If your device cannot communicate directly over Serial, Bluetooth, WiFi, reference [Extend the Brainstorm](./extend-the-brainstorm) to set up a Websocket stream (or other streaming protocol) to take advantage of brainsatplay.js.
 
 :::
 
