@@ -203,7 +203,6 @@ export class Session {
 			}
 
 			this.devices[i].ondisconnect = () => {
-				console.log('disconnecting outside')
 				ondisconnect();
 				this.ondisconnected();
 				if(this.devices[i].info.analysis.length > 0) {
@@ -1637,6 +1636,7 @@ class streamSession {
 			Object.assign(streamObj.userData,this.getDataForSocket(undefined,this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 			if(Object.keys(streamObj.userData).length > 0) {
+				console.log(streamObj)
 			 	this.socket.send(JSON.stringify(streamObj));
 			}
 			this.info.streamCt++;

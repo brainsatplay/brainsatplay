@@ -26,7 +26,10 @@ const check = async (auth, mongodb) => {
             }
         } 
     } else {
-      dict = { result: 'OK', msg: username }
+        if (username === '' || username === 'guest'){
+            username = uuid.v4();
+        }
+        dict = { result: 'OK', msg: username}
     }
 return dict
 }
