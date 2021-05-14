@@ -1,8 +1,12 @@
 ---
-sidebar_position: 2
+title: Your First Applet
+hide_title: true
 ---
 
-# Your First Applet
+![Your First Applet](../../static/img/02-your-first-applet/header.png)
+
+## Overview
+---
 
 Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet using brainsatplay.js.
 
