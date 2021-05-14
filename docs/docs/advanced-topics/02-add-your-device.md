@@ -1,15 +1,30 @@
-# Add Device Support
+---
+title: Add Your Device
+hide_title: true
+---
+
+![Add your Device](../../static/img/02-add-your-device/header.png)
+
+## Overview
+---
 
 This tutorial will teach you how to add support for your device to brainatplay.js.
+
+:::note 
+
+If your device cannot communicate directly over Serial, Bluetooth, WiFi, reference [Extending the Brainstorm]('./extend-the-brainstorm') instead to set up a Websocket stream (or other streaming protocol) to take advantage of brainsatplay.js.
+
+:::
 
 ## Creating a Device Plugin
 ---
 
-:::note 
+:::tip 
 
 All device plugins included in brainsatplay.js (including the template plugin) can be found in the `src/library/src/devices` directory. 
 
 :::
+
 
 To create a new device plugin, copy the `devicePluginTemplate.js` file and rename it. In the following example code, we'll show how the `musePlugin.js` was created.
 

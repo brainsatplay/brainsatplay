@@ -1,8 +1,13 @@
 ---
-sidebar_position: 1
+title: Setup
+hide_title: true
 ---
 
-# Setup
+![Setup](../../static/img/01-setup/header.png)
+
+## Overview
+---
+
 This tutorial will guide you through setting up a local version of The Brains@Play Platform.
 
 ## Requirements

@@ -24,6 +24,10 @@ export class syntheticPlugin {
                 document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
             }
         }
+
+        this.loop;
+        this.looping = true;
+
     }
 
     init = (info,pipeToAtlas) => {
@@ -105,6 +109,10 @@ export class syntheticPlugin {
         this.ondisconnect();
         this.setIndicator(false);
         this.atlas.settings.deviceConnected = false;
+        if (typeof window != undefined){
+            window.cancelAnimationFrame(this.loop)
+        }
+        this.looping = false;
     }
 
     //externally set callbacks
@@ -140,6 +148,7 @@ export class syntheticPlugin {
         let delay = 100;
 
         let simulate = () => {
+            if (this.looping){
 
             if(this.info.useAtlas) {
 
@@ -179,8 +188,9 @@ export class syntheticPlugin {
             if (typeof window === 'undefined') {
                 setTimeout(()=>{this.simulateData}, delay)
             } else {
-                setTimeout(requestAnimationFrame(this.simulateData),delay);
+                setTimeout(this.loop = requestAnimationFrame(this.simulateData),delay);
             }
+        }
           }
     
           simulate()

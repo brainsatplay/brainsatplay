@@ -137,14 +137,12 @@ mongodb.MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
 app.use(function(req, res, next) {
   const validOrigins = [
     `http://localhost`,
-    'http://localhost:1234',
     'https://brainsatplay.azurewebsites.net',
     'http://brainsatplay.azurewebsites.net',
     'https://brainsatplay.com',
     'http://server.brainsatplay.com',
     'https://server.brainsatplay.com',
     'https://app.brainsatplay.com',
-
   ];
 
   const origin = req.headers.origin;
@@ -220,8 +218,6 @@ server.on('upgrade', async (request, socket, head) => {
     let password = decodeSubprotocol(getCookie(request, 'password') || subprotocols['password'])
     let appname = decodeSubprotocol(getCookie(request, 'appname') || subprotocols['appname'])
     
-    console.log(username)
-
     auth.check({username,password},app.get('mongoClient')).then((res) => {
 
       if (res.result !== 'OK') {
@@ -244,7 +240,7 @@ wss.on('connection', function (ws, msg, req) {
 
   // add user
   dataServ.addUser(username,appname,ws);
-  ws.send(JSON.stringify({cmd:'resetUsername',username:username}));
+  ws.send(JSON.stringify({msg:'resetUsername',username:username}));
 });
 
 // error handlers

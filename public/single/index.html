@@ -16,4 +16,40 @@
   bci.makeConnectOptions(document.getElementById('sidebar'),()=> {});
   
 </script>
+
+<script>
+
+let username = ''
+let httpsDomain = 'localhost:8000'
+let subprotocolsArray = [`username&${username}`,'password&','appname&']
+  // let connection = new WebSocket(httpDomain,subprotocolsArray);
+// // or
+let connection = new WebSocket('wss://' + httpsDomain, subprotocolsArray);
+
+connection.onopen = () => {
+  console.log('connection established!')
+};
+
+// Log errors
+connection.onerror = (error) => {
+  console.log('WebSocket Error: ' + error);
+};
+
+// Log messages from the server
+connection.onmessage = (e) => {
+  let parsed = JSON.parse(e.data)
+  console.log('Server', parsed);
+
+  if (parsed.msg == 'resetUsername'){
+    username = parsed.username
+    connection.send(JSON.stringify({
+        username: username,
+        cmd: 'ping'
+    }))
+    // connection.send(JSON.stringify([username,'ping']))
+    // connection.send(JSON.stringify(`${username} ping`))
+
+  }
+};
+</script>
 </html>

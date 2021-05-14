@@ -1,12 +1,17 @@
 ---
-sidebar_position: 3
+title: Your First Brainstorm
+hide_title: true
 ---
 
-# Your First Brainstorm
+![Your First Brainstorm](../../static/img/03-your-first-brainstorm/header.png)
+
+## Overview
+---
 
 This tutorial will get you started building your first networked application with brainsatplay.js! 
 
 ## Welcome to The Brainstorm
+---
 
 ### Update your Settings
 Before we begin, update your settings file to tag your applet with the `brainstorm` category tag.
@@ -61,6 +66,8 @@ After implementing the above code, you should be able to navigate through the de
 ![Session Selection Screen](../../static/img/03-your-first-brainstorm/choose.png)
 
 ## Listen to the Brainstorm
+---
+
 Instead of checking your **Data Atlas** inside the `animate()` function, you'll now iterate through the data from `this.session.getBrainstorm()`. Let's also chane how we're updating the HTML to support more than one user's data.
 
 ``` javascript
@@ -91,6 +98,8 @@ But, you may be asking yourself, where's the coherence data?!
 
 
 ## Adding a Data Stream
+---
+
 In this cases, you'll want to automatically compute and stream data to the Brainstorm. To do this, add a custom streaming function using `this.session.addStreamFunc()`. 
 
 Specifically, you'll want to pass the function that we used to compute frontal alpha coherence:
@@ -122,6 +131,8 @@ If everything has gone smoothly, you should now see coherence values passed betw
 
 
 ## Adding an App Stream
+---
+
 You can also add an app stream to send data/events (e.g button clicks, player health, etc.) over the Brainstorm. 
 
 To take advantage of this functionality, you'll have to create a Javascript object to hold the data you'd like to pass:
@@ -226,6 +237,7 @@ Press the spacebar to change the text color across different clients!
 ![Applet View 3](../../static/img/03-your-first-brainstorm/view3.png)
 
 ## Conclusion
+---
 
 You should now have an applet that passes (1) frontal alpha coherence and (2) spacebar clicks to all users connected to your app session on the Brainstorm! 
 

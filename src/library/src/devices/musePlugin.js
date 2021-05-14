@@ -35,9 +35,14 @@ export class musePlugin {
             {ch: 0, tag: "TP9", analyze:true},
             {ch: 1, tag: "AF7", analyze:true},
             {ch: 2, tag: "AF8", analyze:true},
-            {ch: 3, tag: "TP10", analyze:true}
-        ]; // {ch: 4, tag: "other", analyze: false}
+            {ch: 3, tag: "TP10", analyze:true},
+        ];
         this.device = new MuseClient();
+
+        if (this.mode == 'muse_aux'){
+            this.device.enableAux = true;
+            info.eegChannelTags.push({ch: 4, tag: "AUX", analyze: true})
+        }
 
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
@@ -121,9 +126,12 @@ export class musePlugin {
         }
 
         this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
-            this.atlas.analyzing = false;
-            this.atlas.settings.deviceConnected = false;
-            this.ondisconnect();
+            console.log('gattserverdisconnected')
+            if (this.atlas.settings.deviceConnected){
+                this.atlas.analyzing = false;
+                this.atlas.settings.deviceConnected = false;
+                this.ondisconnect();
+            }
         });
 
         this.onconnect();

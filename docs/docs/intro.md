@@ -1,8 +1,11 @@
 ---
-sidebar_position: 1
+title: Introduction
+hide_title: true
 ---
 
-# Overview
+![Brains@Play Header](../static/img/header.png)
+
+
 **[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source framework for creating brain-responsive applications using modern web technologies.** With this framework, we have developed [The Brains@Play Platform](https://app.brainsatplay.com) to streamline the deployment of applications built by and for our community.
 
 ## Why Brains@Play?
@@ -11,7 +14,7 @@ sidebar_position: 1
 **Everyone has a brain.** So why not develop applications accessible to all of them? The main benefits of brainsatplay.js include:
 
 ### Device-Agnostic Data Acquisition
-Stream raw data over Bluetooth Low Energy or Serial. We currently support hardware from a variety of popular neurotechnology companies (e.g. [OpenBCI](https://openbci.com/), [Muse](https://choosemuse.com/), [Neosensory](https://neosensory.com/), [FreeEEG](https://www.crowdsupply.com/neuroidss/freeeeg32), [HEGAlpha](https://www.hegalpha.com/)) and have documentation to rapidly [add your device](./advanced-topics/add-device-support) to this list.
+Stream raw data over Bluetooth Low Energy or Serial. We currently support hardware from a variety of popular neurotechnology companies (e.g. [OpenBCI](https://openbci.com/), [Muse](https://choosemuse.com/), [Neosensory](https://neosensory.com/), [FreeEEG](https://www.crowdsupply.com/neuroidss/freeeeg32), [HEGAlpha](https://www.hegalpha.com/)) and have documentation to rapidly [add your device](./advanced-topics/add-your-device) to this list.
 
 ### Plug-and-Play Algorithms
 Derive useful information from brain data in real-time—all locally on your web browser!
