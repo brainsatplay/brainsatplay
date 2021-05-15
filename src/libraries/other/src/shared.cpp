@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "./inc/shared.h"
 #include <iostream>
 
 void f() {

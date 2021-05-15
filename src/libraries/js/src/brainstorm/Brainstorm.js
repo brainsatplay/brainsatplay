@@ -58,25 +58,32 @@ const dataServer = new DataServer(mongoClient);
 // Authenticate User Before Connecting WebSocket
 server.on('upgrade', async (request, socket, head) => {
 
-
     // Get User Credentials from Subprotocol / Cookies
-    let _subprotocols = request.headers['sec-websocket-protocol'].split(', ') || undefined
+    let _subprotocols = request.headers['sec-websocket-protocol'] || undefined
+    if (_subprotocols){
+      _subprotocols = _subprotocols.split(', ')
+    } else {
+      _subprotocols = []
+    }
+
     let subprotocols = {}
     _subprotocols.forEach((str)=>{
       let arr = str.split('&')
       subprotocols[arr[0]] = arr[1]
     })
 
+    if (subprotocols.username == null) subprotocols.username = 'guest'
+    if (subprotocols.password == null) subprotocols.password = ''
+    if (subprotocols.appname == null) subprotocols.appname = ''
+
     let decodeSubprotocol = (info) => {
       return info.replace('%20',' ')
     }
 
-    let username = decodeSubprotocol(getCookie(request, 'username') || subprotocols['username'])
-    let password = decodeSubprotocol(getCookie(request, 'password') || subprotocols['password'])
-    let appname = decodeSubprotocol(getCookie(request, 'appname') || subprotocols['appname'])
+    let username = decodeSubprotocol( subprotocols['username'])
+    let password = decodeSubprotocol(subprotocols['password'])
+    let appname = decodeSubprotocol(subprotocols['appname'])
     
-
-    console.log(username,password)
     // Pass Credentials to Authentication Script
     authenticate({username,password},mongoClient).then((res) => {
 

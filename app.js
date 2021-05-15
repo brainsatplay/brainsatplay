@@ -62,7 +62,7 @@ var credentials = {key, cert};
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // Settings
-const protocol = 'https';
+const protocol = 'http';
 const url = 'localhost'
 var port = normalizePort(process.env.PORT || '8000');
 
@@ -99,6 +99,7 @@ app.use(function(req, res, next) {
   ];
 
   const origin = req.headers.origin;
+
   if (validOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
