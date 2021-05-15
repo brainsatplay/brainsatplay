@@ -65,7 +65,7 @@ export class SensoriumApplet {
         // Audio
         this.effectStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
         this.visuals = [];
-        this.sounds = [];//array of effectStructs
+        this.effects = [];//array of effectStructs
 
         this.looping = false;
         this.hidden = false;
@@ -358,7 +358,7 @@ export class SensoriumApplet {
         };
 
         this.three.renderer.setAnimationLoop( this.render );
-        this.animate()
+        this.animate();
 
         setTimeout(() => {
             this.three.renderer.domElement.style.opacity = '1'
@@ -370,7 +370,7 @@ export class SensoriumApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.sounds.forEach((struct)=>{
+        this.effects.forEach((struct)=>{
             if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
         });
         this.three.renderer.setAnimationLoop( null );
@@ -663,7 +663,8 @@ export class SensoriumApplet {
                 if(option === 'audio') {
                     if(!effectStruct.muted && window.audio){
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
-                        this.modifiers.iAudio = window.audio.analyserNode.getByteFrequencyData(array);
+                        this.modifiers.iAudio = window.audio.analyserNode.getByteFrequencyData(array).slice(0,256);
+                        console.log(window.audio.analyserNode, this.modifiers.iAudio)
                     }
                 }
             });
@@ -689,8 +690,7 @@ export class SensoriumApplet {
         })
     }
 
-    getData(u) {
-        console.log(u)
+    getData(u) {        
         if (u === 'iFFT'){
             let channel;
             if(!ch) {
