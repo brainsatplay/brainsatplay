@@ -301,22 +301,23 @@ export class SensoriumApplet {
                 {
                     iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
                     iTime: {value: 0},
-                    iAudio: new Array(256).fill(1), //Audio analyser FFT, array of 256, values max at 255
-                    iHRV: 1,                        //Heart Rate Variability (values typically 5-30)
-                    iHEG: 0,                        //HEG change from baseline, starts at zero and can go positive or negative
-                    iHR: 1,                         //Heart Rate in BPM
-                    iHB: 1,                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
-                    iFFT: new Array(256).fill(1),   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
-                    iDelta: 1,                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
-                    iTheta: 1,                      //Theta bandpower average.
-                    iAlpha1: 1,                     //Alpha1 " "
-                    iAlpha2: 1,                     //Alpha2 " "
-                    iBeta: 1,                       //Beta " "
-                    iGamma: 1,                      //Low Gamma (30-45Hz) " "
-                    iThetaBeta: 1,                  //Theta/Beta ratio
-                    iAlpha1Alpha2: 1,               //Alpha1/Alpha2 ratio
-                    iAlphaBeta: 1,                  //Alpha/Beta ratio
-                    i40Hz: 1,                       //40Hz bandpower
+                    iAudio: {value: new Array(256).fill(1)}, //Audio analyser FFT, array of 256, values max at 255
+                    iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
+                    iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
+                    iHR: {value:1},                         //Heart Rate in BPM
+                    iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+                    iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+                    iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+                    iTheta: {value:1},                      //Theta bandpower average.
+                    iAlpha1: {value:1},                     //Alpha1 " "
+                    iAlpha2: {value:1},                     //Alpha2 " "
+                    iBeta: {value:1},                       //Beta " "
+                    iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
+                    iThetaBeta: {value:1},                  //Theta/Beta ratio
+                    iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
+                    iAlphaBeta: {value:1},                  //Alpha/Beta ratio
+                    i40Hz: {value:1},                       //40Hz bandpower
+                    iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
                 }
             })
 
@@ -696,6 +697,42 @@ export class SensoriumApplet {
             }
             else if (u === 'iHR' && modifiers.iHR){
                 material.uniforms[u].value = modifiers.iHR;
+            }
+            else if (u === 'iHB' && modifiers.iHB){
+                material.uniforms[u].value = modifiers.iHB;
+            }
+            else if (u === 'iDelta' && modifiers.iDelta){
+                material.uniforms[u].value = modifiers.iDelta;
+            }
+            else if (u === 'iTheta' && modifiers.iTheta){
+                material.uniforms[u].value = modifiers.iTheta;
+            }
+            else if (u === 'iAlpha1' && modifiers.iAlpha1){
+                material.uniforms[u].value = modifiers.iAlpha1;
+            }
+            else if (u === 'iAlpha2' && modifiers.iAlpha2){
+                material.uniforms[u].value = modifiers.iAlpha2;
+            }
+            else if (u === 'iBeta' && modifiers.iBeta){
+                material.uniforms[u].value = modifiers.iBeta;
+            }
+            else if (u === 'iGamma' && modifiers.iGamma){
+                material.uniforms[u].value = modifiers.iGamma;
+            }
+            else if (u === 'i40Hz' && modifiers.i40Hz){
+                material.uniforms[u].value = modifiers.i40Hz;
+            }
+            else if (u === 'iAlpha1Alpha2' && modifiers.iAlpha1Alpha2){
+                material.uniforms[u].value = modifiers.iAlpha1Alpha2;
+            }
+            else if (u === 'iThetaBeta' && modifiers.iThetaBeta){
+                material.uniforms[u].value = modifiers.iThetaBeta;
+            }
+            else if (u === 'iAlphaBeta' && modifiers.iAlphaBeta){
+                material.uniforms[u].value = modifiers.iAlphaBeta;
+            }
+            else if (u === 'iAlpha1Coherence' && modifiers.iAlpha1Coherence){
+                material.uniforms[u].value = modifiers.iAlpha1Coherence;
             }
             // Defaults
             else if (u === 'iTime'){
