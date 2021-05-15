@@ -735,14 +735,11 @@ export class Session {
 		let socket = null;
         let subprotocol = [
 			'username&'+encodeForSubprotocol(auth.username),
-     	   	'password&'+encodeForSubprotocol(auth.password),
-     	   	'appname&'+encodeForSubprotocol(auth.appname)
+			'password&'+encodeForSubprotocol(auth.password)
 		];
-		// if (auth.url.protocol === 'http:') {
 		if (location.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
 		} else if (location.protocol === 'https:') {
-		// if (auth.url.protocol === 'https:') {
             socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
         } else {
             console.log('invalid protocol');
@@ -784,7 +781,7 @@ export class Session {
 				if(typeof newResult === 'object') {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
-							this.sendBrainstormCommand(['subscribeToUser',userToSubscribe,username,userProps]);
+							this.sendBrainstormCommand(['subscribeToUser',username,userProps]);
 							//resulting data will be available in state
 						}
 						onsuccess(newResult);
@@ -802,7 +799,7 @@ export class Session {
 	unsubscribeFromUser(username='',userProps=null, userToUnsubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.sendBrainstormCommand(['unsubscribeFromUser',userToUnsubscribe,username,userProps]);
+			this.sendBrainstormCommand(['unsubscribeFromUser',username,userProps]);
 
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'unsubscribed' && newResult.username === username) {

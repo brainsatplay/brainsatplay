@@ -62,7 +62,7 @@ var credentials = {key, cert};
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // Settings
-const protocol = 'http';
+const protocol = 'https';
 const url = 'localhost'
 var port = normalizePort(process.env.PORT || '8000');
 

@@ -74,15 +74,9 @@ server.on('upgrade', async (request, socket, head) => {
 
     if (subprotocols.username == null) subprotocols.username = 'guest'
     if (subprotocols.password == null) subprotocols.password = ''
-    if (subprotocols.appname == null) subprotocols.appname = ''
 
-    let decodeSubprotocol = (info) => {
-      return info.replace('%20',' ')
-    }
-
-    let username = decodeSubprotocol( subprotocols['username'])
-    let password = decodeSubprotocol(subprotocols['password'])
-    let appname = decodeSubprotocol(subprotocols['appname'])
+    let username = subprotocols['username']
+    let password = subprotocols['password']
     
     // Pass Credentials to Authentication Script
     authenticate({username,password},mongoClient).then((res) => {
@@ -95,7 +89,7 @@ server.on('upgrade', async (request, socket, head) => {
 
       username = res.msg
       wss.handleUpgrade(request, socket, head, function (ws) {
-        wss.emit('connection', ws, {username,appname}, request);
+        wss.emit('connection', ws, {username}, request);
       });
     })
 });
@@ -105,10 +99,9 @@ server.on('upgrade', async (request, socket, head) => {
 wss.on('connection', function (ws, msg, req) {
 
   let username = msg.username;
-  let appname = msg.appname;
 
   // add user
-  dataServer.addUser(username,appname,ws);
+  dataServer.addUser(username,ws);
   ws.send(JSON.stringify({msg:'resetUsername',username:username}));
 });
 

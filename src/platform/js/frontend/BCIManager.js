@@ -363,9 +363,11 @@ export class BCIAppManager {
         //     contentChild3
         // );
 
+        let checkIters = 0;
         const checkIfLoggedIn = () => {
-            if (window.gapi.auth2?.initialized !== true && window.navigator.onLine){
+            if (window.gapi.auth2?.initialized !== true && window.navigator.onLine && checkIters < 3){
                 setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
+                checkIters++
                 return;
             } else {
                     if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()){

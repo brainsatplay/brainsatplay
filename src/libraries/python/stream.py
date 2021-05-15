@@ -17,8 +17,14 @@ import math
 async def main():
 
     brainstorm = Brainstorm('http://localhost','8000')
-    connection = asyncio.create_task(brainstorm.connect())
-    await connection
+    res = await brainstorm.connect('test')
+    print(res)
+
+    res = await brainstorm.sendCommand('ping')
+    print(res)
+
+    res = await brainstorm.subscribeToSession('My First Brainstorm_556284')
+    print(res)
 
     # brain = asyncio.create_task(beginStream(BOARD, PORT, URL, LOGIN_DATA, GAME, ACCESS, CONSENT, DATA_STREAM,arbitraryEventFunction))
     # await brain

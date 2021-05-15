@@ -27,14 +27,14 @@ class DataServer {
         this.subscriptionLoop();
 	}
 
-	addUser(username='',appname='',socket=null,availableProps=[]) {
+	addUser(username='',socket=null,availableProps=[]) {
 
         socket = this.setWSBehavior(username, socket)
         
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
-                appname:appname,
+                appname:'',
                 socket:socket,
                 props: {},
                 updatedPropnames: [],
@@ -49,7 +49,6 @@ class DataServer {
         else { 
             let u = this.userData.get(username);
             u.lastUpdate = Date.now();
-            u.appname = appname;
             if(socket.url !== u.socket.url) { //handle same user on new port
                 u.socket.close();
                 u.socket = socket;
@@ -279,8 +278,8 @@ class DataServer {
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
-            if(commands[3]) this.streamBetweenUsers(commands[1],commands[2],commands[3]);
-            else this.streamBetweenUsers(commands[1],commands[2]);
+            if(commands[3]) this.streamBetweenUsers(username,commands[1],commands[2]);
+            else this.streamBetweenUsers(username,commands[1]);
         }
         else if(commands[0] === 'subscribeToSession') { //Join session
             this.subscribeUserToSession(commands[1],commands[2],commands[3]);
@@ -290,9 +289,9 @@ class DataServer {
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
-            if(commands[2]) found = this.removeUserToUserStream(commands[1],commands[2],commands[3]);
-            else found = this.removeUserToUserStream(commands[1],commands[2]);
-            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[2],props:commands[3]}));}
+            if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
+            else found = this.removeUserToUserStream(username,commands[1]);
+            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
             else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if (commands[0] === 'logout') {
