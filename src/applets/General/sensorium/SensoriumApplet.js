@@ -52,21 +52,43 @@ export class SensoriumApplet {
         this.three = {}
         this.currentShader = null;
 
-        this.three.planes = []
+        this.three.planes = [];
+
+        this.defaultUniforms = { //List of available uniforms for the shaders apply to visual fx accordingly
+            iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
+            iTime: {value: 0},
+            iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
+            iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
+            iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
+            iHR: {value:1},                         //Heart Rate in BPM
+            iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+            iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+            iTheta: {value:1},                      //Theta bandpower average.
+            iAlpha1: {value:1},                     //Alpha1 " "
+            iAlpha2: {value:1},                     //Alpha2 " "
+            iBeta: {value:1},                       //Beta " "
+            iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
+            iThetaBeta: {value:1},                  //Theta/Beta ratio
+            iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
+            iAlphaBeta: {value:1},                  //Alpha/Beta ratio
+            i40Hz: {value:1},                       //40Hz bandpower
+            iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+        };
 
         this.shaders = {
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHR'],
+                uniforms: ['iHRV','iHEG','iHR','iHB'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHR'],
+                uniforms: ['iHRV','iHEG','iHR','iHB'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
@@ -297,29 +319,8 @@ export class SensoriumApplet {
                 side: THREE.DoubleSide,
                 vertexShader: this.shaders[k].vertexShader,
                 fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: // Default Uniforms
-                {
-                    iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
-                    iTime: {value: 0},
-                    iAudio: {value: new Array(256).fill(1)}, //Audio analyser FFT, array of 256, values max at 255
-                    iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
-                    iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
-                    iHR: {value:1},                         //Heart Rate in BPM
-                    iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
-                    iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
-                    iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
-                    iTheta: {value:1},                      //Theta bandpower average.
-                    iAlpha1: {value:1},                     //Alpha1 " "
-                    iAlpha2: {value:1},                     //Alpha2 " "
-                    iBeta: {value:1},                       //Beta " "
-                    iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
-                    iThetaBeta: {value:1},                  //Theta/Beta ratio
-                    iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
-                    iAlphaBeta: {value:1},                  //Alpha/Beta ratio
-                    i40Hz: {value:1},                       //40Hz bandpower
-                    iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
-                }
-            })
+                uniforms: this.defaultUniforms// Default Uniforms 
+            });
 
             let radius = 0;//10
             let plane = new THREE.Mesh(planeGeometry, this.material)
