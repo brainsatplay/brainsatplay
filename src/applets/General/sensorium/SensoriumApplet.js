@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
+import negaGalaxyFragmentShader from "./shaders/nega_fractalGalaxy/fragment.glsl"
 import wavesFragmentShader from './shaders/waves/fragment.glsl'
 import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
 import creationFragmentShader from './shaders/creation/fragment.glsl'
@@ -54,6 +55,13 @@ export class SensoriumApplet {
         this.three.planes = []
 
         this.shaders = {
+            negagalaxy: {
+                name: 'Nega Galaxy',
+                vertexShader: vertexShader,
+                fragmentShader: negaGalaxyFragmentShader,
+                uniforms: [],
+                credit: 'JoshP (Shadertoy) * JoshB'
+            },
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
