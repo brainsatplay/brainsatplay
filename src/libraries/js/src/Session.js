@@ -8,7 +8,7 @@ Data Streams
   -- BLE
   -- Sockets/SSEs
 - Server
-  -- Hardware and Game state data via Websockets
+  -- Hardware and Session state data via Websockets
 
 Data Processing 
 - eegworker.js, eegmath, bcijs, etc.
@@ -31,7 +31,7 @@ Local Storage
 Frontend Execution
 - UI State
 - Server State
-- Game/App State(s)
+- Session/App State(s)
 
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
@@ -305,7 +305,7 @@ export class Session {
 				else if (o === 'hegduinousb') {
 					this.connect('hegduinousb',[],onconnect,ondisconnect);
 				}
-				else if (o === 'hegduinobt') {
+				else if (o === 'hegduinobt') { 
 					this.connect('hegduinobt',[],onconnect,ondisconnect);
 				}
 				else if (o === 'hegduinowifi') {
@@ -663,7 +663,7 @@ export class Session {
 				this.state.data[parsed.username+"_userData"][prop] = parsed.userData[prop]; 
 			}
 		}
-		else if (parsed.msg === 'gameData') {
+		else if (parsed.msg === 'sessionData') {
 			parsed.userData.forEach((o,i) => {
 				let user = o.username
 				for(const prop in o) {
@@ -684,18 +684,18 @@ export class Session {
 		else if (parsed.msg === 'getUsersResult') {		
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'getGameDataResult') {
+		else if (parsed.msg === 'getSessionDataResult') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'getGameInfoResult') {
+		else if (parsed.msg === 'getSessionInfoResult') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'getGamesResult') {
+		else if (parsed.msg === 'getSessionsResult') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'gameCreated') {
+		else if (parsed.msg === 'sessionCreated') {
 			this.state.data.commandResult = parsed;
-			this.info.auth.appname = parsed.gameInfo.id;
+			this.info.auth.appname = parsed.sessionInfo.id;
 		}
 		else if (parsed.msg === 'subscribedToUser') {
 			this.state.data.commandResult = parsed;
@@ -703,19 +703,19 @@ export class Session {
 		else if (parsed.msg === 'userNotFound') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'subscribedToGame') {
+		else if (parsed.msg === 'subscribedToSession') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'leftGame') {
+		else if (parsed.msg === 'leftSession') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'gameDeleted') {
+		else if (parsed.msg === 'sessionDeleted') {
 			this.state.data.commandResult = parsed;
 		}
 		else if (parsed.msg === 'unsubscribed') {
 			this.state.data.commandResult = parsed;
 		}
-		else if (parsed.msg === 'gameNotFound') {
+		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound' ) {
 			this.state.data.commandResult = parsed;
 		}else if (parsed.msg === 'resetUsername') {
 			this.info.auth.username = parsed.username;
@@ -773,7 +773,7 @@ export class Session {
 	subscribeToUser(username='',userProps=[],userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getUserData',username]}));
+			this.sendBrainstormCommand(['getUserData',username]);
 			userProps.forEach((prop) => {
 				let p = prop;
 				if(Array.isArray(p)) p = prop.join("_"); //if props are given like ['eegch','FP1']
@@ -784,9 +784,8 @@ export class Session {
 				if(typeof newResult === 'object') {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
-							this.socket.send(JSON.stringify(
-								{username:this.info.auth.username,cmd:['subscribeToUser',userToSubscribe,username,userProps]}
-							)); //resulting data will be available in state
+							this.sendBrainstormCommand(['subscribeToUser',userToSubscribe,username,userProps]);
+							//resulting data will be available in state
 						}
 						onsuccess(newResult);
 						this.state.unsubscribe('commandResult',sub);
@@ -803,7 +802,8 @@ export class Session {
 	unsubscribeFromUser(username='',userProps=null, userToUnsubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({cmd:['unsubscribeFromUser',userToUnsubscribe,username,userProps],username:this.info.auth.username}))
+			this.sendBrainstormCommand(['unsubscribeFromUser',userToUnsubscribe,username,userProps]);
+
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(newResult.msg === 'unsubscribed' && newResult.username === username) {
 					for(const prop in this.state.data) {
@@ -819,22 +819,22 @@ export class Session {
 		}
 	}
 
-	getGames(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
+	getSessions(appname=this.info.auth.appname, onsuccess=(newResult)=>{}) {
 		if(this.socket !== null && this.socket.readyState === 1) {
-			console.log('socket ready; message sent')
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGames',appname]}));
-			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			this.sendBrainstormCommand(['getSessions',appname]);
+			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
-					if(newResult.msg === 'getGamesResult' && newResult.appname === appname) {						
-						onsuccess(newResult); //list games, then subscrie to game by id
+					if(newResult.msg === 'getSessionsResult' && newResult.appname === appname) {						
+						onsuccess(newResult); //list sessions, then subscrie to session by id
 						this.state.unsubscribe('commandResult',sub);
-						return newResult.gameInfo
+						console.log(newResult)
+						return newResult.appInfo
 					}
 				}
-				else if (newResult.msg === 'gameNotFound' & newResult.appname === appname) {
+				else if (newResult.msg === 'appNotFound' & newResult.appname === appname) {
 					this.state.unsubscribe('commandResult',sub);
-					console.log("Game not found: ", appname);
+					console.log("App not found: ", appname);
 					return []
 				}
 			});
@@ -842,31 +842,31 @@ export class Session {
 	}
 
 	//connect using the unique id of the subscription
-	subscribeToGame(gameid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {		
+	subscribeToSession(sessionid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {		
 		console.log(this.info.auth.username)
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['getGameInfo',gameid]}));
-			//wait for response, check result, if game is found and correct props are available, then add the stream props locally necessary for game
+			this.sendBrainstormCommand(['getSessionInfo',sessionid]);
+			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
 			let sub = this.state.subscribe('commandResult',(newResult) => {
 				if(typeof newResult === 'object') {
-					if(newResult.msg === 'getGameInfoResult' && newResult.gameInfo.id === gameid) {
+					if(newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
 						if(spectating === false) {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
-							newResult.gameInfo.propnames.forEach((prop) => {
+							newResult.sessionInfo.propnames.forEach((prop) => {
 								// console.log(prop);
 								streamParams.push(prop.split("_"));
 							});
-							configured = this.configureStreamForGame(newResult.gameInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
+							configured = this.configureStreamForSession(newResult.sessionInfo.devices,streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 						}
 
 						if(configured === true) {
-							this.socket.send(JSON.stringify({username:this.info.auth.username,cmd:['subscribeToGame',userToSubscribe,gameid,spectating]}));
+							this.sendBrainstormCommand(['subscribeToSession',userToSubscribe,sessionid,spectating]);
 							let userData = {}
-							newResult.gameInfo.usernames.forEach((user) => {
-								newResult.gameInfo.propnames.forEach((prop) => {
-									this.state.data[gameid+"_"+user+"_"+prop] = null;
+							newResult.sessionInfo.usernames.forEach((user) => {
+								newResult.sessionInfo.propnames.forEach((prop) => {
+									this.state.data[sessionid+"_"+user+"_"+prop] = null;
 								});
 							});
 
@@ -874,23 +874,23 @@ export class Session {
 						}
 						this.state.unsubscribe('commandResult',sub);
 					}
-					else if (newResult.msg === 'gameNotFound' & newResult.appname === gameid) {
+					else if (newResult.msg === 'sessionNotFound' & newResult.id === sessionid) {
 						this.state.unsubscribe('commandResult',sub);
-						console.log("Game not found: ", gameid);
+						console.log("Session not found: ", sessionid);
 					}
 				}
 			});
 		}
 	}
 
-	unsubscribeFromGame(gameId='',onsuccess=(newResult)=>{}) {
+	unsubscribeFromSession(sessionid='',onsuccess=(newResult)=>{}) {
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send(JSON.stringify({cmd:['leaveGame',gameId],username:this.info.auth.username}))
+			this.sendBrainstormCommand(['leaveSession',sessionid]);
 			let sub = this.state.subscribe('commandResult',(newResult) => {
-				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
+				if(newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for(const prop in this.state.data) {
-						if(prop.indexOf(gameId) > -1) {
+						if(prop.indexOf(sessionid) > -1) {
 							this.state.unsubscribeAll(prop);
 							delete this.state.data[prop]
 						}
@@ -906,7 +906,7 @@ export class Session {
 	insertMultiplayerIntro = (applet) => {
 
 			document.getElementById(`${applet.props.id}`).innerHTML += `
-			<div id='${applet.props.id}gameHero' class="brainsatplay-multiplayerintro-container" style="z-index: 5"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-multiplayerintro-container" style="z-index: 5"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle}</p>
 			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
@@ -932,31 +932,31 @@ export class Session {
 				</div>
 			</div></div>
 
-			<div id='${applet.props.id}gameSelection' class="brainsatplay-multiplayerintro-container" style="z-index: 3"><div>
+			<div id='${applet.props.id}sessionSelection' class="brainsatplay-multiplayerintro-container" style="z-index: 3"><div>
 				<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
 				display: flex;
 				align-items: center;
 				column-gap: 15px;
 				grid-template-columns: repeat(2,1fr)">
-					<h2>Choose a Game</h2>
+					<h2>Choose a Session</h2>
 					<div>
-						<button id='${applet.props.id}createGame' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make Game Session</button>
+						<button id='${applet.props.id}createSession' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
 					</div>
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitGame' class="brainsatplay-multiplayerintro-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Game</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-multiplayerintro-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
 			`
 			
             // Setup HTML References
             let loginScreen = document.getElementById(`${applet.props.id}login-screen`)
-            let gameSelection = document.getElementById(`${applet.props.id}gameSelection`)
-            let exitGame = document.getElementById(`${applet.props.id}exitGame`)
-			const hero = document.getElementById(`${applet.props.id}gameHero`)
+            let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
+            let exitSession = document.getElementById(`${applet.props.id}exitSession`)
+			const hero = document.getElementById(`${applet.props.id}appHero`)
 			const loadingBarElement = document.querySelector('.brainsatplay-multiplayerintro-loadingbar')
 
-            // Create Game Brower
+            // Create Session Brower
             let baseBrowserId = `${applet.props.id}${applet.info.name}`
             document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-multiplayerintro-button">Search</button>`
             document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`;
@@ -970,59 +970,58 @@ export class Session {
             }
 
             let onjoined = () => {
-                console.log('Joined game!', applet.info.name); 
-                gameSelection.style.opacity = 0;
-                gameSelection.style.pointerEvents = 'none'
+                console.log('Joined session!', applet.info.name); 
+                sessionSelection.style.opacity = 0;
+                sessionSelection.style.pointerEvents = 'none'
             }
             let onleave = () => {
-				console.log('Left game!', applet.info.name)
-				gameSearch.click()
-                gameSelection.style.opacity = 1;
-				gameSelection.style.pointerEvents = 'auto'
+				console.log('Left session!', applet.info.name)
+				sessionSearch.click()
+                sessionSelection.style.opacity = 1;
+				sessionSelection.style.pointerEvents = 'auto'
             }
 
-            let gameSearch = document.getElementById(`${baseBrowserId}search`)
+            let sessionSearch = document.getElementById(`${baseBrowserId}search`)
 
-            gameSearch.onclick = () => {
+            sessionSearch.onclick = () => {
 
-                this.getGames(applet.info.name, (result) => {
+                this.getSessions(applet.info.name, (result) => {
 
                     let gridhtml = '';
-					
-                    result.gameInfo.forEach((g,i) => {
-                        if (g.usernames.length < 10){ // Limit connections to the same game server
+                    result.appInfo.forEach((g,i) => {
+                        if (g.usernames.length < 10){ // Limit connections to the same session server
                             gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-multiplayerintro-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
                         } else {
-                            result.gameInfo.splice(i,1)
+                            result.appInfo.splice(i,1)
                         }
                     });
     
                     document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
     
-                    result.gameInfo.forEach((g) => { 
+                    result.appInfo.forEach((g) => { 
                         let connectButton = document.getElementById(`${g.id}connect`)
                         connectButton.onclick = () => {
 							let spectate = true
 							
 							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
 							else console.log('spectating')
-                            this.subscribeToGame(g.id,spectate,undefined,(subresult) => {
+                            this.subscribeToSession(g.id,spectate,undefined,(subresult) => {
                                 onjoined(g);
 
 								
 								let leaveOnRefresh = () => {
-									exitGame.click()
+									exitSession.click()
 								}					
 								
-								let leaveGame = () => {
-									this.unsubscribeFromGame(g.id,()=>{
+								let leaveSession = () => {
+									this.unsubscribeFromSession(g.id,()=>{
                                         onleave(g);
-										exitGame.removeEventListener('click', leaveGame)
+										exitSession.removeEventListener('click', leaveSession)
 										window.removeEventListener('beforeunload',leaveOnRefresh)
                                     });
 								}
 
-                                exitGame.onclick = leaveGame
+                                exitSession.onclick = leaveSession
 
 								window.onbeforeunload = leaveOnRefresh;
                             });
@@ -1060,13 +1059,12 @@ export class Session {
 
                 let onsocketopen = () => {
                     if (this.socket.readyState === 1){
-                        gameSearch.click()
-                        waitForReturnedMsg(['getGamesResult','gameNotFound'], (msg) => {
-                            console.log(msg)
-                            if (msg === 'gameNotFound'){
-                                createGame.click()
-                                waitForReturnedMsg('gameCreated', () => {
-                                    gameSearch.click()
+                        sessionSearch.click()
+                        waitForReturnedMsg(['getSessionsResult','appNotFound'], (msg) => {
+                            if (msg === 'appNotFound'){
+                                createSession.click()
+                                waitForReturnedMsg('sessionCreated', () => {
+                                    sessionSearch.click()
                                     loginScreen.style.opacity = 0;
                                     loginScreen.style.pointerEvents = 'none'
                                 })
@@ -1095,20 +1093,20 @@ export class Session {
 			}
 
 			
-            exitGame.onclick = () => {
-                gameSelection.style.opacity = 1;
-                gameSelection.style.pointerEvents = 'auto'
+            exitSession.onclick = () => {
+                sessionSelection.style.opacity = 1;
+                sessionSelection.style.pointerEvents = 'auto'
             }
 
-            let createGame = document.getElementById(`${applet.props.id}createGame`)
+            let createSession = document.getElementById(`${applet.props.id}createSession`)
 
-            createGame.onclick = () => {
-                this.sendWSCommand(['createGame',applet.info.name,applet.info.devices,applet.streams]);
+            createSession.onclick = () => {
+                this.sendBrainstormCommand(['createSession',applet.info.name,applet.info.devices,applet.streams]);
 
-                waitForReturnedMsg(['gameCreated'],() => {gameSearch.click()})
+                waitForReturnedMsg(['sessionCreated'],() => {sessionSearch.click()})
             }
-            // createGame.style.display = 'none'
-			gameSearch.style.display = 'none'
+            // createSession.style.display = 'none'
+			sessionSearch.style.display = 'none'
 
 			let loaded = 0
 			const loadInc = 5
@@ -1122,7 +1120,7 @@ export class Session {
 					loadingBarElement.classList.add('ended')
 					loadingBarElement.style.transform = ''
 				}
-				const hero = document.getElementById(`${applet.props.id}gameHero`)
+				const hero = document.getElementById(`${applet.props.id}appHero`)
 				if (hero){
 					hero.style.opacity = 0;
 					hero.style.pointerEvents = 'none'
@@ -1158,15 +1156,15 @@ export class Session {
 		return arr
 	}
 
-	kickPlayerFromGame = (gameId, userToKick, onsuccess=(newResult)=>{}) => {
+	kickPlayerFromSession = (sessionid, userToKick, onsuccess=(newResult)=>{}) => {
 		if(this.socket !== null && this.socket.readyState === 1) {
-			this.socket.send({cmd:['leaveGame',gameId,userToKick],username:this.info.auth.username});
+			this.sendBrainstormCommand(['leaveSession',sessionid,userToKick]);
 			let sub = this.state.subscribe('commandResult',(newResult) => {
-				if(newResult.msg === 'leftGame' && newResult.appname === gameId) {
+				if(newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for(const prop in this.state.data) {
 						if(prop.indexOf(userToKick) > -1) {
 							this.state.unsubscribeAll(prop);
-							this.state.data[prop] = undefined;
+							delete this.state.data[prop]
 						}
 					}
 					onsuccess(newResult);
@@ -1176,7 +1174,7 @@ export class Session {
 		}
 	}
 
-	configureStreamForGame(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the game wants
+	configureStreamForSession(deviceTypes=[],streamParams=[]) { //Set local device stream parameters based on what the session wants
 		let params = streamParams;
 		let d = undefined;
 		if(this.devices.length === 0 ) { //no devices, add params anyway
@@ -1236,14 +1234,43 @@ export class Session {
 		}
 	}
 
-	sendWSCommand(command='',dict={}){
-		if(this.socket != null  && this.socket.readyState === 1){
-				let o = {cmd:command,username:this.info.auth.username};
-				Object.assign(o,dict);
-				let json = JSON.stringify(o);
+	async sendBrainstormCommand(command='',dict={}){
+
+		// Create Message
+		let o = {cmd:command,username:this.info.auth.username};
+		Object.assign(o,dict);
+		let json = JSON.stringify(o);
+		
+		if (this.socket.readyState !== this.socket.OPEN) {
+			// Try to Send Message
+			try {
+				await waitForOpenConnection(this.socket)
+				this.socket.send(json)
 				console.log('Message sent: ', json);
-				this.socket.send(json);
-		}
+			} catch (err) { console.error(err) }
+			} else {
+				this.socket.send(json)
+				console.log('Message sent: ', json);
+			}
+	}
+
+	waitForOpenConnection = (socket) => {
+		return new Promise((resolve, reject) => {
+			const maxNumberOfAttempts = 10
+			const intervalTime = 200 //ms
+	
+			let currentAttempt = 0
+			const interval = setInterval(() => {
+				if (currentAttempt > maxNumberOfAttempts - 1) {
+					clearInterval(interval)
+					reject(new Error('Maximum number of attempts exceeded'))
+				} else if (socket.readyState === socket.OPEN) {
+					clearInterval(interval)
+					resolve()
+				}
+				currentAttempt++
+			}, intervalTime)
+		})
 	}
 
 	closeSocket() {
@@ -1582,7 +1609,7 @@ class streamSession {
 		params.forEach((param,i) => {
 			propsToSend.push(param.join('_'));
 		});
-		this.socket.send(JSON.stringify({cmd:['addProps',propsToSend],username:this.info.auth.username}));
+		this.sendBrainstormCommand(['addProps',propsToSend]);
 	}
 
 	//pass array of arrays defining which datasets you want to pull from according to the available
@@ -1636,7 +1663,6 @@ class streamSession {
 			Object.assign(streamObj.userData,this.getDataForSocket(undefined,this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 			if(Object.keys(streamObj.userData).length > 0) {
-				console.log(streamObj)
 			 	this.socket.send(JSON.stringify(streamObj));
 			}
 			this.info.streamCt++;

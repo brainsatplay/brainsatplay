@@ -21,8 +21,8 @@ import {
 
 import {AppletManager} from './AppletManager'
 import {CSV} from '../general/csv'
-import { StateManager } from '../../../library/src/ui/StateManager';
-import { DOMFragment } from '../../../library/src/ui/DOMFragment';
+import { StateManager } from '../../../libraries/js/src/ui/StateManager';
+import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from './utils/TutorialManager';
 
 // Imagess

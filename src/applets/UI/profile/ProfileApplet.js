@@ -1,7 +1,7 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
-import {deviceList} from '../../../library/src/devices/deviceList'
+import {deviceList} from '../../../libraries/js/src/devices/deviceList'
 
 export class ProfileApplet {
     constructor(

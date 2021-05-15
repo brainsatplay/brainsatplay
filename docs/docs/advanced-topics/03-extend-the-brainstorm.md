@@ -164,66 +164,66 @@ let msg = {
 Returns `unsubscribed`
 
 ### App Subscriptions
-### getGames
+### getSessions
 Request details about all active sessions of an app on the Brainstorm.
 
 ``` javascript
 let msg = {
     username: username,
-    cmd: ['getGames',appname]
+    cmd: ['getSessions',appname]
 }
 ```
 
-returns `getGamesResult` or `gameNotFound`
+returns `getSessionsResult` or `appNotFound`
 
-### createGame
+### createSession
 This creates a new session of an app with specific device and data requirements.
 
 ``` javascript
 let msg = {
     username: username,
-    cmd: ['createGame',appname,devices,streams]
+    cmd: ['createSession',appname,devices,streams]
 }
 ```
 
-returns `gameCreated`
+returns `sessionCreated`
 
-### getGameInfo
+### getSessionInfo
 Request details about a particular session of an app on the Brainstorm. This is used to check whether the user has the correct streaming parameters and devices for the session.
 
 ``` javascript
 let msg = {
     username: username,
-    cmd: ['getGameInfo',sessionid]
+    cmd: ['getSessionInfo',sessionid]
 }
 ```
 
-returns `getGameInfoResult` or `gameNotFound`
+returns `getSessionInfoResult` or `sessionNotFound`
 
-### subscribeToGame
+### subscribeToSession
 This tells the Brainstorm to begin streaming live data from this session to your client.
 
 ``` javascript
 let msg = {
     username: username,
-    cmd: ['subscribeToGame',username,sessionid,spectating]
+    cmd: ['subscribeToSession',username,sessionid,spectating]
 }
 ```
 
-### leaveGame
+### leaveSession
 This tells the Brainstorm to stop streaming live data from this session to your client.
 
 ``` javascript
 let msg = {
     username: username,
-    cmd: ['leaveGane',sessionid]
+    cmd: ['leaveSession',sessionid]
 }
 ```
 
-returns `leftGame`
+returns `leftSession`
 
 ### addProps
-This defines expected data parameters from the user for server-side reference. Overrides properties specified via the `createGame`command.
+This defines expected data parameters from the user for server-side reference. Overrides properties specified via the `createSession`command.
 
 ``` javascript
 let msg = {
@@ -235,7 +235,7 @@ let msg = {
 ## Streaming Data
 ---
 
-Once subscribed to an app session (i.e.`subscribeToGame`) with `spectating = false`, it's as easy as sending a message containing a `userData` field to the Brainstorm. Since this is a real-time stream, this should be contained in some sort of loop:
+Once subscribed to an app session (i.e.`subscribeToSession`) with `spectating = false`, it's as easy as sending a message containing a `userData` field to the Brainstorm. Since this is a real-time stream, this should be contained in some sort of loop:
 
 ``` javascript
 
@@ -269,7 +269,7 @@ let parsed = JSON.parse(e.data)
             console.log('prop', parsed.userData[prop])
         }
     }
-    else if (parsed.msg === 'gameData') {
+    else if (parsed.msg === 'sessionData') {
         parsed.userData.forEach((o,i) => {
             let user = o.username                
             console.log(`Data for ${user}`)

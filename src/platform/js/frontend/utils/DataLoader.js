@@ -1,6 +1,6 @@
 //Load and save CSV data
-import {DataAtlas} from '../../../../library/src/DataAtlas'
-import { StateManager } from '../../../../library/src/ui/StateManager';
+import {DataAtlas} from '../../../../libraries/js/src/DataAtlas'
+import { StateManager } from '../../../../libraries/js/src/ui/StateManager';
 import {CSV} from '../../general/csv'
 
 export class DataLoader {

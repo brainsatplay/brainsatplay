@@ -1,6 +1,6 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
-import {SSVEP} from '../../../library/src/algorithms/ssvep/SSVEP'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
+import {SSVEP} from '../../../libraries/js/src/algorithms/ssvep/SSVEP'
 
 import * as settingsFile from './settings'
 

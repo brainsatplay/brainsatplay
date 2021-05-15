@@ -14,15 +14,15 @@ class DataServer {
      * @description Class for managing incoming requests to the WebBCI server.
      */
 
-    constructor(appnames=[]) {
+    constructor(mongoClient) {
 		this.userData=new Map();
-		this.serverInstances=appnames;
+		// this.serverInstances=appnames;
 		this.userSubscriptions=[]; //User to user data subscriptions
-		this.gameSubscriptions=[]; //Synchronous games (all players receive each other's data)
-        this.hostSubscriptions=[]; //Asynchronous games (host receives all users data data, users receive host data only)
+		this.appSubscriptions=[]; //Synchronous apps (all players receive each other's data)
+        this.hostSubscriptions=[]; //Asynchronous apps (host receives all users data, users receive host data only)
         this.subUpdateInterval = 0; //ms
         this.serverTimeout = 60*60*1000; //min*s*ms
-        this.mongodb;
+        this.mongoClient = mongoClient;
 
         this.subscriptionLoop();
 	}
@@ -101,9 +101,9 @@ class DataServer {
         return found;
     }
 
-    removeUserFromGame(id='',username='') {
+    removeUserFromSession(id='',username='') {
         let found = false;
-        let game = this.gameSubscriptions.find((o,i) => {
+        let app = this.appeSubscriptions.find((o,i) => {
             if(o.id === id) {
                 let uidx = o.usernames.indexOf(username);
                 if(uidx > -1) o.usernames.splice(uidx,1);
@@ -115,7 +115,7 @@ class DataServer {
         });
 
         if(!found) {
-            game = this.hostSubscriptions.find((o,i) => {
+            app = this.hostSubscriptions.find((o,i) => {
                 if(o.id === id) {
                     let uidx = o.usernames.indexOf(username);
                     if(uidx > -1) o.usernames.splice(uidx,1);
@@ -128,21 +128,21 @@ class DataServer {
         }
 
         if (found) {
-            let gameData =this.getGameData(id)
-            gameData.userLeft = username
-            game.usernames.forEach(u => {
-                this.userData.get(u).socket.send(JSON.stringify(gameData));
+            let sessionData =this.getSessionData(id)
+            sessionData.userLeft = username
+            app.usernames.forEach(u => {
+                this.userData.get(u).socket.send(JSON.stringify(sessionData));
             })
         }
 
         return found;
     }
 
-    removeGameStream(appname='') {
+    removeSessionStream(appname='') {
         let found = false;
-        let sub = this.gameSubscriptions.find((o,i) => {
+        let sub = this.appSubscriptions.find((o,i) => {
             if(o.appname === appname) {
-                this.gameSubscriptions.splice(i,1);
+                this.appSubscriptions.splice(i,1);
                 found = true;
                 return true;
             }
@@ -216,77 +216,77 @@ class DataServer {
                 }
             }
         }
-        else if (commands[0] === 'createGame') {
-            let i = this.createGameSubscription(commands[1],commands[2],commands[3]);
-            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.gameSubscriptions[i]}));
+        else if (commands[0] === 'createSession') {
+            let i = this.createAppSubscription(commands[1],commands[2],commands[3]);
+            u.socket.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.appSubscriptions[i]}));
         }
-        else if (commands[0] === 'getGames') { //List games with the app name
-            let subs = this.getGameSubscriptions(commands[1]);
+        else if (commands[0] === 'getSessions') { //List sessions with the app name
+            let subs = this.getAppSubscriptions(commands[1]);
             if(subs === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGamesResult',appname:commands[1],gameInfo:subs}));
+                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],appInfo:subs}));
             }
         }
-        else if (commands[0] === 'getGameInfo') { //List the game info for the particular ID
-            let sub = this.getGameSubscription(commands[1]);
+        else if (commands[0] === 'getSessionInfo') { //List the app info for the particular ID
+            let sub = this.getAppSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',appname:commands[1],sessionInfo:sub}));
             }
         }
-        else if (commands[0] === 'getGameData') {
-            let gameData = this.getGameData(commands[1]);
-            if(gameData === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+        else if (commands[0] === 'getSessionData') {
+            let sessionData = this.getSessionData(commands[1]);
+            if(sessionData === undefined) {
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
+                u.socket.send(JSON.stringify({msg:'getSessionDataResult',appname:commands[1],sessionData:sessionData}));
             }
         }
-        else if (commands[0] === 'createHostedGame') {
+        else if (commands[0] === 'createHostedSession') {
             let i = this.createHostSubscription(commands[1],commands[2],commands[3],commands[4],commands[5]);
-            u.socket.send(JSON.stringify({msg:'gameCreated',appname:commands[1],gameInfo:this.hostSubscriptions[i]}));
+            u.socket.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.hostSubscriptions[i]}));
         }
-        else if (commands[0] === 'getHostGames') { //List games with the app name
+        else if (commands[0] === 'getHostSessions') { //List sessions with the app name
             let subs = this.getHostSubscriptions(commands[1]);
             if(subs === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGamesResult',appname:commands[1],gameInfo:subs}));
+                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],appInfo:subs}));
             }
         }
-        else if (commands[0] === 'getHostGameInfo') { //List the game info for the particular ID
+        else if (commands[0] === 'getHostSessionInfo') { //List the app info for the particular session ID
             let sub = this.getHostSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameInfoResult',appname:commands[1],gameInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',appname:commands[1],sessionInfo:sub}));
             }
         }
-        else if (commands[0] === 'getHostGameData') {
-            let gameData = this.getHostGameData(commands[1]);
-            if(gameData === undefined) {
-                u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));
+        else if (commands[0] === 'getHostSessionData') {
+            let sessionData = this.getHostSessionData(commands[1]);
+            if(sessionData === undefined) {
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getGameDataResult',appname:commands[1],gameData:gameData}));
+                u.socket.send(JSON.stringify({msg:'getSessionDataResult',appname:commands[1],sessionData:sessionData}));
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
             if(commands[3]) this.streamBetweenUsers(commands[1],commands[2],commands[3]);
             else this.streamBetweenUsers(commands[1],commands[2]);
         }
-        else if(commands[0] === 'subscribeToGame') { //Join game
-            this.subscribeUserToGame(commands[1],commands[2],commands[3]);
+        else if(commands[0] === 'subscribeToSession') { //Join session
+            this.subscribeUserToSession(commands[1],commands[2],commands[3]);
         }
-        else if(commands[0] === 'subscribeToHostGame') { //Join game
-            this.subscribeUserToHostGame(commands[1],commands[2],commands[3],commands[4]);
+        else if(commands[0] === 'subscribeToHostSession') { //Join session
+            this.subscribeUserToHostSession(commands[1],commands[2],commands[3],commands[4]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
@@ -300,17 +300,17 @@ class DataServer {
             u.socket.close();
             this.userData.delete(username);
         }
-        else if(commands[0] === 'leaveGame') {
+        else if(commands[0] === 'leaveSession') {
             let found = undefined;
-            if(commands[2]) found = this.removeUserFromGame(commands[1],commands[2]);
-            else found = this.removeUserFromGame(commands[1],u.username);
-            if(found) {  u.socket.send(JSON.stringify({msg:'leftGame',appname:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'gameNotFound',appname:commands[1]}));}
+            if(commands[2]) found = this.removeUserFromSession(commands[1],commands[2]);
+            else found = this.removeUserFromSession(commands[1],u.username);
+            if(found) {  u.socket.send(JSON.stringify({msg:'leftSession',appname:commands[1]}));}
+            else { u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));}
         }
-        else if(commands[0] === 'deleteGame') {
-            let found = this.removeGameStream(commands[1]);
-            if(found) { u.socket.send(JSON.stringify({msg:'gameDeleted',appname:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'gameNotFound'}));}
+        else if(commands[0] === 'deleteSession') {
+            let found = this.removeAppStream(commands[1]);
+            if(found) { u.socket.send(JSON.stringify({msg:'sessionDeleted',appname:commands[1]}));}
+            else { u.socket.send(JSON.stringify({msg:'sessionNotFound'}));}
         }
         else if( commands[0] === 'ping' || commands === 'ping') {
             u.socket.send(JSON.stringify({msg:'pong'}))
@@ -341,7 +341,7 @@ class DataServer {
                 }
             });
 
-            this.gameSubscriptions.forEach((o,i) => {
+            this.appSubscriptions.forEach((o,i) => {
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
                 }
@@ -397,10 +397,10 @@ class DataServer {
         }
 	}
 
-	createGameSubscription(appname='',devices=[],propnames=[]) {
-        // this.mongodb.db("brainsatplay").collection('apps').find({ name: appname }).count().then(n => {
+	createAppSubscription(appname='',devices=[],propnames=[]) {
+        // this.mongoClient.db("brainsatplay").collection('apps').find({ name: appname }).count().then(n => {
         //     if (n > 0){
-                this.gameSubscriptions.push({
+                this.appSubscriptions.push({
                     appname:appname,
                     devices:devices,
                     id:appname+"_"+Math.floor(Math.random()*10000000),
@@ -412,23 +412,23 @@ class DataServer {
                     lastTransmit:Date.now()
                 });
             // } else {
-            //     console.log('error: game not configured.')
+            //     console.log('error: app not configured.')
             // }
         // });
 
-        return this.gameSubscriptions.length - 1;
+        return this.appSubscriptions.length - 1;
 	}
 
-	getGameSubscriptions(appname='') {
-		let g = this.gameSubscriptions.filter((o) => {
+	getAppSubscriptions(appname='') {
+		let g = this.appSubscriptions.filter((o) => {
             if(o.appname === appname) return true;
         })
         if(g.length === 0) return undefined;
 		else return g;
 	}
 
-    getGameSubscription(id='') {
-		let g = this.gameSubscriptions.find((o,i) => {
+    getAppSubscription(id='') {
+		let g = this.appSubscriptions.find((o,i) => {
 			if(o.id === id) {
 				return true;
 			}
@@ -436,12 +436,12 @@ class DataServer {
         return g;
 	}
 
-    getGameData(id='') {
-        let gameData = undefined;
-        let s = this.gameSubscriptions.find((sub,i) => {
+    getSessionData(id='') {
+        let sessionData = undefined;
+        let s = this.appSubscriptions.find((sub,i) => {
             if(sub.id === id) {
                 let updateObj = {
-                    msg:'gameData',
+                    msg:'sessionData',
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
@@ -453,7 +453,7 @@ class DataServer {
                     spectators:[]
                 };
                 
-                sub.usernames.forEach((user,j) => { //get current relevant data for all players in game
+                sub.usernames.forEach((user,j) => { //get current relevant data for all players in session
                     if(sub.spectators.indexOf(user) < 0){
                         let userObj = {
                             username:user
@@ -470,15 +470,15 @@ class DataServer {
                         spectators.push(user);
                     }
                 });
-                gameData = updateObj;
+                sessionData = updateObj;
                 return true;
             }
         });
-        return gameData;
+        return sessionData;
     }
 
-	subscribeUserToGame(username,id,spectating=false) {
-		let g = this.getGameSubscription(id);
+	subscribeUserToSession(username,id,spectating=false) {
+		let g = this.getAppSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
             if( g.usernames.indexOf(username) < 0) { 
@@ -493,10 +493,10 @@ class DataServer {
 			});
             u.appname = id;
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:id,gameInfo:g}));
+			u.socket.send(JSON.stringify({msg:'subscribedToSession',appname:id,sessionInfo:g}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:id}));
+			u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:id}));
 		}
 	}
 
@@ -535,12 +535,12 @@ class DataServer {
         return g;
 	}
 
-    getHostGameData(id='') {
-        let gameData = undefined;
-        let s = this.gameSubscriptions.find((sub,i) => {
+    getHostSessionData(id='') {
+        let sessionData = undefined;
+        let s = this.appSubscriptions.find((sub,i) => {
             if(sub.id === id) {
                 let updateObj = {
-                    msg:'gameData',
+                    msg:'sessionData',
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
@@ -580,14 +580,14 @@ class DataServer {
                     })
                 }
 
-                gameData = updateObj;
+                sessionData = updateObj;
                 return true;
             }
         });
-        return gameData;
+        return sessionData;
     }
 
-	subscribeUserToHostGame(username,id,spectating=false,hosting=false) {
+	subscribeUserToHostSession(username,id,spectating=false,hosting=false) {
 		let g = this.getHostSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
@@ -603,16 +603,16 @@ class DataServer {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToGame',appname:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
+			u.socket.send(JSON.stringify({msg:'subscribedToSession',appname:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'gameNotFound',appname:appname}));
+			u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:appname}));
 		}
 	}
 
     updateUserSubscriptions = (time) => {
         this.userSubscriptions.forEach((sub,i) => {
-            //Should create a dispatcher that accumulates all user and game subscription data to push all concurrent data in one message per listening user
+            //Should create a dispatcher that accumulates all user and app subscription data to push all concurrent data in one message per listening user
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 let listener = this.userData.get(sub.listener);
                 let source = this.userData.get(sub.source);
@@ -639,15 +639,15 @@ class DataServer {
 		});
     } 
 
-    updateGameSubscriptions = (time) => {
-        this.gameSubscriptions.forEach((sub,i) => {
+    updateAppSubscriptions = (time) => {
+        this.appSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
                 //if(t!== undefined) t.socket.send(JSON.stringify(sub));
 
                 let updateObj = {
-                    msg:'gameData',
+                    msg:'sessionData',
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
@@ -737,7 +737,7 @@ class DataServer {
 		});
     }
 
-    updateHostGameSubscriptions = (time) => {
+    updateHostAppSubscriptions = (time) => {
         this.hostSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
@@ -745,7 +745,7 @@ class DataServer {
                 //if(t!== undefined) t.socket.send(JSON.stringify(sub));
 
                 let updateObj = {
-                    msg:'gameData',
+                    msg:'sessionData',
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
@@ -836,10 +836,10 @@ class DataServer {
         this.updateUserSubscriptions(time);
 
         //optimized to only send updated data
-		this.updateGameSubscriptions(time);
+		this.updateAppSubscriptions(time);
 
         //optimized to only send updated data
-		this.updateHostGameSubscriptions(time);
+		this.updateHostAppSubscriptions(time);
 
         this.userData.forEach((u,i) => {
             u.updatedPropnames = [];

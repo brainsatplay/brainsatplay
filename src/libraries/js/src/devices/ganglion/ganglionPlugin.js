@@ -3,7 +3,7 @@
 import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
 import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
-import {Ganglion} from './ganglion-ble-master/src/index.js'
+import {Ganglion} from './ganglion-ble-master/src'
 
 export class ganglionPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {

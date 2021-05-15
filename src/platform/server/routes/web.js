@@ -5,6 +5,8 @@ const path = require("path")
 const routes = app => {
 
 router.get("/", (req, res, next) => {
+  console.log('getting')
+  console.log(path.join(`${__dirname}/../../../public/index.html`))
   return res.sendFile(path.join(`${__dirname}/../../../public/index.html`));
 });
 

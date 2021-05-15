@@ -1,5 +1,5 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {Boids} from '../../../platform/js/frontend/UX/Particles'
 import * as settingsFile from './settings'
 

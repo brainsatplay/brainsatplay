@@ -1,7 +1,7 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../platform/js/frontend/UX/eegvisuals'
-import {eegmath} from '../../../library/src/algorithms/eegmath'
+import {eegmath} from '../../../libraries/js/src/algorithms/eegmath'
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
 import * as settingsFile from './settings'
 

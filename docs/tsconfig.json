@@ -46,6 +46,6 @@
       
     },
     "include": [
-      "../src/library"
+      "../src/libraries"
     ],
   }

@@ -20,7 +20,7 @@ import {
     DISCONNECTED_EVENT as onDisconnected,
     COMMAND_STRINGS as commandStrings,
     BOARD_NAME as boardName
-} from './constants/index.js';
+} from './constants';
 
 function parseGanglion (o) {
     const byteId = parseInt(o.rawDataPacket[0]);

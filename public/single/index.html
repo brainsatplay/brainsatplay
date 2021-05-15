@@ -3,7 +3,7 @@
 <head>
   <title>Brains@Play Platform</title>
   <meta charset="UTF-8" />
-  <script src="../../src/library/dist/brainsatplay.js"></script>
+  <script src="../../src/libraries/js/dist/brainsatplay.js"></script>
 <!-- <link href="../styles/css/global.css" rel="stylesheet"> -->
 </head>
 <body>
@@ -32,7 +32,7 @@ connection.onopen = () => {
 
 // Log errors
 connection.onerror = (error) => {
-  console.log('WebSocket Error: ' + error);
+  console.log('WebSocket Error', error);
 };
 
 // Log messages from the server

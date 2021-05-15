@@ -1,5 +1,5 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import logo from '../../../platform/assets/logo_and_sub(v3).png'
 import * as settingsFile from './settings'
 import {appletManifest} from '../../../platform/appletManifest'

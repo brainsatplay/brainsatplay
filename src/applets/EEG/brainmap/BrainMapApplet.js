@@ -1,5 +1,5 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {BrainMap2D} from '../../../platform/js/frontend/UX/eegvisuals'
 import {genBandviewSelect} from '../../../platform/js/frontend/menus/selectTemplates'
 import * as settingsFile from './settings'

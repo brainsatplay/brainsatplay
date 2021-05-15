@@ -1,4 +1,4 @@
-import * as brainsatplay from '../library/src/Session'
+import * as brainsatplay from '../libraries/js/src/Session'
 import {BlobApplet} from '../applets/General/blob/BlobApplet'
 // import {uPlotApplet} from './js/applets/General/uplot/uPlotApplet'
 

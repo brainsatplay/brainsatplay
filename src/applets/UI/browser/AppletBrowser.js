@@ -1,5 +1,5 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {presetManifest} from '../../../platform/presetManifest'
 import {appletManifest} from '../../../platform/appletManifest'
 import placeholderImage from '../../../platform/assets/features/placeholder.png'

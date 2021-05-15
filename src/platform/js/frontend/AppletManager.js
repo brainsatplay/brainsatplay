@@ -1,11 +1,11 @@
-import { Session } from "../../../library/src/Session";
+import { Session } from "../../../libraries/js/src/Session";
 import {presetManifest} from '../../presetManifest'
 import {appletManifest} from '../../appletManifest'
 import { getApplet, getAppletSettings } from "../general/importUtils"
 import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
 
-import {handleAuthRedirect} from '../../../library/src/ui/login'
+import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
