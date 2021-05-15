@@ -189,20 +189,14 @@ export class SensoriumApplet {
                 if(this.hidden == false) {
                     this.hidden = true;
                     document.getElementById(props.id+"showhide").innerHTML = "Show UI";
-                    document.getElementById(props.id+'addsound').style.display = "none";
-                    document.getElementById(props.id+'selectorcontainer').style.display = "none";
-                    document.getElementById(props.id+'nfb').style.display = "none";
-                    document.getElementById(props.id+'filemenu').style.display = "none";
-                    document.getElementById(props.id+'soundcontrols').style.display = "none";
+                    document.getElementById(props.id+'addeffect').style.display = "none";
+                    document.getElementById(props.id+'effectmenu').style.display = "none";
                 }
                 else{
                     this.hidden = false;
                     document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
-                    document.getElementById(props.id+'addsound').style.display = "";
-                    document.getElementById(props.id+'selectorcontainer').style.display = "";
-                    document.getElementById(props.id+'nfb').style.display = "";
-                    document.getElementById(props.id+'filemenu').style.display = "";
-                    document.getElementById(props.id+'soundcontrols').style.display = "";
+                    document.getElementById(props.id+'addeffect').style.display = "";
+                    document.getElementById(props.id+'effectmenu').style.display = "";
                 }
             }
 
