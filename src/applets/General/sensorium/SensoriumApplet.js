@@ -63,7 +63,7 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.effectStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false };
+        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false };
         this.visuals = [];
         this.effects = [];//array of effectStructs
 
@@ -494,12 +494,15 @@ export class SensoriumApplet {
             if(!window.audio) window.audio = new SoundJS();
             if (window.audio.ctx===null) {return;};
 
-            window.audio.decodeLocalAudioFile((sourceListIdx)=>{    
-                document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
-                newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
+            window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
+                
+                newEffect.input.style.display='none';   
+                if(!newEffect.controls) {
+                    document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
+                    newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
+                } else {newEffect.controls.style.display=""}
                 newEffect.source = window.audio.sourceList[sourceListIdx]; 
                 newEffect.sourceIdx = sourceListIdx;
-                newEffect.input.style.display='none';
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
 
                 this.loadSoundControls(newEffect);
@@ -528,8 +531,8 @@ export class SensoriumApplet {
             try{window.audio.playSound(newEffect.sourceIdx,0,false);} catch(er) {}
             window.audio.stopSound(newEffect.sourceIdx);
            
-            newEffect.input.parentNode.removeChild(newEffect.input);
-            newEffect.controls.parentNode.removeChild(newEffect.controls);
+            newEffect.input.style.display = "";
+            newEffect.controls.style.display = "none";
 
             let thisidx=0;
             this.effects.forEach((effectStruct,j)=> {
@@ -540,8 +543,6 @@ export class SensoriumApplet {
                 }
 
             });
-            this.effects.splice(thisidx,1);
-
         }
 
         document.getElementById(this.props.id+'mute'+newEffect.uiIdx).onclick = () => {
