@@ -349,7 +349,7 @@ this.render = () => {
     deinit() {
         this.looping = false;
         this.sounds.forEach((struct)=>{
-            window.audio.stopSound(struct.sourceIdx);
+            if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
         });
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
