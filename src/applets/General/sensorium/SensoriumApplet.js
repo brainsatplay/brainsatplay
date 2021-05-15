@@ -55,8 +55,8 @@ export class SensoriumApplet {
         this.three.planes = [];
 
         this.defaultUniforms = { //List of available uniforms for the shaders apply to visual fx accordingly
-            iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
-            iTime: {value: 0},
+            iResolution: {value: new THREE.Vector2(400,400)}, //Required for ShaderToy shaders
+            iTime: {value: 0},                      //Required for ShaderToy shaders
             iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
             iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
             iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
@@ -311,6 +311,8 @@ export class SensoriumApplet {
 
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
+
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
     shaderKeys.forEach((k,i) => {
 
         if (i === 0){
