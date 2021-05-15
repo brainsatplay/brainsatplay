@@ -302,7 +302,7 @@ export class SensoriumApplet {
                     iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
                     iTime: {value: 0},
                     iAudio: new Array(256).fill(1), //Audio analyser FFT, array of 256, values max at 255
-                    iHRV: 0,                        //Heart Rate Variability (values typically 5-30)
+                    iHRV: 1,                        //Heart Rate Variability (values typically 5-30)
                     iHEG: 0,                        //HEG change from baseline, starts at zero and can go positive or negative
                     iHR: 1,                         //Heart Rate in BPM
                     iHB: 1,                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
