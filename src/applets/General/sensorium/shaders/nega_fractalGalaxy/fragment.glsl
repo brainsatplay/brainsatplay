@@ -11,6 +11,7 @@ uniform float iTime;
 uniform float iHEG;
 uniform float iHRV;
 uniform float iHR;
+uniform float iHB;
 
 //Inspired by JoshP's Simplicity shader: https://www.shadertoy.com/view/lslGWr
 // http://www.fractalforums.com/new-theories-and-research/very-simple-formula-for-fractal-patterns/

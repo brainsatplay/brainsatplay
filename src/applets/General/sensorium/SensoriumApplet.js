@@ -225,127 +225,143 @@ export class SensoriumApplet {
         
         this.ct = 0;
 
-/**
- * Three.js Shader
- */
+    /**
+     * Three.js Shader
+     */
 
-this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
-this.timeBuffer = Array.from({length: this.history}, e => 0)
-this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
+    this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
+    this.timeBuffer = Array.from({length: this.history}, e => 0)
+    this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
 
-this.appletContainer = document.getElementById(this.props.id)
+    this.appletContainer = document.getElementById(this.props.id)
 
-/**
- * Scene
- */
-this.three.scene = new THREE.Scene()
+    /**
+     * Scene
+     */
+    this.three.scene = new THREE.Scene()
 
-/**
- * Camera
- */
+    /**
+     * Camera
+     */
 
-this.baseCameraPos = new THREE.Vector3(0,0,3)
-this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
-this.camera.position.z = this.baseCameraPos.z//*1.5
+    this.baseCameraPos = new THREE.Vector3(0,0,3)
+    this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
+    this.camera.position.z = this.baseCameraPos.z//*1.5
 
-/**
- * Texture Params
- */
+    /**
+     * Texture Params
+     */
 
- let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
-this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
+    let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+    this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
 
- // Square
-//  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
+    // Square
+    //  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
 
-// Fit Screen
-this.three.meshWidth = this.fov_y * this.camera.aspect
-this.three.meshHeight = this.three.meshWidth/containerAspect
+    // Fit Screen
+    this.three.meshWidth = this.fov_y * this.camera.aspect
+    this.three.meshHeight = this.three.meshWidth/containerAspect
 
-// Renderer
-this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
-this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
-this.appletContainer.appendChild( this.three.renderer.domElement );
-this.three.renderer.domElement.style.width = '100%'
-this.three.renderer.domElement.style.height = '100%'
-this.three.renderer.domElement.id = `${this.props.id}canvas`
-this.three.renderer.domElement.style.opacity = '0'
-this.three.renderer.domElement.style.transition = 'opacity 1s'
+    // Renderer
+    this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+    this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+    this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
+    this.appletContainer.appendChild( this.three.renderer.domElement );
+    this.three.renderer.domElement.style.width = '100%'
+    this.three.renderer.domElement.style.height = '100%'
+    this.three.renderer.domElement.id = `${this.props.id}canvas`
+    this.three.renderer.domElement.style.opacity = '0'
+    this.three.renderer.domElement.style.transition = 'opacity 1s'
 
-// Controls
-this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
-this.controls.enablePan = false
-this.controls.enableDamping = true
-this.controls.enabled = false;
-this.controls.minPolarAngle = 2*Math.PI/6; // radians
-this.controls.maxPolarAngle = 4*Math.PI/6; // radians
-this.controls.minDistance = this.baseCameraPos.z; // radians
-this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+    // Controls
+    this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
+    this.controls.enablePan = false
+    this.controls.enableDamping = true
+    this.controls.enabled = false;
+    this.controls.minPolarAngle = 2*Math.PI/6; // radians
+    this.controls.maxPolarAngle = 4*Math.PI/6; // radians
+    this.controls.minDistance = this.baseCameraPos.z; // radians
+    this.controls.maxDistance = this.baseCameraPos.z*10; // radians
 
-// Plane
-const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
-let tStart = Date.now();
+    // Plane
+    const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+    let tStart = Date.now();
 
-let shaderKeys = Object.keys(this.shaders);
-let numShaders = shaderKeys.length;
-shaderKeys.forEach((k,i) => {
+    let shaderKeys = Object.keys(this.shaders);
+    let numShaders = shaderKeys.length;
+    shaderKeys.forEach((k,i) => {
 
-    if (i === 0){
-        this.material = new THREE.ShaderMaterial({
-            transparent: true,
-            side: THREE.DoubleSide,
-            vertexShader: this.shaders[k].vertexShader,
-            fragmentShader: this.shaders[k].fragmentShader,
-            uniforms: // Default Uniforms
-            {
-                iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
-                iTime: {value: 0},
-            }
-        })
+        if (i === 0){
+            this.material = new THREE.ShaderMaterial({
+                transparent: true,
+                side: THREE.DoubleSide,
+                vertexShader: this.shaders[k].vertexShader,
+                fragmentShader: this.shaders[k].fragmentShader,
+                uniforms: // Default Uniforms
+                {
+                    iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
+                    iTime: {value: 0},
+                    iAudio: new Array(256).fill(1), //Audio analyser FFT, array of 256, values max at 255
+                    iHRV: 0,                        //Heart Rate Variability (values typically 5-30)
+                    iHEG: 0,                        //HEG change from baseline, starts at zero and can go positive or negative
+                    iHR: 1,                         //Heart Rate in BPM
+                    iHB: 1,                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+                    iFFT: new Array(256).fill(1),   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+                    iDelta: 1,                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+                    iTheta: 1,                      //Theta bandpower average.
+                    iAlpha1: 1,                     //Alpha1 " "
+                    iAlpha2: 1,                     //Alpha2 " "
+                    iBeta: 1,                       //Beta " "
+                    iGamma: 1,                      //Low Gamma (30-45Hz) " "
+                    iThetaBeta: 1,                  //Theta/Beta ratio
+                    iAlpha1Alpha2: 1,               //Alpha1/Alpha2 ratio
+                    iAlphaBeta: 1,                  //Alpha/Beta ratio
+                    i40Hz: 1,                       //40Hz bandpower
+                }
+            })
 
-        let radius = 0;//10
-        let plane = new THREE.Mesh(planeGeometry, this.material)
-        plane.name = k
-        let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
-        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
-        plane.rotation.set(0,-angle - Math.PI/2,0)
-        this.three.planes.push(plane)
-        this.three.scene.add(plane)
-    }
-});
-
-// Animate
-this.startTime = Date.now()
-this.render = () => {
-
-    // setTimeout( () => {
-        if (this.three.renderer.domElement != null){
-
-                // Organize Brain Data 
-                this.setBrainData(this.session.atlas.data.eeg)
-
-                this.three.planes.forEach(p => {
-                    this.updateMaterialUniforms(p.material,this.modifiers);
-                })
-
-                this.controls.update()
-                this.three.renderer.render( this.three.scene, this.camera );
+            let radius = 0;//10
+            let plane = new THREE.Mesh(planeGeometry, this.material)
+            plane.name = k
+            let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+            plane.rotation.set(0,-angle - Math.PI/2,0)
+            this.three.planes.push(plane)
+            this.three.scene.add(plane)
         }
-    // }, 1000 / 60 );
-};
+    });
 
-    let animate = () => {
-        this.three.renderer.setAnimationLoop( this.render );
+    // Animate
+    this.startTime = Date.now()
+    this.render = () => {
+
+        // setTimeout( () => {
+            if (this.three.renderer.domElement != null){
+
+                    // Organize Brain Data 
+                    this.setBrainData(this.session.atlas.data.eeg)
+
+                    this.three.planes.forEach(p => {
+                        this.updateMaterialUniforms(p.material,this.modifiers);
+                    });
+
+                    this.controls.update()
+                    this.three.renderer.render( this.three.scene, this.camera );
+            }
+        // }, 1000 / 60 );
+    };
+
+        let animate = () => {
+            this.three.renderer.setAnimationLoop( this.render );
+        }
+
+        animate()
+        setTimeout(() => {
+            this.three.renderer.domElement.style.opacity = '1'
+            // this.controls.enabled = true;
+        }, 100)
+        
     }
-
-    animate()
-    setTimeout(() => {
-        this.three.renderer.domElement.style.opacity = '1'
-        // this.controls.enabled = true;
-    }, 100)
-    
-}
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
@@ -613,7 +629,7 @@ this.render = () => {
                     }
                     if(option === 'audio') {
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
-                        this.modifiers.iFFT = window.audio.analyserNode.getByteFrequencyData(array);
+                        this.modifiers.iAudio = window.audio.analyserNode.getByteFrequencyData(array);
                     }
                 }
             });
@@ -674,6 +690,12 @@ this.render = () => {
 
             else if (u === 'iHRV' && modifiers.iHRV){
                 material.uniforms[u].value = modifiers.iHRV;
+            }
+            else if (u === 'iHEG' && modifiers.iHEG){
+                material.uniforms[u].value = modifiers.iHEG;
+            }
+            else if (u === 'iHR' && modifiers.iHR){
+                material.uniforms[u].value = modifiers.iHR;
             }
             // Defaults
             else if (u === 'iTime'){
