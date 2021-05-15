@@ -11,6 +11,7 @@ uniform float iTime;
 uniform float iHEG;
 uniform float iHRV;
 uniform float iHR;
+uniform float iHB;
 
 //Inspired by JoshP's Simplicity shader: https://www.shadertoy.com/view/lslGWr
 // http://www.fractalforums.com/new-theories-and-research/very-simple-formula-for-fractal-patterns/
@@ -23,11 +24,11 @@ float field(in vec3 p) {
 		float mag = dot(p, p);
 		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
 		float w = exp(-float(i) / 7.);
-		accum += w * exp(-strength * pow(abs(mag - prev), 2.3));
+		accum += w - exp(-strength * pow(abs(mag - prev), 2.));
 		tw += w;
 		prev = mag;
 	}
-	return max(0., 5. * accum / tw - .7);
+	return max(0., 4. * accum / tw - .7);
 }
 
 void main() {

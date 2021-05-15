@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
+import negaGalaxyFragmentShader from "./shaders/nega_fractalGalaxy/fragment.glsl"
 import wavesFragmentShader from './shaders/waves/fragment.glsl'
 import noiseCircleFragmentShader from './shaders/noiseCircle/fragment.glsl'
 import creationFragmentShader from './shaders/creation/fragment.glsl'
@@ -40,7 +41,7 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.soundStruct = { source:{}, input:{}, controls:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
+        this.soundStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
         this.visuals = [];
         this.sounds = [];//array of soundStructs
 
@@ -51,15 +52,44 @@ export class SensoriumApplet {
         this.three = {}
         this.currentShader = null;
 
-        this.three.planes = []
+        this.three.planes = [];
+
+        this.defaultUniforms = { //List of available uniforms for the shaders apply to visual fx accordingly
+            iResolution: {value: new THREE.Vector2(400,400)}, //Required for ShaderToy shaders
+            iTime: {value: 0},                      //Required for ShaderToy shaders
+            iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
+            iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
+            iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
+            iHR: {value:1},                         //Heart Rate in BPM
+            iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+            iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+            iTheta: {value:1},                      //Theta bandpower average.
+            iAlpha1: {value:1},                     //Alpha1 " "
+            iAlpha2: {value:1},                     //Alpha2 " "
+            iBeta: {value:1},                       //Beta " "
+            iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
+            iThetaBeta: {value:1},                  //Theta/Beta ratio
+            iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
+            iAlphaBeta: {value:1},                  //Alpha/Beta ratio
+            i40Hz: {value:1},                       //40Hz bandpower
+            iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+        };
 
         this.shaders = {
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: [],
+                uniforms: ['iHRV','iHEG','iHR','iHB'],
                 credit: 'JoshP (Shadertoy)'
+            },
+            negagalaxy: {
+                name: 'Nega Galaxy',
+                vertexShader: vertexShader,
+                fragmentShader: negaGalaxyFragmentShader,
+                uniforms: ['iHRV','iHEG','iHR','iHB'],
+                credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
@@ -126,7 +156,7 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
 
-        this.history = 5 
+        this.history = 5; 
     }
 
     //---------------------------------
@@ -145,9 +175,8 @@ export class SensoriumApplet {
             </div>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
-                    <button id='${props.id}addsound'>Add Sound</button>
-                    <div id='${props.id}filemenu'></div>
-                    <div id='${props.id}soundcontrols'></div> 
+                    <button id='${props.id}addeffect'>Add Effects</button>
+                    <span id='${props.id}effectmenu'></span>
                     </div>
                 </div>    
             </div>`;
@@ -155,7 +184,7 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id+'addsound').onclick = () => {
+            document.getElementById(props.id+'addeffect').onclick = () => {
                 this.addSoundInput();
             };
 
@@ -164,7 +193,7 @@ export class SensoriumApplet {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             })
             
-            this.currentShader = this.shaders[selector.value]
+            this.currentShader = this.shaders[selector.value];
 
             selector.onchange = (e) => {
                 console.log('changed')
@@ -182,20 +211,14 @@ export class SensoriumApplet {
                 if(this.hidden == false) {
                     this.hidden = true;
                     document.getElementById(props.id+"showhide").innerHTML = "Show UI";
-                    document.getElementById(props.id+'addsound').style.display = "none";
-                    document.getElementById(props.id+'selectorcontainer').style.display = "none";
-                    document.getElementById(props.id+'nfb').style.display = "none";
-                    document.getElementById(props.id+'filemenu').style.display = "none";
-                    document.getElementById(props.id+'soundcontrols').style.display = "none";
+                    document.getElementById(props.id+'addeffect').style.display = "none";
+                    document.getElementById(props.id+'effectmenu').style.display = "none";
                 }
                 else{
                     this.hidden = false;
                     document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
-                    document.getElementById(props.id+'addsound').style.display = "";
-                    document.getElementById(props.id+'selectorcontainer').style.display = "";
-                    document.getElementById(props.id+'nfb').style.display = "";
-                    document.getElementById(props.id+'filemenu').style.display = "";
-                    document.getElementById(props.id+'soundcontrols').style.display = "";
+                    document.getElementById(props.id+'addeffect').style.display = "";
+                    document.getElementById(props.id+'effectmenu').style.display = "";
                 }
             }
 
@@ -224,133 +247,131 @@ export class SensoriumApplet {
         
         this.ct = 0;
 
-/**
- * Three.js Shader
- */
+    /**
+     * Three.js Shader
+     */
 
-this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
-this.timeBuffer = Array.from({length: this.history}, e => 0)
-this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
+    this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
+    this.timeBuffer = Array.from({length: this.history}, e => 0)
+    this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
 
-this.appletContainer = document.getElementById(this.props.id)
+    this.appletContainer = document.getElementById(this.props.id)
 
-/**
- * Scene
- */
-this.three.scene = new THREE.Scene()
+    /**
+     * Scene
+     */
+    this.three.scene = new THREE.Scene()
 
-/**
- * Camera
- */
+    /**
+     * Camera
+     */
 
-this.baseCameraPos = new THREE.Vector3(0,0,3)
-this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
-this.camera.position.z = this.baseCameraPos.z//*1.5
+    this.baseCameraPos = new THREE.Vector3(0,0,3)
+    this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
+    this.camera.position.z = this.baseCameraPos.z//*1.5
 
-/**
- * Texture Params
- */
+    /**
+     * Texture Params
+     */
 
- let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
-this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
+    let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+    this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
 
- // Square
-//  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
+    // Square
+    //  this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
 
-// Fit Screen
-this.three.meshWidth = this.fov_y * this.camera.aspect
-this.three.meshHeight = this.three.meshWidth/containerAspect
+    // Fit Screen
+    this.three.meshWidth = this.fov_y * this.camera.aspect
+    this.three.meshHeight = this.three.meshWidth/containerAspect
 
-// Renderer
-this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
-this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
-this.appletContainer.appendChild( this.three.renderer.domElement );
-this.three.renderer.domElement.style.width = '100%'
-this.three.renderer.domElement.style.height = '100%'
-this.three.renderer.domElement.id = `${this.props.id}canvas`
-this.three.renderer.domElement.style.opacity = '0'
-this.three.renderer.domElement.style.transition = 'opacity 1s'
+    // Renderer
+    this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+    this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+    this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
+    this.appletContainer.appendChild( this.three.renderer.domElement );
+    this.three.renderer.domElement.style.width = '100%'
+    this.three.renderer.domElement.style.height = '100%'
+    this.three.renderer.domElement.id = `${this.props.id}canvas`
+    this.three.renderer.domElement.style.opacity = '0'
+    this.three.renderer.domElement.style.transition = 'opacity 1s'
 
-// Controls
-this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
-this.controls.enablePan = false
-this.controls.enableDamping = true
-this.controls.enabled = false;
-this.controls.minPolarAngle = 2*Math.PI/6; // radians
-this.controls.maxPolarAngle = 4*Math.PI/6; // radians
-this.controls.minDistance = this.baseCameraPos.z; // radians
-this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+    // Controls
+    this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
+    this.controls.enablePan = false
+    this.controls.enableDamping = true
+    this.controls.enabled = false;
+    this.controls.minPolarAngle = 2*Math.PI/6; // radians
+    this.controls.maxPolarAngle = 4*Math.PI/6; // radians
+    this.controls.minDistance = this.baseCameraPos.z; // radians
+    this.controls.maxDistance = this.baseCameraPos.z*10; // radians
 
-// Plane
-const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
-let tStart = Date.now();
+    // Plane
+    const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+    let tStart = Date.now();
 
-let shaderKeys = Object.keys(this.shaders);
-let numShaders = shaderKeys.length;
-shaderKeys.forEach((k,i) => {
+    let shaderKeys = Object.keys(this.shaders);
+    let numShaders = shaderKeys.length;
 
-    if (i === 0){
-        this.material = new THREE.ShaderMaterial({
-            transparent: true,
-            side: THREE.DoubleSide,
-            vertexShader: this.shaders[k].vertexShader,
-            fragmentShader: this.shaders[k].fragmentShader,
-            uniforms: // Default Uniforms
-            {
-                iResolution: {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)},
-                iTime: {value: 0},
-            }
-        })
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    shaderKeys.forEach((k,i) => {
 
-        let radius = 0;//10
-        let plane = new THREE.Mesh(planeGeometry, this.material)
-        plane.name = k
-        let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
-        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
-        plane.rotation.set(0,-angle - Math.PI/2,0)
-        this.three.planes.push(plane)
-        this.three.scene.add(plane)
-    }
-});
+        if (i === 0){
+            this.material = new THREE.ShaderMaterial({
+                transparent: true,
+                side: THREE.DoubleSide,
+                vertexShader: this.shaders[k].vertexShader,
+                fragmentShader: this.shaders[k].fragmentShader,
+                uniforms: this.defaultUniforms// Default Uniforms 
+            });
 
-// Animate
-this.startTime = Date.now()
-this.render = () => {
-
-    // setTimeout( () => {
-        if (this.three.renderer.domElement != null){
-
-                // Organize Brain Data 
-                this.setBrainData(this.session.atlas.data.eeg)
-
-                this.three.planes.forEach(p => {
-                    this.updateMaterialUniforms(p.material,this.modifiers);
-                })
-
-                this.controls.update()
-                this.three.renderer.render( this.three.scene, this.camera );
+            let radius = 0;//10
+            let plane = new THREE.Mesh(planeGeometry, this.material)
+            plane.name = k
+            let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+            plane.rotation.set(0,-angle - Math.PI/2,0)
+            this.three.planes.push(plane)
+            this.three.scene.add(plane)
         }
-    // }, 1000 / 60 );
-};
+    });
 
-    let animate = () => {
-        this.three.renderer.setAnimationLoop( this.render );
+    // Animate
+    this.startTime = Date.now()
+    this.render = () => {
+
+        // setTimeout( () => {
+            if (this.three.renderer.domElement != null){
+
+                    // Organize Brain Data 
+                    this.setBrainData(this.session.atlas.data.eeg)
+
+                    this.three.planes.forEach(p => {
+                        this.updateMaterialUniforms(p.material,this.modifiers);
+                    });
+
+                    this.controls.update()
+                    this.three.renderer.render( this.three.scene, this.camera );
+            }
+        // }, 1000 / 60 );
+    };
+
+        let animate = () => {
+            this.three.renderer.setAnimationLoop( this.render );
+        }
+
+        animate()
+        setTimeout(() => {
+            this.three.renderer.domElement.style.opacity = '1'
+            // this.controls.enabled = true;
+        }, 100)
+        
     }
-
-    animate()
-    setTimeout(() => {
-        this.three.renderer.domElement.style.opacity = '1'
-        // this.controls.enabled = true;
-    }, 100)
-    
-}
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
         this.sounds.forEach((struct)=>{
-            window.audio.stopSound(struct.sourceIdx);
+            if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
         });
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
@@ -395,44 +416,50 @@ this.render = () => {
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
-                <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
-                    <div id='${props.id}fileinfo${idx}'></div> 
+                Feedback ${idx}: 
+                <span id='${props.id}selectors${idx}'></span>
+                <span id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
+                    <span id='${props.id}fileinfo${idx}'></span> 
                     Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
                     <button id='${props.id}uploadedFile${idx}'>Add File</button> ${idx}
-                    <div id='${props.id}status${idx}'></div>
-                </div>
+                    <span id='${props.id}status${idx}'></span>
+                </span>
             `;
         }
 
         let controls = (idx=0, props=this.props) => {
             return `
-                <div id='${props.id}controlWrapper${idx}'>
-                    <button id='${props.id}play${idx}'>Play ${idx}</button>
-                    <button id='${props.id}mute${idx}'>Mute ${idx}</button>
-                    <button id='${props.id}stop${idx}'>Remove ${idx}</button>
-                    Feedback ${idx}:
-                    <select id='${props.id}select${idx}'>
-                        <option value='none'>None</option>
-                        <option value='audio'>Audio FFT</option>
-                        <option value='heg_heartbeat'>Heart Beat</option>
-                        <option value='heg_hr'>Heart Rate</option>
-                        <option value='heg'>HEG Ratio</option>
-                        <option value='heg_hrv'>Heart Rate Variability</option>
-                        <option value='eeg_bandpowers'>EEG Bandpower FFT</option>
-                        <option value='eeg_delta'>Delta Bandpower</option>
-                        <option value='eeg_theta'>Theta Bandpower</option>
-                        <option value='eeg_alpha1'>Alpha1 Bandpower</option>
-                        <option value='eeg_alpha2'>Alpha2 Bandpower</option>
-                        <option value='eeg_beta'>Beta Bandpower</option>
-                        <option value='eeg_gamma'>Low Gamma Bandpower</option>
-                        <option value='eeg_40hz'>40Hz Bandpower</option>
-                        <option value='eeg_tb'>Theta/Beta Ratio</option>
-                        <option value='eeg_a12'>Alpha 2/1 Ratio</option>
-                        <option value='eeg_ab'>Alpha/Beta Ratio</option>
-                        <option value='eeg_acoh'>Frontal Alpha Coherence</option>
-                    </select>
-                    <select id='${props.id}channel${idx}'></select>
-                </div>
+                <span id='${props.id}controlWrapper${idx}'>
+                    <button id='${props.id}play${idx}'>${idx}: Play</button>
+                    <button id='${props.id}mute${idx}'>${idx}: Mute</button>
+                    <button id='${props.id}stop${idx}'>${idx}: Remove</button>
+                </span>
+            `;
+        }
+        
+        let fdback = (idx=0, props=this.props) => {
+            return `
+            <select id='${props.id}select${idx}'>
+                <option value='none'>None</option>
+                <option value='audio'>Audio FFT</option>
+                <option value='heg_heartbeat'>Heart Beat</option>
+                <option value='heg_hr'>Heart Rate</option>
+                <option value='heg'>HEG Ratio</option>
+                <option value='heg_hrv'>Heart Rate Variability</option>
+                <option value='eeg_bandpowers'>EEG Bandpower FFT</option>
+                <option value='eeg_delta'>Delta Bandpower</option>
+                <option value='eeg_theta'>Theta Bandpower</option>
+                <option value='eeg_alpha1'>Alpha1 Bandpower</option>
+                <option value='eeg_alpha2'>Alpha2 Bandpower</option>
+                <option value='eeg_beta'>Beta Bandpower</option>
+                <option value='eeg_gamma'>Low Gamma Bandpower</option>
+                <option value='eeg_40hz'>40Hz Bandpower</option>
+                <option value='eeg_tb'>Theta/Beta Ratio</option>
+                <option value='eeg_a12'>Alpha 2/1 Ratio</option>
+                <option value='eeg_ab'>Alpha/Beta Ratio</option>
+                <option value='eeg_acoh'>Frontal Alpha Coherence</option>
+            </select>
+            <select id='${props.id}channel${idx}' style='display:none;'></select>
             `;
         }
 
@@ -442,17 +469,35 @@ this.render = () => {
         this.sounds.push(newSound);
         newSound.uiIdx = idx;
         
-        document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
+        document.getElementById(this.props.id+'effectmenu').insertAdjacentHTML('beforeend',`<div id='${this.props.id}effectWrapper${idx}'>`+fileinput(idx)+`</div>`);
         newSound.input = document.getElementById(this.props.id+'fileWrapper'+idx);
+
+        document.getElementById(this.props.id+'selectors'+newSound.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
+        newSound.feedback = document.getElementById(this.props.id+'select'+newSound.uiIdx)
+
+        document.getElementById(this.props.id+'select'+newSound.uiIdx).onchange = () => {
+            let value = document.getElementById(this.props.id+'select'+newSound.uiIdx).value;
+            console.log(value)
+            if(value.includes('eeg')){
+                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "";
+                if(value.includes('coh')) {
+                    addCoherenceOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.coherence);
+                } else {
+                    addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.eegshared.eegChannelTags);
+                }
+            } else if (value.inclues('heg')) {
+                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
+            }
+        }
+
 
         document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
             if(!window.audio) window.audio = new SoundJS();
             if (window.audio.ctx===null) {return;};
 
             window.audio.decodeLocalAudioFile((sourceListIdx)=>{    
-                document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
+                document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
                 newSound.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
-                
                 newSound.source = window.audio.sourceList[sourceListIdx]; 
                 newSound.sourceIdx = sourceListIdx;
                 newSound.input.style.display='none';
@@ -475,7 +520,7 @@ this.render = () => {
     loadSoundControls = (newSound) => {
         
         document.getElementById(this.props.id+'play'+newSound.uiIdx).onclick = () => {
-            window.audio.playSound(newSound.sourceIdx,0,true);
+            try{window.audio.playSound(newSound.sourceIdx,0,true);}catch(er){}
         }
 
         document.getElementById(this.props.id+'stop'+newSound.uiIdx).onclick = () => {
@@ -507,27 +552,13 @@ this.render = () => {
                 
             } else {  newSound.muted = false; window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(newSound.lastGain, window.audio.ctx.currentTime); }
         }
-
-        document.getElementById(this.props.id+'select'+newSound.uiIdx).onchange = () => {
-            let value = document.getElementById(this.props.id+'select'+newSound.uiIdx).value;
-            if(value.includes('eeg')){
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "";
-                if(value.includes('coh')) {
-                    addCoherenceOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.coherence);
-                } else {
-                    addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.eegshared.eegChannelTags);
-                }
-            } else if (value.inclues('heg')) {
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
-            }
-        }
     };
 
     animate = () => {
         if(this.looping){
             this.modifiers = {};
             this.sounds.forEach((soundStruct)=> {
-                let option = document.getElementById(this.props.id+'select'+soundStruct.uiIdx).value;
+                let option = soundStruct.feedback.value;
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
@@ -602,7 +633,7 @@ this.render = () => {
                     }
                     if(option === 'audio') {
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
-                        this.modifiers.iFFT = window.audio.analyserNode.getByteFrequencyData(array);
+                        this.modifiers.iAudio = window.audio.analyserNode.getByteFrequencyData(array);
                     }
                 }
             });
@@ -663,6 +694,48 @@ this.render = () => {
 
             else if (u === 'iHRV' && modifiers.iHRV){
                 material.uniforms[u].value = modifiers.iHRV;
+            }
+            else if (u === 'iHEG' && modifiers.iHEG){
+                material.uniforms[u].value = modifiers.iHEG;
+            }
+            else if (u === 'iHR' && modifiers.iHR){
+                material.uniforms[u].value = modifiers.iHR;
+            }
+            else if (u === 'iHB' && modifiers.iHB){
+                material.uniforms[u].value = modifiers.iHB;
+            }
+            else if (u === 'iDelta' && modifiers.iDelta){
+                material.uniforms[u].value = modifiers.iDelta;
+            }
+            else if (u === 'iTheta' && modifiers.iTheta){
+                material.uniforms[u].value = modifiers.iTheta;
+            }
+            else if (u === 'iAlpha1' && modifiers.iAlpha1){
+                material.uniforms[u].value = modifiers.iAlpha1;
+            }
+            else if (u === 'iAlpha2' && modifiers.iAlpha2){
+                material.uniforms[u].value = modifiers.iAlpha2;
+            }
+            else if (u === 'iBeta' && modifiers.iBeta){
+                material.uniforms[u].value = modifiers.iBeta;
+            }
+            else if (u === 'iGamma' && modifiers.iGamma){
+                material.uniforms[u].value = modifiers.iGamma;
+            }
+            else if (u === 'i40Hz' && modifiers.i40Hz){
+                material.uniforms[u].value = modifiers.i40Hz;
+            }
+            else if (u === 'iAlpha1Alpha2' && modifiers.iAlpha1Alpha2){
+                material.uniforms[u].value = modifiers.iAlpha1Alpha2;
+            }
+            else if (u === 'iThetaBeta' && modifiers.iThetaBeta){
+                material.uniforms[u].value = modifiers.iThetaBeta;
+            }
+            else if (u === 'iAlphaBeta' && modifiers.iAlphaBeta){
+                material.uniforms[u].value = modifiers.iAlphaBeta;
+            }
+            else if (u === 'iAlpha1Coherence' && modifiers.iAlpha1Coherence){
+                material.uniforms[u].value = modifiers.iAlpha1Coherence;
             }
             // Defaults
             else if (u === 'iTime'){
