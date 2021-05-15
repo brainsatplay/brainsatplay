@@ -63,9 +63,9 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.soundStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
+        this.effectStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
         this.visuals = [];
-        this.sounds = [];//array of soundStructs
+        this.sounds = [];//array of effectStructs
 
         this.looping = false;
         this.hidden = false;
@@ -465,28 +465,27 @@ export class SensoriumApplet {
 
         let idx = this.ct; this.ct++;
 
-        let newSound = JSON.parse(JSON.stringify(this.soundStruct));
-        this.sounds.push(newSound);
-        newSound.uiIdx = idx;
+        let newEffect = JSON.parse(JSON.stringify(this.effectStruct));
+        this.effects.push(newEffect);
+        newEffect.uiIdx = idx;
         
         document.getElementById(this.props.id+'effectmenu').insertAdjacentHTML('beforeend',`<div id='${this.props.id}effectWrapper${idx}'>`+fileinput(idx)+`</div>`);
-        newSound.input = document.getElementById(this.props.id+'fileWrapper'+idx);
+        newEffect.input = document.getElementById(this.props.id+'fileWrapper'+idx);
 
-        document.getElementById(this.props.id+'selectors'+newSound.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
-        newSound.feedback = document.getElementById(this.props.id+'select'+newSound.uiIdx)
+        document.getElementById(this.props.id+'selectors'+newEffect.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
+        newEffect.feedback = document.getElementById(this.props.id+'select'+newEffect.uiIdx)
 
-        document.getElementById(this.props.id+'select'+newSound.uiIdx).onchange = () => {
-            let value = document.getElementById(this.props.id+'select'+newSound.uiIdx).value;
-            console.log(value)
+        document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
+            let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
             if(value.includes('eeg')){
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "";
+                document.getElementById(this.props.id+'channel'+newEffect.uiIdx).style.display = "";
                 if(value.includes('coh')) {
-                    addCoherenceOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.coherence);
+                    addCoherenceOptions(this.props.id+'channel'+newEffect.uiIdx,this.session.atlas.data.coherence);
                 } else {
-                    addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.eegshared.eegChannelTags);
+                    addChannelOptions(this.props.id+'channel'+newEffect.uiIdx,this.session.atlas.data.eegshared.eegChannelTags);
                 }
             } else if (value.includes('heg')) {
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
+                document.getElementById(this.props.id+'channel'+newEffect.uiIdx).style.display = "none";
             }
         }
 
@@ -497,13 +496,13 @@ export class SensoriumApplet {
 
             window.audio.decodeLocalAudioFile((sourceListIdx)=>{    
                 document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
-                newSound.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
-                newSound.source = window.audio.sourceList[sourceListIdx]; 
-                newSound.sourceIdx = sourceListIdx;
-                newSound.input.style.display='none';
+                newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
+                newEffect.source = window.audio.sourceList[sourceListIdx]; 
+                newEffect.sourceIdx = sourceListIdx;
+                newEffect.input.style.display='none';
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
 
-                this.loadSoundControls(newSound);
+                this.loadSoundControls(newEffect);
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "";
             }, 
             ()=> { 
@@ -517,121 +516,152 @@ export class SensoriumApplet {
 
 
     //doSomething(){}
-    loadSoundControls = (newSound) => {
+    loadSoundControls = (newEffect) => {
         
-        document.getElementById(this.props.id+'play'+newSound.uiIdx).onclick = () => {
-            try{window.audio.playSound(newSound.sourceIdx,0,true);}catch(er){}
+        document.getElementById(this.props.id+'play'+newEffect.uiIdx).onclick = () => {
+            try{window.audio.playSound(newEffect.sourceIdx,0,true);}catch(er){}
         }
 
-        document.getElementById(this.props.id+'stop'+newSound.uiIdx).onclick = () => {
+        document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
             
-            try{window.audio.playSound(newSound.sourceIdx,0,false);} catch(er) {}
-            window.audio.stopSound(newSound.sourceIdx);
+            try{window.audio.playSound(newEffect.sourceIdx,0,false);} catch(er) {}
+            window.audio.stopSound(newEffect.sourceIdx);
             
-            newSound.input.parentNode.removeChild(newSound.input);
-            newSound.controls.parentNode.removeChild(newSound.controls);
+            newEffect.input.parentNode.removeChild(newEffect.input);
+            newEffect.controls.parentNode.removeChild(newEffect.controls);
 
             let thisidx=0;
-            this.sounds.forEach((soundStruct,j)=> {
-                if(soundStruct.sourceIdx === newSound.sourceIdx) thisidx = j; 
-                else if(soundStruct.sourceIdx > newSound.sourceIdx) {
-                    soundStruct.sourceIdx--;
-                    this.loadSoundControls(soundStruct);
+            this.effects.forEach((effectStruct,j)=> {
+                if(effectStruct.sourceIdx === newEffect.sourceIdx) thisidx = j; 
+                else if(effectStruct.sourceIdx > newEffect.sourceIdx) {
+                    effectStruct.sourceIdx--;
+                    this.loadSoundControls(effectStruct);
                 }
 
             });
-            this.sounds.splice(thisidx,1);
+            this.effects.splice(thisidx,1);
 
         }
 
-        document.getElementById(this.props.id+'mute'+newSound.uiIdx).onclick = () => {
-            if(window.audio.sourceGains[newSound.sourceIdx].gain.value !== 0){
-                newSound.lastGain = window.audio.sourceGains[newSound.sourceIdx].gain.value;
-                window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
-                newSound.muted = true;
+        document.getElementById(this.props.id+'mute'+newEffect.uiIdx).onclick = () => {
+            if(window.audio.sourceGains[newEffect.sourceIdx].gain.value !== 0){
+                newEffect.lastGain = window.audio.sourceGains[newEffect.sourceIdx].gain.value;
+                window.audio.sourceGains[newEffect.sourceIdx].gain.setValueAtTime(0, window.audio.ctx.currentTime);
+                newEffect.muted = true;
                 
-            } else {  newSound.muted = false; window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(newSound.lastGain, window.audio.ctx.currentTime); }
+            } else {  newEffect.muted = false; window.audio.sourceGains[newEffect.sourceIdx].gain.setValueAtTime(newEffect.lastGain, window.audio.ctx.currentTime); }
         }
     };
 
     animate = () => {
         if(this.looping){
             this.modifiers = {};
-            this.sounds.forEach((soundStruct)=> {
-                let option = soundStruct.feedback.value;
-                if(!soundStruct.muted && window.audio){
-                    if(this.session.atlas.data.heg.length>0) {
-                        if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
-                            modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+            this.effects.forEach((effectStruct) => {
+                let option = effectStruct.feedback.value;
+                if(this.session.atlas.data.heg.length>0) {
+                    if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
+                        this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
+                        
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
                                 Math.max(0,Math.min(modifiers.iHB,1)), 
                                 window.audio.ctx.currentTime
-                            ); 
-                            this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
-                        } else if (option === 'heg_hr') { //Heart rate modifies play speed
-                            let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
-                            soundStruct.source.playBackRate.value = hr_mod;
-                            this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                            );
+                        } 
+                        this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
+                    } else if (option === 'heg_hr') { //Heart rate modifies play speed
+                        let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                        if(!effectStruct.muted && window.audio){
+                            effectStruct.source.playBackRate.value = hr_mod;
                         }
-                         else if (option === 'heg') { //Raise HEG ratio compared to baseline
-                            if(!soundStruct.hegbaseline) soundStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-soundStruct.hegbaseline;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                        this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                    }
+                        else if (option === 'heg') { //Raise HEG ratio compared to baseline
+                        if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                        let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
                                 Math.min(Math.max(0,hegscore),1), //
                                 window.audio.ctx.currentTime
                             );
-                            this.modifiers.iHEG = hegscore; //starts at 0
-                        } else if (option === 'heg_hrv') { //Maximize HRV, set the divider to set difficulty
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                        }
+                        this.modifiers.iHEG = hegscore; //starts at 0
+                    } else if (option === 'heg_hrv') { //Maximize HRV, set the divider to set difficulty
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
                                 window.audio.ctx.currentTime
                             );
-                            this.modifiers.iHRV = this.getData("iHRV");
-                        } 
-                    }
-                    if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
-                        let channel = document.getElementById(this.props.id+'channel'+soundStruct.uiIdx).value;
-                        if (option === 'eeg_delta') {
-                            this.modifiers.iDelta = this.session.atlas.getLatestFFTData(channel)[0].mean.delta;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iDelta/50,1)), window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
-                        } else if (option === 'eeg_theta') {
-                            this.modifiers.iTheta = this.session.atlas.getLatestFFTData(channel)[0].mean.theta;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iTheta/30,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_alpha1') {
-                            this.modifiers.iAlpha1 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha1;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1/20,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_alpha2') {
-                            this.modifiers.iAlpha2 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha2;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha2/20,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_beta') {
-                            this.modifiers.iBeta = this.session.atlas.getLatestFFTData(channel)[0].mean.beta;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iBeta/10,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_gamma') {
-                            this.modifiers.iGamma = this.session.atlas.getLatestFFTData(channel)[0].mean.lowgamma;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iGamma/5,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_40hz') {
-                            this.modifiers.i40Hz = this.session.atlas.get40HzGamma(this.session.atlas.getEEGDataByChannel(channel))
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.i40Hz/5,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_tb') {
-                            this.modifiers.iThetaBeta = this.session.atlas.getThetaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iThetaBeta,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_a12') {
-                            this.modifiers.iAlpha1Alpha2 = this.session.atlas.getAlphaRatio(this.session.atlas.getEEGDataByChannel(channel))
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1Alpha2,1)), window.audio.ctx.currentTime);
-                        } else if (option === 'eeg_ab') {
-                            this.modifiers.iAlphaBeta = this.session.atlas.getAlphaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaBeta,1)), window.audio.ctx.currentTime);
-                        } else if (this.session.atlas.settings.coherence === true && option === 'eeg_acoh') {
-                            this.modifiers.iAlpha1Coherence = this.session.atlas.getLatestCoherenceData(channel)[0].mean.alpha1;
-                            window.audio.sourceGains[soundStruct.sourceIdx].gain.setValueAtTime(
+                        }
+                        this.modifiers.iHRV = this.getData("iHRV");
+                    } 
+                }
+                if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
+                    let channel = document.getElementById(this.props.id+'channel'+effectStruct.uiIdx).value;
+                    if (option === 'eeg_delta') {
+                        this.modifiers.iDelta = this.session.atlas.getLatestFFTData(channel)[0].mean.delta;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iDelta/50,1)), window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
+                        }
+                    } else if (option === 'eeg_theta') {
+                        this.modifiers.iTheta = this.session.atlas.getLatestFFTData(channel)[0].mean.theta;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iTheta/30,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_alpha1') {
+                        this.modifiers.iAlpha1 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha1;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1/20,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_alpha2') {
+                        this.modifiers.iAlpha2 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha2;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha2/20,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_beta') {
+                        this.modifiers.iBeta = this.session.atlas.getLatestFFTData(channel)[0].mean.beta;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iBeta/10,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_gamma') {
+                        this.modifiers.iGamma = this.session.atlas.getLatestFFTData(channel)[0].mean.lowgamma;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iGamma/5,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_40hz') {
+                        this.modifiers.i40Hz = this.session.atlas.get40HzGamma(this.session.atlas.getEEGDataByChannel(channel))
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.i40Hz/5,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_tb') {
+                        this.modifiers.iThetaBeta = this.session.atlas.getThetaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iThetaBeta,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_a12') {
+                        this.modifiers.iAlpha1Alpha2 = this.session.atlas.getAlphaRatio(this.session.atlas.getEEGDataByChannel(channel))
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1Alpha2,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (option === 'eeg_ab') {
+                        this.modifiers.iAlphaBeta = this.session.atlas.getAlphaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaBeta,1)), window.audio.ctx.currentTime);
+                        }
+                    } else if (this.session.atlas.settings.coherence === true && option === 'eeg_acoh') {
+                        this.modifiers.iAlpha1Coherence = this.session.atlas.getLatestCoherenceData(channel)[0].mean.alpha1;
+                        if(!effectStruct.muted && window.audio){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
                                 Math.min(Math.max(0,this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')),1), 
                                 window.audio.ctx.currentTime
                             );
-                        } else if (option === 'eeg_bandpowers') {
-                            this.modifiers.iFFT = this.getData("iFFT");
-                        } 
-                    }
-                    if(option === 'audio') {
+                        }
+                    } else if (option === 'eeg_bandpowers') {
+                        this.modifiers.iFFT = this.getData("iFFT");
+                    } 
+                }
+                if(option === 'audio') {
+                    if(!effectStruct.muted && window.audio){
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
                         this.modifiers.iAudio = window.audio.analyserNode.getByteFrequencyData(array);
                     }
