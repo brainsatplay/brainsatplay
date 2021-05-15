@@ -1,3 +1,25 @@
+// Available Uniforms for shader effects:
+// iResolution: {value: new THREE.Vector2(400,400)}, // Resolution of the renderer 
+// iTime: {value: 0},                      // Time (in seconds)
+// iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
+// iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
+// iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
+// iHR: {value:1},                         //Heart Rate in BPM
+// iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+// iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+// iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+// iTheta: {value:1},                      //Theta bandpower average.
+// iAlpha1: {value:1},                     //Alpha1 " "
+// iAlpha2: {value:1},                     //Alpha2 " "
+// iBeta: {value:1},                       //Beta " "
+// iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
+// iThetaBeta: {value:1},                  //Theta/Beta ratio
+// iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
+// iAlphaBeta: {value:1},                  //Alpha/Beta ratio
+// i40Hz: {value:1},                       //40Hz bandpower
+// iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+
+
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
@@ -54,34 +76,14 @@ export class SensoriumApplet {
 
         this.three.planes = [];
 
-        this.defaultUniforms = { //List of available uniforms for the shaders apply to visual fx accordingly
-            iResolution: {value: new THREE.Vector2(400,400)}, //Required for ShaderToy shaders
-            iTime: {value: 0},                      //Required for ShaderToy shaders
-            iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
-            iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
-            iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
-            iHR: {value:1},                         //Heart Rate in BPM
-            iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
-            iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
-            iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
-            iTheta: {value:1},                      //Theta bandpower average.
-            iAlpha1: {value:1},                     //Alpha1 " "
-            iAlpha2: {value:1},                     //Alpha2 " "
-            iBeta: {value:1},                       //Beta " "
-            iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
-            iThetaBeta: {value:1},                  //Theta/Beta ratio
-            iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
-            iAlphaBeta: {value:1},                  //Alpha/Beta ratio
-            i40Hz: {value:1},                       //40Hz bandpower
-            iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
-        };
+        this.defaultUniforms = ['iResolution', 'iTime']
 
         this.shaders = {
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHR','iHB'],
+                uniforms: ['iHRV','iHEG','iHR','iHB','iAudio'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
@@ -186,6 +188,7 @@ export class SensoriumApplet {
         let setupHTML = (props=this.props) => {
             document.getElementById(props.id+'addeffect').onclick = () => {
                 this.addSoundInput();
+                console.log('clicked to add sound input')
             };
 
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
@@ -312,7 +315,9 @@ export class SensoriumApplet {
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    let defaultUniforms = {}
+    defaultUniforms.iTime = {value: 0}
+    defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
     shaderKeys.forEach((k,i) => {
 
         if (i === 0){
@@ -321,7 +326,7 @@ export class SensoriumApplet {
                 side: THREE.DoubleSide,
                 vertexShader: this.shaders[k].vertexShader,
                 fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: this.defaultUniforms// Default Uniforms 
+                uniforms: defaultUniforms// Default Uniforms 
             });
 
             let radius = 0;//10
@@ -335,31 +340,26 @@ export class SensoriumApplet {
         }
     });
 
-    // Animate
-    this.startTime = Date.now()
-    this.render = () => {
-
-        // setTimeout( () => {
+        // Animate
+        this.startTime = Date.now()
+        this.render = () => {
             if (this.three.renderer.domElement != null){
 
-                    // Organize Brain Data 
-                    this.setBrainData(this.session.atlas.data.eeg)
+                // Organize Brain Data 
+                this.setBrainData(this.session.atlas.data.eeg)
 
-                    this.three.planes.forEach(p => {
-                        this.updateMaterialUniforms(p.material,this.modifiers);
-                    });
+                this.three.planes.forEach(p => {
+                    this.updateMaterialUniforms(p.material,this.modifiers);
+                });
 
-                    this.controls.update()
-                    this.three.renderer.render( this.three.scene, this.camera );
+                this.controls.update()
+                this.three.renderer.render( this.three.scene, this.camera );
             }
-        // }, 1000 / 60 );
-    };
+        };
 
-        let animate = () => {
-            this.three.renderer.setAnimationLoop( this.render );
-        }
+        this.three.renderer.setAnimationLoop( this.render );
+        this.animate()
 
-        animate()
         setTimeout(() => {
             this.three.renderer.domElement.style.opacity = '1'
             // this.controls.enabled = true;
@@ -485,7 +485,7 @@ export class SensoriumApplet {
                 } else {
                     addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.eegshared.eegChannelTags);
                 }
-            } else if (value.inclues('heg')) {
+            } else if (value.includes('heg')) {
                 document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
             }
         }
@@ -559,7 +559,7 @@ export class SensoriumApplet {
             this.modifiers = {};
             this.sounds.forEach((soundStruct)=> {
                 let option = soundStruct.feedback.value;
-                if(!soundStruct.muted){
+                if(!soundStruct.muted && window.audio){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
                             modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
@@ -660,6 +660,7 @@ export class SensoriumApplet {
     }
 
     getData(u) {
+        console.log(u)
         if (u === 'iFFT'){
             let channel;
             if(!ch) {
@@ -680,70 +681,18 @@ export class SensoriumApplet {
     }
 
     updateMaterialUniforms = (material,modifiers={}) => {
-        ['iResolution','iTime',...this.currentShader.uniforms].forEach(u => {
+        let unformsToUpdate = this.defaultUniforms.concat(this.currentShader.uniforms)
+        unformsToUpdate.forEach(u => {
 
             if (material.uniforms[u] == null) material.uniforms[u] = {}
 
             /* todo
                 add Uniforms for each selector value
             */
-
-            else if (u === 'iFFT' && modifiers.iFFT){
-                material.uniforms[u].value = modifiers.iFFT;
-            }
-
-            else if (u === 'iHRV' && modifiers.iHRV){
-                material.uniforms[u].value = modifiers.iHRV;
-            }
-            else if (u === 'iHEG' && modifiers.iHEG){
-                material.uniforms[u].value = modifiers.iHEG;
-            }
-            else if (u === 'iHR' && modifiers.iHR){
-                material.uniforms[u].value = modifiers.iHR;
-            }
-            else if (u === 'iHB' && modifiers.iHB){
-                material.uniforms[u].value = modifiers.iHB;
-            }
-            else if (u === 'iDelta' && modifiers.iDelta){
-                material.uniforms[u].value = modifiers.iDelta;
-            }
-            else if (u === 'iTheta' && modifiers.iTheta){
-                material.uniforms[u].value = modifiers.iTheta;
-            }
-            else if (u === 'iAlpha1' && modifiers.iAlpha1){
-                material.uniforms[u].value = modifiers.iAlpha1;
-            }
-            else if (u === 'iAlpha2' && modifiers.iAlpha2){
-                material.uniforms[u].value = modifiers.iAlpha2;
-            }
-            else if (u === 'iBeta' && modifiers.iBeta){
-                material.uniforms[u].value = modifiers.iBeta;
-            }
-            else if (u === 'iGamma' && modifiers.iGamma){
-                material.uniforms[u].value = modifiers.iGamma;
-            }
-            else if (u === 'i40Hz' && modifiers.i40Hz){
-                material.uniforms[u].value = modifiers.i40Hz;
-            }
-            else if (u === 'iAlpha1Alpha2' && modifiers.iAlpha1Alpha2){
-                material.uniforms[u].value = modifiers.iAlpha1Alpha2;
-            }
-            else if (u === 'iThetaBeta' && modifiers.iThetaBeta){
-                material.uniforms[u].value = modifiers.iThetaBeta;
-            }
-            else if (u === 'iAlphaBeta' && modifiers.iAlphaBeta){
-                material.uniforms[u].value = modifiers.iAlphaBeta;
-            }
-            else if (u === 'iAlpha1Coherence' && modifiers.iAlpha1Coherence){
-                material.uniforms[u].value = modifiers.iAlpha1Coherence;
-            }
-            // Defaults
-            else if (u === 'iTime'){
-                material.uniforms[u].value = (Date.now() - this.startTime)/1000; // Seconds
-            }
-
-            else if (u === 'iResolution'){
-                material.uniforms[u].value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+            if (this.defaultUniforms.includes(u)){
+                material.uniforms[u].value = this.getData(u)
+            } else {
+                material.uniforms[u].value = modifiers[u];
             }
         })
 
