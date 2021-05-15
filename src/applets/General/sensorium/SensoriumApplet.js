@@ -40,7 +40,7 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.soundStruct = { source:{}, input:{}, controls:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
+        this.soundStruct = { source:{}, input:{}, controls:{}, feedback:{}, muted:false, lastGain:1, uiIdx:false, sourceIdx:false };
         this.visuals = [];
         this.sounds = [];//array of soundStructs
 
@@ -126,7 +126,7 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
 
-        this.history = 5 
+        this.history = 5; 
     }
 
     //---------------------------------
@@ -145,9 +145,8 @@ export class SensoriumApplet {
             </div>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
-                    <button id='${props.id}addsound'>Add Sound</button>
-                    <div id='${props.id}filemenu'></div>
-                    <div id='${props.id}soundcontrols'></div> 
+                    <button id='${props.id}addeffect'>Add Effects</button>
+                    <span id='${props.id}effectmenu'></span>
                     </div>
                 </div>    
             </div>`;
@@ -155,7 +154,7 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id+'addsound').onclick = () => {
+            document.getElementById(props.id+'addeffect').onclick = () => {
                 this.addSoundInput();
             };
 
@@ -164,7 +163,7 @@ export class SensoriumApplet {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             })
             
-            this.currentShader = this.shaders[selector.value]
+            this.currentShader = this.shaders[selector.value];
 
             selector.onchange = (e) => {
                 console.log('changed')
@@ -395,44 +394,50 @@ this.render = () => {
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
-                <div id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
-                    <div id='${props.id}fileinfo${idx}'></div> 
+                Feedback ${idx}: 
+                <span id='${props.id}selectors${idx}'></span>
+                <span id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
+                    <span id='${props.id}fileinfo${idx}'></span> 
                     Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
                     <button id='${props.id}uploadedFile${idx}'>Add File</button> ${idx}
-                    <div id='${props.id}status${idx}'></div>
-                </div>
+                    <span id='${props.id}status${idx}'></span>
+                </span>
             `;
         }
 
         let controls = (idx=0, props=this.props) => {
             return `
-                <div id='${props.id}controlWrapper${idx}'>
-                    <button id='${props.id}play${idx}'>Play ${idx}</button>
-                    <button id='${props.id}mute${idx}'>Mute ${idx}</button>
-                    <button id='${props.id}stop${idx}'>Remove ${idx}</button>
-                    Feedback ${idx}:
-                    <select id='${props.id}select${idx}'>
-                        <option value='none'>None</option>
-                        <option value='audio'>Audio FFT</option>
-                        <option value='heg_heartbeat'>Heart Beat</option>
-                        <option value='heg_hr'>Heart Rate</option>
-                        <option value='heg'>HEG Ratio</option>
-                        <option value='heg_hrv'>Heart Rate Variability</option>
-                        <option value='eeg_bandpowers'>EEG Bandpower FFT</option>
-                        <option value='eeg_delta'>Delta Bandpower</option>
-                        <option value='eeg_theta'>Theta Bandpower</option>
-                        <option value='eeg_alpha1'>Alpha1 Bandpower</option>
-                        <option value='eeg_alpha2'>Alpha2 Bandpower</option>
-                        <option value='eeg_beta'>Beta Bandpower</option>
-                        <option value='eeg_gamma'>Low Gamma Bandpower</option>
-                        <option value='eeg_40hz'>40Hz Bandpower</option>
-                        <option value='eeg_tb'>Theta/Beta Ratio</option>
-                        <option value='eeg_a12'>Alpha 2/1 Ratio</option>
-                        <option value='eeg_ab'>Alpha/Beta Ratio</option>
-                        <option value='eeg_acoh'>Frontal Alpha Coherence</option>
-                    </select>
-                    <select id='${props.id}channel${idx}'></select>
-                </div>
+                <span id='${props.id}controlWrapper${idx}'>
+                    <button id='${props.id}play${idx}'>${idx}: Play</button>
+                    <button id='${props.id}mute${idx}'>${idx}: Mute</button>
+                    <button id='${props.id}stop${idx}'>${idx}: Remove</button>
+                </span>
+            `;
+        }
+        
+        let fdback = (idx=0, props=this.props) => {
+            return `
+            <select id='${props.id}select${idx}'>
+                <option value='none'>None</option>
+                <option value='audio'>Audio FFT</option>
+                <option value='heg_heartbeat'>Heart Beat</option>
+                <option value='heg_hr'>Heart Rate</option>
+                <option value='heg'>HEG Ratio</option>
+                <option value='heg_hrv'>Heart Rate Variability</option>
+                <option value='eeg_bandpowers'>EEG Bandpower FFT</option>
+                <option value='eeg_delta'>Delta Bandpower</option>
+                <option value='eeg_theta'>Theta Bandpower</option>
+                <option value='eeg_alpha1'>Alpha1 Bandpower</option>
+                <option value='eeg_alpha2'>Alpha2 Bandpower</option>
+                <option value='eeg_beta'>Beta Bandpower</option>
+                <option value='eeg_gamma'>Low Gamma Bandpower</option>
+                <option value='eeg_40hz'>40Hz Bandpower</option>
+                <option value='eeg_tb'>Theta/Beta Ratio</option>
+                <option value='eeg_a12'>Alpha 2/1 Ratio</option>
+                <option value='eeg_ab'>Alpha/Beta Ratio</option>
+                <option value='eeg_acoh'>Frontal Alpha Coherence</option>
+            </select>
+            <select id='${props.id}channel${idx}' style='display:none;'></select>
             `;
         }
 
@@ -442,17 +447,35 @@ this.render = () => {
         this.sounds.push(newSound);
         newSound.uiIdx = idx;
         
-        document.getElementById(this.props.id+'filemenu').insertAdjacentHTML('beforeend',fileinput(idx));
+        document.getElementById(this.props.id+'effectmenu').insertAdjacentHTML('beforeend',`<div id='${this.props.id}effectWrapper${idx}'>`+fileinput(idx)+`</div>`);
         newSound.input = document.getElementById(this.props.id+'fileWrapper'+idx);
+
+        document.getElementById(this.props.id+'selectors'+newSound.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
+        newSound.feedback = document.getElementById(this.props.id+'select'+newSound.uiIdx)
+
+        document.getElementById(this.props.id+'select'+newSound.uiIdx).onchange = () => {
+            let value = document.getElementById(this.props.id+'select'+newSound.uiIdx).value;
+            console.log(value)
+            if(value.includes('eeg')){
+                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "";
+                if(value.includes('coh')) {
+                    addCoherenceOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.coherence);
+                } else {
+                    addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.eegshared.eegChannelTags);
+                }
+            } else if (value.inclues('heg')) {
+                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
+            }
+        }
+
 
         document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
             if(!window.audio) window.audio = new SoundJS();
             if (window.audio.ctx===null) {return;};
 
             window.audio.decodeLocalAudioFile((sourceListIdx)=>{    
-                document.getElementById(this.props.id+'soundcontrols').insertAdjacentHTML('beforeend',controls(idx));
+                document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
                 newSound.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
-                
                 newSound.source = window.audio.sourceList[sourceListIdx]; 
                 newSound.sourceIdx = sourceListIdx;
                 newSound.input.style.display='none';
@@ -475,7 +498,7 @@ this.render = () => {
     loadSoundControls = (newSound) => {
         
         document.getElementById(this.props.id+'play'+newSound.uiIdx).onclick = () => {
-            window.audio.playSound(newSound.sourceIdx,0,true);
+            try{window.audio.playSound(newSound.sourceIdx,0,true);}catch(er){}
         }
 
         document.getElementById(this.props.id+'stop'+newSound.uiIdx).onclick = () => {
@@ -507,27 +530,13 @@ this.render = () => {
                 
             } else {  newSound.muted = false; window.audio.sourceGains[newSound.sourceIdx].gain.setValueAtTime(newSound.lastGain, window.audio.ctx.currentTime); }
         }
-
-        document.getElementById(this.props.id+'select'+newSound.uiIdx).onchange = () => {
-            let value = document.getElementById(this.props.id+'select'+newSound.uiIdx).value;
-            if(value.includes('eeg')){
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "";
-                if(value.includes('coh')) {
-                    addCoherenceOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.data.coherence);
-                } else {
-                    addChannelOptions(this.props.id+'channel'+newSound.uiIdx,this.session.atlas.eegshared.eegChannelTags);
-                }
-            } else if (value.inclues('heg')) {
-                document.getElementById(this.props.id+'channel'+newSound.uiIdx).style.display = "none";
-            }
-        }
     };
 
     animate = () => {
         if(this.looping){
             this.modifiers = {};
             this.sounds.forEach((soundStruct)=> {
-                let option = document.getElementById(this.props.id+'select'+soundStruct.uiIdx).value;
+                let option = soundStruct.feedback.value;
                 if(!soundStruct.muted){
                     if(this.session.atlas.data.heg.length>0) {
                         if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
