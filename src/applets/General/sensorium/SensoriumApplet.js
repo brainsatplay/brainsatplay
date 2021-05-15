@@ -55,19 +55,19 @@ export class SensoriumApplet {
         this.three.planes = []
 
         this.shaders = {
-            negagalaxy: {
-                name: 'Nega Galaxy',
-                vertexShader: vertexShader,
-                fragmentShader: negaGalaxyFragmentShader,
-                uniforms: [],
-                credit: 'JoshP (Shadertoy) * JoshB'
-            },
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: [],
+                uniforms: ['iHRV','iHEG','iHR'],
                 credit: 'JoshP (Shadertoy)'
+            },
+            negagalaxy: {
+                name: 'Nega Galaxy',
+                vertexShader: vertexShader,
+                fragmentShader: negaGalaxyFragmentShader,
+                uniforms: ['iHRV','iHEG','iHR'],
+                credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
