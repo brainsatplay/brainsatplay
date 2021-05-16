@@ -49,6 +49,7 @@ import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 import { buzzPlugin } from './devices/buzzPlugin';
 import { syntheticPlugin } from './devices/synthetic/syntheticPlugin';
+import { brainstormPlugin } from './devices/brainstormPlugin';
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm} from './ui/login';
@@ -108,7 +109,6 @@ export class Session {
 				url: new URL(urlToConnect), 
 				username:username, 
 				password:password, 
-				access:access, 
 				appname:appname.toLowerCase().split(' ').join('').replace(/^[^a-z]+|[^\w]+/gi, ""),
 				authenticated:false
 			},
@@ -117,6 +117,8 @@ export class Session {
 			remoteHostURL: remoteHostURL,
 			localHostURL: localHostURL
 		}
+
+		this.id = Math.floor(Math.random()*10000) // Give the session an ID
 		this.socket = null;
 		this.streamObj = new streamSession(this.info.auth);
 		this.streamObj.deviceStreams = this.devices; //reference the same object
@@ -127,14 +129,12 @@ export class Session {
      * @description Set user information.
      * @param {string} username Username.
      * @param {string} password Password.
-	 * @param {string} access Access level ('public' or 'private').
      * @param {string} appname Name of the app.
      */
 
-	setLoginInfo(username='',password='',access='public',appname='') {
+	setLoginInfo(username='',password='', appname='') {
 		this.info.auth.username = username;
 		this.info.auth.password = password;
-		this.info.auth.access = access;
 		this.info.auth.appname = appname;
 	}
 
@@ -180,15 +180,31 @@ export class Session {
 				}
 			}
 
-			this.devices.push(
-				new deviceStream(
-					device,
-					analysis,
-					useFilters,
-					pipeToAtlas,
-					this.info.auth
-				)
-			);
+			if (device.includes('brainstorm')){
+				let metadata = {
+					session: this
+				}
+				this.devices.push(
+					new deviceStream(
+						device,
+						analysis,
+						useFilters,
+						pipeToAtlas,
+						this.info.auth,
+						metadata
+					)
+				);
+			} else {
+				this.devices.push(
+					new deviceStream(
+						device,
+						analysis,
+						useFilters,
+						pipeToAtlas,
+						this.info.auth
+					)
+				);
+			}
 
 			
 			let i = this.devices.length-1;
@@ -267,7 +283,7 @@ export class Session {
 		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
 	
 		let deviceOptions = [
-			'synthetic', 'muse','muse_aux',
+			'synthetic', 'brainstorm', 'muse','muse_aux',
 			'freeeeg32_2','freeeeg32_19',
 			'hegduinousb','hegduinobt', //,'hegduinowifi',
 			'cyton','cyton_daisy', 'ganglion', 'neosensory_buzz',
@@ -322,6 +338,8 @@ export class Session {
 					this.connect('neosensory_buzz',[],onconnect,ondisconnect);
 				} else if (o === 'synthetic'){
 					this.connect('synthetic',['eegcoherence'],onconnect,ondisconnect);
+				} else if (o === 'brainstorm'){
+					this.connect('brainstorm',[],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -576,21 +594,32 @@ export class Session {
 
 
 	//Server login and socket initialization
-	async login(beginStream=false, dict=this.info.auth, baseURL=this.info.auth.url.toString()) {
+	async login(beginStream=false, dict=this.info.auth, onsuccess=(newResult)=>{}) {
 
 		//Connect to websocket
 		if (this.socket == null  || this.socket.readyState !== 1){
-			this.socket = this.setupWebSocket(dict);
-			this.info.auth.authenticated = true;
-			this.subscribed=true;
-			//this.info.nDevices++;
+			this.socket = this.setupWebSocket(dict).then(socket => {
+				this.socket = socket
+				this.info.auth.authenticated = true;
+				this.subscribed=true;
+				if(this.socket !== null && this.socket.readyState === this.socket.OPEN) {
+					if(beginStream === true) {
+						this.beginStream();
+					}
+				}
+				let sub = this.state.subscribe('commandResult',(newResult) => {
+					if(typeof newResult === 'object') {
+						if(newResult.msg === 'resetUsername') {
+							this.info.auth.username = newResult.username
+							this.state.unsubscribe('commandResult',sub);
+							onsuccess(newResult)
+						}
+					}
+				});
+			});
+		} else {
+			return this.info.auth
 		}
-		if(this.socket !== null && this.socket.readyState === 1) {
-			if(beginStream === true) {
-				this.beginStream();
-			}
-		}
-		return this.socket
 	} 
 
 	async signup(dict={}, baseURL=this.info.auth.url.toString()) {
@@ -660,7 +689,8 @@ export class Session {
 
 		if(parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
-				this.state.data[parsed.username+"_userData"][prop] = parsed.userData[prop]; 
+				this.state.data[parsed.username+"_userData_" + prop] = parsed.userData[prop]; 
+				console.log(prop, parsed.userData[prop])
 			}
 		}
 		else if (parsed.msg === 'sessionData') {
@@ -717,16 +747,18 @@ export class Session {
 		}
 		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound' ) {
 			this.state.data.commandResult = parsed;
-		}else if (parsed.msg === 'resetUsername') {
-			this.info.auth.username = parsed.username;
-		}
+		} else if (parsed.msg === 'resetUsername'){
+			this.state.data.commandResult = parsed;
+		} else if (parsed.msg === 'getUserDataResult'){
+			this.state.data.commandResult = parsed;
+		} 
 		else {
 			console.log(parsed);
 		}
 		
 	}
 
-	setupWebSocket(auth=this.info.auth) {
+	async setupWebSocket(auth=this.info.auth) {
 
 		let encodeForSubprotocol = (info) => {
 			return info.replace(' ', '%20')
@@ -735,7 +767,8 @@ export class Session {
 		let socket = null;
         let subprotocol = [
 			'username&'+encodeForSubprotocol(auth.username),
-			'password&'+encodeForSubprotocol(auth.password)
+			'password&'+encodeForSubprotocol(auth.password),
+			'origin&'+encodeForSubprotocol('brainsatplay.js')
 		];
 		if (location.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
@@ -746,28 +779,29 @@ export class Session {
             return;
 		}
 
-        socket.onerror = () => {
-            console.log('error');
-        };
+		let wsPromise = new Promise((resolve, reject) => {
+			socket.onerror = (e) => {
+				console.log('error', e);
+			};
+	
+			socket.onopen = () => {
+				this.streamObj.socket = socket;
+				resolve(socket);
+			};
+	
+			socket.onmessage = (msg) => {
+				// console.log('Message recieved: ' + msg.data)
+				this.processSocketMessage(msg.data);
+			}
+	
+			socket.onclose = (msg) => {
+				console.log('close');
+			}
+	})
+	return wsPromise
+}
 
-        socket.onopen = () => {
-			console.log('socket opened')
-		};
-
-        socket.onmessage = (msg) => {
-			// console.log('Message recieved: ' + msg.data)
-			this.processSocketMessage(msg.data);
-        }
-
-        socket.onclose = (msg) => {
-            console.log('close');
-        }
-
-		this.streamObj.socket = socket;
-		return socket;
-	}
-
-	subscribeToUser(username='',userProps=[],userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
+	subscribeToUser(username='',userProps=[],onsuccess=(newResult)=>{}) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['getUserData',username]);
@@ -782,7 +816,9 @@ export class Session {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
 							this.sendBrainstormCommand(['subscribeToUser',username,userProps]);
-							//resulting data will be available in state
+							for (const [prop, value] of Object.entries(newResult.props)) {
+								this.state.data[username+"_userData_"+prop] = value;
+							}
 						}
 						onsuccess(newResult);
 						this.state.unsubscribe('commandResult',sub);
@@ -796,7 +832,7 @@ export class Session {
 		}
 	}
 
-	unsubscribeFromUser(username='',userProps=null, userToUnsubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
+	unsubscribeFromUser(username='',userProps=null, onsuccess=(newResult)=>{}) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['unsubscribeFromUser',username,userProps]);
@@ -806,11 +842,32 @@ export class Session {
 					for(const prop in this.state.data) {
 						if(prop.indexOf(username) > -1) {
 							this.state.unsubscribeAll(prop);
-							this.state.data[prop] = undefined;
+							delete this.state.data[prop]
 						}
 					}
 					onsuccess(newResult);
 					this.state.unsubscribe('commandResult',sub);
+				}
+			});
+		}
+	}
+
+	getUsers(appname, onsuccess=(newResult)=>{}) {
+		if(this.socket !== null && this.socket.readyState === 1) {
+			this.sendBrainstormCommand(['getUsers',appname]);
+			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
+			let sub = this.state.subscribe('commandResult',(newResult) => {
+				if(typeof newResult === 'object') {
+					if(newResult.msg === 'getUsersResult'){// && newResult.appname === appname) {						
+						onsuccess(newResult); //list sessions, then subscrie to session by id
+						this.state.unsubscribe('commandResult',sub);
+						return newResult.sessions
+					}
+				}
+				else if (newResult.msg === 'usersNotFound'){//} & newResult.appname === appname) {
+					this.state.unsubscribe('commandResult',sub);
+					console.log("USers not found: ", appname);
+					return []
 				}
 			});
 		}
@@ -825,8 +882,7 @@ export class Session {
 					if(newResult.msg === 'getSessionsResult' && newResult.appname === appname) {						
 						onsuccess(newResult); //list sessions, then subscrie to session by id
 						this.state.unsubscribe('commandResult',sub);
-						console.log(newResult)
-						return newResult.appInfo
+						return newResult.sessions
 					}
 				}
 				else if (newResult.msg === 'appNotFound' & newResult.appname === appname) {
@@ -839,7 +895,7 @@ export class Session {
 	}
 
 	//connect using the unique id of the subscription
-	subscribeToSession(sessionid=this.info.auth.appname,spectating=false,userToSubscribe=this.info.auth.username,onsuccess=(newResult)=>{}) {		
+	subscribeToSession(sessionid,spectating=false,onsuccess=(newResult)=>{}) {		
 		console.log(this.info.auth.username)
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['getSessionInfo',sessionid]);
@@ -859,14 +915,12 @@ export class Session {
 						}
 
 						if(configured === true) {
-							this.sendBrainstormCommand(['subscribeToSession',userToSubscribe,sessionid,spectating]);
-							let userData = {}
+							this.sendBrainstormCommand(['subscribeToSession',sessionid,spectating]);
 							newResult.sessionInfo.usernames.forEach((user) => {
 								newResult.sessionInfo.propnames.forEach((prop) => {
 									this.state.data[sessionid+"_"+user+"_"+prop] = null;
 								});
 							});
-
 							onsuccess(newResult);
 						}
 						this.state.unsubscribe('commandResult',sub);
@@ -900,17 +954,171 @@ export class Session {
 	}
 
 
+	promptLogin = (onsuccess=()=>{}) => {
+		let loginPage = document.getElementById(`${this.id}login-page`)
+		if (loginPage != null) loginPage.remove()
+		document.body.innerHTML += `
+		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0;">
+			<div>
+				<h2>Choose your Username</h2>
+				<div id="${this.id}login-container" class="form-container">
+					<div id="${this.id}login" class="form-context">
+						<p id="${this.id}login-message" class="small"></p>
+						<div class='flex'>
+							<form id="${this.id}login-form" action="">
+								<div class="login-element" style="margin-left: 0px; margin-right: 0px">
+									<input type="text" name="username" autocomplete="off" placeholder="Enter a username"/>
+								</div>
+							</form>
+						</div>
+						<div class="login-buttons" style="justify-content: flex-start;">
+							<div id="${this.id}login-button" class="brainsatplay-default-button">Sign In</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		`
+
+		const loginButton = document.getElementById(`${this.id}login-button`)
+		let form = document.getElementById(`${this.id}login-form`)
+		const usernameInput = form.querySelector('input')
+
+		form.addEventListener("keyup", function(event) {
+			if (event.keyCode === 13) {
+			  event.preventDefault();
+			}
+		  });
+
+		usernameInput.addEventListener("keyup", function(event) {
+			if (event.keyCode === 13) {
+			  event.preventDefault();
+			  loginButton.click();
+			}
+		  });
+
+		loginButton.onclick = () => {
+			let form = document.getElementById(`${this.id}login-form`)
+			let formDict = {}
+			let formData = new FormData(form);
+			for (var pair of formData.entries()) {
+				formDict[pair[0]] = pair[1];
+			}
+
+			this.setLoginInfo(formDict.username)
+
+			this.login(true, this.info.auth, () => {
+				onsuccess()
+				document.getElementById(`${this.id}login-page`).style.opacity = '0';
+				document.getElementById(`${this.id}login-page`).style.pointerEvents = 'none'
+			})
+		}
+
+		// Auto-set username with Google Login
+		if (this.info.googleAuth != null){
+			this.info.googleAuth.refreshCustomData().then(data => {
+				document.getElementsByName("username")[0].value = data.username
+				loginButton.click()
+			})
+		}
+
+		document.getElementById(`${this.id}login-page`).style.opacity = '1';
+	}
+
+	createBrainstormBrowser = (onsubscribe=()=>{}) => {
+		let mask = document.getElementById(`${this.id}-choiceMask`)
+		if (mask != null) mask.remove()
+		document.body.innerHTML += `
+		<div id="${this.id}-choiceMask" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.0s;">
+			<div id="${this.id}-choiceDisplay" style="flex-grow: 1;">
+				<h1>Browse the Brainstorm</h1>
+				<div id="${this.id}-userDiv" style="flex-grow: 1; overflow-y: scroll; border: 1px solid white;">
+				</div>
+			</div>
+			<button id="${this.id}-exitBrowser" class="brainsatplay-default-button" style="position: absolute; bottom:25px; right: 25px;">Go Back</button>
+		</div>`
+
+		mask = document.getElementById(`${this.id}-choiceMask`)
+		let userDiv = document.getElementById(`${this.id}-userDiv`)
+		let exitBrowser = document.getElementById(`${this.id}-exitBrowser`)
+		exitBrowser.onclick = () => {
+			mask.style.opacity = '0'
+			mask.style.pointerEvents = 'none'
+		}
+
+		mask.style.opacity = '1'
+
+		const resizeDisplay = () => {
+			let mask = document.getElementById(`${this.id}-choiceMask`)
+			let display = document.getElementById(`${this.id}-choiceDisplay`)
+			let userDiv = document.getElementById(`${this.id}-userDiv`)
+			let padding = 50;
+			mask.style.padding = `${padding}px`
+			userDiv.style.height =`${window.innerHeight - 2*padding - (display.offsetHeight - userDiv.offsetHeight)}px`
+		}
+		resizeDisplay()
+
+		this.getUsers(null,(commandResult) => {
+			
+			window.addEventListener('resize', resizeDisplay)
+
+			userDiv.innerHTML = ''
+			let brainstormUserStyle = `
+				background: rgb(20,20,20);
+				padding: 25px;
+				border: 1px solid black;
+				transition: 0.5s;
+			`
+
+			let onMouseOver = () => {
+				this.style.background = 'rgb(35,35,35)';
+				this.style.cursor = 'pointer';
+			}
+
+			let onMouseOut = () => {
+				this.style.background = 'rgb(20,20,20)';
+				this.style.cursor = 'default';
+			}
+
+			commandResult.userData.forEach(o => {
+				let appMessage = ((o.sessions == '') ? 'Idle' : `Currently in ${o.sessions}`)
+				if (o.username !== this.info.auth.username){
+					userDiv.innerHTML += `
+					<div  id="${this.id}-user-${o.username}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
+					<p style="font-size: 60%;">${o.origins}</p>
+					<p>${o.username}</p>
+					<p style="font-size: 80%;">${appMessage}</p>
+					</div>`
+				}
+			})
+
+			let divs = userDiv.querySelectorAll(".brainstorm-user")
+			for (let div of divs){
+				div.onclick = (e) => {
+					let name = div.id.split(`${this.id}-user-`)[1]
+					this.subscribeToUser(name, [], () => {
+						onsubscribe(name)
+						mask.style.opacity = '0'
+						mask.style.pointerEvents = 'none'
+						window.removeEventListener('resize', resizeDisplay)
+					})
+				}
+			}
+		})
+	}
+
+
 	insertMultiplayerIntro = (applet) => {
 
 			document.getElementById(`${applet.props.id}`).innerHTML += `
-			<div id='${applet.props.id}appHero' class="brainsatplay-multiplayerintro-container" style="z-index: 5"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 5"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle}</p>
 			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
 
-			<div id='${applet.props.id}login-screen' class="brainsatplay-multiplayerintro-container" style="z-index: 4"><div>
+			<div id='${applet.props.id}login-screen' class="brainsatplay-default-container" style="z-index: 4"><div>
 				<h2>Choose your Username</h2>
 				<div id="${applet.props.id}login-container" class="form-container">
 					<div id="${applet.props.id}login" class="form-context">
@@ -923,13 +1131,13 @@ export class Session {
 							</form>
 						</div>
 						<div class="login-buttons" style="justify-content: flex-start;">
-							<div id="${applet.props.id}login-button" class="brainsatplay-multiplayerintro-button">Sign In</div>
+							<div id="${applet.props.id}login-button" class="brainsatplay-default-button">Sign In</div>
 						</div>
 					</div>
 				</div>
 			</div></div>
 
-			<div id='${applet.props.id}sessionSelection' class="brainsatplay-multiplayerintro-container" style="z-index: 3"><div>
+			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 3"><div>
 				<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
 				display: flex;
@@ -938,12 +1146,12 @@ export class Session {
 				grid-template-columns: repeat(2,1fr)">
 					<h2>Choose a Session</h2>
 					<div>
-						<button id='${applet.props.id}createSession' class="brainsatplay-multiplayerintro-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
+						<button id='${applet.props.id}createSession' class="brainsatplay-default-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
 					</div>
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-multiplayerintro-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
 			`
 			
             // Setup HTML References
@@ -955,7 +1163,7 @@ export class Session {
 
             // Create Session Brower
             let baseBrowserId = `${applet.props.id}${applet.info.name}`
-            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-multiplayerintro-button">Search</button>`
+            document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`
             document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`;
     
             let waitForReturnedMsg = (msgs, callback = () => {}) => {
@@ -985,24 +1193,24 @@ export class Session {
                 this.getSessions(applet.info.name, (result) => {
 
                     let gridhtml = '';
-                    result.appInfo.forEach((g,i) => {
+                    result.sessions.forEach((g,i) => {
                         if (g.usernames.length < 10){ // Limit connections to the same session server
-                            gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-multiplayerintro-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
+                            gridhtml += `<div><h3>`+g.id+`</h3><p>Streamers: `+g.usernames.length+`</p><div><button id='`+g.id+`connect' style="margin-top: 5px;" class="brainsatplay-default-button">Connect</button><input id='`+baseBrowserId+`spectate' type='checkbox' style="display: none"></div></div>`
                         } else {
-                            result.appInfo.splice(i,1)
+                            result.sessions.splice(i,1)
                         }
                     });
     
                     document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
     
-                    result.appInfo.forEach((g) => { 
+                    result.sessions.forEach((g) => { 
                         let connectButton = document.getElementById(`${g.id}connect`)
                         connectButton.onclick = () => {
 							let spectate = true
 							
 							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
 							else console.log('spectating')
-                            this.subscribeToSession(g.id,spectate,undefined,(subresult) => {
+                            this.subscribeToSession(g.id,spectate,(subresult) => {
                                 onjoined(g);
 
 								
@@ -1153,10 +1361,11 @@ export class Session {
 		return arr
 	}
 
-	kickPlayerFromSession = (sessionid, userToKick, onsuccess=(newResult)=>{}) => {
+	kickUserFromSession = (sessionid, userToKick, onsuccess=(newResult)=>{}) => {
 		if(this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['leaveSession',sessionid,userToKick]);
 			let sub = this.state.subscribe('commandResult',(newResult) => {
+				console.log(newResult)
 				if(newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for(const prop in this.state.data) {
 						if(prop.indexOf(userToKick) > -1) {
@@ -1164,6 +1373,7 @@ export class Session {
 							delete this.state.data[prop]
 						}
 					}
+					console.log(onsuccess)
 					onsuccess(newResult);
 					this.state.unsubscribe('commandResult',sub);
 				}
@@ -1237,7 +1447,7 @@ export class Session {
 		let o = {cmd:command,username:this.info.auth.username};
 		Object.assign(o,dict);
 		let json = JSON.stringify(o);
-		
+
 		if (this.socket.readyState !== this.socket.OPEN) {
 			// Try to Send Message
 			try {
@@ -1317,13 +1527,14 @@ class deviceStream {
 		pipeToAtlas=true,
 		auth={
 			username:'guest'
-		}
+		},
+		metadata={}
 	) {
-
 		this.info = {
 			deviceName:device,
 			deviceType:null,
 			analysis:analysis, //['eegcoherence','eegfft' etc]
+			metadata: metadata,
 
 			deviceNum:0,
 
@@ -1346,7 +1557,7 @@ class deviceStream {
 			{  name:'ganglion',    cls:ganglionPlugin     },
 			{  name:'neosensory_buzz',    cls: buzzPlugin     },
 			{  name:'synthetic',    cls: syntheticPlugin     },
-
+			{  name:'brainstorm',    cls: brainstormPlugin     },
 		];
 
 		this.filters = [];   //BiquadChannelFilterer instances 
@@ -1358,7 +1569,11 @@ class deviceStream {
 	init = (info=this.info, pipeToAtlas=this.pipeToAtlas) => {
 		this.deviceConfigs.find((o,i) => {
 			if(info.deviceName.indexOf(o.name) > -1 ) {
-				this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
+				if (info.deviceName.includes('brainstorm')){
+					this.device = new o.cls(info.deviceName, info.metadata, this.onconnect,this.ondisconnect);
+				} else {
+					this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
+				}
 				this.device.init(info,pipeToAtlas);
 				this.atlas = this.device.atlas;
 				this.filters = this.device.filters;

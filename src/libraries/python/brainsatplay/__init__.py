@@ -3,6 +3,7 @@ import websockets
 from urllib.parse import urlparse
 import json
 import ssl
+import asyncio
 
 """ TO DO
     -  Get HTTPS working
@@ -20,78 +21,98 @@ class Brainstorm():
         self.password = ''
         self.appname = ''
         self.uri = ''
+        self.loop = asyncio.get_event_loop()
+        self.subscriptionLoop = asyncio.get_event_loop()
         self.websocket = None
 
     """
     Connect to the Brainstorm
     """    
-    async def connect(self, username='', password=''):
+    def connect(self, username='', password=''):
         # message = {'username': username, 'cmd': []}
+       return self.loop.run_until_complete(self.__async__connect(username,password))
 
+    async def __async__connect(self,username,password):
         self.username = username
         self.password = password
 
         def encodeForSubprotocol(field, value):
             return field + '&' + value.replace(' ', '')
 
-        subprotocols = [encodeForSubprotocol('username', self.username),encodeForSubprotocol('password', self.password)]
+        subprotocols = [encodeForSubprotocol('username', self.username),encodeForSubprotocol('password', self.password), encodeForSubprotocol('origin', 'brainsatplay.py')]
 
         o = urlparse(self.url)
         if (o.scheme == 'http'):
             self.uri = "ws://" + o.netloc + ":" + self.port
-            async with websockets.connect(self.uri,subprotocols=subprotocols) as self.websocket:
-                return await self.__waitForResponse()
-                return await self.sendCommand('ping')
+            self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
+
         elif (o.scheme == 'https'):
             self.uri = "wss://" + o.netloc + ":" + self.port
-            async with websockets.connect(self.uri,subprotocols=subprotocols, ssl=True) as self.websocket:
-                return await self.__waitForResponse()
-                await self.websocket.send(json.dumps({'username': self.username, 'cmd': command}))
-                return await self.__waitForResponse()
+            self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols, ssl=True)
                 
         else:
             print('not a valid url scheme')
+            return
+
+        print("connected to {}".format(self.uri))
+        return await self.__waitForResponse()
     
     """
     Brainstorm Commands
     """    
-    async def getUserData(self,username):
-       return await self.sendCommand(['getUserData',username])
+    def getUserData(self,username):
+       return self.sendCommand(['getUserData',username])
 
 
-    async def subscribeToUser(self,username,userProps):
-        return await self.sendCommand(['subscribeToUser',username,userProps])
+    def subscribeToUser(self,username,userProps):
+        res = self.sendCommand(['subscribeToUser',username,userProps])
+        self.subscriptionLoop.create_task(self.checkSubscription('userData',ondata))
+        self.subscriptionLoop.run_forever()
+        return res
 
-    async def unsubscribeFromUser(self,username,userProps):
-        return await self.sendCommand(['unsubscribeFromUser',username,userProps])
+    def unsubscribeFromUser(self,username,userProps):
+        return self.sendCommand(['unsubscribeFromUser',username,userProps])
 
-    async def getSessions(self,appname):
-        return await self.sendCommand(['getSessions',appname])
+    def getSessions(self,appname):
+        return self.sendCommand(['getSessions',appname])
 
-    async def createSession(self,appname,devices,streams):
-        return await self.sendCommand(['createSession',appname,devices,props])
+    def createSession(self,appname,devices,props):
+        return self.sendCommand(['createSession',appname,devices,props])
 
-    async def getSessionInfo(self,sessionid):
-        return await self.sendCommand(['getSessionInfo',sessionid])
+    def getSessionInfo(self,sessionid):
+        return self.sendCommand(['getSessionInfo',sessionid])
 
-    async def subscribeToSession(self,sessionid):
-        return await self.sendCommand(['subscribeToSession',sessionid])
+    def subscribeToSession(self, sessionid, spectating=True, ondata=None):
+        res = self.sendCommand(['subscribeToSession',sessionid,spectating])
 
-    async def leaveSession(self,sessionid):
-        return await self.sendCommand(['leaveSession',sessionid])
+        if ondata is None:
+            def echo(data):
+                print(data)
+            ondata = echo
 
-    async def configureStreamProps(self,params=[['prop','tag']]):
+        self.subscriptionLoop.create_task(self.checkSubscription('sessionData',ondata))
+        return res
+        self.subscriptionLoop.run_forever()
+
+    def leaveSession(self,sessionid):
+        self.subscriptionLoop.stop()
+        return self.sendCommand(['leaveSession',sessionid],False)
+
+    def configureStreamProps(self,params=[['prop','tag']]):
         propsToSend = []
         for param in params:
 	        propsToSend.append(param.join('_'))
     
-        return await self.sendCommand(['addProps',propsToSend])
+        return self.sendCommand(['addProps',propsToSend])
 
+    async def checkSubscription(self,subscription,ondata):
+        while True:
+            ondata(await self.__waitForResponse(subscription))
 
     """
     Low-Level Communication Methods
     """    
-    async def __waitForResponse(self):
+    async def __waitForResponse(self,subscription=None):
         res = await self.websocket.recv()
 
         # Parse Response
@@ -101,28 +122,28 @@ class Brainstorm():
             print('\n\nError: ' + res + '\n\n')
             return
 
-        if (jsonMessage['msg'] == 'resetUsername'):
-            self.username = jsonMessage['username']
+        self.__defaults__onData(jsonMessage)
 
-        elif (jsonMessage['msg'] == 'userData'):
-            for prop in jsonMessage['userData']:
-                print(jsonMessage['userData'][prop])
+        if (subscription is None) or (subscription == jsonMessage['msg']):
+            return jsonMessage
 
-        elif (jsonMessage['msg'] == 'sessionData'):
-            for user in jsonMessage['sessionData']:
-                name = user.username
-                print('Data for ' + user)
-                for prop in user:
-                    print(user[prop])
+    def __defaults__onData(self,json):
+        if (json['msg'] == 'resetUsername'):
+            self.username = json['username']
 
-        return jsonMessage
+    def sendCommand(self,cmd,checkForResponse=True):
+        return self.loop.run_until_complete(self.__async__sendCommand(cmd,checkForResponse))
 
-    async def sendCommand(self,command):
-        await self.websocket.send(json.dumps({'username': self.username, 'cmd': command}))
-        return await self.__waitForResponse()
+    async def __async__sendCommand(self, cmd, checkForResponse):
+        await self.websocket.send(json.dumps({'username': self.username, 'cmd': cmd}))
+        if (checkForResponse):
+            return await self.__waitForResponse()
+        else:
+            return 'left'
 
-    async def streamData(self,data={}):
+    def streamData(self,data={}):
+        return self.loop.run_until_complete(self.__async__streamData(data))
+
+    async def __async__streamData(self, data):
         await self.websocket.send(json.dumps({'username': self.username, 'userData': data}))
-        return await self.__waitForResponse()
-
     

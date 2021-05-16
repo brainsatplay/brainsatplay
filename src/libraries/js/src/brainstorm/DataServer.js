@@ -14,7 +14,7 @@ class DataServer {
      * @description Class for managing incoming requests to the WebBCI server.
      */
 
-    constructor(mongoClient) {
+    constructor() {
 		this.userData=new Map();
 		// this.serverInstances=appnames;
 		this.userSubscriptions=[]; //User to user data subscriptions
@@ -22,25 +22,26 @@ class DataServer {
         this.hostSubscriptions=[]; //Asynchronous apps (host receives all users data, users receive host data only)
         this.subUpdateInterval = 0; //ms
         this.serverTimeout = 60*60*1000; //min*s*ms
-        this.mongoClient = mongoClient;
+        this.mongoClient = undefined;
 
         this.subscriptionLoop();
 	}
 
-	addUser(username='',socket=null,availableProps=[]) {
+	addUser(username='', origin, socket=null,availableProps=[]) {
 
         socket = this.setWSBehavior(username, socket)
         
         if (!this.userData.has(username)){
             this.userData.set(username, {
                 username:username,
-                appname:'',
+                sessions:[],
                 socket:socket,
                 props: {},
                 updatedPropnames: [],
                 lastUpdate:Date.now(),
                 lastTransmit:0,
-                latency:0
+                latency:0,
+                origins: [origin],
             })
             availableProps.forEach((prop,i) => {
                 this.userData.get(username).props[prop] = '';
@@ -53,6 +54,7 @@ class DataServer {
                 u.socket.close();
                 u.socket = socket;
             }
+            u.origins.push(origin)
             availableProps.forEach((prop,i) => {
                 u.props[prop] = '';
             });
@@ -102,7 +104,7 @@ class DataServer {
 
     removeUserFromSession(id='',username='') {
         let found = false;
-        let app = this.appeSubscriptions.find((o,i) => {
+        let app = this.appSubscriptions.find((o,i) => {
             if(o.id === id) {
                 let uidx = o.usernames.indexOf(username);
                 if(uidx > -1) o.usernames.splice(uidx,1);
@@ -131,6 +133,12 @@ class DataServer {
             sessionData.userLeft = username
             app.usernames.forEach(u => {
                 this.userData.get(u).socket.send(JSON.stringify(sessionData));
+            })
+            this.userData.get(username).sessions.find((session,i) => {
+                if (session === id){
+                    this.userData.get(username).sessions.splice(i,1)
+                    return
+                }
             })
         }
 
@@ -182,22 +190,29 @@ class DataServer {
         if (u != null) u.lastUpdate = Date.now();
         //u.socket.send(JSON.stringify({msg:commands}));
         if(commands[0] === 'getUsers') {
-            let users = [];
+            let userData = [];
             this.userData.forEach((o) => {
-                if(commands[1] !== undefined) {
+                let filtered = {}
+                let propsToGet = ['sessions','username','origins']
+
+                propsToGet.forEach(p => {
+                    filtered[p] = o[p]
+                })
+
+                if(commands[1] != null) {
                     if(o.username === commands[1]) {
-                        users.push(o);
+                        userData.push(filtered);
                     }
                 }
-                else if(u.appname !== '' && o.appname === u.appname) {
-                    users.push(o.username);
+                else if(u.sessions.length > 0 && u.sessions.includes(o.appname)) {
+                    userData.push(filtered);
                 }
                 else {
-                    users.push(o.username);
+                    userData.push(filtered);
                 }
             });
-            if(users.length > 0) u.socket.send(JSON.stringify({msg:'getUsersResult', userData:users}))
-            else u.socket.send(JSON.stringify({msg:'userNotFound', userData:[username]}))
+            if(userData.length > 0) u.socket.send(JSON.stringify({msg:'getUsersResult', userData:userData}))
+            else u.socket.send(JSON.stringify({msg:'usersNotFound', userData:[]}))
         }
         else if(commands[0] === 'getUserData') {
             if(commands[2] === undefined) {
@@ -225,25 +240,25 @@ class DataServer {
                 u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],appInfo:subs}));
+                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
             }
         }
         else if (commands[0] === 'getSessionInfo') { //List the app info for the particular ID
             let sub = this.getAppSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',appname:commands[1],sessionInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
             }
         }
         else if (commands[0] === 'getSessionData') {
             let sessionData = this.getSessionData(commands[1]);
             if(sessionData === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionDataResult',appname:commands[1],sessionData:sessionData}));
+                u.socket.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
             }
         }
         else if (commands[0] === 'createHostedSession') {
@@ -256,25 +271,25 @@ class DataServer {
                 u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],appInfo:subs}));
+                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
             }
         }
         else if (commands[0] === 'getHostSessionInfo') { //List the app info for the particular session ID
             let sub = this.getHostSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',appname:commands[1],sessionInfo:sub}));
+                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
             }
         }
         else if (commands[0] === 'getHostSessionData') {
             let sessionData = this.getHostSessionData(commands[1]);
             if(sessionData === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));
+                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionDataResult',appname:commands[1],sessionData:sessionData}));
+                u.socket.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
@@ -282,10 +297,10 @@ class DataServer {
             else this.streamBetweenUsers(username,commands[1]);
         }
         else if(commands[0] === 'subscribeToSession') { //Join session
-            this.subscribeUserToSession(commands[1],commands[2],commands[3]);
+            this.subscribeUserToSession(username,commands[1],commands[2]);
         }
         else if(commands[0] === 'subscribeToHostSession') { //Join session
-            this.subscribeUserToHostSession(commands[1],commands[2],commands[3],commands[4]);
+            this.subscribeUserToHostSession(username,commands[1],commands[2],commands[3]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
@@ -303,12 +318,12 @@ class DataServer {
             let found = undefined;
             if(commands[2]) found = this.removeUserFromSession(commands[1],commands[2]);
             else found = this.removeUserFromSession(commands[1],u.username);
-            if(found) {  u.socket.send(JSON.stringify({msg:'leftSession',appname:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:commands[1]}));}
+            if(found) {  u.socket.send(JSON.stringify({msg:'leftSession',id:commands[1]}));}
+            else { u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));}
         }
         else if(commands[0] === 'deleteSession') {
             let found = this.removeAppStream(commands[1]);
-            if(found) { u.socket.send(JSON.stringify({msg:'sessionDeleted',appname:commands[1]}));}
+            if(found) { u.socket.send(JSON.stringify({msg:'sessionDeleted',id:commands[1]}));}
             else { u.socket.send(JSON.stringify({msg:'sessionNotFound'}));}
         }
         else if( commands[0] === 'ping' || commands === 'ping') {
@@ -318,7 +333,6 @@ class DataServer {
 
 	//Received a message from a user socket, now parse it into system
 	updateUserData(data={username:'',userData:{}}){ 
-
 		//Send previous data off to storage
         if (this.userData.has(data.username)){
 
@@ -466,7 +480,7 @@ class DataServer {
                         }
                     }
                     else {
-                        spectators.push(user);
+                        updateObj.spectators.push(user);
                     }
                 });
                 sessionData = updateObj;
@@ -477,7 +491,7 @@ class DataServer {
     }
 
 	subscribeUserToSession(username,id,spectating=false) {
-		let g = this.getAppSubscription(id);
+        let g = this.getAppSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
             if( g.usernames.indexOf(username) < 0) { 
@@ -490,12 +504,12 @@ class DataServer {
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
-            u.appname = id;
+            u.sessions.push(id);
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToSession',appname:id,sessionInfo:g}));
+			u.socket.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:id}));
+			u.socket.send(JSON.stringify({msg:'sessionNotFound',id:id}));
 		}
 	}
 
@@ -602,10 +616,10 @@ class DataServer {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToSession',appname:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
+			u.socket.send(JSON.stringify({msg:'subscribedToSession',id:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'sessionNotFound',appname:appname}));
+			u.socket.send(JSON.stringify({msg:'sessionNotFound',id:appname}));
 		}
 	}
 

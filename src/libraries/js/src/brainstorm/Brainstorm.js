@@ -40,20 +40,19 @@ if (protocol === 'https'){
 let wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
 // Create Brainstorm Data Server
+const dataServer = new DataServer();
 
 // Database Setup
-let mongoClient ;
+let mongoClient;
 if (mongouri) {
-   mongoClient = await mongodb.MongoClient.connect(mongouri, {useUnifiedTopology: true}).catch(err => {
+   mongodb.MongoClient.connect(mongouri, {useUnifiedTopology: true}).then(mongoClient => {
+    dataServer.mongoClient =  mongoClient
+    console.log('Connected to MongoDB Database')
+   }).catch(err => {
         console.log('Error: ' + err)
     })
 }
 
-if (mongoClient){
-    console.log('Connected to MongoDB Database')
-}
-
-const dataServer = new DataServer(mongoClient);
 
 // Authenticate User Before Connecting WebSocket
 server.on('upgrade', async (request, socket, head) => {
@@ -74,10 +73,12 @@ server.on('upgrade', async (request, socket, head) => {
 
     if (subprotocols.username == null) subprotocols.username = 'guest'
     if (subprotocols.password == null) subprotocols.password = ''
+    if (subprotocols.origin == null) subprotocols.origin = ''
 
     let username = subprotocols['username']
     let password = subprotocols['password']
-    
+    let origin = subprotocols['origin']
+
     // Pass Credentials to Authentication Script
     authenticate({username,password},mongoClient).then((res) => {
 
@@ -89,7 +90,7 @@ server.on('upgrade', async (request, socket, head) => {
 
       username = res.msg
       wss.handleUpgrade(request, socket, head, function (ws) {
-        wss.emit('connection', ws, {username}, request);
+        wss.emit('connection', ws, {username,origin}, request);
       });
     })
 });
@@ -99,9 +100,10 @@ server.on('upgrade', async (request, socket, head) => {
 wss.on('connection', function (ws, msg, req) {
 
   let username = msg.username;
+  let origin = msg.origin;
 
   // add user
-  dataServer.addUser(username,ws);
+  dataServer.addUser(username, origin, ws);
   ws.send(JSON.stringify({msg:'resetUsername',username:username}));
 });
 
