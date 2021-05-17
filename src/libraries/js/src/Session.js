@@ -52,7 +52,7 @@ import { webgazerPlugin } from './devices/webgazerPlugin'
 import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
 import { buzzPlugin } from './devices/buzzPlugin';
 import { syntheticPlugin } from './devices/synthetic/syntheticPlugin';
-import { brainstormPlugin } from './devices/brainstormPlugin';
+import { brainstormPlugin } from './devices/brainstorm/brainstormPlugin';
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm} from './ui/login';
@@ -1030,7 +1030,7 @@ export class Session {
 			loginPage.style.opacity = '1';
 		}
 
-			let ui = new DOMFragment(
+		let ui = new DOMFragment(
 				template,
 				parentNode,
 				undefined,
@@ -1040,6 +1040,7 @@ export class Session {
 	}
 
 	createBrainstormBrowser = (parentNode=document.body, onsubscribe=()=>{}) => {
+
 		let template = () => {
 			return `
 			<div id="${this.id}-brainstormBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.0s;">
@@ -1116,6 +1117,7 @@ export class Session {
 							browser.style.opacity = '0'
 							browser.style.pointerEvents = 'none'
 							window.removeEventListener('resize', resizeDisplay)
+							ui.deleteNode()
 						})
 					}
 				}

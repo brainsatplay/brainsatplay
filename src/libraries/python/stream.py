@@ -7,35 +7,52 @@ import sys, signal
 
 def main():
 
-    # Subscription Details
-    appname = 'brainflow'
-    devices = []
-    props = ['raw','times','sps','deviceType','format','eegChannelTags']
-    sessionid = None
+    '''
+    Connect to the Brainstorm
+    '''   
+    # Authentication
+    username = 'guest'
+    password = ''
 
-    # Initiailize Connection to the Brainstorm
-    brainstorm = brainsatplay.Brainstorm('http://localhost','8000')
-    res = brainstorm.connect()
+    ## Set Connection Details
+    brainstorm = brainsatplay.Brainstorm('http://localhost','8000') # URL, Port
 
-    # Handle Data from Subscribed Games
-    def newData(json):
-        for user in json['userData']:
-            name = user['username']
-            print('Data for {}'.format(name))
-            
-    res = brainstorm.getSessions(appname)
+    ## Connect
+    res = brainstorm.connect(username,password) # All optional (defaults to guest)
+
+    '''
+    Subscribe to a Particular Game
+    '''   
+    # # Connection Settings
+    # appname = 'brainstorm'
+    # devices = []
+    # props = ['raw','times','sps','deviceType','format','eegChannelTags']
+    # sessionid = None
+    # spectating = False # Spectate to view data without sending it
+
+    # res = brainstorm.getSessions(appname)
     
-    if res['msg'] != 'appNotFound':
-        sessionid = res['sessions'][0]['id']
-    else:
-        res = brainstorm.createSession(appname, devices, props)
-        sessionid = res['sessionInfo']['id']
+    # if res['msg'] != 'appNotFound':
+    #     sessionid = res['sessions'][0]['id']
+    # else:
+    #     res = brainstorm.createSession(appname, devices, props)
+    #     sessionid = res['sessionInfo']['id']
 
-    res = brainstorm.subscribeToSession(sessionid,newData)
+    # # Handle Data from Subscribed Games
+    #     def newData(json):
+    #         for user in json['userData']:
+    #             name = user['username']
+    #             print('Data for {}'.format(name))
+    # res = brainstorm.subscribeToSession(sessionid,spectating, newData)
         
+
+    '''
+    Stream your Data
+    '''
+
     starttime = time.time()
 
-    # Stream Your Own Data
+    # Setup Brainflow
     params = BrainFlowInputParams()
     board_id = BoardIds['SYNTHETIC_BOARD'].value
 
@@ -48,16 +65,17 @@ def main():
     board.prepare_session()
     board.start_stream(num_samples=450000)
 
+    # Handle CTRL-C Exit
     def stop(self, signal):
         board.stop_stream()
         board.release_session()
         brainstorm.leaveSession(sessionid)
         sys.exit('\n\nYour data stream to the Brainstorm has been stopped.\n\n')
-        
     signal.signal(signal.SIGINT, stop)
 
     loopCount = 0
 
+    # Start Stream Loop
     while True:
         pass_data = []
         rate = DataFilter.get_nearest_power_of_two(board.rate)

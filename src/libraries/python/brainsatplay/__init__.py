@@ -82,8 +82,8 @@ class Brainstorm():
     def getSessionInfo(self,sessionid):
         return self.sendCommand(['getSessionInfo',sessionid])
 
-    def subscribeToSession(self, sessionid, ondata=None):
-        res = self.sendCommand(['subscribeToSession',sessionid,False]) # We do nut support spectating from Python
+    def subscribeToSession(self, sessionid, spectating, ondata=None):
+        res = self.sendCommand(['subscribeToSession',sessionid,spectating])
 
         if ondata is None:
             def echo(data):

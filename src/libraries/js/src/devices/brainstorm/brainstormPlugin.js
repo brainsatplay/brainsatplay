@@ -1,8 +1,10 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import { DOMFragment } from '../ui/DOMFragment';
-import {DataAtlas} from '../DataAtlas'
-import {BiquadChannelFilterer} from '../algorithms/BiquadFilters'
+import { DOMFragment } from '../../ui/DOMFragment';
+import {DataAtlas} from '../../DataAtlas'
+import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+
+import { brainflow } from './brainflow.js'
 
 export class brainstormPlugin {
     constructor(mode, session, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -10,6 +12,10 @@ export class brainstormPlugin {
         this.mode = mode;
         this.session = session;
         this.subscription;
+
+        this.dataHandlers = {
+            brainflow: brainflow
+        }
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -53,21 +59,8 @@ export class brainstormPlugin {
             let data = this.session.getBrainstormData(this.subscription.username,'user')
             if(this.info.useAtlas) {
                 if (data.length > 0){
-                    this.info.eegChannelTags.forEach((o,i) => {
-                        let coord = this.atlas.getEEGDataByChannel(o.ch);
-                        let currentData = data[0].raw[i]
-
-                        coord.raw.push(...currentData)
-                        coord.times.push(...data[0].times);
-                        if(this.info.useFilters === true) {                
-                            let latestFiltered = new Array(currentData.length).fill(0);
-                            if(this.filters[o.ch] !== undefined) {
-                                currentData.forEach((sample,k) => { 
-                                    latestFiltered[k] = this.filters[o.ch].apply(sample); 
-                                });
-                            }
-                            coord.filtered.push(...latestFiltered);
-                        }
+                    data.forEach(d => {
+                        this.dataHandlers[d.format](this,d)
                     })
                 }
             }
@@ -91,7 +84,7 @@ export class brainstormPlugin {
 
     disconnect = () => {
         this.ondisconnect();
-        this.session.unsubscribeFromUser(this.subscription)
+        this.session.unsubscribeFromUser(this.subscription.username)
         window.cancelAnimationFrame(this.animation)
         this.setIndicator(false);
         this.atlas.settings.deviceConnected = false;
