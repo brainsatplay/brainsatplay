@@ -738,7 +738,7 @@ export class SensoriumApplet {
 
     updateMaterialUniforms = (material,modifiers={}) => {
         let uniformsToUpdate = JSON.parse(JSON.stringify(this.defaultUniforms));
-        
+
         for (let name in uniformsToUpdate){
             let value = uniformsToUpdate[name]
 
@@ -815,7 +815,7 @@ export class SensoriumApplet {
         this.guiControllers = []        
 
         for (let name in this.modifiers){
-            if(typeof this.modifiers[name] !== 'object'){
+            if(typeof this.modifiers[name] !== 'object' && this.currentShader.uniforms.indexOf('name')){
                 this.guiControllers.push(
                     paramsMenu.add(
                         this.modifiers, 
