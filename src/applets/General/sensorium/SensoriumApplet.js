@@ -85,7 +85,7 @@ export class SensoriumApplet {
         this.uniformSettings = {
             iAudio:           {default: new Array(256).fill(0)},    //Audio analyser FFT, array of 256, values max at 255
             iHRV:             {default:1, min:0, max:40},                          //Heart Rate Variability (values typically 5-30)
-            iHEG:             {default:0, min:0, max:5},                          //HEG change from baseline, starts at zero and can go positive or negative
+            iHEG:             {default:0, min:-3, max:3},                          //HEG change from baseline, starts at zero and can go positive or negative
             iHR:              {default:1, min:1, max:240},                          //Heart Rate in BPM
             iHB:              {default:1, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             {default:new Array(256).fill(0)},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
