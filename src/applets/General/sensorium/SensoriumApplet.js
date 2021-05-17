@@ -79,7 +79,7 @@ export class SensoriumApplet {
             iAlpha1Alpha2:    1,                          //Alpha1/Alpha2 ratio
             iAlphaBeta:       1,                          //Alpha/Beta ratio
             i40Hz:            1,                          //40Hz bandpower
-            iAlpha1Coherence: 1                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+            iAlpha1Coherence: 0                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
         this.uniformSettings = {
@@ -99,7 +99,7 @@ export class SensoriumApplet {
             iAlpha1Alpha2:    {default:1, min:0, max:5},                          //Alpha1/Alpha2 ratio
             iAlphaBeta:       {default:1, min:0, max:5},                          //Alpha/Beta ratio
             i40Hz:            {default:1, min:0, max:10},                          //40Hz bandpower
-            iAlpha1Coherence: {default:1, min:0, max:1.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+            iAlpha1Coherence: {default:0, min:0, max:1.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
         this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
@@ -116,7 +116,7 @@ export class SensoriumApplet {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHB','iHR'],,
+                uniforms: ['iHRV','iHEG','iHB','iHR'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
@@ -815,7 +815,7 @@ export class SensoriumApplet {
         this.guiControllers = []        
 
         for (let name in this.modifiers){
-            if(typeof this.modifiers[name] !== 'object' && this.currentShader.uniforms.indexOf('name')){
+            if(typeof this.modifiers[name] !== 'object' && uniforms.indexOf(name) > -1){
                 this.guiControllers.push(
                     paramsMenu.add(
                         this.modifiers, 
