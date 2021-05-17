@@ -8,7 +8,7 @@ hide_title: true
 ## Overview
 ---
 
-While brainsatplay.js has abstracted most of the networking details for JavaScript, there's still many ways to send and receive data from the Brainstorm using other interfaces. 
+While brainsatplay.js has abstracted most of the networking details for JavaScript, there's still many ways to send and receive data from the Brainstorm using other interfaces. We already support [**Python**](https://pypi.org/project/brainsatplay/0.1.0/) streaming, particularly with [**Brainflow**](https://brainflow.org/).
 
 In this tutotial, you'll learn how to extend the Brainstorm by creating functions to manage simple Websocket messages.
 

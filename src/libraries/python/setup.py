@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 setup(
     name = 'brainsatplay',         # How you named your package folder (MyLib)
     packages=setuptools.find_packages(),
-    version = '0.0.8',      # Start with a small number and increase it with every change you make
+    version = '0.1.0',      # Start with a small number and increase it with every change you make
     license='gpl-3.0',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
     description = 'A Python library for interfacing with Brains@Play',   # Give a short description about your library
     long_description=long_description,
