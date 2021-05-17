@@ -224,14 +224,14 @@ class DataServer {
             if(commands[2] === undefined) {
                 let u2 = this.getUserData(commands[1]);
                 if(u2 === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
-                else {u.socket.send(JSON.stringify({msg:'getUserDataResult',username:commands[1],props:u2.props})); }
+                else {u.socket.send(JSON.stringify({msg:'getUserDataResult',username: commands[1], userData:u2})); }
             }
             else if (Array.isArray(commands[2])) {
                 let d = this.getUserData(commands[1]).props;
                 let result = {msg:'getUserDataResult',username:commands[1],props:{}};
-                if(d === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
+                if(d === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound', username:commands[1]})); }
                 else {
-                    commands[2].forEach((prop)=> {update[props][prop] = d.props[prop]});
+                    commands[2].forEach((prop)=> {result.props[prop] = d.props[prop]});
                     u.socket.send(JSON.stringify(result)); 
                 }
             }

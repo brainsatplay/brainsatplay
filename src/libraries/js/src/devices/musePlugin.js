@@ -114,11 +114,6 @@ export class musePlugin {
         });
 
         this.atlas.data.eegshared.startTime = Date.now();
-
-        // this.device.telemetryData.subscribe(telemetry => {
-        // });
-        // this.device.accelerometerData.subscribe(accel => {
-        // });
         this.atlas.settings.deviceConnected = true;
         if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
             this.atlas.settings.analyzing = true;

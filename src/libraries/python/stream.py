@@ -10,7 +10,7 @@ def main():
     # Subscription Details
     appname = 'brainflow'
     devices = []
-    props = ['raw','times']
+    props = ['raw','times','sps','deviceType','format','eegChannelTags']
     sessionid = None
 
     # Initiailize Connection to the Brainstorm
@@ -22,15 +22,7 @@ def main():
         for user in json['userData']:
             name = user['username']
             print('Data for {}'.format(name))
-            remove = ['username']
-            mute = ['raw','times']
-            for prop in user:
-                if prop not in remove:
-                    print(prop)
-                    if prop not in mute:
-                        print(prop)
-                        print(user[prop])
-
+            
     res = brainstorm.getSessions(appname)
     
     if res['msg'] != 'appNotFound':
@@ -64,6 +56,8 @@ def main():
         
     signal.signal(signal.SIGINT, stop)
 
+    loopCount = 0
+
     while True:
         pass_data = []
         rate = DataFilter.get_nearest_power_of_two(board.rate)
@@ -78,6 +72,17 @@ def main():
         message = {}
         message['raw'] = pass_data
         message['times'] = t.tolist()
+
+        # Send Metadata on First Loop
+        if loopCount == 0:
+            message['sps'] = board.rate
+            message['deviceType'] = 'eeg'
+            message['format'] = 'brainflow'
+            tags = []
+            for i, channel in enumerate(board.eeg_channels):
+                tags.append({'ch': channel-1, 'tag': board.eeg_names[i], 'analyze':True})
+
+            message['eegChannelTags'] = tags
 
         res = brainstorm.streamData(message)
         time.sleep(0.1 - ((time.time() - starttime) % 0.1))

@@ -22,7 +22,7 @@ export class BlobApplet {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
@@ -30,7 +30,7 @@ export class BlobApplet {
         this.parentNode = parent;
         this.settings = settings;
         this.info = settingsFile.settings;
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
@@ -79,7 +79,7 @@ export class BlobApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
 
 /**
  * Blob
@@ -317,7 +317,7 @@ setTimeout(() => {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.onResize()
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

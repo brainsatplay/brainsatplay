@@ -204,14 +204,11 @@ export class ObjectListenerInstance {
 
     //Remove extra onchange functions
     removeFuncs(idx = null) {
-        console.log(idx)
         if(idx === null) {
             this.onchangeFuncs = [];
         }
         else if(this.onchangeFuncs[idx] !== undefined) {
-            console.log('splicing', this.onchangeFuncs)
             this.onchangeFuncs.splice(idx,1);
-            console.log('splicing', this.onchangeFuncs)
         }
     }
 

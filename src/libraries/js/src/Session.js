@@ -36,6 +36,9 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
+// UI
+import { DOMFragment } from './ui/DOMFragment';
+
 // Managers
 import {StateManager} from './ui/StateManager'
 import {DataAtlas} from './DataAtlas'
@@ -152,7 +155,7 @@ export class Session {
 	 */
 
 	//
-	connect(
+	async connect(
 		device="freeeeg32_2", 
 		analysis=['eegfft'], 
 		onconnect=()=>{},
@@ -181,9 +184,6 @@ export class Session {
 			}
 
 			if (device.includes('brainstorm')){
-				let metadata = {
-					session: this
-				}
 				this.devices.push(
 					new deviceStream(
 						device,
@@ -191,7 +191,7 @@ export class Session {
 						useFilters,
 						pipeToAtlas,
 						this.info.auth,
-						metadata
+						this
 					)
 				);
 			} else {
@@ -229,7 +229,8 @@ export class Session {
 				this.info.nDevices--;
 			}
 
-			this.devices[i].init();
+			// Wait for Initialization before Connection
+			await this.devices[i].init();
 
 			if(this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
 
@@ -339,7 +340,7 @@ export class Session {
 				} else if (o === 'synthetic'){
 					this.connect('synthetic',['eegcoherence'],onconnect,ondisconnect);
 				} else if (o === 'brainstorm'){
-					this.connect('brainstorm',[],onconnect,ondisconnect);
+					this.connect('brainstorm',['eegcoherence'],onconnect,ondisconnect);
 				}
 			}
 		});
@@ -689,8 +690,7 @@ export class Session {
 
 		if(parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
-				this.state.data[parsed.username+"_userData_" + prop] = parsed.userData[prop]; 
-				console.log(prop, parsed.userData[prop])
+				this.state.data["userData_" + parsed.username+"_" + prop] = parsed.userData[prop]; 
 			}
 		}
 		else if (parsed.msg === 'sessionData') {
@@ -816,11 +816,11 @@ export class Session {
 					if(newResult.msg === 'getUserDataResult') {
 						if(newResult.username === username) {
 							this.sendBrainstormCommand(['subscribeToUser',username,userProps]);
-							for (const [prop, value] of Object.entries(newResult.props)) {
-								this.state.data[username+"_userData_"+prop] = value;
+							for (const [prop, value] of Object.entries(newResult.userData.props)) {
+								this.state.data["userData_" + username+"_" + prop] = value;
 							}
 						}
-						onsuccess(newResult);
+						onsuccess(newResult.userData);
 						this.state.unsubscribe('commandResult',sub);
 					}
 					else if (newResult.msg === 'userNotFound' && newResult.username === username) {
@@ -957,10 +957,9 @@ export class Session {
 	}
 
 
-	promptLogin = (onsuccess=()=>{}) => {
-		let loginPage = document.getElementById(`${this.id}login-page`)
-		if (loginPage != null) loginPage.remove()
-		document.body.innerHTML += `
+	promptLogin = async (parentNode=document.body, onsuccess=()=>{}) => {
+		return new Promise((resolve, reject) => {
+		let template = () => {return `
 		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0;">
 			<div>
 				<h2>Choose your Username</h2>
@@ -981,133 +980,154 @@ export class Session {
 				</div>
 			</div>
 		</div>
-		`
+		`}
+		
+		let setup = () => {
+			let loginPage = document.getElementById(`${this.id}login-page`)
+			const loginButton = loginPage.querySelector(`[id='${this.id}login-button']`)
+			let form = loginPage.querySelector(`[id='${this.id}login-form']`)
+			const usernameInput = form.querySelector('input')
 
-		const loginButton = document.getElementById(`${this.id}login-button`)
-		let form = document.getElementById(`${this.id}login-form`)
-		const usernameInput = form.querySelector('input')
+			form.addEventListener("keyup", function(event) {
+				if (event.keyCode === 13) {
+				event.preventDefault();
+				}
+			});
 
-		form.addEventListener("keyup", function(event) {
-			if (event.keyCode === 13) {
-			  event.preventDefault();
+			usernameInput.addEventListener("keyup", function(event) {
+				if (event.keyCode === 13) {
+				event.preventDefault();
+				loginButton.click();
+				}
+			});
+
+			loginButton.onclick = () => {
+				let formDict = {}
+				let formData = new FormData(form);
+				for (var pair of formData.entries()) {
+					formDict[pair[0]] = pair[1];
+				}
+
+				this.setLoginInfo(formDict.username)
+
+				this.login(true, this.info.auth, () => {
+					onsuccess()
+					loginPage.style.opacity = '0';
+					loginPage.style.pointerEvents = 'none'
+					ui.deleteNode()
+					resolve(true);
+				})
 			}
-		  });
 
-		usernameInput.addEventListener("keyup", function(event) {
-			if (event.keyCode === 13) {
-			  event.preventDefault();
-			  loginButton.click();
-			}
-		  });
-
-		loginButton.onclick = () => {
-			let form = document.getElementById(`${this.id}login-form`)
-			let formDict = {}
-			let formData = new FormData(form);
-			for (var pair of formData.entries()) {
-				formDict[pair[0]] = pair[1];
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null){
+				this.info.googleAuth.refreshCustomData().then(data => {
+					loginPage.querySelector("[name='username']")[0].value = data.username
+					loginButton.click()
+				})
 			}
 
-			this.setLoginInfo(formDict.username)
-
-			this.login(true, this.info.auth, () => {
-				onsuccess()
-				document.getElementById(`${this.id}login-page`).style.opacity = '0';
-				document.getElementById(`${this.id}login-page`).style.pointerEvents = 'none'
-			})
+			loginPage.style.opacity = '1';
 		}
 
-		// Auto-set username with Google Login
-		if (this.info.googleAuth != null){
-			this.info.googleAuth.refreshCustomData().then(data => {
-				document.getElementsByName("username")[0].value = data.username
-				loginButton.click()
-			})
-		}
-
-		document.getElementById(`${this.id}login-page`).style.opacity = '1';
+			let ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		});
 	}
 
-	createBrainstormBrowser = (onsubscribe=()=>{}) => {
-		let mask = document.getElementById(`${this.id}-choiceMask`)
-		if (mask != null) mask.remove()
-		document.body.innerHTML += `
-		<div id="${this.id}-choiceMask" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.0s;">
-			<div id="${this.id}-choiceDisplay" style="flex-grow: 1;">
-				<h1>Browse the Brainstorm</h1>
-				<div id="${this.id}-userDiv" style="flex-grow: 1; overflow-y: scroll; border: 1px solid white;">
+	createBrainstormBrowser = (parentNode=document.body, onsubscribe=()=>{}) => {
+		let template = () => {
+			return `
+			<div id="${this.id}-brainstormBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.0s;">
+				<div id="${this.id}-choiceDisplay" style="flex-grow: 1;">
+					<h1>Browse the Brainstorm</h1>
+					<div id="${this.id}-userDiv" style="flex-grow: 1; overflow-y: scroll; border: 1px solid white;">
+					</div>
 				</div>
-			</div>
-			<button id="${this.id}-exitBrowser" class="brainsatplay-default-button" style="position: absolute; bottom:25px; right: 25px;">Go Back</button>
-		</div>`
-
-		mask = document.getElementById(`${this.id}-choiceMask`)
-		let userDiv = document.getElementById(`${this.id}-userDiv`)
-		let exitBrowser = document.getElementById(`${this.id}-exitBrowser`)
-		exitBrowser.onclick = () => {
-			mask.style.opacity = '0'
-			mask.style.pointerEvents = 'none'
+				<button id="${this.id}-exitBrowser" class="brainsatplay-default-button" style="position: absolute; bottom:25px; right: 25px;">Go Back</button>
+			</div>`
 		}
 
-		mask.style.opacity = '1'
-
-		const resizeDisplay = () => {
-			let mask = document.getElementById(`${this.id}-choiceMask`)
-			let display = document.getElementById(`${this.id}-choiceDisplay`)
-			let userDiv = document.getElementById(`${this.id}-userDiv`)
-			let padding = 50;
-			mask.style.padding = `${padding}px`
-			userDiv.style.height =`${window.innerHeight - 2*padding - (display.offsetHeight - userDiv.offsetHeight)}px`
-		}
-		resizeDisplay()
-
-		this.getUsers(null,(commandResult) => {
-			
-			window.addEventListener('resize', resizeDisplay)
-
-			userDiv.innerHTML = ''
-			let brainstormUserStyle = `
-				background: rgb(20,20,20);
-				padding: 25px;
-				border: 1px solid black;
-				transition: 0.5s;
-			`
-
-			let onMouseOver = () => {
-				this.style.background = 'rgb(35,35,35)';
-				this.style.cursor = 'pointer';
+		let setup = () => {
+			let browser = document.getElementById(`${this.id}-brainstormBrowser`)
+			let userDiv = browser.querySelector(`[id='${this.id}-userDiv']`)
+			let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
+			exitBrowser.onclick = () => {
+				browser.style.opacity = '0'
+				browser.style.pointerEvents = 'none'
 			}
 
-			let onMouseOut = () => {
-				this.style.background = 'rgb(20,20,20)';
-				this.style.cursor = 'default';
-			}
+			browser.style.opacity = '1'
 
-			commandResult.userData.forEach(o => {
-				let appMessage = ((o.sessions == '') ? 'Idle' : `Currently in ${o.sessions}`)
-				if (o.username !== this.info.auth.username){
-					userDiv.innerHTML += `
-					<div  id="${this.id}-user-${o.username}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
-					<p style="font-size: 60%;">${o.origins}</p>
-					<p>${o.username}</p>
-					<p style="font-size: 80%;">${appMessage}</p>
-					</div>`
+			const resizeDisplay = () => {
+				let browser = document.getElementById(`${this.id}-brainstormBrowser`)
+				let display = browser.querySelector(`[id='${this.id}-choiceDisplay']`)
+				let userDiv = browser.querySelector(`[id='${this.id}-userDiv']`)
+				let padding = 50;
+				browser.style.padding = `${padding}px`
+				userDiv.style.height =`${window.innerHeight - 2*padding - (display.offsetHeight - userDiv.offsetHeight)}px`
+			}
+			resizeDisplay()
+
+			this.getUsers(null,(commandResult) => {
+				
+				window.addEventListener('resize', resizeDisplay)
+
+				userDiv.innerHTML = ''
+				let brainstormUserStyle = `
+					background: rgb(20,20,20);
+					padding: 25px;
+					border: 1px solid black;
+					transition: 0.5s;
+				`
+
+				let onMouseOver = () => {
+					this.style.background = 'rgb(35,35,35)';
+					this.style.cursor = 'pointer';
+				}
+
+				let onMouseOut = () => {
+					this.style.background = 'rgb(20,20,20)';
+					this.style.cursor = 'default';
+				}
+
+				commandResult.userData.forEach(o => {
+					let appMessage = ((o.sessions == '') ? 'Idle' : `Currently in ${o.sessions}`)
+					if (o.username !== this.info.auth.username){
+						userDiv.innerHTML += `
+						<div  id="${this.id}-user-${o.username}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
+						<p style="font-size: 60%;">${o.origins}</p>
+						<p>${o.username}</p>
+						<p style="font-size: 80%;">${appMessage}</p>
+						</div>`
+					}
+				})
+
+				let divs = userDiv.querySelectorAll(".brainstorm-user")
+				for (let div of divs){
+					div.onclick = (e) => {
+						let name = div.id.split(`${this.id}-user-`)[1]
+						this.subscribeToUser(name, [], (userData) => {
+							onsubscribe(userData)
+							browser.style.opacity = '0'
+							browser.style.pointerEvents = 'none'
+							window.removeEventListener('resize', resizeDisplay)
+						})
+					}
 				}
 			})
+		}
 
-			let divs = userDiv.querySelectorAll(".brainstorm-user")
-			for (let div of divs){
-				div.onclick = (e) => {
-					let name = div.id.split(`${this.id}-user-`)[1]
-					this.subscribeToUser(name, [], () => {
-						onsubscribe(name)
-						mask.style.opacity = '0'
-						mask.style.pointerEvents = 'none'
-						window.removeEventListener('resize', resizeDisplay)
-					})
-				}
-			}
-		})
+		let ui = new DOMFragment(
+            template,
+            parentNode,
+            undefined,
+            setup
+		)
 	}
 
 
@@ -1341,31 +1361,57 @@ export class Session {
 	}
 
 
-	getBrainstormData(name){
+	getBrainstormData(value, type='app'){
+
+		let usernameInd;
+		let propInd; 
+		let structureFilter;
+
+		if (type === 'user'){
+			usernameInd = 1
+			propInd = 2
+			structureFilter = (input) => {
+				let val = input.split('_')[0]
+				console.log()
+				return val === 'userData'
+			}
+		} else {
+			usernameInd = 2
+			propInd = 3
+			structureFilter = (input) => {
+				return input.split('_')[0] !== 'userData'
+			}
+		}
+
 		let arr = []
-		if (name != null){
-			var regex = new RegExp(name);
-			let appStates = Object.keys(this.state.data).filter(k => regex.test(k))
+		if (value != null){
+			var regex = new RegExp(value);
+			let returnedStates = Object.keys(this.state.data).filter(k => {
+				let test1 = regex.test(k)
+				let test2 = structureFilter(k)
+				if (test1 && test2) return true
+			})
 
 			let usedNames = []
 
-			appStates.forEach(str => {
+			returnedStates.forEach(str => {
 				const strArr = str.split('_')
-				if (!usedNames.includes(strArr[2])) {
-					usedNames.push(strArr[2])
-					arr.push({username:strArr[2]})
+				if (!usedNames.includes(strArr[usernameInd])) {
+					usedNames.push(strArr[usernameInd])
+					arr.push({username:strArr[usernameInd]})
 				}
 
 				arr.find(o => {
-					if (o.username === strArr[2]){
-						o[strArr.slice(3).join('_')] = this.state.data[str]
+					if (o.username === strArr[usernameInd]){
+						o[strArr.slice(propInd).join('_')] = this.state.data[str]
 					}
 				})
 			})
 		} else {
-			console.error('please specify an app to get data from')
+			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
 		return arr
+
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess=(newResult)=>{}) => {
@@ -1535,13 +1581,13 @@ class deviceStream {
 		auth={
 			username:'guest'
 		},
-		metadata={}
+		session=null
 	) {
 		this.info = {
 			deviceName:device,
 			deviceType:null,
 			analysis:analysis, //['eegcoherence','eegfft' etc]
-			metadata: metadata,
+			session: session,
 
 			deviceNum:0,
 
@@ -1573,24 +1619,33 @@ class deviceStream {
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
-	init = (info=this.info, pipeToAtlas=this.pipeToAtlas) => {
-		this.deviceConfigs.find((o,i) => {
-			if(info.deviceName.indexOf(o.name) > -1 ) {
-				if (info.deviceName.includes('brainstorm')){
-					this.device = new o.cls(info.deviceName, info.metadata, this.onconnect,this.ondisconnect);
-				} else {
-					this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
-				}
-				this.device.init(info,pipeToAtlas);
-				this.atlas = this.device.atlas;
-				this.filters = this.device.filters;
-				if(this.atlas !== null) {
-					this.pipeToAtlas = true;
-				}
-
-				return true;
+	init = async (info=this.info, pipeToAtlas=this.pipeToAtlas) => {
+		return new Promise(async (resolve, reject) => {
+			async function findAsync(arr, asyncCallback) {
+				const promises = arr.map(asyncCallback);
+				const results = await Promise.all(promises);
+				const index = results.findIndex(result => result);
+				return arr[index];
 			}
-		});
+			  
+			findAsync(this.deviceConfigs, async (o,i) => {
+				if(info.deviceName.indexOf(o.name) > -1 ) {
+					if (info.deviceName.includes('brainstorm')){
+						this.device = new o.cls(info.deviceName, info.session, this.onconnect,this.ondisconnect);
+					} else {
+						this.device = new o.cls(info.deviceName,this.onconnect,this.ondisconnect);
+					}
+					await this.device.init(info,pipeToAtlas)
+					this.atlas = this.device.atlas;
+					this.filters = this.device.filters;
+					if(this.atlas !== null) {
+						this.pipeToAtlas = true;
+					}
+					resolve(true)
+					return true
+				}
+			});
+		})
 	}
 
 	connect = () => {

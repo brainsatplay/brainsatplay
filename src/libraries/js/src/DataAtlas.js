@@ -71,6 +71,12 @@ export class DataAtlas {
 
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
+
+		// Enforce capitalization
+		if (Array.isArray(this.data.eegshared.eegChannelTags)){
+			this.data.eegshared.eegChannelTags.map((c) => {c.tag = c.tag.toUpperCase(); return c})
+		}
+
         if(config === '10_20') {
 			this.settings.eeg = true;
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
@@ -263,7 +269,7 @@ export class DataAtlas {
 			PO4: [35.2, -82.6, 26.1],
 			PO8: [43.3, -82.0, 0.7],
 			O1: [-25.8, -93.3, 7.7],
-			Oz: [0.3, -97.1, 8.7],
+			OZ: [0.3, -97.1, 8.7],
 			O2: [25.0, -95.2, 6.2]
 		}
 
@@ -317,7 +323,6 @@ export class DataAtlas {
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
-				
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;
