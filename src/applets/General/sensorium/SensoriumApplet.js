@@ -86,13 +86,19 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
                 uniforms: {
-                    iPower: 2.3,
-                    iNega: false,
-                    iHRV: 'auto',
-                    iHEG: 'auto',
-                    iHR: 'auto',
-                    iHB: 'auto',
-                    iAudio: 'auto',
+                    values: {
+                        iPower: 2.3,
+                        iNega: false,
+                        iHRV: 'auto',
+                        iHEG: 'auto',
+                        iHR: 'auto',
+                        iHB: 'auto',
+                        iAudio: 'auto',
+                    },
+                    params: {
+                        iPower: {min: 0, max: 5},
+                        iNega: {},
+                    }
                 },
                 credit: 'JoshP (Shadertoy)'
             },
@@ -101,12 +107,18 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
                 uniforms: {
-                    iPower: 2.3,
-                    iHRV: 'auto',
-                    iHEG: 'auto',
-                    iHR: 'auto',
-                    iHB: 'auto',
-                    iAudio: 'auto',
+                    values: {
+                        iPower: 2.3,
+                        iHRV: 'auto',
+                        iHEG: 'auto',
+                        iHR: 'auto',
+                        iHB: 'auto',
+                        iAudio: 'auto',
+                    },
+                    params: {
+                        iPower: {min: 0, max:5},
+                        iNega: {},
+                    }
                 },
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
@@ -732,7 +744,7 @@ export class SensoriumApplet {
 
     updateMaterialUniforms = (material,modifiers={}) => {
         let uniformsToUpdate = {}
-        Object.assign(uniformsToUpdate, {...this.defaultUniforms}, this.currentShader.uniforms)
+        Object.assign(uniformsToUpdate, {...this.defaultUniforms}, this.currentShader.uniforms.values)
         for (let name in uniformsToUpdate){
             let value = uniformsToUpdate[name]
 
@@ -808,8 +820,9 @@ export class SensoriumApplet {
         })
         this.guiControllers = []        
 
-        for (let name in uniforms){
-            if (uniforms[name] != 'auto') this.guiControllers.push(paramsMenu.add(uniforms,name, 0, 5).onChange((val) => updateUniformsWithGUI(name,val)));
+        for (let name in uniforms.values){
+            console.log(name)
+            if (uniforms.values[name] != 'auto') this.guiControllers.push(paramsMenu.add(uniforms.values, name, uniforms.params[name].min,uniforms.params[name].max).onChange((val) => updateUniformsWithGUI(name,val)));
         }    
     }
 } 
