@@ -6,7 +6,7 @@ varying vec2 vUv;
 varying vec2 vTextureCoord;
 varying vec2 resolution;
 
-uniform vec2  iResolution;
+uniform vec2 iResolution;
 uniform float iTime;
 uniform float iHEG;
 uniform float iHRV;
