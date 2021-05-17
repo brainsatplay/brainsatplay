@@ -640,6 +640,8 @@ export class SensoriumApplet {
                             );
                         }
                         this.modifiers.iHRV = this.getData("iHRV");
+                        this.modifiers.iHRV -= 5;
+                        if(this.modifiers.iHRV < 0) this.modifiers.iHRV = 0;
                     } 
                 }
                 if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
