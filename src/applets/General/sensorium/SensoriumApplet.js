@@ -1,23 +1,6 @@
 // Available Uniforms for shader effects:
 // iResolution: {value: new THREE.Vector2(400,400)}, // Resolution of the renderer 
 // iTime: {value: 0},                      // Time (in seconds)
-// iAudio: {value: new Array(256).fill(1)},//Audio analyser FFT, array of 256, values max at 255
-// iHRV: {value:1},                        //Heart Rate Variability (values typically 5-30)
-// iHEG: {value:0},                        //HEG change from baseline, starts at zero and can go positive or negative
-// iHR: {value:1},                         //Heart Rate in BPM
-// iHB: {value:1},                         //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
-// iFFT: {value:new Array(256).fill(1)},   //Raw EEG FFT, array of 256. Values should typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
-// iDelta: {value:1},                      //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
-// iTheta: {value:1},                      //Theta bandpower average.
-// iAlpha1: {value:1},                     //Alpha1 " "
-// iAlpha2: {value:1},                     //Alpha2 " "
-// iBeta: {value:1},                       //Beta " "
-// iGamma: {value:1},                      //Low Gamma (30-45Hz) " "
-// iThetaBeta: {value:1},                  //Theta/Beta ratio
-// iAlpha1Alpha2: {value:1},               //Alpha1/Alpha2 ratio
-// iAlphaBeta: {value:1},                  //Alpha/Beta ratio
-// i40Hz: {value:1},                       //40Hz bandpower
-// iAlpha1Coherence: {value:1}             //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
 
 
 import {Session} from '../../../libraries/js/src/Session'
@@ -77,7 +60,48 @@ export class SensoriumApplet {
 
         this.three.planes = [];
 
-        this.defaultUniforms = ['iResolution', 'iTime']
+        //Available uniforms for shaders. See comments for usage
+        this.modifiers = {
+            iAudio:           new Array(256).fill(0),    //Audio analyser FFT, array of 256, values max at 255
+            iHRV:             1,                          //Heart Rate Variability (values typically 5-30)
+            iHEG:             0,                          //HEG change from baseline, starts at zero and can go positive or negative
+            iHR:              1,                          //Heart Rate in BPM
+            iHB:              1,                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iFFT:             new Array(256).fill(0),     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+            iDelta:           1,                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+            iTheta:           1,                          //Theta bandpower average.
+            iAlpha1:          1,                          //Alpha1 " "
+            iAlpha2:          1,                          //Alpha2 " "
+            iBeta:            1,                          //Beta " "
+            iGamma:           1,                          //Low Gamma (30-45Hz) " "
+            iThetaBeta:       1,                          //Theta/Beta ratio
+            iAlpha1Alpha2:    1,                          //Alpha1/Alpha2 ratio
+            iAlphaBeta:       1,                          //Alpha/Beta ratio
+            i40Hz:            1,                          //40Hz bandpower
+            iAlpha1Coherence: 1                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+        };
+
+        this.uniformSettings = {
+            iAudio:           {default: new Array(256).fill(0)},    //Audio analyser FFT, array of 256, values max at 255
+            iHRV:             {default:1, min:0, max:40},                          //Heart Rate Variability (values typically 5-30)
+            iHEG:             {default:0, min:0, max:5},                          //HEG change from baseline, starts at zero and can go positive or negative
+            iHR:              {default:1, min:1, max:240},                          //Heart Rate in BPM
+            iHB:              {default:1, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iFFT:             {default:new Array(256).fill(0)},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+            iDelta:           {default:1, min:0, max:100},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+            iTheta:           {default:1, min:0, max:100},                          //Theta bandpower average.
+            iAlpha1:          {default:1, min:0, max:100},                          //Alpha1 " "
+            iAlpha2:          {default:1, min:0, max:100},                          //Alpha2 " "
+            iBeta:            {default:1, min:0, max:100},                          //Beta " "
+            iGamma:           {default:1, min:0, max:100},                          //Low Gamma (30-45Hz) " "
+            iThetaBeta:       {default:1, min:0, max:5},                          //Theta/Beta ratio
+            iAlpha1Alpha2:    {default:1, min:0, max:5},                          //Alpha1/Alpha2 ratio
+            iAlphaBeta:       {default:1, min:0, max:5},                          //Alpha/Beta ratio
+            i40Hz:            {default:1, min:0, max:10},                          //40Hz bandpower
+            iAlpha1Coherence: {default:1, min:0, max:1.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+        };
+
+        this.defaultUniforms = ['iResolution', 'iTime'];
 
         this.shaders = {
             galaxy: {
@@ -144,8 +168,6 @@ export class SensoriumApplet {
                 credit: 'Elise (Shadertoy)'
             },
         }
-
-        this.modifiers = {}
 
         this.brainMetrics = [
             {name:'delta',label: 'Delta', color: [0,0.5,1]}, // Blue-Cyan
@@ -266,10 +288,6 @@ export class SensoriumApplet {
     this.appletContainer.querySelector('.guiContainer').appendChild(gui.domElement);
 
 
-    let guiUniforms = {
-        iPower: 2.3,
-    }
-
     let updateUniformsWithGUI = (key,value) => {
         this.three.planes.forEach(p => {
             if (p.material.uniforms[key] == null) p.material.uniforms[key] = {}
@@ -278,10 +296,12 @@ export class SensoriumApplet {
     }
 
     let paramsMenu = gui.addFolder('Parameters');
-    paramsMenu.add(guiUniforms, 'iPower', 0, 5).onChange((val) => updateUniformsWithGUI('iPower',val));
-
+    //paramsMenu.add(guiUniforms, 'iPower', 0, 5).onChange((val) => updateUniformsWithGUI('iPower',val));
     // offsetMenu.add(materialControls, 'noiseIntensity', 0, 1).onChange(materialControls.updateNoise);
-
+    for(const prop in this.modifiers) {
+        if(typeof this.modifers[prop] !== 'object')
+            paramsMenu.add(this.modifiers,prop,0,this.modifers[prop].max)
+    }
 
 
     /**
@@ -344,7 +364,7 @@ export class SensoriumApplet {
     defaultUniforms.iTime = {value: 0}
     defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
     
-    Object.keys(guiUniforms).forEach(u => {
+    Object.keys(this.modifiers).forEach(u => {
         if (!alreadyDeclared.includes(u)){
             defaultUniforms[u]= {value :guiUniforms[u]}
         }
@@ -590,7 +610,6 @@ export class SensoriumApplet {
 
     animate = () => {
         if(this.looping){
-            this.modifiers = {};
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedback.value;
                 if(this.session.atlas.data.heg.length>0) {
@@ -746,8 +765,8 @@ export class SensoriumApplet {
     }
 
     updateMaterialUniforms = (material,modifiers={}) => {
-        let unformsToUpdate = this.defaultUniforms.concat(this.currentShader.uniforms)
-        unformsToUpdate.forEach(u => {
+        let uniformsToUpdate = this.defaultUniforms.concat(this.currentShader.uniforms)
+        uniformsToUpdate.forEach(u => {
 
             if (material.uniforms[u] == null) material.uniforms[u] = {}
 
