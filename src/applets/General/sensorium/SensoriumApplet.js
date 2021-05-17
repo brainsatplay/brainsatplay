@@ -345,7 +345,7 @@ export class SensoriumApplet {
     shaderKeys.forEach((k,i) => {
 
         if (i === 0){
-            this.material = new THREE.ShaderMaterial({
+            let material = new THREE.ShaderMaterial({
                 transparent: true,
                 side: THREE.DoubleSide,
                 vertexShader: this.shaders[k].vertexShader,
@@ -354,7 +354,7 @@ export class SensoriumApplet {
             });
 
             let radius = 0;//10
-            let plane = new THREE.Mesh(planeGeometry, this.material)
+            let plane = new THREE.Mesh(planeGeometry, material)
             plane.name = k
             let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
             plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
@@ -705,8 +705,8 @@ export class SensoriumApplet {
             fragmentShader: this.currentShader.fragmentShader,
             side: THREE.DoubleSide,
             transparent: true,
-        })
-
+        });
+        
         this.updateMaterialUniforms(newMaterial,this.modifiers);
         this.generateGUI(this.currentShader.uniforms)
 
@@ -738,9 +738,10 @@ export class SensoriumApplet {
 
     updateMaterialUniforms = (material,modifiers={}) => {
         let uniformsToUpdate = JSON.parse(JSON.stringify(this.defaultUniforms));
-
+        this.currentShader.uniforms.forEach((u)=> uniformsToUpdate[u]=0);
+        //console.log(uniformsToUpdate)
         for (let name in uniformsToUpdate){
-            let value = uniformsToUpdate[name]
+            let value = uniformsToUpdate[name];
 
             if (material.uniforms[name] == null) material.uniforms[name] = {}
 
