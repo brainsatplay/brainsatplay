@@ -23,10 +23,10 @@ float field(in vec3 p) {
 	float tw = 0.;
 	for (int i = 0; i < 32; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
+		p = abs(p) / mag + vec3(-.5, -.4+(iAudio[200]*0.00001), -1.5);
 		float w = exp(-float(i) / 7.);
 		if (iHEG < 0.0){
-			accum += w - exp(-strength * pow(abs(mag - prev), 2.3));
+			accum += w - exp(-strength  *pow(abs(mag - prev), 2.3));
 		} else{
 			accum += w * exp(-strength * pow(abs(mag - prev), 2.3));
 		}
