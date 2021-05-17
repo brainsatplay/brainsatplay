@@ -84,22 +84,22 @@ export class SensoriumApplet {
 
         this.uniformSettings = {
             iAudio:           {default: new Array(256).fill(0), min:0,max:255},    //Audio analyser FFT, array of 256, values max at 255
-            iHRV:             {default:1, min:0, max:40},                          //Heart Rate Variability (values typically 5-30)
-            iHEG:             {default:0, min:-3, max:3},                          //HEG change from baseline, starts at zero and can go positive or negative
-            iHR:              {default:1, min:1, max:240},                          //Heart Rate in BPM
+            iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
+            iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
+            iHR:              {default:1, min:1, max:240,step:1},                          //Heart Rate in BPM
             iHB:              {default:1, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             {default:new Array(256).fill(0),min:0,max:1000},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
-            iDelta:           {default:1, min:0, max:100},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
-            iTheta:           {default:1, min:0, max:100},                          //Theta bandpower average.
-            iAlpha1:          {default:1, min:0, max:100},                          //Alpha1 " "
-            iAlpha2:          {default:1, min:0, max:100},                          //Alpha2 " "
-            iBeta:            {default:1, min:0, max:100},                          //Beta " "
-            iGamma:           {default:1, min:0, max:100},                          //Low Gamma (30-45Hz) " "
-            iThetaBeta:       {default:1, min:0, max:5},                          //Theta/Beta ratio
-            iAlpha1Alpha2:    {default:1, min:0, max:5},                          //Alpha1/Alpha2 ratio
-            iAlphaBeta:       {default:1, min:0, max:5},                          //Alpha/Beta ratio
-            i40Hz:            {default:1, min:0, max:10},                          //40Hz bandpower
-            iAlpha1Coherence: {default:0, min:0, max:1.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+            iDelta:           {default:1, min:0, max:100,step:0.5},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
+            iTheta:           {default:1, min:0, max:100,step:0.5},                          //Theta bandpower average.
+            iAlpha1:          {default:1, min:0, max:100,step:0.5},                          //Alpha1 " "
+            iAlpha2:          {default:1, min:0, max:100,step:0.5},                          //Alpha2 " "
+            iBeta:            {default:1, min:0, max:100,step:0.5},                          //Beta " "
+            iGamma:           {default:1, min:0, max:100,step:0.5},                          //Low Gamma (30-45Hz) " "
+            iThetaBeta:       {default:1, min:0, max:5,step:0.1},                          //Theta/Beta ratio
+            iAlpha1Alpha2:    {default:1, min:0, max:5,step:0.1},                          //Alpha1/Alpha2 ratio
+            iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                          //Alpha/Beta ratio
+            i40Hz:            {default:1, min:0, max:10,step:0.1},                          //40Hz bandpower
+            iAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
         this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
@@ -822,7 +822,8 @@ export class SensoriumApplet {
                         this.modifiers, 
                         name, 
                         this.uniformSettings[name].min,
-                        this.uniformSettings[name].max).onChange(
+                        this.uniformSettings[name].max,
+                        this.uniformSettings[name].step).onChange(
                             (val) => updateUniformsWithGUI(name,val)));
             }
         }    
