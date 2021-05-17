@@ -237,7 +237,8 @@ export class SensoriumApplet {
             selector.onchange = (e) => {
                 if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
-                    this.swapShader()
+                    this.swapShader();
+                    this.setEffectOptions();
                 } else {
                     
                 }
@@ -465,22 +466,22 @@ export class SensoriumApplet {
             return `
             <select id='${props.id}select${idx}'>
                 <option value='none'>None</option>
-                <option value='audio'>Audio FFT</option>
-                <option value='heg_heartbeat'>Heart Beat</option>
-                <option value='heg_hr'>Heart Rate</option>
-                <option value='heg'>HEG Ratio</option>
-                <option value='heg_hrv'>Heart Rate Variability</option>
-                <option value='eeg_bandpowers'>EEG Bandpower FFT</option>
-                <option value='eeg_delta'>Delta Bandpower</option>
-                <option value='eeg_theta'>Theta Bandpower</option>
-                <option value='eeg_alpha1'>Alpha1 Bandpower</option>
-                <option value='eeg_alpha2'>Alpha2 Bandpower</option>
-                <option value='eeg_beta'>Beta Bandpower</option>
-                <option value='eeg_gamma'>Low Gamma Bandpower</option>
-                <option value='eeg_40hz'>40Hz Bandpower</option>
-                <option value='eeg_tb'>Theta/Beta Ratio</option>
-                <option value='eeg_a12'>Alpha 2/1 Ratio</option>
-                <option value='eeg_ab'>Alpha/Beta Ratio</option>
+                <option value='iAudio'>Audio FFT</option>
+                <option value='iHB'>Heart Beat</option>
+                <option value='iHR'>Heart Rate</option>
+                <option value='iHEG'>HEG Ratio</option>
+                <option value='iHRV'>Heart Rate Variability</option>
+                <option value='iFFT'>EEG Bandpower FFT</option>
+                <option value='iDelta'>Delta Bandpower</option>
+                <option value='iTheta'>Theta Bandpower</option>
+                <option value='iAlpha1'>Alpha1 Bandpower</option>
+                <option value='iAlpha2'>Alpha2 Bandpower</option>
+                <option value='iBeta'>Beta Bandpower</option>
+                <option value='iGamma'>Low Gamma Bandpower</option>
+                <option value='i40Hz'>40Hz Bandpower</option>
+                <option value='iThetaBeta'>Theta/Beta Ratio</option>
+                <option value='iAlpha1Alpha2'>Alpha 2/1 Ratio</option>
+                <option value='iAlphaBeta'>Alpha/Beta Ratio</option>
                 <option value='eeg_acoh'>Frontal Alpha Coherence</option>
             </select>
             <select id='${props.id}channel${idx}' style='display:none;'></select>
@@ -513,6 +514,9 @@ export class SensoriumApplet {
             }
         }
 
+        if(this.currentShader !== null)
+            this.setEffectOptions();
+
 
         document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
             if(!window.audio) window.audio = new SoundJS();
@@ -541,6 +545,21 @@ export class SensoriumApplet {
         
     }
 
+    setEffectOptions() {
+        this.effects.forEach((e)=>{
+            let sel = document.getElementById(this.props.id+'select'+e.uiIdx);
+            for(let i = 0; i < sel.options.length; i++){
+                if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
+                    sel.options[i].style.display='';
+                } else {
+                    sel.options[i].style.display='none';
+                }   
+                if(sel.options[i].selected === true && sel.options[i].style.display==='none') {
+                    sel.options[0].selected = true;
+                }
+            }
+        });
+    }
 
     //doSomething(){}
     loadSoundControls = (newEffect) => {
@@ -586,7 +605,7 @@ export class SensoriumApplet {
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedback.value;
                 if(this.session.atlas.data.heg.length>0) {
-                    if(option === 'heg_heartbeat') { //Heart Beat causing tone to fall off
+                    if(option === 'iHB') { //Heart Beat causing tone to fall off
                         this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                         
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
@@ -596,14 +615,14 @@ export class SensoriumApplet {
                             );
                         } 
                         this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
-                    } else if (option === 'heg_hr') { //Heart rate modifies play speed
+                    } else if (option === 'iHR') { //Heart rate modifies play speed
                         let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             effectStruct.source.playBackRate.value = hr_mod;
                         }
                         this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                     }
-                        else if (option === 'heg') { //Raise HEG ratio compared to baseline
+                        else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
                         if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
                         let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
@@ -613,7 +632,7 @@ export class SensoriumApplet {
                             );
                         }
                         this.modifiers.iHEG = hegscore; //starts at 0
-                    } else if (option === 'heg_hrv') { //Maximize HRV, set the divider to set difficulty
+                    } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
                                 Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
@@ -625,52 +644,52 @@ export class SensoriumApplet {
                 }
                 if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
                     let channel = document.getElementById(this.props.id+'channel'+effectStruct.uiIdx).value;
-                    if (option === 'eeg_delta') {
+                    if (option === 'iDelta') {
                         this.modifiers.iDelta = this.session.atlas.getLatestFFTData(channel)[0].mean.delta;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iDelta/50,1)), window.audio.ctx.currentTime); //bandpowers should be normalized to microvolt values, so set these accordingly
                         }
-                    } else if (option === 'eeg_theta') {
+                    } else if (option === 'iTheta') {
                         this.modifiers.iTheta = this.session.atlas.getLatestFFTData(channel)[0].mean.theta;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iTheta/30,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_alpha1') {
+                    } else if (option === 'iAlpha1') {
                         this.modifiers.iAlpha1 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha1;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1/20,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_alpha2') {
+                    } else if (option === 'iAlpha2') {
                         this.modifiers.iAlpha2 = this.session.atlas.getLatestFFTData(channel)[0].mean.alpha2;
                         if(!effectStruct.muted && window.audio && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha2/20,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_beta') {
+                    } else if (option === 'iBeta') {
                         this.modifiers.iBeta = this.session.atlas.getLatestFFTData(channel)[0].mean.beta;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iBeta/10,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_gamma') {
+                    } else if (option === 'iGamma') {
                         this.modifiers.iGamma = this.session.atlas.getLatestFFTData(channel)[0].mean.lowgamma;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iGamma/5,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_40hz') {
+                    } else if (option === 'i40Hz') {
                         this.modifiers.i40Hz = this.session.atlas.get40HzGamma(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.i40Hz/5,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_tb') {
+                    } else if (option === 'iThetaBeta') {
                         this.modifiers.iThetaBeta = this.session.atlas.getThetaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iThetaBeta,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_a12') {
+                    } else if (option === 'iAlpha1Alpha2') {
                         this.modifiers.iAlpha1Alpha2 = this.session.atlas.getAlphaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1Alpha2,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (option === 'eeg_ab') {
+                    } else if (option === 'iAlphaBeta') {
                         this.modifiers.iAlphaBeta = this.session.atlas.getAlphaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaBeta,1)), window.audio.ctx.currentTime);
@@ -683,11 +702,11 @@ export class SensoriumApplet {
                                 window.audio.ctx.currentTime
                             );
                         }
-                    } else if (option === 'eeg_bandpowers') {
+                    } else if (option === 'iFFT') {
                         this.modifiers.iFFT = this.getData("iFFT");
                     } 
                 }
-                if(option === 'audio') {
+                if(option === 'iAudio') {
                     if(!effectStruct.muted && window.audio && effectStruct.playing){
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
                         window.audio.analyserNode.getByteFrequencyData(array);
