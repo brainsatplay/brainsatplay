@@ -7,6 +7,7 @@ varying vec2 vTextureCoord;
 varying vec2 resolution;
 
 uniform float iPower;
+uniform bool iNega;
 uniform vec2 iResolution;
 uniform float iTime;
 uniform float iHEG;
@@ -26,7 +27,11 @@ float field(in vec3 p) {
 		float mag = dot(p, p);
 		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
 		float w = exp(-float(i) / 7.);
-		accum += w * exp(-strength * pow(abs(mag - prev), iPower));
+		if (iNega){
+			accum += w - exp(-strength * pow(abs(mag - prev), iPower));
+		} else{
+			accum += w * exp(-strength * pow(abs(mag - prev), iPower));
+		}
 		tw += w;
 		prev = mag;
 	}

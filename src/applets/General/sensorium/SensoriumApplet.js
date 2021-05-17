@@ -59,6 +59,7 @@ export class SensoriumApplet {
         this.currentShader = null;
 
         this.three.planes = [];
+        this.guiControllers = []
 
         //Available uniforms for shaders. See comments for usage
         this.modifiers = {
@@ -101,70 +102,97 @@ export class SensoriumApplet {
             iAlpha1Coherence: {default:1, min:0, max:1.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
-        this.defaultUniforms = ['iResolution', 'iTime'];
+        this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
 
         this.shaders = {
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHR','iHB','iAudio'],
+                uniforms: {
+                    values: {
+                        iPower: 2.3,
+                        iNega: false,
+                        iHRV: 'auto',
+                        iHEG: 'auto',
+                        iHR: 'auto',
+                        iHB: 'auto',
+                        iAudio: 'auto',
+                    },
+                    params: {
+                        iPower: {min: 0, max: 5},
+                        iNega: {},
+                    }
+                },
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHR','iHB'],
+                uniforms: {
+                    values: {
+                        iPower: 2.3,
+                        iHRV: 'auto',
+                        iHEG: 'auto',
+                        iHR: 'auto',
+                        iHB: 'auto',
+                        iAudio: 'auto',
+                    },
+                    params: {
+                        iPower: {min: 0, max:5},
+                        iNega: {},
+                    }
+                },
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
-                uniforms: ['iFFT'],
+                uniforms: {},
                 credit: 'Garrett Flynn'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'Danilo Guanabara (Shadertoy)'
             },
             octagrams: {
                 name: 'Octagrams',
                 vertexShader: vertexShader,
                 fragmentShader: octagramsFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'whisky_shusuky (Shadertoy)'
             },
             cineshaderlava: {
                 name: 'Cineshader Lava',
                 vertexShader: vertexShader,
                 fragmentShader: cineshaderlavaFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'edankwan (Shadertoy)'
             },
             fractalpyramid: {
                 name: 'Fractal Pyramid',
                 vertexShader: vertexShader,
                 fragmentShader: fractalpyramidFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'bradjamesgrant (Shadertoy)'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: [],
+                uniforms: {},
                 credit: 'Elise (Shadertoy)'
             },
         }
@@ -209,8 +237,17 @@ export class SensoriumApplet {
             </div>`;
         }
 
+
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+
+            /**
+             * GUI
+             */
+            this.appletContainer = document.getElementById(this.props.id)
+            this.gui = new GUI({ autoPlace: false });
+            this.appletContainer.querySelector('.guiContainer').appendChild(this.gui.domElement);
+
             document.getElementById(props.id+'addeffect').onclick = () => {
                 this.addSoundInput();
                 console.log('clicked to add sound input')
@@ -222,9 +259,9 @@ export class SensoriumApplet {
             })
             
             this.currentShader = this.shaders[selector.value];
-
+            this.swapShader()
+            
             selector.onchange = (e) => {
-                console.log('changed')
                 if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
                     this.swapShader()
@@ -274,35 +311,6 @@ export class SensoriumApplet {
         this.looping = true;
         
         this.ct = 0;
-
-    /**
-     * Three.js Shader
-     */
-
-    this.appletContainer = document.getElementById(this.props.id)
-
-    /**
-     * GUI
-     */
-    const gui = new GUI({ autoPlace: false });
-    this.appletContainer.querySelector('.guiContainer').appendChild(gui.domElement);
-
-
-    let updateUniformsWithGUI = (key,value) => {
-        this.three.planes.forEach(p => {
-            if (p.material.uniforms[key] == null) p.material.uniforms[key] = {}
-            p.material.uniforms[key].value = value
-        })
-    }
-
-    let paramsMenu = gui.addFolder('Parameters');
-    //paramsMenu.add(guiUniforms, 'iPower', 0, 5).onChange((val) => updateUniformsWithGUI('iPower',val));
-    // offsetMenu.add(materialControls, 'noiseIntensity', 0, 1).onChange(materialControls.updateNoise);
-    for(const prop in this.modifiers) {
-        if(typeof this.modifers[prop] !== 'object')
-            paramsMenu.add(this.modifiers,prop,0,this.modifers[prop].max)
-    }
-
 
     /**
      * Scene
@@ -359,16 +367,7 @@ export class SensoriumApplet {
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    let defaultUniforms = {}
-    let alreadyDeclared = ['iTime', 'iResolution']
-    defaultUniforms.iTime = {value: 0}
-    defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
-    
-    Object.keys(this.modifiers).forEach(u => {
-        if (!alreadyDeclared.includes(u)){
-            defaultUniforms[u]= {value :guiUniforms[u]}
-        }
-    })
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
     
     shaderKeys.forEach((k,i) => {
 
@@ -378,7 +377,7 @@ export class SensoriumApplet {
                 side: THREE.DoubleSide,
                 vertexShader: this.shaders[k].vertexShader,
                 fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: defaultUniforms// Default Uniforms 
+                uniforms: {...this.defaultUniforms}// Default Uniforms 
             });
 
             let radius = 0;//10
@@ -401,7 +400,6 @@ export class SensoriumApplet {
                 this.setBrainData(this.session.atlas.data.eeg)
 
                 this.three.planes.forEach(p => {
-                    console.log(p.material.uniforms)
                     this.updateMaterialUniforms(p.material,this.modifiers);
                 });
 
@@ -737,6 +735,7 @@ export class SensoriumApplet {
         })
 
         this.updateMaterialUniforms(newMaterial,this.modifiers);
+        this.generateGUI(this.currentShader.uniforms)
 
         this.three.planes.forEach(p => {
             p.material.dispose();
@@ -753,7 +752,7 @@ export class SensoriumApplet {
             return  channel.fft;
         }
         else if (u === 'iHRV'){
-            return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv;
+            if (this.session.atlas.heg) return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv; 
         }
         // Defaults
         else if (u === 'iTime'){
@@ -765,20 +764,25 @@ export class SensoriumApplet {
     }
 
     updateMaterialUniforms = (material,modifiers={}) => {
-        let uniformsToUpdate = this.defaultUniforms.concat(this.currentShader.uniforms)
-        uniformsToUpdate.forEach(u => {
+        let uniformsToUpdate = {}
+        Object.assign(uniformsToUpdate, {...this.defaultUniforms}, this.currentShader.uniforms.values)
+        for (let name in uniformsToUpdate){
+            let value = uniformsToUpdate[name]
 
-            if (material.uniforms[u] == null) material.uniforms[u] = {}
+            if (material.uniforms[name] == null) material.uniforms[name] = {}
 
             /* todo
                 add Uniforms for each selector value
             */
-            if (this.defaultUniforms.includes(u)){
-                material.uniforms[u].value = this.getData(u)
+
+            if (Object.keys(this.defaultUniforms).includes(name)){
+                material.uniforms[name].value = this.getData(name)
+            } else if (value === 'auto') {
+                material.uniforms[name].value = modifiers[name];
             } else {
-                material.uniforms[u].value = modifiers[u];
+                material.uniforms[name].value = value;
             }
-        })
+        }
 
         return material
     }
@@ -816,5 +820,30 @@ export class SensoriumApplet {
             if (data.length > 0) return data.reduce((tot,curr) => tot + curr)
             else return 1
         })  
-  }
+    }
+
+    generateGUI(uniforms){
+        let updateUniformsWithGUI = (key,value) => {
+            this.three.planes.forEach(p => {
+                if (p.material.uniforms[key] == null) p.material.uniforms[key] = {}
+                p.material.uniforms[key].value = value
+            })
+        }
+
+        let folders = Object.keys(this.gui.__folders)
+        if (!folders.includes('Parameters')){
+            this.gui.addFolder('Parameters');
+        }
+        let paramsMenu = this.gui.__folders['Parameters']
+
+        this.guiControllers.forEach(c => {
+            paramsMenu.remove(c)
+        })
+        this.guiControllers = []        
+
+        for (let name in uniforms.values){
+            console.log(name)
+            if (uniforms.values[name] != 'auto') this.guiControllers.push(paramsMenu.add(uniforms.values, name, uniforms.params[name].min,uniforms.params[name].max).onChange((val) => updateUniformsWithGUI(name,val)));
+        }    
+    }
 } 
