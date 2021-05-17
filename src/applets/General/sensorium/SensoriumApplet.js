@@ -739,7 +739,7 @@ export class SensoriumApplet {
     updateMaterialUniforms = (material,modifiers={}) => {
         let uniformsToUpdate = JSON.parse(JSON.stringify(this.defaultUniforms));
         this.currentShader.uniforms.forEach((u)=> uniformsToUpdate[u]=0);
-        //console.log(uniformsToUpdate)
+
         for (let name in uniformsToUpdate){
             let value = uniformsToUpdate[name];
 
@@ -751,7 +751,7 @@ export class SensoriumApplet {
 
             if (Object.keys(this.defaultUniforms).includes(name)){
                 material.uniforms[name].value = this.getData(name)
-            } else if (value === 'auto') {
+            } else if (material.uniforms[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {
                 material.uniforms[name].value = value;
@@ -799,9 +799,10 @@ export class SensoriumApplet {
     generateGUI(uniforms){
         let updateUniformsWithGUI = (key,value) => {
             this.three.planes.forEach(p => {
-                if (p.material.uniforms[key] == null) p.material.uniforms[key] = {}
-                p.material.uniforms[key].value = value
-            })
+                if (p.material.uniforms[key] == null) p.material.uniforms[key] = {};
+                p.material.uniforms[key].value = value;
+            });
+            
         }
 
         let folders = Object.keys(this.gui.__folders)
@@ -813,7 +814,7 @@ export class SensoriumApplet {
         this.guiControllers.forEach(c => {
             paramsMenu.remove(c)
         })
-        this.guiControllers = []        
+        this.guiControllers = [];        
 
         for (let name in this.modifiers){
             if(typeof this.modifiers[name] !== 'object' && uniforms.indexOf(name) > -1){
