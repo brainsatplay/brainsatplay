@@ -24,8 +24,8 @@ float field(in vec3 p) {
 	float tw = 0.;
 	for (int i = 0; i < 32; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5+(iAudio[100]*0.00001)+iHB*0.1, -.4+(iAudio[200]*0.00001)+iHB*0.1, -1.5);
-		float w = exp(-float(i) / 7.);
+		p = abs(p) / mag + vec3(-.5+(iAudio[100]*0.00001)+iHB*0.1+iHEG*0.1, -.4+(iAudio[200]*0.00001)+iHB*0.1+iHEG*0.1, -1.5);
+		float w = exp(-float(i) / (7.+iHRV));
 		if (iHEG < 0.0){
 			accum += w - exp(-strength * pow(abs(mag - prev), 2.3));
 		} else{
@@ -45,5 +45,5 @@ void main() {
 	p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
 	float t = field(p);
 	float v = (1. - exp((abs(vUv.x) - 1.) * 7.)) * (1. - exp((abs(vUv.y) - 4.) * 6.));
-	gl_FragColor = mix(.4, 1., v) * vec4(1.8 * t * t * t, (1.4+iAudio[40]*0.005) * t * t, t+iAudio[150]*0.001, 1.0);
+	gl_FragColor = mix(.4, 1., v) * vec4((1.8+iHEG*0.1+iHR*0.01) * t * t * t , (1.4+iAudio[40]*0.005) * t * t, t+iAudio[150]*0.001, 1.0);
 }
