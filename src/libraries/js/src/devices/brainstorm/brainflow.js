@@ -6,6 +6,7 @@ export const brainflow = (plugin, data) => {
 
         coord.raw.push(...currentData)
         coord.times.push(...data.times);
+
         if(plugin.info.useFilters === true) {                
             let latestFiltered = new Array(currentData.length).fill(0);
             if(plugin.filters[o.ch] !== undefined) {

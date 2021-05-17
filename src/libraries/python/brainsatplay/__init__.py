@@ -6,6 +6,7 @@ import ssl
 import asyncio
 import sys, signal
 import time
+import pathlib
 
 """ TO DO
     -  Get HTTPS working
@@ -45,9 +46,11 @@ class Brainstorm():
 
         subprotocols = [encodeForSubprotocol('username', self.username),encodeForSubprotocol('password', self.password), encodeForSubprotocol('origin', 'brainsatplay.py')]
 
+
         o = urlparse(self.url)
         if (o.scheme == 'http'):
             self.uri = "ws://" + o.netloc + ":" + self.port
+            print("\n\nconnecting to {}\n\n".format(self.uri))
             try:
                 self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
             except:
@@ -55,18 +58,29 @@ class Brainstorm():
                 return 
 
         elif (o.scheme == 'https'):
-            self.uri = "wss://" + o.netloc + ":" + self.port
-            try:
-                self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols, ssl=True)
-            except:
-                print('\n\nconnect call failed\n\n')
-                return
+            print('\n\n\Secure websocket connections not currently supportedn\n')
+            # self.uri = "wss://" + o.netloc + ":" + self.port
+            # print("\n\nconnecting to {}\n\n".format(self.uri))
+            # try:
+            #     cert = bytes(pathlib.Path(__file__).with_name('localhost.pem'))
+            #     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            #     ssl_context.load_verify_locations(cert)
+            #     ssl_context.verify_mode = ssl.CERT_REQUIRED
+            #     # ssl.match_hostname can't match IP addresses on Python < 3.5.
+            #     # We're using IP addresses to enforce testing of IPv4 and IPv6.
+            #     if sys.version_info[:2] >= (3, 5):  # pragma: no cover
+            #         ssl_context.check_hostname = True
+            #     self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols,ssl=ssl_context)
+            # except Exception as e: 
+            #     print(e)
+            #     print('\n\nconnect call failed\n\n')
+            #     return
                 
         else:
             print('not a valid url scheme')
             return
 
-        print("\n\nconnected to {}\n\n".format(self.uri))
+        print("\n\nconnected\n\n")
         return await self.__waitForResponse()
     
     """
