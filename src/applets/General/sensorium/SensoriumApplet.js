@@ -841,9 +841,16 @@ export class SensoriumApplet {
         })
         this.guiControllers = []        
 
-        for (let name in uniforms.values){
-            console.log(name)
-            if (uniforms.values[name] != 'auto') this.guiControllers.push(paramsMenu.add(uniforms.values, name, uniforms.params[name].min,uniforms.params[name].max).onChange((val) => updateUniformsWithGUI(name,val)));
+        for (let name in this.modifiers){
+            if(typeof this.modifiers[name] !== 'object'){
+                this.guiControllers.push(
+                    paramsMenu.add(
+                        this.modifiers, 
+                        name, 
+                        this.uniformSettings[name].min,
+                        this.uniformSettings[name].max).onChange(
+                            (val) => updateUniformsWithGUI(name,val)));
+            }
         }    
     }
 } 
