@@ -322,6 +322,7 @@ class DataServer {
         }
         else if(commands[0] === 'leaveSession') {
             let found = undefined;
+            console.log(commands)
             if(commands[2]) found = this.removeUserFromSession(commands[1],commands[2]);
             else found = this.removeUserFromSession(commands[1],u.username);
             if(found) {  u.socket.send(JSON.stringify({msg:'leftSession',id:commands[1]}));}

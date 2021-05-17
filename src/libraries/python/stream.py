@@ -50,12 +50,9 @@ def main():
     Stream your Data
     '''
 
-    starttime = time.time()
-
     # Setup Brainflow
     params = BrainFlowInputParams()
     board_id = BoardIds['SYNTHETIC_BOARD'].value
-
     board = BoardShim(board_id, params)
     board.rate = BoardShim.get_sampling_rate(board_id)
     board.channels = BoardShim.get_eeg_channels(board_id)
@@ -66,17 +63,14 @@ def main():
     board.start_stream(num_samples=450000)
 
     # Handle CTRL-C Exit
-    def stop(self, signal):
+    def onStop():
         board.stop_stream()
         board.release_session()
-        brainstorm.leaveSession(sessionid)
-        sys.exit('\n\nYour data stream to the Brainstorm has been stopped.\n\n')
-    signal.signal(signal.SIGINT, stop)
 
     loopCount = 0
 
     # Start Stream Loop
-    while True:
+    def streamLoop():
         pass_data = []
         rate = DataFilter.get_nearest_power_of_two(board.rate)
         data = board.get_board_data()
@@ -87,23 +81,24 @@ def main():
         for entry in data:
             pass_data.append((entry).tolist())
             
-        message = {}
-        message['raw'] = pass_data
-        message['times'] = t.tolist()
+        data = {}
+        data['raw'] = pass_data
+        data['times'] = t.tolist()
 
         # Send Metadata on First Loop
         if loopCount == 0:
-            message['sps'] = board.rate
-            message['deviceType'] = 'eeg'
-            message['format'] = 'brainflow'
+            data['sps'] = board.rate
+            data['deviceType'] = 'eeg'
+            data['format'] = 'brainflow'
             tags = []
             for i, channel in enumerate(board.eeg_channels):
                 tags.append({'ch': channel-1, 'tag': board.eeg_names[i], 'analyze':True})
 
-            message['eegChannelTags'] = tags
+            data['eegChannelTags'] = tags
+        
+        return data
 
-        res = brainstorm.streamData(message)
-        time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+    res = brainstorm.startStream(streamLoop, onStop)
 
 if __name__ == "__main__":
     main()
