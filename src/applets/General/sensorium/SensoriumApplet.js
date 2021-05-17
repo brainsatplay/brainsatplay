@@ -109,90 +109,63 @@ export class SensoriumApplet {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: {
-                    values: {
-                        iPower: 2.3,
-                        iNega: false,
-                        iHRV: 'auto',
-                        iHEG: 'auto',
-                        iHR: 'auto',
-                        iHB: 'auto',
-                        iAudio: 'auto',
-                    },
-                    params: {
-                        iPower: {min: 0, max: 5},
-                        iNega: {},
-                    }
-                },
+                uniforms: ['iHRV','iHEG','iHB','iHR'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: {
-                    values: {
-                        iPower: 2.3,
-                        iHRV: 'auto',
-                        iHEG: 'auto',
-                        iHR: 'auto',
-                        iHB: 'auto',
-                        iAudio: 'auto',
-                    },
-                    params: {
-                        iPower: {min: 0, max:5},
-                        iNega: {},
-                    }
-                },
+                uniforms: ['iHRV','iHEG','iHB','iHR'],,
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'Garrett Flynn'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'Danilo Guanabara (Shadertoy)'
             },
             octagrams: {
                 name: 'Octagrams',
                 vertexShader: vertexShader,
                 fragmentShader: octagramsFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'whisky_shusuky (Shadertoy)'
             },
             cineshaderlava: {
                 name: 'Cineshader Lava',
                 vertexShader: vertexShader,
                 fragmentShader: cineshaderlavaFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'edankwan (Shadertoy)'
             },
             fractalpyramid: {
                 name: 'Fractal Pyramid',
                 vertexShader: vertexShader,
                 fragmentShader: fractalpyramidFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'bradjamesgrant (Shadertoy)'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: {},
+                uniforms: [],
                 credit: 'Elise (Shadertoy)'
             },
         }
@@ -764,8 +737,8 @@ export class SensoriumApplet {
     }
 
     updateMaterialUniforms = (material,modifiers={}) => {
-        let uniformsToUpdate = {}
-        Object.assign(uniformsToUpdate, {...this.defaultUniforms}, this.currentShader.uniforms.values)
+        let uniformsToUpdate = JSON.parse(JSON.stringify(this.defaultUniforms));
+        
         for (let name in uniformsToUpdate){
             let value = uniformsToUpdate[name]
 
