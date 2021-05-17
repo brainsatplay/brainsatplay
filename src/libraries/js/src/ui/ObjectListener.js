@@ -101,7 +101,7 @@ export class ObjectListener {
         }
         else {
             var found = this.listeners.find((o,i) => {
-                if(o.name === key) {
+                if(o.key === key) {
                     o.listener.removeFuncs(idx);
                 }
             });
@@ -204,11 +204,14 @@ export class ObjectListenerInstance {
 
     //Remove extra onchange functions
     removeFuncs(idx = null) {
+        console.log(idx)
         if(idx === null) {
             this.onchangeFuncs = [];
         }
         else if(this.onchangeFuncs[idx] !== undefined) {
+            console.log('splicing', this.onchangeFuncs)
             this.onchangeFuncs.splice(idx,1);
+            console.log('splicing', this.onchangeFuncs)
         }
     }
 

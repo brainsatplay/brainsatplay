@@ -82,8 +82,8 @@ class Brainstorm():
     def getSessionInfo(self,sessionid):
         return self.sendCommand(['getSessionInfo',sessionid])
 
-    def subscribeToSession(self, sessionid, spectating=True, ondata=None):
-        res = self.sendCommand(['subscribeToSession',sessionid,spectating])
+    def subscribeToSession(self, sessionid, ondata=None):
+        res = self.sendCommand(['subscribeToSession',sessionid,False]) # We do nut support spectating from Python
 
         if ondata is None:
             def echo(data):
@@ -128,6 +128,7 @@ class Brainstorm():
             return jsonMessage
 
     def __defaults__onData(self,json):
+
         if (json['msg'] == 'resetUsername'):
             self.username = json['username']
 

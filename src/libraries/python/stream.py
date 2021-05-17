@@ -8,10 +8,9 @@ import sys, signal
 def main():
 
     # Subscription Details
-    appname = 'Sandbox'
+    appname = 'brainflow'
     devices = []
     props = ['raw','times']
-    spectating = True
     sessionid = None
 
     # Initiailize Connection to the Brainstorm
@@ -23,18 +22,24 @@ def main():
         for user in json['userData']:
             name = user['username']
             print('Data for {}'.format(name))
+            remove = ['username']
+            mute = ['raw','times']
             for prop in user:
-                print(user[prop])
+                if prop not in remove:
+                    print(prop)
+                    if prop not in mute:
+                        print(prop)
+                        print(user[prop])
 
     res = brainstorm.getSessions(appname)
-
-    if (hasattr(res,'sessions')):
-        sessionid = res['sessions'][0]
+    
+    if res['msg'] != 'appNotFound':
+        sessionid = res['sessions'][0]['id']
     else:
         res = brainstorm.createSession(appname, devices, props)
         sessionid = res['sessionInfo']['id']
 
-    res = brainstorm.subscribeToSession(sessionid, spectating, newData)
+    res = brainstorm.subscribeToSession(sessionid,newData)
         
     starttime = time.time()
 

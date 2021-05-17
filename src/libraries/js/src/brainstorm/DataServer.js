@@ -129,17 +129,23 @@ class DataServer {
         }
 
         if (found) {
+            // Send Info About User Leaving
             let sessionData =this.getSessionData(id)
             sessionData.userLeft = username
-            app.usernames.forEach(u => {
+            let allUsernames = [...app.usernames,...app.spectators]
+            allUsernames.forEach(u => {
                 this.userData.get(u).socket.send(JSON.stringify(sessionData));
             })
-            this.userData.get(username).sessions.find((session,i) => {
-                if (session === id){
-                    this.userData.get(username).sessions.splice(i,1)
-                    return
+
+            // Remove Session from User Info
+            let oldSessions = this.userData.get(username).sessions
+            let toKeep = []
+            oldSessions.forEach((session,i) => {
+                if (session !== id){
+                    toKeep.push(id)
                 }
             })
+            this.userData.get(username).sessions = toKeep
         }
 
         return found;
@@ -322,7 +328,7 @@ class DataServer {
             else { u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));}
         }
         else if(commands[0] === 'deleteSession') {
-            let found = this.removeAppStream(commands[1]);
+            let found = this.removeSessionStream(commands[1]);
             if(found) { u.socket.send(JSON.stringify({msg:'sessionDeleted',id:commands[1]}));}
             else { u.socket.send(JSON.stringify({msg:'sessionNotFound'}));}
         }
@@ -466,7 +472,8 @@ class DataServer {
                     spectators:[]
                 };
                 
-                sub.usernames.forEach((user,j) => { //get current relevant data for all players in session
+                let allUsernames = [...sub.usernames,...sub.spectators]
+                allUsernames.forEach((user,j) => { //get current relevant data for all players in session
                     if(sub.spectators.indexOf(user) < 0){
                         let userObj = {
                             username:user
@@ -491,26 +498,32 @@ class DataServer {
     }
 
 	subscribeUserToSession(username,id,spectating=false) {
+
         let g = this.getAppSubscription(id);
         let u = this.userData.get(username);
+
 		if(g !== undefined && u !== undefined) {
-            if( g.usernames.indexOf(username) < 0) { 
-                g.usernames.push(username);
+            if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
                 if(spectating === true) g.spectators.push(username);
-                g.newUsers.push(username);
-                g.updatedUsers.push(username);
+                else {
+                    g.usernames.push(username);
+                    g.newUsers.push(username);
+                    g.updatedUsers.push(username);
+                }
             }
 			
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
             u.sessions.push(id);
+            console.log('spectators', g.spectators)
+
 			//Now send to the user which props are expected from their client to the server on successful subscription
 			u.socket.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
 		}
 		else {
 			u.socket.send(JSON.stringify({msg:'sessionNotFound',id:id}));
-		}
+        }
 	}
 
     createHostSubscription(appname='',devices=[],propnames=[], hostname='', hostprops=[]) {
@@ -568,7 +581,8 @@ class DataServer {
                     spectators:[]
                 };
                 
-                sub.usernames.forEach((user,j) => { //get current relevant data for all players in game
+                let allUsernames = [...sub.usernames,...sub.spectators]
+                allUsernames.forEach((user,j) => { //get current relevant data for all players in game
                     if(sub.spectators.indexOf(user) < 0){
                         let userObj = {
                             username:user
@@ -604,10 +618,13 @@ class DataServer {
 		let g = this.getHostSubscription(id);
         let u = this.userData.get(username);
 		if(g !== undefined && u !== undefined) {
-            if( g.usernames.indexOf(username) < 0) { 
-                g.usernames.push(username);
+            if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
                 if(spectating === true) g.spectators.push(username);
-                g.newUsers.push(username);
+                else {
+                    g.usernames.push(username);
+                    g.newUsers.push(username);
+                    g.updatedUsers.push(username);
+                }
             }
 
             if(hosting === true) g.hostname = username;
@@ -676,7 +693,9 @@ class DataServer {
 
                     let fullUserData = [];
 
-                    sub.usernames.forEach((user, j) => {
+                    let allUsernames = [...sub.usernames,...sub.spectators]
+
+                    allUsernames.forEach((user, j) => {
                         if(sub.spectators.indexOf(user) < 0) {
                             let userObj = {
                                 username:user
@@ -726,7 +745,8 @@ class DataServer {
                         }
                     });
 
-                    sub.usernames.forEach((user,j) => {
+                    let allUsernames = [...sub.usernames,...sub.spectators]
+                    allUsernames.forEach((user,j) => {
                         if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
                             let u = this.userData.get(user);
                             if(u !== undefined) {
@@ -822,7 +842,8 @@ class DataServer {
                 }
 
                 //send latest host data to users
-                sub.usernames.forEach((user,j) => {
+                let allUsernames = [...sub.usernames,...sub.spectators]
+                allUsernames.forEach((user,j) => {
                     let u = this.userData.get(user);
                     if(u !== undefined) {
                         u.socket.send(JSON.stringify(updateObj));

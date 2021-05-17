@@ -923,10 +923,12 @@ export class Session {
 							});
 							onsuccess(newResult);
 						}
-						this.state.unsubscribe('commandResult',sub);
+
+						console.log('unsubscribe ' + sub)
+						this.state.unsubscribe('commandResult', sub);
 					}
 					else if (newResult.msg === 'sessionNotFound' & newResult.id === sessionid) {
-						this.state.unsubscribe('commandResult',sub);
+						this.state.unsubscribe('commandResult', sub);
 						console.log("Session not found: ", sessionid);
 					}
 				}
@@ -947,6 +949,7 @@ export class Session {
 						}
 					}
 					onsuccess(newResult);
+					console.log('unsubscribe' + sub)
 					this.state.unsubscribe('commandResult',sub);
 				}
 			});
@@ -1201,36 +1204,40 @@ export class Session {
                         }
                     });
     
-                    document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
+					document.getElementById(baseBrowserId+'browser').innerHTML = gridhtml
+					
+					let connecToGame = (g) => {
+						let spectate = true
+						
+						if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
+						else console.log('spectating')
+
+						this.subscribeToSession(g.id,spectate,(subresult) => {
+							console.log('results')
+
+							onjoined(g);
+							
+							let leaveOnRefresh = () => {
+								exitSession.click()
+							}					
+							
+							let leaveSession = () => {
+								this.unsubscribeFromSession(g.id,()=>{
+									onleave(g);
+									exitSession.removeEventListener('click', leaveSession)
+									window.removeEventListener('beforeunload',leaveOnRefresh)
+								});
+							}
+
+							exitSession.addEventListener('click', leaveSession)
+							window.addEventListener('beforeunload', leaveOnRefresh)
+						});
+					}
+
     
                     result.sessions.forEach((g) => { 
                         let connectButton = document.getElementById(`${g.id}connect`)
-                        connectButton.onclick = () => {
-							let spectate = true
-							
-							if (this.atlas.settings.deviceConnected) {spectate = false; console.log('streaming')}
-							else console.log('spectating')
-                            this.subscribeToSession(g.id,spectate,(subresult) => {
-                                onjoined(g);
-
-								
-								let leaveOnRefresh = () => {
-									exitSession.click()
-								}					
-								
-								let leaveSession = () => {
-									this.unsubscribeFromSession(g.id,()=>{
-                                        onleave(g);
-										exitSession.removeEventListener('click', leaveSession)
-										window.removeEventListener('beforeunload',leaveOnRefresh)
-                                    });
-								}
-
-                                exitSession.onclick = leaveSession
-
-								window.onbeforeunload = leaveOnRefresh;
-                            });
-                        }
+                        connectButton.addEventListener('click', () => {connecToGame(g)})
                     });
                 });
             }
