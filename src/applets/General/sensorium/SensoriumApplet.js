@@ -27,6 +27,7 @@ import * as settingsFile from './settings'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
 import negaGalaxyFragmentShader from "./shaders/nega_fractalGalaxy/fragment.glsl"
@@ -175,6 +176,8 @@ export class SensoriumApplet {
             <div style="position:absolute; top: 75px; right: 25px; z-index: 1;">
                 <select id='${props.id}shaderSelector'></select>
             </div>
+            <div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 1;">
+            </div>
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <button id='${props.id}addeffect'>Add Effects</button>
@@ -254,11 +257,32 @@ export class SensoriumApplet {
      * Three.js Shader
      */
 
-    this.colorBuffer = Array.from({length: this.history}, e => [1.0,1.0,1.0])
-    this.timeBuffer = Array.from({length: this.history}, e => 0)
-    this.noiseBuffer = Array.from({length: this.history}, e => 1.0)
-
     this.appletContainer = document.getElementById(this.props.id)
+
+    /**
+     * GUI
+     */
+    const gui = new GUI({ autoPlace: false });
+    this.appletContainer.querySelector('.guiContainer').appendChild(gui.domElement);
+
+
+    let guiUniforms = {
+        iPower: 2.3,
+    }
+
+    let updateUniformsWithGUI = (key,value) => {
+        this.three.planes.forEach(p => {
+            if (p.material.uniforms[key] == null) p.material.uniforms[key] = {}
+            p.material.uniforms[key].value = value
+        })
+    }
+
+    let paramsMenu = gui.addFolder('Parameters');
+    paramsMenu.add(guiUniforms, 'iPower', 0, 5).onChange((val) => updateUniformsWithGUI('iPower',val));
+
+    // offsetMenu.add(materialControls, 'noiseIntensity', 0, 1).onChange(materialControls.updateNoise);
+
+
 
     /**
      * Scene
@@ -316,8 +340,16 @@ export class SensoriumApplet {
     let numShaders = shaderKeys.length;
 
     let defaultUniforms = {}
+    let alreadyDeclared = ['iTime', 'iResolution']
     defaultUniforms.iTime = {value: 0}
     defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    
+    Object.keys(guiUniforms).forEach(u => {
+        if (!alreadyDeclared.includes(u)){
+            defaultUniforms[u]= {value :guiUniforms[u]}
+        }
+    })
+    
     shaderKeys.forEach((k,i) => {
 
         if (i === 0){
@@ -349,6 +381,7 @@ export class SensoriumApplet {
                 this.setBrainData(this.session.atlas.data.eeg)
 
                 this.three.planes.forEach(p => {
+                    console.log(p.material.uniforms)
                     this.updateMaterialUniforms(p.material,this.modifiers);
                 });
 
