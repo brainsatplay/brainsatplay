@@ -551,7 +551,7 @@ export class SensoriumApplet {
             for(let i = 0; i < sel.options.length; i++){
                 if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
                     sel.options[i].style.display='';
-                } else {
+                } else if (sel.options[i].value !== 'none') {
                     sel.options[i].style.display='none';
                 }   
                 if(sel.options[i].selected === true && sel.options[i].style.display==='none') {
