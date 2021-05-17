@@ -67,7 +67,7 @@ export class SensoriumApplet {
             iHRV:             1,                          //Heart Rate Variability (values typically 5-30)
             iHEG:             0,                          //HEG change from baseline, starts at zero and can go positive or negative
             iHR:              1,                          //Heart Rate in BPM
-            iHB:              1,                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iHB:              0,                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             new Array(256).fill(0),     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           1,                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
             iTheta:           1,                          //Theta bandpower average.
@@ -87,7 +87,7 @@ export class SensoriumApplet {
             iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
             iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
             iHR:              {default:1, min:1, max:240,step:1},                          //Heart Rate in BPM
-            iHB:              {default:1, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iHB:              {default:0, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             {default:new Array(256).fill(0),min:0,max:1000},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           {default:1, min:0, max:100,step:0.5},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
             iTheta:           {default:1, min:0, max:100,step:0.5},                          //Theta bandpower average.
@@ -109,14 +109,14 @@ export class SensoriumApplet {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHB','iHR'],
+                uniforms: ['iAudio','iFFT','iHRV','iHEG','iHB','iHR'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iHRV','iHEG','iHB','iHR'],
+                uniforms: ['iAudio','iFFT','iHRV','iHEG','iHB','iHR'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
@@ -498,7 +498,7 @@ export class SensoriumApplet {
 
         document.getElementById(this.props.id+'selectors'+newEffect.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
         newEffect.feedback = document.getElementById(this.props.id+'select'+newEffect.uiIdx)
-
+        console.log(newEffect.feedback.value)
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
             if(value.includes('eeg')){

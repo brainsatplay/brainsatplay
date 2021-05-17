@@ -44,5 +44,5 @@ void main() {
 	p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
 	float t = field(p);
 	float v = (1. - exp((abs(vUv.x) - 1.) * 7.)) * (1. - exp((abs(vUv.y) - 4.) * 6.));
-	gl_FragColor = mix(.4, 1., v) * vec4(1.8 * t * t * t, 1.4 * t * t, t, 1.0);
+	gl_FragColor = mix(.4, 1., v) * vec4(1.8 * t * t * t, (1.4+iAudio[40]*0.01) * t * t, t, 1.0);
 }
