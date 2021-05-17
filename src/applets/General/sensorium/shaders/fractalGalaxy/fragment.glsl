@@ -27,7 +27,7 @@ float field(in vec3 p) {
 		p = abs(p) / mag + vec3(-.5+(iAudio[100]*0.00001)+iHB*0.1, -.4+(iAudio[200]*0.00001)+iHB*0.1, -1.5);
 		float w = exp(-float(i) / 7.);
 		if (iHEG < 0.0){
-			accum += w - exp(-strength  *pow(abs(mag - prev), 2.3));
+			accum += w - exp(-strength * pow(abs(mag - prev), 2.3));
 		} else{
 			accum += w * exp(-strength * pow(abs(mag - prev), 2.3));
 		}

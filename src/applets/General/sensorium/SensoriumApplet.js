@@ -455,7 +455,7 @@ export class SensoriumApplet {
             return `
                 <span id='${props.id}controlWrapper${idx}'>
                     <button id='${props.id}play${idx}'>${idx}: Play</button>
-                    <button id='${props.id}mute${idx}'>${idx}: Mute</button>
+                    <button id='${props.id}mute${idx}' style='display:none;'>${idx}: Mute</button>
                     <button id='${props.id}stop${idx}'>${idx}: Remove</button>
                 </span>
             `;
@@ -548,6 +548,8 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'play'+newEffect.uiIdx).onclick = () => {
             try{window.audio.playSound(newEffect.sourceIdx,0,true);}catch(er){}
             newEffect.playing = true;
+            document.getElementById(this.props.id+'play'+newEffect.uiIdx).style.display = 'none';
+            document.getElementById(this.props.id+'mute'+newEffect.uiIdx).style.display = '';
         }
 
         document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
