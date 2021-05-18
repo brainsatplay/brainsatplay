@@ -134,7 +134,7 @@ module.exports = {
       // Plugin / TypeDoc options
       {
         entryPoints: [
-          '../src/library/brainsatplay.js',
+          '../src/libraries/js/brainsatplay.js',
         ],
         tsconfig: './tsconfig.json',
         out: 'reference',

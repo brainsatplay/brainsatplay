@@ -25,7 +25,6 @@ class OSCManager{
             this.ports.forEach(o => {
                 o.send(this.encodeMessage(dict))
             })
-            this.ports = []
         } else {
             let found = this.ports.find((o,i) => {
                 if (o.options.localAddress === localAddress && o.options.localPort === localPort){
@@ -65,6 +64,7 @@ class OSCManager{
         });
 
         port.on("ready", () => {
+            this.ports.push(port)
             this.socket.send(JSON.stringify({msg:'oscInfo', oscInfo: this.info()}))
         });
 
@@ -79,13 +79,7 @@ class OSCManager{
 
         port.on("close", (msg) => {})
         
-        try {
-            port.open();
-        } catch (err) {
-            console.log('caught an error')
-        }
-
-        this.ports.push(port)
+        port.open();
     }
 
     remove(localAddress, localPort) {

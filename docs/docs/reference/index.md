@@ -13,6 +13,7 @@ Module for creating BCI application in Javascript.
 
 ## Namespaces
 
+- [Brainstorm](modules/brainstorm.md)
 - [Workers](modules/workers.md)
 
 ## Classes

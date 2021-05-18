@@ -887,7 +887,6 @@ export class Session {
 			if (typeof newResult === 'object') {
 				if (newResult.msg === 'oscInfo') {	
 					onsuccess(newResult.oscInfo);
-					this.sendBrainstormCommand(['sendOSC', {test: 'connected'}]);
 					this.state.unsubscribe('commandResult', sub);
 					return newResult.oscInfo
 				}
@@ -993,7 +992,7 @@ export class Session {
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
-		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0;">
+		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
 			<div>
 				<h2>Choose your Username</h2>
 				<div id="${this.id}login-container" class="form-container">
@@ -1045,10 +1044,8 @@ export class Session {
 
 					this.login(true, this.info.auth, () => {
 						onsuccess()
-						loginPage.style.opacity = '0';
-						loginPage.style.pointerEvents = 'none'
-						ui.deleteNode()
 						resolve(true);
+						setTimeout(() => {ui.deleteNode()},1000)
 					})
 				}
 
@@ -1060,7 +1057,8 @@ export class Session {
 					})
 				}
 
-				loginPage.style.opacity = '1';
+				loginPage.style.transition = 'opacity 1s'
+				loginPage.style.opacity = '1'
 			}
 
 			let ui = new DOMFragment(
@@ -1074,9 +1072,11 @@ export class Session {
 
 	createBrainstormBrowser = (parentNode = document.body, onsubscribe = () => { }) => {
 
+		let t = 1
+		
 		let template = () => {
 			return `
-			<div id="${this.id}-brainstormBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.0s;">
+			<div id="${this.id}-brainstormBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0;">
 				<div id="${this.id}-choiceDisplay" style="flex-grow: 1;">
 					<h1>Browse the Brainstorm</h1>
 					<div style="display: flex;">
@@ -1101,15 +1101,12 @@ export class Session {
 			let oscButton = controlsDiv.querySelector(`[name='osc']`)
 			let lslButton = controlsDiv.querySelector(`[name='lsl']`)
 
-
-			let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
-			exitBrowser.onclick = () => {
+			let closeUI = () => {
 				browser.style.opacity = '0'
-				browser.style.pointerEvents = 'none'
-				ui.deleteNode()
+				window.removeEventListener('resize', resizeDisplay)
+				setTimeout(() => {ui.deleteNode()},t*1000)
 			}
 
-			browser.style.opacity = '1'
 
 			const resizeDisplay = () => {
 				let browser = document.getElementById(`${this.id}-brainstormBrowser`)
@@ -1119,10 +1116,16 @@ export class Session {
 				browser.style.padding = `${padding}px`
 				userDiv.style.height = `${window.innerHeight - 2 * padding - (display.offsetHeight - userDiv.offsetHeight)}px`
 			}
+
+			let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
+			exitBrowser.onclick = closeUI
+
 			resizeDisplay()
 			window.addEventListener('resize', resizeDisplay)
-			
-			let updateUserDisplay = (users) => {
+			browser.style.transition = `opacity ${t}s`
+			browser.style.opacity = '1'
+
+			let updateUserDisplay = (mode, users) => {
 				userDiv.innerHTML = ''
 
 				let brainstormUserStyle = `
@@ -1156,7 +1159,7 @@ export class Session {
 						userDiv.insertAdjacentHTML('afterbegin',`
 						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}">
 							<p style="font-size: 60%;">${o[keys[2]]}</p>
-							<p>You</p>
+							<p>${o[keys[1]]}</p>
 							<p style="font-size: 80%;">${appMessage}</p>
 						</div>`)
 					}
@@ -1167,13 +1170,14 @@ export class Session {
 					let name = div.id.split(`${this.id}-user-`)[1]
 					if (name !== this.info.auth.username) {
 						div.onclick = (e) => {
-							this.subscribeToUser(name, [], (userData) => {
-								onsubscribe(userData)
-								browser.style.opacity = '0'
-								browser.style.pointerEvents = 'none'
-								window.removeEventListener('resize', resizeDisplay)
-								ui.deleteNode()
-							})
+							if (mode == 'ws'){
+								this.subscribeToUser(name, [], (userData) => {
+									onsubscribe(userData)
+								})
+							} else if (mode == 'osc'){
+								this.sendBrainstormCommand(['sendOSC', {test: 'connected'}]);
+							}
+							closeUI()
 						}
 					}
 				}
@@ -1185,7 +1189,7 @@ export class Session {
 
 				this.getUsers(null, (userData) => {
 
-					updateUserDisplay(userData)
+					updateUserDisplay('ws', userData)
 				})
 			})
 
@@ -1195,7 +1199,7 @@ export class Session {
 
 				this.startOSC(undefined,undefined,undefined,undefined, (oscInfo) => {
 					console.log(oscInfo)
-					updateUserDisplay(oscInfo)
+					updateUserDisplay('osc',oscInfo)
 				})
 			})
 

@@ -16,7 +16,7 @@ import {Session} from 'brainsatplay'
 
 ### constructor
 
-\+ **new Session**(`username?`: *string*, `password?`: *string*, `appname?`: *string*, `access?`: *string*, `remoteHostURL?`: *string*, `localHostURL?`: *string*): [*Session*](session.md)
+\+ **new Session**(`username?`: *string*, `password?`: *string*, `urlToConnect?`: *string*): [*Session*](session.md)
 
 ```javascript
 let session = new Session();
@@ -28,14 +28,11 @@ let session = new Session();
 | :------ | :------ | :------ |
 | `username` | *string* | '' |
 | `password` | *string* | '' |
-| `appname` | *string* | '' |
-| `access` | *string* | 'public' |
-| `remoteHostURL` | *string* | 'http://server.brainsatplay.com' |
-| `localHostURL` | *string* | 'http://localhost:8000' |
+| `urlToConnect` | *string* | 'http://localhost' |
 
 **Returns:** [*Session*](session.md)
 
-Defined in: [src/Session.js:69](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L69)
+Defined in: [src/Session.js:74](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L74)
 
 ## Properties
 
@@ -51,6 +48,12 @@ ___
 
 ___
 
+### id
+
+• **id**: *number*
+
+___
+
 ### info
 
 • **info**: *object*
@@ -60,23 +63,19 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `auth` | *object* |
-| `auth.access` | *string* |
-| `auth.appname` | *string* |
 | `auth.authenticated` | *boolean* |
 | `auth.password` | *string* |
 | `auth.url` | URL |
 | `auth.username` | *string* |
-| `connections` | *never*[] |
-| `localHostURL` | *string* |
 | `nDevices` | *number* |
-| `remoteHostURL` | *string* |
 | `subscribed` | *boolean* |
+| `subscriptions` | *never*[] |
 
 ___
 
 ### socket
 
-• **socket**: *undefined* \| ``null`` \| WebSocket
+• **socket**: *any*
 
 ___
 
@@ -110,7 +109,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:362](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L362)
+Defined in: [src/Session.js:374](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L374)
 
 ▸ **addAnalysisMode**(`mode?`: *string*, `deviceName?`: *any*, `n?`: *number*): *void*
 
@@ -124,7 +123,7 @@ Defined in: [src/Session.js:362](https://github.com/brainsatplay/brainsatplay/bl
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:472](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L472)
+Defined in: [src/Session.js:484](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L484)
 
 ___
 
@@ -141,7 +140,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:487](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L487)
+Defined in: [src/Session.js:499](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L499)
 
 ___
 
@@ -159,7 +158,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:529](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L529)
+Defined in: [src/Session.js:541](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L541)
 
 ___
 
@@ -175,7 +174,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:536](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L536)
+Defined in: [src/Session.js:548](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L548)
 
 ___
 
@@ -191,7 +190,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:334](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L334)
+Defined in: [src/Session.js:346](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L346)
 
 ___
 
@@ -207,7 +206,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: [src/Session.js:1274](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1274)
+Defined in: [src/Session.js:1630](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1630)
 
 ___
 
@@ -223,7 +222,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: [src/Session.js:1267](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1267)
+Defined in: [src/Session.js:1623](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1623)
 
 ___
 
@@ -233,13 +232,13 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1249](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1249)
+Defined in: [src/Session.js:1605](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1605)
 
 ___
 
-### configureStreamForGame
+### configureStreamForSession
 
-▸ **configureStreamForGame**(`deviceTypes?`: *any*[], `streamParams?`: *any*[]): *boolean*
+▸ **configureStreamForSession**(`deviceTypes?`: *any*[], `streamParams?`: *any*[]): *boolean*
 
 #### Parameters
 
@@ -250,13 +249,13 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: [src/Session.js:1179](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1179)
+Defined in: [src/Session.js:1508](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1508)
 
 ___
 
 ### connect
 
-▸ **connect**(`device?`: *string*, `analysis?`: *any*, `onconnect?`: *any*, `ondisconnect?`: *any*, `streaming?`: *boolean*, `streamParams?`: *any*, `useFilters?`: *boolean*, `pipeToAtlas?`: *boolean*): *undefined* \| ``false``
+▸ **connect**(`device?`: *string*, `analysis?`: *any*, `onconnect?`: *any*, `ondisconnect?`: *any*, `streaming?`: *boolean*, `streamParams?`: *any*, `useFilters?`: *boolean*, `pipeToAtlas?`: *boolean*): *Promise*<undefined \| ``false``\>
 
 **`method`** module:brainsatplay.Session.setLoginInfo
 
@@ -275,9 +274,26 @@ ___
 | `useFilters` | *boolean* | true | Filter device output if it needs filtering (some hardware already applies filters so we may skip those). |
 | `pipeToAtlas` | *boolean* | true | Send data to atlas. |
 
-**Returns:** *undefined* \| ``false``
+**Returns:** *Promise*<undefined \| ``false``\>
 
-Defined in: [src/Session.js:155](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L155)
+Defined in: [src/Session.js:148](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L148)
+
+___
+
+### createBrainstormBrowser
+
+▸ **createBrainstormBrowser**(`parentNode?`: HTMLElement, `onsubscribe?`: () => *void*): *void*
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parentNode` | HTMLElement |
+| `onsubscribe` | () => *void* |
+
+**Returns:** *void*
+
+Defined in: [src/Session.js:1073](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1073)
 
 ___
 
@@ -298,7 +314,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:247](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L247)
+Defined in: [src/Session.js:254](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L254)
 
 ___
 
@@ -308,7 +324,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:342](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L342)
+Defined in: [src/Session.js:354](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L354)
 
 ___
 
@@ -318,23 +334,24 @@ ___
 
 **Returns:** *App*<DefaultFunctionsFactory, any\>
 
-Defined in: [src/Session.js:562](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L562)
+Defined in: [src/Session.js:574](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L574)
 
 ___
 
 ### getBrainstormData
 
-▸ **getBrainstormData**(`name`: *any*): *any*[]
+▸ **getBrainstormData**(`value`: *any*, `type?`: *string*): *any*[]
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `name` | *any* |
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `value` | *any* | - |
+| `type` | *string* | 'app' |
 
 **Returns:** *any*[]
 
-Defined in: [src/Session.js:1134](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1134)
+Defined in: [src/Session.js:1438](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1438)
 
 ___
 
@@ -351,7 +368,7 @@ ___
 
 **Returns:** *undefined*
 
-Defined in: [src/Session.js:347](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L347)
+Defined in: [src/Session.js:359](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L359)
 
 ___
 
@@ -369,24 +386,24 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:395](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L395)
+Defined in: [src/Session.js:407](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L407)
 
 ___
 
-### getGames
+### getSessions
 
-▸ **getGames**(`appname?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **getSessions**(`appname`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `appname` | *string* |
+| `appname` | *any* |
 | `onsuccess` | (`newResult`: *any*) => *void* |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:822](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L822)
+Defined in: [src/Session.js:908](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L908)
 
 ___
 
@@ -403,7 +420,24 @@ ___
 
 **Returns:** *object*
 
-Defined in: [src/Session.js:407](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L407)
+Defined in: [src/Session.js:419](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L419)
+
+___
+
+### getUsers
+
+▸ **getUsers**(`appname`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `appname` | *any* |
+| `onsuccess` | (`newResult`: *any*) => *void* |
+
+**Returns:** *void*
+
+Defined in: [src/Session.js:858](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L858)
 
 ___
 
@@ -419,31 +453,31 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:906](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L906)
+Defined in: [src/Session.js:1218](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1218)
 
 ___
 
-### kickPlayerFromGame
+### kickUserFromSession
 
-▸ **kickPlayerFromGame**(`gameId`: *any*, `userToKick`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **kickUserFromSession**(`sessionid`: *any*, `userToKick`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `gameId` | *any* |
+| `sessionid` | *any* |
 | `userToKick` | *any* |
 | `onsuccess` | (`newResult`: *any*) => *void* |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1161](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1161)
+Defined in: [src/Session.js:1490](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1490)
 
 ___
 
 ### login
 
-▸ **login**(`beginStream?`: *boolean*, `dict?`: { `access`: *string* ; `appname`: *string* ; `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }, `baseURL?`: *string*): *Promise*<undefined \| WebSocket\>
+▸ **login**(`beginStream?`: *boolean*, `dict?`: { `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }, `onsuccess?`: (`newResult`: *any*) => *void*): *Promise*<undefined \| { `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }\>
 
 #### Parameters
 
@@ -451,17 +485,15 @@ ___
 | :------ | :------ | :------ |
 | `beginStream` | *boolean* | false |
 | `dict` | *object* | - |
-| `dict.access` | *string* | - |
-| `dict.appname` | *string* | - |
 | `dict.authenticated` | *boolean* | false |
 | `dict.password` | *string* | - |
 | `dict.url` | URL | - |
 | `dict.username` | *string* | - |
-| `baseURL` | *string* | - |
+| `onsuccess` | (`newResult`: *any*) => *void* | - |
 
-**Returns:** *Promise*<undefined \| WebSocket\>
+**Returns:** *Promise*<undefined \| { `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }\>
 
-Defined in: [src/Session.js:579](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L579)
+Defined in: [src/Session.js:591](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L591)
 
 ___
 
@@ -471,7 +503,7 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:566](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L566)
+Defined in: [src/Session.js:578](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L578)
 
 ___
 
@@ -487,7 +519,7 @@ ___
 
 **Returns:** *Promise*<User<DefaultFunctionsFactory, any, DefaultUserProfileData\>\>
 
-Defined in: [src/Session.js:570](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L570)
+Defined in: [src/Session.js:582](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L582)
 
 ___
 
@@ -509,7 +541,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:262](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L262)
+Defined in: [src/Session.js:269](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L269)
 
 ___
 
@@ -519,7 +551,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:223](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L223)
+Defined in: [src/Session.js:230](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L230)
 
 ___
 
@@ -535,7 +567,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:1253](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1253)
+Defined in: [src/Session.js:1609](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1609)
 
 ___
 
@@ -545,7 +577,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:225](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L225)
+Defined in: [src/Session.js:232](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L232)
 
 ___
 
@@ -561,7 +593,24 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:653](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L653)
+Defined in: [src/Session.js:676](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L676)
+
+___
+
+### promptLogin
+
+▸ **promptLogin**(`parentNode?`: HTMLElement, `onsuccess?`: () => *void*): *Promise*<any\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parentNode` | HTMLElement |
+| `onsuccess` | () => *void* |
+
+**Returns:** *Promise*<any\>
+
+Defined in: [src/Session.js:991](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L991)
 
 ___
 
@@ -582,7 +631,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:234](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L234)
+Defined in: [src/Session.js:241](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L241)
 
 ___
 
@@ -601,13 +650,13 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:622](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L622)
+Defined in: [src/Session.js:645](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L645)
 
 ___
 
-### sendWSCommand
+### sendBrainstormCommand
 
-▸ **sendWSCommand**(`command?`: *string*, `dict?`: {}): *void*
+▸ **sendBrainstormCommand**(`command?`: *string*, `dict?`: {}): *Promise*<void\>
 
 #### Parameters
 
@@ -616,15 +665,15 @@ ___
 | `command` | *string* | '' |
 | `dict` | *object* | {} |
 
-**Returns:** *void*
+**Returns:** *Promise*<void\>
 
-Defined in: [src/Session.js:1239](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L1239)
+Defined in: [src/Session.js:1568](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1568)
 
 ___
 
 ### setLoginInfo
 
-▸ **setLoginInfo**(`username?`: *string*, `password?`: *string*, `access?`: *string*, `appname?`: *string*): *void*
+▸ **setLoginInfo**(`username?`: *string*, `password?`: *string*): *void*
 
 **`method`** module:brainsatplay.Session.setLoginInfo
 
@@ -636,34 +685,30 @@ ___
 | :------ | :------ | :------ | :------ |
 | `username` | *string* | '' | Username. |
 | `password` | *string* | '' | Password. |
-| `access` | *string* | 'public' | Access level ('public' or 'private'). |
-| `appname` | *string* | '' | Name of the app. |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:134](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L134)
+Defined in: [src/Session.js:129](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L129)
 
 ___
 
 ### setupWebSocket
 
-▸ **setupWebSocket**(`auth?`: { `access`: *string* ; `appname`: *string* ; `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }): *undefined* \| WebSocket
+▸ **setupWebSocket**(`auth?`: { `authenticated`: *boolean* = false; `password`: *string* ; `url`: URL ; `username`: *string*  }): *Promise*<any\>
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
 | `auth` | *object* | - |
-| `auth.access` | *string* | - |
-| `auth.appname` | *string* | - |
 | `auth.authenticated` | *boolean* | false |
 | `auth.password` | *string* | - |
 | `auth.url` | URL | - |
 | `auth.username` | *string* | - |
 
-**Returns:** *undefined* \| WebSocket
+**Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:729](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L729)
+Defined in: [src/Session.js:764](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L764)
 
 ___
 
@@ -680,7 +725,27 @@ ___
 
 **Returns:** *Promise*<any\>
 
-Defined in: [src/Session.js:596](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L596)
+Defined in: [src/Session.js:619](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L619)
+
+___
+
+### startOSC
+
+▸ **startOSC**(`localAddress?`: *string*, `localPort?`: *number*, `remoteAddress?`: *any*, `remotePort?`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+
+#### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `localAddress` | *string* | "127.0.0.1" |
+| `localPort` | *number* | 57121 |
+| `remoteAddress` | *any* | null |
+| `remotePort` | *any* | null |
+| `onsuccess` | (`newResult`: *any*) => *void* | - |
+
+**Returns:** *void*
+
+Defined in: [src/Session.js:879](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L879)
 
 ___
 
@@ -696,7 +761,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:379](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L379)
+Defined in: [src/Session.js:391](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L391)
 
 ___
 
@@ -714,7 +779,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: [src/Session.js:502](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L502)
+Defined in: [src/Session.js:514](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L514)
 
 ___
 
@@ -733,32 +798,31 @@ ___
 
 **Returns:** *undefined*
 
-Defined in: [src/Session.js:426](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L426)
+Defined in: [src/Session.js:438](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L438)
 
 ___
 
-### subscribeToGame
+### subscribeToSession
 
-▸ **subscribeToGame**(`gameid?`: *string*, `spectating?`: *boolean*, `userToSubscribe?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **subscribeToSession**(`sessionid`: *any*, `spectating?`: *boolean*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
-| `gameid` | *string* | - |
+| `sessionid` | *any* | - |
 | `spectating` | *boolean* | false |
-| `userToSubscribe` | *string* | - |
 | `onsuccess` | (`newResult`: *any*) => *void* | - |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:845](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L845)
+Defined in: [src/Session.js:930](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L930)
 
 ___
 
 ### subscribeToUser
 
-▸ **subscribeToUser**(`username?`: *string*, `userProps?`: *any*[], `userToSubscribe?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **subscribeToUser**(`username?`: *string*, `userProps?`: *any*[], `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
@@ -766,12 +830,11 @@ ___
 | :------ | :------ | :------ |
 | `username` | *string* | '' |
 | `userProps` | *any*[] | [] |
-| `userToSubscribe` | *string* | - |
 | `onsuccess` | (`newResult`: *any*) => *void* | - |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:773](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L773)
+Defined in: [src/Session.js:807](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L807)
 
 ___
 
@@ -788,7 +851,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:463](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L463)
+Defined in: [src/Session.js:475](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L475)
 
 ___
 
@@ -804,30 +867,30 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:468](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L468)
+Defined in: [src/Session.js:480](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L480)
 
 ___
 
-### unsubscribeFromGame
+### unsubscribeFromSession
 
-▸ **unsubscribeFromGame**(`gameId?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **unsubscribeFromSession**(`sessionid?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
 | Name | Type | Default value |
 | :------ | :------ | :------ |
-| `gameId` | *string* | '' |
+| `sessionid` | *string* | '' |
 | `onsuccess` | (`newResult`: *any*) => *void* | - |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:886](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L886)
+Defined in: [src/Session.js:971](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L971)
 
 ___
 
 ### unsubscribeFromUser
 
-▸ **unsubscribeFromUser**(`username?`: *string*, `userProps?`: *any*, `userToUnsubscribe?`: *string*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
+▸ **unsubscribeFromUser**(`username?`: *string*, `userProps?`: *any*, `onsuccess?`: (`newResult`: *any*) => *void*): *void*
 
 #### Parameters
 
@@ -835,9 +898,24 @@ ___
 | :------ | :------ | :------ |
 | `username` | *string* | '' |
 | `userProps` | *any* | null |
-| `userToUnsubscribe` | *string* | - |
 | `onsuccess` | (`newResult`: *any*) => *void* | - |
 
 **Returns:** *void*
 
-Defined in: [src/Session.js:803](https://github.com/brainsatplay/brainsatplay/blob/7c92019/src/library/src/Session.js#L803)
+Defined in: [src/Session.js:838](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L838)
+
+___
+
+### waitForOpenConnection
+
+▸ **waitForOpenConnection**(`socket`: *any*): *Promise*<any\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `socket` | *any* |
+
+**Returns:** *Promise*<any\>
+
+Defined in: [src/Session.js:1586](https://github.com/brainsatplay/brainsatplay/blob/9ecb3ad/src/libraries/js/src/Session.js#L1586)
