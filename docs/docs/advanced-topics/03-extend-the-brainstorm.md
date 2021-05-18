@@ -53,7 +53,7 @@ To establish a connection with the Brainstorm, you'll need to pass subprotocols 
 
 ``` javascript
 let username = 'guest' // Generates a random UUID
-let httpsDomain = 'server.brainsatplay.com' // Or localhost:8000 if developing locally
+let httpsDomain = 'server.brainsatplay.com' // Or localhost:80 if developing locally
 let subprotocolsArray = [`username&${username}`,'password&','appname&'] // Authentication credentials
 
 let connection = new WebSocket('wss://' + httpsDomain, subprotocolsArray)

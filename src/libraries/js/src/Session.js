@@ -94,8 +94,8 @@ export class Session {
 		password='',
 		appname='',
 		access='public',
-		remoteHostURL= 'http://server.brainsatplay.com',
-		localHostURL='http://localhost:8000'
+		remoteHostURL= 'https://server.brainsatplay.com',
+		localHostURL='https://localhost:80'
 	) {
 		this.devices = [];
 		this.state = new StateManager({
@@ -770,9 +770,9 @@ export class Session {
 			'password&'+encodeForSubprotocol(auth.password),
 			'origin&'+encodeForSubprotocol('brainsatplay.js')
 		];
-		if (location.protocol === 'http:') {
+		if (auth.url.protocol === 'http:') {
             socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
-		} else if (location.protocol === 'https:') {
+		} else if (auth.url.protocol === 'https:') {
             socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
         } else {
             console.log('invalid protocol');

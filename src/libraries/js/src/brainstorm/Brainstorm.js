@@ -7,7 +7,7 @@ const uuid = require('uuid')
 
 
 // Create Brainstorm Server Instance
-const createBrainstorm = async (app, config={}) => {
+const createBrainstorm = async (app, config={},onListen=()=>{},onError=()=>{}) => {
 
 const url = 'localhost'
 let port = config.port ?? '80'
@@ -110,6 +110,10 @@ wss.on('connection', function (ws, msg, req) {
 server.listen(parseInt(port), () => {
     console.log(`A Brainstorm is brewing on ${protocol}://${url}:${port}`)
 });
+
+server.onListen = onListen
+server.onError = onError
+
 return server
 }
 
