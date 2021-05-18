@@ -83,11 +83,11 @@ export class SensoriumApplet {
         };
 
         this.uniformSettings = {
-            iAudio:           {default: new Array(256).fill(0), min:0,max:255},    //Audio analyser FFT, array of 256, values max at 255
-            iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
-            iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
-            iHR:              {default:1, min:1, max:240,step:1},                          //Heart Rate in BPM
-            iHB:              {default:0, min:0, max:1},                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iAudio:           {default: new Array(256).fill(0), min:0,max:255},     //Audio analyser FFT, array of 256, values max at 255
+    iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
+    iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
+    iHR:              {default:1, min:1, max:240,step:1},                           //Heart Rate in BPM
+            iHB:              {default:0, min:0, max:1},                            //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             {default:new Array(256).fill(0),min:0,max:1000},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           {default:1, min:0, max:100,step:0.5},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
             iTheta:           {default:1, min:0, max:100,step:0.5},                          //Theta bandpower average.
@@ -98,6 +98,7 @@ export class SensoriumApplet {
             iThetaBeta:       {default:1, min:0, max:5,step:0.1},                          //Theta/Beta ratio
             iAlpha1Alpha2:    {default:1, min:0, max:5,step:0.1},                          //Alpha1/Alpha2 ratio
             iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                          //Alpha/Beta ratio
+            iAlphaTheta:      {default:1, min:0, max:5,step:0.1},,
             i40Hz:            {default:1, min:0, max:10,step:0.1},                          //40Hz bandpower
             iAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
@@ -252,12 +253,16 @@ export class SensoriumApplet {
                     document.getElementById(props.id+"showhide").innerHTML = "Show UI";
                     document.getElementById(props.id+'addeffect').style.display = "none";
                     document.getElementById(props.id+'effectmenu').style.display = "none";
+                    document.getElementById(props.id+'shaderSelector').style.display = "none";
+                    this.appletContainer.querySelector('.guiContainer').style.display = "none";
                 }
                 else{
                     this.hidden = false;
                     document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
                     document.getElementById(props.id+'addeffect').style.display = "";
                     document.getElementById(props.id+'effectmenu').style.display = "";
+                    document.getElementById(props.id+'shaderSelector').style.display = "";
+                    this.appletContainer.querySelector('.guiContainer').style.display = "";
                 }
             }
 
@@ -482,7 +487,8 @@ export class SensoriumApplet {
                 <option value='iThetaBeta'>Theta/Beta Ratio</option>
                 <option value='iAlpha1Alpha2'>Alpha 2/1 Ratio</option>
                 <option value='iAlphaBeta'>Alpha/Beta Ratio</option>
-                <option value='eeg_acoh'>Frontal Alpha Coherence</option>
+                <option value='iAlphaTheta'>Alpha/Theta Ratio</option>
+                <option value='iAlpha1Coherence'>Frontal Alpha Coherence</option>
             </select>
             <select id='${props.id}channel${idx}' style='display:none;'></select>
             `;
@@ -679,24 +685,29 @@ export class SensoriumApplet {
                     } else if (option === 'i40Hz') {
                         this.modifiers.i40Hz = this.session.atlas.get40HzGamma(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.i40Hz/5,1)), window.audio.ctx.currentTime);
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.i40Hz*.2,1)), window.audio.ctx.currentTime);
                         }
                     } else if (option === 'iThetaBeta') {
                         this.modifiers.iThetaBeta = this.session.atlas.getThetaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iThetaBeta,1)), window.audio.ctx.currentTime);
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iThetaBeta*.5,1)), window.audio.ctx.currentTime);
                         }
                     } else if (option === 'iAlpha1Alpha2') {
                         this.modifiers.iAlpha1Alpha2 = this.session.atlas.getAlphaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1Alpha2,1)), window.audio.ctx.currentTime);
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlpha1Alpha2*.5,1)), window.audio.ctx.currentTime);
                         }
                     } else if (option === 'iAlphaBeta') {
                         this.modifiers.iAlphaBeta = this.session.atlas.getAlphaBetaRatio(this.session.atlas.getEEGDataByChannel(channel))
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaBeta,1)), window.audio.ctx.currentTime);
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaBeta*.5,1)), window.audio.ctx.currentTime);
                         }
-                    } else if (this.session.atlas.settings.coherence === true && option === 'eeg_acoh') {
+                    } else if (option === 'iAlphaTheta') {
+                        this.modifiers.iAlphaTheta = this.session.atlas.getAlphaThetaRatio(this.session.atlas.getEEGDataByChannel(channel))
+                        if(!effectStruct.muted && window.audio  && effectStruct.playing){
+                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaTheta*.5,1)), window.audio.ctx.currentTime);
+                        }      
+                    } else if (this.session.atlas.settings.coherence === true && option === 'iAlpha1Coherence') {
                         this.modifiers.iAlpha1Coherence = this.session.atlas.getLatestCoherenceData(channel)[0].mean.alpha1;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(

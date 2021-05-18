@@ -34,11 +34,13 @@ export class brainstormPlugin {
     }
 
     init = async (info,pipeToAtlas) => {
+        
+        this.info = info;
         return new Promise((resolve, reject) => {
             let onAuth = () => {
                 this.session.createBrainstormBrowser(document.body,(userData)=>{
                 this.subscription = userData
-                this.setupAtlas(info,pipeToAtlas)
+                this.setupAtlas(info,pipeToAtlas);
                 resolve(true)
             })
         }
@@ -47,7 +49,7 @@ export class brainstormPlugin {
             } else {
                 onAuth()
             }
-        })
+        });
     }
 
     connect = async () => {
@@ -138,7 +140,6 @@ export class brainstormPlugin {
              });
          }
          
-         this.info = info;
     }
 
     //externally set callbacks

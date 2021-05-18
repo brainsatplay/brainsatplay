@@ -199,8 +199,9 @@ export class BarChartApplet {
             legend.innerHTML = `
                 Ratios:<br>
                 <span style='color:purple;'>Theta/Beta Ratio</span><br>
-                <span style='color:blue;'>Alpha/Beta Ratio</span><br>
+                <span style='color:blue;'>Alpha/Theta Ratio</span><br>
                 <span style='color:chartreuse;'>Alpha2/Alpha1 Ratio</span><br>
+                <span style='color:gold;'>Alpha/Beta Ratio</span><br>
             `;
         }
         else {
@@ -263,14 +264,16 @@ export class BarChartApplet {
                         let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
                         let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
                         let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
-                        this.chart.leftbars.slices = { scp:thetabeta, theta:alphabeta, alpha2:alpha2_1};
+                        let alphatheta = this.bci.atlas.getAlphaThetaRatio(coord);
+                        this.chart.leftbars.slices = { scp:thetabeta, theta:alphatheta, alpha2:alpha2_1, beta:alphabeta };
                     }
                     let coord2 = this.bci.atlas.getEEGDataByChannel(ch2);
                     if(coord2) {
                         let thetabeta2 = this.bci.atlas.getThetaBetaRatio(coord2);
                         let alphabeta2 = this.bci.atlas.getAlphaBetaRatio(coord2);
                         let alpha2_12 = this.bci.atlas.getAlphaRatio(coord2);
-                        this.chart.rightbars.slices = { scp:thetabeta2, theta:alphabeta2, alpha2:alpha2_12 };
+                        let alphatheta2 = this.bci.atlas.getAlphaThetaRatio(coord2);
+                        this.chart.rightbars.slices = { scp:thetabeta2, theta:alphatheta2, alpha2:alpha2_12, beta:alphabeta2 };
                     }
                 }
             }

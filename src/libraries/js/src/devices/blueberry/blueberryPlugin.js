@@ -71,6 +71,7 @@ export class BlueberryPlugin {
 
         // On Connection
         ()=>{
+            this.setupAtlas(info,pipeToAtlas);
             if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                 this.atlas.settings.analyzing = true;
                 setTimeout(() => {this.atlas.analyzer();},1200);		
@@ -82,6 +83,10 @@ export class BlueberryPlugin {
         // On Disconnection
         ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         
+        
+    }
+
+    setupAtlas = (info,pipeToAtlas) => {
         if(pipeToAtlas === true) {
             let config = 'heg';
             this.atlas = new DataAtlas(

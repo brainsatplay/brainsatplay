@@ -36,7 +36,7 @@ export class hegduinoPlugin {
         return sum / arr.length;
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
 		info.sps = 32;
         info.deviceType = 'heg';
 
@@ -78,6 +78,7 @@ export class hegduinoPlugin {
             info.sps = 20; //20sps incoming rate fixed for wifi
             this.device = new hegduino('wifi',ondata,
             ()=>{
+                this.setupAtlas(pipeToAtlas,info);
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
@@ -90,6 +91,7 @@ export class hegduinoPlugin {
         else if (this.mode === 'hegduinobt' || this.mode === 'hegduinoble') {
             this.device= new hegduino('ble',ondata,
             ()=>{
+                this.setupAtlas(pipeToAtlas,info);
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
@@ -102,6 +104,7 @@ export class hegduinoPlugin {
         else if (this.mode === 'hegduinoserial' || this.mode === 'hegduinousb') {
             this.device= new hegduino('usb',ondata,
             ()=>{
+                this.setupAtlas(pipeToAtlas,info);
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
@@ -112,6 +115,10 @@ export class hegduinoPlugin {
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
 
+        
+    }
+
+    setupAtlas = (pipeToAtlas,info) => {
         
         if(pipeToAtlas === true) {
             let config = 'hegduino';

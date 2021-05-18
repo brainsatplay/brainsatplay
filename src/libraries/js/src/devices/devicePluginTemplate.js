@@ -26,10 +26,14 @@ export class devicePlugin {
         }
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
         //info.sps = 10
         //info.deviceType = ''
+        //this._onConnected = () => { this.setupAtlas(info,pipeToAtlas); }
+    }
 
+    setupAtlas = (info,pipeToAtlas) => {
+        
         // Setup atlas
         // if(pipeToAtlas === true) {
         //     let config = 'hegduino';
@@ -58,7 +62,14 @@ export class devicePlugin {
         // }
     }
 
+    _onConnected = () => {} //for internal use only on init
+ 
     connect = () => {
+        //Insert connection protocols here...
+
+        //Setup atlas AFTER connection is confirmed, you may need to move this or create an additional callback
+        this.setupAtlas();
+        //run callbacks
        this.onconnect();
        this.setIndicator(true);
 

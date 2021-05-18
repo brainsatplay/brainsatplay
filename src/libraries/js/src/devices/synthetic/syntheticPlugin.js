@@ -30,11 +30,33 @@ export class syntheticPlugin {
 
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
         info.sps = 256
         info.deviceType = 'eeg'
         info.eegChannelTags = 'auto'
+        
+        this.info = info;
+    }
 
+    setupAtlas = (pipeToAtlas=true,info=this.info) => {
+        
+        this._onConnected = () => {
+            this.setupAtlas(pipeToAtlas,info);
+        }
+
+        if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
+
+        if(info.useFilters === true) {
+            info.eegChannelTags.forEach((row,i) => {
+                if(row.tag !== 'other') {
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+                }
+                else { 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
+                }
+                //this.filters[this.filters.length-1].useBp1 = true;
+            });
+        }
         if(pipeToAtlas === true) { //New Atlas
             let config = '10_20';
             this.atlas = new DataAtlas(
@@ -70,27 +92,14 @@ export class syntheticPlugin {
                 }
 			}
         }
-
-
-        if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
-
-        if(info.useFilters === true) {
-            info.eegChannelTags.forEach((row,i) => {
-                if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
-                }
-                else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
-                }
-                //this.filters[this.filters.length-1].useBp1 = true;
-            });
-        }
-        
-        this.info = info;
     }
+
+    //For internal use only on init
+    _onConnected = () => {}
 
     connect = () => {
 
+      this._onConnected();
       this.atlas.data.eegshared.startTime = Date.now();
 
       this.atlas.settings.deviceConnected = true;

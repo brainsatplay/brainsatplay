@@ -28,7 +28,7 @@ export class musePlugin {
         }
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
         info.sps = 256;
         info.deviceType = 'eeg';
         info.eegChannelTags = [
@@ -44,6 +44,14 @@ export class musePlugin {
             info.eegChannelTags.push({ch: 4, tag: "AUX", analyze: true})
         }
 
+        this.info = info;
+
+        this._onConnected = () => {
+            this.setupAtlas(info,pipeToAtlas);
+        }
+    }
+
+    setupAtlas = (info,pipeToAtlas) => {
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
@@ -85,14 +93,17 @@ export class musePlugin {
 			}
 		}
 
-        
-        this.info = info;
     }
+
+    _onConnected = () => {} //for internal use only on init
 
     connect = async () => {
         //connect muse and begin streaming
         await this.device.connect();
         await this.device.start();
+
+        this._onConnected();
+        
         this.device.eegReadings.subscribe(o => {
             if(this.info.useAtlas) {
                 let time = Array(o.samples.length).fill(o.timestamp);

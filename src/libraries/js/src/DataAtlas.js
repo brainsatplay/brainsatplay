@@ -656,7 +656,7 @@ export class DataAtlas {
 		else return 0;
 	}
 
-	//Calculate the latest theta beta ratio from bandpower averages
+	//Calculate the latest theta/beta ratio from bandpower averages
 	getThetaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
 			let ratio = eeg_data.means.theta[eeg_data.fftCount-1] / eeg_data.means.beta[eeg_data.fftCount-1];
@@ -664,10 +664,19 @@ export class DataAtlas {
 		} else return 0;
 	}
 
-	//Calculate the latest alpha beta ratio from bandpower averages
+	//Calculate the latest alpha/beta ratio from bandpower averages
 	getAlphaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
 			let ratio = ((eeg_data.means.alpha1[eeg_data.fftCount-1]+eeg_data.means.alpha2[eeg_data.fftCount-1])*.5) / eeg_data.means.beta[eeg_data.fftCount-1];
+			return ratio;
+		}
+		else return 0;
+	}
+
+	//Calculate the latest alpha/theta ratio from bandpower averages
+	getAlphaThetaRatio = (eeg_data) => {
+		if(eeg_data.fftCount > 0) {
+			let ratio = ((eeg_data.means.alpha1[eeg_data.fftCount-1]+eeg_data.means.alpha2[eeg_data.fftCount-1])*.5) / eeg_data.means.theta[eeg_data.fftCount-1];
 			return ratio;
 		}
 		else return 0;

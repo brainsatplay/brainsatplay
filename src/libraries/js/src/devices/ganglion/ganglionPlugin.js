@@ -26,7 +26,7 @@ export class ganglionPlugin {
         }
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
 
         this.info = info
         this.info.sps = 200;
@@ -40,7 +40,14 @@ export class ganglionPlugin {
             {ch: 3, tag: "C4",  analyze:true}
         ];
 
+    }
+
+    setupAtlas = (pipeToAtlas=true,info=this.info) => {
         
+        this._onConnected = () => {
+            this.setupAtlas(pipeToAtlas, info);
+        }
+
         if(this.info.useFilters === true) {
             this.info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
@@ -89,13 +96,18 @@ export class ganglionPlugin {
                 }
 			}
         }
+
     }
+
+    _onConnected = () => {} //for internal use on init
 
     connect = async () => {
         this.device = new Ganglion();
         await this.device.connect();
         await this.device.start();
 
+        this._onConnected();
+        
         this.device.stream.subscribe(sample => {
             if(this.info.useAtlas) {
                 let time = sample.timestamp;

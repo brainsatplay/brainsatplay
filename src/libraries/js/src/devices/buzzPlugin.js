@@ -26,31 +26,35 @@ export class buzzPlugin {
     }
 
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
         info.deviceType = 'other';
         this.device = new neosensory.Buzz(
             (response) => {
                 if (response) console.log(response)
             },
-            ()=>{ this.atlas.settings.deviceConnected = true; this.onconnect();},
+            ()=>{ 
+                if(pipeToAtlas === true) {
+                    let config = 'neosensory_buzz';
+                    this.atlas = new DataAtlas(
+                        location+":" + this.mode,
+                        {},
+                        config,false,true,
+                        info.analysis
+                        );
+        
+                    info.useAtlas = true;
+                    
+                } else if (typeof pipeToAtlas === 'object') {
+                    this.atlas = pipeToAtlas; //External atlas reference
+                    info.useAtlas = true;
+                }
+                this.atlas.settings.deviceConnected = true; 
+                this.onconnect();
+            },
             ()=>{ this.atlas.settings.deviceConnected = false; this.ondisconnect();}
             )
 
-            if(pipeToAtlas === true) {
-                let config = 'neosensory_buzz';
-                this.atlas = new DataAtlas(
-                    location+":" + this.mode,
-                    {},
-                    config,false,true,
-                    info.analysis
-                    );
-    
-                info.useAtlas = true;
-                
-            } else if (typeof pipeToAtlas === 'object') {
-                this.atlas = pipeToAtlas; //External atlas reference
-                info.useAtlas = true;
-            }
+            
     }
 
     connect = () => {

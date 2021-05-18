@@ -27,7 +27,7 @@ export class cytonPlugin {
         }
     }
 
-    init = (info={sps:null,deviceType:null,eegChannelTags:null,analysis:['eegfft'],useAtlas:undefined},pipeToAtlas=true) => { //info and pipeToAtlas passed by reference from deviceStream class
+    init = async (info={sps:null,deviceType:null,eegChannelTags:null,analysis:['eegfft'],useAtlas:undefined},pipeToAtlas=true) => { //info and pipeToAtlas passed by reference from deviceStream class
         info.sps = 250;
         info.deviceType = 'eeg';
 
@@ -65,6 +65,7 @@ export class cytonPlugin {
         }
 
         let onConnect = () => {
+            this.setupAtlas(pipeToAtlas,info);
             if(info.useAtlas === true){			
                 this.atlas.data.eegshared.startTime = Date.now();
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
@@ -124,6 +125,10 @@ export class cytonPlugin {
             );
         }
 
+        
+    }
+
+    setupAtlas = (pipeToAtlas=true,info) => {
         if(info.useFilters === true) {
             eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {

@@ -12,6 +12,7 @@ export class eeg32Plugin {
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
+        this.info;
        
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect
@@ -26,7 +27,8 @@ export class eeg32Plugin {
         }
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
+        this.info=info;
         info.sps = 512;
         info.deviceType = 'eeg';
 
@@ -100,7 +102,8 @@ export class eeg32Plugin {
                     }
                 });
             },
-            ()=>{	
+            ()=>{
+                this.setupAtlas(pipeToAtlas,info);
                 if(info.useAtlas === true){			
                     this.atlas.data.eegshared.startTime = Date.now();
                     if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
@@ -116,6 +119,10 @@ export class eeg32Plugin {
                 this.ondisconnect();
             }
         );
+       
+    }
+
+    setupAtlas = (pipeToAtlas,info) => {
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
@@ -127,43 +134,42 @@ export class eeg32Plugin {
                 this.filters[this.filters.length-1].useScaling = true;
                 //this.filters[this.filters.length-1].useBp1 = true;
             });
-        }
-
+        }	
         if(pipeToAtlas === true) {
-			let config = '10_20'; 
-			this.atlas = new DataAtlas(
-				location+":"+this.mode,
-				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
-				config,true,true,
-				info.analysis
-			);
-			info.useAtlas = true;
-		} else if (typeof pipeToAtlas === 'object') {
-			this.atlas = pipeToAtlas; //External atlas reference
+            let config = '10_20'; 
+            this.atlas = new DataAtlas(
+                location+":"+this.mode,
+                {eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
+                config,true,true,
+                info.analysis
+            );
+            info.useAtlas = true;
+        } else if (typeof pipeToAtlas === 'object') {
+            this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
-			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
-			this.atlas.data.eeg = this.atlas.gen10_20Atlas(); 
+            this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
+            this.atlas.data.eeg = this.atlas.gen10_20Atlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
 
             this.atlas.data.eegshared.eegChannelTags.forEach((row,i) => {
-				if( this.atlas.getEEGDataByTag(row.tag) === undefined ) {
-					this.atlas.addEEGCoord(row.ch);
-				}
-			});
+                if( this.atlas.getEEGDataByTag(row.tag) === undefined ) {
+                    this.atlas.addEEGCoord(row.ch);
+                }
+            });
 
             this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
-			info.useAtlas = true;
-			if(info.analysis.length > 0 ) {
-				this.atlas.settings.analysis.push(...info.analysis);
+            info.useAtlas = true;
+            if(info.analysis.length > 0 ) {
+                this.atlas.settings.analysis.push(...info.analysis);
                 if(!this.atlas.settings.analyzing) { 
                     this.atlas.settings.analyzing = true;
                     this.atlas.analyzer();
                 }
-			}
-		}
+            }
+        }
     }
 
     connect = async () => {

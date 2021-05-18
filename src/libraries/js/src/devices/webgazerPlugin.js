@@ -29,9 +29,16 @@ export class webgazerPlugin {
         }
     }
 
-    init = (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas) => {
         info.deviceType = 'eyetracker';
 
+        this._onConnected = () => {
+            this.setupAtlas(info,pipeToAtlas);
+        }
+        this.info = info;
+    }
+
+    setupAtlas = (info,pipeToAtlas) => {
         if(pipeToAtlas === true) {
             let config = 'eyetracker';
 			
@@ -61,11 +68,16 @@ export class webgazerPlugin {
             }
         }
 
-        this.info = info;
     }
+
+    _onConnected = () => {} //for internal use only on init
+
 
     connect = () => {
         
+        this._onConnected();
+        this.atlas.settings.deviceConnected = true;
+
         webgazer.setGazeListener((data,elapsedTime) => {
             if(data == null) {
                 return;
@@ -90,7 +102,6 @@ export class webgazerPlugin {
 
         }).begin();
 
-        this.atlas.settings.deviceConnected = true;
         this.onconnect();
         this.setIndicator(true)
     }
