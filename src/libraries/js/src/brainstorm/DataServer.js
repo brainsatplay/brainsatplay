@@ -353,29 +353,15 @@ class DataServer {
             u.sockets.ws.send(JSON.stringify({msg:'pong'}))
         }
 
-        // OSC (oscData handled internally...)
+        // OSC (WebSocket calls handled internally)
         else if( commands[0] === 'startOSC') {
             u.sockets.osc.add(commands[1],commands[2],commands[3],commands[4])
-            u.sockets.ws.send(JSON.stringify({msg:'oscInfo', oscInfo: u.sockets.osc.info()}))
-        } else if( commands[0] === 'stopOSC') {
+        } else if( commands[0] === 'sendOSC') {
+            if (commands.length > 2) u.sockets.osc.send(commands[1],commands[2],commands[3])
+            else u.sockets.osc.send(commands[1])
+            u.sockets.ws.send(JSON.stringify({msg:'Message sent over OSC'}))
+        }else if( commands[0] === 'stopOSC') {
             u.sockets.osc.remove(commands[1], commands[2])
-            if(commands[1] && commands[2]){
-                let found = u.sockets.osc.find((o,i) => {
-                    if (o.port.options.localAddress === commands[1] && o.port.options.localPort === commands[2]){
-                        o.port.close()
-                        u.sockets.osc.splice(i,1)
-                        return true
-                    }
-                })
-                if(found) { u.sockets.ws.send(JSON.stringify({msg:'oscStopped',id:commands.slice(1)}));}
-                else { u.sockets.ws.send(JSON.stringify({msg:'streamNotFound',id:commands.slice(1)}));}
-            } else {
-                // Stop and remove all OSC streams
-                u.sockets.osc.forEach(o => {
-                    o.port.close()
-                })
-                u.sockets.osc = []
-            }
         }
     }
 

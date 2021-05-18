@@ -887,6 +887,7 @@ export class Session {
 			if (typeof newResult === 'object') {
 				if (newResult.msg === 'oscInfo') {	
 					onsuccess(newResult.oscInfo);
+					this.sendBrainstormCommand(['sendOSC', {test: 'connected'}]);
 					this.state.unsubscribe('commandResult', sub);
 					return newResult.oscInfo
 				}
@@ -1083,9 +1084,8 @@ export class Session {
 						
 						</div>
 						<div id="${this.id}-controlsDiv" style="overflow-y: scroll; width: 200px; display: flex; flex-wrap: wrap; justify-content: center;">
-							<button name="users" class="brainsatplay-default-button" style="margin: 12.5px 25px;">Users</button>
+							<button name="users" class="brainsatplay-default-button" style="margin: 12.5px 25px;">WebSocket</button>
 							<button name="osc" class="brainsatplay-default-button" style="margin: 12.5px 25px;">OSC</button>
-							<button name="lsl" class="brainsatplay-default-button" style="margin: 12.5px 25px;">LSL</button>
 						</div>
 					</div>
 				</div>
@@ -1097,7 +1097,7 @@ export class Session {
 			let browser = document.getElementById(`${this.id}-brainstormBrowser`)
 			let userDiv = browser.querySelector(`[id='${this.id}-userDiv']`)
 			let controlsDiv = browser.querySelector(`[id='${this.id}-controlsDiv']`)
-			let usersButton = controlsDiv.querySelector(`[name='users']`)
+			let wsButton = controlsDiv.querySelector(`[name='users']`)
 			let oscButton = controlsDiv.querySelector(`[name='osc']`)
 			let lslButton = controlsDiv.querySelector(`[name='lsl']`)
 
@@ -1106,6 +1106,7 @@ export class Session {
 			exitBrowser.onclick = () => {
 				browser.style.opacity = '0'
 				browser.style.pointerEvents = 'none'
+				ui.deleteNode()
 			}
 
 			browser.style.opacity = '1'
@@ -1179,7 +1180,8 @@ export class Session {
 			}
 
 			// Display All Users on Brainstorm
-			usersButton.addEventListener('click', () => {
+			wsButton.addEventListener('click', () => {
+				console.log('click users')
 
 				this.getUsers(null, (userData) => {
 
@@ -1189,12 +1191,15 @@ export class Session {
 
 			// Check OSC Port
 			oscButton.addEventListener('click', () => {
+				console.log('click osc')
+
 				this.startOSC(undefined,undefined,undefined,undefined, (oscInfo) => {
+					console.log(oscInfo)
 					updateUserDisplay(oscInfo)
 				})
 			})
 
-			usersButton.click()
+			wsButton.click()
 		}
 
 		let ui = new DOMFragment(
