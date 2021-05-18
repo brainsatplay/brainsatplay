@@ -64,7 +64,7 @@ var credentials = {key, cert};
 // Settings
 const protocol = 'https';
 const url = 'localhost'
-var port = normalizePort(process.env.PORT || '8000');
+var port = normalizePort(process.env.PORT || '80');
 
 //
 // App
