@@ -46,9 +46,7 @@ export class musePlugin {
 
         this.info = info;
 
-        this._onConnected = () => {
-            this.setupAtlas(info,pipeToAtlas);
-        }
+        this.setupAtlas(info,pipeToAtlas);
     }
 
     setupAtlas = (info,pipeToAtlas) => {
@@ -95,15 +93,11 @@ export class musePlugin {
 
     }
 
-    _onConnected = () => {} //for internal use only on init
-
     connect = async () => {
         //connect muse and begin streaming
         await this.device.connect();
         await this.device.start();
 
-        this._onConnected();
-        
         this.device.eegReadings.subscribe(o => {
             if(this.info.useAtlas) {
                 let time = Array(o.samples.length).fill(o.timestamp);
