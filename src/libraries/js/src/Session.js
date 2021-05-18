@@ -262,16 +262,34 @@ export class Session {
      * @method module:brainsatplay.Session.makeConnectOptions
      * @description Generate DOM fragment with a selector for available devices.
 	 * @param {HTMLElement} parentNode Parent node to insert fragment into.
+	 * @param {HTMLElement} toggleButton Node of button to toggle
 	 * @param {callback} onconnect Callback function on device connection. 
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode = document.body, onconnect = () => { }, ondisconnect = () => { }) {
-		let id = Math.floor(Math.random() * 10000) + "devicemenu";
-		let html = `
-		<div class="collapsible-content-label"><span>Device Selection</span><hr></div><div class="device-gallery">`;
+	makeConnectOptions(parentNode = document.body, toggleButton=null, onconnect = () => { }, ondisconnect = () => { }) {
+		let template = () => {return `
+		<div id="${this.id}DeviceSelection" style="z-index: 10000; position: relative; top: 0; left: 0; transition: opacity 1s;">
+			<div style="width: 100vw; height: 100vh; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+			<div class="main" style="padding: 50px; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;">
+				<h1>Device Manager</h1>
+				<hr>
+				<div class="device-gallery" style="overflow-y: scroll;"></div>
+				<button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button' style="position: absolute; bottom: 25px; right: 25px; z-index: ">Close</button>
+			</div>
+		</div>
+		`}
 
-		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
+		let setup = () => {
+
+			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+			let deviceGallery = deviceSelection.querySelector(`.device-gallery`)
+			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+
+			closeButton.onclick = () => {
+				deviceSelection.style.opacity = '0'
+				deviceSelection.style.pointerEvents = 'none'
+			}
 
 		let deviceOptions = [
 			'synthetic', 'brainstorm', 'muse', 'muse_aux',
@@ -282,20 +300,15 @@ export class Session {
 		];
 
 		deviceOptions.forEach((o, i) => {
-			// html+= `<option value='`+o+`'>`+o+`</option>`;
-			html += `
-			<div id='brainsatplay-${o}' value='${o}' class='device-card'>
+			deviceGallery.innerHTML += `
+			<div id='brainsatplay-${o}' value='${o}' class='brainsatplay-device-card'>
 			<div id='brainsatplay-${o}-indicator' class='indicator'></div>
 			${o}
 			</div>`;
 		});
 
-		html += `</div>`
 
-		// html += `</select><button id='`+id+`connect'>Connect</button>`;
-
-		parentNode.insertAdjacentHTML('afterbegin', html);
-		parentNode.insertAdjacentHTML('beforeend', `<button id='` + id + `disconnect'>Disconnect</button>`);
+		deviceSelection.querySelector('.main').insertAdjacentHTML('beforeend', `<div style="display: flex;"><button id='` + this.id + `deviceManagerDisconnect' class='brainsatplay-default-button'>Disconnect</button></div>`);
 
 		deviceOptions.forEach((o, i) => {
 			document.getElementById(`brainsatplay-${o}`).onclick = () => {
@@ -338,9 +351,37 @@ export class Session {
 			}
 		});
 
-		document.getElementById(id + "disconnect").onclick = () => {
+		document.getElementById(this.id + "deviceManagerDisconnect").onclick = () => {
 			this.disconnect(); //Need to add disconnect buttons for every device added if multiple devices streaming
 		}
+
+		if (toggleButton == null){
+			let toggleButton = document.createElement('div')
+			toggleButton.id = 'deviceManagerOpen'
+			toggleButton.classList.add('brainsatplay-default-button')
+			toggleButton.style = `
+				position: absolute; 
+				bottom: 25px; 
+				right: 25px;
+				z-index: 100;
+			`
+			toggleButton.innerHTML = 'Open Device Manager'
+			document.body.insertAdjacentElement('afterbegin',toggleButton)
+		}
+		console.log(toggleButton)
+		toggleButton.onclick = () => {
+			deviceSelection.style.opacity = '1'
+			deviceSelection.style.pointerEvents = 'auto'
+		}
+	}
+
+		let ui = new DOMFragment(
+			template,
+			parentNode,
+			undefined,
+			setup
+		)
+		
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here
