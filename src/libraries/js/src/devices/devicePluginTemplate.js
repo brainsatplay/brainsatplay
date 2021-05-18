@@ -67,13 +67,13 @@ export class devicePlugin {
     connect = () => {
         //Insert connection protocols here...
 
-        //Setup atlas AFTER connection is confirmed, you may need to move this or create an additional callback
-        this.setupAtlas();
+        //Setup Atlas via this callback AFTER connection is confirmed, you may need to move this or create an additional callback
+        this._onConnected();
         //run callbacks
-       this.onconnect();
-       this.setIndicator(true);
+        this.onconnect();
+        this.setIndicator(true);
 
-       //onconnected: this.atlas.settings.deviceConnected = true;
+        //onconnected: this.atlas.settings.deviceConnected = true;
     }
 
     disconnect = () => {
