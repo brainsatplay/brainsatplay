@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 import json
 import ssl
 import asyncio
-import sys, signal
 import time
 import pathlib
 
@@ -53,28 +52,23 @@ class Brainstorm():
             print("\n\nconnecting to {}\n\n".format(self.uri))
             try:
                 self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
-            except:
+            except Exception as e:
+                print(e)
                 print('\n\nconnect call failed\n\n')
                 return 
 
         elif (o.scheme == 'https'):
-            print('\n\n\Secure websocket connections not currently supportedn\n')
-            # self.uri = "wss://" + o.netloc + ":" + self.port
-            # print("\n\nconnecting to {}\n\n".format(self.uri))
-            # try:
-            #     cert = bytes(pathlib.Path(__file__).with_name('localhost.pem'))
-            #     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-            #     ssl_context.load_verify_locations(cert)
-            #     ssl_context.verify_mode = ssl.CERT_REQUIRED
-            #     # ssl.match_hostname can't match IP addresses on Python < 3.5.
-            #     # We're using IP addresses to enforce testing of IPv4 and IPv6.
-            #     if sys.version_info[:2] >= (3, 5):  # pragma: no cover
-            #         ssl_context.check_hostname = True
-            #     self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols,ssl=ssl_context)
-            # except Exception as e: 
-            #     print(e)
-            #     print('\n\nconnect call failed\n\n')
-            #     return
+            # print('\n\n\Secure websocket connections not currently supportedn\n')
+            self.uri = "wss://" + o.netloc + ":" + self.port
+            print("\n\nconnecting to {}\n\n".format(self.uri))
+            try:
+                # ctx = ssl.create_default_context(Purpose.CLIENT_AUTH)
+                # ctx.options &= ~ssl.OP_NO_SSLv3
+                self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
+            except Exception as e: 
+                print(e)
+                print('\n\nconnect call failed\n\n')
+                return
                 
         else:
             print('not a valid url scheme')

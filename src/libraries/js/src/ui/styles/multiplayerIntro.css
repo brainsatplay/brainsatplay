@@ -61,7 +61,7 @@
     min-height: 50px;
     flex-grow: 1;
     width: 200px;
-    max-width: 48%;
+    /* max-width: 48%; */
     position: relative;
     padding: 5px;
     border-radius: 5px;
