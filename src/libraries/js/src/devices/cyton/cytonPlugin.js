@@ -65,7 +65,6 @@ export class cytonPlugin {
         }
 
         let onConnect = () => {
-            this.setupAtlas(pipeToAtlas,info);
             if(info.useAtlas === true){			
                 this.atlas.data.eegshared.startTime = Date.now();
                 if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
@@ -125,22 +124,11 @@ export class cytonPlugin {
             );
         }
 
-        
+        info.eegChannelTags = eegChannelTags;
+        this.setupAtlas(pipeToAtlas,info);
     }
 
     setupAtlas = (pipeToAtlas=true,info) => {
-        if(info.useFilters === true) {
-            eegChannelTags.forEach((row,i) => {
-                if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,this.device.uVperStep));
-                }
-                else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,this.device.uVperStep)); 
-                }
-            });
-        }
-
-        info.eegChannelTags = eegChannelTags;
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
@@ -178,6 +166,16 @@ export class cytonPlugin {
 			}
         }
 
+        if(info.useFilters === true) {
+            info.eegChannelTags.forEach((row,i) => {
+                if(row.tag !== 'other') {
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,this.device.uVperStep));
+                }
+                else { 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,this.device.uVperStep)); 
+                }
+            });
+        }
     }
 
     connect = async () => {
