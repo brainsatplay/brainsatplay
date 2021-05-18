@@ -98,7 +98,7 @@ export class SensoriumApplet {
             iThetaBeta:       {default:1, min:0, max:5,step:0.1},                          //Theta/Beta ratio
             iAlpha1Alpha2:    {default:1, min:0, max:5,step:0.1},                          //Alpha1/Alpha2 ratio
             iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                          //Alpha/Beta ratio
-            iAlphaTheta:      {default:1, min:0, max:5,step:0.1},,
+            iAlphaTheta:      {default:1, min:0, max:5,step:0.1},
             i40Hz:            {default:1, min:0, max:10,step:0.1},                          //40Hz bandpower
             iAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };

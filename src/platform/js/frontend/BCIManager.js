@@ -365,16 +365,18 @@ export class BCIAppManager {
 
         let checkIters = 0;
         const checkIfLoggedIn = () => {
+            if(window.gapi){
             if (window.gapi.auth2?.initialized !== true && window.navigator.onLine && checkIters < 3){
                 setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
                 checkIters++
                 return;
-            } else {
+            }} else {
+                if(window.gapi) {
                     if (window.gapi.auth2?.getAuthInstance()?.isSignedIn?.get()){
                         this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
                             this.updateProfileUI(user)
                             this.updateOverlay()
-                        })
+                        })}
                     } else {
                         this.updateProfileUI()
                         this.updateOverlay()
