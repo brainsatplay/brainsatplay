@@ -7,6 +7,9 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
     //By Joshua Brewster, Garrett Flynn (GPL)
 */
 
+const OSCManager = require('./OSCManager.js');
+
+
 class DataServer {
     /**
      * @constructor
@@ -35,7 +38,10 @@ class DataServer {
             this.userData.set(username, {
                 username:username,
                 sessions:[],
-                socket:socket,
+                sockets: {
+                    ws: socket,
+                    osc: new OSCManager(socket)
+                },
                 props: {},
                 updatedPropnames: [],
                 lastUpdate:Date.now(),
@@ -50,9 +56,9 @@ class DataServer {
         else { 
             let u = this.userData.get(username);
             u.lastUpdate = Date.now();
-            if(socket.url !== u.socket.url) { //handle same user on new port
-                u.socket.close();
-                u.socket = socket;
+            if(socket.url !== u.sockets.ws.url) { //handle same user on new port
+                u.sockets.ws.close();
+                u.sockets.ws = socket;
             }
             u.origins.push(origin)
             availableProps.forEach((prop,i) => {
@@ -79,6 +85,16 @@ class DataServer {
     }
 
     removeUser(username='username') {
+
+        let user = this.userData.get(username)
+        // Close OSC Sockets
+        user.sockets.osc.remove()
+
+        // Remove User Subscriptions
+        user.sessions.forEach(id => {
+            this.removeUserFromSession(id,username)
+        })
+
         this.userData.delete(username)
     }
 
@@ -134,7 +150,7 @@ class DataServer {
             sessionData.userLeft = username
             let allUsernames = [...app.usernames,...app.spectators]
             allUsernames.forEach(u => {
-                this.userData.get(u).socket.send(JSON.stringify(sessionData));
+                this.userData.get(u).sockets.ws.send(JSON.stringify(sessionData));
             })
 
             // Remove Session from User Info
@@ -217,85 +233,85 @@ class DataServer {
                     userData.push(filtered);
                 }
             });
-            if(userData.length > 0) u.socket.send(JSON.stringify({msg:'getUsersResult', userData:userData}))
-            else u.socket.send(JSON.stringify({msg:'usersNotFound', userData:[]}))
+            if(userData.length > 0) u.sockets.ws.send(JSON.stringify({msg:'getUsersResult', userData:userData}))
+            else u.sockets.ws.send(JSON.stringify({msg:'usersNotFound', userData:[]}))
         }
         else if(commands[0] === 'getUserData') {
             if(commands[2] === undefined) {
                 let u2 = this.getUserData(commands[1]);
-                if(u2 === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
-                else {u.socket.send(JSON.stringify({msg:'getUserDataResult',username: commands[1], userData:u2})); }
+                if(u2 === undefined) { u.sockets.ws.send(JSON.stringify({msg:'userNotFound',username:commands[1]})); }
+                else {u.sockets.ws.send(JSON.stringify({msg:'getUserDataResult',username: commands[1], userData:u2})); }
             }
             else if (Array.isArray(commands[2])) {
                 let d = this.getUserData(commands[1]).props;
                 let result = {msg:'getUserDataResult',username:commands[1],props:{}};
-                if(d === undefined) { u.socket.send(JSON.stringify({msg:'userNotFound', username:commands[1]})); }
+                if(d === undefined) { u.sockets.ws.send(JSON.stringify({msg:'userNotFound', username:commands[1]})); }
                 else {
                     commands[2].forEach((prop)=> {result.props[prop] = d.props[prop]});
-                    u.socket.send(JSON.stringify(result)); 
+                    u.sockets.ws.send(JSON.stringify(result)); 
                 }
             }
         }
         else if (commands[0] === 'createSession') {
             let i = this.createAppSubscription(commands[1],commands[2],commands[3]);
-            u.socket.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.appSubscriptions[i]}));
+            u.sockets.ws.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.appSubscriptions[i]}));
         }
         else if (commands[0] === 'getSessions') { //List sessions with the app name
             let subs = this.getAppSubscriptions(commands[1]);
             if(subs === undefined) {
-                u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
             }
         }
         else if (commands[0] === 'getSessionInfo') { //List the app info for the particular ID
             let sub = this.getAppSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
             }
         }
         else if (commands[0] === 'getSessionData') {
             let sessionData = this.getSessionData(commands[1]);
             if(sessionData === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
             }
         }
         else if (commands[0] === 'createHostedSession') {
             let i = this.createHostSubscription(commands[1],commands[2],commands[3],commands[4],commands[5]);
-            u.socket.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.hostSubscriptions[i]}));
+            u.sockets.ws.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.hostSubscriptions[i]}));
         }
         else if (commands[0] === 'getHostSessions') { //List sessions with the app name
             let subs = this.getHostSubscriptions(commands[1]);
             if(subs === undefined) {
-                u.socket.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'appNotFound',appname:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionsResult',appname:commands[1],sessions:subs}));
             }
         }
         else if (commands[0] === 'getHostSessionInfo') { //List the app info for the particular session ID
             let sub = this.getHostSubscription(commands[1]);
             if(sub === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
             }
         }
         else if (commands[0] === 'getHostSessionData') {
             let sessionData = this.getHostSessionData(commands[1]);
             if(sessionData === undefined) {
-                u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
             }
             else {
-                u.socket.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
@@ -312,29 +328,40 @@ class DataServer {
             let found = undefined;
             if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
             else found = this.removeUserToUserStream(username,commands[1]);
-            if(found) {  u.socket.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
-            else { u.socket.send(JSON.stringify({msg:'userNotFound'}));}
+            if(found) {  u.sockets.ws.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
+            else { u.sockets.ws.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if (commands[0] === 'logout') {
-            u.socket.send(JSON.stringify({msg:'logged out'}));
-            u.socket.close();
-            this.userData.delete(username);
+            u.sockets.ws.send(JSON.stringify({msg:'logged out'}));
+            u.sockets.ws.close();
         }
         else if(commands[0] === 'leaveSession') {
             let found = undefined;
-            console.log(commands)
             if(commands[2]) found = this.removeUserFromSession(commands[1],commands[2]);
             else found = this.removeUserFromSession(commands[1],u.username);
-            if(found) {  u.socket.send(JSON.stringify({msg:'leftSession',id:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));}
+            if(found) {  u.sockets.ws.send(JSON.stringify({msg:'leftSession',id:commands[1]}));}
+            else { u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));}
         }
         else if(commands[0] === 'deleteSession') {
             let found = this.removeSessionStream(commands[1]);
-            if(found) { u.socket.send(JSON.stringify({msg:'sessionDeleted',id:commands[1]}));}
-            else { u.socket.send(JSON.stringify({msg:'sessionNotFound'}));}
+            if(found) { u.sockets.ws.send(JSON.stringify({msg:'sessionDeleted',id:commands[1]}));}
+            else { u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound'}));}
         }
+
+        // Test
         else if( commands[0] === 'ping' || commands === 'ping') {
-            u.socket.send(JSON.stringify({msg:'pong'}))
+            u.sockets.ws.send(JSON.stringify({msg:'pong'}))
+        }
+
+        // OSC (WebSocket calls handled internally)
+        else if( commands[0] === 'startOSC') {
+            u.sockets.osc.add(commands[1],commands[2],commands[3],commands[4])
+        } else if( commands[0] === 'sendOSC') {
+            if (commands.length > 2) u.sockets.osc.send(commands[1],commands[2],commands[3])
+            else u.sockets.osc.send(commands[1])
+            u.sockets.ws.send(JSON.stringify({msg:'Message sent over OSC'}))
+        }else if( commands[0] === 'stopOSC') {
+            u.sockets.osc.remove(commands[1], commands[2])
         }
     }
 
@@ -373,7 +400,7 @@ class DataServer {
                 }
             });
 
-            //o.socket.send(JSON.stringify(o.props));
+            //o.sockets.ws.send(JSON.stringify(o.props));
             
         }
 	}
@@ -404,11 +431,11 @@ class DataServer {
                     newData:false,
                     lastTransmit:0
                 });
-                u.socket.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
+                u.sockets.ws.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
                 return this.userSubscriptions[this.userSubscriptions.length-1];
             }
             else {
-                u.socket.send(JSON.stringify({msg:'userNotFound', username:sourceUser}));
+                u.sockets.ws.send(JSON.stringify({msg:'userNotFound', username:sourceUser}));
             }
             
         }
@@ -520,10 +547,10 @@ class DataServer {
             console.log('spectators', g.spectators)
 
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
+			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'sessionNotFound',id:id}));
+			u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:id}));
         }
 	}
 
@@ -634,10 +661,10 @@ class DataServer {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.socket.send(JSON.stringify({msg:'subscribedToSession',id:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
+			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
 		}
 		else {
-			u.socket.send(JSON.stringify({msg:'sessionNotFound',id:appname}));
+			u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:appname}));
 		}
 	}
 
@@ -664,7 +691,7 @@ class DataServer {
                     });
                     sub.newData = false;
                     sub.lastTransmit = time;
-                    listener.socket.send(JSON.stringify(dataToSend));
+                    listener.sockets.ws.send(JSON.stringify(dataToSend));
                 }
             }
 		});
@@ -675,7 +702,7 @@ class DataServer {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
-                //if(t!== undefined) t.socket.send(JSON.stringify(sub));
+                //if(t!== undefined) t.sockets.ws.send(JSON.stringify(sub));
 
                 let updateObj = {
                     msg:'sessionData',
@@ -717,7 +744,7 @@ class DataServer {
 
                     sub.newUsers.forEach((user, j) => {
                         let u = this.userData.get(user);
-                        if(u !== undefined) u.socket.send(JSON.stringify(fullUpdateObj));
+                        if(u !== undefined) u.sockets.ws.send(JSON.stringify(fullUpdateObj));
                         else {
                             sub.usernames.splice(sub.usernames.indexOf(user),1);
                             if(sub.spectators.indexOf(user) > -1) {
@@ -751,7 +778,7 @@ class DataServer {
                         if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
                             let u = this.userData.get(user);
                             if(u !== undefined) {
-                                u.socket.send(JSON.stringify(updateObj));
+                                u.sockets.ws.send(JSON.stringify(updateObj));
                                 u.lastUpdate = time; //prevents timing out for long spectator sessions
                             } else {
                                 sub.usernames.splice(sub.usernames.indexOf(user),1);
@@ -776,7 +803,7 @@ class DataServer {
             if(time - sub.lastTransmit > this.subUpdateInterval){
                 
                 //let t = this.userData.get('guest');
-                //if(t!== undefined) t.socket.send(JSON.stringify(sub));
+                //if(t!== undefined) t.sockets.ws.send(JSON.stringify(sub));
 
                 let updateObj = {
                     msg:'sessionData',
@@ -839,7 +866,7 @@ class DataServer {
                         }
                     });
 
-                    host.socket.send(JSON.stringify(hostUpdateObj));
+                    host.sockets.ws.send(JSON.stringify(hostUpdateObj));
                 }
 
                 //send latest host data to users
@@ -847,7 +874,7 @@ class DataServer {
                 allUsernames.forEach((user,j) => {
                     let u = this.userData.get(user);
                     if(u !== undefined) {
-                        u.socket.send(JSON.stringify(updateObj));
+                        u.sockets.ws.send(JSON.stringify(updateObj));
                         u.lastUpdate = time; //prevents timing out for long spectator sessions
                     } else {
                         sub.usernames.splice(sub.usernames.indexOf(user),1);
@@ -879,7 +906,7 @@ class DataServer {
         this.userData.forEach((u,i) => {
             u.updatedPropnames = [];
             if(time - u.lastUpdate > this.serverTimeout) {
-                this.userData.socket.close();
+                this.userData.sockets.ws.close();
                 this.userData.delete(u.username);
             }
         })

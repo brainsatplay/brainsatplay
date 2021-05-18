@@ -10,9 +10,17 @@ const uuid = require('uuid')
 const createBrainstorm = async (app, config={},onListen=()=>{},onError=()=>{}) => {
 
 const url = 'localhost'
-let port = config.port ?? '80'
-let protocol = config.protocol ?? 'http'
-let credentials = config.credentials ?? {}
+let port
+let protocol
+let credentials
+
+ if (config.port != null) port = config.port 
+ else port = '80'
+ if (config.protocol != null) protocol = config.protocol 
+ else protocol = 'http'
+ if (config.credentials != null) credentials = config.credentials 
+ else credentials = {}
+
 let mongouri = config.mongouri
 
 function getCookie(req,name) {
@@ -104,8 +112,8 @@ wss.on('connection', function (ws, msg, req) {
 
   // add user
   dataServer.addUser(username, origin, ws);
-  ws.send(JSON.stringify({msg:'resetUsername',username:username}));
-});
+    ws.send(JSON.stringify({msg:'resetUsername',username:username}));
+  });
 
 server.listen(parseInt(port), () => {
     console.log(`A Brainstorm is brewing on ${protocol}://${url}:${port}`)
