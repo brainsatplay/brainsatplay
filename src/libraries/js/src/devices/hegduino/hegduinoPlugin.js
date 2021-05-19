@@ -6,7 +6,7 @@ import {hegduino} from './hegduino'
 import {DOMFragment} from '../../ui/DOMFragment'
 
 export class hegduinoPlugin {
-    constructor(mode='hegduinousb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
+    constructor(mode='hegduino_usb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
 
@@ -74,7 +74,7 @@ export class hegduinoPlugin {
                 }
             } else {console.log("HEGDUINO: ", newline); }
         }
-        if(this.mode === 'hegduinowifi' || this.mode === 'hegduinosse') {
+        if(this.mode === 'hegduino_wifi' || this.mode === 'hegduino_sse') {
             info.sps = 20; //20sps incoming rate fixed for wifi
             this.device = new hegduino('wifi',ondata,
             ()=>{
@@ -88,7 +88,7 @@ export class hegduinoPlugin {
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
-        else if (this.mode === 'hegduinobt' || this.mode === 'hegduinoble') {
+        else if (this.mode === 'HEGduino_bt' || this.mode === 'HEGduino_ble') {
             this.device= new hegduino('ble',ondata,
             ()=>{
                 this.setupAtlas(pipeToAtlas,info);
@@ -101,7 +101,7 @@ export class hegduinoPlugin {
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
-        else if (this.mode === 'hegduinoserial' || this.mode === 'hegduinousb') {
+        else if (this.mode === 'HEGduino_serial' || this.mode === 'HEGduino_usb') {
             this.device= new hegduino('usb',ondata,
             ()=>{
                 this.setupAtlas(pipeToAtlas,info);
@@ -173,7 +173,7 @@ export class hegduinoPlugin {
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
             `;
-            if(this.mode === 'hegduinoble') {
+            if(this.mode === 'HEGduino_ble') {
                 t+= `
                 <button id='`+id+`hegupdate'>Update Firmware (.bin)</button>
                 </div>
@@ -195,7 +195,7 @@ export class hegduinoPlugin {
             document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(elm(id+'hegcmd').value);
             }
-            if(this.mode === 'hegduinoble') {
+            if(this.mode === 'HEGduino_ble') {
                 document.getElementById(id+'hegupdate').onclick = () => {
                     this.device.getFile();
                 }

@@ -39,7 +39,7 @@ export class musePlugin {
         ];
         this.device = new MuseClient();
 
-        if (this.mode == 'muse_aux'){
+        if (this.mode == 'Muse_Aux'){
             this.device.enableAux = true;
             info.eegChannelTags.push({ch: 4, tag: "AUX", analyze: true})
         }

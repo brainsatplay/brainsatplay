@@ -84,7 +84,7 @@ export class cytonPlugin {
 
         let eegChannelTags = [];
 
-        if(this.mode.indexOf('daisy') > -1 ) {
+        if(this.mode.indexOf('Daisy') > -1 ) {
             eegChannelTags = [
                 {ch: 0, tag: "FP1", analyze:true},
                 {ch: 1, tag: "FP2", analyze:true},

@@ -6,9 +6,10 @@ import {DataAtlas} from '../../DataAtlas'
 import {DOMFragment} from '../../ui/DOMFragment'
 
 export class eeg32Plugin {
-    constructor(mode="freeeeg32_2", onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
+    constructor(mode="FreeEEG32_2", onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
+        console.log(mode)
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -32,14 +33,14 @@ export class eeg32Plugin {
         info.sps = 512;
         info.deviceType = 'eeg';
 
-        if(this.mode === "freeeeg32_2") { 
+        if(this.mode === "FreeEEG32_2") { 
            info.eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
         }
-        else if (this.mode === 'freeeeg32_19') {
+        else if (this.mode === 'FreeEEG32_19') {
             info.eegChannelTags = [
                 {ch: 4,  tag: "FP2",  analyze:true},
                 {ch: 24, tag: "FP1",  analyze:true},
