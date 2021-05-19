@@ -430,7 +430,7 @@ export class SensoriumApplet {
             
             this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
         }
-        this.session.atlas.makeFeedbackOptions(this)
+        
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
