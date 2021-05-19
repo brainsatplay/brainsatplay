@@ -563,48 +563,7 @@ input:focus{
 .login-buttons button{
     flex-grow: 1;
     margin: 10px;
-} 
-
-/* Devices */
-.device-gallery {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
 }
-.device-card{
-    width: 125px;
-    flex-grow: 1;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.5s;
-    border: 1px solid rgb(200, 200, 200);
-    border-radius: 5px;
-    font-size: 80%;
-    margin: 5px;
-    position: relative;
-}
-
-.device-card:hover {
-    background-color: rgb(35,35,35);
-}
-
-
-.device-card .indicator{
-    position: absolute;
-    width: 7px;
-    height: 7px;
-    background: transparent;
-    top: 10px;
-    right: 10px;
-    /* transform: translate(-50%,-50%)  */
-    border-radius: 50%;
-    border: 1px solid white;
-    /* opacity: 0.5; */
-}
-
 
 @media (min-device-width: 1000px) {
 

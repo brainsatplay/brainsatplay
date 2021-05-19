@@ -44,16 +44,7 @@ import { StateManager } from './ui/StateManager'
 import { DataAtlas } from './DataAtlas'
 
 // Device Plugins
-import { eeg32Plugin } from './devices/freeeeg32/freeeeg32Plugin';
-import { musePlugin } from './devices/musePlugin';
-import { hegduinoPlugin } from './devices/hegduino/hegduinoPlugin';
-import { cytonPlugin } from './devices/cyton/cytonPlugin';
-import { webgazerPlugin } from './devices/webgazerPlugin'
-import { ganglionPlugin } from './devices/ganglion/ganglionPlugin';
-import { buzzPlugin } from './devices/buzzPlugin';
-import { syntheticPlugin } from './devices/synthetic/syntheticPlugin';
-import { brainstormPlugin } from './devices/brainstorm/brainstormPlugin';
-import { bci2000Plugin } from './devices/bci2000/bci2000Plugin';
+import { deviceList } from './devices/deviceList';
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
@@ -173,8 +164,8 @@ export class Session {
 			}
 		}
 
-		if (device.includes('brainstorm')) {
-			this.deviceStreams.push(
+		if (device.includes('Brainstorm')) {
+			this.devices.push(
 				new deviceStream(
 					device,
 					analysis,
@@ -263,85 +254,85 @@ export class Session {
      * @method module:brainsatplay.Session.makeConnectOptions
      * @description Generate DOM fragment with a selector for available devices.
 	 * @param {HTMLElement} parentNode Parent node to insert fragment into.
+	 * @param {HTMLElement} toggleButton Node of button to toggle
 	 * @param {callback} onconnect Callback function on device connection. 
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode = document.body, onconnect = () => { }, ondisconnect = () => { }) {
-		let id = Math.floor(Math.random() * 10000) + "devicemenu";
-		let html = `
-		<div class="collapsible-content-label"><span>Device Selection</span><hr></div><div class="device-gallery">`;
+	makeConnectOptions(parentNode = document.body, toggleButton=null, onconnect = () => { }, ondisconnect = () => { }) {
+		let template = () => {return `
+		<div id="${this.id}DeviceSelection" style="z-index: 999; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+			<div style="width: 100vw; height: 100vh; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+			<div class="main" style="padding: 50px; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;">
+				<h1>Device Manager</h1>
+				<hr>
+				<div class="device-gallery" style="overflow-y: scroll;"></div>
+				<button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button' style="position: absolute; bottom: 25px; right: 25px; z-index: ">Close</button>
+			</div>
+		</div>
+		`}
 
-		// html += `<select id='`+id+`select'><option value="" disabled selected>Choose your device</option>`
+		let setup = () => {
 
-		let deviceOptions = [
-			'synthetic', 'brainstorm', 'muse', 'muse_aux',
-			'freeeeg32_2', 'freeeeg32_19',
-			'hegduinousb', 'hegduinobt', //,'hegduinowifi',
-			'cyton', 'cyton_daisy', 'ganglion', 'neosensory_buzz',
-			'bci2000'
-		];
+			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+			let deviceGallery = deviceSelection.querySelector(`.device-gallery`)
+			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
 
-		deviceOptions.forEach((o, i) => {
-			// html+= `<option value='`+o+`'>`+o+`</option>`;
-			html += `
-			<div id='brainsatplay-${o}' value='${o}' class='device-card'>
-			<div id='brainsatplay-${o}-indicator' class='indicator'></div>
-			${o}
-			</div>`;
-		});
-
-		html += `</div>`
-
-		// html += `</select><button id='`+id+`connect'>Connect</button>`;
-
-		parentNode.insertAdjacentHTML('afterbegin', html);
-		parentNode.insertAdjacentHTML('beforeend', `<button id='` + id + `disconnect'>Disconnect</button>`);
-
-		deviceOptions.forEach((o, i) => {
-			document.getElementById(`brainsatplay-${o}`).onclick = () => {
-				if (o === 'muse') {
-					this.connect('muse', ['eegcoherence'], onconnect, ondisconnect);
-				} else if (o === 'muse_aux') {
-					this.connect('muse_aux', ['eegcoherence'], onconnect, ondisconnect);
-				}
-				else if (o === 'freeeeg32_2') {
-					this.connect('freeeeg32_2', ['eegcoherence'], onconnect, ondisconnect);
-				}
-				else if (o === 'freeeeg32_19') {
-					this.connect('freeeeg32_19', ['eegfft'], onconnect, ondisconnect);
-				}
-				else if (o === 'hegduinousb') {
-					this.connect('hegduinousb', [], onconnect, ondisconnect);
-				}
-				else if (o === 'hegduinobt') {
-					this.connect('hegduinobt', [], onconnect, ondisconnect);
-				}
-				else if (o === 'hegduinowifi') {
-					this.connect('hegduinowifi', [], onconnect, ondisconnect);
-				}
-				else if (o === 'cyton') {
-					this.connect('cyton', ['eegfft'], onconnect, ondisconnect);
-				}
-				else if (o === 'cyton_daisy') {
-					this.connect('cyton_daisy', ['eegfft'], onconnect, ondisconnect);
-				} else if (o === 'ganglion') {
-					this.connect('ganglion', ['eegcoherence'], onconnect, ondisconnect);
-				} else if (o === 'neosensory_buzz') {
-					this.connect('neosensory_buzz', [], onconnect, ondisconnect);
-				} else if (o === 'synthetic') {
-					this.connect('synthetic', ['eegcoherence'], onconnect, ondisconnect);
-				} else if (o === 'brainstorm') {
-					this.connect('brainstorm', ['eegcoherence'], onconnect, ondisconnect);
-				} else if (o === 'bci2000') {
-					this.connect('bci2000', ['eegcoherence'], onconnect, ondisconnect);
-				}
+			closeButton.onclick = () => {
+				deviceSelection.style.opacity = '0'
+				deviceSelection.style.pointerEvents = 'none'
 			}
+			deviceSelection.querySelector('.main').insertAdjacentHTML('beforeend', `<div style="display: flex;"><button id='` + this.id + `deviceManagerDisconnect' class='brainsatplay-default-button'>Disconnect</button></div>`);
+
+		deviceList.forEach((d, i) => {
+			if (d.variants == null) d.variants = ['']
+
+			d.variants.forEach(v => {
+				let variantName
+				if (v != '') variantName = `${d.name}_${v}`
+				else variantName = d.name
+				let div = document.createElement('div')
+				div.id = `brainsatplay-${variantName}`
+				div.value = v
+				div.classList.add('brainsatplay-device-card')
+				div.innerHTML = `<div id='brainsatplay-${variantName}-indicator' class='indicator'></div>${variantName}`
+
+				div.onclick = () => {this.connect(variantName,d.analysis,onconnect,ondisconnect)}
+				deviceGallery.insertAdjacentElement('beforeend', div)	
+			})
 		});
 
-		document.getElementById(id + "disconnect").onclick = () => {
+		document.getElementById(this.id + "deviceManagerDisconnect").onclick = () => {
 			this.disconnect(); //Need to add disconnect buttons for every device added if multiple devices streaming
 		}
+
+		if (toggleButton == null){
+			let toggleButton = document.createElement('div')
+			toggleButton.id = 'deviceManagerOpen'
+			toggleButton.classList.add('brainsatplay-default-button')
+			toggleButton.style = `
+				position: absolute; 
+				bottom: 25px; 
+				right: 25px;
+				z-index: 100;
+			`
+			toggleButton.innerHTML = 'Open Device Manager'
+			document.body.insertAdjacentElement('afterbegin',toggleButton)
+		}
+
+		toggleButton.onclick = () => {
+			deviceSelection.style.opacity = '1'
+			deviceSelection.style.pointerEvents = 'auto'
+		}
+	}
+
+		let ui = new DOMFragment(
+			template,
+			parentNode,
+			undefined,
+			setup
+		)
+		
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here
@@ -1671,19 +1662,8 @@ class deviceStream {
 
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 
-			this.deviceConfigs = [
-				{ name: 'freeeeg32', cls: eeg32Plugin },
-				{ name: 'muse', cls: musePlugin },
-				{ name: 'hegduino', cls: hegduinoPlugin },
-				{ name: 'cyton', cls: cytonPlugin },
-				{ name: 'webgazer', cls: webgazerPlugin },
-				{ name: 'ganglion', cls: ganglionPlugin },
-				{ name: 'neosensory_buzz', cls: buzzPlugin },
-				{ name: 'synthetic', cls: syntheticPlugin },
-				{ name: 'brainstorm', cls: brainstormPlugin },
-				{ name: 'bci2000', cls: bci2000Plugin },
-
-			];
+		
+			this.deviceConfigs = deviceList
 
 		this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
@@ -1700,7 +1680,7 @@ class deviceStream {
 
 			findAsync(this.deviceConfigs, async (o, i) => {
 				if (info.deviceName.indexOf(o.name) > -1) {
-					if (info.deviceName.includes('brainstorm')) {
+					if (info.deviceName.includes('Brainstorm')) {
 						this.device = new o.cls(info.deviceName, info.session, this.onconnect, this.ondisconnect);
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);

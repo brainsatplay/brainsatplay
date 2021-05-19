@@ -135,7 +135,7 @@ export class BCIAppManager {
                     </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Device Manager</span></div></button>
+                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Device Manager</span></div></button>
                     <div class="content">
                     </div>
                 </div>
@@ -353,10 +353,9 @@ export class BCIAppManager {
         }
 
 
-        let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
-        this.session.makeConnectOptions(contentChild2);
+        // let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
+        this.session.makeConnectOptions(document.body, app.querySelector('#device-menu').querySelector('button'));
         
-
         // let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
         // this.uiFragments.login = new DOMFragment(
         //     login_template,
