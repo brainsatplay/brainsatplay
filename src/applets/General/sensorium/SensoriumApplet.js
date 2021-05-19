@@ -41,6 +41,15 @@ export class SensoriumApplet {
         this.AppletHTML = null;
         //------------------------
 
+        //-------Required Multiplayer Properties------- 
+        this.subtitle = 'Sense your Senses' // Specify a subtitle for the title screen
+        this.streams = ['modifiers'] // Register your app data streams
+        //----------------------------------------------
+
+        //-------Other Multiplayer Properties------- 
+        this.stateIds = []
+        //----------------------------------------------
+
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
@@ -84,9 +93,9 @@ export class SensoriumApplet {
 
         this.uniformSettings = {
             iAudio:           {default: new Array(256).fill(0), min:0,max:255},     //Audio analyser FFT, array of 256, values max at 255
-    iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
-    iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
-    iHR:              {default:1, min:1, max:240,step:1},                           //Heart Rate in BPM
+            iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
+            iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
+            iHR:              {default:1, min:1, max:240,step:1},                           //Heart Rate in BPM
             iHB:              {default:0, min:0, max:1},                            //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
             iFFT:             {default:new Array(256).fill(0),min:0,max:1000},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           {default:1, min:0, max:100,step:0.5},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
@@ -215,6 +224,8 @@ export class SensoriumApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
+            this.session.insertMultiplayerIntro(this)
+
             /**
              * GUI
              */
@@ -290,6 +301,12 @@ export class SensoriumApplet {
         this.looping = true;
         
         this.ct = 0;
+
+
+
+    // Multiplayer
+    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {console.log('new data!')}))
+
 
     /**
      * Scene
@@ -375,11 +392,41 @@ export class SensoriumApplet {
         this.render = () => {
             if (this.three.renderer.domElement != null){
 
-                // Organize Brain Data 
-                this.setBrainData(this.session.atlas.data.eeg)
+                let userData = this.session.getBrainstormData(this.info.name)
+
+                let averageModifiers;
+                if (userData.length > 0 && !(userData.length === 1 && userData[0].username === this.session.info.auth.username)){
+                    averageModifiers = {}
+                    userData.forEach((data) => {
+                       if (data.modifiers){
+                            // Only average watched values
+                            this.currentShader.uniforms.forEach(name => {
+                                if (averageModifiers[name] == null) averageModifiers[name] = []
+                                averageModifiers[name].push(data.modifiers[name])
+                            })
+                        }
+                    })
+
+                    for (let mod in averageModifiers){
+                        if (!Array.isArray(averageModifiers[mod][0])) averageModifiers[mod] = this.session.atlas.mean(averageModifiers[mod])
+                        else { // Average across each sample (e.g. FFTs)
+                            let newArr = Array(averageModifiers[mod][0].length)
+                            for (let i = 0; i < newArr.length; i++){
+                                let sampleAve = []
+                                averageModifiers[mod].forEach(a => {
+                                    sampleAve.push(a[i])
+                                })
+                                newArr[i] = this.session.atlas.mean(sampleAve)
+                            }
+                        }
+                    }
+
+                }  else {
+                    averageModifiers = this.modifiers
+                }
 
                 this.three.planes.forEach(p => {
-                    this.updateMaterialUniforms(p.material,this.modifiers);
+                    this.updateMaterialUniforms(p.material,averageModifiers);
                 });
 
                 this.controls.update()
@@ -403,6 +450,9 @@ export class SensoriumApplet {
         this.effects.forEach((struct)=>{
             if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
         });
+        this.stateIds.forEach(id => {
+            this.session.state.unsubscribeAll(id);
+        })
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         this.AppletHTML.deleteNode();
@@ -430,7 +480,6 @@ export class SensoriumApplet {
             
             this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
         }
-        this.session.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -816,20 +865,6 @@ export class SensoriumApplet {
         this.three.scene = null;
         this.three.renderer.domElement = null;
         this.three.renderer = null;
-    }
-
-    setBrainData(eeg_data){
-        this.brainData = []
-        this.brainMetrics.forEach((dict,i) => {
-            this.brainData.push([])
-            eeg_data.forEach((data) => {
-                this.brainData[i] = data.means[dict.name].slice(data.means[dict.name].length-20)
-            })
-        })
-        this.brainData = this.brainData.map(data => {
-            if (data.length > 0) return data.reduce((tot,curr) => tot + curr)
-            else return 1
-        })  
     }
 
     generateGUI(uniforms){

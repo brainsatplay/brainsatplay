@@ -111,7 +111,7 @@
     display: flex;
     flex-wrap: wrap;
     flex-grow: 1;
-    background: rgb(40,40,40);
+    background: rgba(35,35,35,0.75);
     padding: 25px;
     margin: 10px;
     border-radius: 5px;;
