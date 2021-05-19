@@ -420,9 +420,10 @@ export class SensoriumApplet {
                                 })
                                 newArr[i] = this.session.atlas.mean(sampleAve)
                             }
+                            averageModifiers[mod] = newArr
                         }
                     }
-
+                    
                 }  else {
                     averageModifiers = this.modifiers
                 }
