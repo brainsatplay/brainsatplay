@@ -44,7 +44,7 @@ export class BlinkApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            let name = 'BCI App'; if(this.bci) if(this.bci.deviceStreamstreams.length > 0) name = "BCI App for "+this.bci.deviceStreamstreams[0].info.deviceName;
+            let name = 'BCI App'; if(this.bci) if(this.bci.deviceStreams.length > 0) name = "BCI App for "+this.bci.deviceStreams[0].info.deviceName;
             return `
                 <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                     <div id="${props.id}-left" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">

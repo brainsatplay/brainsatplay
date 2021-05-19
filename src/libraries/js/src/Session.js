@@ -1733,7 +1733,7 @@ class deviceStream {
 class streamSession {
 	constructor(auth, socket) {
 
-		this.deviceStreamstreams = [];
+		this.deviceStreams = [];
 
 		this.info = {
 			auth: auth,
@@ -1981,8 +1981,8 @@ class streamSession {
 			userData: {}
 		}
 		if (this.info.streaming === true) {
-			this.deviceStreamstreams.forEach((d) => {
-				if (this.info.nDevices < this.deviceStreamstreams.length) {
+			this.deviceStreams.forEach((d) => {
+				if (this.info.nDevices < this.deviceStreams.length) {
 					if (!streamObj.userData.devices) streamObj.userData.devices = [];
 					streamObj.userData.devices.push(d.info.deviceName);
 					this.info.nDevices++;
