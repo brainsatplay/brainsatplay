@@ -22,15 +22,6 @@ export class brainstormPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     init = async (info,pipeToAtlas) => {
@@ -81,14 +72,12 @@ export class brainstormPlugin {
         }
 
        this.onconnect();
-       this.setIndicator(true);
     }
 
     disconnect = () => {
         this.ondisconnect();
         this.session.unsubscribeFromUser(this.subscription.username)
         window.cancelAnimationFrame(this.animation)
-        this.setIndicator(false);
         this.atlas.settings.deviceConnected = false;
     }
 
@@ -97,6 +86,8 @@ export class brainstormPlugin {
          info.sps = this.subscription.props.sps
          info.deviceType = this.subscription.props.deviceType
          info.eegChannelTags = this.subscription.props.eegChannelTags
+
+         console.log(info.eegChannelTags)
  
          // FOR EEG ONLY
          if(pipeToAtlas === true) { //New Atlas

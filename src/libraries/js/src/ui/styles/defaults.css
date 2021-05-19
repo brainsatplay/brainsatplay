@@ -85,17 +85,62 @@
 }
 
 
+
 /* Device Selector */
 
-.device-gallery {
+.brainsatplay-header-grid{
+    display: flex;
+    align-items: center;
+    /* grid-template-columns: repeat(2,1fr); */
+} 
+
+.brainsatplay-header-grid .brainsatplay-default-button{
+    max-width: 100px;
+    margin-left: 25px;
+    font-size: 80%;
+}
+
+.brainsatplay-device-gallery {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-}
-.brainsatplay-device-card{
-    width: 125px;
+    /* border: 1px solid white; */
+} 
+
+.brainsatplay-companyCard {
+    display: flex;
+    flex-wrap: wrap;
     flex-grow: 1;
-    height: 50px;
+    background: rgb(40,40,40);
+    padding: 25px;
+    margin: 10px;
+    border-radius: 5px;;
+    position: relative;
+}.devices {
+    width: 100%;
+    display: flex;
+}h3 {
+    margin: 10px;
+}
+
+.brainsatplay-deviceCard{
+    background:rgb(15,15,15);
+    padding: 10px;
+    margin: 10px;
+    flex-grow: 1;
+    border-radius: 5px;;
+    position: relative;
+}.variants {
+    width: 100%;
+    display: flex;
+}h4 {
+    margin: 10px;
+}
+
+.brainsatplay-variantButton{
+    /* width: 50px; */
+    flex-grow: 1;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,17 +148,17 @@
     transition: 0.5s;
     border: 1px solid rgb(200, 200, 200);
     border-radius: 5px;
-    font-size: 80%;
+    font-size: 70%;
     margin: 5px;
     position: relative;
 }
 
-.brainsatplay-device-card:hover {
+.brainsatplay-variantButton:hover {
     background-color: rgb(35,35,35);
 }
 
 
-.brainsatplay-device-card .indicator{
+.indicator{
     position: absolute;
     width: 7px;
     height: 7px;
@@ -124,4 +169,9 @@
     border-radius: 50%;
     border: 1px solid white;
     /* opacity: 0.5; */
+}
+
+.indicator.on {
+    background: lime;
+    border: none;
 }

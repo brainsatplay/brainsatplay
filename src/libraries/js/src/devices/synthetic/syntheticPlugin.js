@@ -15,15 +15,6 @@ export class syntheticPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
 
         this.loop;
         this.looping = true;
@@ -36,27 +27,15 @@ export class syntheticPlugin {
         info.eegChannelTags = 'auto'
         
         this.info = info;
+
+        this._onConnected = () => {
+            this.setupAtlas(pipeToAtlas,info);
+        }
     }
 
     setupAtlas = (pipeToAtlas=true,info=this.info) => {
         
-        this._onConnected = () => {
-            this.setupAtlas(pipeToAtlas,info);
-        }
 
-        if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
-
-        if(info.useFilters === true) {
-            info.eegChannelTags.forEach((row,i) => {
-                if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
-                }
-                else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
-                }
-                //this.filters[this.filters.length-1].useBp1 = true;
-            });
-        }
         if(pipeToAtlas === true) { //New Atlas
             let config = '10_20';
             this.atlas = new DataAtlas(
@@ -92,6 +71,20 @@ export class syntheticPlugin {
                 }
 			}
         }
+
+        if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
+
+        if(info.useFilters === true) {
+            info.eegChannelTags.forEach((row,i) => {
+                if(row.tag !== 'other') {
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+                }
+                else { 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
+                }
+                //this.filters[this.filters.length-1].useBp1 = true;
+            });
+        }
     }
 
     //For internal use only on init
@@ -109,14 +102,11 @@ export class syntheticPlugin {
       }
 
        this.onconnect();
-       this.setIndicator(true);
-
        this.simulateData()
     }
 
     disconnect = () => {
         this.ondisconnect();
-        this.setIndicator(false);
         this.atlas.settings.deviceConnected = false;
         if (typeof window != undefined){
             window.cancelAnimationFrame(this.loop)

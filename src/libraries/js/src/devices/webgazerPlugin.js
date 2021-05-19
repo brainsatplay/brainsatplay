@@ -18,15 +18,6 @@ export class webgazerPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     init = async (info,pipeToAtlas) => {
@@ -103,14 +94,12 @@ export class webgazerPlugin {
         }).begin();
 
         this.onconnect();
-        this.setIndicator(true)
     }
 
     disconnect = () => {
         webgazer.end();
         this.atlas.settings.deviceConnected = false;
         this.ondisconnect();
-        this.setIndicator(false)
     }
 
     //externally set callbacks
