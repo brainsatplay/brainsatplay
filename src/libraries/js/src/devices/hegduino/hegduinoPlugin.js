@@ -18,15 +18,6 @@ export class hegduinoPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
@@ -88,7 +79,7 @@ export class hegduinoPlugin {
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
-        else if (this.mode === 'HEGduino_bt' || this.mode === 'HEGduino_ble') {
+        else if (this.mode === 'hegduino_Bluetooth') {
             this.device= new hegduino('ble',ondata,
             ()=>{
                 this.setupAtlas(pipeToAtlas,info);
@@ -101,7 +92,7 @@ export class hegduinoPlugin {
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
-        else if (this.mode === 'HEGduino_serial' || this.mode === 'HEGduino_usb') {
+        else if (this.mode === 'hegduino_USB') {
             this.device= new hegduino('usb',ondata,
             ()=>{
                 this.setupAtlas(pipeToAtlas,info);
@@ -151,13 +142,10 @@ export class hegduinoPlugin {
 
     connect = () => {
         this.device.connect();
-        this.setIndicator(true)
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.setIndicator(false)
-
     }
 
     //externally set callbacks
@@ -173,7 +161,7 @@ export class hegduinoPlugin {
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
             `;
-            if(this.mode === 'HEGduino_ble') {
+            if(this.mode === 'hegduino_ble') {
                 t+= `
                 <button id='`+id+`hegupdate'>Update Firmware (.bin)</button>
                 </div>
@@ -195,7 +183,7 @@ export class hegduinoPlugin {
             document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(elm(id+'hegcmd').value);
             }
-            if(this.mode === 'HEGduino_ble') {
+            if(this.mode === 'hegduino_ble') {
                 document.getElementById(id+'hegupdate').onclick = () => {
                     this.device.getFile();
                 }

@@ -6,10 +6,9 @@ import {DataAtlas} from '../../DataAtlas'
 import {DOMFragment} from '../../ui/DOMFragment'
 
 export class eeg32Plugin {
-    constructor(mode="FreeEEG32_2", onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
+    constructor(mode="freeeeg32_2", onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
-        console.log(mode)
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -17,15 +16,6 @@ export class eeg32Plugin {
        
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     init = async (info,pipeToAtlas) => {
@@ -33,14 +23,14 @@ export class eeg32Plugin {
         info.sps = 512;
         info.deviceType = 'eeg';
 
-        if(this.mode === "FreeEEG32_2") { 
+        if(this.mode === "freeeeg32_2") { 
            info.eegChannelTags = [
                 {ch: 4, tag: "FP2", analyze:true},
                 {ch: 24, tag: "FP1", analyze:true},
                 {ch: 8, tag: "other", analyze:false}
             ];
         }
-        else if (this.mode === 'FreeEEG32_19') {
+        else if (this.mode === 'freeeeg32_19') {
             info.eegChannelTags = [
                 {ch: 4,  tag: "FP2",  analyze:true},
                 {ch: 24, tag: "FP1",  analyze:true},
@@ -175,12 +165,10 @@ export class eeg32Plugin {
 
     connect = async () => {
         await this.device.setupSerialAsync();
-        this.setIndicator(true);
     }
 
     disconnect = () => {
         this.device.closePort();
-        this.setIndicator(false)
     }
 
     //externally set callbacks

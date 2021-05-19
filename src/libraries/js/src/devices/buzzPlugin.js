@@ -14,15 +14,6 @@ export class buzzPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
 
@@ -30,42 +21,43 @@ export class buzzPlugin {
         info.deviceType = 'other';
         this.device = new neosensory.Buzz(
             (response) => {
-                if (response) console.log(response)
-            },
-            ()=>{ 
-                if(pipeToAtlas === true) {
-                    let config = 'neosensory_buzz';
-                    this.atlas = new DataAtlas(
-                        location+":" + this.mode,
-                        {},
-                        config,false,true,
-                        info.analysis
-                        );
-        
-                    info.useAtlas = true;
-                    
-                } else if (typeof pipeToAtlas === 'object') {
-                    this.atlas = pipeToAtlas; //External atlas reference
-                    info.useAtlas = true;
-                }
-                this.atlas.settings.deviceConnected = true; 
-                this.onconnect();
-            },
-            ()=>{ this.atlas.settings.deviceConnected = false; this.ondisconnect();}
-            )
+                // if (response) console.log(response)
+            })
 
-            
+        this._onConnected = () => {
+            this.setupAtlas(info,pipeToAtlas);
+        }
     }
 
-    connect = () => {
-        this.device.connect();
-        this.setIndicator(true)
+    setupAtlas(info,pipeToAtlas){
+        if(pipeToAtlas === true) {
+            let config = 'neosensory_buzz';
+            this.atlas = new DataAtlas(
+                location+":" + this.mode,
+                {},
+                config,false,true,
+                info.analysis
+                );
+
+            info.useAtlas = true;
+            
+        } else if (typeof pipeToAtlas === 'object') {
+            this.atlas = pipeToAtlas; //External atlas reference
+            info.useAtlas = true;
+        }
+        this.atlas.settings.deviceConnected = true; 
+    }
+
+    connect = async () => {
+        await this.device.connect();
+        this._onConnected();
+        this.onconnect()
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.setIndicator(false)
-
+        this.ondisconnect();
+        this.atlas.settings.deviceConnected = false; 
     }
 
     //externally set callbacks

@@ -16,15 +16,6 @@ export class cytonPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     init = async (info={sps:null,deviceType:null,eegChannelTags:null,analysis:['eegfft'],useAtlas:undefined},pipeToAtlas=true) => { //info and pipeToAtlas passed by reference from deviceStream class
@@ -182,13 +173,11 @@ export class cytonPlugin {
 
     connect = async () => {
         await this.device.setupSerialAsync();
-        this.setIndicator(true)
     }
 
 
     disconnect = () => {
         this.device.closePort();
-        this.setIndicator(false)
     }
 
     //eternally modifiable callbacks

@@ -52,7 +52,7 @@ import * as Realm from "realm-web";
 
 
 // Default Styling
-import './ui/styles/multiplayerIntro.css'
+import './ui/styles/defaults.css'
 
 
 
@@ -164,8 +164,8 @@ export class Session {
 			}
 		}
 
-		if (device.includes('Brainstorm')) {
-			this.devices.push(
+		if (device.includes('brainstorm')) {
+			this.deviceStreams.push(
 				new deviceStream(
 					device,
 					analysis,
@@ -259,52 +259,128 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode = document.body, toggleButton=null, onconnect = () => { }, ondisconnect = () => { }) {
+	makeConnectOptions(parentNode = document.body, toggleButton=null, deviceFilter = null, onconnect = () => { }, ondisconnect = () => { }) {
 		let template = () => {return `
-		<div id="${this.id}DeviceSelection" style="z-index: 999; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
-			<div style="width: 100vw; height: 100vh; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
-			<div class="main" style="padding: 50px; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;">
-				<h1>Device Manager</h1>
+		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+			<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+				<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
 				<hr>
-				<div class="device-gallery" style="overflow-y: scroll;"></div>
-				<button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button' style="position: absolute; bottom: 25px; right: 25px; z-index: ">Close</button>
+				<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
 			</div>
 		</div>
 		`}
 
 		let setup = () => {
 
-			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-			let deviceGallery = deviceSelection.querySelector(`.device-gallery`)
-			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+		let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
+		let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
 
-			closeButton.onclick = () => {
-				deviceSelection.style.opacity = '0'
-				deviceSelection.style.pointerEvents = 'none'
+		const resizeDisplay = () => {
+			let main = deviceSelection.querySelector(`.main`)
+			deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
+			// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
+		}
+		resizeDisplay()
+
+		window.addEventListener('resize', resizeDisplay)
+
+		closeButton.onclick = () => {
+			deviceSelection.style.opacity = '0'
+			deviceSelection.style.pointerEvents = 'none'
+		}
+		
+		if (deviceFilter != null) deviceList = deviceList.filter(d => deviceFilter.includes(d.name))
+
+		deviceList.sort(function(a, b) {
+			let translate = (d) => {
+				if (d.company == 'Brains@Play'){
+					return 0 // B@P
+				} else if (d.company == 'HEGAlpha'){
+					return 1 // HEG
+				} else if (d.company == 'Neuroidss'){
+					return 2 // FreEEG
+				} else if (d.company == 'OpenBCI'){
+					return 3 // OpenBCI
+				} else if (d.company == 'Neosensory'){
+					return 4 // Neosensory
+				} else if (d.company == 'InteraXon'){
+					return 5 // InteraXon
+				} else {
+					return 3 // other
+				}
 			}
-			deviceSelection.querySelector('.main').insertAdjacentHTML('beforeend', `<div style="display: flex;"><button id='` + this.id + `deviceManagerDisconnect' class='brainsatplay-default-button'>Disconnect</button></div>`);
-
+			let pos1 = translate(a)
+			let pos2 = translate(b)
+			return pos1 - pos2;
+		});
+		
 		deviceList.forEach((d, i) => {
 			if (d.variants == null) d.variants = ['']
 
+			let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+
+			let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
+			if (!insertionDiv) {
+				insertionDiv = document.createElement('div')
+				insertionDiv.classList.add(`brainsatplay-companyCard`)
+				insertionDiv.setAttribute("name",cleanCompanyString)
+				insertionDiv.innerHTML += `<h3>${d.company}</h3><div class="devices"></div>`
+				deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
+			}
+
+			let deviceDiv = document.createElement('div')
+			// deviceDiv.id = `brainsatplay-${d.id}`
+			deviceDiv.classList.add('brainsatplay-deviceCard')
+			deviceDiv.innerHTML += `<h4>${d.name}</h4><div class="variants"></div>`
+
+			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
+
+			let deviceIndicator = document.createElement('div')
+			deviceIndicator.classList.add('indicator')
+			deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
+
 			d.variants.forEach(v => {
-				let variantName
-				if (v != '') variantName = `${d.name}_${v}`
-				else variantName = d.name
+				let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
+				let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
+				let variantLabel = ((v != '') ? v : 'Connect')
 				let div = document.createElement('div')
 				div.id = `brainsatplay-${variantName}`
-				div.value = v
-				div.classList.add('brainsatplay-device-card')
-				div.innerHTML = `<div id='brainsatplay-${variantName}-indicator' class='indicator'></div>${variantName}`
+				div.classList.add('brainsatplay-variantButton')
 
-				div.onclick = () => {this.connect(variantName,d.analysis,onconnect,ondisconnect)}
-				deviceGallery.insertAdjacentElement('beforeend', div)	
+				// Add label to button
+				div.innerHTML = `<p>${variantLabel}</p>`
+
+				let setIndicator = (on=true) => {
+					if (on){
+						deviceIndicator.classList.add('on')
+					} else {
+						deviceIndicator.classList.remove('on')
+					}
+				}
+
+				let updatedOnConnect = () => {
+					onconnect()
+					div.querySelector('p').innerHTML = "Disconnect"
+					setIndicator(true)
+					div.onclick = () => {this.disconnect()}
+				}
+
+				let updatedOnDisconnect = () => {
+					ondisconnect()
+					setIndicator(false)
+					div.querySelector('p').innerHTML = variantLabel
+					div.onclick = () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+				}
+
+				div.onclick = () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+
+				deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
 			})
+			insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
 		});
 
-		document.getElementById(this.id + "deviceManagerDisconnect").onclick = () => {
-			this.disconnect(); //Need to add disconnect buttons for every device added if multiple devices streaming
-		}
 
 		if (toggleButton == null){
 			let toggleButton = document.createElement('div')
@@ -1670,6 +1746,7 @@ class deviceStream {
 	}
 
 	init = async (info = this.info, pipeToAtlas = this.pipeToAtlas) => {
+
 		return new Promise(async (resolve, reject) => {
 			async function findAsync(arr, asyncCallback) {
 				const promises = arr.map(asyncCallback);
@@ -1679,8 +1756,9 @@ class deviceStream {
 			}
 
 			findAsync(this.deviceConfigs, async (o, i) => {
-				if (info.deviceName.indexOf(o.name) > -1) {
-					if (info.deviceName.includes('Brainstorm')) {
+				if (info.deviceName.indexOf(o.id) > -1) {
+					if (info.deviceName.includes('brainstorm')) {
+						console.log('brainstorm')
 						this.device = new o.cls(info.deviceName, info.session, this.onconnect, this.ondisconnect);
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);

@@ -17,15 +17,6 @@ export class musePlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-        this.setIndicator = (on=true) => {
-            if (on){
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'lime';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = 'none';
-            } else {
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.background = 'transparent';
-                document.getElementById(`brainsatplay-${this.mode}-indicator`).style.border = '1px solid white';
-            }
-        }
     }
 
     init = async (info,pipeToAtlas) => {
@@ -39,7 +30,7 @@ export class musePlugin {
         ];
         this.device = new MuseClient();
 
-        if (this.mode == 'Muse_Aux'){
+        if (this.mode == 'muse_Aux'){
             this.device.enableAux = true;
             info.eegChannelTags.push({ch: 4, tag: "AUX", analyze: true})
         }
@@ -132,7 +123,6 @@ export class musePlugin {
         }
 
         this.device.gatt.device.addEventListener('gattserverdisconnected', () => {
-            console.log('gattserverdisconnected')
             if (this.atlas.settings.deviceConnected){
                 this.atlas.analyzing = false;
                 this.atlas.settings.deviceConnected = false;
@@ -141,13 +131,11 @@ export class musePlugin {
         });
 
         this.onconnect();
-        this.setIndicator(true)
 
     }
 
     disconnect = () => {
         this.device.disconnect();
-        this.setIndicator(false)
     }
 
     //externally set callbacks

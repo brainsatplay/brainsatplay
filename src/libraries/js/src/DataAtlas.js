@@ -71,8 +71,15 @@ export class DataAtlas {
 
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
+		// Enforce uppercase
+		if(this.data.eegshared.eegChannelTags === 'auto') {
+			this.data.eegshared.eegChannelTags = ["FP1","FP2","FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"]
+			this.data.eegshared.eegChannelTags = this.data.eegshared.eegChannelTags.map((t,i) => {
+				return {ch:i,tag:t,analyze: true}
+			})
+		}
 
-//no
+		// Create EEG Map
         if(config === '10_20') {
 			this.settings.eeg = true;
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
@@ -93,13 +100,6 @@ export class DataAtlas {
 		else if (config === 'eyetracker') {
 			this.settings.eyetracker = true;
 			this.addEyeTracker(this.data.eyetracker.length);
-		}
-
-		if (!Array.isArray(this.data.eegshared.eegChannelTags)){
-			this.data.eegshared.eegChannelTags = []
-			this.data.eeg.forEach((d,i) => {
-				this.data.eegshared.eegChannelTags.push({ch:i,tag:d.tag,analyze: true})
-			})
 		}
 
         if(useCoherence === true) {
@@ -280,13 +280,6 @@ export class DataAtlas {
 						eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
 				});
 			}
-			let tentwenty = ["FP1","FP2","FZ","F3","F4","F7","F8",
-			"CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"];
-			tentwenty.forEach((tag,i) => {
-				if(!eegmap.find(row => row.tag === tag)) {
-					eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
-				}
-			});
 		}
 		return eegmap;
 	}
@@ -314,11 +307,14 @@ export class DataAtlas {
     genCoherenceMap(channelTags = this.data.eegshared.eegChannelTags, taggedOnly = true) {
 		var cmap = [];
 		var l = 1, k = 0;
+
+		
 		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
 				var coord1 = this.getEEGDataByTag(channelTags[k+l].tag);
+
 				cmap.push(this.genCoherenceStruct(channelTags[k].tag,channelTags[k+l].tag,coord0.position,coord1.position))
 			}
 			l++;
@@ -451,8 +447,9 @@ export class DataAtlas {
     //Return the object corresponding to the atlas tag
 	getEEGDataByTag = (tag="FP1") => {
 		var found = undefined;
+		const regex = new RegExp(tag, 'i');
 		let atlasCoord = this.data.eeg.find((o, i) => {
-			if(o.tag === tag || o.ch === parseInt(tag)){
+			if(regex.test(o.tag) || o.ch === parseInt(tag)){
 				found = o;
 				return true;
 			}

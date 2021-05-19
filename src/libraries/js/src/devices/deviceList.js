@@ -12,12 +12,13 @@ import { bci2000Plugin } from './bci2000/bci2000Plugin';
 
 
 export const deviceList = [
-    {'name': 'Synthetic', company:'Brains@Play', analysis: ['eegcoherence'], cls: syntheticPlugin},
-    {'name': 'Brainstorm', company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
-    {'name': 'Muse', company:'InteraXon', analysis: ['eegcoherence'], variants:['', 'Aux'], cls: musePlugin},
-    {'name': 'Ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin},
-    {'name': 'Cyton', company:'OpenBCI', analysis: ['eegcoherence'], variants: ['','Daisy'], cls: cytonPlugin},
-    {'name': 'HEGduino', company:'HEGAlpha', analysis: [], variants: ['usb','bt'], cls: hegduinoPlugin},
-    {'name': 'FreeEEG32', company:'Neuroidss', analysis: ['eegcoherence'], variants: ['2','19'], cls: eeg32Plugin},
-    {'name': 'Buzz', company:'Neosensory', analysis: [], cls: buzzPlugin},
+    {'name': 'Synthetic', id:'synthetic', company:'Brains@Play', analysis: ['eegcoherence'], cls: syntheticPlugin},
+    {'name': 'Brainstorm', id:'brainstorm',company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
+    {'name': 'Muse 2', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:['', 'Aux'], cls: musePlugin},
+    {'name': 'Muse S', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin},
+    {'name': 'Ganglion', id:'ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin},
+    {'name': 'Cyton', id:'cyton', company:'OpenBCI', analysis: ['eegcoherence'], variants: ['','Daisy'], cls: cytonPlugin},
+    {'name': 'HEGduino', id:'hegduino', company:'HEGAlpha', analysis: [], variants: ['USB','Bluetooth'], cls: hegduinoPlugin},
+    {'name': 'FreeEEG32', id:'freeeg32', company:'Neuroidss', analysis: ['eegcoherence'], variants: ['2','19'], cls: eeg32Plugin},
+    {'name': 'Buzz', id:'buzz', company:'Neosensory', analysis: [], cls: buzzPlugin},
 ]

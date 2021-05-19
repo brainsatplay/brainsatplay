@@ -7,5 +7,9 @@ hide_title: true
 
 ## Overview
 ---
+We currently support the following outputs:
+- Fast Fourier Transform (FFT), including bandpowers
+- Coherence
+- Blink Detection
 
 *Coming soon...*
