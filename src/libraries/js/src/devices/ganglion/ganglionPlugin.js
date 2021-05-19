@@ -40,11 +40,26 @@ export class ganglionPlugin {
             {ch: 3, tag: "C4",  analyze:true}
         ];
 
-        this.setupAtlas(pipeToAtlas, info);
-
     }
 
     setupAtlas = (pipeToAtlas=true,info=this.info) => {
+        
+        this._onConnected = () => {
+            this.setupAtlas(pipeToAtlas, info);
+        }
+
+        if(this.info.useFilters === true) {
+            this.info.eegChannelTags.forEach((row,i) => {
+                if(row.tag !== 'other') {
+                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,uvPerStep));
+                }
+                else { 
+                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
+                }
+                this.filters[this.filters.length-1].useScaling = true; 
+                this.filters[this.filters.length-1].notch60.pop();
+            });
+        }
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
@@ -82,27 +97,16 @@ export class ganglionPlugin {
 			}
         }
 
-
-        if(this.info.useFilters === true) {
-            this.info.eegChannelTags.forEach((row,i) => {
-                if(row.tag !== 'other') {
-                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,true,uvPerStep));
-                }
-                else { 
-                    this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,uvPerStep)); 
-                }
-                this.filters[this.filters.length-1].useScaling = true; 
-                this.filters[this.filters.length-1].notch60.pop();
-            });
-        }
-
     }
 
+    _onConnected = () => {} //for internal use on init
 
     connect = async () => {
         this.device = new Ganglion();
         await this.device.connect();
         await this.device.start();
+
+        this._onConnected();
         
         this.device.stream.subscribe(sample => {
             if(this.info.useAtlas) {
