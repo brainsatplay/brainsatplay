@@ -25,4 +25,4 @@ custom_edit_url: null
 
 **Returns:** *Promise*<Server \| Server\>
 
-Defined in: [src/brainstorm/Brainstorm.js:10](https://github.com/brainsatplay/brainsatplay/blob/480c337/src/libraries/js/src/brainstorm/Brainstorm.js#L10)
+Defined in: [src/brainstorm/Brainstorm.js:10](https://github.com/brainsatplay/brainsatplay/blob/e5be325/src/libraries/js/src/brainstorm/Brainstorm.js#L10)
