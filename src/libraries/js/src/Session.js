@@ -348,7 +348,7 @@ export class Session {
 	}
 
 	//get the device stream object
-	getDevice(deviceNameOrType = 'freeeeg32_2', deviceIdx = 0) {
+	getDevice(deviceNameOrType = 'FreeEEG32_2', deviceIdx = 0) {
 		let found = undefined;
 		this.deviceStreams.find((d, i) => {
 			if (d.info.deviceName.indexOf(deviceNameOrType) > -1 && d.info.deviceNum === deviceIdx) {
@@ -431,11 +431,11 @@ export class Session {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null;
-		if (deviceName.indexOf('eeg') > -1 || deviceName.indexOf('muse') > -1 || deviceName.indexOf('notion') > -1) {//etc
+		if (deviceName.toLowerCase().indexOf('eeg') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
 			atlasDataProp = 'eeg';
 			if (atlasTag === 'shared') { atlasTag = 'eeghared'; }
 		}
-		else if (deviceName.indexOf('heg') > -1) {
+		else if (deviceName.toLowerCase().indexOf('heg') > -1) {
 			atlasDataProp = 'heg';
 			if (atlasTag === 'shared') { atlasTag = 'hegshared'; }
 		}
@@ -904,7 +904,7 @@ export class Session {
 			let sub = this.state.subscribe('commandResult', (newResult) => {
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionsResult' && newResult.appname === appname) {
-						onsuccess(newResult); //list sessions, then subscrie to session by id
+						onsuccess(newResult); //list sessions, then subscribe to session by id
 						this.state.unsubscribe('commandResult', sub);
 						return newResult.sessions
 					}
