@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../core/include/brainsatplay.h
+
+/Users/garrettflynn/Documents/Github/eegpwatestground/src/libraries/other/src/main.cpp
+iostream
+-
+brainsatplay.h
+/Users/garrettflynn/Documents/Github/eegpwatestground/src/libraries/other/src/brainsatplay.h
+

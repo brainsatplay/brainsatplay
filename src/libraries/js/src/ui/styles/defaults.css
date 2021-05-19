@@ -1,0 +1,177 @@
+
+/* Multiplayer Intro UI */
+.brainsatplay-default-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    text-align: left;
+    height: 100%;
+    width: 100%;
+    padding: 5%;
+    color: white;
+    background: black;
+    z-index: 1;
+    /* line-height: 3em; */
+    transition: opacity 1.5s;
+}
+
+.brainsatplay-default-container div {
+    width: 100%;
+}
+
+.brainsatplay-default-container h1 {
+    font-size: 10vw;
+    margin: 0px;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.brainsatplay-default-container p {
+    font-size: 0.8em;
+    width: 100%;
+}
+
+.brainsatplay-multiplayerintro-loadingbar {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #ffffff;
+    margin-top: 50px;
+    z-index: 2;
+    transform: scaleX(0);
+    transform-origin: top left;
+    transition: transform 1.5s;
+    will-change: transform;
+}
+
+.brainsatplay-multiplayerintro-loadingbar.ended
+{
+    transform-origin: 100% 0;
+    transition: transform 1.5s ease-in-out;
+}
+
+.brainsatplay-default-button {
+    box-sizing: border-box; 
+    /* min-width: 50px; */
+    min-height: 50px;
+    flex-grow: 1;
+    width: 200px;
+    /* max-width: 48%; */
+    position: relative;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    font-size: 80%;
+    background: black;
+    color: white;
+    border: 1px solid rgb(200, 200, 200);
+    text-align: left;
+    transition: 0.5s;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: 'auto'
+}
+
+.brainsatplay-default-button:hover {
+    background-color: rgb(35,35,35);
+}
+
+
+
+/* Device Selector */
+
+.brainsatplay-header-grid{
+    display: flex;
+    align-items: center;
+    /* grid-template-columns: repeat(2,1fr); */
+} 
+
+.brainsatplay-header-grid .brainsatplay-default-button{
+    max-width: 100px;
+    margin-left: 25px;
+    font-size: 80%;
+}
+
+.brainsatplay-device-gallery {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    /* border: 1px solid white; */
+} 
+
+.brainsatplay-companyCard {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    background: rgba(35,35,35,0.75);
+    padding: 25px;
+    margin: 10px;
+    border-radius: 5px;;
+    position: relative;
+}.devices {
+    width: 100%;
+    display: flex;
+}h3 {
+    margin: 10px;
+}
+
+.brainsatplay-deviceCard{
+    background:rgb(15,15,15);
+    padding: 10px;
+    margin: 10px;
+    flex-grow: 1;
+    border-radius: 5px;;
+    position: relative;
+}.variants {
+    width: 100%;
+    display: flex;
+}h4 {
+    margin: 10px;
+}
+
+.brainsatplay-variantButton{
+    /* width: 50px; */
+    flex-grow: 1;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.5s;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 5px;
+    font-size: 70%;
+    margin: 5px;
+    position: relative;
+}
+
+.brainsatplay-variantButton:hover {
+    background-color: rgb(35,35,35);
+}
+
+
+.indicator{
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: transparent;
+    top: 10px;
+    right: 10px;
+    /* transform: translate(-50%,-50%)  */
+    border-radius: 50%;
+    border: 1px solid white;
+    /* opacity: 0.5; */
+}
+
+.indicator.on {
+    background: lime;
+    border: none;
+}

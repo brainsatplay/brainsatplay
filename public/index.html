@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat" />
-  <link href="./_dist_/styles/css/global.css" rel="stylesheet">
+  <link href="./_dist_/platform/styles/css/global.css" rel="stylesheet">
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LBFHYJNSE7"></script>
@@ -26,11 +26,12 @@
   <div class="loader">
     <div class="loader-mask"></div>
     <div class="loader-content">
-        <img src="./_dist_/assets/logo_and_sub(v3).png">
+        <img src="./_dist_/platform/assets/logo_and_sub(v3).png">
+        <p class="loader-error" style="opacity: 0; transition: 0.5s;"></p>
     </div>
   </div>
 
-<script type="module" src="./_dist_/index.js"></script>
+<script type="module" src="./_dist_/platform/index.js"></script>
 <script>
  
   // https://developers.google.com/web/tools/workbox/modules/workbox-cli
@@ -116,7 +117,7 @@ window.workers = [];
 window.workerThreads = 2; //Make multiple workers for big tasks
 window.workerThreadrot = 0;
 //WebWorker only works when hosted (e.g. with node)
-let workerURL = './_dist_/library/src/algorithms/eeg.worker.js';
+let workerURL = './_dist_/libraries/js/src/algorithms/eeg.worker.js';
 
 try {
   window.workers = [];

@@ -1,7 +1,12 @@
+/src/applets/Examples
+/src/platform/appletManifest.js
 /node_modules/
 /dist/
 /.cache/
-/docs
 .vscode/settings.json
 .DS_Store
 .env
+_site
+.sass-cache
+.jekyll-metadata
+.idea

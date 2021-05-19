@@ -1,0 +1,18 @@
+{
+  "name": "brainsatplay",
+  "version": "0.0.5",
+  "description": "Brain-Responsive Web Apps with JavaScript",
+  "main": "dist/brainsatplay.js",
+  "module": "brainsatplay.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "webpack --mode production"
+  },
+  "keywords": [
+    "eeg",
+    "bci",
+    "accessibility"
+  ],
+  "author": "Garrett Flynn",
+  "license": "GPL-3.0-only"
+}
