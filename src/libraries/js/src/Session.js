@@ -1024,7 +1024,7 @@ export class Session {
 							onsuccess(newResult);
 						}
 
-						console.log('unsubscribe ' + sub)
+						//console.log('unsubscribe ' + sub)
 						this.state.unsubscribe('commandResult', sub);
 					}
 					else if (newResult.msg === 'sessionNotFound' & newResult.id === sessionid) {

@@ -305,7 +305,9 @@ export class SensoriumApplet {
 
 
     // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {console.log('new data!')}))
+    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {
+        console.log('new data!')
+    }));
 
 
     /**
