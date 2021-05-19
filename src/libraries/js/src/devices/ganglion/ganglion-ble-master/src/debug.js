@@ -1,5 +1,5 @@
 
-import { Buffer } from 'buffer/';
+// import { Buffer } from 'buffer/';
 
 /**
  * @description Output passed bytes on the console as a hexdump, if enabled
