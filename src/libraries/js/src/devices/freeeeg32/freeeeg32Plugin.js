@@ -174,7 +174,7 @@ export class eeg32Plugin {
 
     connect = async () => {
         await this.device.setupSerialAsync();
-        this.setIndicator(true)
+        this.setIndicator(true);
     }
 
     disconnect = () => {

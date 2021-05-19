@@ -72,11 +72,7 @@ export class DataAtlas {
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
 
-		// Enforce capitalization
-		if (Array.isArray(this.data.eegshared.eegChannelTags)){
-			this.data.eegshared.eegChannelTags.map((c) => {c.tag = c.tag.toUpperCase(); return c})
-		}
-
+//no
         if(config === '10_20') {
 			this.settings.eeg = true;
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);

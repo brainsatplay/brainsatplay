@@ -169,11 +169,11 @@ export class AppletManager {
     deinitUI = () => { }
 
     // Check class compatibility with current devices
-    checkDeviceCompatibility = (appletManifest, devices = this.session.devices) => {
+    checkDeviceCompatibility = (appletManifest, devices = this.session.deviceStreams) => {
         let compatible = false
-        if (this.session.devices.length === 0) compatible = true
+        if (this.session.deviceStreams.length === 0) compatible = true
         else {
-            this.session.devices.forEach((device) => {
+            this.session.deviceStreams.forEach((device) => {
                 if (Array.isArray(appletManifest.devices)) { // Check devices only
                     var regex = new RegExp( appletManifest.devices.join( "|" ), "i");
                     if (regex.test(device.info.deviceType) || regex.test(device.info.deviceName)) compatible = true

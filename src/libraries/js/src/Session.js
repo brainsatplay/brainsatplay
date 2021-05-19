@@ -93,7 +93,7 @@ export class Session {
 		password = '',
 		urlToConnect = 'http://localhost'
 	) {
-		this.devices = [];
+		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
 		});
@@ -115,7 +115,7 @@ export class Session {
 		this.id = Math.floor(Math.random() * 10000) // Give the session an ID
 		this.socket = null;
 		this.streamObj = new streamSession(this.info.auth);
-		this.streamObj.deviceStreams = this.devices; //reference the same object
+		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 	}
 
 	/**
@@ -162,19 +162,19 @@ export class Session {
 			}
 		}
 
-		if (this.devices.length > 0) {
+		if (this.deviceStreams.length > 0) {
 			if (device.indexOf('eeg') > -1 || device.indexOf('muse') > -1) {
-				let found = this.devices.find((o, i) => { //multiple EEGs get their own atlases just to uncomplicate things. Will need to generalize more later for other multi channel devices with shared preconfigurations if we want to try to connect multiple
+				let found = this.deviceStreams.find((o, i) => { //multiple EEGs get their own atlases just to uncomplicate things. Will need to generalize more later for other multi channel devices with shared preconfigurations if we want to try to connect multiple
 					if (o.deviceType === 'eeg') {
 						return true;
 					}
 				});
-				if (!found) pipeToAtlas = this.devices[0].atlas;
+				if (!found) pipeToAtlas = this.deviceStreams[0].device.atlas;
 			}
 		}
 
 		if (device.includes('brainstorm')) {
-			this.devices.push(
+			this.deviceStreams.push(
 				new deviceStream(
 					device,
 					analysis,
@@ -185,7 +185,7 @@ export class Session {
 				)
 			);
 		} else {
-			this.devices.push(
+			this.deviceStreams.push(
 				new deviceStream(
 					device,
 					analysis,
@@ -197,34 +197,35 @@ export class Session {
 		}
 
 
-		let i = this.devices.length - 1;
+		let i = this.deviceStreams.length - 1;
 
-		this.devices[i].onconnect = () => {
+		this.deviceStreams[i].onconnect = () => {
+			
+			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
+			
 			this.info.nDevices++;
 			if (streamParams[0]) { this.beginStream(streamParams); }
 			//Device info accessible from state
-			this.state.addToState("device" + (i), this.devices[i].info);
+			this.state.addToState("device" + (i), this.deviceStreams[i].info);
 			onconnect();
 			this.onconnected();
 		}
 
-		this.devices[i].ondisconnect = () => {
+		this.deviceStreams[i].ondisconnect = () => {
 			ondisconnect();
 			this.ondisconnected();
-			if (this.devices[i].info.analysis.length > 0) {
-				this.devices[i].atlas.analyzing = false; //cancel analysis loop
+			if (this.deviceStreams[i].info.analysis.length > 0) {
+				this.deviceStreams[i].device.atlas.analyzing = false; //cancel analysis loop
 			}
-			this.devices.splice(i, 1);
-			if (this.devices.length > 1) this.atlas = this.devices[0].atlas;
+			this.deviceStreams.splice(i, 1);
+			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
 			this.info.nDevices--;
 		}
 
 		// Wait for Initialization before Connection
-		await this.devices[i].init();
+		await this.deviceStreams[i].init();
 
-		if (this.devices.length === 1) this.atlas = this.devices[0].atlas; //change over from dummy atlas
-
-		this.devices[i].connect();
+		this.deviceStreams[i].connect();
 	}
 
 	onconnected = () => { }
@@ -238,9 +239,9 @@ export class Session {
      * @param {int} deviceIdx Index of device.
 	 * @param {callback} onconnect Callback function on device reconnection. 
 	 */
-	reconnect(deviceIdx = this.devices.length - 1, onconnect = () => { }) {
+	reconnect(deviceIdx = this.deviceStreams.length - 1, onconnect = () => { }) {
 		if (deviceIdx > -1) {
-			this.devices[deviceIdx].connect();
+			this.deviceStreams[deviceIdx].connect();
 			onconnect();
 		} else { console.log("No devices connected"); }
 	}
@@ -251,9 +252,9 @@ export class Session {
      * @param {int} deviceIdx Index of device.
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
-	disconnect(deviceIdx = this.devices.length - 1, ondisconnect = () => { }) {
+	disconnect(deviceIdx = this.deviceStreams.length - 1, ondisconnect = () => { }) {
 		if (deviceIdx > -1) {
-			this.devices[deviceIdx].disconnect();
+			this.deviceStreams[deviceIdx].disconnect();
 			ondisconnect();
 		} else { console.log("No devices connected"); }
 	}
@@ -358,7 +359,7 @@ export class Session {
 	//get the device stream object
 	getDevice(deviceNameOrType = 'freeeeg32_2', deviceIdx = 0) {
 		let found = undefined;
-		this.devices.find((d, i) => {
+		this.deviceStreams.find((d, i) => {
 			if (d.info.deviceName.indexOf(deviceNameOrType) > -1 && d.info.deviceNum === deviceIdx) {
 				found = d;
 				return true;
@@ -372,7 +373,7 @@ export class Session {
 	}
 
 	addAnalysisMode(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		if (this.devices.length > 0) {
+		if (this.deviceStreams.length > 0) {
 			let found = this.atlas.settings.analysis.find((str, i) => {
 				if (name === str) {
 					return true;
@@ -389,7 +390,7 @@ export class Session {
 	}
 
 	stopAnalysis(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		if (this.devices.length > 0) {
+		if (this.deviceStreams.length > 0) {
 			if (name !== '' && typeof name === 'string') {
 				let found = this.atlas.settings.analysis.find((str, i) => {
 					if (name === str) {
@@ -405,7 +406,7 @@ export class Session {
 
 	//get data for a particular device	
 	getDeviceData = (deviceType = 'eeg', tag = 'all', deviceIdx = 0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
-		this.devices.forEach((d, i) => {
+		this.deviceStreams.forEach((d, i) => {
 			if (d.info.deviceType.indexOf(deviceType) > -1 && d.info.deviceNum === deviceIdx) {
 				if (tag === 'all') {
 					return d.atlas.data[deviceType]; //Return all objects
@@ -449,12 +450,12 @@ export class Session {
 		}
 
 		if (atlasDataProp !== null) {
-			let device = this.devices.find((o, i) => {
+			let device = this.deviceStreams.find((o, i) => {
 				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
-					if (typeof atlasTag === 'string') { if (atlasTag.indexOf('shared') > -1) coord = o.atlas.getDeviceDataByTag(atlasTag, null); }
-					else if (atlasTag === null || atlasTag === 'all') { coord = o.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
-					else coord = o.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
+					if (typeof atlasTag === 'string') { if (atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null); }
+					else if (atlasTag === null || atlasTag === 'all') { coord = o.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
+					else coord = o.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
 
 					if (coord !== undefined) {
 						if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
@@ -497,11 +498,11 @@ export class Session {
 
 	//Add functions to run custom data analysis loops. You can then add functions to gather this data for streaming.
 	addAnalyzerFunc(prop = null, callback = () => { }) {
-		this.devices.forEach((o, i) => {
-			if (o.atlas !== null && prop !== null) {
-				if (o.atlas.analyzerOpts.indexOf(prop) < 0) {
-					o.atlas.analyzerOpts.push(prop)
-					o.atlas.analyzerFuncs.push(callback);
+		this.deviceStreams.forEach((o, i) => {
+			if (o.device.atlas !== null && prop !== null) {
+				if (o.device.atlas.analyzerOpts.indexOf(prop) < 0) {
+					o.device.atlas.analyzerOpts.push(prop)
+					o.device.atlas.analyzerFuncs.push(callback);
 				}
 				else {
 					console.error("property " + prop + " exists");
@@ -548,7 +549,7 @@ export class Session {
 	addStreamParams(params = []) {
 		params.forEach((p, i) => {
 			if (Array.isArray(p)) {
-				let found = this.devices.find((d) => {
+				let found = this.deviceStreams.find((d) => {
 					if (p[0].indexOf(d.info.deviceType) > -1) {
 						if (d.info.deviceType === 'eeg') {
 							d.atlas.data.eegshared.eegChannelTags.find((o) => {
@@ -862,7 +863,7 @@ export class Session {
 			let sub = this.state.subscribe('commandResult', (newResult) => {
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getUsersResult') {// && newResult.appname === appname) {						
-						onsuccess(newResult.userData); //list userData, then subscrie to session by id
+						onsuccess(newResult.userData); //list userData, then subscribe to session by id
 						this.state.unsubscribe('commandResult', sub);
 						return newResult.userData
 					}
@@ -1508,7 +1509,7 @@ export class Session {
 	configureStreamForSession(deviceTypes = [], streamParams = []) { //Set local device stream parameters based on what the session wants
 		let params = streamParams;
 		let d = undefined;
-		if (this.devices.length === 0) { //no devices, add params anyway
+		if (this.deviceStreams.length === 0) { //no devices, add params anyway
 			params.forEach((p) => {
 				if (!this.streamObj.deviceStreams.find((ds) => { if (p[0].indexOf(ds.info.deviceType) > -1) { return true; } })) {
 					if (!this.streamObj.info.appStreamParams.find((sp) => { if (sp.toString() === p.toString()) return true; })) {
@@ -1523,14 +1524,14 @@ export class Session {
 		} else {
 
 			deviceTypes.forEach((name, i) => { // configure named device
-				d = this.devices.find((o, j) => {
+				d = this.deviceStreams.find((o, j) => {
 					if (o.info.deviceType.toLowerCase() === name.toLowerCase()) {
 						let deviceParams = [];
 						params.forEach((p) => {
 							if (p[0].indexOf(o.info.deviceType) > -1 && !this.streamObj.info.deviceStreamParams.find(dp => dp.toString() === p.toString())) { //stream parameters should have the device type specified (in case multiple devices are involved)
 								if ('eeg' === o.info.deviceType.toLowerCase()) {
-									o.atlas.data.eegshared.eegChannelTags.find((o) => {
-										if (o.tag === p[1] || o.ch === p[1]) {
+									o.device.atlas.data.eegshared.eegChannelTags.find((ob) => {
+										if (ob.tag === p[1] || ob.ch === p[1]) {
 											deviceParams.push(p);
 											return true;
 										}
@@ -1684,8 +1685,6 @@ class deviceStream {
 
 			];
 
-		this.filters = [];   //BiquadChannelFilterer instances 
-		this.atlas = null;
 		this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
@@ -1706,14 +1705,9 @@ class deviceStream {
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);
 					}
-					await this.device.init(info, pipeToAtlas)
-					this.atlas = this.device.atlas;
-					this.filters = this.device.filters;
-					if (this.atlas !== null) {
-						this.pipeToAtlas = true;
-					}
-					resolve(true)
-					return true
+					await this.device.init(info, pipeToAtlas);
+					resolve(true);
+					return true;
 				}
 			});
 		})
@@ -1739,7 +1733,7 @@ class deviceStream {
 class streamSession {
 	constructor(auth, socket) {
 
-		this.deviceStreams = [];
+		this.deviceStreamstreams = [];
 
 		this.info = {
 			auth: auth,
@@ -1987,8 +1981,8 @@ class streamSession {
 			userData: {}
 		}
 		if (this.info.streaming === true) {
-			this.deviceStreams.forEach((d) => {
-				if (this.info.nDevices < this.deviceStreams.length) {
+			this.deviceStreamstreams.forEach((d) => {
+				if (this.info.nDevices < this.deviceStreamstreams.length) {
 					if (!streamObj.userData.devices) streamObj.userData.devices = [];
 					streamObj.userData.devices.push(d.info.deviceName);
 					this.info.nDevices++;

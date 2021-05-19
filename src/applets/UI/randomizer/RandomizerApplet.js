@@ -160,7 +160,7 @@ export class RandomizerApplet {
         let compatible = true
         let instance;
         if (this.currentApplet != null) instance = this.currentApplet.instance
-        this.bci.devices.forEach((device) => {
+        this.bci.deviceStreams.forEach((device) => {
             if (!settings.devices.includes(device.info.deviceType) && !settings.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
         })
         let applet;

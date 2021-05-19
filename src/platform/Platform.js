@@ -65,3 +65,4 @@ let tutorial = new DOMFragment(
 let bcisession = new brainsatplay.Session('guest','','http://localhost');
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
+
