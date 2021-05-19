@@ -131,8 +131,6 @@ export class AppletBrowser {
         let presetHTML = ''
         if (this.showPresets){
             presetHTML = `
-            <h1>Experiences</h1>
-            <hr>
             <div style='
             display: flex;
             flex-wrap: wrap; 
