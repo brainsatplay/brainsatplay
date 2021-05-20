@@ -1,5 +1,5 @@
-import {Session} from '../../../library/src/Session'
-import {DOMFragment} from '../../../library/src/ui/DOMFragment'
+import {Session} from '../../../libraries/js/src/Session'
+import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 
 import './Build/webbuild.wasm'
@@ -7,6 +7,7 @@ import './Build/webbuild.data'
 
 import * as webconfig from './Build/buildconfig'
 import * as webbuild from './Build/webbuild.loader'
+console.log(webbuild)
 
 //Example Applet for integrating with the UI Manager
 export class UnityApplet {
@@ -64,7 +65,8 @@ export class UnityApplet {
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
 		let canvas = document.getElementById(this.props.id+"canvas");
-		
+        
+        let onError = () => {}
 		
         //Add whatever else you need to initialize
 		webbuild.createUnityInstance(canvas, webconfig.config, ()=>{}).then(()=>{}).catch(onError);

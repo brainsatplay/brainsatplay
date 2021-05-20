@@ -1,4 +1,4 @@
-function createUnityInstance(canvas, config, onProgress) {
+export function createUnityInstance(canvas, config, onProgress) {
   onProgress = onProgress || function () {};
 
 
@@ -89,8 +89,11 @@ function createUnityInstance(canvas, config, onProgress) {
     ],
   };
 
+
   for (var parameter in config)
     Module[parameter] = config[parameter];
+
+  // Import Files
 
   Module.streamingAssetsUrl = new URL(Module.streamingAssetsUrl, document.URL).href;
 
@@ -205,8 +208,10 @@ function createUnityInstance(canvas, config, onProgress) {
     // TODO: Add mobile device identifier, e.g. SM-G960U
 
     canvas = document.createElement("canvas");
+    let gl, glVersion
     if (canvas) {
       gl = canvas.getContext("webgl2");
+      console.log(gl)
       glVersion = gl ? 2 : 0;
       if (!gl) {
         if (gl = canvas && canvas.getContext("webgl")) glVersion = 1;
@@ -574,10 +579,14 @@ function createUnityInstance(canvas, config, onProgress) {
     });
   }
 
-  function downloadFramework() {
-      return new Promise(function (resolve, reject) {
+  async function downloadFramework() {
+      return (async () => {return await import(Module.frameworkUrl)})
+      new Promise(async function (resolve, reject) {
         var script = document.createElement("script");
-        script.src = Module.frameworkUrl;
+        let file = await import(Module.frameworkUrl)
+        console.log(file)
+        script.src = file
+        console.log(script.src)
         script.onload = function () {
           // Adding the framework.js script to DOM created a global
           // 'unityFramework' variable that should be considered internal.
@@ -627,7 +636,7 @@ function createUnityInstance(canvas, config, onProgress) {
       });
   }
 
-  function loadBuild() {
+  async function loadBuild() {
     downloadFramework().then(function (unityFramework) {
       unityFramework(Module);
     });
