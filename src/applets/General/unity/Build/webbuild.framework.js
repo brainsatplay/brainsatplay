@@ -1,4 +1,4 @@
-function unityFramework(Module) {
+export function unityFramework(Module) {
 var Module = typeof Module !== "undefined" ? Module : {};
 ;
 var stackTraceReference = "(^|\\n)(\\s+at\\s+|)jsStackTrace(\\s+\\(|@)([^\\n]+):\\d+:\\d+(\\)|)(\\n|$)";

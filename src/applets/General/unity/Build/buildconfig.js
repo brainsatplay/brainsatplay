@@ -1,7 +1,7 @@
 var buildUrl = ".";
 export var config = {
   dataUrl: buildUrl + "/webbuild.data",
-  frameworkUrl: buildUrl + "/webbuild.framework",
+  frameworkUrl: buildUrl + "/webbuild.framework.js",
   codeUrl: buildUrl + "/webbuild.wasm",
 //#if MEMORY_FILENAME
  // memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
