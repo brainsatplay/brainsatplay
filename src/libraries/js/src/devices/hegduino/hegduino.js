@@ -759,6 +759,7 @@ export class webSerial {
         try {await port.open({ baudRate: 115200, bufferSize: 1000 }); }
         catch (err) { await port.open({ baudrate: 115200, buffersize: 1000 }); }
         this.onConnectedCallback();
+        this.connected = true;
         this.subscribed = true;
         this.subscribe(port);
     }
@@ -818,8 +819,19 @@ export class webSerial {
                             //if that fails then close port and reopen it
                         },30); //try to resubscribe 
                     } else if (error.message.includes('parity') || error.message.includes('Parity')) {
-                        this.closePort();
-                        setTimeout(()=>{this.onPortSelected(this.port)},100);
+                        if(this.port){
+                            this.subscribed = false;
+                            setTimeout(async () => {
+                                if (this.reader) {
+                                    await this.reader.releaseLock();
+                                    this.reader = null;
+                                }
+                                await port.close();
+                                //this.port = null;
+                                this.connected = false;
+                                setTimeout(()=>{this.onPortSelected(this.port)},100); //close the port and reopen
+                            }, 50);
+                        }
                     }
                      else {
                         this.closePort();	

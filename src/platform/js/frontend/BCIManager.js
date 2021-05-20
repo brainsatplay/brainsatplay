@@ -646,7 +646,6 @@ export class BCIAppManager {
                                         }
                                     }
                                 });
-
                                 document.getElementById("saveBCISession").onclick = () => {
                                     let row = this.session.deviceStreams[info.nDevices-1].device.atlas.getEEGDataByChannel(info.eegChannelTags[0].ch);
                                     saveSettings();
