@@ -15,7 +15,8 @@ def main():
     password = ''
 
     ## Set Connection Details
-    brainstorm = brainsatplay.Brainstorm('http://localhost','80') # URL, Port
+    # brainstorm = brainsatplay.Brainstorm('https://localhost') # Local
+    brainstorm = brainsatplay.Brainstorm() # Deployed Server
 
     ## Connect
     res = brainstorm.connect(username,password) # All optional (defaults to guest)

@@ -10,5 +10,5 @@
   command = "npm run build"
 
 [context.deployment]
-  publish = "build/"
+  publish = "dist/"
   command = "npm run build"

@@ -1,5 +1,3 @@
-/src/applets/Examples
-/src/platform/appletManifest.js
 /node_modules/
 /dist/
 /.cache/
@@ -10,3 +8,6 @@ _site
 .sass-cache
 .jekyll-metadata
 .idea
+
+# Python
+.eggs

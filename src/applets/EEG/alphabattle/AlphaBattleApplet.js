@@ -186,25 +186,8 @@ export class AlphaBattleApplet {
 
 
                         // Draw
-                        let userData = this.session.getBrainstormData(this.info.name)
-                        if (userData){
-                            
-                            // Draw Data when Connected to Server
-                                userData.forEach((data)=> {
-                                    // console.log(data)
-                                    if (data != null){
-                                        let username = data.username
-                                        if (username != this.session.info.auth.username){
-                                            drawPlayer(data)
-                                        } else {
-                                            drawPlayer(getLocalData())
-                                        }
-                                    }
-                                })
-                            } else {
-                                // Draw Data when Local
-                                drawPlayer(getLocalData())
-                            }
+                        let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                        userData.forEach((data)=> drawPlayer(data))
                          }
                         };
                         }

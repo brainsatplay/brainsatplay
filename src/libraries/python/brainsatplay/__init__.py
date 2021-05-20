@@ -16,7 +16,7 @@ class Brainstorm():
     """A class for interacting with The Brainstorm
     """
 
-    def __init__(self, url='server.brainsatplay.com', port='80'):
+    def __init__(self, url='https://server.brainsatplay.com', port=None):
         self.url = url
         self.port = port
         self.username = ''
@@ -48,32 +48,28 @@ class Brainstorm():
 
         o = urlparse(self.url)
         if (o.scheme == 'http'):
-            self.uri = "ws://" + o.netloc + ":" + self.port
-            print("\n\nconnecting to {}\n\n".format(self.uri))
-            try:
-                self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
-            except Exception as e:
-                print(e)
-                print('\n\nconnect call failed\n\n')
-                return 
+            if (self.port is not None): self.uri = "ws://" + o.netloc + ":" + self.port
+            else: self.uri = "ws://" + o.netloc
+            ctx = None
 
         elif (o.scheme == 'https'):
-            # print('\n\n\Secure websocket connections not currently supportedn\n')
-            self.uri = "wss://" + o.netloc + ":" + self.port
-            print("\n\nconnecting to {}\n\n".format(self.uri))
-            try:
-                # ctx = ssl.create_default_context(Purpose.CLIENT_AUTH)
-                # ctx.options &= ~ssl.OP_NO_SSLv3
-                self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols)
-            except Exception as e: 
-                print(e)
-                print('\n\nconnect call failed\n\n')
-                return
+            if (self.port is not None): self.uri = "wss://" + o.netloc + ":" + self.port
+            else: self.uri = "wss://" + o.netloc
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
                 
         else:
             print('not a valid url scheme')
             return
 
+        try:
+            print("\n\nconnecting to {}\n\n".format(self.uri))
+            self.websocket = await websockets.connect(self.uri,subprotocols=subprotocols, ssl=ctx)
+        except Exception as e: 
+                        print(e)
+                        print('\n\nconnect call failed\n\n')
+                        return
         print("\n\nconnected\n\n")
         return await self.__waitForResponse()
     

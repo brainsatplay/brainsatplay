@@ -82,7 +82,7 @@ export class Session {
 	constructor(
 		username = '',
 		password = '',
-		urlToConnect = 'http://localhost'
+		urlToConnect = 'https://localhost.com'
 	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
@@ -483,25 +483,6 @@ export class Session {
 		});
 	}
 
-	//Get locally stored data for a particular app or user subcription. Leave propname null to get all data for that sub
-	getStreamData(userOrAppname = '', propname = null) {
-		// let a = []
-		let o = {};
-		for (const prop in this.state.data) {
-			if (propname === null) {
-				if (prop.indexOf(userOrAppname) > -1) {
-					o[prop] = this.state.data[prop];
-					// a.push(o)
-				}
-			}
-			else if ((prop.indexOf(userOrAppname) > -1) && (prop.indexOf(propname) > -1)) {
-				o[prop] = this.state.data[prop];
-				// a.push(o)
-			}
-		}
-		return o;
-	}
-
 	//listen for changes to atlas data properties
 	subscribe = (deviceName = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }) => {
 		let sub = undefined;
@@ -599,7 +580,6 @@ export class Session {
 		}
 
 		this.addStreamFunc(id, newStreamFunc);
-		this.addStreamParams([[id]]);
 
 		return id; //this.state.unsubscribeAll(id) when done
 
@@ -607,8 +587,22 @@ export class Session {
 
 	//Add functions for gathering data to send to the server
 	addStreamFunc(name, callback, idx = 0) {
+
 		if (typeof name === 'string' && typeof callback === 'function') {
-			this.streamObj.addStreamFunc(name, callback);
+
+			// Artificially add to state (for streaming functions)
+			let _callback = () => { 
+				let data = callback()
+				if (data != undefined) this.state.data[name] = data
+				return data
+			}
+			// Run so that solo users get their own data back
+			this.streamObj.streamLoop();
+
+			this.streamObj.addStreamFunc(name, _callback);
+
+			this.addStreamParams([[name]]);
+
 		} else { console.error("addStreamFunc error"); }
 	}
 
@@ -1286,12 +1280,20 @@ export class Session {
 	insertMultiplayerIntro = (applet) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 5"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle}</p>
 			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
+
+			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 5"><div>
+				<h2>Game Mode</h2>
+				<div style="display: flex; align-items: center;">
+						<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
+						<div id="${applet.props.id}multiplayer-button" class="brainsatplay-default-button">Multiplayer</div>
+				</div>
+			</div></div>
 
 			<div id='${applet.props.id}login-screen' class="brainsatplay-default-container" style="z-index: 4"><div>
 				<h2>Choose your Username</h2>
@@ -1330,12 +1332,34 @@ export class Session {
 			`
 
 		// Setup HTML References
+		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
 		let loginScreen = document.getElementById(`${applet.props.id}login-screen`)
 		let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
 		let exitSession = document.getElementById(`${applet.props.id}exitSession`)
 		const hero = document.getElementById(`${applet.props.id}appHero`)
 		const loadingBarElement = document.querySelector('.brainsatplay-multiplayerintro-loadingbar')
 
+		// Select Mode
+		let solo = modeScreen.querySelector(`[id="${applet.props.id}solo-button"]`)
+		let multiplayer = modeScreen.querySelector(`[id="${applet.props.id}multiplayer-button"]`)
+		solo.onclick = () => {
+			modeScreen.style.opacity = 0
+			modeScreen.style.pointerEvents = 'none'
+			sessionSelection.style.display = 'none'
+			loginScreen.style.display = 'none'
+			exitSession.style.display = 'none'
+		}
+
+		if (window.navigator.onLine){
+			multiplayer.onclick = () => {
+				modeScreen.style.opacity = 0
+				modeScreen.style.pointerEvents = 'none'
+			}
+		} else {
+			multiplayer.style.opacity = 0.25
+			multiplayer.style.pointerEvents = 'none'
+		}
+		
 		// Create Session Brower
 		let baseBrowserId = `${applet.props.id}${applet.info.name}`
 		document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`
@@ -1404,7 +1428,7 @@ export class Session {
 			});
 		}
 
-		// Set Up Screen Two (Login)
+		// Login Screen
 
 		const loginButton = document.getElementById(`${applet.props.id}login-button`)
 		let form = document.getElementById(`${applet.props.id}login-form`)
@@ -1503,7 +1527,7 @@ export class Session {
 	}
 
 
-	getBrainstormData(value, type = 'app') {
+	getBrainstormData(query, props=[], type = 'app') {
 
 		let usernameInd;
 		let propInd;
@@ -1525,8 +1549,8 @@ export class Session {
 		}
 
 		let arr = []
-		if (value != null) {
-			var regex = new RegExp(value);
+		if (query != null) {
+			var regex = new RegExp(query);
 			let returnedStates = Object.keys(this.state.data).filter(k => {
 				let test1 = regex.test(k)
 				let test2 = structureFilter(k)
@@ -1543,11 +1567,22 @@ export class Session {
 				}
 
 				arr.find(o => {
-					if (o.username === strArr[usernameInd]) {
-						o[strArr.slice(propInd).join('_')] = this.state.data[str]
+					let prop = strArr.slice(propInd).join('_')
+					if (o.username === this.info.auth.username){
+						o[prop] = this.state.data[prop]
+					}
+					else if (o.username === strArr[usernameInd]) {
+						o[prop] = this.state.data[str]
 					}
 				})
 			})
+
+			if (returnedStates.length === 0){ // Solo Games or Spectating
+				arr = [{ username: this.info.auth.username}]
+				props.forEach(prop => {
+					arr[0][prop] = this.state.data[prop]
+				})
+			}
 		} else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
@@ -2065,7 +2100,9 @@ class streamSession {
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
+			this.getDataForSocket(undefined, this.info.appStreamParams) // NOTE: UNSTABLE
 			this.info.streamCt = 0;
+			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 	}
 }

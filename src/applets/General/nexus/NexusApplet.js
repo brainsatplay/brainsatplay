@@ -516,7 +516,7 @@ this.three.getGeolocation = () => {
 
     //doSomething(){}
     manageMultiplayer(){
-        let userData = this.session.getBrainstormData(this.info.name)
+        let userData = this.session.getBrainstormData(this.info.name,this.streams)
 
         // Update UI if results are different
         userData.forEach((user) => {

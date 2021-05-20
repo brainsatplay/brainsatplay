@@ -444,7 +444,6 @@ export class BCIAppManager {
         this.session.onconnected = () => {
             try{
                 let contentChild = document.getElementById(`${this.session.id}DeviceSelection`).querySelector(".main")
-                console.log(contentChild)
                 if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
                 this.uiFragments.controls = this.session.deviceStreams[this.session.info.nDevices-1].device.addControls(contentChild);
             }
