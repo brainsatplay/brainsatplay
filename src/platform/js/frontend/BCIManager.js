@@ -589,10 +589,10 @@ export class BCIAppManager {
                 let contents = "";
                 fs.readFile('/data/settings.json', (err, data) => {
                     if(err) {
-                        console.log("writing new settings file");
+                        console.log("New settings file created.");
                         contents = JSON.stringify(
                             {
-                                appletConfigs:this.appletConfigs,
+                                appletConfigs:[],
                                 autosaving:true
                             }
                         )
@@ -606,32 +606,14 @@ export class BCIAppManager {
                         );
                         if(err) throw err;
                     }
-                    if(!data) {
-                        let newcontent = 
-                            JSON.stringify({
-                                appletConfigs:[],
-                                autosaving:true
-                            });
-                        contents = newcontent;
-                        fs.writeFile('/data/settings.json', contents, (err) => {
-                            if(err) throw err;
-                            console.log("New settings file created");
-                            this.init(contents);
-                            listFiles();
-                            document.getElementById("saveBCISession").onclick = () => {
-                                saveSettings();
-                            }
-                                
-                        });
-                    }
                     else{ 
+                        //console.log("Grabbed settings successfully")
                         contents = data.toString();    
                         this.init(contents);
                         listFiles();
                         document.getElementById("saveBCISession").onclick = () => {
                             saveSettings();
-                        }
-                            
+                        }   
                     }
 
                     //configure autosaving when the device is connected
