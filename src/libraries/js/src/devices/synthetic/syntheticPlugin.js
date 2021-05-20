@@ -24,7 +24,7 @@ export class syntheticPlugin {
     init = async (info,pipeToAtlas) => {
         info.sps = 256
         info.deviceType = 'eeg'
-        info.eegChannelTags = 'auto'
+        info.eegChannelTags = '19'
         
         this.info = info;
 
