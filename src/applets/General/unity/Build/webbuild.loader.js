@@ -1,3 +1,6 @@
+import './webbuild.data'
+import './webbuild.framework'
+
 export function createUnityInstance(canvas, config, onProgress) {
   onProgress = onProgress || function () {};
 
@@ -89,11 +92,8 @@ export function createUnityInstance(canvas, config, onProgress) {
     ],
   };
 
-
   for (var parameter in config)
     Module[parameter] = config[parameter];
-
-  // Import Files
 
   Module.streamingAssetsUrl = new URL(Module.streamingAssetsUrl, document.URL).href;
 
@@ -579,14 +579,10 @@ export function createUnityInstance(canvas, config, onProgress) {
     });
   }
 
-  async function downloadFramework() {
-      return (async () => {return await import(Module.frameworkUrl)})
-      new Promise(async function (resolve, reject) {
+  function downloadFramework() {
+      return new Promise(function (resolve, reject) {
         var script = document.createElement("script");
-        let file = await import(Module.frameworkUrl)
-        console.log(file)
-        script.src = file
-        console.log(script.src)
+        script.src = Module.frameworkUrl;
         script.onload = function () {
           // Adding the framework.js script to DOM created a global
           // 'unityFramework' variable that should be considered internal.
@@ -636,7 +632,7 @@ export function createUnityInstance(canvas, config, onProgress) {
       });
   }
 
-  async function loadBuild() {
+  function loadBuild() {
     downloadFramework().then(function (unityFramework) {
       unityFramework(Module);
     });

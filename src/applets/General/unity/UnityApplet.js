@@ -7,7 +7,6 @@ import './Build/webbuild.data'
 
 import * as webconfig from './Build/buildconfig'
 import * as webbuild from './Build/webbuild.loader'
-console.log(webbuild)
 
 //Example Applet for integrating with the UI Manager
 export class UnityApplet {
