@@ -528,7 +528,8 @@ export class BCIAppManager {
             }
             if(settings.autosaving || settings.autosaving === false) {
                 this.state.data.autosaving = settings.autosaving;
-                document.getElementById('autosavingfiles').checked = this.state.data.autosaving;
+                let autosavecheck = document.getElementById('autosavingfiles');
+                if(autosavecheck) autosavecheck.checked = this.state.data.autosaving;
             }
             //console.log(this.appletConfigs)
         }
@@ -572,10 +573,11 @@ export class BCIAppManager {
     initFS = () => {
         let oldmfs = fs.getRootFS();
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
+            if(e) throw e;
             if(!rootForMfs) {
                 let configs = this.getConfigsFromHashes();
                 this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs,undefined,this.session);
-                throw new Error(`?`);
+                throw new Error(`Error creating BrowserFS`);
             }
             this.fs = rootForMfs;
             BrowserFS.initialize(rootForMfs);
@@ -589,24 +591,30 @@ export class BCIAppManager {
                     if(e) throw e;
                     fs.readFile('/data/settings.json', (err, data) => {
                         if(err) {
-                            fs.mkdir('/data');
-                            fs.writeFile('/data/settings.json',
-                            JSON.stringify(
+                            contents = JSON.stringify(
                                 {
-                                    appletConfigs:this.appletConfigs
+                                    appletConfigs:this.appletConfigs,
+                                    autosaving:true
                                 }
-                            ), (err) => {
-                                this.init();
-                                if(err) throw err;
-                            });
+                            )
+                            fs.writeFile('/data/settings.json',
+                                contents, 
+                                (errr) => {
+                                    this.init(contents);
+                                    listFiles();
+                                    if(errr) throw errr;
+                                }
+                            );
+                            if(err) throw err;
                         }
                         if(!data) {
                             let newcontent = 
                                 JSON.stringify({
-                                    appletConfigs:[]
+                                    appletConfigs:[],
+                                    autosaving:true
                                 });
                             contents = newcontent;
-                            fs.writeFile('/data/settings.json', newcontent, (err) => {
+                            fs.writeFile('/data/settings.json', contents, (err) => {
                                 if(err) throw err;
                                 console.log("New settings file created");
                                 this.init(contents);
