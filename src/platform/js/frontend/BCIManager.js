@@ -582,10 +582,20 @@ export class BCIAppManager {
             this.fs = rootForMfs;
             BrowserFS.initialize(rootForMfs);
             fs.exists('/data', (exists) => {
-                if(exists) { }
-                else {
-                    fs.mkdir('/data');
+                if(exists) { 
+                    console.log('exists!')
+                    initWithDirectory();
                 }
+                else {
+                    fs.mkdir('data',(errr)=>{
+                        if(errr) throw err;
+                        else initWithDirectory();
+                    });
+                }
+                
+            });
+
+            const initWithDirectory = () => {
                 let contents = "";
                 fs.readFile('/data/settings.json', (err, data) => {
                     if(err) {
@@ -604,7 +614,7 @@ export class BCIAppManager {
                                 if(errr) throw errr;
                             }
                         );
-                        if(err) throw err;
+                        //if(err) throw err;
                     }
                     else{ 
                         //console.log("Grabbed settings successfully")
@@ -675,7 +685,7 @@ export class BCIAppManager {
                         }
                     });
                 });
-            });
+            }
     
             const newSession = () => {
                 let deviceType = this.session.deviceStreams[info.nDevices-1].info.deviceType
