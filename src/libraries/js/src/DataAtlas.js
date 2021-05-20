@@ -72,8 +72,11 @@ export class DataAtlas {
 		this.rolloverLimit = 2001*6*5; //Max samples allowed in arrays before rollover kicks in (5min of data for FreeEEG32, 10min for Muse, etc)
 
 		// Enforce uppercase
-		if(this.data.eegshared.eegChannelTags === 'auto') {
-			this.data.eegshared.eegChannelTags = ["FP1","FP2","FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"]
+		if(!Array.isArray(this.data.eegshared.eegChannelTags)) {
+			let slice;
+			if (typeof this.data.eegshared.eegChannelTags === "string") slice = parseInt(this.data.eegshared.eegChannelTags) 
+			else slice = this.data.eegshared.eegChannelTags
+			this.data.eegshared.eegChannelTags = ["FP1","FP2","FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"].slice(0,slice)
 			this.data.eegshared.eegChannelTags = this.data.eegshared.eegChannelTags.map((t,i) => {
 				return {ch:i,tag:t,analyze: true}
 			})
@@ -276,8 +279,8 @@ export class DataAtlas {
 			if (Array.isArray(channelDicts)){
 				channelDicts.forEach(channelDict => {
 					let tag = channelDict.tag
-					if(eegCoordinates[tag])
-						eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
+					if(eegCoordinates[tag]) eegmap.push(this.genEEGCoordinateStruct(tag,eegCoordinates[tag][0],eegCoordinates[tag][1],eegCoordinates[tag][2]))
+					else eegmap.push(this.genEEGCoordinateStruct(tag,NaN,NaN,NaN))
 				});
 			}
 		}
