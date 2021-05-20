@@ -57,12 +57,12 @@ let tutorial = new DOMFragment(
   		</div>`, document.body
 	);
 
-// localHostURL = 'http://localhost'
-// remoteHostURL = 'https://server.brainsatplay.com'
+localHostURL = 'http://localhost'
+remoteHostURL = 'https://server.brainsatplay.com'
 
-// let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
+let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
 
-let bcisession = new brainsatplay.Session('guest','','http://localhost');
+let bcisession = new brainsatplay.Session('guest','', urlToConnect);
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
 
