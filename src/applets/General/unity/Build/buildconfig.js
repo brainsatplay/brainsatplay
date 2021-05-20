@@ -1,4 +1,4 @@
-var buildUrl = ".";
+var buildUrl = "./_dist_/applets/General/unity/Build";
 export var config = {
   dataUrl: buildUrl + "/webbuild.data",
   frameworkUrl: buildUrl + "/webbuild.framework.js",
