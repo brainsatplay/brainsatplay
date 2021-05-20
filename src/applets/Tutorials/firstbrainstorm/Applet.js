@@ -92,15 +92,13 @@ export class Applet {
         //Add whatever else you need to initialize
         let animate = () => {
             if (this.looping){
-                let userData = this.session.getBrainstormData(this.info.name)
-                if (userData){
-                    let html = ''
-                    userData.forEach((data)=> {
-                        let inlineStyle = (data.appEvents?.spacebar ? "color: red;" : "")
-                        html += `<p style="${inlineStyle}">${data.username}: ${data.coherence}</p>`
-                    })
-                    document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-                } 
+                let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                let html = ''
+                userData.forEach((data)=> {
+                    let inlineStyle = (data.appEvents?.spacebar ? "color: red;" : "")
+                    html += `<p style="${inlineStyle}">${data.username}: ${data.coherence}</p>`
+                })
+                document.getElementById(`${this.props.id}-coherence`).innerHTML = html
                 setTimeout(() => {this.animation=requestAnimationFrame(animate)},1000/60)
             }
         }

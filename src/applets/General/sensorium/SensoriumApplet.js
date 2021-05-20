@@ -394,11 +394,10 @@ export class SensoriumApplet {
         this.render = () => {
             if (this.three.renderer.domElement != null){
 
-                let userData = this.session.getBrainstormData(this.info.name)
+                let userData = this.session.getBrainstormData(this.info.name, this.streams)
 
-                let averageModifiers;
-                if (userData.length > 0 && !(userData.length === 1 && userData[0].username === this.session.info.auth.username)){
-                    averageModifiers = {}
+                if (userData.length > 0){
+                    let averageModifiers = {};
                     userData.forEach((data) => {
                        if (data.modifiers){
                             // Only average watched values
@@ -423,10 +422,6 @@ export class SensoriumApplet {
                             averageModifiers[mod] = newArr
                         }
                     }
-                    
-                }  else {
-                    averageModifiers = this.modifiers
-                }
 
                 this.three.planes.forEach(p => {
                     this.updateMaterialUniforms(p.material,averageModifiers);
@@ -434,6 +429,7 @@ export class SensoriumApplet {
 
                 this.controls.update()
                 this.three.renderer.render( this.three.scene, this.camera );
+            }
             }
         };
 
