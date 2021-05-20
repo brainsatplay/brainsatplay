@@ -544,8 +544,7 @@ class DataServer {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
             u.sessions.push(id);
-            console.log('spectators', g.spectators)
-
+            
 			//Now send to the user which props are expected from their client to the server on successful subscription
 			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
 		}

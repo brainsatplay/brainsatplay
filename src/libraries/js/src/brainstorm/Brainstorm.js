@@ -23,12 +23,6 @@ let credentials
 
 let mongouri = config.mongouri
 
-function getCookie(req,name) {
-  const value = `; ${req.headers.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
 // Create Server
 let server
 if (protocol === 'https'){
@@ -131,7 +125,7 @@ const authenticate = async (auth, mongodb) => {
     const dbName = "brainsatplay";
     let dict = {result:'incomplete',msg:'no message set'};
 
-    if (mongodb != undefined){
+    try {
       const db = mongodb.db(dbName);
       if (username === undefined) {
         dict = { result: 'incomplete', msg: 'username not defined' }
@@ -148,7 +142,7 @@ const authenticate = async (auth, mongodb) => {
             dict = { result: 'OK', msg: username}
             }
         } 
-    } else {
+    } catch {
         if (username === '' || username === 'guest'){
             username = uuid.v4();
         }
