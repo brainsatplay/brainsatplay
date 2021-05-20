@@ -57,8 +57,8 @@ let tutorial = new DOMFragment(
   		</div>`, document.body
 	);
 
-localHostURL = 'http://localhost'
-remoteHostURL = 'https://server.brainsatplay.com'
+let localHostURL = 'https://localhost'
+let remoteHostURL = 'https://server.brainsatplay.com'
 
 let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
 

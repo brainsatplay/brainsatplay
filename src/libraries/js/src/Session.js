@@ -82,7 +82,7 @@ export class Session {
 	constructor(
 		username = '',
 		password = '',
-		urlToConnect = 'https://server.brainsatplay.com'
+		urlToConnect = 'https://localhost.com'
 	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
