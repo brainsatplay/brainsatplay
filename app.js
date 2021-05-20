@@ -62,7 +62,7 @@ var credentials = {key, cert};
 // const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // Settings
-const protocol = 'http';
+const protocol = 'https';
 const url = 'localhost'
 var port = normalizePort(process.env.PORT || '80');
 
@@ -90,6 +90,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(function(req, res, next) {
   const validOrigins = [
     `http://localhost`,
+    `https://localhost`,
     'https://brainsatplay.azurewebsites.net',
     'http://brainsatplay.azurewebsites.net',
     'https://brainsatplay.com',

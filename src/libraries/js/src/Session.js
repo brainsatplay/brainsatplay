@@ -82,7 +82,7 @@ export class Session {
 	constructor(
 		username = '',
 		password = '',
-		urlToConnect = 'https://localhost.com'
+		urlToConnect = 'https://localhost.com:80'
 	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
@@ -102,6 +102,11 @@ export class Session {
 			subscribed: false,
 			subscriptions: []
 		}
+
+		if (this.info.auth.url.host === 'localhost' && this.info.auth.url.port === ''){
+			this.info.auth.url.port = '80'
+		}
+
 
 		this.id = Math.floor(Math.random() * 10000) // Give the session an ID
 		this.socket = null;
@@ -842,9 +847,13 @@ export class Session {
 			'origin&' + encodeForSubprotocol('brainsatplay.js')
 		];
 		if (auth.url.protocol === 'http:') {
+			console.log(`ws://` + auth.url.host)
 			socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
+			console.log(socket)
 		} else if (auth.url.protocol === 'https:') {
+			console.log(`wss://` + auth.url.host)
 			socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
+			console.log(socket)
 		} else {
 			console.log('invalid protocol');
 			return;
