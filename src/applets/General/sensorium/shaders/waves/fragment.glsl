@@ -8,7 +8,9 @@ uniform float iTime;
 precision mediump float;
 varying vec2 vUv;
 uniform vec2 iResolution;
-uniform float iNeurofeedback;
+uniform float iAlpha1Coherence;
+uniform float iHEG;
+uniform float iHRV;
 
 // taken from: http://www.chilliant.com/rgb2hsv.html
 vec3 HUEtoRGB(in float H)
@@ -28,7 +30,8 @@ void main()
     
     vec3 outColor = vec3(0.);
 
-    float amplitude = 1.0-iNeurofeedback;
+    float amplitude = 1.0-iAlpha1Coherence+iHEG+iHRV*0.03;
+    if(amplitude < 0.0) amplitude = 0.0;
     
     //Simple wavefunctions inversed and with small offsets.
     outColor += 5./length(uv.y*200. - 50.0*sin( uv.x*0.25+ iTime*0.25)*amplitude);

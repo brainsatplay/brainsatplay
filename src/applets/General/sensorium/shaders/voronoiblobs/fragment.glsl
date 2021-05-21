@@ -7,7 +7,6 @@ precision mediump float;
 varying vec2 vUv;
 uniform float iTime;
 uniform vec2 iResolution;
-
 vec2 random2( vec2 p )
  {
     return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
@@ -42,10 +41,10 @@ float voronoi(vec2 i_stP, vec2 f_stP, vec2 stP, float scalarP)
 
 
 void main(){
-    	float aspect = iResolution.x/iResolution.y;
+    float aspect = iResolution.x/iResolution.y;
     vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
     vec2 uv = vUv.xy*responsiveScaling;
-    vec3 color = vec3(.0);
+    vec3 color = vec3(0.);
 
     float scalar = 10.;
     uv *= scalar;

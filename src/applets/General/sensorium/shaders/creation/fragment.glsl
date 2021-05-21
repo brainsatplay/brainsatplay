@@ -6,6 +6,9 @@ precision mediump float;
 varying vec2 vUv;
 uniform vec2 iResolution;
 uniform float iTime;
+uniform float iAlpha1Coherence;
+uniform float iHEG;
+uniform float iHRV;
 
 void main(){
     float t = iTime;
@@ -18,7 +21,7 @@ void main(){
 	for(int i=0;i<3;i++) {
 		z+=.07;
 		l=length(p);
-		uv=p/l*(sin(z)+1.)*abs(sin(l*9.-z*2.));
+		uv=p/l*(sin(z)+1.)*abs(sin(l*9.-z*2.)+iAlpha1Coherence+iHEG+iHRV*0.03);
 		c[i]=.01/length(abs(mod(uv,1.)-.5));
 	}
 	gl_FragColor=vec4(c/l,t);
