@@ -273,7 +273,7 @@ export class BiquadChannelFilterer {
               this.last4.push(out);
             }
           }
-        }
+        
           if(this.useNotch50 === true) { //Apply a 50hz notch filter
               this.notch50.forEach((f,i) => {
                   out = f.applyFilter(out);
