@@ -122,7 +122,7 @@ export class StateManager {
 
     //Save the return value to provide as the responseIdx in unsubscribe
     subscribe(key, onchange) {
-        if(this.data[key] === undefined) {this.addToState(k,null,onchange);}
+        if(this.data[key] === undefined) {this.addToState(key,null,onchange);}
         else {return this.addSecondaryKeyResponse(key,onchange);}
     }
 
