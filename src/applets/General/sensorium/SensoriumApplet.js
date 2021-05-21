@@ -374,7 +374,7 @@ export class SensoriumApplet {
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-
+                //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
@@ -384,7 +384,7 @@ export class SensoriumApplet {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
                                 if (data.modifiers[name].constructor === Uint8Array) data.modifiers[name] = Array.from(data.modifiers[name])
                                 averageModifiers[name].push(data.modifiers[name])
-                            })
+                            });
                         }
                     })
 
@@ -402,14 +402,15 @@ export class SensoriumApplet {
                             averageModifiers[mod] = newArr
                         }
                     }
+                    //console.log(averageModifiers)
+                    this.three.planes.forEach(p => {
+                        this.updateMaterialUniforms(p.material,averageModifiers);
+                    });
 
-                this.three.planes.forEach(p => {
-                    this.updateMaterialUniforms(p.material,averageModifiers);
-                });
-
-                this.controls.update()
-                this.three.renderer.render( this.three.scene, this.camera );
-            }
+                    this.controls.update()
+                    this.three.renderer.render( this.three.scene, this.camera );
+                
+                }
             }
         };
 
