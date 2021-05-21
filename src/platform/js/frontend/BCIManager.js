@@ -434,7 +434,7 @@ export class BCIAppManager {
             document.body.querySelector('.loader').style.opacity = 0;
             this.tutorialManager.initializeTutorial()
         } else {
-            document.body.querySelector('.loader-error').innerHTML = 'Error: Please switch to Google Chrome';
+            document.body.querySelector('.loader-error').innerHTML = '<h2>The Brains@Play Platform has been developed for Google Chrome.</h2>';
             document.body.querySelector('.loader-error').style.opacity = 1;
         }
     }

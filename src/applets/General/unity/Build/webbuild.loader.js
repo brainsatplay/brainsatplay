@@ -1,6 +1,3 @@
-import './webbuild.data'
-import './webbuild.framework'
-
 export function createUnityInstance(canvas, config, onProgress) {
   onProgress = onProgress || function () {};
 

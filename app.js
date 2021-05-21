@@ -99,6 +99,8 @@ app.use(function(req, res, next) {
     'https://app.brainsatplay.com',
   ];
 
+  console.log('checking origin')
+
   const origin = req.headers.origin;
 
   if (validOrigins.includes(origin)) {
