@@ -12,6 +12,7 @@ export class hegduinoPlugin {
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
+        this.filtering = false;
         this.ui = null;
 
         this.refuS = 0;
@@ -41,9 +42,15 @@ export class hegduinoPlugin {
                     if(coord.count === 1) { coord.startTime = Date.now(); }
                     if(this.device.mode === 'ble' && this.device.interface.android === true) {
                         coord.times.push(Date.now());
-                        coord.red.push(parseFloat(data[0]));
-                        coord.ir.push(parseFloat(data[1]));
-                        coord.ratio.push(parseFloat(data[2]));
+                        if(!this.filtering){
+                            coord.red.push(parseFloat(data[0]));
+                            coord.ir.push(parseFloat(data[1]));
+                            coord.ratio.push(parseFloat(data[2]));
+                        } else{
+                            coord.red.push(this.filters[0].applyFilter(parseFloat(data[0])));
+                            coord.ir.push(this.filters[1].applyFilter(parseFloat(data[1])));
+                            coord.ratio.push(this.filters[2].applyFilter(parseFloat(data[2])));
+                        }
                         //ignore the rest for now
                     } else { 
                         if(coord.times.length === 0) {coord.times.push(Date.now()); this.refuS = parseFloat(data[0]);} //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
@@ -52,11 +59,19 @@ export class hegduinoPlugin {
                             coord.times.push(Math.floor(coord.times[coord.times.length-1]+(t-this.refuS)*0.001))
                             this.refuS = t; //keep times synchronous
                         }
-                        coord.red.push(parseFloat(data[1]));
-                        coord.ir.push(parseFloat(data[2]));
-                        coord.ratio.push(parseFloat(data[3]));
-                        coord.ambient.push(parseFloat(data[4]));
-                        coord.temp.push(parseFloat(data[5])); // temp is on new firmware
+                        if(!this.filtering){
+                            coord.red.push(parseFloat(data[1]));
+                            coord.ir.push(parseFloat(data[2]));
+                            coord.ratio.push(parseFloat(data[3]));
+                            coord.ambient.push(parseFloat(data[4]));
+                            coord.temp.push(parseFloat(data[5])); // temp is on new firmware
+                        } else {
+                            coord.red.push(this.filters[0].applyFilter(parseFloat(data[1])));
+                            coord.ir.push(this.filters[1].applyFilter(parseFloat(data[2])));
+                            coord.ratio.push(this.filters[2].applyFilter(parseFloat(data[3])));
+                            coord.ambient.push(this.filters[3].applyFilter(parseFloat(data[4])));
+                            coord.temp.push(parseFloat(data[5])); // temp is on new firmware
+                        }
                         //ignore the rest for now
                     }
 
@@ -113,7 +128,14 @@ export class hegduinoPlugin {
     }
 
     setupAtlas = (pipeToAtlas,info) => {
-        
+
+        this.filters.push(new BiquadChannelFilterer('red',100,false,1),new BiquadChannelFilterer('ir',100,false,1),new BiquadChannelFilterer('ratio',100,false,1),new BiquadChannelFilterer('ambient',100,false,1));
+        this.filters.forEach((filter)=> {
+            filter.useSMA4 = true;
+            filter.useDCB = false;
+        })
+
+
         if(pipeToAtlas === true) {
             let config = 'hegduino';
             this.atlas = new DataAtlas(
@@ -163,6 +185,7 @@ export class hegduinoPlugin {
                 <button id='`+id+`hegon'>On</button>
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
+                Add Digital Filters:<input id='`+id+`filter' type='checkbox' checked></input>
             `;
             if(this.mode === 'hegduino_ble') {
                 t+= `
@@ -188,8 +211,15 @@ export class hegduinoPlugin {
             }
             if(this.mode === 'hegduino_ble') {
                 document.getElementById(id+'hegupdate').onclick = () => {
-                    this.device.getFile();
+                    this.device.getFile(); //testing
                 }
+            }
+
+            document.getElementById(id+'filter').onchange = () => {
+                this.filters.forEach((filter)=>{
+                    if(filter.filtering) filter.filtering = false;
+                    else filter.filtering = true;
+                })
             }
         }
 

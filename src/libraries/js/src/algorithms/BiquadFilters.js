@@ -265,14 +265,15 @@ export class BiquadChannelFilterer {
           }
           if(this.useSMA4 === true) { // 4 sample simple moving average (i.e. low pass)
               if(idx < 4) {
-        this.last4.push(out);
-      }
-      else {
-        out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
-        this.last4.shift();
-        this.last4.push(out);
-      }
+              this.last4.push(out);
+            }
+            else {
+              out = this.last4.reduce((accumulator, currentValue) => accumulator + currentValue)/this.last4.length;
+              this.last4.shift();
+              this.last4.push(out);
+            }
           }
+        }
           if(this.useNotch50 === true) { //Apply a 50hz notch filter
               this.notch50.forEach((f,i) => {
                   out = f.applyFilter(out);
