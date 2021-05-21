@@ -11,3 +11,4 @@ _site
 
 # Python
 .eggs
+src/platform/appletManifest.js
