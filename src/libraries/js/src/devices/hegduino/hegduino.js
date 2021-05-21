@@ -101,8 +101,6 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
      this.device  = null;
      this.server  = null;
      this.service = null;
-     this.rxchar  = null; //receiver on the BLE device (write to this)
-     this.txchar  = null; //transmitter on the BLE device (read from this)
  
      this.parentId = parentId;
      this.buttonId = buttonId;
@@ -225,7 +223,7 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
     }
  
     sendMessage = (msg) => {
-      this.rxchar.writeValue(this.encoder.encode(msg));
+        service.getCharacteristic(this.rxUUID).then(tx => {return tx.writeValue(this.encoder.encode(msg));});
     }
 
     //get the file to start the update process
