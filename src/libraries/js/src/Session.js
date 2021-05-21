@@ -562,7 +562,7 @@ export class Session {
 	//Input an object that will be updated with app data along with the device stream.
 	streamAppData(propname = 'data', props = {}, onData = (newData) => { }) {
 
-		let id = `${propname}${Math.floor(Math.random()*100000000)}`;
+		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
 		this.state.addToState(id, props, onData);
 
