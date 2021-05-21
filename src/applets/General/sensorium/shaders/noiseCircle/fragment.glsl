@@ -139,7 +139,7 @@ void main()
         float angle = atan(uv.y,uv.x);
         float xoff = cos(angle) + 1.0;
         float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*(iAlpha1Coherence+iHEG*10+iHRV*0.1)*vec2(xoff,yoff),iTime-(1.0-i_float)*historyInterval)));
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*(iAlpha1Coherence+iHEG*10.+iHRV*0.1)*vec2(xoff,yoff),iTime-(1.0-i_float)*historyInterval)));
         // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
         // float noise = 0.0;
         vec3 color = 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*iTime/3.0));

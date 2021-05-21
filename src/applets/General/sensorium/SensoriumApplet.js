@@ -285,7 +285,7 @@ export class SensoriumApplet {
 
     // Multiplayer
     this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {
-        console.log('new data!')
+        //console.log('new data!')
     }));
 
 
@@ -420,6 +420,7 @@ export class SensoriumApplet {
             // this.controls.enabled = true;
         }, 100)
         
+        document.getElementById(this.props.id+'addeffect').click();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -640,7 +641,7 @@ export class SensoriumApplet {
                 let option = effectStruct.feedback.value;
                 if(this.session.atlas.data.heg.length>0) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
-                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                             
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
@@ -652,7 +653,7 @@ export class SensoriumApplet {
                             this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
                         }
                     } else if (option === 'iHR') { //Heart rate modifies play speed
-                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
                                 effectStruct.source.playBackRate.value = hr_mod;
@@ -671,7 +672,7 @@ export class SensoriumApplet {
                         }
                         this.modifiers.iHEG = hegscore; //starts at 0
                     } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
-                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
                                 window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
                                     Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
@@ -679,8 +680,6 @@ export class SensoriumApplet {
                                 );
                             }
                             this.modifiers.iHRV = this.getData("iHRV");
-                            this.modifiers.iHRV -= 5;
-                            if(this.modifiers.iHRV < 0) this.modifiers.iHRV = 0;
                         }
                     } 
                 }
@@ -792,10 +791,12 @@ export class SensoriumApplet {
             if(!ch) {
                 channel = this.session.atlas.getLatestFFTData()[0];
             } else { channel = this.session.atlas.getLatestFFTData(ch); }
-            return  channel.fft;
+            if(channel) return  channel.fft;
+            else return new Array(256).fill(0);
         }
         else if (u === 'iHRV'){
-            if (this.session.atlas.heg) return  this.session.atlas.heg[0].beat_detect.beats[this.session.atlas.heg[0].beat_detect.beats.length-1].hrv; 
+            if (this.session.atlas.data.heg.length > 0) return  this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv; 
+            else return 0;
         }
         // Defaults
         else if (u === 'iTime'){

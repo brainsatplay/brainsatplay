@@ -12,6 +12,7 @@ uniform float iHEG;
 uniform float iHRV;
 uniform float iHR;
 uniform float iHB;
+uniform float iAlpha1Coherence;
 uniform float iFFT[FFTLENGTH];
 uniform float iAudio[FFTLENGTH];
 
