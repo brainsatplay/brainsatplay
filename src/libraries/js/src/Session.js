@@ -585,6 +585,7 @@ export class Session {
 
 	}
 
+	//Remove arbitrary data streams made with streamAppData
 	removeStreaming(id) {
 		this.state.unsubscribeAll(id); //unsub state
 		this.state.unsubscribeAll(id+"_flag"); //unsub flag
