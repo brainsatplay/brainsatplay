@@ -382,6 +382,7 @@ export class SensoriumApplet {
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
+                                if (data.modifiers[name].constructor === Uint8Array) data.modifiers[name] = Array.from(data.modifiers[name])
                                 averageModifiers[name].push(data.modifiers[name])
                             })
                         }
