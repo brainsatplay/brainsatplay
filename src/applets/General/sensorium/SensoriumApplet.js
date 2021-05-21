@@ -42,7 +42,7 @@ export class SensoriumApplet {
         //------------------------
 
         //-------Required Multiplayer Properties------- 
-        this.subtitle = 'Sense your Senses' // Specify a subtitle for the title screen
+        this.subtitle = `Dynamic audiovisual feedback. Let's get weird` // Specify a subtitle for the title screen
         this.streams = ['modifiers'] // Register your app data streams
         //----------------------------------------------
 
@@ -119,57 +119,36 @@ export class SensoriumApplet {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iAudio','iFFT','iHRV','iHEG','iHB','iHR'],
+                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iAlpha1Coherence'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iAudio','iFFT','iHRV','iHEG','iHB','iHR'],
+                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iAlpha1Coherence'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
-                uniforms: [],
+                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
-                uniforms: [],
+                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Garrett Flynn'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
-                uniforms: [],
+                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Danilo Guanabara (Shadertoy)'
-            },
-            octagrams: {
-                name: 'Octagrams',
-                vertexShader: vertexShader,
-                fragmentShader: octagramsFragmentShader,
-                uniforms: [],
-                credit: 'whisky_shusuky (Shadertoy)'
-            },
-            cineshaderlava: {
-                name: 'Cineshader Lava',
-                vertexShader: vertexShader,
-                fragmentShader: cineshaderlavaFragmentShader,
-                uniforms: [],
-                credit: 'edankwan (Shadertoy)'
-            },
-            fractalpyramid: {
-                name: 'Fractal Pyramid',
-                vertexShader: vertexShader,
-                fragmentShader: fractalpyramidFragmentShader,
-                uniforms: [],
-                credit: 'bradjamesgrant (Shadertoy)'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
@@ -661,21 +640,25 @@ export class SensoriumApplet {
                 let option = effectStruct.feedback.value;
                 if(this.session.atlas.data.heg.length>0) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
-                        this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
-                        
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
-                                Math.max(0,Math.min(modifiers.iHB,1)), 
-                                window.audio.ctx.currentTime
-                            );
-                        } 
-                        this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
-                    } else if (option === 'iHR') { //Heart rate modifies play speed
-                        let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            effectStruct.source.playBackRate.value = hr_mod;
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                            this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
+                            
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
+                                    Math.max(0,Math.min(modifiers.iHB,1)), 
+                                    window.audio.ctx.currentTime
+                                );
+                            } 
+                            this.modifiers.iHB = 1/(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t) //heart beat gives a decreasing value starting at 1 which signifies when a heart beat occurred
                         }
-                        this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                    } else if (option === 'iHR') { //Heart rate modifies play speed
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                            let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                effectStruct.source.playBackRate.value = hr_mod;
+                            }
+                            this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
+                        }
                     }
                         else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
                         if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
@@ -688,15 +671,17 @@ export class SensoriumApplet {
                         }
                         this.modifiers.iHEG = hegscore; //starts at 0
                     } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
-                                Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
-                                window.audio.ctx.currentTime
-                            );
+                        if(this.session.atlas.data.heg[0].beat_detect.beats.length-1 > 0) {
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
+                                    Math.max(0,Math.min(this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv/30,1)), //
+                                    window.audio.ctx.currentTime
+                                );
+                            }
+                            this.modifiers.iHRV = this.getData("iHRV");
+                            this.modifiers.iHRV -= 5;
+                            if(this.modifiers.iHRV < 0) this.modifiers.iHRV = 0;
                         }
-                        this.modifiers.iHRV = this.getData("iHRV");
-                        this.modifiers.iHRV -= 5;
-                        if(this.modifiers.iHRV < 0) this.modifiers.iHRV = 0;
                     } 
                 }
                 if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 

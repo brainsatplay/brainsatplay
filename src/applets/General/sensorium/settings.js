@@ -4,7 +4,7 @@ export const settings = {
     "name": "Sensorium",
     "devices": ["EEG","HEG"],
     "author": "Joshua Brewster",
-    "description": "Example",
+    "description": "Audiovisual feedback, with friends! (WIP)",
     "categories": ["train"],
     "module": "SensoriumApplet",
 		"instructions":"Coming soon...",

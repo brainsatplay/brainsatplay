@@ -8,7 +8,9 @@ uniform float historyLength;
 uniform vec2 iResolution;
 uniform vec2 mouse;
 uniform float iTime;
-uniform float iNeurofeedback;
+uniform float iAlpha1Coherence;
+uniform float iHEG;
+uniform float iHRV;
 uniform float iFFT[FFTCOUNT];
 
 float circle(in vec2 _center, in vec2 _uv, in float _Diameter, in float Thickness, in float Glow){
@@ -137,7 +139,7 @@ void main()
         float angle = atan(uv.y,uv.x);
         float xoff = cos(angle) + 1.0;
         float yoff = sin(angle) + 1.0;
-        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*iNeurofeedback*vec2(xoff,yoff),iTime-(1.0-i_float)*historyInterval)));
+        float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(5.0*(iAlpha1Coherence+iHEG*10+iHRV*0.1)*vec2(xoff,yoff),iTime-(1.0-i_float)*historyInterval)));
         // float noise = noiseScaling * (0.5 + 0.5*cnoise(vec3(uv*noiseIntensity[i],times[i]-(1.0-i_float)*historyInterval)));
         // float noise = 0.0;
         vec3 color = 0.3*HUEtoRGB(0.5 + 0.5*sin(1.0*iTime/3.0));
