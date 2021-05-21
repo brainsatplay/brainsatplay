@@ -22,6 +22,8 @@ npm install
 npm start
 ```
 
+Follow the url given for localhost (usually localhost:1234) for the local build. Hot reloading is enabled for editing via Parcel.
+
 ### Library Usage
 #### Node.js
 ```bash
