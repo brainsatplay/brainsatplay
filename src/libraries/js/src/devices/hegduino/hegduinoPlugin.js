@@ -185,7 +185,7 @@ export class hegduinoPlugin {
                 <button id='`+id+`hegon'>On</button>
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
-                Add Digital Filters:<input id='`+id+`filter' type='checkbox' checked></input>
+                Add Digital Filters:<input id='`+id+`filter' type='checkbox'></input>
             `;
             if(this.mode === 'hegduino_ble') {
                 t+= `
