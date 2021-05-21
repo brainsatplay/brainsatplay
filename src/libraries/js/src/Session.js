@@ -46,6 +46,9 @@ import { DataAtlas } from './DataAtlas'
 // Device Plugins
 import { deviceList } from './devices/deviceList';
 
+// Plugins
+import {PluginManager} from './PluginManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
@@ -107,6 +110,8 @@ export class Session {
 		this.socket = null;
 		this.streamObj = new streamSession(this.info.auth);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
+
+		this.plugins = new PluginManager(this)
 	}
 
 	/**
@@ -562,7 +567,7 @@ export class Session {
 	//Input an object that will be updated with app data along with the device stream.
 	streamAppData(propname = 'data', props = {}, onData = (newData) => { }) {
 
-		let id = `${propname}${Math.floor(Math.random()*100000000)}`;
+		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
 		this.state.addToState(id, props, onData);
 
@@ -1285,13 +1290,13 @@ export class Session {
 	}
 
 
-	insertMultiplayerIntro = (applet) => {
+	createIntro = (applet) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle}</p>
-			<div class="brainsatplay-multiplayerintro-loadingbar" style="z-index: 6;"></div>
+			<div class="brainsatplay-intro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
 
@@ -1345,7 +1350,7 @@ export class Session {
 		let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
 		let exitSession = document.getElementById(`${applet.props.id}exitSession`)
 		const hero = document.getElementById(`${applet.props.id}appHero`)
-		const loadingBarElement = document.querySelector('.brainsatplay-multiplayerintro-loadingbar')
+		const loadingBarElement = document.querySelector('.brainsatplay-intro-loadingbar')
 
 		// Select Mode
 		let solo = modeScreen.querySelector(`[id="${applet.props.id}solo-button"]`)
@@ -1545,7 +1550,7 @@ export class Session {
 			usernameInd = 1
 			propInd = 2
 			structureFilter = (input) => {
-				let val = input.split('_')[0]
+				let val = input.split('_')[0] 
 				return val === 'userData'
 			}
 		} else {
@@ -1569,13 +1574,24 @@ export class Session {
 
 			returnedStates.forEach(str => {
 				const strArr = str.split('_')
+
 				if (!usedNames.includes(strArr[usernameInd])) {
-					usedNames.push(strArr[usernameInd])
-					arr.push({ username: strArr[usernameInd] })
+					if (strArr.length <= 2){
+						if (!usedNames.includes( this.info.auth.username )) {
+							usedNames.push(this.info.auth.username)
+							arr.push({ username: this.info.auth.username })
+						}
+					} else {
+						usedNames.push(strArr[usernameInd])
+						arr.push({ username: strArr[usernameInd] })
+					}
 				}
 
 				arr.find(o => {
-					let prop = strArr.slice(propInd).join('_')
+					let prop;
+					if (strArr.length <= 2) prop =  str // My Local Data (prop query)
+					else prop = strArr.slice(propInd).join('_') // Other User Data
+
 					if (o.username === this.info.auth.username){
 						o[prop] = this.state.data[prop]
 					}
@@ -1585,7 +1601,7 @@ export class Session {
 				})
 			})
 
-			if (returnedStates.length === 0){ // Solo Games or Spectating
+			if (returnedStates.length === 0){ // Solo Games or Spectating without Others (username query)
 				arr = [{ username: this.info.auth.username}]
 				props.forEach(prop => {
 					arr[0][prop] = this.state.data[prop]

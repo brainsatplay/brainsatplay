@@ -1,5 +1,9 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
+
+import {Spacebar} from '../../../libraries/js/src/nodes/Spacebar'
+import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
+
 import * as settingsFile from './settings'
 
 
@@ -18,6 +22,12 @@ export class Applet {
         this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
+        this.nodes = [
+            new Spacebar('spacebar', this.session), 
+            new Coherence('coherence', this.session)
+        ]
+        this.subtitle = this.info.subtitle
+        this.streams = []
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
@@ -35,6 +45,21 @@ export class Applet {
 
     //Initalize the applet with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
+
+        this.responses = {
+            coherence: (userData) => {
+                let html = ``
+                userData.forEach(u => {
+                    html += `<p id="${this.props.id}-user-${u.username}">${u.username}: ${u.coherence}</p>`
+                })
+                document.getElementById(`${this.props.id}-coherence`).innerHTML = html
+            }
+        }
+        
+        this.nodes.forEach(n => {
+            n.init(this.responses[n.id]) // Create and subscribe to nodes
+            this.streams.push(n.id) // Keep track of streams to pass to the Intro function
+        })
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
@@ -63,33 +88,14 @@ export class Applet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
-
-        //Add whatever else you need to initialize
-        let animate = () => {
-
-            // Get Frontal Alpha Coherence
-            let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
-    
-            // Print Alpha Coherence
-            document.getElementById(`${this.props.id}-coherence`).innerHTML = coherence
-    
-            // Continue Animation
-            setTimeout(this.animation = window.requestAnimationFrame(animate),1000/60) // Limit framerate to 60fps
-        }
-        
-        animate()
-
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
 
-        // Stop Animation
-        if (this.animation){
-            window.cancelAnimationFrame(this.animation)
-            this.animation = undefined  
-        }
+        this.nodes.forEach(n => {
+            n.deinit()
+        })
 
         // Delete Applet HTML
         this.AppletHTML.deleteNode();
