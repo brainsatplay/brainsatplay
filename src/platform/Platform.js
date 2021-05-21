@@ -46,9 +46,6 @@ if (window.isChrome){
 	console.log('Not on Chrome')
 }
 
-
-
-
 let tutorial = new DOMFragment(
 	`  <div class="tutorial">
     		<div class="tutorial-content">

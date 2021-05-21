@@ -76,14 +76,12 @@ init() {
     // ...
 
     let animate = () => {
-        let userData = this.session.getBrainstormData(this.info.name)
-        if (userData){
-            let html = ''
-            userData.forEach((data)=> {
-                html += `<p>${data.username}: ${data.coherence}</p>`
-            })
-            document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-        } 
+        let userData = this.session.getBrainstormData(this.info.name, this.streams)
+        let html = ''
+        userData.forEach((data)=> {
+            html += `<p>${data.username}: ${data.coherence}</p>`
+        })
+        document.getElementById(`${this.props.id}-coherence`).innerHTML = html
 
         setTimeout(this.animation = window.requestAnimationFrame(animate),1000/60)
     }

@@ -75,6 +75,7 @@ export class hegduinoPlugin {
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
                 this.atlas.settings.deviceConnected = true;
+                this.device.sendCommand('t');
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
@@ -88,6 +89,7 @@ export class hegduinoPlugin {
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
                 this.atlas.settings.deviceConnected = true;
+                this.device.sendCommand('t');
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
@@ -101,6 +103,7 @@ export class hegduinoPlugin {
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
                 this.atlas.settings.deviceConnected = true;
+                this.device.sendCommand('t');
                 this.onconnect();
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
@@ -181,7 +184,7 @@ export class hegduinoPlugin {
                 this.device.sendCommand('f');
             }
             document.getElementById(id+'sendcmd').onclick = () => {
-                this.device.sendCommand(elm(id+'hegcmd').value);
+                this.device.sendCommand(document.getElementById(id+'hegcmd').value);
             }
             if(this.mode === 'hegduino_ble') {
                 document.getElementById(id+'hegupdate').onclick = () => {

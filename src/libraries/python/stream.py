@@ -15,7 +15,7 @@ def main():
     password = ''
 
     ## Set Connection Details
-    # brainstorm = brainsatplay.Brainstorm('http://localhost') # Local
+    # brainstorm = brainsatplay.Brainstorm('https://localhost') # Local
     brainstorm = brainsatplay.Brainstorm() # Deployed Server
 
     ## Connect
