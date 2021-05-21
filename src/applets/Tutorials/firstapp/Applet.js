@@ -1,7 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 
-import {Spacebar} from '../../../libraries/js/src/nodes/Spacebar'
 import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
 
 import * as settingsFile from './settings'
@@ -22,10 +21,6 @@ export class Applet {
         this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
-        this.nodes = [
-            new Spacebar('spacebar', this.session), 
-            new Coherence('coherence', this.session)
-        ]
         this.subtitle = this.info.subtitle
         this.streams = []
         //------------------------
@@ -35,7 +30,8 @@ export class Applet {
             //Add whatever else
         };
 
-        //etc..
+        let nodes = [Coherence]
+        this.session.plugins.add(this.props.id, this.info.name, nodes)
 
     }
 
@@ -46,7 +42,7 @@ export class Applet {
     //Initalize the applet with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
-        this.responses = {
+        let responses = {
             coherence: (userData) => {
                 let html = ``
                 userData.forEach(u => {
@@ -56,10 +52,8 @@ export class Applet {
             }
         }
         
-        this.nodes.forEach(n => {
-            n.init(this.responses[n.id]) // Create and subscribe to nodes
-            this.streams.push(n.id) // Keep track of streams to pass to the Intro function
-        })
+        this.streams = this.session.plugins.start(this.props.id, responses)
+
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
@@ -93,9 +87,8 @@ export class Applet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
 
-        this.nodes.forEach(n => {
-            n.deinit()
-        })
+        this.streams = this.session.plugins.stop(this.props.id)
+
 
         // Delete Applet HTML
         this.AppletHTML.deleteNode();

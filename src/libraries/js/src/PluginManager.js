@@ -11,7 +11,7 @@ export class PluginManager{
         if (this.applets[id] == null) this.applets[id] = {nodes,name,streams, outputs}
     }
 
-    start(id, responses, shared){
+    start(id, responses, shared=()=>{}){
 
         this.applets[id].streams = []
 
