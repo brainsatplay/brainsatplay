@@ -374,7 +374,7 @@ export class SensoriumApplet {
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                console.log(userData)
+                //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
@@ -402,7 +402,7 @@ export class SensoriumApplet {
                             averageModifiers[mod] = newArr
                         }
                     }
-                    console.log(averageModifiers)
+                    //console.log(averageModifiers)
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);
                     });
