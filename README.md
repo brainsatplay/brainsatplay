@@ -8,6 +8,20 @@ Explore our documentation [here](https://docs.brainsatplay.com/docs/intro).
 [![GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](hhttps://www.gnu.org/licenses/gpl-3.0)
 [![stability-alpha](https://img.shields.io/badge/stability-alpha-f4d03f.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#alpha)
 
+### Building the App in this Repo
+
+Clone this repo and unzip contents to a folder.
+
+Open Folder via command line (VS Code recommended)
+
+```bash
+npm install
+```
+
+```bash
+npm start
+```
+
 ### Library Usage
 #### Node.js
 ```bash
