@@ -585,6 +585,14 @@ export class Session {
 
 	}
 
+	removeStreaming(id) {
+		this.state.unsubscribeAll(id); //unsub state
+		this.state.unsubscribeAll(id+"_flag"); //unsub flag
+		delete this.state.data[id];
+		delete this.state.data[id+"_flag"];
+		this.streamObj.removeStreamFunc(id); //remove streaming function by name
+	} 
+
 	//Add functions for gathering data to send to the server
 	addStreamFunc(name, callback, idx = 0) {
 
@@ -631,7 +639,6 @@ export class Session {
 			}
 		});
 	}
-
 
 	getApp = () => {
 		return Realm.App.getApp("brainsatplay-tvmdj")
@@ -2033,6 +2040,13 @@ class streamSession {
 
 	addStreamFunc(name = '', callback = () => { }) {
 		this.streamTable.push({ prop: name, callback: callback });
+	}
+
+	removeStreamFunc(name='') {
+		this.streamTable.find((o,i) => {
+			if(o.prop === name)
+				this.streamTable.splice(i,1);
+		})
 	}
 
 	configureStreamParams(params = [['prop', 'tag']]) { //Simply defines expected data parameters from the user for server-side reference
