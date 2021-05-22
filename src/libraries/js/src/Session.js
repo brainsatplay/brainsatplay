@@ -169,7 +169,7 @@ export class Session {
 			}
 		}
 
-		let newStream
+		let newStream;
 		if (device.includes('brainstorm')) {
 			// this.deviceStreams.push(
 				newStream = new deviceStream(
