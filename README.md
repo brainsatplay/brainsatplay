@@ -12,7 +12,7 @@ Explore our documentation [here](https://docs.brainsatplay.com/docs/intro).
 
 Clone this repo and unzip contents to a folder.
 
-Open Folder via command line (VS Code recommended)
+Open Folder via command line (VS Code recommended, latest NodeLTS with latest NPM required)
 
 ```bash
 npm install
