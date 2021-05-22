@@ -3,6 +3,7 @@
 
 export const settings = {
     "name": "My First Brainstorm",
+    "subtitle": 'A Simple Networked Game',
     "devices": ["EEG"],
     "author": "Me",
     "description": "This is my first brainstorm.",

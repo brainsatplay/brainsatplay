@@ -56,7 +56,7 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false };
+        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined };
         this.visuals = [];
         this.effects = [];//array of effectStructs
 
@@ -72,11 +72,12 @@ export class SensoriumApplet {
 
         //Available uniforms for shaders. See comments for usage
         this.modifiers = {
-            iAudio:           new Array(256).fill(0),    //Audio analyser FFT, array of 256, values max at 255
+            iAudio:           new Array(256).fill(0),     //Audio analyser FFT, array of 256, values max at 255
             iHRV:             1,                          //Heart Rate Variability (values typically 5-30)
             iHEG:             0,                          //HEG change from baseline, starts at zero and can go positive or negative
             iHR:              1,                          //Heart Rate in BPM
             iHB:              0,                          //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iBRV:             0,                          //Breathing rate variability, usually low, ideal is 0.
             iFFT:             new Array(256).fill(0),     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           1,                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
             iTheta:           1,                          //Theta bandpower average.
@@ -92,23 +93,24 @@ export class SensoriumApplet {
         };
 
         this.uniformSettings = {
-            iAudio:           {default: new Array(256).fill(0), min:0,max:255},     //Audio analyser FFT, array of 256, values max at 255
-            iHRV:             {default:1, min:0, max:40,step:0.5},                          //Heart Rate Variability (values typically 5-30)
-            iHEG:             {default:0, min:-3, max:3,step:0.1},                          //HEG change from baseline, starts at zero and can go positive or negative
-            iHR:              {default:1, min:1, max:240,step:1},                           //Heart Rate in BPM
-            iHB:              {default:0, min:0, max:1},                            //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
-            iFFT:             {default:new Array(256).fill(0),min:0,max:1000},     //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
+            iAudio:           {default: new Array(256).fill(0), min:0,max:255},              //Audio analyser FFT, array of 256, values max at 255
+            iHRV:             {default:1, min:0, max:40,step:0.5},                           //Heart Rate Variability (values typically 5-30)
+            iHEG:             {default:0, min:-3, max:3,step:0.1},                           //HEG change from baseline, starts at zero and can go positive or negative
+            iHR:              {default:1, min:1, max:240,step:1},                            //Heart Rate in BPM
+            iHB:              {default:0, min:0, max:1},                                     //Is 1 when a heart beat occurs, falls off toward zero on a 1/t curve (s)
+            iBRV:             {default:1, min:0, max:10,step:0.5},                           //Breathing rate variability, usually low, ideal is 0.
+            iFFT:             {default:new Array(256).fill(0),min:0,max:1000},               //Raw EEG FFT, array of 256. Values *should* typically be between 0 and 100 (for microvolts) but this can vary a lot so normalize or clamp values as you use them
             iDelta:           {default:1, min:0, max:100,step:0.5},                          //Delta bandpower average. The following bandpowers have generally decreasing amplitudes with frequency.
             iTheta:           {default:1, min:0, max:100,step:0.5},                          //Theta bandpower average.
             iAlpha1:          {default:1, min:0, max:100,step:0.5},                          //Alpha1 " "
             iAlpha2:          {default:1, min:0, max:100,step:0.5},                          //Alpha2 " "
             iBeta:            {default:1, min:0, max:100,step:0.5},                          //Beta " "
             iGamma:           {default:1, min:0, max:100,step:0.5},                          //Low Gamma (30-45Hz) " "
-            iThetaBeta:       {default:1, min:0, max:5,step:0.1},                          //Theta/Beta ratio
-            iAlpha1Alpha2:    {default:1, min:0, max:5,step:0.1},                          //Alpha1/Alpha2 ratio
-            iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                          //Alpha/Beta ratio
+            iThetaBeta:       {default:1, min:0, max:5,step:0.1},                            //Theta/Beta ratio
+            iAlpha1Alpha2:    {default:1, min:0, max:5,step:0.1},                            //Alpha1/Alpha2 ratio
+            iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                            //Alpha/Beta ratio
             iAlphaTheta:      {default:1, min:0, max:5,step:0.1},
-            i40Hz:            {default:1, min:0, max:10,step:0.1},                          //40Hz bandpower
+            i40Hz:            {default:1, min:0, max:10,step:0.1},                           //40Hz bandpower
             iAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
@@ -193,6 +195,7 @@ export class SensoriumApplet {
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <button id='${props.id}addeffect'>Add Effects</button>
+                    <button id='${props.id}Micin'>Mic In</button>
                     <span id='${props.id}effectmenu'></span>
                     </div>
                 </div>    
@@ -203,7 +206,7 @@ export class SensoriumApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-            this.session.insertMultiplayerIntro(this)
+            this.session.createIntro(this);
 
             /**
              * GUI
@@ -220,10 +223,10 @@ export class SensoriumApplet {
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
-            })
+            });
             
             this.currentShader = this.shaders[selector.value];
-            this.swapShader()
+            this.swapShader();
             
             selector.onchange = (e) => {
                 if (e.target.value != 'Gallery'){
@@ -233,6 +236,46 @@ export class SensoriumApplet {
                 } else {
                     
                 }
+            }
+
+            document.getElementById(props.id+'Micin').onclick = () => {
+                let idx = undefined;
+                let found = this.effects.find((o,i) => {
+                    if(o.id === 'Micin') {
+                        idx=i;
+                        return true;
+                    }
+                });
+                if(!found){
+                    //start mic
+                    if(!window.audio) {
+                        window.audio = new SoundJS();
+                        if (window.audio.ctx===null) {return;};
+                    }
+                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+                    let fx = this.effects[this.effects.length-1];
+
+                    fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+                        console.log(fx.sourceIdx)
+                        if(fx.sourceIdx !== undefined) {
+                            fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                            //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                            fx.playing = true;
+                            fx.feedbackOption = 'iAudio';
+                            fx.id = 'Micin';
+                            document.getElementById(props.id+'Micin').innerHTML = "Stop Mic";
+                            //fx.source.mediaStream.getTracks()[0].enabled = false;
+                        }
+                    });
+                    
+                } else {
+                    //stop mic
+
+                    found.source.mediaStream.getTracks()[0].stop();
+                    this.effects.splice(idx,1);
+                    document.getElementById(props.id+'Micin').innerHTML = "Mic In";
+                }
+                
             }
 
             let showhide = document.getElementById(props.id+'showhide');
@@ -428,8 +471,12 @@ export class SensoriumApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.effects.forEach((struct)=>{
-            if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
+        this.effects.forEach((struct,idx)=>{
+            if(struct.id === 'Micin') {
+                struct.source.mediaStream.getTracks()[0].stop();
+            }
+            else if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
+            
         });
         this.stateIds.forEach(id => {
             this.session.state.unsubscribeAll(id);
@@ -507,6 +554,7 @@ export class SensoriumApplet {
                 <option value='iHR'>Heart Rate</option>
                 <option value='iHEG'>HEG Ratio</option>
                 <option value='iHRV'>Heart Rate Variability</option>
+                <option value='iBRV'>Breathing Rate Variability</option>
                 <option value='iFFT'>EEG Bandpower FFT</option>
                 <option value='iDelta'>Delta Bandpower</option>
                 <option value='iTheta'>Theta Bandpower</option>
@@ -539,6 +587,8 @@ export class SensoriumApplet {
         console.log(newEffect.feedback.value)
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
+            newEffect.feedbackOption = value;
+
             if(value.includes('eeg')){
                 document.getElementById(this.props.id+'channel'+newEffect.uiIdx).style.display = "";
                 if(value.includes('coh')) {
@@ -640,7 +690,7 @@ export class SensoriumApplet {
     animate = () => {
         if(this.looping){
             this.effects.forEach((effectStruct) => {
-                let option = effectStruct.feedback.value;
+                let option = effectStruct.feedbackOption;
                 if(this.session.atlas.data.heg.length>0) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
@@ -683,7 +733,17 @@ export class SensoriumApplet {
                             }
                             this.modifiers.iHRV = this.getData("iHRV");
                         }
-                    } 
+                    } else if (option === 'iBRV') { //Minimize BRV, set the divider to set difficulty
+                        if(this.session.atlas.data.heg[0].beat_detect.breaths.length > 0) {
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
+                                    Math.max(0,Math.min(1/this.session.atlas.data.heg[0].beat_detect.breaths[this.session.atlas.data.heg[0].beat_detect.breaths.length-1].brv,1)), //
+                                    window.audio.ctx.currentTime
+                                );
+                            }
+                            this.modifiers.iBRV = this.session.atlas.data.heg[0].beat_detect.breaths[this.session.atlas.data.heg[0].beat_detect.breaths.length-1].brv;
+                        }
+                    }
                 }
                 if(this.session.atlas.settings.eeg === true && this.session.atlas.settings.analyzing === true) { 
                     let channel = document.getElementById(this.props.id+'channel'+effectStruct.uiIdx).value;
