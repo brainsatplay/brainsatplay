@@ -1815,12 +1815,15 @@ class deviceStream {
 			}
 
 			findAsync(this.deviceConfigs, async (o, i) => {
+
 				if (info.deviceName.indexOf(o.id) > -1) {
 					if (info.deviceName.includes('brainstorm')) {
 						this.device = new o.cls(info.deviceName, info.session, this.onconnect, this.ondisconnect);
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);
 					}
+
+					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
 					resolve(true);
 					return true;

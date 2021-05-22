@@ -1,8 +1,9 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {DataAtlas} from '../DataAtlas'
-import {DOMFragment} from '../ui/DOMFragment'
-import * as neosensory from 'neosensory'
+import {DataAtlas} from '../../DataAtlas'
+import {DOMFragment} from '../../ui/DOMFragment'
+import * as neosensory from './Buzz'
+// import * as neosensory from 'neosensory'
 
 export class buzzPlugin {
     constructor( mode, onconnect=()=>{}, ondisconnect=()=>{}) {
@@ -14,6 +15,7 @@ export class buzzPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
+
     }
 
 
@@ -22,7 +24,6 @@ export class buzzPlugin {
             this.device = new neosensory.Buzz(
                 (res) => {
                     if (res) {
-                        console.log(res)
                         if (res.command.includes('auth as developer')){
                             let display = document.getElementById(`neosensory-termsDisplay`)
                             if (display) display.innerHTML = `To use your Neosensory Buzz on The Brains@Play Platform, please agree to Neosensory Inc's Developer Terms and Conditions, which can be viewed at <a href='https://neosensory.com/legal/dev-terms-service'>https://neosensory.com/legal/dev-terms-service</a>`
@@ -74,7 +75,7 @@ export class buzzPlugin {
     }
 
     disconnect = () => {
-        if (this.ui) this.ui.deleteNode()
+        if (this.ui != null) this.ui.deleteNode()
         this.device.disconnect();
         this.ondisconnect();
         this.atlas.settings.deviceConnected = false; 
