@@ -246,35 +246,37 @@ export class SoundJS { //Only one Audio context at a time!
         navigator.mediaDevices.getUserMedia(args).then((recordingDevice) => { //Get
           console.log("Media stream created.");
           
-          let mic_src = this.ctx.createMediaStreamSource(recordingDevice);
-          let mic_gain = this.ctx.createGain();
+          if(supported.indexOf('audio') !== -1) {
+            let mic_src = this.ctx.createMediaStreamSource(recordingDevice);
+            let mic_gain = this.ctx.createGain();
 
-          this.sourceList.push(mic_src);
-          this.sourceGains.push(mic_gain);
+            this.sourceList.push(mic_src);
+            this.sourceGains.push(mic_gain);
 
-          mic_src.onended = () => {
-            mic_src.disconnect();
-            mic_gain.disconnect();
-            let l = 0, k=0;
-            this.sourceList.find((o,j)=> {
-              if(JSON.stringify(o) === JSON.stringify(mic_src)) {
-                l=j;
-                this.sourceList.splice(l,1);
-                return true;
-              }
-            }); 
-            this.sourceGains.find((o,j)=> {
-              if(JSON.stringify(o) === JSON.stringify(mic_gain)) {
-                k=j;
-                this.sourceGains.splice(k,1);
-                return true;
-              }
-            }); 
+            mic_src.onended = () => {
+              mic_src.disconnect();
+              mic_gain.disconnect();
+              let l = 0, k=0;
+              this.sourceList.find((o,j)=> {
+                if(JSON.stringify(o) === JSON.stringify(mic_src)) {
+                  l=j;
+                  this.sourceList.splice(l,1);
+                  return true;
+                }
+              }); 
+              this.sourceGains.find((o,j)=> {
+                if(JSON.stringify(o) === JSON.stringify(mic_gain)) {
+                  k=j;
+                  this.sourceGains.splice(k,1);
+                  return true;
+                }
+              }); 
+            }
+
+            mic_src.connect(mic_gain);
+            mic_gain.connect(this.analyserNode);
+            //mic_src.start();
           }
-
-          mic_src.connect(mic_gain);
-          mic_gain.connect(this.analyserNode);
-          //mic_src.start();
 
           onbegin();
 

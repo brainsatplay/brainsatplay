@@ -634,15 +634,17 @@ export class SensoriumApplet {
 
     setEffectOptions() {
         this.effects.forEach((e)=>{
-            let sel = document.getElementById(this.props.id+'select'+e.uiIdx);
-            for(let i = 0; i < sel.options.length; i++){
-                if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
-                    sel.options[i].style.display='';
-                } else if (sel.options[i].value !== 'none') {
-                    sel.options[i].style.display='none';
-                }   
-                if(sel.options[i].selected === true && sel.options[i].style.display==='none') {
-                    sel.options[0].selected = true;
+            if(!e.id) {
+                let sel = document.getElementById(this.props.id+'select'+e.uiIdx);
+                for(let i = 0; i < sel.options.length; i++){
+                    if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
+                        sel.options[i].style.display='';
+                    } else if (sel.options[i].value !== 'none') {
+                        sel.options[i].style.display='none';
+                    }   
+                    if(sel.options[i].selected === true && sel.options[i].style.display==='none') {
+                        sel.options[0].selected = true;
+                    }
                 }
             }
         });
@@ -668,12 +670,13 @@ export class SensoriumApplet {
 
             let thisidx=0;
             this.effects.forEach((effectStruct,j)=> {
-                if(effectStruct.sourceIdx === newEffect.sourceIdx) thisidx = j; 
-                else if(effectStruct.sourceIdx > newEffect.sourceIdx) {
-                    effectStruct.sourceIdx--;
-                    this.loadSoundControls(effectStruct);
+                if(!effectStruct.id) {
+                    if(effectStruct.sourceIdx === newEffect.sourceIdx) thisidx = j; 
+                    else if(effectStruct.sourceIdx > newEffect.sourceIdx) {
+                        effectStruct.sourceIdx--;
+                        this.loadSoundControls(effectStruct);
+                    }
                 }
-
             });
         }
 
