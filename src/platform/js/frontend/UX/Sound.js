@@ -113,15 +113,17 @@ export class SoundJS { //Only one Audio context at a time!
           this.sourceList.find((o,j)=> {
             if(JSON.stringify(o) === JSON.stringify(sauce)) {
               l=j;
+              this.sourceList.splice(l,1);
               return true;
             }
-          }); this.sourceList.splice(l,1);
+          });
           this.sourceGains.find((o,j)=> {
             if(JSON.stringify(o) === JSON.stringify(gainz)) {
               k=j;
+              this.sourceGains.splice(k,1);
               return true;
             }
-          }); this.sourceGains.splice(k,1);
+          });
         };
         sauce.connect(gainz); //Attach to volume node
         gainz.connect(this.gainNode);
@@ -150,7 +152,7 @@ export class SoundJS { //Only one Audio context at a time!
         this.sourceList[bufferIndex].playbackRate.value = rate;
     }
   
-    record(name = new Date().toISOString(), args={audio:true, video:false}, type=null, streamElement=null){ // video settings vary e.g. video:{width:{min:1024,ideal:1280,max:1920},height:{min:576,ideal:720,max:1080}}
+    record(name = new Date().toISOString(), args={audio:true, video:false}, type=null, streamElement=null, save=false,onbegin=()=>{}){ // video settings vary e.g. video:{width:{min:1024,ideal:1280,max:1920},height:{min:576,ideal:720,max:1080}}
       /*
       navigator.mediaDevices.enumerateDevices().then((devices) => {
         devices = devices.filter((d) => d.kind === 'audioinput');
@@ -244,40 +246,77 @@ export class SoundJS { //Only one Audio context at a time!
         navigator.mediaDevices.getUserMedia(args).then((recordingDevice) => { //Get
           console.log("Media stream created.");
           
+          let mic_src = this.ctx.createMediaStreamSource(recordingDevice);
+          let mic_gain = this.ctx.createGain();
+
+          this.sourceList.push(mic_src);
+          this.sourceGains.push(mic_gain);
+
+          mic_src.onended = () => {
+            mic_src.disconnect();
+            mic_gain.disconnect();
+            let l = 0, k=0;
+            this.sourceList.find((o,j)=> {
+              if(JSON.stringify(o) === JSON.stringify(mic_src)) {
+                l=j;
+                this.sourceList.splice(l,1);
+                return true;
+              }
+            }); 
+            this.sourceGains.find((o,j)=> {
+              if(JSON.stringify(o) === JSON.stringify(mic_gain)) {
+                k=j;
+                this.sourceGains.splice(k,1);
+                return true;
+              }
+            }); 
+          }
+
+          mic_src.connect(mic_gain);
+          mic_gain.connect(this.analyserNode);
+          //mic_src.start();
+
+          onbegin();
+
           if(streamElement !== null){ // attach to audio or video element, or Audio(). For canvas, use an AudioContext analyzer.
             streamElement.src = window.URL.createObjectURL(recordingDevice);
+          }  
+
+          if(save === true) {
+  
+            this.recorder = new MediaRecorder(recordingDevice);
+    
+            this.recorder.onstop = (e) => {
+              console.log("Media recorded, saving...");
+    
+              var blob = new Blob(this.recordedData, {
+                type: supported
+              });
+    
+              var url = URL.createObjectURL(blob);
+              var a = document.createElement("a");
+              document.body.appendChild(a);
+              a.style = "display: none";
+              a.href = url;
+              a.download = name + ext;
+              a.click();
+              window.URL.revokeObjectURL(url);
+            }
+            
+            this.recorder.ondataavailable = (e) => {
+              this.recordedData.push(e.data);
+            }
+    
+            this.recorder.start(); //Begin recording
           }
-  
-          this.recorder = new MediaRecorder(recordingDevice);
-  
-          this.recorder.onstop = (e) => {
-            console.log("Media recorded, saving...");
-  
-            var blob = new Blob(this.recordedData, {
-              type: supported
-            });
-  
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.href = url;
-            a.download = name + ext;
-            a.click();
-            window.URL.revokeObjectURL(url);
-          }
-          
-          this.recorder.ondataavailable = (e) => {
-            this.recordedData.push(e.data);
-          }
-  
-          this.recorder.start(); //Begin recording
   
         }, errfunc);
   
+        return this.sourceList.length;
       }
       else {
         alert("Cannot record! Check function call settings, ensure browser is compatible.");
+        return undefined;
       }
     }
   

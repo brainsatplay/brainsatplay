@@ -56,7 +56,7 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false };
+        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined };
         this.visuals = [];
         this.effects = [];//array of effectStructs
 
@@ -195,6 +195,7 @@ export class SensoriumApplet {
                 <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
                     <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
                     <button id='${props.id}addeffect'>Add Effects</button>
+                    <button id='${props.id}Micin'>Mic In</button>
                     <span id='${props.id}effectmenu'></span>
                     </div>
                 </div>    
@@ -205,7 +206,7 @@ export class SensoriumApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-            this.session.insertMultiplayerIntro(this)
+            this.session.createIntro(this);
 
             /**
              * GUI
@@ -222,10 +223,10 @@ export class SensoriumApplet {
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
-            })
+            });
             
             this.currentShader = this.shaders[selector.value];
-            this.swapShader()
+            this.swapShader();
             
             selector.onchange = (e) => {
                 if (e.target.value != 'Gallery'){
@@ -235,6 +236,46 @@ export class SensoriumApplet {
                 } else {
                     
                 }
+            }
+
+            document.getElementById(props.id+'Micin').onclick = () => {
+                let idx = undefined;
+                let found = this.effects.find((o,i) => {
+                    if(o.id === 'Micin') {
+                        idx=i;
+                        return true;
+                    }
+                });
+                if(!found){
+                    //start mic
+                    if(!window.audio) {
+                        window.audio = new SoundJS();
+                        if (window.audio.ctx===null) {return;};
+                    }
+                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+                    let fx = this.effects[this.effects.length-1];
+
+                    fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+                        console.log(fx.sourceIdx)
+                        if(fx.sourceIdx !== undefined) {
+                            fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                            //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                            fx.playing = true;
+                            fx.feedbackOption = 'iAudio';
+                            fx.id = 'Micin';
+                            document.getElementById(props.id+'Micin').innerHTML = "Stop Mic";
+                            //fx.source.mediaStream.getTracks()[0].enabled = false;
+                        }
+                    });
+                    
+                } else {
+                    //stop mic
+
+                    found.source.mediaStream.getTracks()[0].stop();
+                    this.effects.splice(idx,1);
+                    document.getElementById(props.id+'Micin').innerHTML = "Mic In";
+                }
+                
             }
 
             let showhide = document.getElementById(props.id+'showhide');
@@ -542,6 +583,8 @@ export class SensoriumApplet {
         console.log(newEffect.feedback.value)
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
+            newEffect.feedbackOption = value;
+
             if(value.includes('eeg')){
                 document.getElementById(this.props.id+'channel'+newEffect.uiIdx).style.display = "";
                 if(value.includes('coh')) {
@@ -643,7 +686,7 @@ export class SensoriumApplet {
     animate = () => {
         if(this.looping){
             this.effects.forEach((effectStruct) => {
-                let option = effectStruct.feedback.value;
+                let option = effectStruct.feedbackOption;
                 if(this.session.atlas.data.heg.length>0) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
