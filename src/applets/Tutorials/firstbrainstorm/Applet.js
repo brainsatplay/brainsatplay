@@ -1,5 +1,9 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
+
+import {Spacebar} from '../../../libraries/js/src/nodes/Spacebar'
+import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
+
 import * as settingsFile from './settings'
 
 
@@ -18,26 +22,18 @@ export class Applet {
         this.info = settingsFile.settings;
         this.settings = settings;
         this.AppletHTML = null;
+        this.subtitle = this.info.subtitle
+        this.streams = []
         //------------------------
-
-        //-------Required Multiplayer Properties------- 
-        this.subtitle = 'A Simple Networked Game'
-        this.streams = ['coherence', 'appEvents']
-        //----------------------------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
 
-        //etc..
-        this.stateIds = []
-        this.appEvents = {
-            spacebar: false
-        }
+        let nodes = [Spacebar, Coherence]
 
-
-        this.looping = true
+        this.session.plugins.add(this.props.id, this.info.name, nodes)
     }
 
     //---------------------------------
@@ -47,6 +43,34 @@ export class Applet {
     //Initalize the applet with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
+        // APPLICATION LOGIC
+
+        let responses = {
+            coherence: (userData) => {
+                userData.forEach(u => {
+                    console.log(u.coherence)
+                })
+            }, 
+
+            spacebar: (userData) => {
+                userData.forEach(u => {
+                     console.log(u.spacebar.value)
+                })
+            },
+        }
+
+        let shared = (userData) => {
+            let html = ``
+            userData.forEach(u => {
+                let userStyle = (u?.spacebar?.value ? "color: red;" : "")
+                html += `<p style="${userStyle}">${u.username}: ${u.coherence}</p>`
+            })
+            document.getElementById(`${this.props.id}-coherence`).innerHTML = html
+        }
+
+        this.streams = this.session.plugins.start(this.props.id, responses, shared)
+
+        // VISUALS
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
@@ -61,7 +85,7 @@ export class Applet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.insertMultiplayerIntro(this)
+            this.session.createIntro(this)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -74,58 +98,14 @@ export class Applet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
-
-        this.session.addStreamFunc(
-            'coherence', 
-            () => {
-                return this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
-            }
-        )
-        
-        this.stateIds.push(this.session.streamAppData('appEvents', this.appEvents,(newData) => {console.log('new data!')}))
-
-        document.addEventListener('keydown',this.handleKeyDown)
-
-        document.addEventListener('keyup',this.handleKeyUp)
-
-        //Add whatever else you need to initialize
-        let animate = () => {
-            if (this.looping){
-                let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                let html = ''
-                userData.forEach((data)=> {
-                    let inlineStyle = (data.appEvents?.spacebar ? "color: red;" : "")
-                    html += `<p style="${inlineStyle}">${data.username}: ${data.coherence}</p>`
-                })
-                document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-                setTimeout(() => {this.animation=requestAnimationFrame(animate)},1000/60)
-            }
-        }
-    
-        animate()
-
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
-        
-        this.stateIds.forEach(id => {
-            this.session.state.unsubscribeAll(id);
-        })
+        this.session.plugins.stop(this.props.id)
 
         // Delete Applet HTML
         this.AppletHTML.deleteNode();
-
-        document.removeEventListener('keydown',this.handleKeyDown)
-        document.removeEventListener('keyup',this.handleKeyDown)
-
-        // Stop Animation
-        if (this.animation){
-            window.cancelAnimationFrame(this.animation)
-            this.animation = undefined 
-            this.looping = false
-        }
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
@@ -139,13 +119,5 @@ export class Applet {
         settings.forEach((cmd,i) => {
             //if(cmd === 'x'){//doSomething;}
         });
-    }
-
-    handleKeyDown = (e) => {
-        if (e.code === 'Space' && this.appEvents.spacebar != true) this.appEvents.spacebar = true
-    }
-    
-    handleKeyUp = (e) => {
-        if (e.code === 'Space') this.appEvents.spacebar = false
     }
 } 

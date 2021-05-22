@@ -1,5 +1,5 @@
 
-/* Multiplayer Intro UI */
+/* Intro UI */
 .brainsatplay-default-container {
     display: flex;
     flex-wrap: wrap;
@@ -35,7 +35,7 @@
     width: 100%;
 }
 
-.brainsatplay-multiplayerintro-loadingbar {
+.brainsatplay-intro-loadingbar {
     position: absolute;
     left: 0;
     width: 100%;
@@ -49,7 +49,7 @@
     will-change: transform;
 }
 
-.brainsatplay-multiplayerintro-loadingbar.ended
+.brainsatplay-intro-loadingbar.ended
 {
     transform-origin: 100% 0;
     transition: transform 1.5s ease-in-out;
