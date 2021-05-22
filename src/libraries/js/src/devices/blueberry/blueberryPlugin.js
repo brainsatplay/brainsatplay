@@ -112,6 +112,7 @@ export class BlueberryPlugin {
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.device.disconnect();
     }
 

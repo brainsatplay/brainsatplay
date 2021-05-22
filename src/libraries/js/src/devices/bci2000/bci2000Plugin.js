@@ -151,6 +151,7 @@ export class bci2000Plugin {
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
         //ondisconnected: this.atlas.settings.deviceConnected = false;
     }

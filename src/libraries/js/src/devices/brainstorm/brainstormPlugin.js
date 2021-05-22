@@ -76,6 +76,7 @@ export class brainstormPlugin {
 
     disconnect = () => {
         this.ondisconnect();
+        if (this.ui) this.ui.deleteNode()
         this.session.unsubscribeFromUser(this.subscription.username)
         window.cancelAnimationFrame(this.animation)
         this.atlas.settings.deviceConnected = false;

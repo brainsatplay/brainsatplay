@@ -19,14 +19,20 @@ export class buzzPlugin {
 
     init = async (info,pipeToAtlas) => {
         info.deviceType = 'other';
-        this.device = new neosensory.Buzz(
-            (response) => {
-                // if (response) console.log(response)
-            })
+            this.device = new neosensory.Buzz(
+                (res) => {
+                    if (res) {
+                        console.log(res)
+                        if (res.command.includes('auth as developer')){
+                            let display = document.getElementById(`neosensory-termsDisplay`)
+                            if (display) display.innerHTML = `To use your Neosensory Buzz on The Brains@Play Platform, please agree to Neosensory Inc's Developer Terms and Conditions, which can be viewed at <a href='https://neosensory.com/legal/dev-terms-service'>https://neosensory.com/legal/dev-terms-service</a>`
+                        }
+                    }
+                })
 
-        this._onConnected = () => {
-            this.setupAtlas(info,pipeToAtlas);
-        }
+            this._onConnected = () => {
+                this.setupAtlas(info,pipeToAtlas);
+            }
     }
 
     setupAtlas(info,pipeToAtlas){
@@ -48,13 +54,27 @@ export class buzzPlugin {
         this.atlas.settings.deviceConnected = true; 
     }
 
-    connect = async () => {
-        await this.device.connect();
-        this._onConnected();
-        this.onconnect()
+    connect = () => {
+        return new Promise(async (resolve, reject) => {
+            let device = await this.device.connect();
+            if (device){
+                let res = await this.agreeToTerms()
+                if (res) {
+                    this._onConnected();
+                    this.onconnect()
+                    resolve(true)
+                } else {
+                    this.device.disconnect();
+                    reject('Did not agree to Neosensory Developer Terms.')
+                }
+            } else {
+                reject('Device failed to connect.')
+            }
+        })
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.device.disconnect();
         this.ondisconnect();
         this.atlas.settings.deviceConnected = false; 
@@ -69,46 +89,18 @@ export class buzzPlugin {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
         let template = () => {
             return `
+            <br>
             <div id='`+id+`buzzControls'>
-                <button id='`+id+`request'>Request Dev Authorization</button>
-                <button id='`+id+`accept'>Accept</button>
-                <button id='`+id+`battery'>Battery</button>
-                <button id='`+id+`info'>Info</button>
-                <button id='`+id+`getLEDs'>Get LEDS</button>
-                <button id='`+id+`setLEDs'>Set LEDS</button>
-                <button id='`+id+`motorsStart'>Start Motors</button>
-                <button id='`+id+`motorsVibrate'>Vibrate Motors</button>
-                <input id='`+id+`buzzcmd' type='text' placeholder='device info'></input><button id='`+id+`sendcmd'>Send</button>
+                <h3>Control Panel</h3>
+                <hr>
+                <div style="display: flex; flex-wrap: wrap;">
+                    <input id='`+id+`buzzcmd' type='text' placeholder='device info'></input><button id='`+id+`sendcmd'>Send</button>
+                </div>
             </div>
             `;
         }
 
         let setup = () => {
-         
-            document.getElementById(id+'request').onclick = () => {
-                this.device.requestAuthorization()
-            }
-            document.getElementById(id+'accept').onclick = () => {
-                this.device.acceptTerms()
-            }
-            document.getElementById(id+'battery').onclick = () => {
-                this.device.battery()
-            }
-            document.getElementById(id+'info').onclick = () => {
-                this.device.info()
-            }
-            document.getElementById(id+'getLEDs').onclick = () => {
-                this.device.getLEDs()
-            }
-            document.getElementById(id+'setLEDs').onclick = () => {
-                this.device.setLEDs([[255,0,0],[0,255,0],[0,0,255]],[1,1,1])
-            }
-            document.getElementById(id+'motorsStart').onclick = () => {
-                this.device.enableMotors()
-            }
-            document.getElementById(id+'motorsVibrate').onclick = () => {
-                this.device.vibrateMotors([255,255,255,255])
-            }
             document.getElementById(id+'sendcmd').onclick = () => {
                 this.device.sendCommand(document.getElementById(id+'buzzcmd').value);
             }
@@ -120,6 +112,46 @@ export class buzzPlugin {
             undefined,
             setup
         )
+    }
+
+ 
+    agreeToTerms = () => {
+        return new Promise(async (resolve, reject) => {
+
+        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        let template = () => {
+            return `
+            <div id='`+id+`buzzTerms' style="position: absolute; width: 100vw; height: 100vh; z-index: 10000; padding: 50px; background: rgba(0,0,0,0.7)">
+                <h3>Agree To Terms</h3>
+                <hr>
+                <div id='neosensory-termsDisplay' style="padding: 25px;"></div>
+                <div style="display: flex; flex-wrap: wrap;">
+                    <button id='`+id+`accept' class="brainsatplay-default-button">Accept</button>
+                    <button id='`+id+`deny' class="brainsatplay-default-button">Deny</button>
+                </div>
+            </div>
+            `;
+        }
+
+        let setup = () => {
+            this.device.requestAuthorization()
+            document.getElementById(id+'accept').onclick = () => {
+                this.device.acceptTerms()
+                this.terms.deleteNode()
+                resolve(true)
+            }
+            document.getElementById(id+'deny').onclick = () => {
+                this.terms.deleteNode()
+                resolve(false)
+            }
+        }
         
+        this.terms = new DOMFragment(
+            template,
+            document.body,
+            undefined,
+            setup
+        )
+    })
     }
 }

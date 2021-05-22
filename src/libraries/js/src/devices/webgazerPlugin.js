@@ -97,6 +97,7 @@ export class webgazerPlugin {
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         webgazer.end();
         this.atlas.settings.deviceConnected = false;
         this.ondisconnect();

@@ -354,7 +354,7 @@ export class BCIAppManager {
 
 
         // let contentChild2 = Array.from(app.querySelector('#device-menu').childNodes).filter(n => n.className==="content")[0]
-        this.session.makeConnectOptions(document.body, app.querySelector('#device-menu').querySelector('button'));
+        this.session.connectDevice(document.body, app.querySelector('#device-menu').querySelector('button'));
         
         // let contentChild3 = Array.from(app.querySelector('#profile-menu').childNodes).filter(n => n.className==="content")[0]
         // this.uiFragments.login = new DOMFragment(
@@ -443,9 +443,9 @@ export class BCIAppManager {
 
         this.session.onconnected = () => {
             try{
-                let contentChild = document.getElementById(`${this.session.id}DeviceSelection`).querySelector(".main")
-                if(this.uiFragments.controls !== undefined) {this.uiFragments.controls.deleteNode();} //set new controls
-                this.uiFragments.controls = this.session.deviceStreams[this.session.info.nDevices-1].device.addControls(contentChild);
+                let device = this.session.deviceStreams[this.session.info.nDevices-1].device
+                let contentChild = document.getElementById(`brainsatplay-device-${device.mode.split('_')[0]}`)
+                this.uiFragments.controls = device.addControls(contentChild);
             }
             catch (err) { console.error(err); }
 
@@ -453,7 +453,7 @@ export class BCIAppManager {
         }
 
         this.session.ondisconnected = () => {
-            if(this.uiFragments.controls !== undefined) this.uiFragments.controls.deleteNode();
+            // if(this.uiFragments.controls !== undefined) this.uiFragments.controls.deleteNode();
         }
 
         this.setupUITemplates();

@@ -206,7 +206,7 @@ export class SensoriumApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-            this.session.createIntro(this);
+            this.session.createIntro(this)
 
             /**
              * GUI

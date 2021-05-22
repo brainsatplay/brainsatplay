@@ -107,6 +107,7 @@ export class syntheticPlugin {
 
     disconnect = () => {
         this.ondisconnect();
+        if (this.ui) this.ui.deleteNode()
         this.atlas.settings.deviceConnected = false;
         if (typeof window != undefined){
             window.cancelAnimationFrame(this.loop)

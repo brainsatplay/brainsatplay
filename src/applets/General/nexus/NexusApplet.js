@@ -81,7 +81,7 @@ export class NexusApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.insertMultiplayerIntro(this)
+            this.session.createIntro(this)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

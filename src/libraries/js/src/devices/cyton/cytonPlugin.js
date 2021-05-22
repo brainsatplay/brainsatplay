@@ -177,6 +177,7 @@ export class cytonPlugin {
 
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.device.closePort();
     }
 

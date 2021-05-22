@@ -169,9 +169,10 @@ export class Session {
 			}
 		}
 
+		let newStream
 		if (device.includes('brainstorm')) {
-			this.deviceStreams.push(
-				new deviceStream(
+			// this.deviceStreams.push(
+				newStream = new deviceStream(
 					device,
 					analysis,
 					useFilters,
@@ -179,39 +180,39 @@ export class Session {
 					this.info.auth,
 					this
 				)
-			);
+			// );
 		} else {
-			this.deviceStreams.push(
-				new deviceStream(
+			// this.deviceStreams.push(
+				newStream = new deviceStream(
 					device,
 					analysis,
 					useFilters,
 					pipeToAtlas,
 					this.info.auth
 				)
-			);
+			// );
 		}
 
 
 		let i = this.deviceStreams.length - 1;
 
-		this.deviceStreams[i].onconnect = () => {
+		newStream.onconnect = () => {
 			
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
-			
+			this.deviceStreams.push(newStream)
 			this.info.nDevices++;
 			if (streamParams[0]) { this.beginStream(streamParams); }
 			//Device info accessible from state
-			this.state.addToState("device" + (i), this.deviceStreams[i].info);
+			this.state.addToState("device" + (i), newStream.info);
 			onconnect();
 			this.onconnected();
 		}
 
-		this.deviceStreams[i].ondisconnect = () => {
+		newStream.ondisconnect = () => {
 			ondisconnect();
 			this.ondisconnected();
-			if (this.deviceStreams[i].info.analysis.length > 0) {
-				this.deviceStreams[i].device.atlas.analyzing = false; //cancel analysis loop
+			if (newStream.info.analysis.length > 0) {
+				newStream.device.atlas.analyzing = false; //cancel analysis loop
 			}
 			this.deviceStreams.splice(i, 1);
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
@@ -219,9 +220,8 @@ export class Session {
 		}
 
 		// Wait for Initialization before Connection
-		await this.deviceStreams[i].init();
-
-		this.deviceStreams[i].connect();
+		await newStream.init();
+		await newStream.connect()
 	}
 
 	onconnected = () => { }
@@ -256,7 +256,7 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.Session.makeConnectOptions
+     * @method module:brainsatplay.Session.connectDevice
      * @description Generate DOM fragment with a selector for available devices.
 	 * @param {HTMLElement} parentNode Parent node to insert fragment into.
 	 * @param {HTMLElement} toggleButton Node of button to toggle
@@ -264,7 +264,7 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode = document.body, toggleButton=null, deviceFilter = null, onconnect = () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, onconnect = () => { }, ondisconnect = () => { }) {
 		let template = () => {return `
 		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
 			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
@@ -336,7 +336,7 @@ export class Session {
 			}
 
 			let deviceDiv = document.createElement('div')
-			// deviceDiv.id = `brainsatplay-${d.id}`
+			deviceDiv.id = `brainsatplay-device-${d.id}`
 			deviceDiv.classList.add('brainsatplay-deviceCard')
 			deviceDiv.innerHTML += `<h4>${d.name}</h4><div class="variants"></div>`
 
@@ -1817,7 +1817,6 @@ class deviceStream {
 			findAsync(this.deviceConfigs, async (o, i) => {
 				if (info.deviceName.indexOf(o.id) > -1) {
 					if (info.deviceName.includes('brainstorm')) {
-						console.log('brainstorm')
 						this.device = new o.cls(info.deviceName, info.session, this.onconnect, this.ondisconnect);
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);
@@ -1830,8 +1829,8 @@ class deviceStream {
 		})
 	}
 
-	connect = () => {
-		this.device.connect();
+	connect = async () => {
+		return await this.device.connect();
 	}
 
 	disconnect = () => {

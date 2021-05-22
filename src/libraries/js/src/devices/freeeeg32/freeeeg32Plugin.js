@@ -168,6 +168,7 @@ export class eeg32Plugin {
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.device.closePort();
     }
 

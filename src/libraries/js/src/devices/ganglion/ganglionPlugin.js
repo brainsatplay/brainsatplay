@@ -136,6 +136,7 @@ export class ganglionPlugin {
         this.device.disconnect();
         this.atlas.settings.analyzing = false;
         this.atlas.settings.deviceConnected = false;
+        if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
         //ondisconnected: this.atlas.settings.deviceConnected = false;
     }

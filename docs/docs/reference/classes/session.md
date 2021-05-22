@@ -441,9 +441,9 @@ Defined in: [src/Session.js:926](https://github.com/brainsatplay/brainsatplay/bl
 
 ___
 
-### insertMultiplayerIntro
+### createIntro
 
-▸ **insertMultiplayerIntro**(`applet`: *any*): *void*
+▸ **createIntro**(`applet`: *any*): *void*
 
 #### Parameters
 
