@@ -46,14 +46,15 @@ export class Applet {
             coherence: (userData) => {
                 let html = ``
                 userData.forEach(u => {
+                    if (u.coherence != undefined){
                     html += `<p id="${this.props.id}-user-${u.username}">${u.username}: ${u.coherence}</p>`
+                    }
                 })
                 document.getElementById(`${this.props.id}-coherence`).innerHTML = html
             }
         }
-        
-        this.streams = this.session.plugins.start(this.props.id, responses)
 
+        this.streams = this.session.plugins.start(this.props.id, responses)
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
@@ -68,9 +69,7 @@ export class Applet {
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
-        let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
-        }
+        let setupHTML = (props=this.props) => {        }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             HTMLtemplate,       //Define the html template string or function with properties
@@ -88,7 +87,6 @@ export class Applet {
     deinit() {
 
         this.streams = this.session.plugins.stop(this.props.id)
-
 
         // Delete Applet HTML
         this.AppletHTML.deleteNode();

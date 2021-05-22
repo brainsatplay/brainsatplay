@@ -34,17 +34,21 @@ export class PluginManager{
     stop(id){
         let applet = this.applets[id]
         applet.streams.forEach(stream => {
-            applet.session.state.unsubscribeAll(stream);
+            this.session.removeStreaming(stream);
         })
+        delete this.applets[id]
     }
 
     // Internal Methods
 
     _addData(id, appletId, dataCallback, sharedCallback) {
         let applet = this.applets[appletId]
+
         this.session.streamAppData(id, applet.outputs[id], () => {
-            dataCallback(this.session.getBrainstormData(applet.name,[id])) // Pass all user data
-            sharedCallback(this.session.getBrainstormData(applet.name,applet.streams)) // Pass all app data
+            if (this.session.state.data[id] != null){
+                dataCallback(this.session.getBrainstormData(applet.name,[id])) // Pass all user data
+                sharedCallback(this.session.getBrainstormData(applet.name,applet.streams)) // Pass all app data
+            }
         })
     }
 
@@ -52,8 +56,10 @@ export class PluginManager{
         let applet = this.applets[appletId]
         this.session.addStreamFunc(id, callback)
         this.session.state.subscribe(id, (data) => {
-            dataCallback(this.session.getBrainstormData(applet.name,[id])) // Pass all user data
-            sharedCallback(this.session.getBrainstormData(applet.name,applet.streams)) // Pass all app data
+            if (this.session.state.data[id] != null){
+                dataCallback(this.session.getBrainstormData(applet.name,[id])) // Pass all user data
+                sharedCallback(this.session.getBrainstormData(applet.name,applet.streams)) // Pass all app data
+            }
         })
     }
 }

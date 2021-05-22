@@ -194,12 +194,12 @@ export class Session {
 		}
 
 
+		this.deviceStreams.push(newStream)
 		let i = this.deviceStreams.length - 1;
 
 		newStream.onconnect = () => {
 			
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
-			this.deviceStreams.push(newStream)
 			this.info.nDevices++;
 			if (streamParams[0]) { this.beginStream(streamParams); }
 			//Device info accessible from state
@@ -597,6 +597,8 @@ export class Session {
 		delete this.state.data[id];
 		delete this.state.data[id+"_flag"];
 		this.streamObj.removeStreamFunc(id); //remove streaming function by name
+		let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
+		if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 	} 
 
 	//Add functions for gathering data to send to the server
@@ -944,7 +946,7 @@ export class Session {
 				}
 				else if (newResult.msg === 'usersNotFound') {//} & newResult.appname === appname) {
 					this.state.unsubscribe('commandResult', sub);
-					console.log("USers not found: ", appname);
+					console.log("Users not found: ", appname);
 					return []
 				}
 			});
@@ -2063,8 +2065,10 @@ class streamSession {
 
 	removeStreamFunc(name='') {
 		this.streamTable.find((o,i) => {
-			if(o.prop === name)
+			if(o.prop === name){
 				this.streamTable.splice(i,1);
+				return true
+			}
 		})
 	}
 

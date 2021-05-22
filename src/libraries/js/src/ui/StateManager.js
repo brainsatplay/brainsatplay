@@ -116,8 +116,7 @@ export class StateManager {
 
     //Remove any extra object listeners for a key. Entering "state" will break the state manager's primary response
     clearAllKeyResponses(key=null) {
-        if(this.listener.hasKey(key))
-            this.listener.remove(key);
+        if(this.listener.hasKey(key)) this.listener.remove(key);
     }
 
     //Save the return value to provide as the responseIdx in unsubscribe
