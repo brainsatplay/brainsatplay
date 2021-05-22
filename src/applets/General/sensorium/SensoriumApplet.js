@@ -471,8 +471,12 @@ export class SensoriumApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.effects.forEach((struct)=>{
-            if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
+        this.effects.forEach((struct,idx)=>{
+            if(struct.id === 'Micin') {
+                struct.source.mediaStream.getTracks()[0].stop();
+            }
+            else if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
+            
         });
         this.stateIds.forEach(id => {
             this.session.state.unsubscribeAll(id);
