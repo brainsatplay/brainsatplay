@@ -451,7 +451,6 @@ export class SensoriumApplet {
                         this.updateBuzz( neosensoryBuzz.device, averageModifiers)
                     }
 
-
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);
                     });
@@ -959,20 +958,20 @@ export class SensoriumApplet {
         // console.log(modifiers)
         let motorCommand;
 
-        if (modifiers.iAudio){
-            motorCommand = buzz.device.mapFrequencies(modifiers.iAudio)
-            buzz.device.vibrateMotors([motorCommand])
-        } 
+        // if (modifiers.iAudio){
+        //     motorCommand = buzz.device.mapFrequencies(modifiers.iAudio)
+        //     buzz.device.vibrateMotors([motorCommand])
+        // } 
         // else if (modifiers.iFFT){
         //     motorCommand = buzz.device.mapFrequencies(modifiers.iFFT)
         //     buzz.device.vibrateMotors([motorCommand])
         // }
 
-        // if (modifiers.iFrontalAlpha1Coherence){
-        //     let i1 = Math.min(modifiers.iFrontalAlpha1Coherence/.33,1)
-        //     let i2 = Math.min(modifiers.iFrontalAlpha1Coherence/.66,1)
-        //     let i3 = Math.min(modifiers.iFrontalAlpha1Coherence/1,1)
-        //     buzz.device.setLeds([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
-        // }
+        if (modifiers.iFrontalAlpha1Coherence){
+            let i1 = Math.min(modifiers.iFrontalAlpha1Coherence/.33,1)
+            let i2 = (i1 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.33)/.33,1) : 0)
+            let i3 = (i2 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.66)/.33,1) : 0)
+            buzz.device.setLEDs([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
+        }
     }
 } 

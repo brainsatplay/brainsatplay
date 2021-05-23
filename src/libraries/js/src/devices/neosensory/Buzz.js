@@ -338,7 +338,6 @@ export class Buzz {
         // Store running mean
         let i = indexOfMax(fft)
         let location = i/fft.length
-        console.log(location)
         return this.getIllusionActivations(1,location)
     }
 }
@@ -401,7 +400,6 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
         if (completed && (completed.data != null || !completed.message.includes(noQueueItem))){ // Only run on completed responses
             let lastItem = this.queue.shift()
             if (lastItem){
-                console.log(completed)
                 lastItem.callback()
 
                 if (this.queue.length !== 0){
@@ -420,7 +418,6 @@ export class BuzzBLE { //This is formatted for the way the Neosensory Buzz sends
 
     writeValue = (val) => {
         return new Promise(resolve => {
-            console.log(val)
             this.rxchar.writeValue(this.encoder.encode(val))
             resolve()
             setTimeout(()=>{resolve()}, 50) // Throttle Write Commands
