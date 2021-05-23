@@ -6,6 +6,8 @@ import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
 
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
+
+import {Application} from '../../../libraries/js/src/Application'
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -267,7 +269,7 @@ export class AppletManager {
                     appletPromises.push(new Promise(async (resolve, reject) => {
                         let settings = await getAppletSettings(appletManifest[conf.name].folderUrl)
                         let applet = await getApplet(settings)
-                        if (applet != null) return resolve(applet)
+                        if (applet != null) return resolve([applet, settings])
                         else return reject('applet does not exist')
                     }))
                 }
@@ -276,7 +278,7 @@ export class AppletManager {
                 appletPromises.push(new Promise(async (resolve, reject) => {
                     let settings = await getAppletSettings(appletManifest[conf].folderUrl)
                     let applet = await getApplet(settings)
-                    if (applet != null) return resolve(applet)
+                    if (applet != null) return resolve([applet,settings])
                     else return reject('applet does not exist')
                 }))
             }
@@ -284,8 +286,12 @@ export class AppletManager {
 
         // If no applets have been configured, redirect to base URL
         if (appletPromises.length == 0) {
-            console.log(appletManifest)
-            appletPromises = [(async () => { return getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)) })()]
+            let getBrowser = async () => {
+                let settings = await getAppletSettings(appletManifest['Applet Browser'].folderUrl)
+                let applet = await getApplet(settings)
+                return [applet,settings]
+            }
+            appletPromises = getBrowser()
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' }, '', window.location.origin)
         }
 
@@ -307,16 +313,20 @@ export class AppletManager {
                     }
 
                     // Add new applet
-                    let appletCls = configApplets[0]
-                    if (appletCls) {
+                    let appletInfo = configApplets[0]
+                    if (appletInfo) {
+                        let appletCls = appletInfo[0]
                         let config = undefined;
                         if (typeof this.appletConfigs[i] === 'object') {
                             config = this.appletConfigs[i].settings;
                         }
+
+                        let clsInstance = this.createInstance(appletCls, appletInfo[1])
+
                         this.applets[i] = {
                             appletIdx: i + 1,
                             name: this.appletConfigs[i],
-                            classinstance: new appletCls("applets", this.session, config)
+                            classinstance: clsInstance
                         }
                         configApplets.splice(0, 1)
                         this.appletsSpawned++;
@@ -547,7 +557,18 @@ export class AppletManager {
         }, 100)
     }
 
-    addApplet = (appletCls, appletIdx, settings = undefined) => {
+
+    createInstance = (appletCls, info=undefined) => {
+        if (info.type === 'Application'){
+            console.log('application')
+            console.log(info)
+            return new Application(info, "applets", this.session, [])
+        } else {
+            return new appletCls("applets", this.session, [])
+        }
+    }
+
+    addApplet = (appletCls, appletIdx, info={}) => {
         if (this.appletsSpawned < this.maxApplets) {
             var found = this.applets.find((o, i) => {
                 if (o.appletIdx === appletIdx) {
@@ -560,8 +581,10 @@ export class AppletManager {
 
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.session), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.session), container: container});}
-            var pos = appletIdx - 1; if (pos > this.applets.length) { pos = this.applets.length; this.applets[pos] = { appletIdx: pos + 1, name: classObj.name, classinstance: new appletCls("applets", this.session, settings) }; }
-            else { this.applets[pos] = { appletIdx: pos + 1, name: appletCls.name, classinstance: new appletCls("applets", this.session, settings) }; }
+            let clsInstance = this.createInstance(appletCls, info)
+            
+            var pos = appletIdx - 1; if (pos > this.applets.length) { pos = this.applets.length; this.applets[pos] = { appletIdx: pos + 1, name: classObj.name, classinstance: clsInstance }; }
+            else { this.applets[pos] = { appletIdx: pos + 1, name: appletCls.name, classinstance: clsInstance }; }
 
             this.applets[pos].classinstance.init();
 
@@ -658,8 +681,9 @@ export class AppletManager {
         select.onchange = async (e) => {
             this.deinitApplet(appletIdx + 1);
             if (select.value !== 'None') {
-                let appletCls = await getApplet(await getAppletSettings(appletManifest[select.value].folderUrl))
-                this.addApplet(appletCls, appletIdx + 1);
+                let appletSettings = await getAppletSettings(appletManifest[select.value].folderUrl)
+                let appletCls = await getApplet(appletSettings)
+                this.addApplet(appletCls, appletIdx + 1, appletSettings);
             }
         }
     }

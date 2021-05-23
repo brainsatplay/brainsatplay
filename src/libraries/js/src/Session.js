@@ -92,6 +92,8 @@ export class Session {
 			commandResult: {},
 		});
 
+		this.stateChanges = {added: '', removed: ''}
+
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
 
 		this.info = {
@@ -103,7 +105,7 @@ export class Session {
 				authenticated: false
 			},
 			subscribed: false,
-			subscriptions: []
+			subscriptions: [],
 		}
 
 		this.id = Math.floor(Math.random() * 10000) // Give the session an ID
@@ -572,6 +574,7 @@ export class Session {
 		this.state.addToState(id, props, onData);
 
 		this.state.data[id + "_flag"] = true;
+		
 		let sub = this.state.subscribe(id, () => {
 			this.state.data[id + "_flag"] = true;
 		});
@@ -593,10 +596,8 @@ export class Session {
 	//Remove arbitrary data streams made with streamAppData
 	removeStreaming(id, responseIdx) {
 		if (responseIdx == null){
-			this.state.unsubscribeAll(id); //unsub state
-			this.state.unsubscribeAll(id+"_flag"); //unsub flag
-			delete this.state.data[id];
-			delete this.state.data[id+"_flag"];
+			this.state.removeState(id)
+			this.state.removeState(id+"_flag")
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
@@ -764,72 +765,72 @@ export class Session {
 
 		if (parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
-				this.state.data["userData_" + parsed.username + "_" + prop] = parsed.userData[prop];
+				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
 			}
 		}
 		else if (parsed.msg === 'sessionData') {
+
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
 				for (const prop in o) {
-					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`] = o[prop]
+					if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
 				}
 			});
 
 			if (parsed.userLeft) {
 				for (const prop in this.state.data) {
 					if (prop.indexOf(parsed.userLeft) > -1) {
-						this.state.unsubscribeAll(prop);
-						delete this.state.data[prop]
+						this.state.removeState(prop)
 					}
 				}
 			}
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getUsersResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionDataResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionsResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionCreated') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToUser') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userNotFound') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToSession') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'leftSession') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionDeleted') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'unsubscribed') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'resetUsername') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'getUserDataResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} 
 		// OSC
 		else if (parsed.msg === 'oscError') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscInfo') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscData') {
 			console.log(parsed.oscData)
 			// for (const prop in parsed.userData) {
@@ -892,7 +893,7 @@ export class Session {
 			userProps.forEach((prop) => {
 				let p = prop;
 				if (Array.isArray(p)) p = prop.join("_"); //if props are given like ['eegch','FP1']
-				this.state.data[username + "_" + p] = null; //dummy values so you can attach listeners to expected outputs
+				this.state.updateState(username + "_" + p, null)
 			});
 			//wait for result, if user found then add the user
 			let sub = this.state.subscribe('commandResult', (newResult) => {
@@ -901,7 +902,7 @@ export class Session {
 						if (newResult.username === username) {
 							this.sendBrainstormCommand(['subscribeToUser', username, userProps]);
 							for (const [prop, value] of Object.entries(newResult.userData.props)) {
-								this.state.data["userData_" + username + "_" + prop] = value;
+								this.state.updateState("userData_" + username + "_" + prop, value)
 							}
 						}
 						onsuccess(newResult.userData);
@@ -925,8 +926,7 @@ export class Session {
 				if (newResult.msg === 'unsubscribed' && newResult.username === username) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(username) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -1021,7 +1021,6 @@ export class Session {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
 							newResult.sessionInfo.propnames.forEach((prop) => {
-								// console.log(prop);
 								streamParams.push(prop.split("_"));
 							});
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
@@ -1029,11 +1028,6 @@ export class Session {
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
-							newResult.sessionInfo.usernames.forEach((user) => {
-								newResult.sessionInfo.propnames.forEach((prop) => {
-									this.state.data[sessionid + "_" + user + "_" + prop] = null;
-								});
-							});
 							onsuccess(newResult);
 						}
 
@@ -1057,8 +1051,7 @@ export class Session {
 				if (newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(sessionid) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -1571,9 +1564,22 @@ export class Session {
 		if (query != null) {
 			var regex = new RegExp(query);
 			let returnedStates = Object.keys(this.state.data).filter(k => {
+
+				// Query is True
 				let test1 = regex.test(k)
+
+				// Structure is Appropriate
 				let test2 = structureFilter(k)
-				if (test1 && test2) return true
+
+				// Props are Included
+				let test3 = false;
+				props.forEach(p => {
+					if (k.includes(p)){
+						test3 = true
+					}
+				})
+				
+				if (test1 && test2 && test3) return true
 			})
 
 			let usedNames = []
@@ -1582,37 +1588,24 @@ export class Session {
 				const strArr = str.split('_')
 
 				if (!usedNames.includes(strArr[usernameInd])) {
-					if (strArr.length <= 2){
-						if (!usedNames.includes( this.info.auth.username )) {
-							usedNames.push(this.info.auth.username)
-							arr.push({ username: this.info.auth.username })
-						}
-					} else {
-						usedNames.push(strArr[usernameInd])
-						arr.push({ username: strArr[usernameInd] })
-					}
+					usedNames.push(strArr[usernameInd])
+					arr.push({ username: strArr[usernameInd] })
 				}
 
 				arr.find(o => {
-					let prop;
-					if (strArr.length <= 2) prop =  str // My Local Data (prop query)
-					else prop = strArr.slice(propInd).join('_') // Other User Data
-
-					if (o.username === this.info.auth.username){
-						o[prop] = this.state.data[prop]
-					}
-					else if (o.username === strArr[usernameInd]) {
+					let prop = strArr.slice(propInd).join('_') // Other User Data
+					if (o.username === strArr[usernameInd]) {
 						o[prop] = this.state.data[str]
 					}
 				})
 			})
 
-			if (returnedStates.length === 0){ // Solo Games or Spectating without Others (username query)
-				arr = [{ username: this.info.auth.username}]
-				props.forEach(prop => {
-					arr[0][prop] = this.state.data[prop]
-				})
-			}
+			// GET MY LOCAL DATA
+			let i = arr.length
+			arr.push({ username: this.info.auth.username})
+			props.forEach(prop => {
+				arr[i][prop] = this.state.data[prop]
+			})
 		} else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
@@ -1627,8 +1620,7 @@ export class Session {
 				if (newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(userToKick) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -2141,7 +2133,7 @@ class streamSession {
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
-			this.getDataForSocket(undefined, this.info.appStreamParams) // NOTE: UNSTABLE
+			this.getDataForSocket(undefined, this.info.appStreamParams) 
 			this.info.streamCt = 0;
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}

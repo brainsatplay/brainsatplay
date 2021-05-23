@@ -9,7 +9,8 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
-        this.prev = Object.assign({},this.data);;
+        this.prev = Object.assign({},this.data);
+        this.update = {added:'', removed: '', buffer: new Set()}
                 
         this.listener = new ObjectListener();
 
@@ -38,14 +39,37 @@ export class StateManager {
         });
     }
 
+
+    // Managed State Updates. Must Still Clean Event Listeners
+    updateState(key, value){
+        if (this.data[key] == null){
+            this.addToState(key,value)
+        } else {
+            this.data[key] = value
+        }
+    }
+
+    removeState(key){
+            this.unsubscribeAll(key);
+            delete this.data[key]
+
+            // Log Update
+            this.update.removed = key
+            this.update.buffer.add( key )
+    }
+
     //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
     addToState(key, value, onchange=null, debug=false) {
         if(!this.listener.hasKey('push')) {
+
+            console.log('creating listener')
+
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {
                     Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
+
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
                     for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
                         delete this.pushToState[prop];
@@ -60,9 +84,14 @@ export class StateManager {
                 pushToStateResponse,
                 this.interval
             );
-    
         }
+
         this.data[key] = value;
+
+        // Log Update
+        this.update.added = key
+        this.update.buffer.add( key )
+
         if(onchange !== null){
             return this.addSecondaryKeyResponse(key,onchange,debug);
         }

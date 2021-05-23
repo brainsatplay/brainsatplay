@@ -4,12 +4,8 @@ import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
 
 import * as settingsFile from './settings'
-// import { Application } from '../../../libraries/js/src/Application'
-
 
 //Example Applet for integrating with the UI Manager
-// export const Applet = () => {return new Application(settingsFile.settings, parent, session, settings)}
-
 export class Applet {
 
     constructor(

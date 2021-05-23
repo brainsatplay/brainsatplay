@@ -31,7 +31,7 @@ export class Applet {
             //Add whatever else
         };
 
-        let nodes = [Spacebar, Coherence]
+        let nodes = [Spacebar,Coherence]
 
         this.session.plugins.add(this.props.id, this.info.name, nodes)
     }
@@ -48,21 +48,22 @@ export class Applet {
         let responses = {
             coherence: (userData) => {
                 userData.forEach(u => {
-                    console.log(u.coherence)
+                    // console.log(u.coherence)
                 })
             }, 
 
             spacebar: (userData) => {
                 userData.forEach(u => {
-                     console.log(u.spacebar.value)
+                    console.log(u.spacebar?.value)
                 })
             },
         }
 
         let shared = (userData) => {
+            console.log(userData)
             let html = ``
             userData.forEach(u => {
-                let userStyle = (u?.spacebar?.value ? "color: red;" : "")
+                let userStyle = (u.spacebar?.value ? "color: red;" : "")
                 html += `<p style="${userStyle}">${u.username}: ${u.coherence}</p>`
             })
             document.getElementById(`${this.props.id}-coherence`).innerHTML = html
