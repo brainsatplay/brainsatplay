@@ -21,24 +21,23 @@ export class Application{
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.session.plugins.add(this.props.id, this.info.name, this.info.nodes)
+        this.session.plugins.add(this.props.id, this.info.name, this.info.plugins)
     }
 
 
     init() {
 
-        this.streams = this.session.plugins.start(this.props.id, this.info.responses)
+        let info = this.session.plugins.start(this.props.id, this.info.responses)
+        this.uiParams = info.uiParams
 
-        //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
-        let HTMLtemplate = this.info.template
-
-        //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
-        let setupHTML = (props=this.props) => { 
-            if (this.info.setupHTML instanceof Function) this.info.setupHTML()        
+        let setupHTML = (props=this.props) => {
+            this.uiParams.setupHTML.forEach(f => {
+                f(props)
+            })
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-            HTMLtemplate,       //Define the html template string or function with properties
+            this.uiParams.HTMLtemplate,       //Define the html template string or function with properties
             this.parentNode,    //Define where to append to (use the parentNode)
             this.props,         //Reference to the HTML render properties (optional)
             setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
@@ -52,8 +51,8 @@ export class Application{
 
         //Delete all event listeners and loops here and delete the HTML block
         deinit() {
-            this.streams = this.session.plugins.stop(this.props.id)
-            this.AppletHTML.deleteNode();
+            this.session.plugins.stop(this.props.id)
+            if (this.AppletHTML) this.AppletHTML.deleteNode();
         }
     
         //Responsive UI update, for resizing and responding to new connections detected by the UI manager

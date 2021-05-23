@@ -31,9 +31,12 @@ export class Applet {
             //Add whatever else
         };
 
-        let nodes = [Spacebar,Coherence]
+        let plugins = {
+            processing: [Spacebar,Coherence],
+            ui: []
+        }
 
-        this.session.plugins.add(this.props.id, this.info.name, nodes)
+        this.session.plugins.add(this.props.id, this.info.name, plugins)
     }
 
     //---------------------------------
@@ -69,7 +72,8 @@ export class Applet {
             document.getElementById(`${this.props.id}-coherence`).innerHTML = html
         }
 
-        this.streams = this.session.plugins.start(this.props.id, responses, shared)
+        let appletInfo = this.session.plugins.start(this.props.id, responses, shared)
+        this.streams = appletInfo.streams
 
         // VISUALS
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements

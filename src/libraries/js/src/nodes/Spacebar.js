@@ -18,6 +18,7 @@ export class Spacebar{
 
 
     handleKeyDown = (e) => {
+        console.log(e)
         if (e.code === 'Space' && this.output.value != true) this.output.value = true
     }
     
