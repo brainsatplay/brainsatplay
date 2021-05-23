@@ -591,14 +591,18 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id) {
-		this.state.unsubscribeAll(id); //unsub state
-		this.state.unsubscribeAll(id+"_flag"); //unsub flag
-		delete this.state.data[id];
-		delete this.state.data[id+"_flag"];
-		this.streamObj.removeStreamFunc(id); //remove streaming function by name
-		let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
-		if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
+	removeStreaming(id, responseIdx) {
+		if (responseIdx == null){
+			this.state.unsubscribeAll(id); //unsub state
+			this.state.unsubscribeAll(id+"_flag"); //unsub flag
+			delete this.state.data[id];
+			delete this.state.data[id+"_flag"];
+			this.streamObj.removeStreamFunc(id); //remove streaming function by name
+			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
+			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
+		} else {
+			this.state.unsubscribe(id, responseIdx); //unsub state
+		}
 	} 
 
 	//Add functions for gathering data to send to the server
