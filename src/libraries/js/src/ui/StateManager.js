@@ -62,8 +62,6 @@ export class StateManager {
     addToState(key, value, onchange=null, debug=false) {
         if(!this.listener.hasKey('push')) {
 
-            console.log('creating listener')
-
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {

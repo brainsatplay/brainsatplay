@@ -26,19 +26,21 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'spacebar', class: Keyboard, params: {key: 'Space'}, stream: true},
-        {id: 'coherence', class: Coherence, params: {}, loop: true, stream: true}, 
+        {id: 'spacebar', class: Keyboard, params: {key: 'Space'}},
+        {id: 'coherence', class: Coherence, params: {}, loop: true}, 
         {id: 'ui', class: UI, params: {toggle: 'spacebar'}},
-        {id: 'debug', class: Debug, params: {}},
+        {id: 'debug', class: Debug, params: {}}
+
       ],
       edges: [
-        // {
-        //   source: 'spacebar', 
-        //   target: 'debug'
-        // },{
-        //   source: 'coherence', 
-        //   target: 'debug'
-        // }
+        {
+          source: 'spacebar:brainstorm', 
+          target: 'ui:color'
+        },
+        {
+          source: 'coherence:brainstorm', 
+          target: 'ui:readout'
+        }
       ]
     }],
 }

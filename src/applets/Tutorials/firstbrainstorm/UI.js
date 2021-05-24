@@ -17,7 +17,7 @@ export class UI{
             <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                 <div>
                     <h1>Frontal Alpha Coherence</h1>
-                    <p id="${this.props.id}-coherence"></p>
+                    <div id="${this.props.id}-coherence"></div>
                 </div>
             </div>`
         }
@@ -28,18 +28,63 @@ export class UI{
 
         let responses = null
 
-        let shared = (userData) => {
-            let html = ``
-            userData.forEach(u => {
-                let userStyle = (u[this.params.toggle]?.value ? "color: red;" : "")
-                html += `<p style="${userStyle}">${u.username}: ${u.coherence?.value}</p>`
-            })
+        let shared = null
+        // let shared = (userData) => {
+        //     let html = ``
+        //     userData.forEach(u => {
+        //         let userStyle = (u[this.params.toggle]?.value ? "color: red;" : "")
+        //         html += `<p style="${userStyle}">${u.username}: ${u.coherence?.value}</p>`
+        //     })
 
-            document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-        }
+        //     document.getElementById(`${this.props.id}-coherence`).innerHTML = html
+        // }
 
         return {HTMLtemplate, setupHTML ,responses, shared}
     }
+
+    update = (input) => {
+        console.log('update', input)
+    }
+
+    // Write UI using Graph Ports
+    readout = (userData) => {
+        let outputDiv = document.getElementById(`${this.props.id}-coherence`)
+        let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
+
+        let nameRegistry = new Set(userData.map(u => u.username))
+
+        for (let readout of coherenceReadouts){
+            if (Array.isArray(userData)){
+                let username = readout.id.replace(`${this.props.id}-`,'')
+                let found = userData.find(u => u.username === username)
+                if (found) {
+                    nameRegistry.delete(found.username)
+                    readout.innerHTML = `${found.username}: ${found.coherence?.value}`
+                } else {
+                    readout.remove()
+                }
+            }
+        }
+
+        nameRegistry.forEach(name => {
+            let u = userData.find(u => u.username === name)
+            outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.coherence?.value}</p>`
+        })
+    }
+
+    color = (userData) => {
+        let coherenceReadouts = document.getElementById(`${this.props.id}-coherence`).querySelectorAll(`.readout`)
+        if (Array.isArray(userData)){
+            userData.forEach(u =>{
+            for (let readout of coherenceReadouts){
+                if (readout.id.replace(`${this.props.id}-`,'') === u.username){
+                    readout.style = (u[this.params.toggle]?.value ? "color: red;" : "")
+                }
+            }
+        })
+    }
+    }
+    
 
     deinit = () => {}
 }
