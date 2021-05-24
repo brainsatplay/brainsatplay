@@ -66,11 +66,12 @@ export class eeg32Plugin {
                     let latest = this.device.getLatestData("A"+o.ch,newLinesInt);
                     let latestFiltered = new Array(latest.length).fill(0);
                     if(o.tag !== "other" && info.useFilters === true) { 
-                        this.filters.forEach((f,j) => {
+                        this.filters.find((f,j) => {
                             if(f.channel === o.ch) {
                                 latest.forEach((sample,k) => { 
                                     latestFiltered[k] = f.apply(sample); 
                                 });
+                                return true;
                             }
                         });
                         if(info.useAtlas === true) {
