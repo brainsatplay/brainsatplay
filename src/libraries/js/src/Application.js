@@ -21,20 +21,26 @@ export class Application{
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.session.plugins.add(this.props.id, this.info.name, this.info.plugins)
+        this.session.graphs.add(this.props.id, this.info.name, this.info.graphs)
     }
 
 
     init() {
 
-        let info = this.session.plugins.start(this.props.id, this.info.responses)
+        let info = this.session.graphs.start(this.props.id, this.info.responses)
+        this.streams = info.streams
         this.uiParams = info.uiParams
 
-        let setupHTML = (props=this.props) => {
+        let setupHTML = () => {
+
+            if (this.info.intro != null) this.session.createIntro(this)
+
             this.uiParams.setupHTML.forEach(f => {
-                f(props)
+                f(this)
             })
         }
+
+        this.uiParams.HTMLtemplate = `<div id="${this.props.id}" style="height:100%; width:100%;">${this.uiParams.HTMLtemplate}</div>`
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             this.uiParams.HTMLtemplate,       //Define the html template string or function with properties
@@ -51,7 +57,7 @@ export class Application{
 
         //Delete all event listeners and loops here and delete the HTML block
         deinit() {
-            this.session.plugins.stop(this.props.id)
+            this.session.graphs.stop(this.props.id)
             if (this.AppletHTML) this.AppletHTML.deleteNode();
         }
     

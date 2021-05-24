@@ -7,10 +7,9 @@ export class UI{
         }
     }
 
-    init(){
-        // Simply define the HTML template
+    init = () => {
         let HTMLtemplate = () => {return `
-            <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
                 <div>
                     <h1>Frontal Alpha Coherence</h1>
                     <p id="${this.props.id}-coherence"></p>
@@ -19,7 +18,7 @@ export class UI{
         }
 
 
-        let setupHTML = () => {}
+        let setupHTML = (app) => {}
 
 
         let responses = {
@@ -37,7 +36,5 @@ export class UI{
         return {HTMLtemplate, setupHTML ,responses}
     }
 
-    deinit() {
-        // Nothing Special Here...
-    }
+    deinit = () => {}
 }

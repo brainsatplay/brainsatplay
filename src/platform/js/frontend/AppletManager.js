@@ -560,8 +560,6 @@ export class AppletManager {
 
     createInstance = (appletCls, info=undefined) => {
         if (info.type === 'Application'){
-            console.log('application')
-            console.log(info)
             return new Application(info, "applets", this.session, [])
         } else {
             return new appletCls("applets", this.session, [])

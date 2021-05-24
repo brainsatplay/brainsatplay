@@ -1,11 +1,17 @@
+// Managers
+import { StateManager } from './ui/StateManager'
+
 export class PluginManager{
     constructor(session) {
         this.session = session
         this.applets = {}
         this.registry = {local: {}, brainstorm: {}}
+        this.state = new StateManager() // For graphs
 
-        // Listen for Added/Removed States (Not Yours...)
-        this.session.state.addToState('update',this.session.state.update, (update) => {
+        console.log(this.state)
+
+        // Listen for Added/Removed States
+        this.session.state.addToState('update',this.session.update, (update) => {
             if (update.added){
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
@@ -36,25 +42,36 @@ export class PluginManager{
         })
     }
 
-    add(id, name, pluginDict){
-        let streams = []
+    add(id, name, graphs){
+        let streams = new Set()
         let outputs = {}
         let subscriptions = {}
 
-        // Don't Distinguish between Categories (yet...)
-        let plugins = {}
-        for (let key in pluginDict){
-            plugins[key] = pluginDict[key].map(plugin => {
-                return new plugin(this.session)
+        let nodes = {}
+        let edges = []
+        graphs.forEach(g => {
+            g.edges.forEach(e => {
+                edges.push(e)
             })
-        }
 
-        if (this.applets[id] == null) this.applets[id] = {plugins,name,streams, outputs,subscriptions}
+            // NOTE: Does this Merge Graphs?
+            g.nodes.forEach(node => {
+                if (nodes[node.id] == null){
+                    nodes[node.id] = node
+                    nodes[node.id].instance = new node.class(this.session)
+                }
+            })
+        })
+
+        // Declare Applet Info
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
     }
 
-    start(id){
+    start(appId){
 
-        this.applets[id].streams = []
+        let applet =  this.applets[appId]
+
+        applet.streams = new Set()
 
         let uiArray = []
         let uiParams = {
@@ -64,9 +81,17 @@ export class PluginManager{
             shared: []
         }
 
-        this.applets[id].plugins.ui.forEach(n => {
-            uiArray.push(n.init())
-        })
+        let initializedNodes = []
+
+        // Get UI Components from Nodes
+        for (let id in applet.nodes){
+            let node = applet.nodes[id]
+            if (!initializedNodes.includes(node.id)){
+                let ui = node.instance.init(node.params)
+                if (ui != null) uiArray.push(ui)
+                initializedNodes.push(node.id)
+            }
+        }
 
         uiArray.forEach((o) => {
             if (o.HTMLtemplate instanceof Function) o.HTMLtemplate = o.HTMLtemplate()
@@ -79,30 +104,51 @@ export class PluginManager{
             uiParams.shared.push(o.shared)
         })
 
-        this.applets[id].plugins.processing.forEach(n => {
-            n.init() // Create internal event listeners
-            this.applets[id].streams.push(n.id) // Keep track of streams to pass to the Intro function
-            
-            // Create Output to Listen To
-            if (this.registry.local[n.id] == null){
-                this.registry.local[n.id] = {count: 0, output: null, callback: ()=>{}}
-                this.registry.local[n.id].output = n.output
+        // Initialize the Rest of the Nodes
+        for (let id in applet.nodes){
+            let node = applet.nodes[id].instance
+            if (!initializedNodes.includes(id)){
+                node.init() // Create internal event listeners
             }
 
-            // Listen to Output
-            if (n.output != null || n.stream != null){
-                if (n.stream) this._addStream(n.id, id, n.stream, uiParams.responses[n.id], uiParams.shared) // Add stream function
-                else this._addData(n.id, id, uiParams.responses[n.id], uiParams.shared) // Add data to listen to
+            // Add to Registry
+            if (this.registry.local[node.output] == null){
+                this.registry.local[node.output] = {count: 0, state: null, callback: ()=>{}}
+                this.registry.local[node.output].state = node.state
             }
-            
-            this.registry.local[n.id].count++
-        })
 
-        return {uiParams: uiParams, streams:this.applets[id].streams}
+            // Add to Streams
+            if (node.output != null) applet.streams.add(node.output) // Keep track of streams to pass to the Intro function
+            
+            
+            if (node.state != null || node.stream != null){
+                if (node.stream) this._addStream(node.output, appId, node.stream, uiParams.responses[node.output], uiParams.shared) // Add stream function
+                else this._addData(node.output, appId, uiParams.responses[node.output], uiParams.shared) // Add data to listen to
+            }
+
+            this.registry.local[node.output].count++
+        }
+
+        // Start Graphs
+        applet.edges.forEach((e,i) => {
+
+                let source = applet.nodes[e.source].instance
+                let target = applet.nodes[e.target].instance
+
+                let callback = (input) => {
+                    // Update Listener
+                    let update = target.filter(input)
+                }
+                
+                if (source.state) this.session.state.subscribe(source.output, callback)
+                else console.log('source has nothing to listen to')
+         })
+
+        return {uiParams: uiParams, streams:this.applets[appId].streams}
     }
 
-    stop(id){
-        let applet = this.applets[id]
+    stop(appId){
+        let applet = this.applets[appId]
 
         // Remove Listeners
         applet.streams.forEach(stream => {
@@ -116,16 +162,18 @@ export class PluginManager{
         })
 
         // Deinit Plugins
-        for (let key in this.applets[id].plugins){
-            this.applets[id].plugins[key].forEach(plugin => plugin.deinit())
+        console.log(this.applets[appId].nodes)
+        for (let key in this.applets[appId].nodes){
+            this.applets[appId].nodes[key].instance.deinit()
         }
 
-        delete this.applets[id]
+        delete this.applets[appId]
     }
 
     // Internal Methods
 
     _addData(id, appletId, dataCallbacks, sharedCallbacks) {
+
         let applet = this.applets[appletId]
 
         this.registry.local[id].callback = () => {
@@ -141,7 +189,7 @@ export class PluginManager{
                 })
             }
         }
-        applet.subscriptions[id] = this.session.streamAppData(id, this.registry.local[id].output, this.registry.local[id].callback)
+        applet.subscriptions[id] = this.session.streamAppData(id, this.registry.local[id].state, this.registry.local[id].callback)
     }
 
     _addStream(id, appletId, callback, dataCallbacks, sharedCallbacks){

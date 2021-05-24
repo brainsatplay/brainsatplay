@@ -1,6 +1,6 @@
 export class Coherence{
     constructor(session) {
-        this.id = 'coherence'
+        this.output = 'coherence'
         this.session = session
 
         this.stream = () => {
@@ -8,7 +8,9 @@ export class Coherence{
         }
     }
 
-    init(){}
+    init = () => {}
 
-    deinit() {}
+
+    deinit = () => {}
+
 }

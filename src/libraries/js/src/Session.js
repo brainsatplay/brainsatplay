@@ -92,8 +92,6 @@ export class Session {
 			commandResult: {},
 		});
 
-		this.stateChanges = {added: '', removed: ''}
-
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
 
 		this.info = {
@@ -113,7 +111,7 @@ export class Session {
 		this.streamObj = new streamSession(this.info.auth);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
-		this.plugins = new PluginManager(this)
+		this.graphs = new PluginManager(this)
 	}
 
 	/**
@@ -1020,6 +1018,7 @@ export class Session {
 						if (spectating === false) {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
+							console.log(newResult)
 							newResult.sessionInfo.propnames.forEach((prop) => {
 								streamParams.push(prop.split("_"));
 							});
@@ -1292,9 +1291,9 @@ export class Session {
 	createIntro = (applet) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
-			<p>${applet.subtitle}</p>
+			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
 			<div class="brainsatplay-intro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
@@ -1370,6 +1369,13 @@ export class Session {
 		} else {
 			multiplayer.style.opacity = 0.25
 			multiplayer.style.pointerEvents = 'none'
+		}
+
+
+		// Autoselect
+		if (applet.info.intro){
+			if (applet.info.intro.mode === 'single') solo.click()
+			if (applet.info.intro.mode === 'multi') multiplayer.click()
 		}
 		
 		// Create Session Brower
@@ -1511,7 +1517,7 @@ export class Session {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, applet.streams]);
+			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
