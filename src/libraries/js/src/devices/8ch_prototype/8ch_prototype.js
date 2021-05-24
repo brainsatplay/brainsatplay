@@ -232,7 +232,35 @@ export class industryKiller { //Contains structs and necessary functions/API cal
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-					this.closePort();	
+                    if(error.message.includes('framing') || error.message.includes('overflow') || error.message.includes('overrun') || error.message.includes('Overflow') || error.message.includes('break')) {
+                        this.subscribed = false;
+                        setTimeout(async ()=>{
+                            if (this.reader) {
+                                await this.reader.releaseLock();
+                                this.reader = null;
+                            }
+                            this.subscribed = true; 
+                            this.subscribe(port);
+                            //if that fails then close port and reopen it
+                        },30); //try to resubscribe 
+                    } else if (error.message.includes('parity') || error.message.includes('Parity')) {
+                        if(this.port){
+                            this.subscribed = false;
+                            setTimeout(async () => {
+                                if (this.reader) {
+                                    await this.reader.releaseLock();
+                                    this.reader = null;
+                                }
+                                await port.close();
+                                //this.port = null;
+                                this.connected = false;
+                                setTimeout(()=>{this.onPortSelected(this.port)},100); //close the port and reopen
+                            }, 50);
+                        }
+                    }
+                     else {
+                        this.closePort();	
+                    }	
 				}
 			}
 			streamData();
