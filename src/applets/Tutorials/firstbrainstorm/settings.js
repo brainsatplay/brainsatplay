@@ -34,9 +34,9 @@ export const settings = {
       edges: [
         // {
         //   source: 'spacebar', 
-        //   target: 'math'
+        //   target: 'debug'
         // },{
-        //   source: 'math', 
+        //   source: 'coherence', 
         //   target: 'debug'
         // }
       ]

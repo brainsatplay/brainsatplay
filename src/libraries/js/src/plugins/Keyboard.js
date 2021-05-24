@@ -1,7 +1,12 @@
+
+
 export class Keyboard{
     
-    constructor(id, session, params={}) {
-        this.output = id
+    static id = String(Math.floor(Math.random()*1000000))
+
+    constructor(label, session, params={}) {
+        this.id = String(Math.floor(Math.random()*1000000))
+        this.label = label
         this.state = {value: false}; // Initialize object to subscribe to
         this.session = session
         this.params = params
