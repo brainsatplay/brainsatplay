@@ -9,7 +9,9 @@ export class Debug{
 
     deinit = () => {}
 
-    filter = (input) => {
-        console.log(input)
+    update = (input) => {
+        let value = input.value
+        console.log(value)
+        return value
     }
 }

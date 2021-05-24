@@ -25,8 +25,8 @@ export class UI{
             coherence: (userData) => {
               let html = ``
               userData.forEach(u => {
-                  if (u.coherence != undefined){
-                  html += `<p>${u.username}: ${u.coherence}</p>`
+                  if (u.value.coherence != undefined){
+                  html += `<p>${u.username}: ${u.coherence?.value}</p>`
                   }
               })
               document.getElementById(`${this.props.id}-coherence`).innerHTML = html

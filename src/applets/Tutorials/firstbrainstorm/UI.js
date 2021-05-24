@@ -32,7 +32,7 @@ export class UI{
             let html = ``
             userData.forEach(u => {
                 let userStyle = (u.spacebar?.value ? "color: red;" : "")
-                html += `<p style="${userStyle}">${u.username}: ${u.coherence}</p>`
+                html += `<p style="${userStyle}">${u.username}: ${u.coherence?.value}</p>`
             })
 
             document.getElementById(`${this.props.id}-coherence`).innerHTML = html

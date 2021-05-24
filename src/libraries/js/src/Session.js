@@ -605,16 +605,17 @@ export class Session {
 	} 
 
 	//Add functions for gathering data to send to the server
-	addStreamFunc(name, callback, idx = 0) {
+	addStreamFunc(name, callback, manager=this.state) {
 
 		if (typeof name === 'string' && typeof callback === 'function') {
 
 			// Artificially add to state (for streaming functions)
 			let _callback = () => { 
 				let data = callback()
-				if (data != undefined) this.state.data[name] = data
+				if (data != undefined) manager.data[name] = data
 				return data
 			}
+			
 			// Run so that solo users get their own data back
 			this.streamObj.streamLoop();
 
@@ -1018,7 +1019,6 @@ export class Session {
 						if (spectating === false) {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
-							console.log(newResult)
 							newResult.sessionInfo.propnames.forEach((prop) => {
 								streamParams.push(prop.split("_"));
 							});

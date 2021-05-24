@@ -17,11 +17,6 @@ export class Spacebar{
         document.removeEventListener('keyup',this.handleKeyDown)
     }
 
-    filter = (input) => {
-        return this.state.value // Return the expected value
-    }
-
-
     handleKeyDown = (e) => {
         if (e.code === 'Space' && this.state.value != true) this.state.value = true
     }

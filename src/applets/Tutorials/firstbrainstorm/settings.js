@@ -27,19 +27,24 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'spacebar', class: Spacebar, params: {}}, 
-        {id: 'coherence', class: Coherence, params: {}}, 
+        {id: 'spacebar', class: Spacebar, params: {}, stream: true}, 
+        {id: 'coherence', class: Coherence, params: {}, stream: true, loop: true}, 
         {id: 'ui', class: UI, params: {}},
         {id: 'debug', class: Debug, params: {}},
         {id:'add', class:Add, params: {}}
       ],
       edges: [
-        {
-          source: 'spacebar', 
-          target: 'add'
-        },{
-          source: 'add', 
-          target: 'debug'
-        }]
+        // {
+        //   source: 'spacebar', 
+        //   target: 'add'
+        // },{
+        //   source: 'add', 
+        //   target: 'debug'
+        // },
+        // {
+        //   source: 'coherence', 
+        //   target: 'debug'
+        // }
+      ]
     }],
 }
