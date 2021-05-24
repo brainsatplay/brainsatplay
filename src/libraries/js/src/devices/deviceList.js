@@ -9,6 +9,7 @@ import { buzzPlugin } from './neosensory/buzzPlugin';
 import { syntheticPlugin } from './synthetic/syntheticPlugin';
 import { brainstormPlugin } from './brainstorm/brainstormPlugin';
 import { bci2000Plugin } from './bci2000/bci2000Plugin';
+import { Prototype8Plugin } from './8ch_prototype/8chPlugin'
 
 
 export const deviceList = [
@@ -22,5 +23,5 @@ export const deviceList = [
     {'name': 'FreeEEG32', id:'freeeg32', company:'Neuroidss', analysis: ['eegcoherence'], variants: ['2','19'], cls: eeg32Plugin},
     {'name': 'Buzz', id:'buzz', company:'Neosensory', analysis: [], cls: buzzPlugin},
     {'name': 'BCI2000Web', id:'bci2k', company:'BCI2000', analysis: ['eegcoherence'], cls: bci2000Plugin},
-
+    {'name': '8 Channel Proto', id:'8chproto', company:'Brains@Play', analysis: ['eegcoherence'], cls: Prototype8Plugin},
 ]
