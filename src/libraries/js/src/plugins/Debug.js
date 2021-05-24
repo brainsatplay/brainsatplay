@@ -1,7 +1,7 @@
 export class Debug{
     
-    constructor(session) {
-        this.output = 'debug'
+    constructor(id, session, params={}) {
+        this.output = id
         this.session = session
     }
 

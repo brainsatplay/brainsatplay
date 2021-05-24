@@ -1,7 +1,7 @@
-export class Spacebar{
+export class Keyboard{
     
-    constructor(session, params={}) {
-        this.output = 'spacebar'
+    constructor(id, session, params={}) {
+        this.output = id
         this.state = {value: false}; // Initialize object to subscribe to
         this.session = session
         this.params = params
@@ -18,10 +18,15 @@ export class Spacebar{
     }
 
     handleKeyDown = (e) => {
-        if (e.code === 'Space' && this.state.value != true) this.state.value = true
+        if (this.matchKey(e.code) && this.state.value != true) this.state.value = true
     }
     
     handleKeyUp = (e) => {
-        if (e.code === 'Space') this.state.value = false
+        if (this.matchKey(e.code)) this.state.value = false
+    }
+
+    matchKey(code){
+        let regex = new RegExp(`(?:^|\W)${this.params.key}(?:$|\W)`,'i')
+        return code.match(regex) || code.replace('Key', '').match(regex) || code.replace('Digit', '').match(regex)
     }
 }

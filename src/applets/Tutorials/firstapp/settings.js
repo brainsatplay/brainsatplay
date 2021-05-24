@@ -1,6 +1,6 @@
 
 // import featureImg from './feature.png'
-import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
+import {Coherence} from '../../../libraries/js/src/plugins/Coherence'
 import {UI} from './UI'
 
 

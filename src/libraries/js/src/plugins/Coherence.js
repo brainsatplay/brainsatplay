@@ -1,6 +1,6 @@
 export class Coherence{
-    constructor(session) {
-        this.output = 'coherence'
+    constructor(id, session, params={}) {
+        this.output = id
         this.session = session
         this.state = {value: 0}
     }

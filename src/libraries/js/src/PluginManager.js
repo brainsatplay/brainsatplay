@@ -8,8 +8,6 @@ export class PluginManager{
         this.registry = {local: {}, brainstorm: {}}
         this.state = new StateManager() // For graphs
 
-        console.log(this.state)
-
         // Listen for Added/Removed States
         this.session.state.addToState('update',this.session.update, (update) => {
             if (update.added){
@@ -61,7 +59,7 @@ export class PluginManager{
             g.nodes.forEach(node => {
                 if (nodes[node.id] == null){
                     nodes[node.id] = node
-                    nodes[node.id].instance = new node.class(this.session)
+                    nodes[node.id].instance = new node.class(node.id, this.session,node.params)
                 }
             })
         })
@@ -212,15 +210,19 @@ export class PluginManager{
 
         this.registry.local[id].callback = () => {
             if (this.session.state.data[id] != null){
-                let propData = this.session.getBrainstormData(applet.name,[id])
-                dataCallbacks.forEach(f => {
-                    if (f instanceof Function) f(propData)
-                })
 
-                let allData = this.session.getBrainstormData(applet.name,applet.streams)
-                sharedCallbacks.forEach(f => {
-                    if (f instanceof Function) f(allData)
-                })
+                if (dataCallbacks){
+                    let propData = this.session.getBrainstormData(applet.name,[id])
+                    dataCallbacks.forEach(f => {
+                        if (f instanceof Function) f(propData)
+                    })
+                }
+                if (sharedCallbacks){
+                    let allData = this.session.getBrainstormData(applet.name,applet.streams)
+                    sharedCallbacks.forEach(f => {
+                        if (f instanceof Function) f(allData)
+                    })
+                }
             }
         }
         applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].state, this.registry.local[id].callback))
@@ -235,15 +237,20 @@ export class PluginManager{
 
         this.registry.local[id].callback = () => {
             if (this.session.state.data[id] != null){
-                let propData = this.session.getBrainstormData(applet.name,[id])
-                dataCallbacks.forEach(f => {
-                    if (f instanceof Function) f(propData)
-                })
 
-                let allData = this.session.getBrainstormData(applet.name,applet.streams)
-                sharedCallbacks.forEach(f => {
-                    if (f instanceof Function) f(allData)
-                })
+                if (dataCallbacks){
+                    let propData = this.session.getBrainstormData(applet.name,[id])
+                    dataCallbacks.forEach(f => {
+                        if (f instanceof Function) f(propData)
+                    })
+                }
+
+                if (sharedCallbacks){
+                    let allData = this.session.getBrainstormData(applet.name,applet.streams)
+                    sharedCallbacks.forEach(f => {
+                        if (f instanceof Function) f(allData)
+                    })
+                }
             }
         }
 

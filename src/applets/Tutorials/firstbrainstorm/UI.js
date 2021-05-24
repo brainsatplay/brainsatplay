@@ -1,10 +1,11 @@
 export class UI{
-    constructor(session) {
+    constructor(id, session, params) {
         this.id = 'myfirstapplet'
         this.session = session
         this.props = {
             id: String(Math.floor(Math.random()*1000000))
         }
+        this.params = params
     }
 
     init = () => {
@@ -22,16 +23,12 @@ export class UI{
         let setupHTML = () => {}
 
 
-        let responses = {
-            coherence: (userData) => {}, 
-
-            spacebar: (userData) => {},
-        }
+        let responses = null
 
         let shared = (userData) => {
             let html = ``
             userData.forEach(u => {
-                let userStyle = (u.spacebar?.value ? "color: red;" : "")
+                let userStyle = (u[this.params.toggle]?.value ? "color: red;" : "")
                 html += `<p style="${userStyle}">${u.username}: ${u.coherence?.value}</p>`
             })
 
