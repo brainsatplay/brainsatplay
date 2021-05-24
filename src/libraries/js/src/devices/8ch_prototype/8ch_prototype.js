@@ -35,8 +35,8 @@ export class industryKiller { //Contains structs and necessary functions/API cal
 		this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
 		this.updateMs = 1000/this.sps; //even spacing
 		this.stepSize = 1/Math.pow(2,24);
-		this.vref = 2.50; //2.5V voltage ref +/- 250nV
-		this.gain = 8;
+		this.vref = 1.20; //2.5V voltage ref +/- 250nV
+		this.gain = 32;
 
 		this.vscale = (this.vref/this.gain)*this.stepSize; //volts per step.
 		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
