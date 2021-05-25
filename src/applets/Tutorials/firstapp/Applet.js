@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 
-import {Coherence} from '../../../libraries/js/src/nodes/Coherence'
+import {Coherence} from '../../../libraries/js/src/plugins/Coherence'
 
 import * as settingsFile from './settings'
 

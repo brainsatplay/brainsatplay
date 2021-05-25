@@ -8,17 +8,15 @@ export class PluginManager{
         this.registry = {local: {}, brainstorm: {}}
         this.state = new StateManager() // For graphs
 
-        console.log(this.state)
-
         // Listen for Added/Removed States
-        this.session.state.addToState('update',this.session.update, (update) => {
+        this.session.state.addToState('update',this.session.state.update, (update) => {
             if (update.added){
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
                     update.buffer.forEach(k => {
                         if (this.registry.brainstorm[k] == null){
                                 if (k.includes(s) && k !== s){
-                                this.registry.brainstorm[k] = {count: 1, output: null, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
+                                this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
                                 this.registry.brainstorm[k].callback()
                             }
                         }
@@ -57,11 +55,10 @@ export class PluginManager{
                 edges.push(e)
             })
 
-            // NOTE: Does this Merge Graphs?
             g.nodes.forEach(node => {
                 if (nodes[node.id] == null){
                     nodes[node.id] = node
-                    nodes[node.id].instance = new node.class(this.session)
+                    nodes[node.id].instance = new node.class(node.id, this.session,node.params)
                 }
             })
         })
@@ -75,6 +72,7 @@ export class PluginManager{
         let applet =  this.applets[appId]
 
         applet.streams = new Set()
+        applet.streamIds = {}
 
         let uiArray = []
         let uiParams = {
@@ -116,82 +114,117 @@ export class PluginManager{
             }
 
             // Add to Registry
-            if (this.registry.local[node.output] == null){
-                this.registry.local[node.output] = {count: 0, state: null, callback: ()=>{}}
-                this.registry.local[node.output].state = node.state
+            if (this.registry.local[nodeInfo.id] == null){
+                this.registry.local[nodeInfo.id] = {count: 0, state: null, callback: ()=>{}}
+                this.registry.local[nodeInfo.id].state = node.state
             }
 
             // Add to Streams
-            if (node.output != null) applet.streams.add(node.output) // Keep track of streams to pass to the Intro function
-            
-            if (nodeInfo.stream){
-                if (nodeInfo.loop) this._addStream(node.output, appId, node.update, uiParams.responses[node.output], uiParams.shared) // Add stream function
-                else this._addData(node.output, appId, uiParams.responses[node.output], uiParams.shared) // Add data to listen to
-            }
+            if (node.label != null) applet.streams.add(node.label) // Keep track of streams to pass to the Intro function
+            if (nodeInfo.id != null) applet.streamIds[nodeInfo.id] = node.label // Keep track of streams to pass to the Intro function
 
-            this.registry.local[node.output].count++
+            // // STILL CHECK THESE
+            // if (nodeInfo.stream){
+            //     if (nodeInfo.loop) this._addStream(nodeInfo, appId, node.update, uiParams.responses[node.label], uiParams.shared) // Add stream function
+            //     else this._addData(nodeInfo, appId, uiParams.responses[node.label], uiParams.shared) // Add data to listen to
+            // }
+
+            this.registry.local[nodeInfo.id].count++
         }
 
         // Start Graphs
         applet.edges.forEach((e,i) => {
 
-                let sourceInfo = applet.nodes[e.source]
+                let splitSource = e.source.split(':')
+                let sourceName = splitSource[0]
+                let sourcePort = splitSource[1]
+                let sourceInfo = applet.nodes[sourceName]
                 let source = sourceInfo.instance
-                let target = applet.nodes[e.target].instance
+                let splitTarget = e.target.split(':')
+                let targetName = splitTarget[0]
+                let targetPort = splitTarget[1]
+                let target = applet.nodes[targetName].instance
 
                 let callback = (input) => {
-                    if (target.update) target.update(input)
+                    if (targetPort) target[targetPort](input)
+                    else if (target.update) target.update(input)
                 }
+
+
+                // Pass Output From Brainstorm (and automatically stream this input)
+                if (sourcePort == 'brainstorm') {
+                    if (sourceInfo.loop) this._addStream(sourceInfo, appId, source.update, [callback]) // Add stream function
+                    else this._addData(sourceInfo, appId, [callback]) // Add data to listen to
+                } 
+
+                // Otherwise Just Listen for Local Changes
+                else {
                 
-                if (source.output && source.state){
+                if (source.label && source.state){
 
-                    this.state.data[source.output] = source.state
+                    this.state.data[source.label] = source.state
 
-                    if (applet.subscriptions.local[source.output] == null) applet.subscriptions.local[source.output] = []
+                    if (applet.subscriptions.local[source.label] == null) applet.subscriptions.local[source.label] = []
 
                     if (sourceInfo.loop){
+
                         // Check if Already Streaming
-                        let found = this.session.streamObj.streamTable.find((d => {
-                            if (d.prop === source.output) {
-                                return d
-                            }
-                        }))
+                        let found = this.findStreamFunction(source.label)
 
                         // If Already Streaming, Subscribe to Session
                         if (found){
-                            applet.subscriptions.local[source.output].push(this.session.state.subscribe(source.output, callback))
+                            applet.subscriptions.local[source.label].push(this.session.state.subscribe(source.label, callback))
                         } 
+
                         // Otherwise Subscribe to Local
                         else {
-                            this.session.addStreamFunc(source.output, source.update, this.state)
-                            applet.subscriptions.local[source.output].push(this.state.subscribe(source.output, callback))
+                            this.session.addStreamFunc(source.label, source.update, this.state)
+                            applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
                         }
+
                     } else {
-                        applet.subscriptions.local[source.output].push(this.state.subscribe(source.output, callback))
+                        applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
                     }
                 }
+            }
          })
 
         return {uiParams: uiParams, streams:this.applets[appId].streams}
     }
 
+    findStreamFunction(prop) {
+        return this.session.streamObj.streamTable.find((d => {
+            if (d.prop === prop) {
+                return d
+            }             
+        }))
+     }
+
     stop(appId){
         let applet = this.applets[appId]
 
         // Remove Listeners
-        applet.streams.forEach(stream => {
-            this.registry.local[stream].count--
-            if (this.registry.local[stream].count == 0) {
-                delete this.registry.local[stream]
-                this.session.removeStreaming(stream);
+        Object.keys(applet.streamIds).forEach(streamId => {
+            let label = applet.streamIds[streamId]
+            this.registry.local[streamId].count--
+            if (this.registry.local[streamId].count == 0) {
+                delete this.registry.local[streamId]
+                this.session.removeStreaming(label);
             } else {
-                applet.subscriptions.session[stream].forEach(id =>{
-                    this.session.removeStreaming(stream, id);
-                })
 
-                applet.subscriptions.local[stream].forEach(id =>{
-                    this.session.removeStreaming(stream, id);
-                })
+                // Remove Subscriptions
+                let sessionSubs = applet.subscriptions.session[label]
+                let localSubs = applet.subscriptions.local[label]
+                if (sessionSubs != null){
+                    applet.subscriptions.session[label].forEach(id =>{
+                        this.session.removeStreaming(label, id);
+                    })
+                }
+                if (localSubs != null){
+                    applet.subscriptions.local[label].forEach(id =>{
+                        this.session.removeStreaming(label, id);
+                    })
+                }
             }
         })
 
@@ -205,49 +238,74 @@ export class PluginManager{
 
     // Internal Methods
 
-    _addData(id, appletId, dataCallbacks, sharedCallbacks) {
+    _addData(nodeInfo, appletId, dataCallbacks, sharedCallbacks) {
+
 
         let applet = this.applets[appletId]
-        if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
+        let id = nodeInfo.instance.label
 
-        this.registry.local[id].callback = () => {
-            if (this.session.state.data[id] != null){
-                let propData = this.session.getBrainstormData(applet.name,[id])
-                dataCallbacks.forEach(f => {
-                    if (f instanceof Function) f(propData)
-                })
+        let found = this.findStreamFunction(id)
 
-                let allData = this.session.getBrainstormData(applet.name,applet.streams)
-                sharedCallbacks.forEach(f => {
-                    if (f instanceof Function) f(allData)
-                })
+            if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
+
+            this.registry.local[nodeInfo.id].callback = () => {
+                if (this.session.state.data[id] != null){
+
+                    if (dataCallbacks){
+                        let propData = this.session.getBrainstormData_Plugin(applet.name,[id])
+                        dataCallbacks.forEach(f => {
+                            if (f instanceof Function) f(propData)
+                        })
+                    }
+                    if (sharedCallbacks){
+                        let allData = this.session.getBrainstormData_Plugin(applet.name,applet.streams)
+                        sharedCallbacks.forEach(f => {
+                            if (f instanceof Function) f(allData)
+                        })
+                    }
+                }
             }
+
+
+        if (found == null) {
+            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[nodeInfo.id].state, this.registry.local[nodeInfo.id].callback))
+        } else {
+            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.id].callback))
         }
-        applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].state, this.registry.local[id].callback))
+            
     }
 
-    _addStream(id, appletId, callback, dataCallbacks, sharedCallbacks){
+    _addStream(nodeInfo, appletId, callback, dataCallbacks, sharedCallbacks){
 
         let applet = this.applets[appletId]
+        let id = nodeInfo.instance.label
         if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
-
-        this.session.addStreamFunc(id, callback)
-
-        this.registry.local[id].callback = () => {
+    
+        let found = this.findStreamFunction(id)
+        if (found == null) {
+            this.session.addStreamFunc(id, callback)
+        }
+        
+        this.registry.local[nodeInfo.id].callback = () => {
             if (this.session.state.data[id] != null){
-                let propData = this.session.getBrainstormData(applet.name,[id])
-                dataCallbacks.forEach(f => {
-                    if (f instanceof Function) f(propData)
-                })
 
-                let allData = this.session.getBrainstormData(applet.name,applet.streams)
-                sharedCallbacks.forEach(f => {
-                    if (f instanceof Function) f(allData)
-                })
+                if (dataCallbacks){
+                    let propData = this.session.getBrainstormData_Plugin(applet.name,[id])
+                    dataCallbacks.forEach(f => {
+                        if (f instanceof Function) f(propData)
+                    })
+                }
+
+                if (sharedCallbacks){
+                    let allData = this.session.getBrainstormData_Plugin(applet.name,applet.streams)
+                    sharedCallbacks.forEach(f => {
+                        if (f instanceof Function) f(allData)
+                    })
+                }
             }
         }
 
-        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
-    }
+        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.id].callback))
+}
 
 }
