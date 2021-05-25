@@ -21,9 +21,9 @@ export class bci2000Plugin {
         info.sps = 256 // Arbitrary
         info.deviceType = 'eeg'
         this.info = info;
-
         return new Promise((resolve, reject) => {
 
+        if (this.mode === 'bci2k_Operator') {
             let script = ``;
             script += `Reset System; `;
             script += `Startup System localhost; `;
@@ -42,55 +42,69 @@ export class bci2000Plugin {
             this.operator.connect("ws://127.0.0.1").then(() => {
                 console.log("Connected to Operator layer through NodeJS server");
                 this.operator.execute(script);
-                this.device = new BCI2K.bciData();
-                this.device.connect("ws://127.0.0.1:20100").then((x) => {
-    
-                    // Create Event Handlers
-                    this.device.onGenericSignal = (raw) => {
-                        console.log(raw)
-                        if(this.info.useAtlas) {
-                            raw.forEach((chData,i) => {
-                                let coord = this.atlas.getEEGDataByChannel(i);
-                                // coord.times.push(...time);
-                                coord.raw.push(...chData);
-                                coord.count += chData.length;
-                                // if(this.info.useFilters === true) {                
-                                //     let latestFiltered = new Array(chData.length).fill(0);
-                                //     if(this.filters[this.info] !== undefined) {
-                                //         chData.forEach((sample,k) => { 
-                                //             latestFiltered[k] = this.filters[i].apply(sample); 
-                                //         });
-                                //     }
-                                //     coord.filtered.push(...latestFiltered);
-                                // }
-                                // console.log(coord.filtered);
-                            })	
-                        }
-                    };
-
-                    this.device.onStateFormat = data => console.log(data);
-                    this.device.onSignalProperties = data => {
-                        console.log(data);
-    
-                        // Check if already created (websocket tends to close and reopen...)
-                        if (this.atlas == null){
-                            // let eegChannelTags = []
-                            // data.channels.forEach((t,i) => {
-                            //     eegChannelTags.push({ch: i, tag: t, analyze: true})
-                            // })
-                            this.info.eegChannelTags = data.channels.length//eegChannelTags
-        
-                            // Create Data Atlas Given Signal Properties
-                            this.setupAtlas(this.info,pipeToAtlas);  
-                            
-                            // Validate Connection
-                            this.onconnect();
-                        }
-                        resolve(true)                
-                    }
-                });
+                this.connectToDataLayer(info,pipeToAtlas).then(res => {
+                    resolve(res)
+                })
               });
+        } else if (this.mode === 'bci2k_Data') {
+            this.connectToDataLayer(info,pipeToAtlas).then(res =>{
+                resolve(res)
             })
+        }
+    })
+    }
+
+    connectToDataLayer = async (info,pipeToAtlas) => {
+        return new Promise(async (resolve, reject) => {
+
+        this.device = new BCI2K.bciData();
+        this.device.connect("ws://127.0.0.1:20100").then((x) => {
+
+            // Create Event Handlers
+            this.device.onGenericSignal = (raw) => {
+                console.log(raw)
+                if(this.info.useAtlas) {
+                    raw.forEach((chData,i) => {
+                        let coord = this.atlas.getEEGDataByChannel(i);
+                        // coord.times.push(...time);
+                        coord.raw.push(...chData);
+                        coord.count += chData.length;
+                        // if(this.info.useFilters === true) {                
+                        //     let latestFiltered = new Array(chData.length).fill(0);
+                        //     if(this.filters[this.info] !== undefined) {
+                        //         chData.forEach((sample,k) => { 
+                        //             latestFiltered[k] = this.filters[i].apply(sample); 
+                        //         });
+                        //     }
+                        //     coord.filtered.push(...latestFiltered);
+                        // }
+                        // console.log(coord.filtered);
+                    })	
+                }
+            };
+
+            this.device.onStateFormat = data => console.log(data);
+            this.device.onSignalProperties = data => {
+                console.log(data);
+
+                // Check if already created (websocket tends to close and reopen...)
+                if (this.atlas == null){
+                    // let eegChannelTags = []
+                    // data.channels.forEach((t,i) => {
+                    //     eegChannelTags.push({ch: i, tag: t, analyze: true})
+                    // })
+                    this.info.eegChannelTags = data.channels.length//eegChannelTags
+
+                    // Create Data Atlas Given Signal Properties
+                    this.setupAtlas(this.info,pipeToAtlas);  
+                    
+                    // Validate Connection
+                    this.onconnect();
+                }
+                resolve(true)                
+            }
+        });
+        })
     }
 
     setupAtlas = (info,pipeToAtlas) => {
