@@ -8,8 +8,8 @@ export class MathPlugin{
         this.session = session
         this.params = params
         this.paramOptions = {
+            operator: {default: '', options: ['add','subtract', 'multiply', 'divide', 'mean']},
             value: {default: 0, options: null},
-            operator: {default: '', options: ['add','subtract', 'multiply', 'divide', 'mean']}
         }
 
         for (let param in this.paramOptions){

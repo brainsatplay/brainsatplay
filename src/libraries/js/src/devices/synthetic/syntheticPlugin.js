@@ -163,7 +163,7 @@ export class syntheticPlugin {
                     let maxFreq = 20
                     time.forEach((t) => {
                         let f = Math.floor(minFreq + (maxFreq-minFreq)*(i/nCh))
-                        samples.push(25*Math.sin(2*Math.PI*(f)*t/1000));
+                        samples.push(200*Math.sin(2*Math.PI*(f)*t/1000));
                     })
 
                     let coord = this.atlas.getEEGDataByTag(o.tag);

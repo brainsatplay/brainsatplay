@@ -1,5 +1,6 @@
 // Managers
 import { StateManager } from './ui/StateManager'
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 export class PluginManager{
     constructor(session) {
@@ -7,6 +8,11 @@ export class PluginManager{
         this.applets = {}
         this.registry = {local: {}, brainstorm: {}}
         this.state = new StateManager() // For graphs
+
+        this.gui = new GUI({ autoPlace: false });
+        document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 1000;"></div>`
+        document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
+        document.body.querySelector('.guiContainer').style.display = 'none'
 
         // Listen for Added/Removed States
         this.session.state.addToState('update',this.session.state.update, (update) => {
@@ -67,6 +73,53 @@ export class PluginManager{
         if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
     }
 
+
+    addToGUI(nodeInfo){
+        // Add GUI Element for Newly Created Nodes
+
+        let node = nodeInfo.instance
+
+        let paramsMenu;
+        if (node.paramOptions){
+            if (!Object.keys(this.gui.__folders).includes(node.label)){
+
+                let guiContainer = document.body.querySelector('.guiContainer')
+                if (guiContainer.style.display === 'none') guiContainer.style.display = 'block'
+
+                this.gui.addFolder(node.label);
+                this.registry.local[nodeInfo.class.id].gui[node.label] = []
+            }
+            paramsMenu = this.gui.__folders[node.label]
+        }
+
+        for (let param in node.paramOptions){
+            if(typeof node.paramOptions[param] === 'object' && node.params[param] != null && node.paramOptions[param].show !== false){
+                
+                // Numbers and Text
+                if (node.paramOptions[param].options == null){
+                    this.registry.local[nodeInfo.class.id].gui[node.label].push(
+                        paramsMenu.add(
+                            node.params, 
+                            param, 
+                            node.paramOptions[param].min,
+                            node.paramOptions[param].max,
+                            node.paramOptions[param].step)
+                    );
+                } 
+                
+                // Selector
+                else {
+                    this.registry.local[nodeInfo.class.id].gui[node.label].push(
+                        paramsMenu.add(
+                            node.params, 
+                            param, 
+                            node.paramOptions[param].options)
+                    );
+                }
+            }
+        }
+    }
+
     start(appId){
 
         let applet =  this.applets[appId]
@@ -89,11 +142,10 @@ export class PluginManager{
                 let ui = node.instance.init(node.params)
                 if (ui != null) {
                     
-                    // Pass Empty User Dictionary after Setup
+                    // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
                     var cachedSetup = ui.setupHTML;
                     ui.setupHTML = (app) => {
                         cachedSetup(app)
-
                         let defaultInput = [{}]
                         for (let port in node.instance.ports){
                             if (node.instance.ports[port].defaults.input) defaultInput = node.instance.ports[port].defaults.input
@@ -121,8 +173,10 @@ export class PluginManager{
 
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
-                this.registry.local[nodeInfo.class.id] = {count: 0, state: null, callback: ()=>{}}
+                this.registry.local[nodeInfo.class.id] = {count: 0, state: null, gui: {}, callback: ()=>{}}
                 this.registry.local[nodeInfo.class.id].state = node.state
+
+                this.addToGUI(nodeInfo)
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
@@ -153,7 +207,7 @@ export class PluginManager{
                         dict.label = source.label
                         input = [dict]
                     } else {
-                        if (typeof input.value[0] === 'object' && input.value[0].username != null){
+                        if (Array.isArray(input.value) && typeof input.value[0] === 'object' && input.value[0].username != null){
                             input = input.value
                         }
                     }
@@ -167,8 +221,8 @@ export class PluginManager{
 
                 // Pass Output From Brainstorm (and automatically stream this input)
                 if (sourcePort == 'brainstorm') {
-                    if (sourceInfo.loop) this._addStream(sourceInfo, appId, source.default, [callback]) // Add stream function
-                    else this._addData(sourceInfo, appId, [callback]) // Add data to listen to
+                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, source.default, [callback])) // Add stream function
+                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, [callback])) // Add data to listen to
 
                     // Add to Stream List
                     if (source.label != null) applet.streams.add(source.label) // Keep track of streams to pass to the Brainstorm
@@ -191,6 +245,8 @@ export class PluginManager{
                         if (found){
                             if (this.session.state[source.label]) applet.subscriptions.local[source.label].push(this.session.state.subscribe(source.label, callback))
                             else applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
+                            // console.log(this.session.state[data][source.label])
+                            uiParams.setupHTML.push(() => callback(this.session.state[data][source.label]))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
@@ -229,6 +285,27 @@ export class PluginManager{
             labels.forEach(label => {
                 this.registry.local[classId].count--
                 if (this.registry.local[classId].count == 0) {
+
+                    // Remove GUI
+                    for (let fname in this.registry.local[classId].gui){
+                        let folder = this.registry.local[classId].gui[fname]
+                        folder.forEach(o => {
+                            o.remove()
+                        })
+
+                        let guiFolder = this.gui.__folders[fname]
+                        guiFolder.close();
+                        this.gui.__ul.removeChild(guiFolder.domElement.parentNode);
+                        delete this.gui.__folders[fname];
+                    }
+
+                    // Hide GUI When Not Required
+                    let guiContainer = document.body.querySelector('.guiContainer')
+                    if (Object.keys(this.gui.__folders).length){
+                        if (guiContainer.style.display !== 'none') guiContainer.style.display = 'none'
+                    }
+
+                    // Remove Streaming
                     delete this.registry.local[classId]
                     this.session.removeStreaming(label);
                     this.session.removeStreaming(label, null, this.state);
@@ -288,6 +365,9 @@ export class PluginManager{
         } else {
             applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.class.id].callback))
         }
+
+        // Pass Callback to Send Existing Session Data
+        return () => {this.registry.local[nodeInfo.class.id].callback(this.session.state.data[id])}
             
     }
 
@@ -314,6 +394,9 @@ export class PluginManager{
         }
 
         applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.class.id].callback))
+        
+        // Pass Callback to Send Existing Stream Data
+        return () => {this.registry.local[nodeInfo.class.id].callback(this.session.state.data[id])}
 }
 
 }

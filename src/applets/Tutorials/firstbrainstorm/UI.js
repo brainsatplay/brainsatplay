@@ -18,7 +18,7 @@ export class UI{
         this.ports = {
             default: {
                 defaults: {
-                    input: [{username: 'Username', value: 'Value', label: 'Waiting for Data...'}]
+                    input: [{}]
                 }
             },
             readout: {
@@ -58,6 +58,7 @@ export class UI{
 
     // Write UI using Graph Ports
     readout = (userData) => {
+
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
@@ -80,6 +81,8 @@ export class UI{
 
         nameRegistry.forEach(name => {
             let u = userData.find(u => u.username === name)
+            let value = u.value
+            if (typeof value === "number") value = value.toFixed(2)
             outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.value}</p>`
         })
     }

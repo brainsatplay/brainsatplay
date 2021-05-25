@@ -26,7 +26,7 @@ export class UI{
         let HTMLtemplate = () => {
             return `
             <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-                <div>
+                <div style="width: 100%; padding: 0px 10%;">
                     <h1 id="${this.props.id}-label"></h1>
                     <p id="${this.props.id}-readout"></p>
                 </div>
@@ -43,7 +43,9 @@ export class UI{
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
-        outputDiv.innerHTML = `<p>${userData[0].username}: ${userData[0].value}</p>`
+        let value = (!Array.isArray(userData[0].value)) ? userData[0].value : userData[0].value[0]
+        if (typeof value === "number") value = value.toFixed(2)
+        outputDiv.innerHTML = `<p>${userData[0].username}: ${value}</p>`
     }
 
     deinit = () => {}

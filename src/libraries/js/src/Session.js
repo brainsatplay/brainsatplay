@@ -193,7 +193,6 @@ export class Session {
 			// );
 		}
 
-
 		let i = this.deviceStreams.length;
 
 		newStream.onconnect = () => {
@@ -264,7 +263,8 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, onconnect = () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, preselect = null, onconnect = () => { }, ondisconnect = () => { }) {
+				
 		let template = () => {return `
 		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
 			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
@@ -399,21 +399,24 @@ export class Session {
 			`
 			toggleButton.innerHTML = 'Open Device Manager'
 			document.body.insertAdjacentElement('afterbegin',toggleButton)
-		}
-
-		toggleButton.onclick = () => {
-			deviceSelection.style.opacity = '1'
-			deviceSelection.style.pointerEvents = 'auto'
+		} else {
+			toggleButton.onclick = () => {
+				deviceSelection.style.opacity = '1'
+				deviceSelection.style.pointerEvents = 'auto'
+			}
 		}
 	}
 
-		let ui = new DOMFragment(
-			template,
-			parentNode,
-			undefined,
-			setup
-		)
-		
+		if (preselect == null){
+			let ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		} else {
+				this.connect(`${preselect.device}_${preselect.variant}`,preselect.analysis)
+		}
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here

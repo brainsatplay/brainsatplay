@@ -35,6 +35,7 @@ export class Application{
 
             if (this.info.intro != null) this.session.createIntro(this)
 
+            console.log('setting up')
             this.uiParams.setupHTML.forEach(f => {
                 f(this)
             })

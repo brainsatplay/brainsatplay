@@ -8,10 +8,10 @@ export class Signal{
         this.session = session
         this.params = params
         this.paramOptions = {
-            type: {default: 'eeg', options: ['eeg', 'heg']},
-            synthetic: {default: true, options: [true, false]},
-            frequencies: {default: [10], options: null},
-            amplitudes: {default: [200], options: null}
+            type: {default: 'synthetic', options: ['synthetic','eeg', 'heg']},
+            synthetic: {show: false, default: true, options: [true, false]},
+            frequency: {default: 0.5, min: 0, max: 100, step: 0.1},
+            amplitude: {default: 200, min:0, max: 1000, step: 1}
         }
 
         for (let param in this.paramOptions){
@@ -21,9 +21,7 @@ export class Signal{
 
     init = () => {
         if (this.params.synthetic === true){
-            console.log('connected')
-            // HAVE NOT SET APPROPRIATE ONCONNECT CALLS
-            this.session.connect('synthetic',['eegcoherence'])
+            this.session.connectDevice(undefined, undefined, undefined, {device: 'synthetic', variant: '', analysis: ['eegcoherence']})
         } 
     }
 
@@ -42,11 +40,11 @@ export class Signal{
             let channel = this.session.atlas.data.heg[0]
             data = channel.raw.slice(channel.raw.length - 100)
         } else {
-          console.log('not supported yet')  
+            data = [this.params.amplitude*Math.sin(2*Math.PI*(this.params.frequency)*Date.now()/1000)]
         }
 
         // Declare Update to State
-        this.state.timestamp = Math.sin(Date.now()/1000)
+        this.state.timestamp = Date.now()
         this.state.value = data 
 
         return this.state

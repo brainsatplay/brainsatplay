@@ -27,25 +27,19 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'coherence', class: Coherence, params: {}, loop: true}, 
         {id: 'ui', class: UI, params: {}},
-        {id: 'debug', class: Debug, params: {}},
-        // {id: 'signal', class: Signal, params: {}, loop: true},
-        // {id: 'math', class: MathPlugin, params: {operator: 'add', value: 1000}},
+        {id: 'signal', class: Signal, params: {}, loop: true},
+        {id: 'math', class: MathPlugin, params: {}},
       ],
       edges: [
         {
-          source: 'coherence', 
-          target: 'ui'
+          source: 'signal', 
+          target: 'math'
         },
-        // {
-        //   source: 'signal', 
-        //   target: 'math'
-        // },
-        // {
-        //   source: 'math', 
-        //   target: 'debug'
-        // }
+        {
+          source: 'math', 
+          target: 'ui'
+        }
       ]
     }],
 }
