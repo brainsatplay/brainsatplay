@@ -1,7 +1,7 @@
 
 
 export class Keyboard{
-    
+
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
@@ -10,6 +10,14 @@ export class Keyboard{
         this.state = {value: false}; // Initialize object to subscribe to
         this.session = session
         this.params = params
+
+        this.paramOptions = {
+            key: {default: 'Space', options: null},
+        }
+
+        for (let param in this.paramOptions){
+            if (this.params[param] == null) this.params[param] = this.paramOptions[param].default
+        }
     }
 
     init = () => {

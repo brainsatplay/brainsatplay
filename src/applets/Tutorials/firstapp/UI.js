@@ -11,14 +11,24 @@ export class UI{
         this.props = {
             id: String(Math.floor(Math.random()*1000000))
         }
+
+        this.ports = {
+            default: {
+                defaults: {
+                    input: [{username: 'Username', value: 'Value', label: 'Waiting for Data'}]
+                }
+            }
+        }
     }
 
     init = () => {
-        let HTMLtemplate = () => {return `
+
+        let HTMLtemplate = () => {
+            return `
             <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
                 <div>
-                    <h1>Frontal Alpha Coherence</h1>
-                    <p id="${this.props.id}-coherence"></p>
+                    <h1 id="${this.props.id}-label"></h1>
+                    <p id="${this.props.id}-readout"></p>
                 </div>
             </div>`
         }
@@ -26,20 +36,14 @@ export class UI{
 
         let setupHTML = (app) => {}
 
+        return {HTMLtemplate, setupHTML}
+    }
 
-        let responses = {
-            coherence: (userData) => {
-              let html = ``
-              userData.forEach(u => {
-                  if (u.coherence?.value != undefined){
-                  html += `<p>${u.username}: ${u.coherence?.value}</p>`
-                  }
-              })
-              document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-          }
-        }
-
-        return {HTMLtemplate, setupHTML ,responses}
+    default = (userData) => {
+        let labelDiv = document.getElementById(`${this.props.id}-label`)
+        labelDiv.innerHTML = userData[0].label
+        let outputDiv = document.getElementById(`${this.props.id}-readout`)
+        outputDiv.innerHTML = `<p>${userData[0].username}: ${userData[0].value}</p>`
     }
 
     deinit = () => {}

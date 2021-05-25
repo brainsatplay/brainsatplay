@@ -5,13 +5,14 @@ export class Debug{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
+        this.params = params
     }
 
     init = () => {}
 
     deinit = () => {}
 
-    update = (userData) => {
+    default = (userData) => {
         userData.forEach(u => {
             console.log(u)
         })

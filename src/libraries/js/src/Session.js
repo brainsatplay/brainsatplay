@@ -592,15 +592,15 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id, responseIdx) {
+	removeStreaming(id, responseIdx, manager = this.state) {
 		if (responseIdx == null){
-			this.state.removeState(id)
-			this.state.removeState(id+"_flag")
+			manager.removeState(id)
+			manager.removeState(id+"_flag")
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			this.state.unsubscribe(id, responseIdx); //unsub state
+			manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 
 
@@ -1545,7 +1545,7 @@ export class Session {
 	}
 
 
-	getBrainstormData(query, props=[], type = 'app') {
+	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
 		let usernameInd;
 		let propInd;
@@ -1567,6 +1567,7 @@ export class Session {
 		}
 
 		let arr = []
+
 		if (query != null) {
 			var regex = new RegExp(query);
 			let returnedStates = Object.keys(this.state.data).filter(k => {
@@ -1601,100 +1602,40 @@ export class Session {
 				arr.find(o => {
 					let prop = strArr.slice(propInd).join('_') // Other User Data
 					if (o.username === strArr[usernameInd]) {
-						o[prop] = this.state.data[str]
+
+						// Plugin Format
+						if (format === 'plugin'){
+								o.value = this.state.data[str].value
+								o.label = prop
+						} 
+						
+						// Default Format
+						else {
+							o[prop] = this.state.data[str]
+						}
 					}
 				})
 			})
 
-			// GET MY LOCAL DATA
 			let i = arr.length
 			arr.push({ username: this.info.auth.username})
 			props.forEach(prop => {
-				arr[i][prop] = this.state.data[prop]
-			})
-		} else {
-			console.error('please specify a query for the Brainstorm (app, username, prop)')
-		}
-		return arr
-	}
 
-	getBrainstormData_Plugin(query, props=[], type = 'app') {
-
-		let usernameInd;
-		let propInd;
-		let structureFilter;
-
-		if (type === 'user') {
-			usernameInd = 1
-			propInd = 2
-			structureFilter = (input) => {
-				let val = input.split('_')[0] 
-				return val === 'userData'
-			}
-		} else {
-			usernameInd = 2
-			propInd = 3
-			structureFilter = (input) => {
-				return input.split('_')[0] !== 'userData'
-			}
-		}
-
-		let arr = []
-		if (query != null) {
-			var regex = new RegExp(query);
-			let returnedStates = Object.keys(this.state.data).filter(k => {
-
-				// Query is True
-				let test1 = regex.test(k)
-
-				// Structure is Appropriate
-				let test2 = structureFilter(k)
-
-				// Props are Included
-				let test3 = false;
-				props.forEach(p => {
-					if (k.includes(p)){
-						test3 = true
-					}
-				})
+				// Plugin Format
+				if (format === 'plugin'){
+					arr[i].value = this.state.data[prop].value
+					arr[i].label = prop
+				} 
 				
-				if (test1 && test2 && test3) return true
-			})
-
-			let usedNames = []
-
-			returnedStates.forEach(str => {
-				const strArr = str.split('_')
-
-				if (!usedNames.includes(strArr[usernameInd])) {
-					usedNames.push(strArr[usernameInd])
-					arr.push({ username: strArr[usernameInd] })
+				// Default Format
+				else {
+					arr[i][prop] = this.state.data[prop]
 				}
-
-				arr = arr.map(o => {
-					let prop = strArr.slice(propInd).join('_') // Other User Data
-					if (o.username === strArr[usernameInd]) {
-						if (this.state.data[str].constructor == Object){
-							o = this.state.data[str]
-							o.username = strArr[usernameInd]
-							o.label = prop
-						}
-					}
-					return o
-				})
-			})
-
-			// GET MY LOCAL DATA
-			let i = arr.length
-			// arr.push({ username: this.info.auth.username})
-			props.forEach(prop => {
-				arr.push(this.state.data[prop])
-				arr[i].username = this.info.auth.username
-				arr[i].label = prop
 			})
 		} else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
+
 		return arr
 	}
 
@@ -2147,8 +2088,7 @@ class streamSession {
 	removeStreamFunc(name='') {
 		this.streamTable.find((o,i) => {
 			if(o.prop === name){
-				this.streamTable.splice(i,1);
-				return true
+				return this.streamTable.splice(i,1);
 			}
 		})
 	}

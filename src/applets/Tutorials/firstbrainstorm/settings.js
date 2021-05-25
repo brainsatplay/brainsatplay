@@ -28,7 +28,7 @@ export const settings = {
       nodes: [
         {id: 'spacebar', class: Keyboard, params: {key: 'Space'}},
         {id: 'coherence', class: Coherence, params: {}, loop: true}, 
-        {id: 'ui', class: UI, params: {toggle: 'spacebar'}},
+        {id: 'ui', class: UI, params: {}},
         {id: 'debug', class: Debug, params: {}}
 
       ],

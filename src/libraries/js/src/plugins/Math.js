@@ -4,30 +4,46 @@ export class MathPlugin{
 
     constructor(label, session, params={}) {
         this.label = label
-        this.state = {value: 0}
+        this.state = {value: 0} // Processing nodes cannot broadcast state
         this.session = session
         this.params = params
+        this.paramOptions = {
+            value: {default: 0, options: null},
+            operator: {default: '', options: ['add','subtract', 'multiply', 'divide', 'mean']}
+        }
 
-        if (this.params.value == null) this.params.value = 0
-        if (this.params.operator == null) this.params.operator = ''
+        for (let param in this.paramOptions){
+            if (this.params[param] == null) this.params[param] = this.paramOptions[param].default
+        }
     }
 
     init = () => {}
 
     deinit = () => {}
 
-    update = (input) => {
-        let value = input.value
+    default = (userData) => {
 
-        if (this.params.operator.toLowerCase() === 'add'){
-            this.state.value = value + this.params.value
-        } else if (this.params.operator.toLowerCase() === 'subtract'){
-            this.state.value = value - this.params.value
-        } else if (this.params.operator.toLowerCase() === 'multiply'){
-            this.state.value = value * this.params.value
-        } else if (this.params.operator.toLowerCase() === 'divide'){
-            this.state.value = value / this.params.value
-        }
+        userData.forEach(u => {
+            if (this.params.operator.toLowerCase() === 'add'){
+                if (Array.isArray(u.value)) u.value = u.value.map(v => v += this.params.value)
+                else u.value += this.params.value
+            } else if (this.params.operator.toLowerCase() === 'subtract'){
+                if (Array.isArray(u.value)) u.value = u.value.map(v => v -= this.params.value)
+                else u.value -= this.params.value
+            } else if (this.params.operator.toLowerCase() === 'multiply'){
+                if (Array.isArray(u.value)) u.value = u.value.map(v => v *= this.params.value)
+                else u.value *= this.params.value
+            } else if (this.params.operator.toLowerCase() === 'divide'){
+                if (Array.isArray(u.value)) u.value = u.value.map(v => v /= this.params.value)
+                else u.value /= this.params.value
+            } else if (this.params.operator.toLowerCase() === 'mean'){
+                if (Array.isArray(u.value)) u.value = u.value.reduce((a,b) => a + b)/ u.value.length
+                else u.value = this.params.value
+            }
+        })
+
+        this.state.value = userData
+        this.state.timestamp = Date.now()
 
         return this.state
     }

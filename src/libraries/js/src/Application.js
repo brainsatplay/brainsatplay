@@ -27,7 +27,7 @@ export class Application{
 
     init() {
 
-        let info = this.session.graphs.start(this.props.id, this.info.responses)
+        let info = this.session.graphs.start(this.props.id)
         this.streams = info.streams
         this.uiParams = info.uiParams
 

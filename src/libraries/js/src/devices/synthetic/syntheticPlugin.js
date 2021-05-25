@@ -35,7 +35,6 @@ export class syntheticPlugin {
 
     setupAtlas = (pipeToAtlas=true,info=this.info) => {
         
-
         if(pipeToAtlas === true) { //New Atlas
             let config = '10_20';
             this.atlas = new DataAtlas(

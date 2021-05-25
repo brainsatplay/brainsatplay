@@ -3,6 +3,8 @@
 import {Coherence} from '../../../libraries/js/src/plugins/Coherence'
 import {UI} from './UI'
 import {Debug} from '../../../libraries/js/src/plugins/Debug'
+import {Signal} from '../../../libraries/js/src/plugins/Signal'
+import {MathPlugin} from '../../../libraries/js/src/plugins/Math'
 
 
 let id = String(Math.floor(Math.random()*1000000))
@@ -25,13 +27,23 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'coherence', class: Coherence, params: {}, loop: true, stream: true}, 
+        {id: 'coherence', class: Coherence, params: {}, loop: true}, 
         {id: 'ui', class: UI, params: {}},
         {id: 'debug', class: Debug, params: {}},
+        // {id: 'signal', class: Signal, params: {}, loop: true},
+        // {id: 'math', class: MathPlugin, params: {operator: 'add', value: 1000}},
       ],
       edges: [
+        {
+          source: 'coherence', 
+          target: 'ui'
+        },
         // {
-        //   source: 'coherence', 
+        //   source: 'signal', 
+        //   target: 'math'
+        // },
+        // {
+        //   source: 'math', 
         //   target: 'debug'
         // }
       ]

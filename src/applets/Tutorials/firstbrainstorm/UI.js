@@ -5,10 +5,33 @@ export class UI{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
+
+        // UI Details
         this.props = {
             id: String(Math.floor(Math.random()*1000000))
         }
+
         this.params = params
+
+        this.paramOptions = {}
+
+        this.ports = {
+            default: {
+                defaults: {
+                    input: [{username: 'Username', value: 'Value', label: 'Waiting for Data...'}]
+                }
+            },
+            readout: {
+                defaults: {
+                    input: [{}]
+                }
+            }, 
+            color: {
+                defaults: {
+                    input: [{}]
+                }
+            }
+        }
     }
 
     init = () => {
@@ -16,7 +39,7 @@ export class UI{
         let HTMLtemplate = () => {return `
             <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                 <div>
-                    <h1>Frontal Alpha Coherence</h1>
+                    <h1 id="${this.props.id}-label"></h1>
                     <div id="${this.props.id}-readout"></div>
                 </div>
             </div>`
@@ -25,29 +48,18 @@ export class UI{
 
         let setupHTML = () => {}
 
-
-        let responses = null
-
-        let shared = null
-        // let shared = (userData) => {
-        //     let html = ``
-        //     userData.forEach(u => {
-        //         let userStyle = (u[this.params.toggle]?.value ? "color: red;" : "")
-        //         html += `<p style="${userStyle}">${u.username}: ${u.coherence?.value}</p>`
-        //     })
-
-        //     document.getElementById(`${this.props.id}-coherence`).innerHTML = html
-        // }
-
-        return {HTMLtemplate, setupHTML ,responses, shared}
+        return {HTMLtemplate, setupHTML}
     }
 
-    update = (input) => {
-        console.log('update', input)
+    default = (input) => {
+        console.log('default', input)
+        return input
     }
 
     // Write UI using Graph Ports
     readout = (userData) => {
+        let labelDiv = document.getElementById(`${this.props.id}-label`)
+        labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
 
