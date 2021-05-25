@@ -11,9 +11,10 @@ export class Debug{
 
     deinit = () => {}
 
-    update = (input) => {
-        let value = input.value
-        console.log(value)
-        return value
+    update = (userData) => {
+        userData.forEach(u => {
+            console.log(u)
+        })
+        return userData
     }
 }

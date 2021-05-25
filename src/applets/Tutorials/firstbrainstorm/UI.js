@@ -17,7 +17,7 @@ export class UI{
             <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                 <div>
                     <h1>Frontal Alpha Coherence</h1>
-                    <div id="${this.props.id}-coherence"></div>
+                    <div id="${this.props.id}-readout"></div>
                 </div>
             </div>`
         }
@@ -48,7 +48,7 @@ export class UI{
 
     // Write UI using Graph Ports
     readout = (userData) => {
-        let outputDiv = document.getElementById(`${this.props.id}-coherence`)
+        let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
 
         let nameRegistry = new Set(userData.map(u => u.username))
@@ -59,7 +59,7 @@ export class UI{
                 let found = userData.find(u => u.username === username)
                 if (found) {
                     nameRegistry.delete(found.username)
-                    readout.innerHTML = `${found.username}: ${found.coherence?.value}`
+                    readout.innerHTML = `${found.username}: ${found.value}`
                 } else {
                     readout.remove()
                 }
@@ -68,17 +68,17 @@ export class UI{
 
         nameRegistry.forEach(name => {
             let u = userData.find(u => u.username === name)
-            outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.coherence?.value}</p>`
+            outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.value}</p>`
         })
     }
 
     color = (userData) => {
-        let coherenceReadouts = document.getElementById(`${this.props.id}-coherence`).querySelectorAll(`.readout`)
+        let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
         if (Array.isArray(userData)){
             userData.forEach(u =>{
             for (let readout of coherenceReadouts){
                 if (readout.id.replace(`${this.props.id}-`,'') === u.username){
-                    readout.style = (u[this.params.toggle]?.value ? "color: red;" : "")
+                    readout.style = (u.value ? "color: red;" : "")
                 }
             }
         })

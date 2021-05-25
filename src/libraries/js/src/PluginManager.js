@@ -152,8 +152,6 @@ export class PluginManager{
 
 
                 // Pass Output From Brainstorm (and automatically stream this input)
-                
-                // IS NOT PROPERLY LISTENING FOR CHANGES TO THE BRAINSTORM
                 if (sourcePort == 'brainstorm') {
                     if (sourceInfo.loop) this._addStream(sourceInfo, appId, source.update, [callback]) // Add stream function
                     else this._addData(sourceInfo, appId, [callback]) // Add data to listen to
@@ -254,13 +252,13 @@ export class PluginManager{
                 if (this.session.state.data[id] != null){
 
                     if (dataCallbacks){
-                        let propData = this.session.getBrainstormData(applet.name,[id])
+                        let propData = this.session.getBrainstormData_Plugin(applet.name,[id])
                         dataCallbacks.forEach(f => {
                             if (f instanceof Function) f(propData)
                         })
                     }
                     if (sharedCallbacks){
-                        let allData = this.session.getBrainstormData(applet.name,applet.streams)
+                        let allData = this.session.getBrainstormData_Plugin(applet.name,applet.streams)
                         sharedCallbacks.forEach(f => {
                             if (f instanceof Function) f(allData)
                         })
@@ -292,14 +290,14 @@ export class PluginManager{
             if (this.session.state.data[id] != null){
 
                 if (dataCallbacks){
-                    let propData = this.session.getBrainstormData(applet.name,[id])
+                    let propData = this.session.getBrainstormData_Plugin(applet.name,[id])
                     dataCallbacks.forEach(f => {
                         if (f instanceof Function) f(propData)
                     })
                 }
 
                 if (sharedCallbacks){
-                    let allData = this.session.getBrainstormData(applet.name,applet.streams)
+                    let allData = this.session.getBrainstormData_Plugin(applet.name,applet.streams)
                     sharedCallbacks.forEach(f => {
                         if (f instanceof Function) f(allData)
                     })

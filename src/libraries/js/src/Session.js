@@ -615,7 +615,7 @@ export class Session {
 				if (data != undefined) manager.data[name] = data
 				return data
 			}
-			
+
 			// Run so that solo users get their own data back
 			this.streamObj.streamLoop();
 
@@ -1616,7 +1616,86 @@ export class Session {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
 		return arr
+	}
 
+	getBrainstormData_Plugin(query, props=[], type = 'app') {
+
+		let usernameInd;
+		let propInd;
+		let structureFilter;
+
+		if (type === 'user') {
+			usernameInd = 1
+			propInd = 2
+			structureFilter = (input) => {
+				let val = input.split('_')[0] 
+				return val === 'userData'
+			}
+		} else {
+			usernameInd = 2
+			propInd = 3
+			structureFilter = (input) => {
+				return input.split('_')[0] !== 'userData'
+			}
+		}
+
+		let arr = []
+		if (query != null) {
+			var regex = new RegExp(query);
+			let returnedStates = Object.keys(this.state.data).filter(k => {
+
+				// Query is True
+				let test1 = regex.test(k)
+
+				// Structure is Appropriate
+				let test2 = structureFilter(k)
+
+				// Props are Included
+				let test3 = false;
+				props.forEach(p => {
+					if (k.includes(p)){
+						test3 = true
+					}
+				})
+				
+				if (test1 && test2 && test3) return true
+			})
+
+			let usedNames = []
+
+			returnedStates.forEach(str => {
+				const strArr = str.split('_')
+
+				if (!usedNames.includes(strArr[usernameInd])) {
+					usedNames.push(strArr[usernameInd])
+					arr.push({ username: strArr[usernameInd] })
+				}
+
+				arr = arr.map(o => {
+					let prop = strArr.slice(propInd).join('_') // Other User Data
+					if (o.username === strArr[usernameInd]) {
+						if (this.state.data[str].constructor == Object){
+							o = this.state.data[str]
+							o.username = strArr[usernameInd]
+							o.label = prop
+						}
+					}
+					return o
+				})
+			})
+
+			// GET MY LOCAL DATA
+			let i = arr.length
+			// arr.push({ username: this.info.auth.username})
+			props.forEach(prop => {
+				arr.push(this.state.data[prop])
+				arr[i].username = this.info.auth.username
+				arr[i].label = prop
+			})
+		} else {
+			console.error('please specify a query for the Brainstorm (app, username, prop)')
+		}
+		return arr
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
