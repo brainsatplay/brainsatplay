@@ -18,7 +18,7 @@ export class Prototype8Plugin {
     }
 
     init = async (info,pipeToAtlas) => {
-        info.sps = 512
+        info.sps = 500;
         info.deviceType = 'eeg'
         //this._onConnected = () => { this.setupAtlas(info,pipeToAtlas); }
 
