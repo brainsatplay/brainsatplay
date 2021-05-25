@@ -30,7 +30,7 @@ export class industryKiller { //Contains structs and necessary functions/API cal
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
         this.decoder = new TextDecoder();
 
-		this.sps = 512; // Sample rate
+		this.sps = 500; // Sample rate
 		this.nChannels = 32;
 		this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
 		this.updateMs = 1000/this.sps; //even spacing
