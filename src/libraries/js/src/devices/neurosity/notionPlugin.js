@@ -132,7 +132,7 @@ export class notionPlugin {
         });
 
         if (this.connected){
-            document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`) = 'Notion'
+            document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`).innerHTML = 'Notion'
             this.ondisconnect();
             if (this.ui) this.ui.deleteNode()
             this.atlas.settings.deviceConnected = false;
