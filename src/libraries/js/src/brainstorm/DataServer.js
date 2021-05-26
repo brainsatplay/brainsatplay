@@ -150,7 +150,8 @@ class DataServer {
             sessionData.userLeft = username
             let allUsernames = [...app.usernames,...app.spectators]
             allUsernames.forEach(u => {
-                this.userData.get(u).sockets.ws.send(JSON.stringify(sessionData));
+                let filteredObj = this.removeUserData(u, sessionData)
+                this.userData.get(u).sockets.ws.send(JSON.stringify(filteredObj));
             })
 
             // Remove Session from User Info
@@ -696,6 +697,31 @@ class DataServer {
 		});
     } 
 
+
+    removeUserData(username, updateObj){
+        // Don't Receive Your Own Data
+        let objToFilter = JSON.parse(JSON.stringify(updateObj))
+        let idx = objToFilter.userData.findIndex((d) => d.username == username)
+        if (idx >= 0) objToFilter.userData.splice(idx,1)
+        return objToFilter
+    }
+
+
+    getFullUserData(user,sub) {
+        if(sub.spectators.indexOf(user) < 0) {
+            let userObj = {
+                username:user
+            }
+            let listener = this.userData.get(user);
+            if(listener){ 
+                sub.propnames.forEach((prop,k) => {
+                    userObj[prop] = listener.props[prop];
+                });
+                return userObj
+            }
+        }
+    }
+
     updateAppSubscriptions = (time) => {
         this.appSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
@@ -723,18 +749,8 @@ class DataServer {
                     let allUsernames = [...sub.usernames,...sub.spectators]
 
                     allUsernames.forEach((user, j) => {
-                        if(sub.spectators.indexOf(user) < 0) {
-                            let userObj = {
-                                username:user
-                            }
-                            let listener = this.userData.get(user);
-                            if(listener){ 
-                                sub.propnames.forEach((prop,k) => {
-                                    userObj[prop] = listener.props[prop];
-                                });
-                                fullUserData.push(userObj);
-                            }
-                        }
+                        let userObj = this.getFullUserData(user, sub)
+                        if (userObj != null) fullUserData.push(userObj)
                     });
 
                     let fullUpdateObj = Object.assign({},updateObj);
@@ -743,7 +759,11 @@ class DataServer {
 
                     sub.newUsers.forEach((user, j) => {
                         let u = this.userData.get(user);
-                        if(u !== undefined) u.sockets.ws.send(JSON.stringify(fullUpdateObj));
+
+                        if(u !== undefined) {
+                            let filteredObj = this.removeUserData(user, fullUpdateObj)
+                            u.sockets.ws.send(JSON.stringify(filteredObj));
+                        }
                         else {
                             sub.usernames.splice(sub.usernames.indexOf(user),1);
                             if(sub.spectators.indexOf(user) > -1) {
@@ -755,19 +775,25 @@ class DataServer {
                 }
                 
                 if(sub.updatedUsers.length > 0) { //only send data if there are updates
+                    let userObj;
                     sub.updatedUsers.forEach((user,j) => {
-                        if(sub.spectators.indexOf(user) < 0){
-                            let userObj = {
-                                username:user
-                            }
-                            let listener = this.userData.get(user);
-                            if(listener.props.devices) userObj.devices = listener.props.devices;
-                            if(listener) {
-                                sub.propnames.forEach((prop,k) => {
-                                    if(listener.updatedPropnames.indexOf(prop) > -1)
-                                        userObj[prop] = listener.props[prop];
-                                });
-                                updateObj.userData.push(userObj);
+                        if (sub.newUsers.includes(user)){ // Grab full data of new users
+                            userObj = this.getFullUserData(user, sub)
+                            if (userObj != null) updateObj.userData.push(userObj)
+                        } else { // Grab updated data for old users
+                            if(sub.spectators.indexOf(user) < 0){
+                                let userObj = {
+                                    username:user
+                                }
+                                let listener = this.userData.get(user);
+                                if(listener.props.devices) userObj.devices = listener.props.devices;
+                                if(listener) {
+                                    sub.propnames.forEach((prop,k) => {
+                                        if(listener.updatedPropnames.indexOf(prop) > -1)
+                                            userObj[prop] = listener.props[prop];
+                                    });
+                                    updateObj.userData.push(userObj);
+                                }
                             }
                         }
                     });
@@ -777,7 +803,8 @@ class DataServer {
                         if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
                             let u = this.userData.get(user);
                             if(u !== undefined) {
-                                u.sockets.ws.send(JSON.stringify(updateObj));
+                                let filteredObj = this.removeUserData(u.username, updateObj)
+                                u.sockets.ws.send(JSON.stringify(filteredObj));
                                 u.lastUpdate = time; //prevents timing out for long spectator sessions
                             } else {
                                 sub.usernames.splice(sub.usernames.indexOf(user),1);
@@ -864,8 +891,8 @@ class DataServer {
                             }
                         }
                     });
-
-                    host.sockets.ws.send(JSON.stringify(hostUpdateObj));
+                    let filteredObj = this.removeUserData(u.username, hostUpdateObj)
+                    host.sockets.ws.send(JSON.stringify(filteredObj));
                 }
 
                 //send latest host data to users
@@ -873,7 +900,8 @@ class DataServer {
                 allUsernames.forEach((user,j) => {
                     let u = this.userData.get(user);
                     if(u !== undefined) {
-                        u.sockets.ws.send(JSON.stringify(updateObj));
+                        let filteredObj = this.removeUserData(u.username, updateObj) 
+                        u.sockets.ws.send(JSON.stringify(filteredObj));
                         u.lastUpdate = time; //prevents timing out for long spectator sessions
                     } else {
                         sub.usernames.splice(sub.usernames.indexOf(user),1);

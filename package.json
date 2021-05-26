@@ -19,7 +19,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
     "@giveback007/util-lib": "^0.16.4",
-    "@neurosity/notion": "^5.1.1",
+    "@neurosity/notion": "^5.2.0",
     "@snowpack/plugin-dotenv": "^2.0.5",
     "@snowpack/plugin-optimize": "^0.2.13",
     "@snowpack/plugin-typescript": "^1.2.1",
@@ -49,7 +49,7 @@
     "kbm-robot": "0.0.4",
     "mongodb": "^3.6.5",
     "muse-js": "^3.2.0",
-    "neosensory": "0.0.3",
+    "neosensory": "0.0.5",
     "node-p5": "^1.0.3",
     "normalize.css": "^8.0.1",
     "osc": "^2.4.1",

@@ -146,13 +146,13 @@ export class ObjectListener {
         }
         else {
             var indices = [];
-            var found = this.listeners.find((o,i) => {
-                if(o.name === key) {
+            var found = this.listeners.forEach((o,i) => {
+                if(o.key === key) {
                     indices.push(i);
                 }
             });
             indices.reverse().forEach((idx) => {
-                this.listeners[idx].stop();
+                this.listeners[idx].listener.stop();
                 this.listeners.splice(idx,1);
             });
         }

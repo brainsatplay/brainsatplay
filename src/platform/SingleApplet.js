@@ -16,7 +16,7 @@ let plotter = new BlobApplet(
 
 
 //Now add some ui elements like to connect to the device
-plotter.bci.makeConnectOptions(document.getElementById('sidebar'),()=> { plotter.responsive(); });
+plotter.bci.connectDevice(document.getElementById('sidebar'),()=> { plotter.responsive(); });
 plotter.init();
 plotter.responsive();
 document.body.querySelector('.loader').style.opacity = 0;

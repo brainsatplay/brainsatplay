@@ -42,7 +42,7 @@ export class SensoriumApplet {
         //------------------------
 
         //-------Required Multiplayer Properties------- 
-        this.subtitle = `Dynamic audiovisual feedback. Let's get weird` // Specify a subtitle for the title screen
+        this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
         this.streams = ['modifiers'] // Register your app data streams
         //----------------------------------------------
 
@@ -89,7 +89,7 @@ export class SensoriumApplet {
             iAlpha1Alpha2:    1,                          //Alpha1/Alpha2 ratio
             iAlphaBeta:       1,                          //Alpha/Beta ratio
             i40Hz:            1,                          //40Hz bandpower
-            iAlpha1Coherence: 0                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+            iFrontalAlpha1Coherence: 0                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
         this.uniformSettings = {
@@ -111,7 +111,7 @@ export class SensoriumApplet {
             iAlphaBeta:       {default:1, min:0, max:5,step:0.1},                            //Alpha/Beta ratio
             iAlphaTheta:      {default:1, min:0, max:5,step:0.1},
             i40Hz:            {default:1, min:0, max:10,step:0.1},                           //40Hz bandpower
-            iAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
+            iFrontalAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
         this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
@@ -121,35 +121,35 @@ export class SensoriumApplet {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iAlpha1Coherence'],
+                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
                 credit: 'JoshP (Shadertoy)'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iAlpha1Coherence'],
+                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
             waves: {
                 name: 'Rainbow Waves',
                 vertexShader: vertexShader,
                 fragmentShader: wavesFragmentShader,
-                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
+                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Pixi.js'
             },
             noisecircle: {
                 name: 'Noise Circle',
                 vertexShader: vertexShader,
                 fragmentShader: noiseCircleFragmentShader,
-                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
+                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Garrett Flynn'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
-                uniforms: ['iAlpha1Coherence','iHEG','iHRV'],
+                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Danilo Guanabara (Shadertoy)'
             },
             voronoiblobs: {
@@ -206,7 +206,7 @@ export class SensoriumApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
-            this.session.createIntro(this);
+            this.session.createIntro(this)
 
             /**
              * GUI
@@ -445,7 +445,12 @@ export class SensoriumApplet {
                             averageModifiers[mod] = newArr
                         }
                     }
-                    //console.log(averageModifiers)
+
+                    let neosensoryBuzz = this.session.getDevice('buzz')
+                    if (neosensoryBuzz){
+                        this.updateBuzz( neosensoryBuzz.device, averageModifiers)
+                    }
+
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);
                     });
@@ -567,7 +572,7 @@ export class SensoriumApplet {
                 <option value='iAlpha1Alpha2'>Alpha 2/1 Ratio</option>
                 <option value='iAlphaBeta'>Alpha/Beta Ratio</option>
                 <option value='iAlphaTheta'>Alpha/Theta Ratio</option>
-                <option value='iAlpha1Coherence'>Frontal Alpha Coherence</option>
+                <option value='iFrontalAlpha1Coherence'>Frontal Alpha Coherence</option>
             </select>
             <select id='${props.id}channel${idx}' style='display:none;'></select>
             `;
@@ -805,11 +810,11 @@ export class SensoriumApplet {
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaTheta*.5,1)), window.audio.ctx.currentTime);
                         }      
-                    } else if (this.session.atlas.settings.coherence === true && option === 'iAlpha1Coherence') {
-                        this.modifiers.iAlpha1Coherence = this.session.atlas.getLatestCoherenceData(channel)[0].mean.alpha1;
+                    } else if (this.session.atlas.settings.coherence === true && option === 'iFrontalAlpha1Coherence') {
+                        this.modifiers.iFrontalAlpha1Coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1') // this.session.atlas.getLatestCoherenceData(0)[0].mean.alpha1;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')),1), 
+                                Math.min(Math.max(0,this.modifiers.iFrontalAlpha1Coherence),1), 
                                 window.audio.ctx.currentTime
                             );
                         }
@@ -853,9 +858,9 @@ export class SensoriumApplet {
     getData(u) {        
         if (u === 'iFFT'){
             let channel;
-            if(!ch) {
+            // if(!ch) {
                 channel = this.session.atlas.getLatestFFTData()[0];
-            } else { channel = this.session.atlas.getLatestFFTData(ch); }
+            // } else { channel = this.session.atlas.getLatestFFTData(ch); }
             if(channel) return  channel.fft;
             else return new Array(256).fill(0);
         }
@@ -880,10 +885,6 @@ export class SensoriumApplet {
             let value = uniformsToUpdate[name];
 
             if (material.uniforms[name] == null) material.uniforms[name] = {}
-
-            /* todo
-                add Uniforms for each selector value
-            */
 
             if (Object.keys(this.defaultUniforms).includes(name)){
                 material.uniforms[name].value = this.getData(name)
@@ -950,5 +951,27 @@ export class SensoriumApplet {
                             (val) => updateUniformsWithGUI(name,val)));
             }
         }    
+    }
+
+
+    updateBuzz(buzz, modifiers) {
+        // console.log(modifiers)
+        let motorCommand;
+
+        // if (modifiers.iAudio){
+        //     motorCommand = buzz.device.mapFrequencies(modifiers.iAudio)
+        //     buzz.device.vibrateMotors([motorCommand])
+        // } 
+        // else if (modifiers.iFFT){
+        //     motorCommand = buzz.device.mapFrequencies(modifiers.iFFT)
+        //     buzz.device.vibrateMotors([motorCommand])
+        // }
+
+        if (modifiers.iFrontalAlpha1Coherence){
+            let i1 = Math.min(modifiers.iFrontalAlpha1Coherence/.33,1)
+            let i2 = (i1 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.33)/.33,1) : 0)
+            let i3 = (i2 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.66)/.33,1) : 0)
+            buzz.device.setLEDs([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
+        }
     }
 } 

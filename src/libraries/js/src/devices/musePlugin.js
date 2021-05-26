@@ -135,6 +135,7 @@ export class musePlugin {
     }
 
     disconnect = () => {
+        if (this.ui) this.ui.deleteNode()
         this.device.disconnect();
     }
 

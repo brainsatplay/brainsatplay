@@ -809,7 +809,7 @@ export class webSerial {
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-                    if(error.message.includes('framing') || error.message.includes('overflow') || error.message.includes('Overflow') || error.message.includes('break')) {
+                    if(error.message.includes('framing') || error.message.includes('overflow') || error.message.includes('overrun') || error.message.includes('Overflow') || error.message.includes('break')) {
                         this.subscribed = false;
                         setTimeout(async ()=>{
                             if (this.reader) {

@@ -8,7 +8,7 @@ uniform float iTime;
 precision mediump float;
 varying vec2 vUv;
 uniform vec2 iResolution;
-uniform float iAlpha1Coherence;
+uniform float iFrontalAlpha1Coherence;
 uniform float iHEG;
 uniform float iHRV;
 
@@ -30,7 +30,7 @@ void main()
     
     vec3 outColor = vec3(0.);
 
-    float amplitude = 1.0-iAlpha1Coherence+iHEG+iHRV*0.03;
+    float amplitude = 1.0-iFrontalAlpha1Coherence+iHEG+iHRV*0.03;
     if(amplitude < 0.0) amplitude = 0.0;
     
     //Simple wavefunctions inversed and with small offsets.

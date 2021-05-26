@@ -35,7 +35,6 @@ export class syntheticPlugin {
 
     setupAtlas = (pipeToAtlas=true,info=this.info) => {
         
-
         if(pipeToAtlas === true) { //New Atlas
             let config = '10_20';
             this.atlas = new DataAtlas(
@@ -107,6 +106,7 @@ export class syntheticPlugin {
 
     disconnect = () => {
         this.ondisconnect();
+        if (this.ui) this.ui.deleteNode()
         this.atlas.settings.deviceConnected = false;
         if (typeof window != undefined){
             window.cancelAnimationFrame(this.loop)
@@ -163,7 +163,7 @@ export class syntheticPlugin {
                     let maxFreq = 20
                     time.forEach((t) => {
                         let f = Math.floor(minFreq + (maxFreq-minFreq)*(i/nCh))
-                        samples.push(25*Math.sin(2*Math.PI*(f)*t/1000));
+                        samples.push(200*Math.sin(2*Math.PI*(f)*t/1000));
                     })
 
                     let coord = this.atlas.getEEGDataByTag(o.tag);
@@ -197,6 +197,10 @@ export class syntheticPlugin {
 
     replayData() {
 		
-	}
+    }
+    
+    addControls(){
+        
+    }
 
 }

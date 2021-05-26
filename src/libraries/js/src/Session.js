@@ -103,7 +103,7 @@ export class Session {
 				authenticated: false
 			},
 			subscribed: false,
-			subscriptions: []
+			subscriptions: [],
 		}
 
 		this.id = Math.floor(Math.random() * 10000) // Give the session an ID
@@ -111,7 +111,7 @@ export class Session {
 		this.streamObj = new streamSession(this.info.auth);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
-		this.plugins = new PluginManager(this)
+		this.graphs = new PluginManager(this)
 	}
 
 	/**
@@ -151,6 +151,7 @@ export class Session {
 		useFilters = true,
 		pipeToAtlas = true
 	) {
+
 		if (streaming === true) {
 			if (this.socket == null || this.socket.readyState !== 1) {
 				console.error('Server connection not found, please run login() first');
@@ -169,9 +170,11 @@ export class Session {
 			}
 		}
 
+		let newStream;
+
 		if (device.includes('brainstorm')) {
-			this.deviceStreams.push(
-				new deviceStream(
+			// this.deviceStreams.push(
+				newStream = new deviceStream(
 					device,
 					analysis,
 					useFilters,
@@ -179,49 +182,46 @@ export class Session {
 					this.info.auth,
 					this
 				)
-			);
+			// );
 		} else {
-			this.deviceStreams.push(
-				new deviceStream(
+			// this.deviceStreams.push(
+				newStream = new deviceStream(
 					device,
 					analysis,
 					useFilters,
 					pipeToAtlas,
 					this.info.auth
 				)
-			);
+			// );
 		}
 
+		let i = this.deviceStreams.length;
 
-		let i = this.deviceStreams.length - 1;
-
-		this.deviceStreams[i].onconnect = () => {
-			
+		newStream.onconnect = () => {
+			this.deviceStreams.push(newStream)
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
-			
 			this.info.nDevices++;
 			if (streamParams[0]) { this.beginStream(streamParams); }
 			//Device info accessible from state
-			this.state.addToState("device" + (i), this.deviceStreams[i].info);
+			this.state.addToState("device" + (i+1), newStream.info);
 			onconnect();
 			this.onconnected();
 		}
 
-		this.deviceStreams[i].ondisconnect = () => {
+		newStream.ondisconnect = () => {
 			ondisconnect();
 			this.ondisconnected();
-			if (this.deviceStreams[i].info.analysis.length > 0) {
-				this.deviceStreams[i].device.atlas.analyzing = false; //cancel analysis loop
+			if (newStream.info.analysis.length > 0) {
+				newStream.device.atlas.analyzing = false; //cancel analysis loop
 			}
-			this.deviceStreams.splice(i, 1);
+			this.deviceStreams.splice(i+1, 1);
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
 			this.info.nDevices--;
 		}
 
 		// Wait for Initialization before Connection
-		await this.deviceStreams[i].init();
-
-		this.deviceStreams[i].connect();
+		await newStream.init();
+		await newStream.connect()
 	}
 
 	onconnected = () => { }
@@ -256,7 +256,7 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.Session.makeConnectOptions
+     * @method module:brainsatplay.Session.connectDevice
      * @description Generate DOM fragment with a selector for available devices.
 	 * @param {HTMLElement} parentNode Parent node to insert fragment into.
 	 * @param {HTMLElement} toggleButton Node of button to toggle
@@ -264,7 +264,8 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	makeConnectOptions(parentNode = document.body, toggleButton=null, deviceFilter = null, onconnect = () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, preselect = null, onconnect = () => { }, ondisconnect = () => { }) {
+				
 		let template = () => {return `
 		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
 			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
@@ -336,7 +337,7 @@ export class Session {
 			}
 
 			let deviceDiv = document.createElement('div')
-			// deviceDiv.id = `brainsatplay-${d.id}`
+			deviceDiv.id = `brainsatplay-device-${d.id}`
 			deviceDiv.classList.add('brainsatplay-deviceCard')
 			deviceDiv.innerHTML += `<h4>${d.name}</h4><div class="variants"></div>`
 
@@ -399,21 +400,25 @@ export class Session {
 			`
 			toggleButton.innerHTML = 'Open Device Manager'
 			document.body.insertAdjacentElement('afterbegin',toggleButton)
-		}
-
-		toggleButton.onclick = () => {
-			deviceSelection.style.opacity = '1'
-			deviceSelection.style.pointerEvents = 'auto'
+		} else {
+			toggleButton.onclick = () => {
+				deviceSelection.style.opacity = '1'
+				deviceSelection.style.pointerEvents = 'auto'
+			}
 		}
 	}
 
-		let ui = new DOMFragment(
-			template,
-			parentNode,
-			undefined,
-			setup
-		)
-		
+		if (preselect == null){
+			let ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		} else {
+			console.log('connecting without details')
+				this.connect(`${preselect.device}_${preselect.variant}`,preselect.analysis)
+		}
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here
@@ -572,6 +577,7 @@ export class Session {
 		this.state.addToState(id, props, onData);
 
 		this.state.data[id + "_flag"] = true;
+		
 		let sub = this.state.subscribe(id, () => {
 			this.state.data[id + "_flag"] = true;
 		});
@@ -591,25 +597,30 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id) {
-		this.state.unsubscribeAll(id); //unsub state
-		this.state.unsubscribeAll(id+"_flag"); //unsub flag
-		delete this.state.data[id];
-		delete this.state.data[id+"_flag"];
-		this.streamObj.removeStreamFunc(id); //remove streaming function by name
+	removeStreaming(id, responseIdx, manager = this.state) {
+		if (responseIdx == null){
+			manager.removeState(id)
+			manager.removeState(id+"_flag")
+			this.streamObj.removeStreamFunc(id); //remove streaming function by name
+			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
+			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
+		} else {
+			manager.unsubscribe(id, responseIdx); //unsub state
+		}
 	} 
 
 	//Add functions for gathering data to send to the server
-	addStreamFunc(name, callback, idx = 0) {
+	addStreamFunc(name, callback, manager=this.state) {
 
 		if (typeof name === 'string' && typeof callback === 'function') {
 
 			// Artificially add to state (for streaming functions)
 			let _callback = () => { 
 				let data = callback()
-				if (data != undefined) this.state.data[name] = data
+				if (data != undefined) manager.data[name] = data
 				return data
 			}
+
 			// Run so that solo users get their own data back
 			this.streamObj.streamLoop();
 
@@ -758,72 +769,72 @@ export class Session {
 
 		if (parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
-				this.state.data["userData_" + parsed.username + "_" + prop] = parsed.userData[prop];
+				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
 			}
 		}
 		else if (parsed.msg === 'sessionData') {
+
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
 				for (const prop in o) {
-					if (prop !== 'username') this.state.data[`${parsed.id}_${user}_${prop}`] = o[prop]
+					if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
 				}
 			});
 
 			if (parsed.userLeft) {
 				for (const prop in this.state.data) {
 					if (prop.indexOf(parsed.userLeft) > -1) {
-						this.state.unsubscribeAll(prop);
-						delete this.state.data[prop]
+						this.state.removeState(prop)
 					}
 				}
 			}
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getUsersResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionDataResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionsResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionCreated') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToUser') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userNotFound') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToSession') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'leftSession') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionDeleted') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'unsubscribed') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'resetUsername') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'getUserDataResult') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} 
 		// OSC
 		else if (parsed.msg === 'oscError') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscInfo') {
-			this.state.data.commandResult = parsed;
+			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscData') {
 			console.log(parsed.oscData)
 			// for (const prop in parsed.userData) {
@@ -886,7 +897,7 @@ export class Session {
 			userProps.forEach((prop) => {
 				let p = prop;
 				if (Array.isArray(p)) p = prop.join("_"); //if props are given like ['eegch','FP1']
-				this.state.data[username + "_" + p] = null; //dummy values so you can attach listeners to expected outputs
+				this.state.updateState(username + "_" + p, null)
 			});
 			//wait for result, if user found then add the user
 			let sub = this.state.subscribe('commandResult', (newResult) => {
@@ -895,7 +906,7 @@ export class Session {
 						if (newResult.username === username) {
 							this.sendBrainstormCommand(['subscribeToUser', username, userProps]);
 							for (const [prop, value] of Object.entries(newResult.userData.props)) {
-								this.state.data["userData_" + username + "_" + prop] = value;
+								this.state.updateState("userData_" + username + "_" + prop, value)
 							}
 						}
 						onsuccess(newResult.userData);
@@ -919,8 +930,7 @@ export class Session {
 				if (newResult.msg === 'unsubscribed' && newResult.username === username) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(username) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -944,7 +954,7 @@ export class Session {
 				}
 				else if (newResult.msg === 'usersNotFound') {//} & newResult.appname === appname) {
 					this.state.unsubscribe('commandResult', sub);
-					console.log("USers not found: ", appname);
+					console.log("Users not found: ", appname);
 					return []
 				}
 			});
@@ -1015,7 +1025,6 @@ export class Session {
 							//check that this user has the correct streaming configuration with the correct connected device
 							let streamParams = [];
 							newResult.sessionInfo.propnames.forEach((prop) => {
-								// console.log(prop);
 								streamParams.push(prop.split("_"));
 							});
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
@@ -1023,11 +1032,6 @@ export class Session {
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
-							newResult.sessionInfo.usernames.forEach((user) => {
-								newResult.sessionInfo.propnames.forEach((prop) => {
-									this.state.data[sessionid + "_" + user + "_" + prop] = null;
-								});
-							});
 							onsuccess(newResult);
 						}
 
@@ -1051,8 +1055,7 @@ export class Session {
 				if (newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(sessionid) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -1293,9 +1296,9 @@ export class Session {
 	createIntro = (applet) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
-			<p>${applet.subtitle}</p>
+			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
 			<div class="brainsatplay-intro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
@@ -1371,6 +1374,13 @@ export class Session {
 		} else {
 			multiplayer.style.opacity = 0.25
 			multiplayer.style.pointerEvents = 'none'
+		}
+
+
+		// Autoselect
+		if (applet.info.intro){
+			if (applet.info.intro.mode === 'single') solo.click()
+			if (applet.info.intro.mode === 'multi') multiplayer.click()
 		}
 		
 		// Create Session Brower
@@ -1512,7 +1522,7 @@ export class Session {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, applet.streams]);
+			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
@@ -1540,7 +1550,7 @@ export class Session {
 	}
 
 
-	getBrainstormData(query, props=[], type = 'app') {
+	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
 		let usernameInd;
 		let propInd;
@@ -1562,12 +1572,26 @@ export class Session {
 		}
 
 		let arr = []
+
 		if (query != null) {
 			var regex = new RegExp(query);
 			let returnedStates = Object.keys(this.state.data).filter(k => {
+
+				// Query is True
 				let test1 = regex.test(k)
+
+				// Structure is Appropriate
 				let test2 = structureFilter(k)
-				if (test1 && test2) return true
+
+				// Props are Included
+				let test3 = false;
+				props.forEach(p => {
+					if (k.includes(p)){
+						test3 = true
+					}
+				})
+				
+				if (test1 && test2 && test3) return true
 			})
 
 			let usedNames = []
@@ -1576,42 +1600,48 @@ export class Session {
 				const strArr = str.split('_')
 
 				if (!usedNames.includes(strArr[usernameInd])) {
-					if (strArr.length <= 2){
-						if (!usedNames.includes( this.info.auth.username )) {
-							usedNames.push(this.info.auth.username)
-							arr.push({ username: this.info.auth.username })
-						}
-					} else {
-						usedNames.push(strArr[usernameInd])
-						arr.push({ username: strArr[usernameInd] })
-					}
+					usedNames.push(strArr[usernameInd])
+					arr.push({ username: strArr[usernameInd] })
 				}
 
 				arr.find(o => {
-					let prop;
-					if (strArr.length <= 2) prop =  str // My Local Data (prop query)
-					else prop = strArr.slice(propInd).join('_') // Other User Data
+					let prop = strArr.slice(propInd).join('_') // Other User Data
+					if (o.username === strArr[usernameInd]) {
 
-					if (o.username === this.info.auth.username){
-						o[prop] = this.state.data[prop]
-					}
-					else if (o.username === strArr[usernameInd]) {
-						o[prop] = this.state.data[str]
+						// Plugin Format
+						if (format === 'plugin'){
+								o.value = this.state.data[str].value
+								o.label = prop
+						} 
+						
+						// Default Format
+						else {
+							o[prop] = this.state.data[str]
+						}
 					}
 				})
 			})
 
-			if (returnedStates.length === 0){ // Solo Games or Spectating without Others (username query)
-				arr = [{ username: this.info.auth.username}]
-				props.forEach(prop => {
-					arr[0][prop] = this.state.data[prop]
-				})
-			}
+			let i = arr.length
+			arr.push({ username: this.info.auth.username})
+			props.forEach(prop => {
+
+				// Plugin Format
+				if (format === 'plugin'){
+					arr[i].value = this.state.data[prop].value
+					arr[i].label = prop
+				} 
+				
+				// Default Format
+				else {
+					arr[i][prop] = this.state.data[prop]
+				}
+			})
 		} else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
-		return arr
 
+		return arr
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
@@ -1621,8 +1651,7 @@ export class Session {
 				if (newResult.msg === 'leftSession' && newResult.id === sessionid) {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(userToKick) > -1) {
-							this.state.unsubscribeAll(prop);
-							delete this.state.data[prop]
+							this.state.removeState(prop)
 						}
 					}
 					onsuccess(newResult);
@@ -1815,13 +1844,15 @@ class deviceStream {
 			}
 
 			findAsync(this.deviceConfigs, async (o, i) => {
+
 				if (info.deviceName.indexOf(o.id) > -1) {
 					if (info.deviceName.includes('brainstorm')) {
-						console.log('brainstorm')
 						this.device = new o.cls(info.deviceName, info.session, this.onconnect, this.ondisconnect);
 					} else {
 						this.device = new o.cls(info.deviceName, this.onconnect, this.ondisconnect);
 					}
+
+					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
 					resolve(true);
 					return true;
@@ -1830,8 +1861,8 @@ class deviceStream {
 		})
 	}
 
-	connect = () => {
-		this.device.connect();
+	connect = async () => {
+		return await this.device.connect();
 	}
 
 	disconnect = () => {
@@ -2061,8 +2092,9 @@ class streamSession {
 
 	removeStreamFunc(name='') {
 		this.streamTable.find((o,i) => {
-			if(o.prop === name)
-				this.streamTable.splice(i,1);
+			if(o.prop === name){
+				return this.streamTable.splice(i,1);
+			}
 		})
 	}
 
@@ -2131,7 +2163,7 @@ class streamSession {
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
-			this.getDataForSocket(undefined, this.info.appStreamParams) // NOTE: UNSTABLE
+			this.getDataForSocket(undefined, this.info.appStreamParams) 
 			this.info.streamCt = 0;
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}

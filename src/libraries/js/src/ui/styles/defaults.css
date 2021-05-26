@@ -1,4 +1,15 @@
 
+a {
+    color: rgb(155, 155, 155);
+    text-decoration: none;
+    transition: color 0.5s;
+}
+
+a:hover{
+    color: rgb(200, 200, 200)
+}
+
+
 /* Intro UI */
 .brainsatplay-default-container {
     display: flex;

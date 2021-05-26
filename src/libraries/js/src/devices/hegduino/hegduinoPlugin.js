@@ -171,6 +171,7 @@ export class hegduinoPlugin {
 
     disconnect = () => {
         this.device.disconnect();
+        if (this.ui) this.ui.deleteNode()
     }
 
     //externally set callbacks
@@ -181,7 +182,10 @@ export class hegduinoPlugin {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
         let template = () => {
             let t = `
+            <br>
             <div id='`+id+`hegduinoControls'>
+                <h3>Control Panel</h3>
+                <hr>
                 <button id='`+id+`hegon'>On</button>
                 <button id='`+id+`hegoff'>Off</button>
                 <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>

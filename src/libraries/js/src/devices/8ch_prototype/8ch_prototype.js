@@ -2,14 +2,14 @@
 
 import 'regenerator-runtime/runtime' //For async functions on node\\
 
-export class eeg32 { //Contains structs and necessary functions/API calls to analyze serial data for the FreeEEG32
+export class industryKiller { //Contains structs and necessary functions/API calls to analyze serial data for the FreeEEG32
 
     constructor(
 		onDecodedCallback = this.onDecodedCallback,
 		onConnectedCallback = this.onConnectedCallback,
 		onDisconnectedCallback = this.onDisconnectedCallback,
 		CustomDecoder = this.decode,
-		baudrate = 115200
+		baudrate = 10000000
 		) {
 		this.onDecodedCallback = onDecodedCallback;
 		this.onConnectedCallback = onConnectedCallback;
@@ -22,20 +22,21 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
         */
 		this.connected = false;
 		this.subscribed = false;
-        this.buffer = [];
+        this.buffer = "";
         this.startByte = 160; // Start byte value
 		this.stopByte = 192; // Stop byte value
 		this.searchString = new Uint8Array([this.stopByte,this.startByte]); //Byte search string
-		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
+		this.readRate = 1; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
+        this.decoder = new TextDecoder();
 
-		this.sps = 512; // Sample rate
+		this.sps = 500; // Sample rate
 		this.nChannels = 32;
 		this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
 		this.updateMs = 1000/this.sps; //even spacing
 		this.stepSize = 1/Math.pow(2,24);
-		this.vref = 2.50; //2.5V voltage ref +/- 250nV
-		this.gain = 8;
+		this.vref = 1.20; //2.5V voltage ref +/- 250nV
+		this.gain = 32;
 
 		this.vscale = (this.vref/this.gain)*this.stepSize; //volts per step.
 		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
@@ -48,10 +49,6 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 			startms: 0,
 			ms: [],
 			'A0': [],'A1': [],'A2': [],'A3': [],'A4': [],'A5': [],'A6': [],'A7': [], //ADC 0
-			'A8': [],'A9': [],'A10': [],'A11': [],'A12': [],'A13': [],'A14': [],'A15': [], //ADC 1
-			'A16': [],'A17': [],'A18': [],'A19': [],'A20': [],'A21': [],'A22': [],'A23': [], //ADC 2
-			'A24': [],'A25': [],'A26': [],'A27': [],'A28': [],'A29': [],'A30': [],'A31': [], //ADC 3
-			'Ax': [], 'Ay': [], 'Az': [], 'Gx': [], 'Gy': [], 'Gz': []  //Peripheral data (accelerometer, gyroscope)
 		};
 
 		this.resetDataBuffers();
@@ -89,7 +86,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 	getLatestData(channel="A0",count=1) { //Return slice of specified size of the latest data from the specified channel
 		let ct = count;
 		if(ct <= 1) {
-			return [this.data[channel][this.data.count-1]];
+			return this.data[channel][this.data.count-1];
 		}
 		else {
 			if(ct > this.data.count) {
@@ -115,81 +112,57 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
         return [y & 0xFF , (y >> 8) & 0xFF , (y >> 16) & 0xFF];
     }
 
-    decode(buffer = this.buffer) { //returns true if successful, returns false if not
+    // onReceiveAsync(value) {
+    //     this.encodedBuffer += this.decoder.decode(value);
+    //     var index;
+    //     while ((index = this.encodedBuffer.indexOf('\n')) >= 0) {
+    //         var line = this.encodedBuffer.substr(0, index + 1);
+    //         if(this.recordData == true) {
+    //             this.recorded.push(line);
+    //         }
+    //         if(this.monitoring = true){
+    //             this.newSamples++;
+    //             this.monitorData.push(line);
+    //         }
+    //         this.onReadLine(line);
+    //         this.encodedBuffer = this.encodedBuffer.substr(index + 1);
+    //     }
+    // }
 
-		var needle = this.searchString
-		var haystack = buffer;
-		var search = this.boyerMoore(needle);
-		var skip = search.byteLength;
-		var indices = [];
-		let newLines = 0;
+    decode() { //returns true if successful, returns false if not
 
-		for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
-			indices.push(i);
-		}
-		//console.log(indices);
-		if(indices.length >= 2){
-			for(let k = 1; k < indices.length; k++) {
-				if(indices[k] - indices[k-1] !== 105) {
-					
-				} //This is not a valid sequence going by size, drop sequence and return
-				else {
-					var line = buffer.slice(indices[k-1],indices[k]+1); //Splice out this line to be decoded
-					
-					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
-
-					//line found, decode.
-					if(this.data.count < this.maxBufferedSamples){
-						this.data.count++;
-					}
-
-					if(this.data.count-1 === 0) {this.data.ms[this.data.count-1]= Date.now(); this.data.startms = this.data.ms[0];}
-					else {
-						this.data.ms[this.data.count-1]=this.data.ms[this.data.count-2]+this.updateMs;
-						
-						if(this.data.count >= this.maxBufferedSamples) {
-							this.data.ms.splice(0,5120);
-							this.data.ms.push(new Array(5120).fill(0));
-						}
-					}//Assume no dropped samples
-				
-					for(var i = 3; i < 99; i+=3) {
-						var channel = "A"+(i-3)/3;
-						this.data[channel][this.data.count-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
-						if(this.data.count >= this.maxBufferedSamples) { 
-							this.data[channel].splice(0,5120);
-							this.data[channel].push(new Array(5120).fill(0));//shave off the last 10 seconds of data if buffer full (don't use shift())
-						}
-							//console.log(this.data[channel][this.data.count-1],indices[k], channel)
-					}
-
-					this.data["Ax"][this.data.count-1]=this.bytesToInt16(line[99],line[100]);
-					this.data["Ay"][this.data.count-1]=this.bytesToInt16(line[101],line[102]);
-					this.data["Az"][this.data.count-1]=this.bytesToInt16(line[103],line[104]);
-
-					
-					if(this.data.count >= this.maxBufferedSamples) { 
-						this.data["Ax"].splice(0,5120);
-						this.data["Ay"].splice(0,5120);
-						this.data["Az"].splice(0,5120);
-						this.data["Ax"].push(new Array(5120).fill(0))
-						this.data["Ay"].push(new Array(5120).fill(0))
-						this.data["Az"].push(new Array(5120).fill(0))
-						this.data.count -= 5120;
-					}
-					//console.log(this.data)
-					newLines++;
-					//console.log(indices[k-1],indices[k])
-					//console.log(buffer[indices[k-1],buffer[indices[k]]])
-					//indices.shift();
-				}
-				
-			}
-			if(newLines > 0) buffer.splice(0,indices[indices.length-1]);
-			return newLines;
-			//Continue
-		}
-		//else {this.buffer = []; return false;}
+        
+        var index;
+        while ((index = this.buffer.indexOf('\n')) >= 0) {
+            var line = this.buffer.substr(0, index + 1).split('|');
+            if(line.length > 6) {
+                this.data.count++;
+                this.data.ms[this.data.count-1] = parseInt(line[8]);
+                if(this.startms === 0) this.startms = this.data.ms[0];
+                this.data.A0[this.data.count-1] = parseInt(line[0]);
+                this.data.A1[this.data.count-1] = parseInt(line[1]);
+                this.data.A2[this.data.count-1] = parseInt(line[2]);
+                this.data.A3[this.data.count-1] = parseInt(line[3]);
+                this.data.A4[this.data.count-1] = parseInt(line[4]);
+                this.data.A5[this.data.count-1] = parseInt(line[5]);
+                this.data.A6[this.data.count-1] = parseInt(line[6]);
+                this.data.A7[this.data.count-1] = parseInt(line[7]);
+    
+                if(this.data.count > this.maxBufferedSamples) {
+                    for(let prop in this.data) {
+                        if(Array.isArray(this.data[prop])) {
+                            this.data[prop].splice(0,5120);
+                            this.data[prop].push(new Array(5120).fill(0));
+                        }
+                    }
+                    this.data.count -= 5120;
+                }
+    
+                this.onDecodedCallback(this.data.count);
+            }
+            this.buffer = this.buffer.substr(index + 1);
+        }
+        //console.log(this.data.count,this.data.A0);
 	}
 
 	//Callbacks
@@ -206,12 +179,8 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 	}
 
 	onReceive(value){
-		this.buffer.push(...value);
-
-		let newLines = this.decode(this.buffer);
-		//console.log(this.data)
-		//console.log("decoding... ", this.buffer.length)
-		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
+		this.buffer += this.decoder.decode(value);
+		this.decode();
 	}
 
 	async onPortSelected(port,baud=this.baudrate) {
