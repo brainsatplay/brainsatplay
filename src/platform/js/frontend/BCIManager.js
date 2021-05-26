@@ -467,35 +467,41 @@ export class BCIAppManager {
     }
 
     updateProfileUI(user){
-        let profileButton = document.getElementById('brainstplay-profile-menu').querySelector('button')
-        let profileImg = document.getElementById(`brainsatplay-profile-img`)
-        if (user != null){
-            document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
-            document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
-            profileImg.style.padding = "0"
-            let selector = document.getElementById(`applet0`)
-            let choice = 'Profile Manager'
-            profileButton.onclick = () => {
-                selector.value = choice
-                window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
-                selector.onchange()
-            }
-            if (selector.value === choice) profileButton.click() // Refresh profile if necessary
-        } else {
-            document.getElementById(`brainsatplay-profile-img`).src = GoogleIcon
-            document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Log In' // user._profile.data.name
-            profileImg.style.padding = "10px"
-            profileButton.onclick = async (e) => {
-                this.session.loginWithGoogle().then(authResponse => {
-                    this.session.loginWithRealm(authResponse).then(user => {
-                        this.updateProfileUI(user)
+
+        let menu = document.getElementById('brainstplay-profile-menu')
+        if (window.location.origin.includes('localhost')){
+            let profileButton = menu.querySelector('button')
+            let profileImg = document.getElementById(`brainsatplay-profile-img`)
+            if (user != null){
+                document.getElementById(`brainsatplay-profile-img`).src = user._profile.data.pictureUrl
+                document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Your Profile' // user._profile.data.name
+                profileImg.style.padding = "0"
+                let selector = document.getElementById(`applet0`)
+                let choice = 'Profile Manager'
+                profileButton.onclick = () => {
+                    selector.value = choice
+                    window.history.pushState({additionalInformation: 'Updated URL to View Profile' },'',`${window.location.origin}/#${choice}`)
+                    selector.onchange()
+                }
+                if (selector.value === choice) profileButton.click() // Refresh profile if necessary
+            } else {
+                document.getElementById(`brainsatplay-profile-img`).src = GoogleIcon
+                document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Log In' // user._profile.data.name
+                profileImg.style.padding = "10px"
+                profileButton.onclick = async (e) => {
+                    this.session.loginWithGoogle().then(authResponse => {
+                        this.session.loginWithRealm(authResponse).then(user => {
+                            this.updateProfileUI(user)
+                        }).catch((e) => {
+                            console.log(e)
+                        })
                     }).catch((e) => {
                         console.log(e)
                     })
-                }).catch((e) => {
-                    console.log(e)
-                })
+                }
             }
+        } else {
+            menu.style.display = 'none'
         }
     }
 
