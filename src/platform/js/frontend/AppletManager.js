@@ -201,7 +201,7 @@ export class AppletManager {
     }
 
     //add the initial list of applets
-    initAddApplets = (appletConfigs = []) => {
+    initAddApplets = async (appletConfigs = []) => {
 
         // Load Config
         let preset = undefined;
@@ -289,11 +289,14 @@ export class AppletManager {
             let getBrowser = async () => {
                 let settings = await getAppletSettings(appletManifest['Applet Browser'].folderUrl)
                 let applet = await getApplet(settings)
-                return [applet,settings]
+                return [[applet,settings]]
             }
-            appletPromises = getBrowser()
+            appletPromises = await getBrowser()
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' }, '', window.location.origin)
         }
+
+
+        console.log(appletPromises)
 
         Promise.all(appletPromises).then((configApplets) => {
 

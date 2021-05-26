@@ -4,7 +4,7 @@ import {Coherence} from '../../../libraries/js/src/plugins/Coherence'
 import {UI} from './UI'
 import {Debug} from '../../../libraries/js/src/plugins/Debug'
 import {Signal} from '../../../libraries/js/src/plugins/Signal'
-import {MathPlugin} from '../../../libraries/js/src/plugins/Math'
+import {Arithmetic} from '../../../libraries/js/src/plugins/Arithmetic'
 
 
 let id = String(Math.floor(Math.random()*1000000))
@@ -29,15 +29,15 @@ export const settings = {
       nodes: [
         {id: 'ui', class: UI, params: {}},
         {id: 'signal', class: Signal, params: {}, loop: true},
-        {id: 'math', class: MathPlugin, params: {}},
+        {id: 'arithmetic', class: Arithmetic, params: {}},
       ],
       edges: [
         {
           source: 'signal', 
-          target: 'math'
+          target: 'arithmetic'
         },
         {
-          source: 'math', 
+          source: 'arithmetic', 
           target: 'ui'
         }
       ]

@@ -1,4 +1,4 @@
-export class MathPlugin{
+export class Arithmetic{
     
     static id = String(Math.floor(Math.random()*1000000))
 

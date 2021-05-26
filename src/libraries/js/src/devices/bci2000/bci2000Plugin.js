@@ -54,6 +54,23 @@ export class bci2000Plugin {
     })
     }
 
+
+    timeCorrection = (coord, data, timestamp, direction='back') => {
+
+        // Update Sampling Rate for New Data
+        let prevTime = coord.times[coord.times.length - 1]
+        if (prevTime == null) prevTime = timestamp - (data.length/this.info.sps)
+        let timeToSample = (timestamp - prevTime)/data.length 
+        this.info.sps = 1000/timeToSample // In Seconds
+
+        // Calculate Time Vector through Linear interpolation
+        let time = Array(data.length).fill(timestamp);
+        if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
+        else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
+        
+        return time
+    }
+
     connectToDataLayer = async (info,pipeToAtlas) => {
         return new Promise(async (resolve, reject) => {
 
@@ -62,11 +79,12 @@ export class bci2000Plugin {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
-                console.log(raw)
                 if(this.info.useAtlas) {
                     raw.forEach((chData,i) => {
                         let coord = this.atlas.getEEGDataByChannel(i);
-                        // coord.times.push(...time);
+
+                        let time = this.timeCorrection(coord, raw, Date.now(), 'back')
+                        coord.times.push(...time);
                         coord.raw.push(...chData);
                         coord.count += chData.length;
                         // if(this.info.useFilters === true) {                
@@ -85,8 +103,6 @@ export class bci2000Plugin {
 
             this.device.onStateFormat = data => console.log(data);
             this.device.onSignalProperties = data => {
-                console.log(data);
-
                 // Check if already created (websocket tends to close and reopen...)
                 if (this.atlas == null){
                     // let eegChannelTags = []

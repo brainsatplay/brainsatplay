@@ -24,7 +24,7 @@ export class syntheticPlugin {
     init = async (info,pipeToAtlas) => {
         info.sps = 256
         info.deviceType = 'eeg'
-        info.eegChannelTags = '19'
+        info.eegChannelTags = '8'
         
         this.info = info;
 
@@ -142,31 +142,46 @@ export class syntheticPlugin {
         
     }
 
+    timeCorrection = (coord, data, timestamp) => {
+
+        // Update Sampling Rate for New Data
+        let prevTime = coord.times[coord.times.length - 1]
+        if (prevTime == null) prevTime = timestamp - (data.length/this.info.sps)
+        let timeToSample = (timestamp - prevTime)/data.length 
+        this.info.sps = 1000/timeToSample // In Seconds
+
+        // Calculate Time Vector through Linear interpolation
+        let time = Array(data.length).fill(timestamp);
+        time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Forward
+
+        return time
+    }
+
     simulateData = () => {
 
-        let delay = 100;
+        let delay = 10;
 
         let simulate = () => {
             if (this.looping){
 
             if(this.info.useAtlas) {
-
-                let n = Math.floor(this.info.sps*delay/1000);
-                let time = Array(n).fill(Date.now());
-                time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/5)})	
     
                 let nCh = this.info.eegChannelTags.length
                 this.info.eegChannelTags.forEach((o,i) => {
-    
+                    let coord = this.atlas.getEEGDataByTag(o.tag);
+                    let prevTime = coord.times[coord.times.length - 1]
+                    if (isNaN(prevTime)) prevTime = Date.now() - delay
+                    let n = Math.floor(this.info.sps * (Date.now() - prevTime)/1000)
+                    let time = Array(n).fill(Date.now());
+                    time = time.map((t,i) => {return t-((this.info.sps/1000)*(time.length - i))}) // Forward
                     let samples = []
                     let minFreq = 1
-                    let maxFreq = 20
+                    let maxFreq = 40
                     time.forEach((t) => {
                         let f = Math.floor(minFreq + (maxFreq-minFreq)*(i/nCh))
                         samples.push(200*Math.sin(2*Math.PI*(f)*t/1000));
                     })
-
-                    let coord = this.atlas.getEEGDataByTag(o.tag);
+                    
                     coord.times.push(...time);
                     coord.raw.push(...samples);
                     coord.count += samples.length;
@@ -200,7 +215,7 @@ export class syntheticPlugin {
     }
     
     addControls(){
-        
+
     }
 
 }

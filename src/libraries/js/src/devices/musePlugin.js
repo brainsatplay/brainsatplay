@@ -88,6 +88,23 @@ export class musePlugin {
 
     _onConnected = () => {} //for internal use only on init
 
+
+    timeCorrection = (coord, data, timestamp, direction='back') => {
+
+        // Update Sampling Rate for New Data
+        let prevTime = coord.times[coord.times.length - 1]
+        if (prevTime == null) prevTime = timestamp - (data.length/this.info.sps)
+        let timeToSample = (timestamp - prevTime)/data.length 
+        this.info.sps = 1000/timeToSample // In Seconds
+
+        // Calculate Time Vector through Linear interpolation
+        let time = Array(data.length).fill(timestamp);
+        if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
+        else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
+        
+        return time
+    }
+
     connect = async () => {
         //connect muse and begin streaming
         await this.device.connect();
@@ -97,12 +114,15 @@ export class musePlugin {
         
         this.device.eegReadings.subscribe(o => {
             if(this.info.useAtlas) {
-                let time = Array(o.samples.length).fill(o.timestamp);
-                time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/5)})	
+
                 let coord = this.atlas.getEEGDataByChannel(o.electrode);
+                let time = this.timeCorrection(coord, o.samples, o.timestamp)
+                // Add Data to Atlas
                 coord.times.push(...time);
                 coord.raw.push(...o.samples);
                 coord.count += o.samples.length;
+
+                // Filter Data
                 if(this.info.useFilters === true) {                
                     let latestFiltered = new Array(o.samples.length).fill(0);
                     if(this.filters[o.electrode] !== undefined) {
