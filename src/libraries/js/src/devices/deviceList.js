@@ -10,11 +10,13 @@ import { syntheticPlugin } from './synthetic/syntheticPlugin';
 import { brainstormPlugin } from './brainstorm/brainstormPlugin';
 import { bci2000Plugin } from './bci2000/bci2000Plugin';
 import { Prototype8Plugin } from './8ch_prototype/8chPlugin'
+import { notionPlugin } from './neurosity/notionPlugin'
 
 
 export const deviceList = [
     {'name': 'Synthetic', id:'synthetic', company:'Brains@Play', analysis: ['eegcoherence'], cls: syntheticPlugin},
     {'name': 'Brainstorm', id:'brainstorm',company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
+    {'name': 'Notion', id:'notion', company:'Neurosity', analysis: ['eegcoherence'], cls: notionPlugin},
     {'name': 'Muse 2', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:['', 'Aux'], cls: musePlugin},
     {'name': 'Muse S', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin},
     {'name': 'Ganglion', id:'ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin},

@@ -197,6 +197,10 @@ export class syntheticPlugin {
 
     replayData() {
 		
-	}
+    }
+    
+    addControls(){
+        
+    }
 
 }

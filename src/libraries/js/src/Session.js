@@ -151,6 +151,7 @@ export class Session {
 		useFilters = true,
 		pipeToAtlas = true
 	) {
+
 		if (streaming === true) {
 			if (this.socket == null || this.socket.readyState !== 1) {
 				console.error('Server connection not found, please run login() first');
@@ -170,6 +171,7 @@ export class Session {
 		}
 
 		let newStream;
+
 		if (device.includes('brainstorm')) {
 			// this.deviceStreams.push(
 				newStream = new deviceStream(
@@ -196,7 +198,6 @@ export class Session {
 		let i = this.deviceStreams.length;
 
 		newStream.onconnect = () => {
-			
 			this.deviceStreams.push(newStream)
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			this.info.nDevices++;
@@ -415,6 +416,7 @@ export class Session {
 				setup
 			)
 		} else {
+			console.log('connecting without details')
 				this.connect(`${preselect.device}_${preselect.variant}`,preselect.analysis)
 		}
 	}

@@ -1,239 +1,354 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
-import {hegduino} from './hegduino'
-import {DOMFragment} from '../../ui/DOMFragment'
+import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {Notion} from '@neurosity/notion'
 
-export class hegduinoPlugin {
-    constructor(mode='hegduino_usb', onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
+export class notionPlugin {
+    constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
-        this.filtering = false;
-        this.ui = null;
-
-        this.refuS = 0;
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
-    }
 
-    	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
-
-    mean(arr){
-        var sum = arr.reduce((prev,curr)=> curr += prev);
-        return sum / arr.length;
+        let disconnectOnRefresh = () => {
+            this.disconnect()
+            window.removeEventListener('beforeunload', disconnectOnRefresh)
+        }
+        window.addEventListener('beforeunload', disconnectOnRefresh)
     }
 
     init = async (info,pipeToAtlas) => {
-		info.sps = 32;
-        info.deviceType = 'heg';
 
-        let ondata = (newline) => {
-            if(newline.indexOf("|") > -1) {
-                let data = newline.split("|");
-                //console.log(data);
-                if(data.length > 3) {
-                    let coord = this.atlas.data.heg[info.deviceNum];
-                    coord.count++;
-                    if(coord.count === 1) { coord.startTime = Date.now(); }
-                    if(this.device.mode === 'ble' && this.device.interface.android === true) {
-                        coord.times.push(Date.now());
-                        if(!this.filtering){
-                            coord.red.push(parseFloat(data[0]));
-                            coord.ir.push(parseFloat(data[1]));
-                            coord.ratio.push(parseFloat(data[2]));
-                        } else{
-                            coord.red.push(this.filters[0].applyFilter(parseFloat(data[0])));
-                            coord.ir.push(this.filters[1].applyFilter(parseFloat(data[1])));
-                            coord.ratio.push(this.filters[2].applyFilter(parseFloat(data[2])));
-                        }
-                        //ignore the rest for now
-                    } else { 
-                        if(coord.times.length === 0) {coord.times.push(Date.now()); this.refuS = parseFloat(data[0]);} //Microseconds = parseFloat(data[0]). We are using date.now() in ms to keep the UI usage normalized
-                        else {
-                            let t = parseFloat(data[0]);
-                            coord.times.push(Math.floor(coord.times[coord.times.length-1]+(t-this.refuS)*0.001))
-                            this.refuS = t; //keep times synchronous
-                        }
-                        if(!this.filtering){
-                            coord.red.push(parseFloat(data[1]));
-                            coord.ir.push(parseFloat(data[2]));
-                            coord.ratio.push(parseFloat(data[3]));
-                            coord.ambient.push(parseFloat(data[4]));
-                            coord.temp.push(parseFloat(data[5])); // temp is on new firmware
-                        } else {
-                            coord.red.push(this.filters[0].applyFilter(parseFloat(data[1])));
-                            coord.ir.push(this.filters[1].applyFilter(parseFloat(data[2])));
-                            coord.ratio.push(this.filters[2].applyFilter(parseFloat(data[3])));
-                            coord.ambient.push(this.filters[3].applyFilter(parseFloat(data[4])));
-                            coord.temp.push(parseFloat(data[5])); // temp is on new firmware
-                        }
-                        //ignore the rest for now
-                    }
-
-                    //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
-                    this.atlas.beatDetection(coord, info.sps);
-                }
-            } else {console.log("HEGDUINO: ", newline); }
-        }
-        if(this.mode === 'hegduino_wifi' || this.mode === 'hegduino_sse') {
-            info.sps = 20; //20sps incoming rate fixed for wifi
-            this.device = new hegduino('wifi',ondata,
-            ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
-                    this.atlas.settings.analyzing = true;
-                    setTimeout(() => {this.atlas.analyzer();},1200);		
-                }
-                this.atlas.settings.deviceConnected = true;
-                this.device.sendCommand('t');
-                this.onconnect();
-            },
-            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
-        }
-        else if (this.mode === 'hegduino_Bluetooth') {
-            this.device= new hegduino('ble',ondata,
-            ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
-                    this.atlas.settings.analyzing = true;
-                    setTimeout(() => {this.atlas.analyzer();},1200);		
-                }
-                this.atlas.settings.deviceConnected = true;
-                this.device.sendCommand('t');
-                this.onconnect();
-            },
-            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
-        }
-        else if (this.mode === 'hegduino_USB') {
-            this.device= new hegduino('usb',ondata,
-            ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
-                    this.atlas.settings.analyzing = true;
-                    setTimeout(() => {this.atlas.analyzer();},1200);		
-                }
-                this.atlas.settings.deviceConnected = true;
-                this.device.sendCommand('t');
-                this.onconnect();
-            },
-            ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
-        }
-
+        // NEUROSITY
+        this.device = new Notion({autoSelectDevice: false});
         
-    }
-
-    setupAtlas = (pipeToAtlas,info) => {
-
-        this.filters.push(new BiquadChannelFilterer('red',100,false,1),new BiquadChannelFilterer('ir',100,false,1),new BiquadChannelFilterer('ratio',100,false,1),new BiquadChannelFilterer('ambient',100,false,1));
-        this.filters.forEach((filter)=> {
-            filter.useSMA4 = true;
-            filter.useDCB = false;
-        })
-
-
-        if(pipeToAtlas === true) {
-            let config = 'hegduino';
-            this.atlas = new DataAtlas(
-                location+":"+this.mode,
-                {hegshared:{sps:info.sps}},
-                config,false,true,
-                info.analysis
-                );
-
-            info.deviceNum = this.atlas.data.heg.length-1;
-            info.useAtlas = true;
-            
-        } else if (typeof pipeToAtlas === 'object') {
-            this.atlas = pipeToAtlas; //External atlas reference
-            info.deviceNum = this.atlas.data.heg.length; 
-            this.atlas.data.hegshared = {sps:info.sps};
-            this.atlas.addHEGCoord(this.atlas.data.heg.length); 
-            this.atlas.settings.heg = true;
-            info.useAtlas = true;
-            if(info.analysis.length > 0 ) {
-                this.atlas.settings.analysis.push(...info.analysis);
-                if(!this.atlas.settings.analyzing) { 
-                    this.atlas.settings.analyzing = true;
-                    this.atlas.analyzer();
-                }
+        this.info = info;
+        return new Promise((resolve, reject) => {
+            let onAuth = (success) => {
+                this.setupAtlas(info,pipeToAtlas).then(() => {
+                    resolve(true)
+                });
             }
-        }
+            this.promptLogin(document.body, onAuth)
+        });
     }
 
-    connect = () => {
-        this.device.connect();
+    connect = async () => {
+
+            this.device.brainwaves('raw').subscribe(brainwaves => {
+                let raw = brainwaves.data
+                if(this.info.useAtlas) {
+                    let time = Array(raw[0].length).fill(Date.now());
+                    time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/5)})	
+
+                    raw.forEach((data,i) => {
+                        let coord = this.atlas.getEEGDataByChannel(i);
+                        coord.times.push(...time);
+                        coord.raw.push(...data);
+                        coord.count += data.length;
+                        if(this.info.useFilters === true) {                
+                            let latestFiltered = new Array(data.length).fill(0);
+                            if(this.filters[i] !== undefined) {
+                                data.forEach((sample,k) => { 
+                                    latestFiltered[k] = this.filters[i].apply(sample); 
+                                });
+                            }
+                            coord.filtered.push(...latestFiltered);
+                        }
+                    })
+                }
+            })
+
+            this.atlas.data.eegshared.startTime = Date.now();
+            this.atlas.settings.deviceConnected = true;
+            if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
+                this.atlas.settings.analyzing = true;
+                setTimeout(() => {this.atlas.analyzer();},1200);		
+            }
+
+        this.onconnect();
     }
 
     disconnect = () => {
-        this.device.disconnect();
+
+        this.device.logout().then(() => {
+            console.log('logged out');
+        }).catch((error) => {
+            console.error("Log out error", error);
+        });
+
+        this.ondisconnect();
         if (this.ui) this.ui.deleteNode()
+        this.atlas.settings.deviceConnected = false;
+    }
+
+    setupAtlas = async (info,pipeToAtlas) => {
+
+         let notionInfo = await this.device.getInfo();
+         info.sps = notionInfo.samplingRate
+         info.deviceType = 'eeg'
+         info.eegChannelTags = []
+         notionInfo.channelNames.forEach((t,i) => {
+            info.eegChannelTags.push({tag: t, ch: i, analyze: true})
+         })
+ 
+         // FOR EEG ONLY
+         if(pipeToAtlas === true) { //New Atlas
+             let config = '10_20';
+             this.atlas = new DataAtlas(
+                 location+":"+this.mode,
+                 {eegshared:{eegChannelTags: info.eegChannelTags, sps:info.sps}},
+                 config,true,true,
+                 info.analysis
+                 );
+             info.useAtlas = true;
+         } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
+             this.atlas = pipeToAtlas; //External atlas reference
+             this.atlas.data.eegshared.sps = info.sps;
+             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+             this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
+             this.atlas.data.eeg = this.atlas.gen10_20Atlas(info.eegChannelTags); 
+             
+             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
+             this.atlas.settings.coherence = true;
+             this.atlas.settings.eeg = true;
+             info.useAtlas = true;
+             if(info.analysis.length > 0 ) {
+                 this.atlas.settings.analysis.push(...info.analysis);
+                 if(!this.atlas.settings.analyzing) { 
+                     this.atlas.settings.analyzing = true;
+                     this.atlas.analyzer();
+                 }
+             }
+         }
+ 
+  
+         if(info.useFilters === true) {
+             info.eegChannelTags.forEach((row,i) => {
+                 if(row.tag !== 'other') {
+                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,1));
+                 }
+                 else { 
+                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
+                 }
+             });
+         }
+         
+         return this.atlas
     }
 
     //externally set callbacks
     onconnect = () => {}
     ondisconnect = () => {}
 
-    addControls = (parentNode=document.body) => {
-        let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
-        let template = () => {
-            let t = `
-            <br>
-            <div id='`+id+`hegduinoControls'>
-                <h3>Control Panel</h3>
-                <hr>
-                <button id='`+id+`hegon'>On</button>
-                <button id='`+id+`hegoff'>Off</button>
-                <input id='`+id+`hegcmd' type='text' placeholder='R'></input><button id='`+id+`sendcmd'>Send</button>
-                Add Digital Filters:<input id='`+id+`filter' type='checkbox'></input>
-            `;
-            if(this.mode === 'hegduino_ble') {
-                t+= `
-                <button id='`+id+`hegupdate'>Update Firmware (.bin)</button>
-                </div>
-                `;
-            }
-            else { t+=`</div>`;}
-            
-            return t;
-        }
+    addControls = (parentNode = document.body) => {
+        // this.uiid = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
+        // let template = () => {
+        //     return `
+        //     `;
+        // }
 
-        let setup = () => {
-         
-            document.getElementById(id+'hegon').onclick = () => {
-                this.device.sendCommand('t');
-            }
-            document.getElementById(id+'hegoff').onclick = () => {
-                this.device.sendCommand('f');
-            }
-            document.getElementById(id+'sendcmd').onclick = () => {
-                this.device.sendCommand(document.getElementById(id+'hegcmd').value);
-            }
-            if(this.mode === 'hegduino_ble') {
-                document.getElementById(id+'hegupdate').onclick = () => {
-                    this.device.getFile(); //testing
-                }
-            }
+        // let setup = () => {
+           
 
-            document.getElementById(id+'filter').onchange = () => {
-                this.filters.forEach((filter)=>{
-                    if(filter.filtering) filter.filtering = false;
-                    else filter.filtering = true;
-                })
-            }
-        }
+        // }
 
-        this.ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
-        
+        // this.ui = new DOMFragment(
+        //     template,
+        //     parentNode,
+        //     undefined,
+        //     setup
+        // )
     }
 
+
+
+
+    selectDevice = (devices, parentNode = document.body, onsuccess = () => { }) => {
+        
+       return new Promise((resolve, reject) => {
+
+		let t = 1
+		
+		let template = () => {
+			return `
+			<div id="${this.id}-deviceBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0;">
+				<div id="${this.id}-choiceDisplay" style="flex-grow: 1;">
+					<h1>Select your Device</h1>
+					<div style="display: flex;">
+						<div id="${this.id}-deviceDiv" style="flex-grow: 1; overflow-y: scroll; border: 1px solid white;">
+						
+						</div>
+					</div>
+				</div>
+				<button id="${this.id}-exitBrowser" class="brainsatplay-default-button" style="position: absolute; bottom:25px; right: 25px;">Go Back</button>
+			</div>`
+		}
+
+		let setup = () => {
+			let browser = document.getElementById(`${this.id}-deviceBrowser`)
+			let userDiv = browser.querySelector(`[id='${this.id}-deviceDiv']`)
+			let closeUI = () => {
+				browser.style.opacity = '0'
+				window.removeEventListener('resize', resizeDisplay)
+				setTimeout(() => {ui.deleteNode()},t*1000)
+			}
+
+
+			const resizeDisplay = () => {
+				let browser = document.getElementById(`${this.id}-deviceBrowser`)
+				let display = browser.querySelector(`[id='${this.id}-choiceDisplay']`)
+				let userDiv = browser.querySelector(`[id='${this.id}-deviceDiv']`)
+				let padding = 50;
+				browser.style.padding = `${padding}px`
+				userDiv.style.height = `${window.innerHeight - 2 * padding - (display.offsetHeight - userDiv.offsetHeight)}px`
+			}
+
+			let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
+			exitBrowser.onclick = closeUI
+
+			resizeDisplay()
+			window.addEventListener('resize', resizeDisplay)
+			browser.style.transition = `opacity ${t}s`
+			browser.style.opacity = '1'
+
+			let updateDisplay = () => {
+				userDiv.innerHTML = ''
+
+				let deviceStyle = `
+				background: rgb(20,20,20);
+				padding: 25px;
+				border: 1px solid black;
+				transition: 0.5s;
+			`
+
+				let onMouseOver = () => {
+					this.style.background = 'rgb(35,35,35)';
+					this.style.cursor = 'pointer';
+				}
+
+				let onMouseOut = () => {
+					this.style.background = 'rgb(20,20,20)';
+					this.style.cursor = 'default';
+				}
+
+				devices.forEach(o => {
+                    userDiv.innerHTML += `
+                    <div  id="${this.id}-device-${o.deviceId}" class="neurosity-device" style="${deviceStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
+                    <p style="font-size: 60%;">${o.deviceId}</p>
+                    <p>${o.deviceNickname}</p>
+                    <p style="font-size: 80%;">${o.model}</p>
+                    </div>`
+				})
+
+				let divs = userDiv.querySelectorAll(".neurosity-device")
+				for (let div of divs) {
+					let id = div.id.split(`${this.id}-device-`)[1]
+                    div.onclick = async (e) => {
+                        let device = await this.device.selectDevice((devices) =>devices.find((device) => device.deviceId === id));
+                        resolve(device)
+                        onsuccess()
+                        closeUI()
+                    }
+				}
+			}
+
+            updateDisplay()
+		}
+
+		let ui = new DOMFragment(
+			template,
+			parentNode,
+			undefined,
+			setup
+        )
+        })
+	}
+
+
+    promptLogin = async (parentNode = document.body, callback = () => { }) => {
+		let returned = new Promise((resolve, reject) => {
+			let template = () => {
+				return `
+		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
+			<div>
+				<h2>Access Notion Data</h2>
+				<div id="${this.id}login-container" class="form-container">
+					<div id="${this.id}login" class="form-context">
+						<p id="${this.id}login-message" class="small"></p>
+						<div class='flex'>
+							<form id="${this.id}login-form" action="">
+                                <div class="login-element" style="margin-left: 0px; margin-right: 0px">
+                                    <input type="text" name="email" autocomplete="off" placeholder="Enter your email"/>
+                                    <br>
+                                    <input type="password" name="password" autocomplete="off" placeholder="Enter your password"/>
+								</div>
+							</form>
+						</div>
+						<div class="login-buttons" style="justify-content: flex-start;">
+							<div id="${this.id}login-button" class="brainsatplay-default-button">Sign In</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		`}
+
+			let setup = () => {
+				let loginPage = document.getElementById(`${this.id}login-page`)
+				const loginButton = loginPage.querySelector(`[id='${this.id}login-button']`)
+				let form = loginPage.querySelector(`[id='${this.id}login-form']`)
+				const usernameInput = form.querySelector('input')
+
+				form.addEventListener("keyup", function (event) {
+					if (event.keyCode === 13) {
+						event.preventDefault();
+					}
+				});
+
+				usernameInput.addEventListener("keyup", function (event) {
+					if (event.keyCode === 13) {
+						event.preventDefault();
+						loginButton.click();
+					}
+				});
+
+				loginButton.onclick = () => {
+					let formDict = {}
+					let formData = new FormData(form);
+					for (var pair of formData.entries()) {
+						formDict[pair[0]] = pair[1];
+                    }
+
+					this.device.login(formDict).catch((error) => {
+                        console.error(error)
+                    }).finally(async () => {
+                        const devices = await this.device.getDevices();
+                        await this.selectDevice(devices,document.body)
+                        resolve(true)
+                        callback()
+                        loginPage.style.opacity = '0'
+                        setTimeout(() => {ui.deleteNode()},1000)
+                    });
+				}
+
+				loginPage.style.transition = 'opacity 1s'
+				loginPage.style.opacity = '1'
+			}
+
+			let ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+        });
+        return returned
+	}
 }
