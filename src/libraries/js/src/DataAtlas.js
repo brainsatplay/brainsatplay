@@ -1544,7 +1544,7 @@ export class DataAtlas {
 			if (this.settings.eeg){
 				feedbackOptions.push(
 					{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-					{label: 'Focus', function: getFocus},
+					{label: 'Focus (Theta/Beta Ratio)', function: getFocus},
 				)
 			}
 
