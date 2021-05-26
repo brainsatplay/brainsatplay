@@ -102,13 +102,12 @@ export class Session {
 				password: password,
 				authenticated: false
 			},
-			subscribed: false,
 			subscriptions: [],
 		}
 
 		this.id = Math.floor(Math.random() * 10000) // Give the session an ID
 		this.socket = null;
-		this.streamObj = new streamSession(this.info.auth);
+		this.streamObj = new streamSession(this.info);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
@@ -204,12 +203,12 @@ export class Session {
 			if (streamParams[0]) { this.beginStream(streamParams); }
 			//Device info accessible from state
 			this.state.addToState("device" + (i+1), newStream.info);
-			onconnect();
+			onconnect(newStream);
 			this.onconnected();
 		}
 
 		newStream.ondisconnect = () => {
-			ondisconnect();
+			ondisconnect(newStream);
 			this.ondisconnected();
 			if (newStream.info.analysis.length > 0) {
 				newStream.device.atlas.analyzing = false; //cancel analysis loop
@@ -222,6 +221,7 @@ export class Session {
 		// Wait for Initialization before Connection
 		await newStream.init();
 		await newStream.connect()
+		return newStream
 	}
 
 	onconnected = () => { }
@@ -264,7 +264,7 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, preselect = null, onconnect = () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
 				
 		let template = () => {return `
 		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
@@ -366,21 +366,21 @@ export class Session {
 					}
 				}
 
-				let updatedOnConnect = () => {
+				let updatedOnConnect = (device) => {
 					onconnect()
 					div.querySelector('p').innerHTML = "Disconnect"
 					setIndicator(true)
 					div.onclick = () => {this.disconnect()}
 				}
 
-				let updatedOnDisconnect = () => {
+				let updatedOnDisconnect = (device) => {
 					ondisconnect()
 					setIndicator(false)
 					div.querySelector('p').innerHTML = variantLabel
-					div.onclick = () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+					div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
 				}
 
-				div.onclick = () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+				div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
 
 				deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
 			})
@@ -406,9 +406,15 @@ export class Session {
 				deviceSelection.style.pointerEvents = 'auto'
 			}
 		}
+
+		// Autoselect the Correct Device (if declared)
+		if (autoselect != null){
+			this.autoselectDevice(autoselect)
+		}
 	}
 
-		if (preselect == null){
+		let main = document.getElementById(`${this.id}DeviceSelection`)
+		if (main == null){
 			let ui = new DOMFragment(
 				template,
 				parentNode,
@@ -416,9 +422,16 @@ export class Session {
 				setup
 			)
 		} else {
-			console.log('connecting without details')
-				this.connect(`${preselect.device}_${preselect.variant}`,preselect.analysis)
+			if (autoselect != null){
+				this.autoselectDevice(autoselect)
+			}
 		}
+	}
+
+	autoselectDevice = (autoselect) => {
+		let cleanDeviceString = autoselect.device.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
+		let variantName = ((autoselect.variant != '') ? `${cleanDeviceString}_${autoselect.variant}` : cleanDeviceString)
+		document.getElementById(`brainsatplay-${variantName}`).click()
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here
@@ -681,8 +694,7 @@ export class Session {
 			this.socket = this.setupWebSocket(dict).then(socket => {
 				this.socket = socket
 				this.info.auth.authenticated = true;
-				this.subscribed = true;
-				if (this.socket !== null && this.socket.readyState === this.socket.OPEN) {
+				if (this.socket !== null && this.socket.readyState === 1) {
 					if (beginStream === true) {
 						this.beginStream();
 					}
@@ -991,13 +1003,15 @@ export class Session {
 
 
 	getSessions(appname, onsuccess = (newResult) => { }) {
+
 		if (this.socket !== null && this.socket.readyState === 1) {
+
 			this.sendBrainstormCommand(['getSessions', appname]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
 			let sub = this.state.subscribe('commandResult', (newResult) => {
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionsResult' && newResult.appname === appname) {
-						onsuccess(newResult); //list sessions, then subscribe to session by id
+						onsuccess(newResult);
 						this.state.unsubscribe('commandResult', sub);
 						return newResult.sessions
 					}
@@ -1018,6 +1032,7 @@ export class Session {
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
 			let sub = this.state.subscribe('commandResult', (newResult) => {
+
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
@@ -1028,10 +1043,13 @@ export class Session {
 								streamParams.push(prop.split("_"));
 							});
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
+							// this.streamObj
+							onsuccess(newResult);
 						}
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
+							this.info.subscriptions.push(sessionid)
 							onsuccess(newResult);
 						}
 
@@ -1119,6 +1137,7 @@ export class Session {
 					}
 
 					this.setLoginInfo(formDict.username)
+
 
 					this.login(true, this.info.auth, () => {
 						onsuccess()
@@ -1263,8 +1282,6 @@ export class Session {
 
 			// Display All Users on Brainstorm
 			wsButton.addEventListener('click', () => {
-				console.log('click users')
-
 				this.getUsers(null, (userData) => {
 
 					updateUserDisplay('ws', userData)
@@ -1273,7 +1290,6 @@ export class Session {
 
 			// Check OSC Port
 			oscButton.addEventListener('click', () => {
-				console.log('click osc')
 
 				this.startOSC(undefined,undefined,undefined,undefined, (oscInfo) => {
 					console.log(oscInfo)
@@ -1410,6 +1426,7 @@ export class Session {
 
 		sessionSearch.onclick = () => {
 
+
 			this.getSessions(applet.info.name, (result) => {
 
 				let gridhtml = '';
@@ -1479,27 +1496,39 @@ export class Session {
 			}
 
 			let onsocketopen = () => {
+
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
-					waitForReturnedMsg(['getSessionsResult', 'appNotFound'], (msg) => {
-						if (msg === 'appNotFound') {
+
+					let sub1 = this.state.subscribe('commandResult', (newResult) => {
+
+						if (newResult.msg === 'appNotFound') {
 							createSession.click()
-							waitForReturnedMsg('sessionCreated', () => {
-								sessionSearch.click()
-								loginScreen.style.opacity = 0;
-								loginScreen.style.pointerEvents = 'none'
+
+							let sub2 = this.state.subscribe('commandResult', (newResult) => {
+
+								if (newResult.msg === 'sessionCreated') {
+									sessionSearch.click()
+									loginScreen.style.opacity = 0;
+									loginScreen.style.pointerEvents = 'none'
+									this.state.unsubscribe('commandResult', sub2);
+								}
 							})
-						} else {
+							this.state.unsubscribe('commandResult', sub1);
+
+						} else if ('getSessionsResult') {
+							this.state.unsubscribe('commandResult', sub1);
 							loginScreen.style.opacity = 0;
 							loginScreen.style.pointerEvents = 'none'
 						}
 					})
 				} else {
-					setTimeout(() => onsocketopen(), 500)
+					setTimeout(() => {onsocketopen()}, 500)
 				}
 			}
 
 			this.setLoginInfo(formDict.username)
+
 			this.login(true).then(() => {
 				onsocketopen(this.socket)
 			})
@@ -1728,7 +1757,8 @@ export class Session {
 		Object.assign(o, dict);
 		let json = JSON.stringify(o);
 
-		if (this.socket.readyState !== this.socket.OPEN) {
+
+		if (this.socket.readyState !== 1) {
 			// Try to Send Message
 			try {
 				await waitForOpenConnection(this.socket)
@@ -1879,12 +1909,13 @@ class deviceStream {
 
 
 class streamSession {
-	constructor(auth, socket) {
+	constructor(info, socket) {
 
 		this.deviceStreams = [];
 
 		this.info = {
-			auth: auth,
+			auth: info.auth,
+			subscriptions: info.subscriptions,
 			streaming: false,
 			deviceStreamParams: [],
 			nDevices: 0,
@@ -2136,7 +2167,7 @@ class streamSession {
 			username: this.info.auth.username,
 			userData: {}
 		}
-		if (this.info.streaming === true) {
+		if (this.info.streaming === true && this.socket.readyState === 1) {
 			this.deviceStreams.forEach((d) => {
 				if (this.info.nDevices < this.deviceStreams.length) {
 					if (!streamObj.userData.devices) streamObj.userData.devices = [];
@@ -2156,13 +2187,20 @@ class streamSession {
 			});
 			Object.assign(streamObj.userData, this.getDataForSocket(undefined, this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
-			if (Object.keys(streamObj.userData).length > 0) {
-				this.socket.send(JSON.stringify(streamObj));
+
+			// console.log(this.info)
+			if (this.info.subscriptions.length > 0){ // Only stream if subscription is established
+				if (Object.keys(streamObj.userData).length > 0) {
+					this.socket.send(JSON.stringify(streamObj));
+				}
 			}
+
 			this.info.streamCt++;
+			console.log('streaming')
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
+			console.log('streaming')
 			this.getDataForSocket(undefined, this.info.appStreamParams) 
 			this.info.streamCt = 0;
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);

@@ -46,7 +46,7 @@ export class StateManager {
             this.addToState(key,value)
         } else {
             this.data[key] = value
-        }
+        }    
     }
 
     removeState(key){

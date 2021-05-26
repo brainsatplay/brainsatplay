@@ -159,7 +159,7 @@ export class syntheticPlugin {
 
     simulateData = () => {
 
-        let delay = 10;
+        let delay = 100;
 
         let simulate = () => {
             if (this.looping){

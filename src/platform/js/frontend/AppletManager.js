@@ -295,9 +295,6 @@ export class AppletManager {
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' }, '', window.location.origin)
         }
 
-
-        console.log(appletPromises)
-
         Promise.all(appletPromises).then((configApplets) => {
 
             // Check the compatibility of current applets with connected devices
@@ -562,7 +559,7 @@ export class AppletManager {
 
 
     createInstance = (appletCls, info=undefined) => {
-        if (info.type === 'Application'){
+        if (appletCls === Application){
             return new Application(info, "applets", this.session, [])
         } else {
             return new appletCls("applets", this.session, [])

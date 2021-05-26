@@ -40,12 +40,15 @@ export class UI{
     }
 
     default = (userData) => {
+        
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let value = (!Array.isArray(userData[0].value)) ? userData[0].value : userData[0].value[0]
         if (typeof value === "number") value = value.toFixed(2)
         outputDiv.innerHTML = `<p>${userData[0].username}: ${value}</p>`
+
+        return userData
     }
 
     deinit = () => {}

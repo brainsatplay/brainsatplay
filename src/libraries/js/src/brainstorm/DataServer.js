@@ -72,7 +72,9 @@ class DataServer {
     }
     
     setWSBehavior(username, socket){
+
         if (socket != null){
+
             socket.on('message', (s) => {
                 this.processMessage(s);
             });
@@ -181,6 +183,7 @@ class DataServer {
     }
 
     processMessage(msg='') {
+
         let parsed = JSON.parse(msg);
         if(typeof parsed === 'object' && !Array.isArray(parsed)) { //if we got an object process it as most likely user data
             let hasData = false;
@@ -212,6 +215,7 @@ class DataServer {
         let u = this.userData.get(username);
         if (u != null) u.lastUpdate = Date.now();
         //u.socket.send(JSON.stringify({msg:commands}));
+
         if(commands[0] === 'getUsers') {
             let userData = [];
             this.userData.forEach((o) => {

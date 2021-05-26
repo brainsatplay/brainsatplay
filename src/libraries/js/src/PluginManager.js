@@ -61,10 +61,17 @@ export class PluginManager{
                 edges.push(e)
             })
 
-            g.nodes.forEach(node => {
-                if (nodes[node.id] == null){
-                    nodes[node.id] = node
-                    nodes[node.id].instance = new node.class(node.id, this.session,node.params)
+            g.nodes.forEach(nodeInfo => {
+                if (nodes[nodeInfo.id] == null){
+                    nodes[nodeInfo.id] = nodeInfo
+                    let node = new nodeInfo.class(nodeInfo.id, this.session, nodeInfo.params)
+
+                    // Set Default Parameters
+                    for (let param in node.paramOptions){
+                        if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
+                    }
+
+                    nodes[nodeInfo.id].instance = node
                 }
             })
         })
@@ -80,7 +87,7 @@ export class PluginManager{
         let node = nodeInfo.instance
 
         let paramsMenu;
-        if (node.paramOptions){
+        if (node.paramOptions && Object.keys(node.paramOptions).length > 0){
             if (!Object.keys(this.gui.__folders).includes(node.label)){
 
                 let guiContainer = document.body.querySelector('.guiContainer')
@@ -88,6 +95,10 @@ export class PluginManager{
 
                 this.gui.addFolder(node.label);
                 this.registry.local[nodeInfo.class.id].gui[node.label] = []
+
+                // Capitalize Display Name
+                let folderName = node.label[0].toUpperCase() + node.label.slice(1)
+                this.gui.__folders[node.label].name = folderName
             }
             paramsMenu = this.gui.__folders[node.label]
         }
@@ -108,7 +119,7 @@ export class PluginManager{
                 } 
                 
                 // Selector
-                else {
+                else if (node.paramOptions[param].options.length > 1) {
                     this.registry.local[nodeInfo.class.id].gui[node.label].push(
                         paramsMenu.add(
                             node.params, 
@@ -171,6 +182,9 @@ export class PluginManager{
             let nodeInfo =  applet.nodes[id]
             let node = nodeInfo.instance
 
+            // Add Default State
+            node.state = {value: []}
+
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
                 this.registry.local[nodeInfo.class.id] = {count: 0, state: null, gui: {}, callback: ()=>{}}
@@ -206,16 +220,29 @@ export class PluginManager{
                         dict.value = input.value
                         dict.label = source.label
                         input = [dict]
-                    } else {
-                        if (Array.isArray(input.value) && typeof input.value[0] === 'object' && input.value[0].username != null){
+                    } 
+                    
+                    // Or Unfold Brainstorm Data
+                    else {
+                        if (input.timestamp != null){
                             input = input.value
+                        } else if (Array.isArray(input[0].value) && typeof input[0].value[0] === 'object' && input[0].value[0].username != null){
+                            input = input[0].value
                         }
                     }
 
+
                     // Send to Proper Port
-                    if (targetPort != null) return target[targetPort](input)
-                    else if (target.default) return target.default(input)
+                    let result;
+                    if (targetPort != null) result = target[targetPort](input)
+                    else if (target.default) result = target.default(input)
                     else console.log('no return')
+
+                    // Update State
+                    target.state.value = result // Update State Externally
+                    target.state.timestamp = Date.now()
+
+                    return result
                 }
 
 

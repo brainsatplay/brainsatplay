@@ -108,6 +108,7 @@ wss.on('connection', function (ws, msg, req) {
   dataServer.addUser(username, origin, ws);
     ws.send(JSON.stringify({msg:'resetUsername',username:username}));
   });
+  
 
 server.listen(parseInt(port), () => {
     console.log(`A Brainstorm is brewing on ${protocol}://${url}:${port}`)

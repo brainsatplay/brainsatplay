@@ -52,13 +52,12 @@ export class UI{
     }
 
     default = (input) => {
-        console.log('default', input)
         return input
     }
 
     // Write UI using Graph Ports
     readout = (userData) => {
-
+        
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
@@ -97,6 +96,8 @@ export class UI{
                 }
             }
         })
+
+        return userData
     }
     }
     

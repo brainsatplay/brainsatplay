@@ -1,7 +1,7 @@
-import {Signal} from './Signal'
-import {Arithmetic} from './Arithmetic'
-import {Keyboard} from './Keyboard'
-import {Debug} from './Debug'
+import {Signal} from './input/Signal'
+import {Arithmetic} from './algorithms/Transform'
+import {Keyboard} from './input/Keyboard'
+import {Debug} from './output/Debug'
 
 import {Coherence} from './Coherence'
 
