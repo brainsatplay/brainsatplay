@@ -1,16 +1,15 @@
 import {Signal} from './input/Signal'
-import {Arithmetic} from './algorithms/Transform'
+import {Transform} from './algorithms/Transform'
 import {Keyboard} from './input/Keyboard'
 import {Debug} from './output/Debug'
-
-import {Coherence} from './Coherence'
+import {Neurofeedback} from './Neurofeedback'
 
 
 
 export {
     Signal,
-    Arithmetic,
+    Transform,
     Keyboard,
     Debug,
-    Coherence
+    Neurofeedback
 }

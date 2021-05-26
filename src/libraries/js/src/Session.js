@@ -339,7 +339,13 @@ export class Session {
 			let deviceDiv = document.createElement('div')
 			deviceDiv.id = `brainsatplay-device-${d.id}`
 			deviceDiv.classList.add('brainsatplay-deviceCard')
-			deviceDiv.innerHTML += `<h4>${d.name}</h4><div class="variants"></div>`
+
+			let header = document.createElement('h4')
+			header.id = `brainsatplay-header-${d.id}`
+			header.innerHTML = d.name
+			deviceDiv.insertAdjacentElement('beforeend', header)	
+
+			deviceDiv.innerHTML += `<div class="variants"></div>`
 
 			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
 
@@ -2196,11 +2202,9 @@ class streamSession {
 			}
 
 			this.info.streamCt++;
-			console.log('streaming')
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
-			console.log('streaming')
 			this.getDataForSocket(undefined, this.info.appStreamParams) 
 			this.info.streamCt = 0;
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);

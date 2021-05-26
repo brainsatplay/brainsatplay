@@ -9,6 +9,7 @@ export class notionPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
+        this.connected = false
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -123,15 +124,19 @@ export class notionPlugin {
     disconnect = () => {
 
         this.device.disconnect();
+
         this.device.logout().then(() => {
             console.log('logged out');
         }).catch((error) => {
             console.error("Log out error", error);
         });
 
-        this.ondisconnect();
-        if (this.ui) this.ui.deleteNode()
-        this.atlas.settings.deviceConnected = false;
+        if (this.connected){
+            document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`) = 'Notion'
+            this.ondisconnect();
+            if (this.ui) this.ui.deleteNode()
+            this.atlas.settings.deviceConnected = false;
+        }
     }
 
     setupAtlas = async (info,pipeToAtlas) => {
@@ -287,17 +292,20 @@ export class notionPlugin {
 				devices.forEach(o => {
                     userDiv.innerHTML += `
                     <div  id="${this.id}-device-${o.deviceId}" class="neurosity-device" style="${deviceStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
-                    <p style="font-size: 60%;">${o.deviceId}</p>
+                    <p style="font-size: 60%;">${o.model}</p>
                     <p>${o.deviceNickname}</p>
-                    <p style="font-size: 80%;">${o.model}</p>
+                    <p style="font-size: 80%;">${o.deviceId}</p>
                     </div>`
 				})
 
-				let divs = userDiv.querySelectorAll(".neurosity-device")
+                let divs = userDiv.querySelectorAll(".neurosity-device")
+                let headerDiv = document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`)
 				for (let div of divs) {
 					let id = div.id.split(`${this.id}-device-`)[1]
                     div.onclick = async (e) => {
                         let device = await this.device.selectDevice((devices) =>devices.find((device) => device.deviceId === id));
+                        headerDiv.innerHTML = device.deviceNickname
+                        this.connected = true
                         resolve(device)
                         onsuccess()
                         closeUI()
@@ -372,9 +380,14 @@ export class notionPlugin {
 						formDict[pair[0]] = pair[1];
                     }
 
-					this.device.login(formDict).catch((error) => {
+                    this.device.login(formDict).then((res) => {
+                        console.log(res)
+                    })
+                    .catch((error) => {
                         console.error(error)
-                    }).finally(async () => {
+                    })
+                    .finally(async (res) => {
+                        console.log(res)
                         const devices = await this.device.getDevices();
                         await this.selectDevice(devices,document.body)
                         resolve(true)

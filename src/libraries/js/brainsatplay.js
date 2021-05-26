@@ -3,10 +3,13 @@
  * @module brainsatplay
  */
 
-import * as Brainstorm from './src/brainstorm/Brainstorm'
-import * as Workers from './src/Workers.js'
+import * as brainstorm from './src/brainstorm/Brainstorm'
+import * as workers from './src/Workers.js'
+import * as plugins from './src/plugins/plugins.js'
+
 export {Session} from './src/Session.js'
-export {Workers}
-export {Brainstorm}
+export {workers}
+export {brainstorm}
+export {plugins}
 
 // export * from './src/analysis/eegmath'
