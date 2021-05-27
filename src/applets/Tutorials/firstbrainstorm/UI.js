@@ -57,7 +57,7 @@ export class UI{
 
     // Write UI using Graph Ports
     readout = (userData) => {
-        
+
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
@@ -87,6 +87,7 @@ export class UI{
     }
 
     color = (userData) => {
+
         let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
         if (Array.isArray(userData)){
             userData.forEach(u =>{

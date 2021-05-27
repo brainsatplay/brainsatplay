@@ -16,12 +16,14 @@ export class PluginManager{
 
         // Listen for Added/Removed States
         this.session.state.addToState('update',this.session.state.update, (update) => {
+
             if (update.added){
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
+                    let label = this.registry.local[s].label
                     update.buffer.forEach(k => {
                         if (this.registry.brainstorm[k] == null){
-                                if (k.includes(s) && k !== s){
+                                if (k.includes(label) && k !== label){
                                 this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
                                 this.registry.brainstorm[k].callback()
                             }
@@ -183,11 +185,11 @@ export class PluginManager{
             let node = nodeInfo.instance
 
             // Add Default State
-            node.state = {value: []}
+            node.state = {value: null}
 
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
-                this.registry.local[nodeInfo.class.id] = {count: 0, state: null, gui: {}, callback: ()=>{}}
+                this.registry.local[nodeInfo.class.id] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
                 this.registry.local[nodeInfo.class.id].state = node.state
 
                 this.addToGUI(nodeInfo)
@@ -226,8 +228,14 @@ export class PluginManager{
                     else {
                         if (input.timestamp != null){
                             input = input.value
-                        } else if (Array.isArray(input[0].value) && typeof input[0].value[0] === 'object' && input[0].value[0].username != null){
-                            input = input[0].value
+                        } else if (Array.isArray(input[0].value)){
+                            if (typeof input[0].value[0] === 'object'){
+                                if (input[0].value[0].username != null){
+                                    input = input.map((o) => o[0].value)
+                                }
+                            } 
+                        } else if (typeof input[0].value === 'object' && input[0].value.username != null){
+                            input = input.map((o) => o.value)
                         }
                     }
 
@@ -239,7 +247,14 @@ export class PluginManager{
                     else console.log('no return')
 
                     // Update State
-                    target.state.value = result // Update State Externally
+                    // try {
+                    //     console.log(this.session.state)
+                    // }
+
+                    if (result != null && Array.isArray(result) && result.length === 1) {
+                        target.state.value = result[0]
+                    }
+                    else target.state.value = result // Update State Externally
                     target.state.timestamp = Date.now()
 
                     return result
@@ -278,7 +293,7 @@ export class PluginManager{
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
-                            this.session.addStreamFunc(source.label, source.default, this.state)
+                            this.session.addStreamFunc(source.label, source.default, this.state, false)
                             applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
                         }
 
@@ -376,9 +391,11 @@ export class PluginManager{
             if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
             this.registry.local[nodeInfo.class.id].callback = () => {
+
                 if (this.session.state.data[id] != null){
                     if (callbacks){
                         let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
+                        // console.log(propData, this.session.state.data)
                         callbacks.forEach(f => {
                             if (f instanceof Function) f(propData)
                         })
@@ -405,6 +422,7 @@ export class PluginManager{
         if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
     
         let found = this.findStreamFunction(id)
+
         if (found == null) {
             this.session.addStreamFunc(id, callback)
         }

@@ -41,7 +41,7 @@ export const settings = {
           target: 'ui:color'
         },
         {
-          source: 'neurofeedback', 
+          source: 'neurofeedback:brainstorm', 
           target: 'ui:readout'
         }
       ]

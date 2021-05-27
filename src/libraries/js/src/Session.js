@@ -645,7 +645,11 @@ export class Session {
 
 			this.streamObj.addStreamFunc(name, _callback);
 
-			this.addStreamParams([[name]]);
+			if (manager === this.state){
+				this.addStreamParams([[name]]);
+			} else {
+				this.addStreamParams([[name, undefined, 'ignore']]);
+			}
 
 		} else { console.error("addStreamFunc error"); }
 	}
@@ -2148,18 +2152,20 @@ class streamSession {
 	getDataForSocket = (device = undefined, params = [['prop', 'tag', 'arg1']]) => {
 		let userData = {};
 		params.forEach((param, i) => {
-			this.streamTable.find((option, i) => {
-				if (param[0] === option.prop) {
-					let args;
-					if (device) args = [device, ...param.slice(1)];
-					else args = param.slice(1);
-					let result = (args.length !== 0) ? option.callback(...args) : option.callback()
-					if (result !== undefined) {
-						userData[param.join('_')] = result;
+				this.streamTable.find((option, i) => {
+					if (param[0] === option.prop) {
+						let args;
+						if (device) args = [device, ...param.slice(1)];
+						else args = param.slice(1);
+						let result = (args.length !== 0) ? option.callback(...args) : option.callback()
+						if (result !== undefined) {
+							if (param[2] !== 'ignore'){
+								userData[param.join('_')] = result;
+							}
+						}
+						return true;
 					}
-					return true;
-				}
-			});
+				});
 		});
 
 		return userData;
