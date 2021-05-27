@@ -5,8 +5,6 @@ import {Signal} from '../../../libraries/js/src/plugins/input/Signal'
 import {Neurofeedback} from '../../../libraries/js/src/plugins/algorithms/Neurofeedback'
 
 
-let id = String(Math.floor(Math.random()*1000000))
-
 export const settings = {
     name: "My First Applet",
     devices: ["EEG"],

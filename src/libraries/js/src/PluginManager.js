@@ -10,7 +10,7 @@ export class PluginManager{
         this.state = new StateManager() // For graphs
 
         this.gui = new GUI({ autoPlace: false });
-        document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 1000;"></div>`
+        document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
         document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
         document.body.querySelector('.guiContainer').style.display = 'none'
 
@@ -216,7 +216,8 @@ export class PluginManager{
 
                 let callback = (input) => {
 
-                    // Package Single User if Required
+
+                    // Package Single User
                     if ((!Array.isArray(input) && (input.value[0] == null || (typeof input.value[0] !== 'object' || input.value[0].username == null)))){
                         let dict =  {username: this.session.info.auth.username}
                         dict.value = input.value
@@ -224,20 +225,19 @@ export class PluginManager{
                         input = [dict]
                     } 
                     
-                    // Or Unfold Brainstorm Data
-                    else {
-                        if (input.timestamp != null){
+                    // Unfold Appropriately
+                    if (input.timestamp != null){
                             input = input.value
-                        } else if (Array.isArray(input[0].value)){
-                            if (typeof input[0].value[0] === 'object'){
-                                if (input[0].value[0].username != null){
-                                    input = input.map((o) => o[0].value)
-                                }
-                            } 
-                        } else if (typeof input[0].value === 'object' && input[0].value.username != null){
-                            input = input.map((o) => o.value)
-                        }
+                    } else if (Array.isArray(input[0].value)){
+                        if (typeof input[0].value[0] === 'object'){
+                            if (input[0].value[0].username != null){
+                                input = input.map((o) => o[0].value)
+                            }
+                        } 
+                    } else if (input[0].value != null && typeof input[0].value === 'object' && input[0].value.username != null){
+                        input = input.map((o) => o.value)
                     }
+                    // }
 
 
                     // Send to Proper Port

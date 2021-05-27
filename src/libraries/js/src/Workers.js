@@ -1,70 +1,82 @@
 import Worker from 'web-worker'
 
-//window.workers = new WorkerUtil(2,'./js/utils/eegworker.js',receivedMsg); // ???
-//console.log(window.workers);
-export let workerResponses=[]; //array of onmessage functions for the return trip data from webworkers
-export let workers = [];
-export let workerThreads = 2; //Make multiple workers for big tasks
-export let workerThreadrot = 0;
-//WebWorker only works when hosted (e.g. with node)
+let defaultWorkerThreads = 2
 
-let workerURL = './algorithms/eeg.worker.js';
+let eegWorkers = []
 
-try {
-    workers = [];
-    for(var i = 0; i < workerThreads; i++){
-        workers.push(new Worker(workerURL,//new URL('./algorithms/eeg.worker.js', import.meta.url),
-        {name:'eegworker_'+workers.length, type: 'module'}));
-        workers[i].onmessage = (e) => {
-            var msg = e.data;
-            //console.log(msg)
-            //window.receivedMsg(msg);
-            workerResponses.forEach((foo,i) => {
-                foo(msg);
-            });
-        };
-    }
-    console.log("worker threads: ", workers.length)
-}
-catch (err) {
-    console.error(err);
+for(var i = 0; i < defaultWorkerThreads; i++){
+    eegWorkers.push(
+        new Worker(
+            new URL('./algorithms/eeg.worker.js', import.meta.url),
+            {name:'eegworker_'+i, type: 'module'}
+        )
+    )
 }
 
-export const addWorker = (workerurl=workerURL) => {
-    try {
-        workers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
-        {
-        name:'eegworker_'+workers.length, 
-        type: 'module',
-        }));
-        workers[i].onmessage = (e) => {
-            var msg = e.data;
-            //console.log(msg)
-            //window.receivedMsg(msg);
-            workerResponses.forEach((foo,i) => {
-            foo(msg);
-            })
-        };
-        console.log("worker threads: ", workers.length)
-        return workers.length-1; //index
-    } catch (err) {
-        console.log(err);
-    }
-}
+export class WorkerManager {
+    constructor(){
+        this.workerResponses = []
+        this.workers = []
+        this.workerThreads = defaultWorkerThreads
+        this.workerThreadrot = 0
 
-//input = {foo:'',data:[],origin:''}
-//foo options: "xcor, autocor, cov1d, cov2d, sma, dft, multidft, multibandpassdft"
-export const postToWorker = (input,workeridx = null) => {
-    if(workeridx === null) {
-        workers[workerThreadrot].postMessage(input);
-        if(workerThreads > 1){
-            workerThreadrot++;
-            if(workerThreadrot >= workerThreads){
-                workerThreadrot = 0;
+        // Setup EEG Workers
+        try {
+            for(var i = 0; i < eegWorkers.length; i++){
+
+                eegWorkers[i].onmessage = (e) => {
+                    var msg = e.data;
+                    //console.log(msg)
+                    //window.receivedMsg(msg);
+                    this.workerResponses.forEach((foo,i) => {
+                        foo(msg);
+                    });
+                };
+
+                this.workers.push(eegWorkers[i]);
             }
+            console.log("worker threads: ", this.workers.length)
+        }
+        catch (err) {
+            console.error(err);
         }
     }
-    else{
-        workers[workeridx].postMessage(input);
+
+    addWorker = (workerurl) => {
+        console.log('add worker')
+        try {
+            this.workers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
+            {
+            name:'eegworker_'+this.workers.length, 
+            type: 'module',
+            }));
+            this.workers[i].onmessage = (e) => {
+                var msg = e.data;
+                //console.log(msg)
+                //window.receivedMsg(msg);
+                this.workerResponses.forEach((foo,i) => {
+                foo(msg);
+                })
+            };
+            console.log("worker threads: ", this.workers.length)
+            return this.workers.length-1; //index
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    postToWorker = (input,workeridx = null) => {
+        if(workeridx === null) {
+            this.workers[this.workerThreadrot].postMessage(input);
+            if(this.workerThreads > 1){
+                this.workerThreadrot++;
+                if(this.workerThreadrot >= this.workerThreads){
+                    this.workerThreadrot = 0;
+                }
+            }
+        }
+        else{
+            this.workers[workeridx].postMessage(input);
+        }
     }
 }

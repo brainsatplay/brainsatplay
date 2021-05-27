@@ -4,52 +4,52 @@
   <title>Brains@Play Platform</title>
   <meta charset="UTF-8" />
   <script src="../../src/libraries/js/dist/brainsatplay.js"></script>
-<!-- <link href="../styles/css/global.css" rel="stylesheet"> -->
+  <script src="./UI.js"></script>
+  <!-- <link href="../../src/platform/styles/css/global.css" rel="stylesheet"> -->
+  <link href="../../src/libraries/js/src/ui/styles/defaults.css" rel="stylesheet">
 </head>
-<body>
-  <div id="sidebar" style="width: 100px; height: 100vh;">
-  </div>
+<body style="width: 100vw; height: 100vh;">
+
 </body>
 <script>
 
-  let bci =  new brainsatplay.Session()
-  bci.connectDevice();
+  let settings = {
+    // App Details
+    name: "My First Applet",
+    devices: ["EEG"],
+    author: "Me",
+    description: "This is my first applet.",
+    categories: ["tutorial"],
+    instructions:"Coming soon...",
+    intro: {
+      mode: 'single'
+    },
+
+    // App Logic
+    graphs: [
+      {
+      id: 'mygraph',
+      nodes: [
+        {id: 'ui', class:UI, params: {}},
+        {id: 'signal', class: brainsatplay.plugins.Signal},
+        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
+      ],
+      edges: [
+        {
+          source: 'signal', 
+          target: 'neurofeedback'
+        },
+        {
+          source: 'neurofeedback', 
+          target: 'ui'
+        }
+      ]
+    }],
+}
+
+  let applet =  new brainsatplay.Application(settings)
+  applet.init()
+  applet.session.connectDevice()
   
-</script>
-
-<script>
-
-let username = ''
-let httpsDomain = 'localhost:80'
-let subprotocolsArray = [`username&${username}`,'password&','appname&']
-  // let connection = new WebSocket(httpDomain,subprotocolsArray);
-// // or
-let connection = new WebSocket('wss://' + httpsDomain, subprotocolsArray);
-
-connection.onopen = () => {
-  console.log('connection established!')
-};
-
-// Log errors
-connection.onerror = (error) => {
-  console.log('WebSocket Error', error);
-};
-
-// Log messages from the server
-connection.onmessage = (e) => {
-  let parsed = JSON.parse(e.data)
-  console.log('Server', parsed);
-
-  if (parsed.msg == 'resetUsername'){
-    username = parsed.username
-    connection.send(JSON.stringify({
-        username: username,
-        cmd: 'ping'
-    }))
-    // connection.send(JSON.stringify([username,'ping']))
-    // connection.send(JSON.stringify(`${username} ping`))
-
-  }
-};
 </script>
 </html>

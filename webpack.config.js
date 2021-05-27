@@ -2,11 +2,11 @@ const webpack = require('webpack')
 const path = require('path');
 
 module.exports = {
-  entry: path.join(__dirname, 'brainsatplay.js'),
+  entry: path.join(__dirname, 'src', 'libraries', 'js', 'brainsatplay.js'),
   output: {
     filename: 'brainsatplay.js',
-    path: path.join(__dirname,'dist'),
-    publicPath: '/',
+    path: path.join(__dirname,'src', 'libraries', 'js', 'dist'),
+    publicPath: '/src/libraries/js/dist/',
     // library: 'brainsatplay',
     library: {
       name: 'brainsatplay', 
@@ -34,9 +34,7 @@ module.exports = {
             options: {
               modules: true,
               importLoaders: 1,
-              localIdentName: "[name]_[local]_[hash:base64]",
               sourceMap: true,
-              minimize: true
             }
           }
         ]
@@ -65,12 +63,20 @@ module.exports = {
         "dgram": false,
         "node-osc": false,
         "readline": false,
+        "zlib": false,
+        "crypto": false,
+        "https": require.resolve("https-browserify"),
+        "resolve-from": false,
+        "child_process": false,
+        'net': false,
+        'tls': false,
       } 
     },
     plugins: [
       // fix "process is not defined" error:
       new webpack.ProvidePlugin({
         process: 'process/browser',
+        Buffer: ['buffer', 'Buffer'],
       })
      ]
 };

@@ -6,13 +6,15 @@ export class Signal{
         this.label = label
         this.session = session
         this.params = params
-        this.paramOptions = {}
+        this.paramOptions = {
+            autoconnect: {default: false, show: false}
+        }
     }
 
     init = () => {
 
         // Auto-Start a Synthetic Stream
-        if (this.session.deviceStreams.length === 0) {
+        if (this.params.autoconnect && this.session.deviceStreams.length === 0) {
             this.session.connectDevice(undefined, undefined, undefined, {device: 'Synthetic', variant: '', analysis: ['eegcoherence']})
         }
     }

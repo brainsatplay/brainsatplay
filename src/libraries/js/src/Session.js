@@ -55,7 +55,7 @@ import * as Realm from "realm-web";
 
 
 // Default Styling
-import './ui/styles/defaults.css'
+// import './ui/styles/defaults.css'
 
 
 
@@ -267,7 +267,7 @@ export class Session {
 	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
 				
 		let template = () => {return `
-		<div id="${this.id}DeviceSelection" style="z-index: 999; width: 100vw; height: 100vh; position: relative; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+		<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
 			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
 			<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
 				<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
@@ -393,6 +393,10 @@ export class Session {
 			insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
 		});
 
+		let openDeviceSelectionMenu = () => {
+			deviceSelection.style.opacity = '1'
+			deviceSelection.style.pointerEvents = 'auto'
+		}
 
 		if (toggleButton == null){
 			let toggleButton = document.createElement('div')
@@ -406,11 +410,9 @@ export class Session {
 			`
 			toggleButton.innerHTML = 'Open Device Manager'
 			document.body.insertAdjacentElement('afterbegin',toggleButton)
-		} else {
-			toggleButton.onclick = () => {
-				deviceSelection.style.opacity = '1'
-				deviceSelection.style.pointerEvents = 'auto'
-			}
+			toggleButton.onclick = openDeviceSelectionMenu
+		}  else {
+			toggleButton.onclick = openDeviceSelectionMenu
 		}
 
 		// Autoselect the Correct Device (if declared)

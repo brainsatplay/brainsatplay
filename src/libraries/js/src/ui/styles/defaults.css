@@ -1,4 +1,27 @@
 
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    }
+    ::-webkit-scrollbar {
+        width: 0px; 
+        height: 0px; 
+    }
+
+body {
+    margin: 0;
+}
+
+div {
+    box-sizing: border-box; 
+}
+
 a {
     color: rgb(155, 155, 155);
     text-decoration: none;
@@ -11,6 +34,10 @@ a:hover{
 
 
 /* Intro UI */
+.brainsatplay-default-menu {
+    color: white;
+}
+
 .brainsatplay-default-container {
     display: flex;
     flex-wrap: wrap;

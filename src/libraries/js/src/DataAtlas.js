@@ -3,8 +3,7 @@
 
 import { StateManager } from "./ui/StateManager";
 
-//import * as brainsatplay from '../brainsatplay'
-//import {workerResponses, workers, workerThreads, workerThreadrot, postToWorker, addWorker} from './Workers'
+import { WorkerManager } from "./Workers"
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -27,6 +26,12 @@ export class DataAtlas {
 	) {
         this.name = name;
 		this.config = config; 
+
+		if (window.workers == null){
+			window.workers = new WorkerManager()
+		} else {
+			console.log('Workers already created.')
+		}
 
 		this.state = new StateManager({
 			deviceConnected: false,
@@ -133,9 +138,10 @@ export class DataAtlas {
 
 		if(useAnalyzer === true) {
 			this.addDefaultAnalyzerFuncs();
-			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+
+			if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
-			window.workerResponses.push(this.workeronmessage);
+			window.workers.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
     }
@@ -1329,7 +1335,10 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+
+						// console.log('posting to worker',window.workers)
+
+                        window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
                         this.workerWaiting = true;
                     }
                 }
@@ -1340,7 +1349,10 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+
+						// console.log('posting to worker',window.workers)
+
+                        window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
                         //postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
                         this.workerWaiting = true;
                     }
