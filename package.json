@@ -26,7 +26,7 @@
     "@tensorflow-models/facemesh": "0.0.5",
     "@tensorflow/tfjs": "^3.3.0",
     "bci2k": "^2.3.3",
-    "brainsatplay": "^0.0.5",
+    "brainsatplay": "0.0.7",
     "browserfs": "^1.4.3",
     "bufferutil": "^4.0.3",
     "child_process": "^1.0.2",

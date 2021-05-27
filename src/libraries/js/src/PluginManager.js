@@ -89,7 +89,10 @@ export class PluginManager{
         let node = nodeInfo.instance
 
         let paramsMenu;
-        if (node.paramOptions && Object.keys(node.paramOptions).length > 0){
+        
+        if (node.paramOptions){
+            let paramKeys = Object.keys(node.paramOptions)
+            if (paramKeys.length > 0 && !(paramKeys.length === 1 && node.paramOptions[paramKeys[0]].show === false)){
             if (!Object.keys(this.gui.__folders).includes(node.label)){
 
                 let guiContainer = document.body.querySelector('.guiContainer')
@@ -131,6 +134,7 @@ export class PluginManager{
                 }
             }
         }
+    }
     }
 
     start(appId){
@@ -216,7 +220,6 @@ export class PluginManager{
 
                 let callback = (input) => {
 
-
                     // Package Single User
                     if ((!Array.isArray(input) && (input.value[0] == null || (typeof input.value[0] !== 'object' || input.value[0].username == null)))){
                         let dict =  {username: this.session.info.auth.username}
@@ -239,7 +242,6 @@ export class PluginManager{
                     }
                     // }
 
-
                     // Send to Proper Port
                     let result;
                     if (targetPort != null) result = target[targetPort](input)
@@ -259,7 +261,6 @@ export class PluginManager{
 
                     return result
                 }
-
 
                 // Pass Output From Brainstorm (and automatically stream this input)
                 if (sourcePort == 'brainstorm') {

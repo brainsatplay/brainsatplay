@@ -5,7 +5,6 @@ const WebSocket = require('ws')
 const mongodb = require('mongodb')
 const uuid = require('uuid')
 
-
 // Create Brainstorm Server Instance
 const createBrainstorm = async (app, config={},onListen=()=>{},onError=()=>{}) => {
 

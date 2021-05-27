@@ -30,20 +30,21 @@ Follow the url given for localhost (usually localhost:1234) for the local build.
 npm install brainsatplay
 ``` 
 
-##### CommonJS
-```javascript
-const brainsatplay = require('brainsatplay')
-``` 
-
 ##### ES Modules
 ```javascript
 import * as brainsatplay from 'brainsatplay'
 ```
 
+##### CommonJS (Not Yet Supported)
+```javascript
+const brainsatplay = require('brainsatplay')
+``` 
+
 #### Browser
 ```html
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay"></script>
 ```
+
 
 ##  Examples
 ### [Brains@Play Platform](https://app.brainsatplay.com) 

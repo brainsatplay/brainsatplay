@@ -36,6 +36,10 @@ Frontend Execution
 */
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
+
+ // Default CSS Stylesheet
+ import './ui/styles/defaults.css'
+
 // UI
 import { DOMFragment } from './ui/DOMFragment';
 
@@ -83,9 +87,9 @@ export class Session {
 	*/
 
 	constructor(
-		username = '',
+		username = 'guest',
 		password = '',
-		urlToConnect = 'https://localhost.com'
+		urlToConnect = 'https://server.brainsatplay.com'
 	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
@@ -121,7 +125,7 @@ export class Session {
      * @param {string} appname Name of the app.
      */
 
-	setLoginInfo(username = '', password = '') {
+	setLoginInfo(username = 'guest', password = '') {
 		this.info.auth.username = username;
 		this.info.auth.password = password;
 	}
@@ -297,9 +301,9 @@ export class Session {
 			deviceSelection.style.pointerEvents = 'none'
 		}
 		
-		if (deviceFilter != null) deviceList = deviceList.filter(d => deviceFilter.includes(d.name))
+		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
-		deviceList.sort(function(a, b) {
+		newDeviceList.sort(function(a, b) {
 			let translate = (d) => {
 				if (d.company == 'Brains@Play'){
 					return 0 // B@P
@@ -322,7 +326,7 @@ export class Session {
 			return pos1 - pos2;
 		});
 		
-		deviceList.forEach((d, i) => {
+		newDeviceList.forEach((d, i) => {
 			if (d.variants == null) d.variants = ['']
 
 			let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
@@ -1103,17 +1107,17 @@ export class Session {
 		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
 			<div>
 				<h2>Choose your Username</h2>
-				<div id="${this.id}login-container" class="form-container">
-					<div id="${this.id}login" class="form-context">
+				<div id="${this.id}login-container" class="brainsatplay-form-container">
+					<div id="${this.id}login" class="brainsatplay-form-context">
 						<p id="${this.id}login-message" class="small"></p>
 						<div class='flex'>
-							<form id="${this.id}login-form" action="">
-								<div class="login-element" style="margin-left: 0px; margin-right: 0px">
+							<form id="${this.id}login-form" class="brainsatplay-form" action="">
+								<div class="brainsatplay-login-element" style="margin-left: 0px; margin-right: 0px">
 									<input type="text" name="username" autocomplete="off" placeholder="Enter a username"/>
 								</div>
 							</form>
 						</div>
-						<div class="login-buttons" style="justify-content: flex-start;">
+						<div class="brainsatplay-login-buttons" style="justify-content: flex-start;">
 							<div id="${this.id}login-button" class="brainsatplay-default-button">Sign In</div>
 						</div>
 					</div>
@@ -1341,17 +1345,17 @@ export class Session {
 
 			<div id='${applet.props.id}login-screen' class="brainsatplay-default-container" style="z-index: 4"><div>
 				<h2>Choose your Username</h2>
-				<div id="${applet.props.id}login-container" class="form-container">
-					<div id="${applet.props.id}login" class="form-context">
+				<div id="${applet.props.id}login-container" class="brainsatplay-form-container">
+					<div id="${applet.props.id}login" class="brainsatplay-form-context">
 						<p id="${applet.props.id}login-message" class="small"></p>
 						<div class='flex'>
-							<form id="${applet.props.id}login-form" action="">
-								<div class="login-element" style="margin-left: 0px; margin-right: 0px">
+							<form id="${applet.props.id}login-form" class="brainsatplay-form" action="">
+								<div class="brainsatplay-login-element" style="margin-left: 0px; margin-right: 0px">
 									<input type="text" name="username" autocomplete="off" placeholder="Enter a username"/>
 								</div>
 							</form>
 						</div>
-						<div class="login-buttons" style="justify-content: flex-start;">
+						<div class="brainsatplay-login-buttons" style="justify-content: flex-start;">
 							<div id="${applet.props.id}login-button" class="brainsatplay-default-button">Sign In</div>
 						</div>
 					</div>

@@ -3,7 +3,7 @@
 
 import {DataAtlas} from '../../DataAtlas'
 import {cyton} from './cyton'
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import { DOMFragment } from '../../ui/DOMFragment';
 
 export class cytonPlugin {

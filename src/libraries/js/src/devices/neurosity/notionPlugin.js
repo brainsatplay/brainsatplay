@@ -2,7 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import {Notion} from '@neurosity/notion'
 
 export class notionPlugin {
@@ -333,19 +333,19 @@ export class notionPlugin {
 		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
 			<div>
 				<h2>Access Notion Data</h2>
-				<div id="${this.id}login-container" class="form-container">
-					<div id="${this.id}login" class="form-context">
+				<div id="${this.id}login-container" class="brainsatplay-form-container">
+					<div id="${this.id}login" class="brainsatplay-form-context">
 						<p id="${this.id}login-message" class="small"></p>
 						<div class='flex'>
-							<form id="${this.id}login-form" action="">
-                                <div class="login-element" style="margin-left: 0px; margin-right: 0px">
+							<form id="${this.id}login-form" class="brainsatplay-form" action="">
+                                <div class="brainsatplay-login-element" style="margin-left: 0px; margin-right: 0px">
                                     <input type="text" name="email" autocomplete="off" placeholder="Enter your email"/>
                                     <br>
                                     <input type="password" name="password" autocomplete="off" placeholder="Enter your password"/>
 								</div>
 							</form>
 						</div>
-						<div class="login-buttons" style="justify-content: flex-start;">
+						<div class="brainsatplay-login-buttons" style="justify-content: flex-start;">
 							<div id="${this.id}login-button" class="brainsatplay-default-button">Sign In</div>
 						</div>
 					</div>

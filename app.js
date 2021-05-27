@@ -6,6 +6,7 @@ const cors = require('cors')
 const fs = require('fs')
 const path = require('path')
 require('dotenv').config()
+// const brainsatplay = require('brainsatplay')
 
 const brainstorm = require('./src/libraries/js/src/brainstorm/Brainstorm.js')
 
@@ -67,7 +68,6 @@ categories.forEach((category,indOut) => {
 const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
-// const brainsatplay = require('./src/library/dist/brainsatplay')
 
 // Settings
 const protocol = 'https';

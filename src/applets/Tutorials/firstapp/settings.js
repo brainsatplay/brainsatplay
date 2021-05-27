@@ -1,6 +1,6 @@
 
 // import featureImg from './feature.png'
-import {UI} from './UI'
+import {UI} from './UI.js'
 import {Signal} from '../../../libraries/js/src/plugins/input/Signal'
 import {Neurofeedback} from '../../../libraries/js/src/plugins/algorithms/Neurofeedback'
 

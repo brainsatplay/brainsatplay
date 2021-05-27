@@ -1,6 +1,6 @@
 //Template system to feed into the deviceStream class for creating possible configurations. 
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import {DataAtlas} from '../../DataAtlas'
 import {hegduino} from './hegduino'
 import {DOMFragment} from '../../ui/DOMFragment'

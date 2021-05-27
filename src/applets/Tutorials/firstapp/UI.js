@@ -1,17 +1,20 @@
-export class UI{
+class UI{
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+
+        // Generic Plugin Attributes
         this.label = label
         this.session = session
         this.params = {}
 
-        // UI Stuff
+        // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000))
         }
 
+        // Port Definition
         this.ports = {
             default: {
                 defaults: {
@@ -40,7 +43,6 @@ export class UI{
     }
 
     default = (userData) => {
-        console.log(userData)
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
@@ -53,3 +55,5 @@ export class UI{
 
     deinit = () => {}
 }
+
+export {UI}

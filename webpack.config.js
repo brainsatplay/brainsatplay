@@ -14,6 +14,9 @@ module.exports = {
     },
     globalObject: 'this',
   },
+  optimization: {
+    minimize: false
+  },
   module: {
     rules: [
       // {
@@ -24,21 +27,25 @@ module.exports = {
       //   }
       // },
       {
-        test: /\.css$/,
-        use: [
-          {
-            loader: "style-loader"
-          },
-          {
-            loader: "css-loader",
-            options: {
-              modules: true,
-              importLoaders: 1,
-              sourceMap: true,
-            }
-          }
-        ]
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       },
+      // {
+      //   test: /\.css$/,
+      //   use: [
+      //     {
+      //       loader: "style-loader"
+      //     },
+      //     {
+      //       loader: "css-loader",
+      //       options: {
+      //         modules: true,
+      //         importLoaders: 1,
+      //         sourceMap: true,
+      //       }
+      //     }
+      //   ]
+      // },
       {
         test: /\.m?js$/,
         exclude: /(node_modules|bower_components)/,

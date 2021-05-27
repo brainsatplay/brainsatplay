@@ -3,12 +3,11 @@
 <head>
   <title>Brains@Play Platform</title>
   <meta charset="UTF-8" />
-  <script src="../../src/libraries/js/dist/brainsatplay.js"></script>
+  <!-- <script src="../../src/libraries/js/dist/brainsatplay.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.8"></script>
   <script src="./UI.js"></script>
-  <!-- <link href="../../src/platform/styles/css/global.css" rel="stylesheet"> -->
-  <link href="../../src/libraries/js/src/ui/styles/defaults.css" rel="stylesheet">
 </head>
-<body style="width: 100vw; height: 100vh;">
+<body style="width: 100vw; height: 100vh; color: white; background: black;">
 
 </body>
 <script>
@@ -30,9 +29,9 @@
       {
       id: 'mygraph',
       nodes: [
-        {id: 'ui', class:UI, params: {}},
-        {id: 'signal', class: brainsatplay.plugins.Signal},
+        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
         {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
+        {id: 'ui', class: UI, params: {}},
       ],
       edges: [
         {
