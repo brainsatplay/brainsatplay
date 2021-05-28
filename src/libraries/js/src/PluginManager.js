@@ -1,6 +1,6 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+import { GUI } from 'dat.gui'
 
 export class PluginManager{
     constructor(session) {

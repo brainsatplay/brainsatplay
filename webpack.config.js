@@ -1,13 +1,12 @@
 const webpack = require('webpack')
 const path = require('path');
+const WorkerPlugin = require('worker-plugin');
 
 module.exports = {
   entry: path.join(__dirname, 'src', 'libraries', 'js', 'brainsatplay.js'),
   output: {
     filename: 'brainsatplay.js',
     path: path.join(__dirname,'src', 'libraries', 'js', 'dist'),
-    publicPath: '/src/libraries/js/dist/',
-    // library: 'brainsatplay',
     library: {
       name: 'brainsatplay', 
       type: 'umd',      
@@ -15,37 +14,21 @@ module.exports = {
     globalObject: 'this',
   },
   optimization: {
-    minimize: false
+    minimize: false,
   },
   module: {
     rules: [
-      // {
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   use: {
-      //     loader: "script-loader"
-      //   }
-      // },
       {
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       },
-      // {
-      //   test: /\.css$/,
-      //   use: [
-      //     {
-      //       loader: "style-loader"
-      //     },
-      //     {
-      //       loader: "css-loader",
-      //       options: {
-      //         modules: true,
-      //         importLoaders: 1,
-      //         sourceMap: true,
-      //       }
-      //     }
-      //   ]
-      // },
+      {
+        test: /\.worker\.js$/,
+        loader: "worker-loader",
+        options: {
+          inline: "no-fallback",
+        },
+      },
       {
         test: /\.m?js$/,
         exclude: /(node_modules|bower_components)/,
@@ -84,6 +67,7 @@ module.exports = {
       new webpack.ProvidePlugin({
         process: 'process/browser',
         Buffer: ['buffer', 'Buffer'],
-      })
+      }),
+      new WorkerPlugin()
      ]
 };

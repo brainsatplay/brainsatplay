@@ -62,7 +62,6 @@ export class notionPlugin {
 
             this.device.brainwaves('raw').subscribe(brainwaves => {
 
-                console.log(brainwaves)
                 let raw = brainwaves.data
                 if(this.info.useAtlas) {
 
@@ -381,13 +380,12 @@ export class notionPlugin {
                     }
 
                     this.device.login(formDict).then((res) => {
-                        console.log(res)
+                        // console.log(res)
                     })
                     .catch((error) => {
                         console.error(error)
                     })
                     .finally(async (res) => {
-                        console.log(res)
                         const devices = await this.device.getDevices();
                         await this.selectDevice(devices,document.body)
                         resolve(true)

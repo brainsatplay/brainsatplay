@@ -4,6 +4,14 @@ let defaultWorkerThreads = 2
 
 let eegWorkers = []
 
+// // WEBPACK
+// import worker from './utils/eeg.worker.js'
+
+// for(var i = 0; i < defaultWorkerThreads; i++){
+//     eegWorkers.push(new worker())
+// }
+
+// SNOWPACK
 for(var i = 0; i < defaultWorkerThreads; i++){
     eegWorkers.push(
         new Worker(
