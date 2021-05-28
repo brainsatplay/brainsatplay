@@ -84,7 +84,6 @@ export class timefluxPlugin {
                         let bundle = data[timestamp]
 
                         Object.keys(bundle).forEach((chId,j) => {
-                            console.log(chId)
                             let raw = bundle[chId]
 
                         let coord = this.atlas.getEEGDataByChannel(chId);

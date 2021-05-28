@@ -11,7 +11,11 @@ class UI{
 
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random()*1000000))
+            id: String(Math.floor(Math.random()*1000000)),
+            snake: [],
+            dx: 0,
+            dy: 0,
+            speed: 10
         }
 
         // Port Definition
@@ -19,7 +23,11 @@ class UI{
             default: {
                 defaults: {
                     input: [{username: 'Username', value: 'Value', meta: {label: 'Waiting for Data'}}]
-                }
+                },
+                up: {},
+                down: {},
+                left: {},
+                right: {}
             }
         }
     }
@@ -39,7 +47,7 @@ class UI{
 const canvas = document.getElementById(`${this.props.id}gameCanvas`);
 const context = canvas.getContext("2d");
 
-let snake = [{
+this.props.snake = [{
     x: Math.floor(400*Math.random()/10)*10, 
     y:Math.floor(400*Math.random() /10)*10    
 }]
@@ -48,12 +56,6 @@ let initialGoal = {
     y:Math.floor(400*Math.random() /10)*10
 }
 let currentGoal = initialGoal;
-let dx= 10
-let dy= 0
-const modifyValsX = x => dx=x;
-const modifyValsY = y => dy=y;
-// export {dx, dy,modifyValsY,modifyValsX}
-
 
 const drawSnake = (segment) => {
     context.fillStyle = 'lightblue'
@@ -78,67 +80,45 @@ const drawSnack = (pos) => {
 
 const moveSnake = () => {
     let head = {
-        x: snake[0].x + dx, 
-        y: snake[0].y + dy
+        x: this.props.snake[0].x + this.props.dx, 
+        y: this.props.snake[0].y + this.props.dy
     }
-    snake.unshift(head);
-    snake.pop()
+    this.props.snake.unshift(head);
+    this.props.snake.pop()
 }
 
             const main =  () => {
             setTimeout(() => {
                 clearCanas()
                 drawSnack({x: currentGoal.x,y:currentGoal.y})
-                snake.forEach(drawSnake);
+                this.props.snake.forEach(drawSnake);
                 moveSnake()
-                if(snake[0].x == currentGoal.x && snake[0].y == currentGoal.y){
-                    snake.push({
+                if(this.props.snake[0].x == currentGoal.x && this.props.snake[0].y == currentGoal.y){
+                    this.props.snake.push({
                         x: currentGoal.x,
                         y: currentGoal.y
                     })
-                    currentGoal = {x: Math.floor(400*Math.random()/10)*10, y:Math.floor(400*Math.random() /10)*10}
+                    currentGoal = {x: Math.floor(400*Math.random()/this.props.speed)*this.props.speed, y:Math.floor(400*Math.random() /this.props.speed)*this.props.speed}
                     clearCanas()
                     drawSnack({x: currentGoal.x,y:currentGoal.y})
-                    snake.forEach(drawSnake);
+                    this.props.snake.forEach(drawSnake);
                     moveSnake()
                 }
-                if(snake[0].x >= 400){
-                    snake[0].x = 0;
+                if(this.props.snake[0].x >= 400){
+                    this.props.snake[0].x = 0;
                 }
-                if(snake[0].x < 0){
-                    snake[0].x = 400;
+                if(this.props.snake[0].x < 0){
+                    this.props.snake[0].x = 400;
                 }
-                if(snake[0].y >= 400){
-                    snake[0].y = 0;
+                if(this.props.snake[0].y >= 400){
+                    this.props.snake[0].y = 0;
                 }
-                if(snake[0].y < 0){
-                    snake[0].y = 400;
+                if(this.props.snake[0].y < 0){
+                    this.props.snake[0].y = 400;
                 }
                 main()
                 },500)
             }
-
-            document.addEventListener('keydown', (e) => {
-                e.preventDefault()
-                switch(e.code){
-                    case "ArrowUp":
-                        dx = 0,
-                        dy = -10
-                        break;
-                    case "ArrowDown":
-                        dx = 0,
-                        dy = 10
-                        break;
-                    case "ArrowLeft":
-                        dx=-10,
-                        dy=0
-                        break;
-                    case "ArrowRight":
-                        dx=10,
-                        dy=0
-                        break;
-                    }
-            })
 
             main()
 
@@ -152,6 +132,40 @@ const moveSnake = () => {
     default = (userData) => {
         return userData
     }
+
+    up = (userData) => {
+        userData.forEach(u => {
+            this.props.dy = -this.props.speed
+            this.props.dx = 0
+        })
+        return userData
+    }
+
+    down = (userData) => {
+        userData.forEach(u => {
+            this.props.dy = this.props.speed
+            this.props.dx = 0
+
+        })
+        return userData
+    }
+
+    left = (userData) => {
+        userData.forEach(u => {
+            this.props.dx = -this.props.speed
+            this.props.dy = 0
+        })
+        return userData
+    }
+
+    right = (userData) => {
+        userData.forEach(u => {
+            this.props.dx = this.props.speed
+            this.props.dy = 0
+        })
+        return userData
+    }
+    
 
     deinit = () => {
         

@@ -200,13 +200,13 @@ export class PluginManager{
                 this.registry.local[nodeInfo.class.id] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
                 this.registry.local[nodeInfo.class.id].state = node.state
 
-                this.addToGUI(nodeInfo)
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
             else applet.classInstances[nodeInfo.class.id].push(node.label)
 
             this.registry.local[nodeInfo.class.id].count++
+            this.addToGUI(nodeInfo)
         }
 
         // Start Graphs
