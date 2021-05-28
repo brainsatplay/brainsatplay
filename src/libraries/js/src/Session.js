@@ -1655,8 +1655,8 @@ export class Session {
 
 						// Plugin Format
 						if (format === 'plugin'){
-								o.value = this.state.data[str].value
-								o.label = prop
+							o.data = this.state.data[str].data
+							o.meta = this.state.data[str].meta
 						} 
 						
 						// Default Format
@@ -1673,8 +1673,8 @@ export class Session {
 
 				// Plugin Format
 				if (format === 'plugin'){
-					arr[i].value = this.state.data[prop].value
-					arr[i].label = prop
+					arr[i].data = this.state.data[prop].data
+					arr[i].meta = this.state.data[prop].meta
 				} 
 				
 				// Default Format

@@ -166,6 +166,10 @@ export class PluginManager{
                         let defaultInput = [{}]
                         for (let port in node.instance.ports){
                             if (node.instance.ports[port].defaults.input) defaultInput = node.instance.ports[port].defaults.input
+                            defaultInput.forEach(o => {
+                                if (o.data == null)  o.data = []
+                                if (o.meta == null)  o.meta = {}                           
+                            })
                             node.instance[port](defaultInput)
                         }
                     }
@@ -189,7 +193,7 @@ export class PluginManager{
             let node = nodeInfo.instance
 
             // Add Default State
-            node.state = {value: null}
+            node.state = {data: null, meta: {}}
 
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
@@ -221,25 +225,25 @@ export class PluginManager{
                 let callback = (input) => {
 
                     // Package Single User
-                    if ((!Array.isArray(input) && (input.value[0] == null || (typeof input.value[0] !== 'object' || input.value[0].username == null)))){
-                        let dict =  {username: this.session.info.auth.username}
-                        dict.value = input.value
-                        dict.label = source.label
-                        input = [dict]
+                    if ((!Array.isArray(input) && (input.data[0] == null || (typeof input.data[0] !== 'object' || input.data[0].username == null)))){
+                        input.username = this.session.info.auth.username
+                        input.meta.label = source.label
+                        input = [input]
                     } 
                     
                     // Unfold Appropriately
                     if (input.timestamp != null){
-                            input = input.value
-                    } else if (Array.isArray(input[0].value)){
-                        if (typeof input[0].value[0] === 'object'){
-                            if (input[0].value[0].username != null){
-                                input = input.map((o) => o[0].value)
+                            input = input.data
+                    } else if (Array.isArray(input[0].data)){
+                        if (typeof input[0].data[0] === 'object'){
+                            if (input[0].data[0].username != null){
+                                input = input.map((o) => o[0].data)
                             }
                         } 
-                    } else if (input[0].value != null && typeof input[0].value === 'object' && input[0].value.username != null){
-                        input = input.map((o) => o.value)
+                    } else if (input[0].data != null && typeof input[0].data === 'object' && input[0].data.username != null){
+                        input = input.map((o) => o.data)
                     }
+
                     // }
 
                     // Send to Proper Port
@@ -254,9 +258,9 @@ export class PluginManager{
                     // }
 
                     if (result != null && Array.isArray(result) && result.length === 1) {
-                        target.state.value = result[0]
+                        target.state.data = result[0]
                     }
-                    else target.state.value = result // Update State Externally
+                    else target.state.data = result // Update State Externally
                     target.state.timestamp = Date.now()
 
                     return result

@@ -1,10 +1,6 @@
 
-// import featureImg from './feature.png'
 import {UI} from './UI'
-import {Keyboard} from '../../../libraries/js/src/plugins/input/Keyboard'
-import {Signal} from '../../../libraries/js/src/plugins/input/Signal'
-import {Neurofeedback} from '../../../libraries/js/src/plugins/algorithms/Neurofeedback'
-// import {Transform} from '../../../libraries/js/src/plugins/algorithms/Transform'
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "My First Brainstorm",
@@ -12,7 +8,6 @@ export const settings = {
     author: "Me",
     description: "This is my first brainstorm.",
     categories: ["tutorial","brainstorm"],
-    // "image":  featureImg,
     instructions:"Coming soon...",
 
     // UI Presets
@@ -25,10 +20,9 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'spacebar', class: Keyboard, params: {key: 'Space'}},
-        {id: 'signal', class: Signal, loop: true},
-        {id: 'neurofeedback', class: Neurofeedback, params: {}},
-        // {id: 'transform', class: Transform, params: {}},
+        {id: 'spacebar', class: brainsatplay.plugins.Keyboard, params: {key: 'Space'}},
+        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
+        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [

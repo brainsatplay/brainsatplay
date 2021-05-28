@@ -25,11 +25,11 @@ export class Keyboard{
     }
 
     handleKeyDown = (e) => {
-        if (this.matchKey(e.code) && this.state.value != true) this.state.value = true
+        if (this.matchKey(e.code) && this.state.data != true) this.state.data = true
     }
     
     handleKeyUp = (e) => {
-        if (this.matchKey(e.code)) this.state.value = false
+        if (this.matchKey(e.code)) this.state.data = false
     }
 
     matchKey(code){

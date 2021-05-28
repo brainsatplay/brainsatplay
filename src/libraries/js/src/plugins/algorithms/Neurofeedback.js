@@ -44,7 +44,7 @@ export class Neurofeedback{
             let arr = []
 
             // Grab Atlas by Default (if not passed already)
-            let data = (u.value != null) ? u.value : this.session.atlas.data
+            let data = (u.data != null) ? u.data : this.session.atlas.data
 
             try {
                 
@@ -142,10 +142,10 @@ export class Neurofeedback{
             }       
             
             // Output to User Data Object
-            if (this.params.output === 'Mean') u.value = this.session.atlas.mean(arr)
-            else u.value = arr
+            if (this.params.output === 'Mean') u.data = this.session.atlas.mean(arr)
+            else u.data = arr
 
-            u.label = this.params.metric
+            u.meta.label = this.params.metric
         })
 
         return userData

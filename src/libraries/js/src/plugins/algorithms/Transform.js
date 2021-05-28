@@ -18,21 +18,21 @@ export class Transform{
 
     default = (userData) => {
 
-        if (!Array.isArray(u.value)) u.value = [u.value]
+        if (!Array.isArray(u.data)) u.data = [u.data]
 
         userData.forEach(u => {
             if (this.params.operator.toLowerCase() === 'Add'){
-                u.value = u.value.map(v => v += this.params.value)
+                u.data = u.data.map(v => v += this.params.data)
             } else if (this.params.operator.toLowerCase() === 'Subtract'){
-                u.value = u.value.map(v => v -= this.params.value)
+                u.data = u.data.map(v => v -= this.params.data)
             } else if (this.params.operator.toLowerCase() === 'Multiply'){
-                u.value = u.value.map(v => v *= this.params.value)
+                u.data = u.data.map(v => v *= this.params.data)
             } else if (this.params.operator.toLowerCase() === 'Divide'){
-                u.value = u.value.map(v => v /= this.params.value)
+                u.data = u.data.map(v => v /= this.params.data)
             } else if (this.params.operator.toLowerCase() === 'Mean'){
-                u.value = u.value.reduce((a,b) => a + b)/ u.value.length
+                u.data = u.data.reduce((a,b) => a + b)/ u.data.length
             } else if (this.params.operator.toLowerCase() === 'Sum'){
-                u.value = u.value.reduce((a,b) => a + b)
+                u.data = u.data.reduce((a,b) => a + b)
             }
         })
 

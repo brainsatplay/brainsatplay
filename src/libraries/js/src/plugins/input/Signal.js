@@ -24,6 +24,6 @@ export class Signal{
     }
 
     default = () => {
-        return {value: this.session.atlas.data}
+        return {data: this.session.atlas.data, meta: {}}
     }
 }

@@ -1,9 +1,7 @@
 
 // import featureImg from './feature.png'
 import {UI} from './UI.js'
-import {Signal} from '../../../libraries/js/src/plugins/input/Signal'
-import {Neurofeedback} from '../../../libraries/js/src/plugins/algorithms/Neurofeedback'
-
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "My First Applet",
@@ -22,8 +20,8 @@ export const settings = {
       id: 'mygraph',
       nodes: [
         {id: 'ui', class: UI, params: {}},
-        {id: 'signal', class: Signal, loop: true},
-        {id: 'neurofeedback', class: Neurofeedback, params: {}},
+        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
+        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
       ],
       edges: [
         {
