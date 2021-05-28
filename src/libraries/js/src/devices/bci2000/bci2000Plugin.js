@@ -24,6 +24,7 @@ export class bci2000Plugin {
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
+
             let script = ``;
             script += `Reset System; `;
             script += `Startup System localhost; `;
@@ -35,9 +36,9 @@ export class bci2000Plugin {
             script += `Start executable DummyApplication; `;
             script += `Start executable DummySignalProcessing; `;
             script += `Set Parameter WSSourceServer *:20100; `;
-            script += `Wait for connected; `;
-            script += `Set Config; `;
-            script += `Start; `;
+            script += `Wait for connected; `
+            script += `Set Config; `
+            script += `Start; `
     
             this.operator.connect("ws://127.0.0.1").then(() => {
                 console.log("Connected to Operator layer through NodeJS server");
@@ -79,6 +80,36 @@ export class bci2000Plugin {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
+
+                // States
+                if(this.device.states?.StimulusCode != undefined){
+                let stimCode = this.device.states?.StimulusCode[0] || 0;
+                switch(stimCode){
+                    case 1:
+                        // modifyValsX(0)
+                        // modifyValsY(-10)
+                        console.log("Receiving BCI2000 State: " + stimCode)
+                        break;
+                    case 2:
+                        // modifyValsX(0)
+                        // modifyValsY(10)
+                        console.log("Receiving BCI2000 State: " + stimCode)
+
+                        break;
+                    case 3:
+                        // modifyValsX(-10)
+                        // modifyValsY(0)
+                        console.log("Receiving BCI2000 State: " + stimCode)
+                        break;
+                    case 4:
+                        // modifyValsX(10)
+                        // modifyValsY(0)
+                        console.log("Receiving BCI2000 State: " + stimCode)
+                        break;
+                    }
+                }
+
+                // Raw Data
                 if(this.info.useAtlas) {
                     raw.forEach((chData,i) => {
                         let coord = this.atlas.getEEGDataByChannel(i);
