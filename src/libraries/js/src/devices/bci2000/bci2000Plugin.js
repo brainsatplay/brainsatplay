@@ -21,6 +21,7 @@ export class bci2000Plugin {
         info.sps = 256 // Arbitrary
         info.deviceType = 'eeg'
         this.info = info;
+        this.info.states = {data: null, meta: {}}
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
@@ -82,33 +83,8 @@ export class bci2000Plugin {
             this.device.onGenericSignal = (raw) => {
 
                 // States
-                if(this.device.states?.StimulusCode != undefined){
-                let stimCode = this.device.states?.StimulusCode[0] || 0;
-                switch(stimCode){
-                    case 1:
-                        // modifyValsX(0)
-                        // modifyValsY(-10)
-                        console.log("Receiving BCI2000 State: " + stimCode)
-                        break;
-                    case 2:
-                        // modifyValsX(0)
-                        // modifyValsY(10)
-                        console.log("Receiving BCI2000 State: " + stimCode)
-
-                        break;
-                    case 3:
-                        // modifyValsX(-10)
-                        // modifyValsY(0)
-                        console.log("Receiving BCI2000 State: " + stimCode)
-                        break;
-                    case 4:
-                        // modifyValsX(10)
-                        // modifyValsY(0)
-                        console.log("Receiving BCI2000 State: " + stimCode)
-                        break;
-                    }
-                }
-
+                if(this.device.states?.StimulusCode != undefined) this.info.states.data = this.device.states?.StimulusCode[0] || 0;
+               
                 // Raw Data
                 if(this.info.useAtlas) {
                     raw.forEach((chData,i) => {
@@ -187,7 +163,6 @@ export class bci2000Plugin {
 
         // Auto-assign channel tags
         if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
-       console.log(info.eegChannelTags)
 
         // Create Filters
         if(info.useFilters === true) {
@@ -214,7 +189,7 @@ export class bci2000Plugin {
     disconnect = () => {
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
-        //ondisconnected: this.atlas.settings.deviceConnected = false;
+        // this.device._socket.close()
     }
 
     //externally set callbacks
