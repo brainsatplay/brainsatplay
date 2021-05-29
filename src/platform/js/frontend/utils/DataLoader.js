@@ -101,7 +101,7 @@ export class DataLoader {
     }
 
     parseEEGData = (data, header) => {
-        let channels = {times:[], fftTimes:[], notes:[], noteTimes:[]};
+        let channels = {times:[], fftTimes:[], fftFreqs:[], notes:[], noteTimes:[]};
         let indices = [];
         let dtypes = [];
         let names = [];
@@ -110,6 +110,9 @@ export class DataLoader {
             let v = value.split(';');
             if(v.length > 1) {
                 if(v[1].toLowerCase().indexOf("fft") > -1) {
+                    if(ffts === true & channels.fftFreqs.length === 0) {
+                        channels.fftFreqs = header.slice(indices[indices.length-1]+1,idx).map(x => x = parseFloat(x));
+                    }
                     ffts=true;
                     indices.push(idx);
                     dtypes.push('fft');

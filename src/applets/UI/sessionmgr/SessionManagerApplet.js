@@ -91,7 +91,6 @@ export class SessionManagerApplet {
                 <span>Load Brains@Play CSV into Browser:  <button id='${props.id}loadcsv' style='border-radius:5px; background-color:white;color:black;font-weight:bold;font-size:16px;'>Load</button></span>
                 <hr>
                 <div id='${props.id}drivefiles'></div>
-                
             </div> 
             `;
         }
@@ -703,14 +702,22 @@ export class SessionManagerApplet {
             let rval = 0; if(rangeend === 1) rval = 1;
 
             document.getElementById(this.props.id+'sessionwindow').insertAdjacentHTML('beforeend',`
-            <div width="100%">
-                <table id=${this.props.id}overlay' width='100%' style='position:absolute; z-index:4;'>
+            <div width="100%" style='background-color:rgba(255,255,255,1);'>
+                <table id=${this.props.id}overlay' width='80%' style='position:relative; z-index:4;'>
                     <tr valign='top'>
                         <td id='${this.props.id}plotmenu' width='10%'></td>
-                        <td width='60%' id='${this.props.id}legend' style='background-color:rgba(255,255,255,1);'></td>
+                        <td width='50%' id='${this.props.id}legend' style=''></td>
                         <td width='2.5%'><span style='color:black;font-weight:bold; font-size:14px;'>Scroll:</span></td>
-                        <td width='25%'> <input style='width:90%;' id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
-                        <td width='2.5%'><button id='${this.props.id}plotclose' style='pointer:cursor; background-color:crimson;color:white;border-radius:5px; border:1px solid black;'>X</button></td>
+                        <td width='42.5%'> <input style='width:90%;' id='${this.props.id}sessionrange' type='range' min='0' max='${rangeend}' value='${rval}' step='1'></td>
+                        <td width='2.5%'><span id='${this.props.id}curTime' style='color:black;font-weight:bold; font-size:14px;'>00:00</span></td>
+                        <td width='2.5%'><button id='${this.props.id}plotclose' style='pointer:cursor; background-color:crimson;color:white;border-radius:5px; border:1px solid black;'>X</button></td>    
+                    </tr>
+                    <tr id='${this.props.id}fftscrollrow' style='display:none;'>
+                        <td colSpan=2></td>
+                        <td><span style='color:black;font-weight:bold; font-size:14px;'>Scroll FFT:</span></td>
+                        <td><input style='width:90%;' id='${this.props.id}sessionfftrange' type='range' min='0' max='${rangeend}' value='0' step='1'></td>
+                        <td width='2.5%'><span id='${this.props.id}curFFTTime' style='color:black;font-weight:bold; font-size:14px;'>00:00</span></td>
+                        <td></td>
                     </tr>
                 </table>
                 <div id='${this.props.id}uplot' style='background-color:white;'></div>
@@ -767,69 +774,41 @@ export class SessionManagerApplet {
 
             this.uplot = new uPlotMaker(this.props.id+'uplot');
             //setup uplot
-            if(filename.indexOf('heg') > -1) { 
+            if(filename.includes('heg')) { 
                 //loaded.data = {times,red,ir,ratio,ambient,error,rmse,notes,noteTimes}
-                
-                let newSeries = this.makeSeries('heg');
-
-                let dummyarr = new Array(100).fill(1);
-
-                this.uplot.uPlotData = [
-                    dummyarr,
-                    dummyarr,
-                    dummyarr,
-                    dummyarr,
-                    dummyarr,
-                    dummyarr
-                ];
-
-                newSeries[0].label = "t";
-                this.uplot.makeuPlot(
-                    newSeries, 
-                    this.uplot.uPlotData, 
-                    this.AppletHTML.node.clientWidth, 
-                    400
-                );
-
-                this.setLegend();
-                this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
                 //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                 document.getElementById(this.props.id+'plotmenu').innerHTML = `
-                    <select id='${this.props.id}plotselect'>
-                        <option value='heg' selected>All</option>
-                    </select>
-                `;
-
+                <select id='${this.props.id}plotselect'>
+                    <option value='heg' selected>All</option>
+                </select>
+                `; 
                 
             }
-            else {
-                let newSeries = this.makeSeries('eegraw',head);
-                newSeries[0].label = "t";
-                let dummyarr = new Array(100).fill(1);
-                newSeries.forEach((s)=>{
-                    this.uplot.uPlotData.push(dummyarr);
-                })
+            else if (filename.includes('eeg')) {
+                  //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                  document.getElementById(this.props.id+'plotmenu').innerHTML = `
+                  <select id='${this.props.id}plotselect'>
+                      <option value='eegraw'>Raw</option>
+                      <option value='stackedeegraw' selected>Raw (Stacked)</option>
+                      <option value='eegfft'>FFT</option>
+                      <option value='eegcoh'>Coherence</option>
+                  </select>
+                  <select id='${this.props.id}channels'>
+                      <option value='all'>All</option>
+                  </select>
+              `; //<option value='meaneegcoh'>Mean Coherence</option>
 
-                this.uplot.makeuPlot(
-                    newSeries, 
-                    this.uplot.uPlotData, 
-                    this.AppletHTML.node.clientWidth, 
-                    400
-                );
-
-                //console.log(newSeries);
-                this.setLegend();
-                
-                //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
-                document.getElementById(this.props.id+'plotmenu').innerHTML = `
-                    <select id='${this.props.id}plotselect'>
-                        <option value='eegraw'>Raw (Single)</option>
-                        <option value='Stackedeegraw' selected>Raw (Stacked)</option>
-                        <option value='eegfft'>FFT</option>
-                        <option value='eegcoh'>Coherence</option>
-                        <option value='meaneegcoh'>Mean Coherence</option>
-                    </select>
-                `;
+              document.getElementById(this.props.id+'plotselect').onchange = () => {
+                  let plotsel = document.getElementById(this.props.id+'plotselect').value;
+                  let chsel = document.getElementById(this.props.id+'channels');
+                  chsel.innerHTML = `<option value='all'>All</option>`;
+                  setuPlot(head);
+                  if(plotsel === 'eegfft' || plotsel === 'eegcoh') {
+                    document.getElementById(this.props.id+'fftscrollrow').style.display = '';
+                  } else {
+                    document.getElementById(this.props.id+'fftscrollrow').style.display = 'none';
+                  }
+              }
             }
 
             const getData = () => {
@@ -843,7 +822,7 @@ export class SessionManagerApplet {
                     }
                     if(!this.startTime) {
                         this.startTime = loaded.data.times[0];
-                    }1
+                    }
                     if(filename.indexOf('heg') > -1) { 
                         //loaded.data = {times,red,ir,ratio,ratiosma,ambient,error,rmse,notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotselect').value;
@@ -860,45 +839,121 @@ export class SessionManagerApplet {
                             this.uplot.plot.setData(this.uplot.uPlotData);
                             this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(1) + "s");
                         }
-    
+                        document.getElementById(this.props.id+'curTime').innerHTML = this.msToTime(loaded.data.times[0]-this.startTime);
                     
                     }
                     else {
                         // loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                         let gmode = document.getElementById(this.props.id+'plotselect').value;
-                        this.uplot.uPlotData = [
-                            loaded.data.times
-                        ];
+                        let chmode = document.getElementById(this.props.id+'channels').value;
+
+                        document.getElementById(this.props.id+'curTime').innerHTML = this.msToTime(loaded.data.times[0]-this.startTime);
+                        
                         if(gmode.includes('eegraw')){
-                            for(const prop in loaded.data) {
-                                if(prop.includes('signal')) {
-                                    this.uplot.uPlotData.push(loaded.data[prop]);
+                            this.uplot.uPlotData = [
+                                loaded.data.times
+                            ];
+                            if(chmode === 'all') {
+                                for(const prop in loaded.data) {
+                                    if(prop.includes('signal')) {
+                                        this.uplot.uPlotData.push(loaded.data[prop]);
+                                    }
+                                }
+                            }
+                            if(!gmode.includes('stacked')){
+                                this.uplot.plot.setData(this.uplot.uPlotData);
+                            } else {
+                                this.uplot.updateStackedData(this.uplot.uPlotData);
+                            }
+                            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(1) + "s");
+                        } else if(gmode === 'eegfft'){
+                           // console.log(loaded.data.fftFreqs)
+                            let fftscrollbar = document.getElementById(this.props.id+'sessionfftrange');
+
+                            fftscrollbar.value = 0;
+                            let set = false;
+
+                            this.uplot.uPlotData = [
+                                loaded.data.fftFreqs
+                            ];
+                            if(chmode === 'all') {
+                                for(const prop in loaded.data) {
+                                    if(prop.includes('fft') && !prop.includes('::') && prop !== 'fftTimes' && prop !== 'fftFreqs') {
+                                        //console.log(prop, loaded.data[prop][0])
+                                        this.uplot.uPlotData.push(loaded.data[prop][0]);
+                                        if(!set) {fftscrollbar.max = loaded.data[prop].length-1; set = true;}
+                                    }
                                 }
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
-                        } else if(gmode.includes('eegfft')){
-                            for(const prop in loaded.data) {
-                                if(prop.includes('fft')) {
-                                    this.uplot.uPlotData.push(loaded.data[prop]);
+
+                            document.getElementById(this.props.id+'curFFTTime').innerHTML = this.msToTime(loaded.data.fftTimes[0] - this.startTime);
+
+                            
+
+                            fftscrollbar.onchange = () => {
+                                this.uplot.uPlotData = [
+                                    loaded.data.fftFreqs
+                                ];
+                                if(chmode === 'all') {
+                                    for(const prop in loaded.data) {
+                                        console.log(prop)
+                                        if(prop.includes('fft') && !prop.includes('::') && prop !== 'fftTimes' && prop !== 'fftFreqs') {
+                                            this.uplot.uPlotData.push(loaded.data[prop][fftscrollbar.value]);
+                                        }
+                                    }
                                 }
+                                this.uplot.plot.setData(this.uplot.uPlotData);
+                                document.getElementById(this.props.id+'curFFTTime').innerHTML = this.msToTime(loaded.data.fftTimes[fftscrollbar.value] - this.startTime);
                             }
-                            this.uplot.plot.setData(this.uplot.uPlotData);
+
                         } else if(gmode === 'eegcoh'){
-                            for(const prop in loaded.data) {
-                                if(prop.includes('::')) {
-                                    this.uplot.uPlotData.push(loaded.data[prop]);
+                            
+                            let fftscrollbar = document.getElementById(this.props.id+'sessionfftrange');
+
+                            fftscrollbar.value = 0;
+                            let set = false;
+
+                            this.uplot.uPlotData = [
+                                loaded.data.fftFreqs
+                            ];
+                            if(chmode === 'all') {
+                                for(const prop in loaded.data) {
+                                    if(prop.includes('::')) {
+                                        this.uplot.uPlotData.push(loaded.data[prop][0]);
+                                        if(!set) {fftscrollbar.max = loaded.data[prop].length-1; set = true;}
+                                    }
                                 }
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
+
+                            document.getElementById(this.props.id+'curFFTTime').innerHTML = this.msToTime(loaded.data.fftTimes[0] - this.startTime);
+
+                            fftscrollbar.onchange = () => {
+                                this.uplot.uPlotData = [
+                                    loaded.data.fftFreqs
+                                ];
+                                if(chmode === 'all') {
+                                    for(const prop in loaded.data) {
+                                        if(prop.includes('::')) {
+                                            this.uplot.uPlotData.push(loaded.data[prop][fftscrollbar.value]);
+                                        }
+                                    }
+                                }
+                                this.uplot.plot.setData(this.uplot.uPlotData);
+                                document.getElementById(this.props.id+'curFFTTime').innerHTML = this.msToTime(loaded.data.fftTimes[fftscrollbar.value] - this.startTime);
+                            }
+
                         } else if(gmode === 'meaneegcoh'){
-                            for(const prop in loaded.data) {
-                                if(prop.includes('::')) {
-                                    //this.uplot.uPlotData.push(loaded.data[prop]);
+                            if(chmode === 'all') {
+                                for(const prop in loaded.data) {
+                                    if(prop.includes('::')) {
+                                        //this.uplot.uPlotData.push(loaded.data[prop]);
+                                    }
                                 }
                             }
                             this.uplot.plot.setData(this.uplot.uPlotData);
                         }
-                        this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v-this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v-this.startTime)*.00001666667)).toFixed(1) + "s");
                         
                     }
                 });
@@ -913,7 +968,76 @@ export class SessionManagerApplet {
                 getData();
             }
 
-            getData();
+            const setuPlot = (head=undefined) => {
+                /*
+                    <option value='eegraw'>Raw (Single)</option>
+                    <option value='Stackedeegraw' selected>Raw (Stacked)</option>
+                    <option value='eegfft'>FFT</option>
+                    <option value='eegcoh'>Coherence</option>
+                    <option value='meaneegcoh'>Mean Coherence</option>
+                */
+                let gmode = document.getElementById(this.props.id+'plotselect').value;
+                if(gmode === 'heg') {
+                    let newSeries = this.makeSeries('heg');
+
+                    let dummyarr = new Array(100).fill(1);
+
+                    this.uplot.uPlotData = [
+                        dummyarr,
+                        dummyarr,
+                        dummyarr,
+                        dummyarr,
+                        dummyarr,
+                        dummyarr
+                    ];
+
+                    newSeries[0].label = "t";
+                    this.uplot.makeuPlot(
+                        newSeries, 
+                        this.uplot.uPlotData, 
+                        this.AppletHTML.node.clientWidth, 
+                        400
+                    );
+
+                    this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
+                    //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
+                }
+                else if (gmode.includes('eeg')) {
+                    let newSeries = this.makeSeries(gmode,head);
+                    newSeries[0].label = "t";
+                    let dummyarr = new Array(100).fill(1);
+                    newSeries.forEach((s)=>{
+                        this.uplot.uPlotData.push(dummyarr);
+                    });
+
+                    if(!gmode.includes('stacked')) {
+                        this.uplot.makeuPlot(
+                            newSeries, 
+                            this.uplot.uPlotData, 
+                            this.AppletHTML.node.clientWidth, 
+                            400
+                        );
+                    } else {
+                        this.uplot.makeStackeduPlot(
+                            newSeries,
+                            this.uplot.uPlotData,
+                            undefined,
+                            undefined,
+                            this.AppletHTML.node.clientWidth,
+                            400
+                        )
+                    }
+
+                    //console.log(newSeries);
+                    
+                }
+                getData();
+                this.setLegend();
+            }
+
+
+            setuPlot(head);
+   
 
         });
         },100);
@@ -1146,65 +1270,18 @@ export class SessionManagerApplet {
         return newSeries;
     }
 
-    setuPlot = () => {
-        /*
-            <option value='eegraw'>Raw (Single)</option>
-            <option value='Stackedeegraw' selected>Raw (Stacked)</option>
-            <option value='eegfft'>FFT</option>
-            <option value='eegcoh'>Coherence</option>
-            <option value='meaneegcoh'>Mean Coherence</option>
-        */
-        let gmode = document.getElementById(this.props.id+'plotselect').value;
-        if(gmode === 'heg') {
-            let newSeries = this.makeSeries('heg');
 
-            let dummyarr = new Array(100).fill(1);
+    updateEEGChannelSelect(mode='channels'){
+        let select = document.getElementById(this.props.id+'channels');
+        if(select){
+            if(mode === 'channels'){
 
-            this.uplot.uPlotData = [
-                dummyarr,
-                dummyarr,
-                dummyarr,
-                dummyarr,
-                dummyarr,
-                dummyarr
-            ];
+            }
+            else if (mode === 'coherence') {
 
-            newSeries[0].label = "t";
-            this.uplot.makeuPlot(
-                newSeries, 
-                this.uplot.uPlotData, 
-                this.AppletHTML.node.clientWidth, 
-                400
-            );
-
-            this.setLegend();
-            this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.uplot.uPlotData[0][0])*.00001666667)+"m:"+((v- this.uplot.uPlotData[0][0])*.001 - 60*Math.floor((v-this.uplot.uPlotData[0][0])*.00001666667)).toFixed(1) + "s");
-            //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
-        }
-        else if (gmode === 'eegraw') {
-            let newSeries = this.makeSeries('eegraw',head);
-            newSeries[0].label = "t";
-            let dummyarr = new Array(100).fill(1);
-            newSeries.forEach((s)=>{
-                this.uplot.uPlotData.push(dummyarr);
-            })
-
-            this.uplot.makeuPlot(
-                newSeries, 
-                this.uplot.uPlotData, 
-                this.AppletHTML.node.clientWidth, 
-                400
-            );
-
-            //console.log(newSeries);
-            this.setLegend();
-            
+            }
         }
     }
 
-    updateuPlot = () => {
-
-    }
-   
 
 } 
