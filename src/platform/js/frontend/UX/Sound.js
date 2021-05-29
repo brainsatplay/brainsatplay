@@ -1,5 +1,12 @@
 
 //By Joshua Brewster (GPL). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
+
+//TODO:
+/*
+  - MIDI web context support
+  - Seeking for audio buffer source nodes
+     -- How: copy audio buffer, stop old node, start new one at time X.
+*/
 export class SoundJS { //Only one Audio context at a time!
     constructor(){
       window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
@@ -59,8 +66,9 @@ export class SoundJS { //Only one Audio context at a time!
     }
   
     //Add a sound file from the app assets or a website url
-    addSounds(urlList=['']){
-      var bufferLoader = new BufferLoader(this.ctx, urlList, this.finishedLoading)
+    addSounds(urlList=[''], onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
+      if(typeof urlList === 'string') urlList = [urlList];
+      var bufferLoader = new BufferLoader(this, urlList, this.finishedLoading, onReady, onBeginDecoding)
       bufferLoader.load();
     }
 
@@ -334,22 +342,29 @@ export class SoundJS { //Only one Audio context at a time!
 
   
 //Parse Audio file buffers
-export class BufferLoader { //From HTML5 Rocks tutorial
-  constructor(ctx, urlList, callback){
-   this.ctx = ctx;
+export class BufferLoader { //Modified from HTML5 Rocks tutorial
+  constructor(SoundJSInstance, urlList, callback, onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
+    this.audio = SoundJSInstance;
+   this.ctx = this.audio.ctx;
    this.urlList = urlList;
    this.onload = callback;
    this.bufferList = new Array();
    this.loadCount = 0;
+   this.onBeginDecoding = onBeginDecoding;
+   this.onReady = onReady;
   }
+
+  onReady = (sourceListIdx) => {}
+
+  onBeginDecoding = () => {}
 
   loadBuffer(url='',index){
    // Load buffer asynchronously
    var request = new XMLHttpRequest();
    request.responseType = "arraybuffer";
    var responseBuf = null;
-   
-   if((url.indexOf("http://") !== -1) || (url.indexOf("file://") !== -1)){
+
+   if(url.length > 1){
        request.open("GET", url, true);
        request.onreadystatechange = () => {
          if(request.readyState === 4){
@@ -360,11 +375,12 @@ export class BufferLoader { //From HTML5 Rocks tutorial
        }
      var loader = this;
 
-     request.onload = function() {
+     request.onload = () => {
        // Asynchronously decode the audio file data in request.response
+       this.onBeginDecoding();
        loader.ctx.decodeAudioData(
          responseBuf,
-         function(buffer) {
+         (buffer) => {
            if (!buffer) {
              alert('error decoding file data: ' + url);
              return;
@@ -372,9 +388,10 @@ export class BufferLoader { //From HTML5 Rocks tutorial
            loader.bufferList[index] = buffer;
            if (++loader.loadCount === loader.urlList.length)
              loader.onload(loader.bufferList);
+             this.onReady(this.audio.sourceList.length-1);
          },
-         function(error) {
-           console.error('decodeAudioData error: ', error);
+         (error) => {
+           console.error('decodeAudioData error: '+ error + ", from url: "+ url);
          }
        );
      }
@@ -388,14 +405,15 @@ export class BufferLoader { //From HTML5 Rocks tutorial
      //read and decode the file into audio array buffer 
      var loader = this;
      var fr = new FileReader();
-     fr.onload = function(e) {
+     fr.onload = (e) => {
          var fileResult = e.target.result;
          var audioContext = loader.ctx;
          if (audioContext === null) {
              return;
          }
          console.log("Decoding audio...");
-         audioContext.decodeAudioData(fileResult, function(buffer) {
+         this.onBeginDecoding();
+         audioContext.decodeAudioData(fileResult, (buffer) => {
            if (!buffer) {
              alert('Error decoding file data: ' + url);
              return;
@@ -406,13 +424,14 @@ export class BufferLoader { //From HTML5 Rocks tutorial
            loader.bufferList[index] = buffer;
            if (++loader.loadCount === loader.urlList.length)
              loader.onload(loader.bufferList);
+             this.onReady(this.audio.sourceList.length-1);
            },
-           function(error) {
+           (error) => {
              console.error('decodeAudioData error: ', error);
            }
          );
      }
-     fr.onerror = function(e) {
+     fr.onerror = (e) => {
          console.log(e);
      }
      
