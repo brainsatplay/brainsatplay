@@ -1057,11 +1057,19 @@ export class SensoriumApplet {
         // Dynamically Extract Uniforms
         let regex = new RegExp('uniform (.*) (.*);', 'g')
         let result = [...fragShader.matchAll(regex)]
-        let uniforms = []
+        let alluniforms = []
         result.forEach(a => {
-            uniforms.push(a[2].replace(/(\[.+\])/g, ''))
+            alluniforms.push(a[2].replace(/(\[.+\])/g, ''))
         })
-        this.currentShader.uniforms = uniforms;
+        let bciuniforms = [];
+        alluniforms.forEach((u) => {
+            for(const prop in this.modifiers) {
+                if(u === prop) {
+                    bciuniforms.push(u);
+                }
+            }
+        })
+        this.currentShader.uniforms = bciuniforms;
 
         // Create New Shader
         let newMaterial = new THREE.ShaderMaterial({

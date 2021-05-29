@@ -50,7 +50,7 @@
     "gsap": "^3.6.1",
     "http": "^0.0.1-security",
     "https-browserify": "^1.0.0",
-    "jsdoc": "^3.6.6",
+    "jsdoc": "^3.6.7",
     "kbm-robot": "0.0.4",
     "module": "^1.2.5",
     "mongodb": "^3.6.5",
