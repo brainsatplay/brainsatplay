@@ -230,8 +230,8 @@ export class SensoriumApplet {
                     <select id='${props.id}shaderSelector'>
                     </select>
                     <div id='${props.id}textshader' style='display:none;'>
-                        Fragment Shader: <textarea id='${props.id}fragmentshader'></textarea><br>
-                        Feedback Uniforms (use commas):<input id='${props.id}uniforms' type='text'>
+                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Fragment Shader: </span><textarea id='${props.id}fragmentshader' style='background-color:black;color:white;'></textarea><br>
+                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Feedback Uniforms (use commas, no spaces): </span><input id='${props.id}uniforms' type='text' style='background-color:black; color:white;'>
                         <button id='${props.id}settextshader'>Set Shader</button>
                     </div>
                     <div style="display: flex; align-items: center;">
@@ -1026,14 +1026,17 @@ export class SensoriumApplet {
             side: THREE.DoubleSide,
             transparent: true,
         });
-        
-        this.updateMaterialUniforms(newMaterial,this.modifiers);
-        this.generateGUI(this.currentShader.uniforms);
+        try{
+            this.updateMaterialUniforms(newMaterial,this.modifiers);
+            this.generateGUI(this.currentShader.uniforms);
 
-        this.three.planes.forEach(p => {
-            p.material.dispose();
-            p.material = newMaterial;          
-        })
+            this.three.planes.forEach(p => {
+                p.material.dispose();
+                p.material = newMaterial;          
+            });
+
+            this.setEffectOptions();
+        } catch(er) {}
     }
 
     getData(u) {        
