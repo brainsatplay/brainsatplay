@@ -417,7 +417,7 @@ export class SensoriumApplet {
     });
 
         // Animate
-        this.startTime = Date.now()
+        this.startTime = Date.now() - Math.random()*1000000;
         this.render = () => {
             if (this.three.renderer.domElement != null){
 
@@ -594,6 +594,7 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'selectors'+newEffect.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
         newEffect.feedback = document.getElementById(this.props.id+'select'+newEffect.uiIdx)
         console.log(newEffect.feedback.value)
+
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
             newEffect.feedbackOption = value;
@@ -627,15 +628,15 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
             let soundurl = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).value;
                         
-                let idx = undefined;
-                let found = this.effects.find((o,i) => {
-                    if(o.id === 'Micin') {
-                        idx=i;
-                        return true;
-                    }
-                });
+            let idx = undefined;
+            let found = this.effects.find((o,i) => {
+                if(o.id === 'Micin') {
+                    idx=i;
+                    return true;
+                }
+            });
 
-                if (soundurl === 'micin'){
+            if (soundurl === 'micin'){
                 if(!found){
                     //start mic
                     if(!window.audio) {
@@ -655,12 +656,13 @@ export class SensoriumApplet {
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
                         }
                     });
-                }} else if (found != null){
-                    found.source.mediaStream.getTracks()[0].stop();
-                    this.effects.splice(idx,1);
-                } 
+                }
+            } else if (found != null){
+                found.source.mediaStream.getTracks()[0].stop();
+                this.effects.splice(idx,1);
+            } 
 
-                if (!['micin', 'none'].includes(soundurl)) {
+            if (!['micin', 'none'].includes(soundurl)) {
                 if (soundurl === 'addfile') {
 
                     if(!window.audio) window.audio = new SoundJS();
@@ -688,32 +690,32 @@ export class SensoriumApplet {
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
                     });
                 } else {
-                
-                if(!window.audio) window.audio = new SoundJS();
-                if (window.audio.ctx===null) {return;};
+                    
+                    if(!window.audio) window.audio = new SoundJS();
+                    if (window.audio.ctx===null) {return;};
 
-                window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
-                
-                    document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
-                    document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
+                    window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
+                    
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
+                        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
 
-                    if(!newEffect.controls) {
-                        document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(idx));
-                        newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
-                    } else {newEffect.controls.style.display=""}
-                    newEffect.source = window.audio.sourceList[sourceListIdx]; 
-                    newEffect.sourceIdx = sourceListIdx;
-                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
-    
-                    this.loadSoundControls(newEffect);
-                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
-                }, 
-                ()=> { 
-                    console.log("Decoding...");
-                    newEffect.input.style.display='none';
-                    document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
-                });
-            }
+                        if(!newEffect.controls) {
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(idx));
+                            newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
+                        } else {newEffect.controls.style.display=""}
+                        newEffect.source = window.audio.sourceList[sourceListIdx]; 
+                        newEffect.sourceIdx = sourceListIdx;
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+        
+                        this.loadSoundControls(newEffect);
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                    }, 
+                    ()=> { 
+                        console.log("Decoding...");
+                        newEffect.input.style.display='none';
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
+                    });
+                }
             }
 
         }
