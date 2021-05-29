@@ -674,7 +674,7 @@ export class SensoriumApplet {
                         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
         
                         if(!newEffect.controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(idx));
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
                             newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
@@ -700,7 +700,7 @@ export class SensoriumApplet {
                         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
 
                         if(!newEffect.controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(idx));
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
                             newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
