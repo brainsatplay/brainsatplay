@@ -535,7 +535,7 @@ export class SensoriumApplet {
         let fileinput = (idx=0, props=this.props) => {
             return `
                 <span id='${props.id}selectors${idx}'></span>
-                <span id='${props.id}fileWrapper${idx}' style="display: none;">  
+                <span id='${props.id}fileWrapper${idx}' style="">  
                     <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
                     <span id='${props.id}status${idx}'></span>
                 </span>
@@ -610,9 +610,8 @@ export class SensoriumApplet {
             } 
             
             let fileWrapper = document.getElementById(`${this.props.id}fileWrapper${newEffect.uiIdx}`)
-            console.log(value)
-            if (value.includes('iAudio')) fileWrapper.style.display = ''
-            else fileWrapper.style.display = 'none'
+            //console.log(value)
+            
         }
 
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='none'>None</option>`;
