@@ -11,6 +11,11 @@ import * as settingsFile from './settings'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+
+import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
+
+
+//Import shader urls
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
 import negaGalaxyFragmentShader from "./shaders/nega_fractalGalaxy/fragment.glsl"
@@ -22,7 +27,19 @@ import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl
 import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
-import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
+//Import sound files
+import bloops from './sounds/wav/guitarbloops.wav'
+import acousticloop3 from './sounds/wav/acousticloop3.wav'
+import washhigh from './sounds/wav/wash_high.wav'
+import washlow from './sounds/wav/wash_low.wav'
+import oceanwaves from './sounds/mp3/oceanwaves.mp3'
+import fluteloop1 from './sounds/wav/fluteloops1.wav'
+import fluteloop2 from './sounds/wav/fluteloops2.wav'
+import fluteloop3 from './sounds/wav/fluteloops3.wav'
+import fluteshot1 from './sounds/wav/fluteshot1.wav'
+import fluteshot2 from './sounds/wav/fluteshot2.wav'
+import drumhit1 from './sounds/wav/drum_hit_1.wav'
+import drumkick1 from './sounds/wav/drum_kick_1.wav'
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
@@ -56,9 +73,24 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined };
+        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
         this.visuals = [];
         this.effects = [];//array of effectStructs
+        this.soundUrls = [
+            {url:oceanwaves, name:"Ocean Waves"},
+            {url:bloops, name:"Guitar Bloops"},
+            {url:washhigh, name:"Guitar Wash (High)"},
+            {url:washlow, name:"Guitar Wash (Low)"},
+            {url:acousticloop3, name:"Acoustic Loop"},
+            {url:drumhit1, name:"Drum Sound 1"},
+            {url:drumkick1, name:"Drum Kick 1"},
+            {url:fluteshot2, name:"Flute Shot 2"},
+            {url:fluteloop1, name:"Flute Loop 1"},
+            {url:fluteloop2, name:"Flute Loop 2"},
+            {url:fluteloop3, name:"Flute Loop 3"},
+            {url:fluteshot1, name:"Flute Shot 1"},
+            {url:fluteshot2, name:"Flute Shot 2"},
+        ];
 
         this.looping = false;
         this.hidden = false;
@@ -531,21 +563,22 @@ export class SensoriumApplet {
             return `
                 Feedback ${idx}: 
                 <span id='${props.id}selectors${idx}'></span>
-                <span id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
-                    <span id='${props.id}fileinfo${idx}'></span> 
-                    Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
+                <span id='${props.id}fileWrapper${idx}' style='font-size:10px;'>  
+                    Sounds:<select id='${props.id}soundselect${idx}'><option value='none'>None</option></select> 
                     <button id='${props.id}uploadedFile${idx}'>Add File</button> ${idx}
                     <span id='${props.id}status${idx}'></span>
                 </span>
+                <span id='${props.id}fileinfo${idx}' style='background-color:black; display:none;'>Loading...</span>
             `;
         }
 
         let controls = (idx=0, props=this.props) => {
             return `
                 <span id='${props.id}controlWrapper${idx}'>
-                    <button id='${props.id}play${idx}'>${idx}: Play</button>
-                    <button id='${props.id}mute${idx}' style='display:none;'>${idx}: Mute</button>
-                    <button id='${props.id}stop${idx}'>${idx}: Remove</button>
+                    <button id='${props.id}play${idx}'>Play</button>
+                    <button id='${props.id}pause${idx}' style='display:none;'>Pause</button>
+                    <button id='${props.id}mute${idx}' style='display:none;'>Mute</button>
+                    <button id='${props.id}stop${idx}'>Remove</button>
                 </span>
             `;
         }
@@ -606,6 +639,41 @@ export class SensoriumApplet {
             }
         }
 
+        this.soundUrls.forEach((obj)=>{
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='${obj.url}'>${obj.name}</option>`;
+        });
+
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
+            let soundurl = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).value;
+            if(soundurl !== 'none') {
+                if(!window.audio) window.audio = new SoundJS();
+                if (window.audio.ctx===null) {return;};
+
+                window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
+                
+                    document.getElementById(this.props.id+'fileinfo'+idx).style.display = 'none';
+                    document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
+
+                    if(!newEffect.controls) {
+                        document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
+                        newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
+                    } else {newEffect.controls.style.display=""}
+                    newEffect.source = window.audio.sourceList[sourceListIdx]; 
+                    newEffect.sourceIdx = sourceListIdx;
+                    document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
+    
+                    this.loadSoundControls(newEffect);
+                    document.getElementById(this.props.id+'status'+idx).innerHTML = "";
+                }, 
+                ()=> { 
+                    console.log("Decoding...");
+                    newEffect.input.style.display='none';
+                    document.getElementById(this.props.id+'fileinfo'+idx).style.display = '';
+                });
+            }
+
+        }
+
         if(this.currentShader !== null)
             this.setEffectOptions();
 
@@ -616,7 +684,9 @@ export class SensoriumApplet {
 
             window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                 
-                newEffect.input.style.display='none';   
+                document.getElementById(this.props.id+'fileinfo'+idx).style.display = 'none';
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
+
                 if(!newEffect.controls) {
                     document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
                     newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
@@ -629,7 +699,9 @@ export class SensoriumApplet {
                 document.getElementById(this.props.id+'status'+idx).innerHTML = "";
             }, 
             ()=> { 
-                
+                console.log("Decoding...");
+                newEffect.input.style.display='none';
+                document.getElementById(this.props.id+'fileinfo'+idx).style.display = '';
             });
             
         }
@@ -660,18 +732,41 @@ export class SensoriumApplet {
         
         document.getElementById(this.props.id+'play'+newEffect.uiIdx).onclick = () => {
             try{window.audio.playSound(newEffect.sourceIdx,0,true);}catch(er){}
+            //.log(newEffect.sourceIdx);
             newEffect.playing = true;
             document.getElementById(this.props.id+'play'+newEffect.uiIdx).style.display = 'none';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).style.display = '';
             document.getElementById(this.props.id+'mute'+newEffect.uiIdx).style.display = '';
+        }
+
+        document.getElementById(this.props.id+'pause'+newEffect.uiIdx).onclick = () => {
+            if(newEffect.playing) {
+                if(!newEffect.paused) {
+                    newEffect.paused = true;
+                    newEffect.playbackRate = newEffect.source.playbackRate.value;
+                    newEffect.source.playbackRate.value = 0;
+                    document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Play";
+                } else {
+                    newEffect.paused = false;
+                    newEffect.source.playbackRate.value = newEffect.playbackRate;
+                    document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Pause";
+                }
+            }
         }
 
         document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
             newEffect.playing = false;
+            newEffect.paused = false;
+
             try{window.audio.playSound(newEffect.sourceIdx,0,false);} catch(er) {}
             window.audio.stopSound(newEffect.sourceIdx);
            
             newEffect.input.style.display = "";
             newEffect.controls.style.display = "none";
+
+            document.getElementById(this.props.id+'play'+newEffect.uiIdx).style.display = '';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).style.display = 'none';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Pause";
 
             let thisidx=0;
             this.effects.forEach((effectStruct,j)=> {
@@ -683,6 +778,8 @@ export class SensoriumApplet {
                     }
                 }
             });
+
+
         }
 
         document.getElementById(this.props.id+'mute'+newEffect.uiIdx).onclick = () => {
@@ -705,6 +802,7 @@ export class SensoriumApplet {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                             
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                effectStruct.source
                                 window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
                                     Math.max(0,Math.min(modifiers.iHB,1)), 
                                     window.audio.ctx.currentTime
@@ -716,7 +814,7 @@ export class SensoriumApplet {
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
-                                effectStruct.source.playBackRate.value = hr_mod;
+                                effectStruct.source.playbackRate.value = hr_mod;
                             }
                             this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                         }
