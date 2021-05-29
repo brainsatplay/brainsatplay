@@ -10,7 +10,7 @@ export class Keyboard{
         this.params = params
 
         this.paramOptions = {
-            key: {default: 'Space', options: null},
+            keycode: {default: 'Space', options: null},
         }
     }
 
@@ -32,8 +32,8 @@ export class Keyboard{
         if (this.matchKey(e.code)) this.state.data = false
     }
 
-    matchKey(code){
-        let regex = new RegExp(`(?:^|\W)${this.params.key}(?:$|\W)`,'i')
-        return code.match(regex) || code.replace('Key', '').match(regex) || code.replace('Digit', '').match(regex)
+    matchKey(keycode){
+        let regex = new RegExp(`(?:^|\W)${this.params.keycode}(?:$|\W)`,'i')
+        return keycode.match(regex) || keycode.replace('Key', '').match(regex) || keycode.replace('Digit', '').match(regex)
     }
 }

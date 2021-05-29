@@ -6,7 +6,7 @@ export class PluginManager{
     constructor(session) {
         this.session = session
         this.applets = {}
-        this.registry = {local: {}, brainstorm: {}}
+        this.registry = {local: {}, brainstorm: {}, devices: {}}
         this.state = new StateManager() // For graphs
 
         this.gui = new GUI({ autoPlace: false });
@@ -18,6 +18,23 @@ export class PluginManager{
         this.session.state.addToState('update',this.session.state.update, (update) => {
 
             if (update.added){
+                // Add Device Listeners
+                update.buffer.forEach(k => {
+                    if (k.includes('device')){
+
+                        // Callback hardcoded for BCI Snake for Now
+                        let deviceCallback = (o) => {
+                            this.state.data['up'].data = (o.data === 1) ? true : false
+                            this.state.data['down'].data = (o.data === 2) ? true : false
+                            this.state.data['left'].data = (o.data === 3) ? true : false
+                            this.state.data['right'].data = (o.data === 4) ? true : false
+                        }
+
+                        this.state.addToState(k,  this.session.state.data[k].states)
+                        this.registry.devices[k] = {count: 1, id: this.state.subscribe(k, deviceCallback), callback: deviceCallback}
+                    }
+                })
+
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
                     let label = this.registry.local[s].label
@@ -27,7 +44,7 @@ export class PluginManager{
                                 this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
                                 this.registry.brainstorm[k].callback()
                             }
-                        }
+                        } 
                     })
                 }
             }
@@ -38,6 +55,10 @@ export class PluginManager{
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
                         this.registry.brainstorm[k].callback()
                         delete this.registry.brainstorm[k]
+                    } else if (k.includes('device')){
+                        if (this.registry.devices[k] != null){
+                            this.state.removeState(k)
+                        }
                     }
                 })
             }
@@ -200,13 +221,13 @@ export class PluginManager{
                 this.registry.local[nodeInfo.class.id] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
                 this.registry.local[nodeInfo.class.id].state = node.state
 
-                this.addToGUI(nodeInfo)
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
             else applet.classInstances[nodeInfo.class.id].push(node.label)
 
             this.registry.local[nodeInfo.class.id].count++
+            this.addToGUI(nodeInfo)
         }
 
         // Start Graphs

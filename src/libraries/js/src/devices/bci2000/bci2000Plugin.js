@@ -21,9 +21,11 @@ export class bci2000Plugin {
         info.sps = 256 // Arbitrary
         info.deviceType = 'eeg'
         this.info = info;
+        this.info.states = {data: null, meta: {}}
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
+
             let script = ``;
             script += `Reset System; `;
             script += `Startup System localhost; `;
@@ -35,9 +37,9 @@ export class bci2000Plugin {
             script += `Start executable DummyApplication; `;
             script += `Start executable DummySignalProcessing; `;
             script += `Set Parameter WSSourceServer *:20100; `;
-            script += `Wait for connected; `;
-            script += `Set Config; `;
-            script += `Start; `;
+            script += `Wait for connected; `
+            script += `Set Config; `
+            script += `Start; `
     
             this.operator.connect("ws://127.0.0.1").then(() => {
                 console.log("Connected to Operator layer through NodeJS server");
@@ -79,6 +81,11 @@ export class bci2000Plugin {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
+
+                // States
+                if(this.device.states?.StimulusCode != undefined) this.info.states.data = this.device.states?.StimulusCode[0] || 0;
+               
+                // Raw Data
                 if(this.info.useAtlas) {
                     raw.forEach((chData,i) => {
                         let coord = this.atlas.getEEGDataByChannel(i);
@@ -156,7 +163,6 @@ export class bci2000Plugin {
 
         // Auto-assign channel tags
         if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
-       console.log(info.eegChannelTags)
 
         // Create Filters
         if(info.useFilters === true) {
@@ -183,7 +189,7 @@ export class bci2000Plugin {
     disconnect = () => {
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
-        //ondisconnected: this.atlas.settings.deviceConnected = false;
+        // this.device._socket.close()
     }
 
     //externally set callbacks
