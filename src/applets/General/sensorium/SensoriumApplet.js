@@ -694,24 +694,24 @@ export class SensoriumApplet {
 
                 window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
                 
-                    document.getElementById(this.props.id+'fileinfo'+idx).style.display = 'none';
+                    document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
                     document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
 
                     if(!newEffect.controls) {
-                        document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
+                        document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(idx));
                         newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
                     } else {newEffect.controls.style.display=""}
                     newEffect.source = window.audio.sourceList[sourceListIdx]; 
                     newEffect.sourceIdx = sourceListIdx;
-                    document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
+                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
     
                     this.loadSoundControls(newEffect);
-                    document.getElementById(this.props.id+'status'+idx).innerHTML = "";
+                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
                 }, 
                 ()=> { 
                     console.log("Decoding...");
                     newEffect.input.style.display='none';
-                    document.getElementById(this.props.id+'fileinfo'+idx).style.display = '';
+                    document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
                 });
             }
             }
