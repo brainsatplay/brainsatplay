@@ -1,5 +1,4 @@
 
-// import featureImg from './feature.png'
 import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
@@ -9,11 +8,11 @@ export const settings = {
     author: "Me",
     description: "This is my first applet.",
     categories: ["tutorial"],
-    // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {
       mode: 'single'
     },
+    
     // App Logic
     graphs: [
       {

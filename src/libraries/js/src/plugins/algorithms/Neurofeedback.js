@@ -42,9 +42,8 @@ export class Neurofeedback{
         userData.forEach(u => {
             
             let arr = []
-
-            // Grab Atlas by Default (if not passed already)
-            let data = (u.data != null) ? u.data : this.session.atlas.data
+            // let data = (u.data != null) ? u.data : this.session.atlas.data
+            let data = this.session.atlas.data
 
             try {
                 

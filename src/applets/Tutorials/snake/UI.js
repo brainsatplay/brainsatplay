@@ -122,8 +122,6 @@ const moveSnake = () => {
 
             main()
 
-
-
         }
 
         return {HTMLtemplate, setupHTML}

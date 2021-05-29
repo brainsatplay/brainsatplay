@@ -1,21 +1,34 @@
 // Managers
 import { StateManager } from './ui/StateManager'
+import { Session } from './Session'
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
-    constructor(session) {
+    constructor(session, settings = {gui: true}){
         this.session = session
+
+        // Two Modes
         this.applets = {}
+        this.nodes = {}
+
+        // Metadata
+        this.settings = settings
         this.registry = {local: {}, brainstorm: {}, devices: {}}
-        this.state = new StateManager() // For graphs
 
-        this.gui = new GUI({ autoPlace: false });
-        document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
-        document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
-        document.body.querySelector('.guiContainer').style.display = 'none'
+        // Manage States Locally
+        this.state = new StateManager()
 
-        // Listen for Added/Removed States
-        this.session.state.addToState('update',this.session.state.update, (update) => {
+        // Create GUI
+        if (this.settings.gui === true){
+            this.gui = new GUI({ autoPlace: false });
+            document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
+            document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
+            this.gui.domElement.style.display = 'none'
+        }
+
+        // Listen to Added/Removed States in Session (if provided)
+        if (session instanceof Session){
+            this.session.state.addToState('update',this.session.state.update, (update) => {
 
             if (update.added){
                 // Add Device Listeners
@@ -68,6 +81,22 @@ export class PluginManager{
             update.buffer.clear()
         })
     }
+    }
+
+    instantiateNode(nodeInfo,session=this.session){
+        let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+
+        // Set Default Parameters
+        for (let param in node.paramOptions){
+            if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
+        }
+
+        // Add Default State
+        node.state = {data: null, meta: {}}
+
+
+        return node
+    }
 
     add(id, name, graphs){
         let streams = new Set()
@@ -80,21 +109,17 @@ export class PluginManager{
         let nodes = {}
         let edges = []
         graphs.forEach(g => {
-            g.edges.forEach(e => {
-                edges.push(e)
-            })
+
+            if (Array.isArray(g.edges)){
+                g.edges.forEach(e => {
+                    edges.push(e)
+                })
+            }
 
             g.nodes.forEach(nodeInfo => {
                 if (nodes[nodeInfo.id] == null){
                     nodes[nodeInfo.id] = nodeInfo
-                    let node = new nodeInfo.class(nodeInfo.id, this.session, nodeInfo.params)
-
-                    // Set Default Parameters
-                    for (let param in node.paramOptions){
-                        if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
-                    }
-
-                    nodes[nodeInfo.id].instance = node
+                    nodes[nodeInfo.id].instance = this.instantiateNode(nodeInfo,this.session)
                 }
             })
         })
@@ -116,8 +141,7 @@ export class PluginManager{
             if (paramKeys.length > 0 && !(paramKeys.length === 1 && node.paramOptions[paramKeys[0]].show === false)){
             if (!Object.keys(this.gui.__folders).includes(node.label)){
 
-                let guiContainer = document.body.querySelector('.guiContainer')
-                if (guiContainer.style.display === 'none') guiContainer.style.display = 'block'
+                if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
 
                 this.gui.addFolder(node.label);
                 this.registry.local[nodeInfo.class.id].gui[node.label] = []
@@ -169,6 +193,7 @@ export class PluginManager{
         let uiParams = {
             HTMLtemplate: '',
             setupHTML: [],
+            responsive: [],
         }
 
         let initializedNodes = []
@@ -179,7 +204,10 @@ export class PluginManager{
             if (!initializedNodes.includes(node.id)){
                 let ui = node.instance.init(node.params)
                 if (ui != null) {
-                    
+
+                    // Grab Responsive Function
+                    ui.responsive = node.instance.responsive
+
                     // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
                     var cachedSetup = ui.setupHTML;
                     ui.setupHTML = (app) => {
@@ -206,15 +234,13 @@ export class PluginManager{
             if (o.HTMLtemplate instanceof Function) o.HTMLtemplate = o.HTMLtemplate()
             uiParams.HTMLtemplate += o.HTMLtemplate
             uiParams.setupHTML.push(o.setupHTML)
+            uiParams.responsive.push(o.responsive)
         })
 
         // Register All Nodes
         for (let id in applet.nodes){
             let nodeInfo =  applet.nodes[id]
             let node = nodeInfo.instance
-
-            // Add Default State
-            node.state = {data: null, meta: {}}
 
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
@@ -368,9 +394,8 @@ export class PluginManager{
                     }
 
                     // Hide GUI When Not Required
-                    let guiContainer = document.body.querySelector('.guiContainer')
                     if (Object.keys(this.gui.__folders).length){
-                        if (guiContainer.style.display !== 'none') guiContainer.style.display = 'none'
+                        if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
                     }
 
                     // Remove Streaming
