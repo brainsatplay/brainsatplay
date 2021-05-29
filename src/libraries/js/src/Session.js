@@ -1596,101 +1596,6 @@ export class Session {
 		}, loadTime)
 	}
 
-
-	getBrainstormData(query, props=[], type = 'app', format = 'default') {
-
-		let usernameInd;
-		let propInd;
-		let structureFilter;
-
-		if (type === 'user') {
-			usernameInd = 1
-			propInd = 2
-			structureFilter = (input) => {
-				let val = input.split('_')[0] 
-				return val === 'userData'
-			}
-		} else {
-			usernameInd = 2
-			propInd = 3
-			structureFilter = (input) => {
-				return input.split('_')[0] !== 'userData'
-			}
-		}
-
-		let arr = []
-
-		if (query != null) {
-			var regex = new RegExp(query);
-			let returnedStates = Object.keys(this.state.data).filter(k => {
-
-				// Query is True
-				let test1 = regex.test(k)
-
-				// Structure is Appropriate
-				let test2 = structureFilter(k)
-
-				// Props are Included
-				let test3 = false;
-				props.forEach(p => {
-					if (k.includes(p)){
-						test3 = true
-					}
-				})
-				
-				if (test1 && test2 && test3) return true
-			})
-
-			let usedNames = []
-
-			returnedStates.forEach(str => {
-				const strArr = str.split('_')
-
-				if (!usedNames.includes(strArr[usernameInd])) {
-					usedNames.push(strArr[usernameInd])
-					arr.push({ username: strArr[usernameInd] })
-				}
-
-				arr.find(o => {
-					let prop = strArr.slice(propInd).join('_') // Other User Data
-					if (o.username === strArr[usernameInd]) {
-
-						// Plugin Format
-						if (format === 'plugin'){
-							o.data = this.state.data[str].data
-							o.meta = this.state.data[str].meta
-						} 
-						
-						// Default Format
-						else {
-							o[prop] = this.state.data[str]
-						}
-					}
-				})
-			})
-
-			let i = arr.length
-			arr.push({ username: this.info.auth.username})
-			props.forEach(prop => {
-
-				// Plugin Format
-				if (format === 'plugin'){
-					arr[i].data = this.state.data[prop].data
-					arr[i].meta = this.state.data[prop].meta
-				} 
-				
-				// Default Format
-				else {
-					arr[i][prop] = this.state.data[prop]
-				}
-			})
-		} else {
-			console.error('please specify a query for the Brainstorm (app, username, prop)')
-		}
-
-		return arr
-	}
-
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
 		if (this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['leaveSession', sessionid, userToKick]);
@@ -1836,6 +1741,107 @@ export class Session {
 			pathname.splice(0, 1);
 		}
 		return pathname;
+	}
+
+	// Session Data Utilities
+	getEEGDataByChannel(ch, data){
+		atlas.getEEGDataByChannel()
+	}
+
+
+
+	getBrainstormData(query, props=[], type = 'app', format = 'default') {
+
+		let usernameInd;
+		let propInd;
+		let structureFilter;
+
+		if (type === 'user') {
+			usernameInd = 1
+			propInd = 2
+			structureFilter = (input) => {
+				let val = input.split('_')[0] 
+				return val === 'userData'
+			}
+		} else {
+			usernameInd = 2
+			propInd = 3
+			structureFilter = (input) => {
+				return input.split('_')[0] !== 'userData'
+			}
+		}
+
+		let arr = []
+
+		if (query != null) {
+			var regex = new RegExp(query);
+			let returnedStates = Object.keys(this.state.data).filter(k => {
+
+				// Query is True
+				let test1 = regex.test(k)
+
+				// Structure is Appropriate
+				let test2 = structureFilter(k)
+
+				// Props are Included
+				let test3 = false;
+				props.forEach(p => {
+					if (k.includes(p)){
+						test3 = true
+					}
+				})
+				
+				if (test1 && test2 && test3) return true
+			})
+
+			let usedNames = []
+
+			returnedStates.forEach(str => {
+				const strArr = str.split('_')
+
+				if (!usedNames.includes(strArr[usernameInd])) {
+					usedNames.push(strArr[usernameInd])
+					arr.push({ username: strArr[usernameInd] })
+				}
+
+				arr.find(o => {
+					let prop = strArr.slice(propInd).join('_') // Other User Data
+					if (o.username === strArr[usernameInd]) {
+
+						// Plugin Format
+						if (format === 'plugin'){
+							o.data = this.state.data[str].data
+							o.meta = this.state.data[str].meta
+						} 
+						
+						// Default Format
+						else {
+							o[prop] = this.state.data[str]
+						}
+					}
+				})
+			})
+
+			let i = arr.length
+			arr.push({ username: this.info.auth.username})
+			props.forEach(prop => {
+
+				// Plugin Format
+				if (format === 'plugin'){
+					arr[i].data = this.state.data[prop].data
+					arr[i].meta = this.state.data[prop].meta
+				} 
+				
+				// Default Format
+				else {
+					arr[i][prop] = this.state.data[prop]
+				}
+			})
+		} else {
+			console.error('please specify a query for the Brainstorm (app, username, prop)')
+		}
+
+		return arr
 	}
 
 }

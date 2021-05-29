@@ -6,6 +6,10 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
+import Prism from 'prismjs';
+
+console.log(Prism)
+
 import * as settingsFile from './settings'
 
 import * as THREE from 'three'
@@ -216,29 +220,47 @@ export class SensoriumApplet {
     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
+
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
+
+            let update = (text) => {
+                let result_element = document.querySelector(`#sensorium-highlighting-content`);
+                // Update code
+                result_element.innerText = text;
+                // Syntax Highlight
+                Prism.highlightElement(result_element);
+    
+            }
+
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
                             
                 <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:1;'>Hide Controls</button> 
 
-                <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
-                    <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
-                   
-                    <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
-                    <select id='${props.id}shaderSelector'>
-                    </select>
-                    <div id='${props.id}textshader' style='display:none;'>
-                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Fragment Shader: </span><textarea id='${props.id}fragmentshader' placeholder='Paste GLSL Fragment Shader Code' style='background-color:black;color:white;'></textarea><br>
-                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Feedback Uniforms (use commas, no spaces): </span><input id='${props.id}uniforms' type='text' placeholder='iAudio,iHEG,iFFT,iHRV' style='background-color:black; color:white;'>
-                        <button id='${props.id}settextshader'>Set Shader</button>
+                <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
+                    <div>
+                        <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
+                    
+                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
+                        <select id='${props.id}shaderSelector'>
+                        </select>
+                        <div style="display: flex; align-items: center;">
+                            <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
+                            <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                        </div>
+                        <span id='${props.id}effectmenu'></span>
                     </div>
-                    <div style="display: flex; align-items: center;">
-                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
-                        <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                    <div id='${props.id}textshader' style='display:none; height: 100%; width: 100%; padding: 25px; '>
+                        <div style="display: flex;">
+                            <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Fragment Shader</h3>
+                            <button id='${props.id}settextshader'>Set Shader</button>
+                        </div>
+                        <textarea id='${props.id}fragmentshader' oninput="(${update})(this.value)" placeholder='Paste GLSL Fragment Shader Code' style='background-color:rgba(0,0,0,0.8); color:white; width: 100%; height: 100%; box-sizing: border-box;'></textarea><br>
+                        <pre id="sensorium-highlighting" aria-hidden="true">
+                            <code class="language-glsl" id="sensorium-highlighting-content"></code>
+                        </pre>
                     </div>
-                    <span id='${props.id}effectmenu'></span>
                 </div>
 
                 <div id='${props.id}container' style="height:100%; width:100%;">
@@ -446,7 +468,10 @@ export class SensoriumApplet {
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
-                                if (data.modifiers[name].constructor === Uint8Array) data.modifiers[name] = Array.from(data.modifiers[name])
+
+                                if (data.modifiers[name] != null && data.modifiers[name].constructor === Uint8Array) {
+                                    data.modifiers[name] = Array.from(data.modifiers[name])
+                                }
                                 averageModifiers[name].push(data.modifiers[name])
                             });
                         }
@@ -550,12 +575,21 @@ export class SensoriumApplet {
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
-                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect:</span><span id='${props.id}selectors${idx}'></span>
-                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound:</span><span id='${props.id}fileWrapper${idx}' style="">  
-                    <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
-                    <span id='${props.id}status${idx}'></span>
-                </span>
-                <span id='${props.id}fileinfo${idx}' style='background-color:black; display:none;'>Loading...</span>
+            <div style="display: flex;">
+
+                <div style="padding-right: 25px;">
+                    <h4 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect</h4>
+                    <div id='${props.id}selectors${idx}'></div>
+                </div>
+                <div class="sound">
+                    <h4 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</h4>
+                    <div id='${props.id}fileWrapper${idx}' style="">  
+                        <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
+                        <span id='${props.id}status${idx}'></span>
+                    </div>
+                    <span id='${props.id}fileinfo${idx}' style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;'>Loading...</span>
+                </div>
+                </div>
             `;
         }
 
@@ -690,7 +724,7 @@ export class SensoriumApplet {
                         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
         
                         if(!newEffect.controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
                             newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
@@ -716,7 +750,7 @@ export class SensoriumApplet {
                         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
 
                         if(!newEffect.controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
                             newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
@@ -1018,11 +1052,21 @@ export class SensoriumApplet {
 
     setShaderFromText = () => {
 
-        this.currentShader.uniforms = document.getElementById(this.props.id+'uniforms').value.split(',');
+        let fragShader = document.getElementById(this.props.id+'fragmentshader').value
 
+        // Dynamically Extract Uniforms
+        let regex = new RegExp('uniform (.*) (.*);', 'g')
+        let result = [...fragShader.matchAll(regex)]
+        let uniforms = []
+        result.forEach(a => {
+            uniforms.push(a[2].replace(/(\[.+\])/g, ''))
+        })
+        this.currentShader.uniforms = uniforms;
+
+        // Create New Shader
         let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.currentShader.vertexShader,
-            fragmentShader: document.getElementById(this.props.id+'fragmentshader').value,
+            fragmentShader: fragShader,
             side: THREE.DoubleSide,
             transparent: true,
         });
