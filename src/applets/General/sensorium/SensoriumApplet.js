@@ -222,13 +222,13 @@ export class SensoriumApplet {
                             
                 <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:1;'>Hide Controls</button> 
 
-                <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.35); height: 100%;'>
-                    <div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 2;"></div>
+                <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
+                    <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
                    
-                    <h3>Select a Shader</h3>
+                    <h3 style='text-shadow: 0px 0px 2px black, 0 0 5px #0000FF;'>Select a Shader</h3>
                     <select id='${props.id}shaderSelector'></select>
                     <div style="display: flex; align-items: center;">
-                        <h3>Effects</h3>
+                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 5px #0000FF;'>Effects</h3>
                         <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                     </div>
                     <span id='${props.id}effectmenu'></span>
