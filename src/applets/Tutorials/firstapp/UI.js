@@ -1,21 +1,24 @@
-export class UI{
+class UI{
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+
+        // Generic Plugin Attributes
         this.label = label
         this.session = session
         this.params = {}
 
-        // UI Stuff
+        // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000))
         }
 
+        // Port Definition
         this.ports = {
             default: {
                 defaults: {
-                    input: [{username: 'Username', value: 'Value', label: 'Waiting for Data'}]
+                    input: [{username: 'Username', value: 'Value', meta: {label: 'Waiting for Data'}}]
                 }
             }
         }
@@ -41,12 +44,16 @@ export class UI{
 
     default = (userData) => {
         let labelDiv = document.getElementById(`${this.props.id}-label`)
-        labelDiv.innerHTML = userData[0].label
+        labelDiv.innerHTML = userData[0].meta.label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
-        let value = (!Array.isArray(userData[0].value)) ? userData[0].value : userData[0].value[0]
+        let value = (!Array.isArray(userData[0].data)) ? userData[0].data : userData[0].data[0]
         if (typeof value === "number") value = value.toFixed(2)
         outputDiv.innerHTML = `<p>${userData[0].username}: ${value}</p>`
+
+        return userData
     }
 
     deinit = () => {}
 }
+
+export {UI}

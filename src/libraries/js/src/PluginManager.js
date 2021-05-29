@@ -1,31 +1,63 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+import { Session } from './Session'
+import { GUI } from 'dat.gui'
 
 export class PluginManager{
-    constructor(session) {
+    constructor(session, settings = {gui: true}){
         this.session = session
+
+        // Two Modes
         this.applets = {}
-        this.registry = {local: {}, brainstorm: {}}
-        this.state = new StateManager() // For graphs
+        this.nodes = {}
 
-        this.gui = new GUI({ autoPlace: false });
-        document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 1000;"></div>`
-        document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
-        document.body.querySelector('.guiContainer').style.display = 'none'
+        // Metadata
+        this.settings = settings
+        this.registry = {local: {}, brainstorm: {}, devices: {}}
 
-        // Listen for Added/Removed States
-        this.session.state.addToState('update',this.session.state.update, (update) => {
+        // Manage States Locally
+        this.state = new StateManager()
+
+        // Create GUI
+        if (this.settings.gui === true){
+            this.gui = new GUI({ autoPlace: false });
+            document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
+            document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
+            this.gui.domElement.style.display = 'none'
+        }
+
+        // Listen to Added/Removed States in Session (if provided)
+        if (session instanceof Session){
+            this.session.state.addToState('update',this.session.state.update, (update) => {
+
             if (update.added){
+                // Add Device Listeners
+                update.buffer.forEach(k => {
+                    if (k.includes('device')){
+
+                        // Callback hardcoded for BCI Snake for Now
+                        let deviceCallback = (o) => {
+                            this.state.data['up'].data = (o.data === 1) ? true : false
+                            this.state.data['down'].data = (o.data === 2) ? true : false
+                            this.state.data['left'].data = (o.data === 3) ? true : false
+                            this.state.data['right'].data = (o.data === 4) ? true : false
+                        }
+
+                        this.state.addToState(k,  this.session.state.data[k].states)
+                        this.registry.devices[k] = {count: 1, id: this.state.subscribe(k, deviceCallback), callback: deviceCallback}
+                    }
+                })
+
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
+                    let label = this.registry.local[s].label
                     update.buffer.forEach(k => {
                         if (this.registry.brainstorm[k] == null){
-                                if (k.includes(s) && k !== s){
+                                if (k.includes(label) && k !== label){
                                 this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
                                 this.registry.brainstorm[k].callback()
                             }
-                        }
+                        } 
                     })
                 }
             }
@@ -36,6 +68,10 @@ export class PluginManager{
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
                         this.registry.brainstorm[k].callback()
                         delete this.registry.brainstorm[k]
+                    } else if (k.includes('device')){
+                        if (this.registry.devices[k] != null){
+                            this.state.removeState(k)
+                        }
                     }
                 })
             }
@@ -44,6 +80,22 @@ export class PluginManager{
             update.removed = ''
             update.buffer.clear()
         })
+    }
+    }
+
+    instantiateNode(nodeInfo,session=this.session){
+        let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+
+        // Set Default Parameters
+        for (let param in node.paramOptions){
+            if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
+        }
+
+        // Add Default State
+        node.state = {data: null, meta: {}}
+
+
+        return node
     }
 
     add(id, name, graphs){
@@ -57,14 +109,17 @@ export class PluginManager{
         let nodes = {}
         let edges = []
         graphs.forEach(g => {
-            g.edges.forEach(e => {
-                edges.push(e)
-            })
 
-            g.nodes.forEach(node => {
-                if (nodes[node.id] == null){
-                    nodes[node.id] = node
-                    nodes[node.id].instance = new node.class(node.id, this.session,node.params)
+            if (Array.isArray(g.edges)){
+                g.edges.forEach(e => {
+                    edges.push(e)
+                })
+            }
+
+            g.nodes.forEach(nodeInfo => {
+                if (nodes[nodeInfo.id] == null){
+                    nodes[nodeInfo.id] = nodeInfo
+                    nodes[nodeInfo.id].instance = this.instantiateNode(nodeInfo,this.session)
                 }
             })
         })
@@ -80,14 +135,20 @@ export class PluginManager{
         let node = nodeInfo.instance
 
         let paramsMenu;
+        
         if (node.paramOptions){
+            let paramKeys = Object.keys(node.paramOptions)
+            if (paramKeys.length > 0 && !(paramKeys.length === 1 && node.paramOptions[paramKeys[0]].show === false)){
             if (!Object.keys(this.gui.__folders).includes(node.label)){
 
-                let guiContainer = document.body.querySelector('.guiContainer')
-                if (guiContainer.style.display === 'none') guiContainer.style.display = 'block'
+                if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
 
                 this.gui.addFolder(node.label);
                 this.registry.local[nodeInfo.class.id].gui[node.label] = []
+
+                // Capitalize Display Name
+                let folderName = node.label[0].toUpperCase() + node.label.slice(1)
+                this.gui.__folders[node.label].name = folderName
             }
             paramsMenu = this.gui.__folders[node.label]
         }
@@ -108,7 +169,7 @@ export class PluginManager{
                 } 
                 
                 // Selector
-                else {
+                else if (node.paramOptions[param].options.length > 1) {
                     this.registry.local[nodeInfo.class.id].gui[node.label].push(
                         paramsMenu.add(
                             node.params, 
@@ -118,6 +179,7 @@ export class PluginManager{
                 }
             }
         }
+    }
     }
 
     start(appId){
@@ -131,6 +193,7 @@ export class PluginManager{
         let uiParams = {
             HTMLtemplate: '',
             setupHTML: [],
+            responsive: [],
         }
 
         let initializedNodes = []
@@ -141,7 +204,10 @@ export class PluginManager{
             if (!initializedNodes.includes(node.id)){
                 let ui = node.instance.init(node.params)
                 if (ui != null) {
-                    
+
+                    // Grab Responsive Function
+                    ui.responsive = node.instance.responsive
+
                     // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
                     var cachedSetup = ui.setupHTML;
                     ui.setupHTML = (app) => {
@@ -149,6 +215,10 @@ export class PluginManager{
                         let defaultInput = [{}]
                         for (let port in node.instance.ports){
                             if (node.instance.ports[port].defaults.input) defaultInput = node.instance.ports[port].defaults.input
+                            defaultInput.forEach(o => {
+                                if (o.data == null)  o.data = []
+                                if (o.meta == null)  o.meta = {}                           
+                            })
                             node.instance[port](defaultInput)
                         }
                     }
@@ -164,6 +234,7 @@ export class PluginManager{
             if (o.HTMLtemplate instanceof Function) o.HTMLtemplate = o.HTMLtemplate()
             uiParams.HTMLtemplate += o.HTMLtemplate
             uiParams.setupHTML.push(o.setupHTML)
+            uiParams.responsive.push(o.responsive)
         })
 
         // Register All Nodes
@@ -173,16 +244,16 @@ export class PluginManager{
 
             // Add to Registry
             if (this.registry.local[nodeInfo.class.id] == null){
-                this.registry.local[nodeInfo.class.id] = {count: 0, state: null, gui: {}, callback: ()=>{}}
+                this.registry.local[nodeInfo.class.id] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
                 this.registry.local[nodeInfo.class.id].state = node.state
 
-                this.addToGUI(nodeInfo)
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
             else applet.classInstances[nodeInfo.class.id].push(node.label)
 
             this.registry.local[nodeInfo.class.id].count++
+            this.addToGUI(nodeInfo)
         }
 
         // Start Graphs
@@ -200,24 +271,47 @@ export class PluginManager{
 
                 let callback = (input) => {
 
-                    // Package Single User if Required
-                    if ((!Array.isArray(input) && (input.value[0] == null || (typeof input.value[0] !== 'object' || input.value[0].username == null)))){
-                        let dict =  {username: this.session.info.auth.username}
-                        dict.value = input.value
-                        dict.label = source.label
-                        input = [dict]
-                    } else {
-                        if (Array.isArray(input.value) && typeof input.value[0] === 'object' && input.value[0].username != null){
-                            input = input.value
-                        }
+                    // Package Single User
+                    if ((!Array.isArray(input) && (input.data[0] == null || (typeof input.data[0] !== 'object' || input.data[0].username == null)))){
+                        input.username = this.session.info.auth.username
+                        input.meta.label = source.label
+                        input = [input]
+                    } 
+                    
+                    // Unfold Appropriately
+                    if (input.timestamp != null){
+                            input = input.data
+                    } else if (Array.isArray(input[0].data)){
+                        if (typeof input[0].data[0] === 'object'){
+                            if (input[0].data[0].username != null){
+                                input = input.map((o) => o[0].data)
+                            }
+                        } 
+                    } else if (input[0].data != null && typeof input[0].data === 'object' && input[0].data.username != null){
+                        input = input.map((o) => o.data)
                     }
 
-                    // Send to Proper Port
-                    if (targetPort != null) return target[targetPort](input)
-                    else if (target.default) return target.default(input)
-                    else console.log('no return')
-                }
+                    // }
 
+                    // Send to Proper Port
+                    let result;
+                    if (targetPort != null) result = target[targetPort](input)
+                    else if (target.default) result = target.default(input)
+                    else console.log('no return')
+
+                    // Update State
+                    // try {
+                    //     console.log(this.session.state)
+                    // }
+
+                    if (result != null && Array.isArray(result) && result.length === 1) {
+                        target.state.data = result[0]
+                    }
+                    else target.state.data = result // Update State Externally
+                    target.state.timestamp = Date.now()
+
+                    return result
+                }
 
                 // Pass Output From Brainstorm (and automatically stream this input)
                 if (sourcePort == 'brainstorm') {
@@ -251,7 +345,7 @@ export class PluginManager{
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
-                            this.session.addStreamFunc(source.label, source.default, this.state)
+                            this.session.addStreamFunc(source.label, source.default, this.state, false)
                             applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
                         }
 
@@ -300,9 +394,8 @@ export class PluginManager{
                     }
 
                     // Hide GUI When Not Required
-                    let guiContainer = document.body.querySelector('.guiContainer')
                     if (Object.keys(this.gui.__folders).length){
-                        if (guiContainer.style.display !== 'none') guiContainer.style.display = 'none'
+                        if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
                     }
 
                     // Remove Streaming
@@ -349,9 +442,11 @@ export class PluginManager{
             if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
             this.registry.local[nodeInfo.class.id].callback = () => {
+
                 if (this.session.state.data[id] != null){
                     if (callbacks){
                         let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
+                        // console.log(propData, this.session.state.data)
                         callbacks.forEach(f => {
                             if (f instanceof Function) f(propData)
                         })
@@ -378,6 +473,7 @@ export class PluginManager{
         if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
     
         let found = this.findStreamFunction(id)
+
         if (found == null) {
             this.session.addStreamFunc(id, callback)
         }

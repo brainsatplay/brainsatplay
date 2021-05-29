@@ -214,7 +214,8 @@ export class ObjectListenerInstance {
 
     //Execute extra onchange functions
     onchangeMulti = (newData) => {
-        this.onchangeFuncs.forEach((func,i) => {
+        let onChangeCache = [...this.onchangeFuncs]
+        onChangeCache.forEach((func,i) => {
             if(this.debug === true) { console.log(func); }
             func(newData);
         });
@@ -263,7 +264,9 @@ export class ObjectListenerInstance {
             if(this.propOld !== string){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object[this.propName]);
-                if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
+                if(this.onchangeFuncs.length > 0) { 
+                    this.onchangeMulti(this.object[this.propName]); 
+                }
                 this.setListenerRef(this.propName);
             }
         }

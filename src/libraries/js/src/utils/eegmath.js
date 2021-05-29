@@ -27,13 +27,9 @@ export class eegmath {
 		return sum / arr.length;
 	}
 
-	static variance(arr1) { //1D input arrays of length n
-		var mean1 = this.mean(arr1);
-		var vari = [];
-		for(var i = 0; i < arr1.length; i++){
-			vari.push((arr1[i] - mean1)/(arr1.length-1));
-		}
-		return vari;
+	static variance(arr) { //1D input arrays of length n
+		var mean = this.mean(arr);
+		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length
 	}
 
 	static transpose(mat){

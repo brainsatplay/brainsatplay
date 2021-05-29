@@ -1,5 +1,6 @@
 import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
+// import './ui/styles/defaults.css'
 
 export class Application{
     constructor(
@@ -53,7 +54,6 @@ export class Application{
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
     }
 
         //Delete all event listeners and loops here and delete the HTML block
@@ -64,7 +64,9 @@ export class Application{
     
         //Responsive UI update, for resizing and responding to new connections detected by the UI manager
         responsive() {
-            if (this.info.responsive instanceof Function) this.info.responsive()        
+            this.uiParams.responsive.forEach(foo => {
+                if (foo instanceof Function) foo()        
+            })
         }
     
         configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

@@ -1,4 +1,4 @@
-export class UI{
+class UI{
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -52,7 +52,6 @@ export class UI{
     }
 
     default = (input) => {
-        console.log('default', input)
         return input
     }
 
@@ -60,7 +59,7 @@ export class UI{
     readout = (userData) => {
 
         let labelDiv = document.getElementById(`${this.props.id}-label`)
-        labelDiv.innerHTML = userData[0].label
+        labelDiv.innerHTML = userData[0].meta.label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
 
@@ -72,7 +71,7 @@ export class UI{
                 let found = userData.find(u => u.username === username)
                 if (found) {
                     nameRegistry.delete(found.username)
-                    readout.innerHTML = `${found.username}: ${found.value}`
+                    readout.innerHTML = `${found.username}: ${found.data}`
                 } else {
                     readout.remove()
                 }
@@ -81,25 +80,30 @@ export class UI{
 
         nameRegistry.forEach(name => {
             let u = userData.find(u => u.username === name)
-            let value = u.value
+            let value = u.data
             if (typeof value === "number") value = value.toFixed(2)
-            outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.value}</p>`
+            outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.data}</p>`
         })
     }
 
     color = (userData) => {
+
         let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
         if (Array.isArray(userData)){
             userData.forEach(u =>{
             for (let readout of coherenceReadouts){
                 if (readout.id.replace(`${this.props.id}-`,'') === u.username){
-                    readout.style = (u.value ? "color: red;" : "")
+                    readout.style = (u.data ? "color: red;" : "")
                 }
             }
         })
+
+        return userData
     }
     }
     
 
     deinit = () => {}
 }
+
+export {UI}

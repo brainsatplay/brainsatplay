@@ -2,7 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import {industryKiller} from './8ch_prototype'
 
 export class Prototype8Plugin {
@@ -49,8 +49,8 @@ export class Prototype8Plugin {
                                 let coord;
                                 if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
                                 else { coord = this.atlas.getEEGDataByChannel(o.ch); }
-                                coord.count ++;
-                                coord.times.push(this.device.data.ms[ct]);
+                                coord.count++;
+                                coord.times.push(this.device.data.ms[ct-1]);
                                 coord.filtered.push(latestFiltered);
                                 coord.raw.push(latest);
                             }
@@ -59,7 +59,7 @@ export class Prototype8Plugin {
                             if(info.useAtlas === true) {
                                 let coord = this.atlas.getEEGDataByChannel(o.ch); 
                                 coord.count += newLinesInt;
-                                coord.times.push(this.device.data.ms[ct]);
+                                coord.times.push(this.device.data.ms[ct-1]);
                                 coord.raw.push(latest);
                             }
                         }

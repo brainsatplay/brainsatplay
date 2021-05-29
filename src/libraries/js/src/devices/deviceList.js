@@ -11,6 +11,7 @@ import { brainstormPlugin } from './brainstorm/brainstormPlugin';
 import { bci2000Plugin } from './bci2000/bci2000Plugin';
 import { Prototype8Plugin } from './8ch_prototype/8chPlugin'
 import { notionPlugin } from './neurosity/notionPlugin'
+import { timefluxPlugin } from './timeflux/timefluxPlugin'
 
 
 export const deviceList = [
@@ -26,4 +27,6 @@ export const deviceList = [
     {'name': 'Buzz', id:'buzz', company:'Neosensory', analysis: [], cls: buzzPlugin},
     {'name': 'BCI2000', id:'bci2k', company:'BCI2000', analysis: ['eegcoherence'], variants:['Operator', 'Data'], cls: bci2000Plugin},
     {'name': '8 Channel Proto', id:'8chproto', company:'Brains@Play', analysis: ['eegcoherence'], cls: Prototype8Plugin},
+    {'name': 'Timeflux', id:'timefux', company:'Timeflux', analysis: ['eegcoherence'], cls: timefluxPlugin},
+
 ]

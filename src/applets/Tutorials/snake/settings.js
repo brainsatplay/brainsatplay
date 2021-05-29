@@ -1,0 +1,49 @@
+
+// import featureImg from './feature.png'
+import {UI} from './UI.js'
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
+
+export const settings = {
+    name: "BCI Snake",
+    devices: ["EEG"],
+    author: "Christopher Coogan + Garrett Flynn",
+    description: "Snake + BCI2000.",
+    categories: ["tutorial"],
+    // "image":  featureImg,
+    instructions:"Coming soon...",
+    intro: {
+      mode: 'single'
+    },
+    // App Logic
+    graphs: [
+      {
+      id: 'mygraph',
+      nodes: [
+        {id: 'up', class: brainsatplay.plugins.Keyboard, params: {keycode: 'ArrowUp'}},
+        {id: 'down', class: brainsatplay.plugins.Keyboard, params: {keycode: 'ArrowDown'}},
+        {id: 'left', class: brainsatplay.plugins.Keyboard, params: {keycode: 'ArrowLeft'}},
+        {id: 'right', class: brainsatplay.plugins.Keyboard, params: {keycode: 'ArrowRight'}},
+        {id: 'ui', class: UI, params: {}},
+        
+        // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
+      ],
+      edges: [
+        {
+          source: 'up', 
+          target: 'ui:up'
+        },
+        {
+          source: 'down', 
+          target: 'ui:down'
+        },
+        {
+          source: 'left', 
+          target: 'ui:left'
+        },
+        {
+          source: 'right', 
+          target: 'ui:right'
+        }
+      ]
+    }],
+}

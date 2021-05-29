@@ -1,6 +1,7 @@
 
-import * as brainsatplay from '../libraries/js/src/Session'
-// import * as brainsatplay from './library/brainsatplay'
+import * as brainsatplay from '../libraries/js/brainsatplay'
+// import * as brainsatplay from 'brainsatplay'
+
 import {BCIAppManager} from './js/frontend/BCIManager'
 import { DOMFragment } from '../libraries/js/src/ui/DOMFragment';
 

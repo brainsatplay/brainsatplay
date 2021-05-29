@@ -1,45 +1,33 @@
 const webpack = require('webpack')
 const path = require('path');
+const WorkerPlugin = require('worker-plugin');
 
 module.exports = {
-  entry: path.join(__dirname, 'brainsatplay.js'),
+  entry: path.join(__dirname, 'src', 'libraries', 'js', 'brainsatplay.js'),
   output: {
     filename: 'brainsatplay.js',
-    path: path.join(__dirname,'dist'),
-    publicPath: '/',
-    // library: 'brainsatplay',
+    path: path.join(__dirname,'src', 'libraries', 'js', 'dist'),
     library: {
       name: 'brainsatplay', 
       type: 'umd',      
     },
     globalObject: 'this',
   },
+  optimization: {
+    minimize: false,
+  },
   module: {
     rules: [
-      // {
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   use: {
-      //     loader: "script-loader"
-      //   }
-      // },
       {
-        test: /\.css$/,
-        use: [
-          {
-            loader: "style-loader"
-          },
-          {
-            loader: "css-loader",
-            options: {
-              modules: true,
-              importLoaders: 1,
-              localIdentName: "[name]_[local]_[hash:base64]",
-              sourceMap: true,
-              minimize: true
-            }
-          }
-        ]
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.worker\.js$/,
+        loader: "worker-loader",
+        options: {
+          inline: "no-fallback",
+        },
       },
       {
         test: /\.m?js$/,
@@ -65,12 +53,21 @@ module.exports = {
         "dgram": false,
         "node-osc": false,
         "readline": false,
+        "zlib": false,
+        "crypto": false,
+        "https": require.resolve("https-browserify"),
+        "resolve-from": false,
+        "child_process": false,
+        'net': false,
+        'tls': false,
       } 
     },
     plugins: [
       // fix "process is not defined" error:
       new webpack.ProvidePlugin({
         process: 'process/browser',
-      })
+        Buffer: ['buffer', 'Buffer'],
+      }),
+      new WorkerPlugin()
      ]
 };

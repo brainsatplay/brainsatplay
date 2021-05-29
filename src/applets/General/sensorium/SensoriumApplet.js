@@ -11,6 +11,11 @@ import * as settingsFile from './settings'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+
+import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
+
+
+//Import shader urls
 import vertexShader from './shaders/vertex.glsl'
 import galaxyFragmentShader from "./shaders/fractalGalaxy/fragment.glsl"
 import negaGalaxyFragmentShader from "./shaders/nega_fractalGalaxy/fragment.glsl"
@@ -22,7 +27,20 @@ import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl
 import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
-import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
+//Import sound files
+import bloops from './sounds/wav/guitarbloops.wav'
+import acousticloop3 from './sounds/wav/acousticloop3.wav'
+import washhigh from './sounds/wav/wash_high.wav'
+import washlow from './sounds/wav/wash_low.wav'
+import oceanwaves from './sounds/mp3/oceanwaves.mp3'
+import fluteloop1 from './sounds/wav/fluteloops1.wav'
+import fluteloop2 from './sounds/wav/fluteloops2.wav'
+import fluteloop3 from './sounds/wav/fluteloops3.wav'
+import fluteshot1 from './sounds/wav/fluteshot1.wav'
+import fluteshot2 from './sounds/wav/fluteshot2.wav'
+import drumhit1 from './sounds/wav/drum_hit_1.wav'
+import drumkick1 from './sounds/wav/drum_kick_1.wav'
+import { select } from 'd3-selection';
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
@@ -56,9 +74,24 @@ export class SensoriumApplet {
         };
 
         // Audio
-        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined };
+        this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
         this.visuals = [];
         this.effects = [];//array of effectStructs
+        this.soundUrls = [
+            {url:oceanwaves, name:"Ocean Waves"},
+            {url:bloops, name:"Guitar Bloops"},
+            {url:washhigh, name:"Guitar Wash (High)"},
+            {url:washlow, name:"Guitar Wash (Low)"},
+            {url:acousticloop3, name:"Acoustic Loop"},
+            {url:drumhit1, name:"Drum Sound 1"},
+            {url:drumkick1, name:"Drum Kick 1"},
+            {url:fluteshot2, name:"Flute Shot 2"},
+            {url:fluteloop1, name:"Flute Loop 1"},
+            {url:fluteloop2, name:"Flute Loop 2"},
+            {url:fluteloop3, name:"Flute Loop 3"},
+            {url:fluteshot1, name:"Flute Shot 1"},
+            {url:fluteshot2, name:"Flute Shot 2"},
+        ];
 
         this.looping = false;
         this.hidden = false;
@@ -186,20 +219,33 @@ export class SensoriumApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' style='height:100%; width:100%; position: relative;'>
-            <div style="position:absolute; top: 75px; right: 25px; z-index: 1;">
-                <select id='${props.id}shaderSelector'></select>
-            </div>
-            <div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 1;">
-            </div>
-                <div id='`+props.id+`menu' style='position:absolute; z-index:2; position: absolute; top: 0; left: 0;'> 
-                    <button id='`+props.id+`showhide' style='z-index:2; opacity:0.2;'>Hide UI</button> 
-                    <button id='${props.id}addeffect'>Add Effects</button>
-                    <button id='${props.id}Micin'>Mic In</button>
-                    <span id='${props.id}effectmenu'></span>
+            <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
+                            
+                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:1;'>Hide Controls</button> 
+
+                <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
+                    <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
+                   
+                    <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
+                    <select id='${props.id}shaderSelector'>
+                    </select>
+                    <div id='${props.id}textshader' style='display:none;'>
+                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Fragment Shader: </span><textarea id='${props.id}fragmentshader' placeholder='Paste GLSL Fragment Shader Code' style='background-color:black;color:white;'></textarea><br>
+                        <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Feedback Uniforms (use commas, no spaces): </span><input id='${props.id}uniforms' type='text' placeholder='iAudio,iHEG,iFFT,iHRV' style='background-color:black; color:white;'>
+                        <button id='${props.id}settextshader'>Set Shader</button>
                     </div>
-                </div>    
-            </div>`;
+                    <div style="display: flex; align-items: center;">
+                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
+                        <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                    </div>
+                    <span id='${props.id}effectmenu'></span>
+                </div>
+
+                <div id='${props.id}container' style="height:100%; width:100%;">
+                </div>
+            </div>  
+                                        
+            `;
         }
 
 
@@ -211,7 +257,8 @@ export class SensoriumApplet {
             /**
              * GUI
              */
-            this.appletContainer = document.getElementById(this.props.id)
+            this.appletContainer = document.getElementById(`${this.props.id}`)
+            this.canvasContainer = document.getElementById(`${this.props.id}container`)
             this.gui = new GUI({ autoPlace: false });
             this.appletContainer.querySelector('.guiContainer').appendChild(this.gui.domElement);
 
@@ -224,74 +271,48 @@ export class SensoriumApplet {
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             });
+            selector.innerHTML += `<option value='fromtext'>From Text</option>`
             
             this.currentShader = this.shaders[selector.value];
             this.swapShader();
             
             selector.onchange = (e) => {
-                if (e.target.value != 'Gallery'){
+                if (e.target.value === 'fromtext') {
+                    document.getElementById(props.id+'textshader').style.display = '';
+                }
+                else if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
                     this.swapShader();
                     this.setEffectOptions();
+                    document.getElementById(props.id+'textshader').style.display = 'none';
                 } else {
-                    
+                    document.getElementById(props.id+'textshader').style.display = 'none';
                 }
             }
 
-            document.getElementById(props.id+'Micin').onclick = () => {
-                let idx = undefined;
-                let found = this.effects.find((o,i) => {
-                    if(o.id === 'Micin') {
-                        idx=i;
-                        return true;
-                    }
-                });
-                if(!found){
-                    //start mic
-                    if(!window.audio) {
-                        window.audio = new SoundJS();
-                        if (window.audio.ctx===null) {return;};
-                    }
-                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
-                    let fx = this.effects[this.effects.length-1];
-
-                    fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
-                        console.log(fx.sourceIdx)
-                        if(fx.sourceIdx !== undefined) {
-                            fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
-                            //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
-                            fx.playing = true;
-                            fx.feedbackOption = 'iAudio';
-                            fx.id = 'Micin';
-                            document.getElementById(props.id+'Micin').innerHTML = "Stop Mic";
-                            //fx.source.mediaStream.getTracks()[0].enabled = false;
-                        }
-                    });
-                    
-                } else {
-                    //stop mic
-
-                    found.source.mediaStream.getTracks()[0].stop();
-                    this.effects.splice(idx,1);
-                    document.getElementById(props.id+'Micin').innerHTML = "Mic In";
-                }
-                
+            document.getElementById(props.id+'settextshader').onclick = () => {
+                this.setShaderFromText();
             }
 
             let showhide = document.getElementById(props.id+'showhide');
-
+            let menu = document.getElementById(props.id+"menu")
             showhide.onclick = () => {
                 if(this.hidden == false) {
                     this.hidden = true;
-                    document.getElementById(props.id+"showhide").innerHTML = "Show UI";
-                    document.getElementById(props.id+'addeffect').style.display = "none";
-                    document.getElementById(props.id+'effectmenu').style.display = "none";
-                    document.getElementById(props.id+'shaderSelector').style.display = "none";
-                    this.appletContainer.querySelector('.guiContainer').style.display = "none";
+                    menu.style.maxHeight = "0";
+                    menu.style.padding = "0% 25px"
+                    document.getElementById(props.id+"showhide").innerHTML = "Show Controls";
+                    // document.getElementById(props.id+'addeffect').style.display = "none";
+                    // document.getElementById(props.id+'effectmenu').style.display = "none";
+                    // document.getElementById(props.id+'shaderSelector').style.display = "none";
+                    // this.appletContainer.querySelector('.guiContainer').style.display = "none";
+                    // document.getElementById(props.id+'Micin').style.display = "none";
                 }
                 else{
                     this.hidden = false;
-                    document.getElementById(props.id+"showhide").innerHTML = "Hide UI";
+                    menu.style.maxHeight = "100%";
+                    menu.style.padding = '25px'
+                    document.getElementById(props.id+"showhide").innerHTML = "Hide Controls";
                     document.getElementById(props.id+'addeffect').style.display = "";
                     document.getElementById(props.id+'effectmenu').style.display = "";
                     document.getElementById(props.id+'shaderSelector').style.display = "";
@@ -342,14 +363,14 @@ export class SensoriumApplet {
      */
 
     this.baseCameraPos = new THREE.Vector3(0,0,3)
-    this.camera = new THREE.PerspectiveCamera(75, this.appletContainer.offsetWidth/this.appletContainer.offsetHeight, 0.01, 1000)
+    this.camera = new THREE.PerspectiveCamera(75, this.canvasContainer.offsetWidth/this.canvasContainer.offsetHeight, 0.01, 1000)
     this.camera.position.z = this.baseCameraPos.z//*1.5
 
     /**
      * Texture Params
      */
 
-    let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+    let containerAspect = this.canvasContainer.offsetWidth/this.canvasContainer.offsetHeight //this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
     this.fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
 
     // Square
@@ -362,8 +383,8 @@ export class SensoriumApplet {
     // Renderer
     this.three.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
     this.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-    this.three.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );
-    this.appletContainer.appendChild( this.three.renderer.domElement );
+    this.three.renderer.setSize( this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight );
+    this.canvasContainer.appendChild( this.three.renderer.domElement );
     this.three.renderer.domElement.style.width = '100%'
     this.three.renderer.domElement.style.height = '100%'
     this.three.renderer.domElement.id = `${this.props.id}canvas`
@@ -412,7 +433,7 @@ export class SensoriumApplet {
     });
 
         // Animate
-        this.startTime = Date.now()
+        this.startTime = Date.now() - Math.random()*1000000;
         this.render = () => {
             if (this.three.renderer.domElement != null){
 
@@ -495,10 +516,10 @@ export class SensoriumApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         if(this.three.renderer) {
-            this.camera.aspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+            this.camera.aspect = this.canvasContainer.offsetWidth/this.canvasContainer.offsetHeight
             this.camera.updateProjectionMatrix()
             // Resize Plane Geometry
-            let containerAspect = this.appletContainer.offsetWidth/this.appletContainer.offsetHeight
+            let containerAspect = this.canvasContainer.offsetWidth/this.canvasContainer.offsetHeight
             // let fov_y = this.camera.position.z * this.camera.getFilmHeight() / this.camera.getFocalLength();
             // this.three.meshWidth = this.three.meshHeight = Math.min(((fov_y)* this.camera.aspect) / containerAspect, (fov_y)* this.camera.aspect);
             this.three.meshWidth = this.fov_y * this.camera.aspect
@@ -511,7 +532,7 @@ export class SensoriumApplet {
                 p.material.uniforms.iResolution.value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
             })
             
-            this.three.renderer.setSize(this.appletContainer.offsetWidth, this.appletContainer.offsetHeight);
+            this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
         
     }
@@ -529,23 +550,22 @@ export class SensoriumApplet {
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
-                Feedback ${idx}: 
-                <span id='${props.id}selectors${idx}'></span>
-                <span id='${props.id}fileWrapper${idx}' style='font-size:10px;'> 
-                    <span id='${props.id}fileinfo${idx}'></span> 
-                    Sounds:<select id='${props.id}select${idx}'><option value=''>None</option></select> 
-                    <button id='${props.id}uploadedFile${idx}'>Add File</button> ${idx}
+                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect:</span><span id='${props.id}selectors${idx}'></span>
+                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound:</span><span id='${props.id}fileWrapper${idx}' style="">  
+                    <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
                     <span id='${props.id}status${idx}'></span>
                 </span>
+                <span id='${props.id}fileinfo${idx}' style='background-color:black; display:none;'>Loading...</span>
             `;
         }
 
         let controls = (idx=0, props=this.props) => {
             return `
                 <span id='${props.id}controlWrapper${idx}'>
-                    <button id='${props.id}play${idx}'>${idx}: Play</button>
-                    <button id='${props.id}mute${idx}' style='display:none;'>${idx}: Mute</button>
-                    <button id='${props.id}stop${idx}'>${idx}: Remove</button>
+                    <button id='${props.id}play${idx}'>Play</button>
+                    <button id='${props.id}pause${idx}' style='display:none;'>Pause</button>
+                    <button id='${props.id}mute${idx}' style='display:none;'>Mute</button>
+                    <button id='${props.id}stop${idx}'>Remove</button>
                 </span>
             `;
         }
@@ -590,6 +610,7 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'selectors'+newEffect.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
         newEffect.feedback = document.getElementById(this.props.id+'select'+newEffect.uiIdx)
         console.log(newEffect.feedback.value)
+
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
             newEffect.feedbackOption = value;
@@ -603,36 +624,149 @@ export class SensoriumApplet {
                 }
             } else if (value.includes('heg')) {
                 document.getElementById(this.props.id+'channel'+newEffect.uiIdx).style.display = "none";
+            } 
+            
+            let fileWrapper = document.getElementById(`${this.props.id}fileWrapper${newEffect.uiIdx}`)
+            //console.log(value)
+            
+        }
+
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='none'>None</option>`;
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='micin'>Mic In</option>`;
+
+        this.soundUrls.forEach((obj)=>{
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='${obj.url}'>${obj.name}</option>`;
+        });
+
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='addfile'>Add Custom File</option>`;
+
+
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
+            let soundurl = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).value;
+                        
+            let idx = undefined;
+            let found = this.effects.find((o,i) => {
+                if(o.id === 'Micin') {
+                    idx=i;
+                    return true;
+                }
+            });
+
+            if (soundurl === 'micin'){
+                if(!found){
+                    //start mic
+                    if(!window.audio) {
+                        window.audio = new SoundJS();
+                        if (window.audio.ctx===null) {return;};
+                    }
+                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+                    let fx = this.effects[this.effects.length-1];
+
+                    fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+                        if(fx.sourceIdx !== undefined) {
+                            fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                            //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                            fx.playing = true;
+                            fx.feedbackOption = 'iAudio';
+                            fx.id = 'Micin';
+                            //fx.source.mediaStream.getTracks()[0].enabled = false;
+                        }
+                    });
+                }
+            } else if (found != null){
+                found.source.mediaStream.getTracks()[0].stop();
+                this.effects.splice(idx,1);
+            } 
+
+            if (!['micin', 'none'].includes(soundurl)) {
+                if (soundurl === 'addfile') {
+
+                    if(!window.audio) window.audio = new SoundJS();
+                    if (window.audio.ctx===null) {return;};
+        
+                    window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
+                        
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
+                        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
+        
+                        if(!newEffect.controls) {
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                            newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
+                        } else {newEffect.controls.style.display=""}
+                        newEffect.source = window.audio.sourceList[sourceListIdx]; 
+                        newEffect.sourceIdx = sourceListIdx;
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+        
+                        this.loadSoundControls(newEffect);
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                    }, 
+                    ()=> { 
+                        console.log("Decoding...");
+                        newEffect.input.style.display='none';
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
+                    });
+                } else {
+                    
+                    if(!window.audio) window.audio = new SoundJS();
+                    if (window.audio.ctx===null) {return;};
+
+                    window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
+                    
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
+                        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
+
+                        if(!newEffect.controls) {
+                            document.getElementById(this.props.id+'effectWrapper'+newEffect.uiIdx).insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                            newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+newEffect.uiIdx);
+                        } else {newEffect.controls.style.display=""}
+                        newEffect.source = window.audio.sourceList[sourceListIdx]; 
+                        newEffect.sourceIdx = sourceListIdx;
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+        
+                        this.loadSoundControls(newEffect);
+                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                    }, 
+                    ()=> { 
+                        console.log("Decoding...");
+                        newEffect.input.style.display='none';
+                        document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
+                    });
+                }
             }
+
         }
 
         if(this.currentShader !== null)
             this.setEffectOptions();
 
 
-        document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
-            if(!window.audio) window.audio = new SoundJS();
-            if (window.audio.ctx===null) {return;};
+    //     document.getElementById(this.props.id+'uploadedFile'+idx).onclick = () => {
+    //         if(!window.audio) window.audio = new SoundJS();
+    //         if (window.audio.ctx===null) {return;};
 
-            window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
+    //         window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                 
-                newEffect.input.style.display='none';   
-                if(!newEffect.controls) {
-                    document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
-                    newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
-                } else {newEffect.controls.style.display=""}
-                newEffect.source = window.audio.sourceList[sourceListIdx]; 
-                newEffect.sourceIdx = sourceListIdx;
-                document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
+    //             document.getElementById(this.props.id+'fileinfo'+idx).style.display = 'none';
+    //             document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = 0;
 
-                this.loadSoundControls(newEffect);
-                document.getElementById(this.props.id+'status'+idx).innerHTML = "";
-            }, 
-            ()=> { 
-                
-            });
+    //             if(!newEffect.controls) {
+    //                 document.getElementById(this.props.id+'effectWrapper'+idx).insertAdjacentHTML('beforeend',controls(idx));
+    //                 newEffect.controls = document.getElementById(this.props.id+'controlWrapper'+idx);
+    //             } else {newEffect.controls.style.display=""}
+    //             newEffect.source = window.audio.sourceList[sourceListIdx]; 
+    //             newEffect.sourceIdx = sourceListIdx;
+    //             document.getElementById(this.props.id+'status'+idx).innerHTML = "Loading..." 
+
+    //             this.loadSoundControls(newEffect);
+    //             document.getElementById(this.props.id+'status'+idx).innerHTML = "";
+    //         }, 
+    //         ()=> { 
+    //             console.log("Decoding...");
+    //             newEffect.input.style.display='none';
+    //             document.getElementById(this.props.id+'fileinfo'+idx).style.display = '';
+    //         });
             
-        }
+    //     }
         
         
     }
@@ -660,18 +794,42 @@ export class SensoriumApplet {
         
         document.getElementById(this.props.id+'play'+newEffect.uiIdx).onclick = () => {
             try{window.audio.playSound(newEffect.sourceIdx,0,true);}catch(er){}
+            //.log(newEffect.sourceIdx);
             newEffect.playing = true;
             document.getElementById(this.props.id+'play'+newEffect.uiIdx).style.display = 'none';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).style.display = '';
             document.getElementById(this.props.id+'mute'+newEffect.uiIdx).style.display = '';
         }
 
+        document.getElementById(this.props.id+'pause'+newEffect.uiIdx).onclick = () => {
+            if(newEffect.playing) {
+                if(!newEffect.paused) {
+                    newEffect.paused = true;
+                    newEffect.playbackRate = newEffect.source.playbackRate.value;
+                    newEffect.source.playbackRate.value = 0;
+                    document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Play";
+                } else {
+                    newEffect.paused = false;
+                    newEffect.source.playbackRate.value = newEffect.playbackRate;
+                    document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Pause";
+                }
+            }
+        }
+
         document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
+            if(newEffect.playing === false) newEffect.source.start(window.audio.ctx.currentTime);
+            newEffect.source.stop();
+            
             newEffect.playing = false;
-            try{window.audio.playSound(newEffect.sourceIdx,0,false);} catch(er) {}
-            window.audio.stopSound(newEffect.sourceIdx);
+            newEffect.paused = false;
+          
            
             newEffect.input.style.display = "";
             newEffect.controls.style.display = "none";
+
+            document.getElementById(this.props.id+'play'+newEffect.uiIdx).style.display = '';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).style.display = 'none';
+            document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Pause";
 
             let thisidx=0;
             this.effects.forEach((effectStruct,j)=> {
@@ -683,6 +841,8 @@ export class SensoriumApplet {
                     }
                 }
             });
+
+
         }
 
         document.getElementById(this.props.id+'mute'+newEffect.uiIdx).onclick = () => {
@@ -705,6 +865,7 @@ export class SensoriumApplet {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
                             
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                effectStruct.source
                                 window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime( //make the sound fall off on a curve based on when a beat occurs
                                     Math.max(0,Math.min(modifiers.iHB,1)), 
                                     window.audio.ctx.currentTime
@@ -716,7 +877,7 @@ export class SensoriumApplet {
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             let hr_mod = 60/this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
-                                effectStruct.source.playBackRate.value = hr_mod;
+                                effectStruct.source.playbackRate.value = hr_mod;
                             }
                             this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
                         }
@@ -853,6 +1014,29 @@ export class SensoriumApplet {
             p.material.dispose();
             p.material = newMaterial;          
         })
+    }
+
+    setShaderFromText = () => {
+
+        this.currentShader.uniforms = document.getElementById(this.props.id+'uniforms').value.split(',');
+
+        let newMaterial = new THREE.ShaderMaterial({
+            vertexShader: this.currentShader.vertexShader,
+            fragmentShader: document.getElementById(this.props.id+'fragmentshader').value,
+            side: THREE.DoubleSide,
+            transparent: true,
+        });
+        try{
+            this.updateMaterialUniforms(newMaterial,this.modifiers);
+            this.generateGUI(this.currentShader.uniforms);
+
+            this.three.planes.forEach(p => {
+                p.material.dispose();
+                p.material = newMaterial;          
+            });
+
+            this.setEffectOptions();
+        } catch(er) {}
     }
 
     getData(u) {        

@@ -2,7 +2,7 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import BCI2K from 'bci2k'
 
 export class bci2000Plugin {
@@ -21,9 +21,11 @@ export class bci2000Plugin {
         info.sps = 256 // Arbitrary
         info.deviceType = 'eeg'
         this.info = info;
+        this.info.states = {data: null, meta: {}}
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
+
             let script = ``;
             script += `Reset System; `;
             script += `Startup System localhost; `;
@@ -35,9 +37,9 @@ export class bci2000Plugin {
             script += `Start executable DummyApplication; `;
             script += `Start executable DummySignalProcessing; `;
             script += `Set Parameter WSSourceServer *:20100; `;
-            script += `Wait for connected; `;
-            script += `Set Config; `;
-            script += `Start; `;
+            script += `Wait for connected; `
+            script += `Set Config; `
+            script += `Start; `
     
             this.operator.connect("ws://127.0.0.1").then(() => {
                 console.log("Connected to Operator layer through NodeJS server");
@@ -54,6 +56,23 @@ export class bci2000Plugin {
     })
     }
 
+
+    timeCorrection = (coord, data, timestamp, direction='back') => {
+
+        // Update Sampling Rate for New Data
+        let prevTime = coord.times[coord.times.length - 1]
+        if (prevTime == null) prevTime = timestamp - (data.length/this.info.sps)
+        let timeToSample = (timestamp - prevTime)/data.length 
+        this.info.sps = 1000/timeToSample // In Seconds
+
+        // Calculate Time Vector through Linear interpolation
+        let time = Array(data.length).fill(timestamp);
+        if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
+        else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
+        
+        return time
+    }
+
     connectToDataLayer = async (info,pipeToAtlas) => {
         return new Promise(async (resolve, reject) => {
 
@@ -62,11 +81,17 @@ export class bci2000Plugin {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
-                console.log(raw)
+
+                // States
+                if(this.device.states?.StimulusCode != undefined) this.info.states.data = this.device.states?.StimulusCode[0] || 0;
+               
+                // Raw Data
                 if(this.info.useAtlas) {
                     raw.forEach((chData,i) => {
                         let coord = this.atlas.getEEGDataByChannel(i);
-                        // coord.times.push(...time);
+
+                        let time = this.timeCorrection(coord, raw, Date.now(), 'back')
+                        coord.times.push(...time);
                         coord.raw.push(...chData);
                         coord.count += chData.length;
                         // if(this.info.useFilters === true) {                
@@ -85,8 +110,6 @@ export class bci2000Plugin {
 
             this.device.onStateFormat = data => console.log(data);
             this.device.onSignalProperties = data => {
-                console.log(data);
-
                 // Check if already created (websocket tends to close and reopen...)
                 if (this.atlas == null){
                     // let eegChannelTags = []
@@ -140,7 +163,6 @@ export class bci2000Plugin {
 
         // Auto-assign channel tags
         if (!Array.isArray(info.eegChannelTags)) info.eegChannelTags = this.atlas.data.eegshared.eegChannelTags
-       console.log(info.eegChannelTags)
 
         // Create Filters
         if(info.useFilters === true) {
@@ -167,7 +189,7 @@ export class bci2000Plugin {
     disconnect = () => {
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
-        //ondisconnected: this.atlas.settings.deviceConnected = false;
+        // this.device._socket.close()
     }
 
     //externally set callbacks

@@ -1,4 +1,27 @@
 
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    }
+    ::-webkit-scrollbar {
+        width: 0px; 
+        height: 0px; 
+    }
+
+body {
+    margin: 0;
+}
+
+div {
+    box-sizing: border-box; 
+}
+
 a {
     color: rgb(155, 155, 155);
     text-decoration: none;
@@ -9,8 +32,24 @@ a:hover{
     color: rgb(200, 200, 200)
 }
 
+/* Selector */
+select {
+    padding: 5px;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    background: black;
+    color: white;
+    font-size: 64%;
+    /* margin: 0px 10px; */
+    min-width: 100px;
+}
+
 
 /* Intro UI */
+.brainsatplay-default-menu {
+    color: white;
+}
+
 .brainsatplay-default-container {
     display: flex;
     flex-wrap: wrap;
@@ -65,6 +104,8 @@ a:hover{
     transform-origin: 100% 0;
     transition: transform 1.5s ease-in-out;
 }
+
+
 
 .brainsatplay-default-button {
     box-sizing: border-box; 
@@ -185,4 +226,72 @@ a:hover{
 .indicator.on {
     background: lime;
     border: none;
+}
+
+ /* Forms */
+
+
+/* Login */
+.brainsatplay-form input {
+    width: 100%; height: 100%; padding: 10px 0px; display: flex; align-items: center; justify-content:center; background:transparent; border: transparent; border-bottom: 1px solid whitesmoke; color: white;
+}:focus{
+    outline: none;
+}
+
+.brainsatplay-form-container button {
+    margin: 10px;
+    min-height: 0px;
+}
+
+.brainsatplay-form-container input::placeholder {
+    color: darkgray;
+}
+
+.brainsatplay-form-context {
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+.brainsatplay-form-context form {
+    width: 100%;
+}
+
+.brainsatplay-login-container {
+    transition: 0.5s ease-in-out;
+    -o-transition: 0.5s ease-in-out;
+    -ms-transition: 0.5s ease-in-out;
+    -moz-transition: 0.5s ease-in-out;
+    -webkit-transition: 0.5s ease-in-out;
+}
+
+.brainsatplay-login{
+    /* linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)); */
+    /* width: 75%; */
+    /* font-size: 20px; */
+    text-align: center;
+    z-index:1;
+}
+
+.brainsatplay-login-element{
+    margin:20px;
+}
+
+.brainsatplay-login-button {
+    width: 100%;
+}
+
+.brainsatplay-signup-button {
+    width: 100%;
+}
+
+.brainsatplay-login-buttons{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content:center;
+    align-items: center;
+}
+
+.brainsatplay-login-buttons button{
+    flex-grow: 1;
+    margin: 10px;
 }

@@ -1,19 +1,13 @@
 
-// import featureImg from './feature.png'
-import {Coherence} from '../../../libraries/js/src/plugins/Coherence'
 import {UI} from './UI'
-import {Keyboard} from '../../../libraries/js/src/plugins/Keyboard'
-import {Debug} from '../../../libraries/js/src/plugins/Debug'
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "My First Brainstorm",
-    type: 'Application',
     devices: ["EEG"],
     author: "Me",
     description: "This is my first brainstorm.",
     categories: ["tutorial","brainstorm"],
-    module: "Applet",
-    // "image":  featureImg,
     instructions:"Coming soon...",
 
     // UI Presets
@@ -26,19 +20,22 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'spacebar', class: Keyboard, params: {key: 'Space'}},
-        {id: 'coherence', class: Coherence, params: {}, loop: true}, 
+        {id: 'spacebar', class: brainsatplay.plugins.Keyboard, params: {key: 'Space'}},
+        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
+        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
         {id: 'ui', class: UI, params: {}},
-        {id: 'debug', class: Debug, params: {}}
-
       ],
       edges: [
+        {
+          source: 'signal', 
+          target: 'neurofeedback'
+        },
         {
           source: 'spacebar:brainstorm', 
           target: 'ui:color'
         },
         {
-          source: 'coherence:brainstorm', 
+          source: 'neurofeedback:brainstorm', 
           target: 'ui:readout'
         }
       ]

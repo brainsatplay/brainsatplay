@@ -24,26 +24,22 @@ npm start
 
 Follow the url given for localhost (usually localhost:1234) for the local build. Hot reloading is enabled for editing via Parcel.
 
-### Library Usage
-#### Node.js
+### Installation
+
 ```bash
 npm install brainsatplay
 ``` 
-
-##### CommonJS
-```javascript
-const brainsatplay = require('brainsatplay')
-``` 
-
+### Usage
 ##### ES Modules
 ```javascript
 import * as brainsatplay from 'brainsatplay'
 ```
 
-#### Browser
+#### Script Tag
 ```html
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay"></script>
 ```
+
 
 ##  Examples
 ### [Brains@Play Platform](https://app.brainsatplay.com) 

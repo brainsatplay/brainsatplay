@@ -46,7 +46,7 @@ export class industryKiller { //Contains structs and necessary functions/API cal
 		
 		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
 			count: 0,
-			startms: 0,
+			startms: undefined,
 			ms: [],
 			'A0': [],'A1': [],'A2': [],'A3': [],'A4': [],'A5': [],'A6': [],'A7': [], //ADC 0
 		};
@@ -137,8 +137,12 @@ export class industryKiller { //Contains structs and necessary functions/API cal
             var line = this.buffer.substr(0, index + 1).split('|');
             if(line.length > 6) {
                 this.data.count++;
-                this.data.ms[this.data.count-1] = parseInt(line[8]);
-                if(this.startms === 0) this.startms = this.data.ms[0];
+                if(this.startms === undefined) {
+					this.startms = Date.now();//this.data.ms[0]; Use timestamp instead of device timer
+					this.data.ms[0] = this.startms;
+				} else {
+					this.data.ms[this.data.count-1] = this.data.ms[this.data.count-2]+this.updateMs;
+				}
                 this.data.A0[this.data.count-1] = parseInt(line[0]);
                 this.data.A1[this.data.count-1] = parseInt(line[1]);
                 this.data.A2[this.data.count-1] = parseInt(line[2]);

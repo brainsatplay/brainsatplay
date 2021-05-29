@@ -3,8 +3,10 @@
 
 import { StateManager } from "./ui/StateManager";
 
-//import * as brainsatplay from '../brainsatplay'
-//import {workerResponses, workers, workerThreads, workerThreadrot, postToWorker, addWorker} from './Workers'
+import { WorkerManager } from "./Workers"
+import { PluginManager } from "./PluginManager"
+
+import { Blink } from "./plugins/input/Blink"
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -27,6 +29,16 @@ export class DataAtlas {
 	) {
         this.name = name;
 		this.config = config; 
+
+		if (window.workers == null){
+			window.workers = new WorkerManager()
+		} else {
+			console.log('Workers already created.')
+		}
+
+		this.plugins = {nodes: {}, manager: null}
+		this.plugins.manager = new PluginManager({atlas: this}, {gui: false})
+		this.plugins.nodes['blink'] = this.plugins.manager.instantiateNode({id: 'blink', class: Blink})
 
 		this.state = new StateManager({
 			deviceConnected: false,
@@ -133,9 +145,10 @@ export class DataAtlas {
 
 		if(useAnalyzer === true) {
 			this.addDefaultAnalyzerFuncs();
-			if(!window.workerResponses) { window.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+
+			if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 			//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
-			window.workerResponses.push(this.workeronmessage);
+			window.workers.workerResponses.push(this.workeronmessage);
 			//this.analyzer();
 		}
     }
@@ -430,10 +443,10 @@ export class DataAtlas {
 		}
 	}
 
-	getEEGDataByChannel = (ch=0) => {
+	getEEGDataByChannel = (ch=0, data=this.data) => {
 		let found = undefined;
 		if(typeof ch === 'string') ch = parseInt(ch);
-		let search = this.data.eegshared.eegChannelTags.find((o,i) => {
+		let search = data.eegshared.eegChannelTags.find((o,i) => {
 			if(o.ch === ch) {
 				if(o.tag === null || o.tag === 'other') {
 					found = this.getEEGDataByTag(o.ch);
@@ -448,16 +461,14 @@ export class DataAtlas {
 	}
 
     //Return the object corresponding to the atlas tag
-	getEEGDataByTag = (tag="FP1") => {
-		var found = undefined;
+	getEEGDataByTag = (tag="FP1", data=this.data) => {
 		const regex = new RegExp(tag, 'i');
-		let atlasCoord = this.data.eeg.find((o, i) => {
+		let atlasCoord = data.eeg.find((o, i) => {
 			if(regex.test(o.tag) || o.ch === parseInt(tag)){
-				found = o;
-				return true;
+				return o;
 			}
 		});
-		return found;
+		return atlasCoord;
 	}
 
 
@@ -718,27 +729,35 @@ export class DataAtlas {
 	}
 
 	// Check whether the user is blinking
-	getBlink = () => {
-        let sideChannels = [['AF7','FP1'],['AF8','FP2']]
-		let blinks = [false,false]
-		if (this.data.blink == null) this.data.blink = {
-			blinkDuration: 1, // One second
-			blinkThreshold: 220, // uV
-			lastBlink: Date.now()
-		}
-        // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
-        if (Date.now() - this.data.blink.lastBlink > this.data.blink.blinkDuration*1000){
-        sideChannels.forEach((channels,ind) => {
-				let data = this.getEEGDataByTag(channels[0]) ?? this.getEEGDataByTag(channels[1])
-				let blinkRange = data.filtered.slice(data.filtered.length-this.data.blink.blinkDuration*this.data.eegshared.sps)
-				let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-				blinks[ind] = (max > this.data.blink.blinkThreshold)
-            })
-            this.data.blink.lastBlink = Date.now()
-        }
+	getBlink = (params = {}) => {
+		for (let param in params) this.plugins.nodes['blink'].params[param] = params[param]
+		let blink = this.plugins.nodes['blink'].default([{data: this.data}])
+		return blink.data
+	}
+
+	// getBlink = () => {
+    //     let sideChannels = [['AF7','FP1'],['AF8','FP2']]
+	// 	let blinks = [false,false]
+	// 	if (this.data.blink == null) this.data.blink = {
+	// 		blinkDuration: 1, // One second
+	// 		blinkThreshold: 220, // uV
+	// 		lastBlink: Date.now()
+	// 	}
+    //     // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
+    //     if (Date.now() - this.data.blink.lastBlink > this.data.blink.blinkDuration*1000){
+    //     sideChannels.forEach((channels,ind) => {
+	// 			let data = this.getEEGDataByTag(channels[0]) ?? this.getEEGDataByTag(channels[1])
+	// 			let blinkRange = data.filtered.slice(data.filtered.length-this.data.blink.blinkDuration*this.data.eegshared.sps)
+	// 			let max = Math.max(...blinkRange.map(v => Math.abs(v)))
+	// 			blinks[ind] = (max > this.data.blink.blinkThreshold)
+    //         })
+    //         this.data.blink.lastBlink = Date.now()
+	// 	}
+		
+	// 	console.log(blinks)
         
-        return blinks
-    }
+	// 	return blinks
+	// }
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
@@ -1329,7 +1348,10 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+
+						// console.log('posting to worker',window.workers)
+
+                        window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
                         this.workerWaiting = true;
                     }
                 }
@@ -1340,7 +1362,10 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-                        window.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+
+						// console.log('posting to worker',window.workers)
+
+                        window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
                         //postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
                         this.workerWaiting = true;
                     }
@@ -1544,7 +1569,7 @@ export class DataAtlas {
 			if (this.settings.eeg){
 				feedbackOptions.push(
 					{label: 'Frontal Alpha Coherence', function: getFrontalAlphaCoherence},
-					{label: 'Focus', function: getFocus},
+					{label: 'Focus (Theta/Beta Ratio)', function: getFocus},
 				)
 			}
 

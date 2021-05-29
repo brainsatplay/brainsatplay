@@ -2,13 +2,14 @@
 //Just fill out the template functions accordingly and add this class (with a unique name) to the list of usable devices.
 import { DOMFragment } from '../../ui/DOMFragment';
 import {DataAtlas} from '../../DataAtlas'
-import {BiquadChannelFilterer} from '../../algorithms/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
 import {Notion} from '@neurosity/notion'
 
 export class notionPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
         this.mode = mode;
+        this.connected = false
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -39,19 +40,42 @@ export class notionPlugin {
         });
     }
 
+
+    timeCorrection = (coord, data, timestamp, direction='back') => {
+
+        // Update Sampling Rate for New Data
+        let prevTime = coord.times[coord.times.length - 1]
+        if (prevTime == null) prevTime = timestamp - (data.length/this.info.sps)
+        let timeToSample = (timestamp - prevTime)/data.length 
+        this.info.sps = 1000/timeToSample // In Seconds
+
+        // Calculate Time Vector through Linear interpolation
+        let time = Array(data.length).fill(timestamp);
+        if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
+        else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
+        
+        return time
+    }
+
+
     connect = async () => {
 
             this.device.brainwaves('raw').subscribe(brainwaves => {
+
                 let raw = brainwaves.data
                 if(this.info.useAtlas) {
-                    let time = Array(raw[0].length).fill(Date.now());
-                    time = time.map((t,i) => {return t-(1-(this.info.sps/(time.length))*i/5)})	
 
                     raw.forEach((data,i) => {
                         let coord = this.atlas.getEEGDataByChannel(i);
+
+                        let time = this.timeCorrection(coord,data,brainwaves.info.startTime)
+
+                        // Push to Atlas
                         coord.times.push(...time);
                         coord.raw.push(...data);
                         coord.count += data.length;
+
+                        // Filter Data
                         if(this.info.useFilters === true) {                
                             let latestFiltered = new Array(data.length).fill(0);
                             if(this.filters[i] !== undefined) {
@@ -65,6 +89,27 @@ export class notionPlugin {
                 }
             })
 
+            // // Calm
+            // this.device.calm().subscribe(({probability}) => {
+            //     console.log('calm', probability)
+            // });
+
+            // // Focus
+            // this.device.focus().subscribe(({probability}) => {
+            //     console.log('focus', probability);
+            // });
+
+            // // Kinesis
+            // this.device.kinesis("rightArm").subscribe(intent => {
+            //     console.log(intent);
+            // });
+
+            // Signal Quality
+            // notion.signalQuality().subscribe(signalQuality => {
+            //     console.log(signalQuality);
+            // });
+              
+
             this.atlas.data.eegshared.startTime = Date.now();
             this.atlas.settings.deviceConnected = true;
             if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
@@ -77,15 +122,20 @@ export class notionPlugin {
 
     disconnect = () => {
 
+        this.device.disconnect();
+
         this.device.logout().then(() => {
             console.log('logged out');
         }).catch((error) => {
             console.error("Log out error", error);
         });
 
-        this.ondisconnect();
-        if (this.ui) this.ui.deleteNode()
-        this.atlas.settings.deviceConnected = false;
+        if (this.connected){
+            document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`).innerHTML = 'Notion'
+            this.ondisconnect();
+            if (this.ui) this.ui.deleteNode()
+            this.atlas.settings.deviceConnected = false;
+        }
     }
 
     setupAtlas = async (info,pipeToAtlas) => {
@@ -241,17 +291,20 @@ export class notionPlugin {
 				devices.forEach(o => {
                     userDiv.innerHTML += `
                     <div  id="${this.id}-device-${o.deviceId}" class="neurosity-device" style="${deviceStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
-                    <p style="font-size: 60%;">${o.deviceId}</p>
+                    <p style="font-size: 60%;">${o.model}</p>
                     <p>${o.deviceNickname}</p>
-                    <p style="font-size: 80%;">${o.model}</p>
+                    <p style="font-size: 80%;">${o.deviceId}</p>
                     </div>`
 				})
 
-				let divs = userDiv.querySelectorAll(".neurosity-device")
+                let divs = userDiv.querySelectorAll(".neurosity-device")
+                let headerDiv = document.getElementById(`brainsatplay-header-${this.mode.split('_')[0]}`)
 				for (let div of divs) {
 					let id = div.id.split(`${this.id}-device-`)[1]
                     div.onclick = async (e) => {
                         let device = await this.device.selectDevice((devices) =>devices.find((device) => device.deviceId === id));
+                        headerDiv.innerHTML = device.deviceNickname
+                        this.connected = true
                         resolve(device)
                         onsuccess()
                         closeUI()
@@ -279,19 +332,19 @@ export class notionPlugin {
 		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
 			<div>
 				<h2>Access Notion Data</h2>
-				<div id="${this.id}login-container" class="form-container">
-					<div id="${this.id}login" class="form-context">
+				<div id="${this.id}login-container" class="brainsatplay-form-container">
+					<div id="${this.id}login" class="brainsatplay-form-context">
 						<p id="${this.id}login-message" class="small"></p>
 						<div class='flex'>
-							<form id="${this.id}login-form" action="">
-                                <div class="login-element" style="margin-left: 0px; margin-right: 0px">
+							<form id="${this.id}login-form" class="brainsatplay-form" action="">
+                                <div class="brainsatplay-login-element" style="margin-left: 0px; margin-right: 0px">
                                     <input type="text" name="email" autocomplete="off" placeholder="Enter your email"/>
                                     <br>
                                     <input type="password" name="password" autocomplete="off" placeholder="Enter your password"/>
 								</div>
 							</form>
 						</div>
-						<div class="login-buttons" style="justify-content: flex-start;">
+						<div class="brainsatplay-login-buttons" style="justify-content: flex-start;">
 							<div id="${this.id}login-button" class="brainsatplay-default-button">Sign In</div>
 						</div>
 					</div>
@@ -326,9 +379,13 @@ export class notionPlugin {
 						formDict[pair[0]] = pair[1];
                     }
 
-					this.device.login(formDict).catch((error) => {
+                    this.device.login(formDict).then((res) => {
+                        // console.log(res)
+                    })
+                    .catch((error) => {
                         console.error(error)
-                    }).finally(async () => {
+                    })
+                    .finally(async (res) => {
                         const devices = await this.device.getDevices();
                         await this.selectDevice(devices,document.body)
                         resolve(true)

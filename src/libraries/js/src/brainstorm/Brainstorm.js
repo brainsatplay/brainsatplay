@@ -5,7 +5,6 @@ const WebSocket = require('ws')
 const mongodb = require('mongodb')
 const uuid = require('uuid')
 
-
 // Create Brainstorm Server Instance
 const createBrainstorm = async (app, config={},onListen=()=>{},onError=()=>{}) => {
 
@@ -108,6 +107,7 @@ wss.on('connection', function (ws, msg, req) {
   dataServer.addUser(username, origin, ws);
     ws.send(JSON.stringify({msg:'resetUsername',username:username}));
   });
+  
 
 server.listen(parseInt(port), () => {
     console.log(`A Brainstorm is brewing on ${protocol}://${url}:${port}`)
