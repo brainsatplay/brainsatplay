@@ -803,9 +803,9 @@ export class SensoriumApplet {
         document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
             newEffect.playing = false;
             newEffect.paused = false;
-
-            try{window.audio.playSound(newEffect.sourceIdx,0,false);} catch(er) {}
-            window.audio.stopSound(newEffect.sourceIdx);
+            console.log(newEffect);
+            try{newEffect.source.start(this.ctx.currentTime);} catch(er) {}
+            newEffect.source.stop();
            
             newEffect.input.style.display = "";
             newEffect.controls.style.display = "none";
