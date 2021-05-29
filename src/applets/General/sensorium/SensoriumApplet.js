@@ -225,10 +225,10 @@ export class SensoriumApplet {
                 <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
                     <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
                    
-                    <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px #000000;'>Select a Shader</h3>
+                    <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
                     <select id='${props.id}shaderSelector'></select>
                     <div style="display: flex; align-items: center;">
-                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px #000000;'>Effects</h3>
+                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                         <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                     </div>
                     <span id='${props.id}effectmenu'></span>
@@ -534,8 +534,8 @@ export class SensoriumApplet {
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
-                <span id='${props.id}selectors${idx}'></span>
-                <span id='${props.id}fileWrapper${idx}' style="">  
+                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect:</span><span id='${props.id}selectors${idx}'></span>
+                <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound:</span><span id='${props.id}fileWrapper${idx}' style="">  
                     <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
                     <span id='${props.id}status${idx}'></span>
                 </span>
@@ -805,7 +805,7 @@ export class SensoriumApplet {
             newEffect.paused = false;
             console.log(newEffect);
             try{newEffect.source.start(this.ctx.currentTime);} catch(er) {}
-            newEffect.source.stop();
+            try{newEffect.source.stop();} catch(er) {}
            
             newEffect.input.style.display = "";
             newEffect.controls.style.display = "none";
