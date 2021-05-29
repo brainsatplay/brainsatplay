@@ -801,11 +801,12 @@ export class SensoriumApplet {
         }
 
         document.getElementById(this.props.id+'stop'+newEffect.uiIdx).onclick = () => {
+            if(newEffect.playing === false) newEffect.source.start(window.audio.ctx.currentTime);
+            newEffect.source.stop();
+            
             newEffect.playing = false;
             newEffect.paused = false;
-            console.log(newEffect);
-            try{newEffect.source.start(this.ctx.currentTime);} catch(er) {}
-            try{newEffect.source.stop();} catch(er) {}
+          
            
             newEffect.input.style.display = "";
             newEffect.controls.style.display = "none";
