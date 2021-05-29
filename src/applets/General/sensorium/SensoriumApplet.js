@@ -220,7 +220,7 @@ export class SensoriumApplet {
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
                             
-                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:0.2;'>Hide Controls</button> 
+                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:1;'>Hide Controls</button> 
 
                 <div id='`+props.id+`menu' style='transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.35); height: 100%;'>
                     <div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 2;"></div>
