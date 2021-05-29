@@ -40,6 +40,7 @@ import fluteshot1 from './sounds/wav/fluteshot1.wav'
 import fluteshot2 from './sounds/wav/fluteshot2.wav'
 import drumhit1 from './sounds/wav/drum_hit_1.wav'
 import drumkick1 from './sounds/wav/drum_kick_1.wav'
+import { select } from 'd3-selection';
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
@@ -226,7 +227,13 @@ export class SensoriumApplet {
                     <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
                    
                     <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
-                    <select id='${props.id}shaderSelector'></select>
+                    <select id='${props.id}shaderSelector'>
+                    </select>
+                    <div id='${props.id}textshader' style='display:none;'>
+                        Fragment Shader: <textarea id='${props.id}fragmentshader'></textarea><br>
+                        Feedback Uniforms (use commas):<input id='${props.id}uniforms' type='text'>
+                        <button id='${props.id}settextshader'>Set Shader</button>
+                    </div>
                     <div style="display: flex; align-items: center;">
                         <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                         <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
@@ -264,18 +271,27 @@ export class SensoriumApplet {
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             });
+            selector.innerHTML += `<option value='fromtext'>From Text</option>`
             
             this.currentShader = this.shaders[selector.value];
             this.swapShader();
             
             selector.onchange = (e) => {
-                if (e.target.value != 'Gallery'){
+                if (e.target.value === 'fromtext') {
+                    document.getElementById(props.id+'textshader').style.display = '';
+                }
+                else if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
                     this.swapShader();
                     this.setEffectOptions();
+                    document.getElementById(props.id+'textshader').style.display = 'none';
                 } else {
-                    
+                    document.getElementById(props.id+'textshader').style.display = 'none';
                 }
+            }
+
+            document.getElementById(props.id+'settextshader').onclick = () => {
+                this.setShaderFromText();
             }
 
             let showhide = document.getElementById(props.id+'showhide');
@@ -993,6 +1009,26 @@ export class SensoriumApplet {
         
         this.updateMaterialUniforms(newMaterial,this.modifiers);
         this.generateGUI(this.currentShader.uniforms)
+
+        this.three.planes.forEach(p => {
+            p.material.dispose();
+            p.material = newMaterial;          
+        })
+    }
+
+    setShaderFromText = () => {
+
+        this.currentShader.uniforms = document.getElementById(this.props.id+'uniforms').value.split(',');
+
+        let newMaterial = new THREE.ShaderMaterial({
+            vertexShader: this.currentShader.vertexShader,
+            fragmentShader: document.getElementById(this.props.id+'fragmentshader').value,
+            side: THREE.DoubleSide,
+            transparent: true,
+        });
+        
+        this.updateMaterialUniforms(newMaterial,this.modifiers);
+        this.generateGUI(this.currentShader.uniforms);
 
         this.three.planes.forEach(p => {
             p.material.dispose();
