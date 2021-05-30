@@ -168,10 +168,12 @@ select {
     margin: 10px;
     border-radius: 5px;;
     position: relative;
-}.devices {
+}
+.brainsatplay-companyCard .devices {
     width: 100%;
     display: flex;
-}h3 {
+}
+.brainsatplay-companyCard h3 {
     margin: 10px;
 }
 
@@ -182,10 +184,12 @@ select {
     flex-grow: 1;
     border-radius: 5px;;
     position: relative;
-}.variants {
+}
+.brainsatplay-deviceCard .variants {
     width: 100%;
     display: flex;
-}h4 {
+}
+.brainsatplay-deviceCard h4 {
     margin: 10px;
 }
 
@@ -294,4 +298,43 @@ select {
 .brainsatplay-login-buttons button{
     flex-grow: 1;
     margin: 10px;
+}
+
+/* Code Editor */
+
+.brainsatplay-code-editing {
+    color: transparent;
+    background: transparent;
+    opacity: 0.5;
+    caret-color: white;
+    z-index: 1;
+}
+
+.brainsatplay-code-highlighting {
+    background-color: rgba(0,0,0,0.8) !important; 
+    z-index: 0 !important;
+    white-space: pre !important;
+}
+
+.brainsatplay-code-editing, .brainsatplay-code-highlighting {
+    margin: 0px !important;
+    width: calc(100%) !important;
+    height: calc(100% - 85px) !important;
+    position:absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    overflow: auto !important;
+    white-space: nowrap !important;
+    padding: 25px !important;
+    resize: none !important;
+    -moz-tab-size : 4 !important;
+      -o-tab-size : 4 !important;
+         tab-size : 4 !important;
+}
+
+.brainsatplay-code-editing, .brainsatplay-code-highlighting, .brainsatplay-code-highlighting * {
+    font-size: 12px !important;
+    font-family: monospace !important;
+    line-height: 20pt !important;
+    box-sizing: border-box !important;;
 }

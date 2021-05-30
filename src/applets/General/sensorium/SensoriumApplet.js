@@ -7,8 +7,11 @@ import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
 import Prism from 'prismjs';
-
-console.log(Prism)
+import 'prismjs/components/prism-c'; // need this
+import 'prismjs/components/prism-glsl'; // need this
+// import "prismjs/plugins/line-numbers/prism-line-numbers";
+import "prism-themes/themes/prism-vsc-dark-plus.css"
+// import '../../../libraries/js/src/ui/styles/defaults.css'
 
 import * as settingsFile from './settings'
 
@@ -223,16 +226,6 @@ export class SensoriumApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-
-            let update = (text) => {
-                let result_element = document.querySelector(`#sensorium-highlighting-content`);
-                // Update code
-                result_element.innerText = text;
-                // Syntax Highlight
-                Prism.highlightElement(result_element);
-    
-            }
-
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
                             
@@ -241,25 +234,30 @@ export class SensoriumApplet {
                 <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
                     <div>
                         <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
-                    
-                        <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Select a Shader</h3>
-                        <select id='${props.id}shaderSelector'>
-                        </select>
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                         </div>
                         <span id='${props.id}effectmenu'></span>
                     </div>
-                    <div id='${props.id}textshader' style='display:none; height: 100%; width: 100%; padding: 25px; '>
-                        <div style="display: flex;">
-                            <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Fragment Shader</h3>
-                            <button id='${props.id}settextshader'>Set Shader</button>
+                    <div id='${props.id}textshader' style='height: 100%; width: 100%; padding: 25px;'>
+                        <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
+                            <div>
+                                <h3>Fragment Shader</h3>
+                                <p style="font-size: 80%;">Save using CTRL + S</p>
+                            </div>
+                            <div>
+                                <select id='${props.id}shaderSelector'>
+                                </select>
+                            </div>
                         </div>
-                        <textarea id='${props.id}fragmentshader' oninput="(${update})(this.value)" placeholder='Paste GLSL Fragment Shader Code' style='background-color:rgba(0,0,0,0.8); color:white; width: 100%; height: 100%; box-sizing: border-box;'></textarea><br>
-                        <pre id="sensorium-highlighting" aria-hidden="true">
-                            <code class="language-glsl" id="sensorium-highlighting-content"></code>
+                        <div style="position: relative; width: 100%; height: 100%;">
+                        <textarea id='${props.id}fragmentshader' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write GLSL Fragment Shader Code' 
+                        style=''></textarea>
+                        <pre class="brainsatplay-code-highlighting" aria-hidden="true">
+                            <code class="language-glsl brainsatplay-code-highlighting-content"></code>
                         </pre>
+                        </div>
                     </div>
                 </div>
 
@@ -275,6 +273,79 @@ export class SensoriumApplet {
         let setupHTML = (props=this.props) => {
 
             this.session.createIntro(this)
+
+            // Shader Live Coding
+            // Code Editor from https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/
+            let check_tab = (element, event) => {
+                let code = element.value;
+                if(event.key == "Tab") {
+                    /* Tab key pressed */
+                    event.preventDefault(); // stop normal
+                    let before_tab = code.slice(0, element.selectionStart); // text before tab
+                    let after_tab = code.slice(element.selectionEnd, element.value.length); // text after tab
+                    let cursor_pos = element.selectionEnd + 1; // where cursor moves after tab - 2 for 2 spaces
+                    element.value = before_tab + "\t" + after_tab; // add tab char - 2 spaces
+                    // move cursor
+                    element.selectionStart = cursor_pos;
+                    element.selectionEnd = cursor_pos;
+
+                    // Trigger Update Function
+                    var event = document.createEvent("Event");
+                    event.initEvent("input", true, true);
+                    element.dispatchEvent(event);
+                }
+            }
+
+                          
+            let update = (el) => {
+                let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
+                
+                let text = el.value
+                let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;");
+                // Update code
+                result_element.innerHTML = replacedText
+
+                // Syntax Highlight
+                Prism.highlightElement(result_element);
+            }
+
+            let sync_scroll = (element) => {
+                /* Scroll result to scroll coords of event - sync with textarea */
+                let result_element = document.querySelector(".brainsatplay-code-highlighting");
+                // Get and set x and y
+                result_element.scrollTop = element.scrollTop;
+
+                // If the scroll limit has been reached, flip the synchronization
+                if (result_element.scrollTop < element.scrollTop) element.scrollTop = result_element.scrollTop
+
+                result_element.scrollLeft = element.scrollLeft;
+              }
+
+            let fragShaderInput = document.getElementById(props.id+'fragmentshader')
+            fragShaderInput.oninput = () => {
+                update(fragShaderInput)
+                sync_scroll(fragShaderInput)
+
+                // ENABLE TO UPDATE EVERY TIME THE INPUT CHANGES
+                // this.setShaderFromText(fragShaderInput.value);
+            }
+
+            this.saveShader = (e) => {
+                if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                    e.preventDefault();
+                    this.setShaderFromText(fragShaderInput.value);
+                }
+            }
+
+            document.addEventListener("keydown", this.saveShader, false);
+
+            fragShaderInput.onscroll = () => {
+                sync_scroll(fragShaderInput)
+            }
+
+            fragShaderInput.onkeydown = (e) => {
+                check_tab(fragShaderInput,e)
+            }
 
             /**
              * GUI
@@ -293,27 +364,23 @@ export class SensoriumApplet {
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             });
-            selector.innerHTML += `<option value='fromtext'>From Text</option>`
+            // selector.innerHTML += `<option value='fromtext'>From Text</option>`
             
             this.currentShader = this.shaders[selector.value];
             this.swapShader();
             
+            
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
-                    document.getElementById(props.id+'textshader').style.display = '';
+                    // document.getElementById(props.id+'textshader').style.display = '';
                 }
                 else if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
                     this.swapShader();
                     this.setEffectOptions();
-                    document.getElementById(props.id+'textshader').style.display = 'none';
                 } else {
-                    document.getElementById(props.id+'textshader').style.display = 'none';
+                    // document.getElementById(props.id+'textshader').style.display = 'none';
                 }
-            }
-
-            document.getElementById(props.id+'settextshader').onclick = () => {
-                this.setShaderFromText();
             }
 
             let showhide = document.getElementById(props.id+'showhide');
@@ -529,6 +596,10 @@ export class SensoriumApplet {
             else if(struct.sourceIdx) window.audio.stopSound(struct.sourceIdx);
             
         });
+
+        document.removeEventListener("keydown", this.saveShader);
+
+
         this.stateIds.forEach(id => {
             this.session.state.unsubscribeAll(id);
         })
@@ -1048,11 +1119,25 @@ export class SensoriumApplet {
             p.material.dispose();
             p.material = newMaterial;          
         })
+
+        // Update Shader Live Coding Console
+        let fragShaderInput = document.getElementById(this.props.id+'fragmentshader')
+        
+        // Add new lines where expected
+        fragShaderInput.value = this.currentShader.fragmentShader
+        .replace(new RegExp(";", "g"), ";\n")
+        .replace(new RegExp("{", "g"), "{\n")
+        .replace(new RegExp("}", "g"), "}\n")
+        
+        // Trigger update event
+        var event = document.createEvent("Event");
+        event.initEvent("input", true, true);
+        fragShaderInput.dispatchEvent(event);
     }
 
-    setShaderFromText = () => {
+    setShaderFromText = (text) => {
 
-        let fragShader = document.getElementById(this.props.id+'fragmentshader').value
+        let fragShader = text
 
         // Dynamically Extract Uniforms
         let regex = new RegExp('uniform (.*) (.*);', 'g')
@@ -1165,10 +1250,10 @@ export class SensoriumApplet {
         }
 
         let folders = Object.keys(this.gui.__folders)
-        if (!folders.includes('Parameters')){
-            this.gui.addFolder('Parameters');
+        if (!folders.includes('Uniforms')){
+            this.gui.addFolder('Uniforms');
         }
-        let paramsMenu = this.gui.__folders['Parameters']
+        let paramsMenu = this.gui.__folders['Uniforms']
 
         this.guiControllers.forEach(c => {
             paramsMenu.remove(c)
