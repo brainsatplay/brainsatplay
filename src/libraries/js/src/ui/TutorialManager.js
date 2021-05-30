@@ -159,8 +159,8 @@ export class TutorialManager {
             this.removeTooltip()
             this.tutorialState = start != null ? start+dx : this.tutorialState+dx
 
-            let targetQuery = this.tooltipContent[this.tutorialState].target
-            let target = document.body.querySelector(this.formatQuery(targetQuery))
+            let targetQuery = this.tooltipContent[this.tutorialState].target;
+            let target = document.getElementById(targetQuery);
                 lastState = this.tutorialState === this.tooltipContent.length - 1
                 let advanceLabel = (!lastState) ? "Next" : "Start Playing"
             
@@ -222,8 +222,8 @@ export class TutorialManager {
     }
 
     removeTooltip = () => {
-        let prevSettings = this.tooltipContent[this.tutorialState] 
-        let prevToolTip = document.body.querySelector(this.formatQuery(prevSettings.target)).querySelector('.brainsatplay-tutorial-tooltip')
+        let prevSettings = this.tooltipContent[this.tutorialState];
+        let prevToolTip = document.getElementById(prevSettings.target).querySelector('.brainsatplay-tutorial-tooltip')
         if(prevToolTip != null){
             prevToolTip.style.opacity = '0'
             setTimeout(()=>{prevToolTip.remove()}, 1000);

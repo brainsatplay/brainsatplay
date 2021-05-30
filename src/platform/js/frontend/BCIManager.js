@@ -460,7 +460,7 @@ export class BCIAppManager {
 
         let tooltips = [
             {
-                target: '#device-menu',
+                target: 'device-menu',
                 content: `
                 <h3>Enter the Device Manager</h3>
                 <hr>
@@ -468,7 +468,7 @@ export class BCIAppManager {
                 `
             }, 
             {
-                target: '#applet-menu',
+                target: 'applet-menu',
                 content: `
                 <h3>Let's Play Some Games</h3>
                 <hr>
@@ -476,7 +476,7 @@ export class BCIAppManager {
                 `
             },
             {
-                target: '#file-menu',
+                target: 'file-menu',
                 content: `
                 <h3>How Did You Do?</h3>
                 <hr>
@@ -484,7 +484,7 @@ export class BCIAppManager {
                 `
             },
             {
-                target: '#help-menu',
+                target: 'help-menu',
                 content: `
                 <h3>Need Anything Else?</h3>
                 <hr>

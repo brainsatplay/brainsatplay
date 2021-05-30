@@ -277,7 +277,7 @@ export class SensoriumApplet {
             // Tutorial
             let tooltips = [
                 {
-                    target: `#${this.props.id}effectmenu`,
+                    target: `${this.props.id}effectmenu`,
                     content: `
                     <h3>Choose your Effects</h3>
                     <hr>
@@ -285,7 +285,7 @@ export class SensoriumApplet {
                     `
                 }, 
                 {
-                    target: `#${this.props.id}textshader`,
+                    target: `${this.props.id}textshader`,
                     content: `
                     <h3>Real-Time Shader Coding</h3>
                     <hr>

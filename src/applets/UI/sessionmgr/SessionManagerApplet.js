@@ -598,7 +598,7 @@ export class SessionManagerApplet {
         
         if(seriestag) file+= seriestag+"_";
         if(filename.includes('eeg')) {
-            file+="EEG_Session_History";
+            file += "EEG_Session_History";
             head = "Session,Duration,Bandpowers,Ratios,Coherence,Noise_Avg_(uVrms),Impedance_Estimate(s),Notes,Tags";
 
             dataToWrite = [
@@ -782,7 +782,7 @@ export class SessionManagerApplet {
                     <option value='heg' selected>All</option>
                 </select>
                 `; 
-                
+        
             }
             else if (filename.includes('eeg')) {
                   //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
@@ -1165,6 +1165,7 @@ export class SessionManagerApplet {
                        if(end === size) {
                            this.analyze_result.duration = this.msToTime(loaded.data.times[loaded.data.times.length-1]-startTime);
                        }
+                       
                     }
                     pass = true;
                     if(end === size) { this.analyze_completed = true; } else {begin+= buffersize; end += buffersize;}
