@@ -406,7 +406,7 @@ export class SensoriumApplet {
             Object.keys(this.shaders).forEach((k) => {
                 selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
             });
-            // selector.innerHTML += `<option value='fromtext'>From Text</option>`
+            selector.innerHTML += `<option value='fromtext'>Blank Shader</option>`
             
             this.currentShader = this.shaders[selector.value];
             this.swapShader();
@@ -415,8 +415,28 @@ export class SensoriumApplet {
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
                     // document.getElementById(props.id+'textshader').style.display = '';
+                    
+                document.getElementById(props.id+'fragmentshader').value = `
+#define FFTLENGTH 256
+precision mediump float;
+uniform vec2 iResolution; //Shader display resolution
+uniform float iTime; //Shader time increment
+
+uniform float iHEG;
+uniform float iHRV;
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
+void main(){
+    gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
+}                    
+`;
+                    document.getElementById(props.id+'fragmentshader').oninput();
                     document.getElementById(props.id+'shaderheader').style.display = '';
-                    document.getElementById(props.id+'editshader')
+                    document.getElementById(props.id+'shadereditor').style.display = '';
+                    this.editorhidden = false;
                 }
                 else if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
