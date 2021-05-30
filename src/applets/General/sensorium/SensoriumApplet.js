@@ -238,7 +238,7 @@ export class SensoriumApplet {
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                         </div>
-                        <span id='${props.id}effectmenu'></span>
+                        <div id='${props.id}effectmenu'></div>
                     </div>
                     <div id='${props.id}textshader' style='height: 100%; width: 100%; padding: 25px;'>
                         <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
@@ -273,6 +273,30 @@ export class SensoriumApplet {
         let setupHTML = (props=this.props) => {
 
             this.session.createIntro(this)
+            
+            // Tutorial
+            let tooltips = [
+                {
+                    target: `#${this.props.id}effectmenu`,
+                    content: `
+                    <h3>Choose your Effects</h3>
+                    <hr>
+                    <p>This is where you choose effects.</p>
+                    `
+                }, 
+                {
+                    target: `#${this.props.id}textshader`,
+                    content: `
+                    <h3>Real-Time Shader Coding</h3>
+                    <hr>
+                    <p>Modify the visualization in real-time—or select from our default shaders.</p>
+                    `
+                },
+              ]
+            this.session.tutorials.setTooltipContent(tooltips)
+            console.log(this.session.tutorials)
+            this.session.tutorials.reset()
+            this.session.tutorials.start()
 
             // Shader Live Coding
             // Code Editor from https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/

@@ -47,14 +47,6 @@ if (window.isChrome){
 	console.log('Not on Chrome')
 }
 
-let tutorial = new DOMFragment(
-	`  <div class="tutorial">
-    		<div class="tutorial-content">
-      			<div id="tutorial-step0" class="tutorial-dynamic-text"></div>
-    		</div>
-  		</div>`, document.body
-	);
-
 let localHostURL = 'https://localhost'
 let remoteHostURL = 'https://server.brainsatplay.com'
 

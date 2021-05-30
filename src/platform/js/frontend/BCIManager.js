@@ -23,13 +23,13 @@ import {AppletManager} from './AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
-import { TutorialManager } from './utils/TutorialManager';
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
 import AppletMenuIcon from '../../assets/th-large-solid.svg';
 import FileManagerIcon from '../../assets/folder-solid.svg';
 import GoogleIcon from '../../assets/google.png';
+import HelpIcon from '../../assets/question-solid.svg';
 
 
 
@@ -78,7 +78,6 @@ export class BCIAppManager {
             this.initFS();
         } else { this.init(); }
 
-        this.tutorialManager = new TutorialManager();
 
         this.currentState = null
 
@@ -159,9 +158,17 @@ export class BCIAppManager {
                         </div>
                     </div>
                 </div>
+                <div id="help-menu" class="collapsible-container">
+                    <button class="collapsible">
+                    <div class="img-cont">
+                    <img src="${HelpIcon}">
+                    <span>Help</span>
+                    </div>
+                    </button>
+                </div>
                 </div>
 
-                <div id="brainstplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
+                <div id="brainsatplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
                     <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
                     <div class="img-cont">
                     <img id="brainsatplay-profile-img" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)">
@@ -420,19 +427,12 @@ export class BCIAppManager {
             this.appletManager.deinitApplets()       
             this.appletManager.initAddApplets()   
          }
-
-        //  document.getElementById('enableTutorial').onclick = () => {
-        //     this.tutorialManager.setTutorialDefault(true)
-        //     this.tutorialManager.openTutorial()
-        //     this.tutorialManager.updateStandaloneTutorialContent(0,0)
-        //  }
     }
 
     updateOverlay = () => {
         // Remove overlay only if on Chrome
         if (window.isChrome){
             document.body.querySelector('.loader').style.opacity = 0;
-            this.tutorialManager.initializeTutorial()
         } else {
             document.body.querySelector('.loader-error').innerHTML = '<h2>The Brains@Play Platform has been developed for Google Chrome.</h2>';
             document.body.querySelector('.loader-error').style.opacity = 1;
@@ -457,6 +457,51 @@ export class BCIAppManager {
         }
 
         this.setupUITemplates();
+
+        let tooltips = [
+            {
+                target: '#device-menu',
+                content: `
+                <h3>Enter the Device Manager</h3>
+                <hr>
+                <p>This is where you connect your brain-sensing device.</p>
+                `
+            }, 
+            {
+                target: '#applet-menu',
+                content: `
+                <h3>Let's Play Some Games</h3>
+                <hr>
+                <p>This is where you can add/remove applets and switch their layout.</p>
+                `
+            },
+            {
+                target: '#file-menu',
+                content: `
+                <h3>How Did You Do?</h3>
+                <hr>
+                <p>This is where you view data from previous sessions.</p>
+                `
+            },
+            {
+                target: '#help-menu',
+                content: `
+                <h3>Need Anything Else?</h3>
+                <hr>
+                <p>You can view this tutorial at any time by clicking here.</p>
+                `
+            }
+        ]
+
+        this.session.tutorials.setTooltipContent(tooltips)
+        this.session.tutorials.start()
+
+        let helpMenu = document.getElementById('help-menu').querySelector('button')
+        helpMenu.onclick = () => {
+            this.session.tutorials.reset()
+            this.session.tutorials.start()
+        }
+
     }
 
     deinitUI = () => { //Destroy the UI and logic/loops
@@ -468,7 +513,7 @@ export class BCIAppManager {
 
     updateProfileUI(user){
 
-        let menu = document.getElementById('brainstplay-profile-menu')
+        let menu = document.getElementById('brainsatplay-profile-menu')
         if (window.location.origin.includes('localhost')){
             let profileButton = menu.querySelector('button')
             let profileImg = document.getElementById(`brainsatplay-profile-img`)

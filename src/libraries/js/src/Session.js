@@ -52,6 +52,7 @@ import { deviceList } from './devices/deviceList';
 
 // Plugins
 import {PluginManager} from './PluginManager'
+import { TutorialManager } from './ui/TutorialManager';
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
@@ -115,6 +116,7 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
+		this.tutorials = new TutorialManager();
 	}
 
 	/**
