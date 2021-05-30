@@ -199,6 +199,8 @@ export class TutorialManager {
                 let tooltipCont = target.querySelector(".brainsatplay-tutorial-tooltip-container")
                 let tooltip = target.querySelector(".brainsatplay-tutorial-tooltip")
                 tooltip.style.opacity = '1'
+                
+                tooltip.style.display = target.style.display;
 
                 let rect = tooltipCont.getBoundingClientRect();
                 tooltip.classList.add('left')

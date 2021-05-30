@@ -102,6 +102,7 @@ export class SensoriumApplet {
 
         this.looping = false;
         this.hidden = false;
+        this.editorhidden = true;
 
         // UI
         this.three = {}
@@ -242,21 +243,22 @@ export class SensoriumApplet {
                     </div>
                     <div id='${props.id}textshader' style='height: 100%; width: 100%; padding: 25px;'>
                         <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
-                            <div>
+                            <div id='${props.id}shaderheader' style='display:none;'>
                                 <h3>Fragment Shader</h3>
                                 <p style="font-size: 80%;">Save using CTRL + S</p>
                             </div>
                             <div>
                                 <select id='${props.id}shaderSelector'>
                                 </select>
+                                <button id='${props.id}editshader'>Edit</button>
                             </div>
                         </div>
-                        <div style="position: relative; width: 100%; height: 100%;">
-                        <textarea id='${props.id}fragmentshader' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write GLSL Fragment Shader Code' 
-                        style=''></textarea>
-                        <pre class="brainsatplay-code-highlighting" aria-hidden="true">
-                            <code class="language-glsl brainsatplay-code-highlighting-content"></code>
-                        </pre>
+                        <div id='${props.id}shadereditor' style="position: relative; width: 100%; height: 100%; display:none;">
+                            <textarea id='${props.id}fragmentshader' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write GLSL Fragment Shader Code' 
+                            style=''></textarea>
+                            <pre class="brainsatplay-code-highlighting" aria-hidden="true">
+                                <code class="language-glsl brainsatplay-code-highlighting-content"></code>
+                            </pre>
                         </div>
                     </div>
                 </div>
@@ -285,7 +287,7 @@ export class SensoriumApplet {
                     `
                 }, 
                 {
-                    target: `${this.props.id}textshader`,
+                    target: `${this.props.id}shadereditor`,
                     content: `
                     <h3>Real-Time Shader Coding</h3>
                     <hr>
@@ -379,6 +381,18 @@ export class SensoriumApplet {
             this.gui = new GUI({ autoPlace: false });
             this.appletContainer.querySelector('.guiContainer').appendChild(this.gui.domElement);
 
+            document.getElementById(props.id+'editshader').onclick = () => {
+                if(this.editorhidden === false) {
+                    document.getElementById(props.id+'shaderheader').style.display = 'none';
+                    document.getElementById(props.id+'shadereditor').style.display = 'none';
+                    this.editorhidden = true;
+                } else {
+                    document.getElementById(props.id+'shaderheader').style.display = '';
+                    document.getElementById(props.id+'shadereditor').style.display = '';
+                    this.editorhidden = false;
+                }
+            }
+
             document.getElementById(props.id+'addeffect').onclick = () => {
                 this.addSoundInput();
                 console.log('clicked to add sound input')
@@ -397,6 +411,8 @@ export class SensoriumApplet {
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
                     // document.getElementById(props.id+'textshader').style.display = '';
+                    document.getElementById(props.id+'shaderheader').style.display = '';
+                    document.getElementById(props.id+'editshader')
                 }
                 else if (e.target.value != 'Gallery'){
                     this.currentShader = this.shaders[selector.value]
