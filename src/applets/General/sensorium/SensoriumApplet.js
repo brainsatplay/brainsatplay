@@ -245,7 +245,7 @@ export class SensoriumApplet {
                         <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
                             <div id='${props.id}shaderheader' style='display:none;'>
                                 <h3>Fragment Shader</h3>
-                                <p style="font-size: 80%;">Save using CTRL + S</p>
+                                <button id='${props.id}saveShader'>Try It Out</button><span style="font-size: 80%;">   Or use CTRL + S</span>
                             </div>
                             <div>
                                 <select id='${props.id}shaderSelector'>
@@ -356,14 +356,18 @@ export class SensoriumApplet {
                 // this.setShaderFromText(fragShaderInput.value);
             }
 
-            this.saveShader = (e) => {
+            this.onKeyDown = (e) => {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
                     this.setShaderFromText(fragShaderInput.value);
                 }
             }
 
-            document.addEventListener("keydown", this.saveShader, false);
+            document.getElementById(props.id+'saveShader').onclick = () => {
+                this.setShaderFromText(fragShaderInput.value);
+            }
+
+            document.addEventListener("keydown", this.onKeyDown, false);
 
             fragShaderInput.onscroll = () => {
                 sync_scroll(fragShaderInput)
@@ -376,8 +380,8 @@ export class SensoriumApplet {
             /**
              * GUI
              */
-            this.appletContainer = document.getElementById(`${this.props.id}`)
-            this.canvasContainer = document.getElementById(`${this.props.id}container`)
+            this.appletContainer = document.getElementById(props.id);
+            this.canvasContainer = document.getElementById(props.id+'container')
             this.gui = new GUI({ autoPlace: false });
             this.appletContainer.querySelector('.guiContainer').appendChild(this.gui.domElement);
 
