@@ -81,6 +81,9 @@ export class SensoriumApplet {
             //Add whatever else
         };
 
+        this.tutorialManager = this.createTutorial()
+
+
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
         this.visuals = [];
@@ -271,38 +274,14 @@ export class SensoriumApplet {
             `;
         }
 
-
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
 
             this.appletContainer = document.getElementById(props.id);
-
-            // Tutorial
-            let tooltips = [
-                {
-                    target: `${this.props.id}effectmenu`,
-                    content: `
-                    <h3>Choose your Effects</h3>
-                    <hr>
-                    <p>This is where you choose feedback effects, they will be applied
-                    if a data stream is available. For audio feedback select 'Audio FFT' and a sound, or use your Microphone!</p>
-                    `
-                }, 
-                {
-                    target: `${this.props.id}shadereditor`,
-                    content: `
-                    <h3>Real-Time Shader Coding</h3>
-                    <hr>
-                    <p>Modify the visualization in real-time—or select from our default shaders.</p>
-                    `
-                },
-              ]
-
-            let tutorialManager = new TutorialManager(this.info.name, tooltips, this.appletContainer)
+            this.tutorialManager.updateParent(this.appletContainer)
 
             this.session.createIntro(this, () => {
-                tutorialManager.reset()
-                tutorialManager.start()
+                this.tutorialManager.init()
             })
 
 
@@ -486,6 +465,7 @@ void main(){
             }
         }
 
+
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             HTMLtemplate,       //Define the html template string or function with properties
             this.parentNode,    //Define where to append to (use the parentNode)
@@ -666,6 +646,8 @@ void main(){
             
         });
 
+        this.tutorialManager.deinit()
+
         document.removeEventListener("keydown", this.saveShader);
 
 
@@ -678,8 +660,35 @@ void main(){
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
+    createTutorial = (props=this.props) => {
+        let tooltips = [
+            {
+                target: `${props.id}effectmenu`,
+                content: `
+                <h3>Choose your Effects</h3>
+                <hr>
+                <p>This is where you choose feedback effects, they will be applied
+                if a data stream is available. For audio feedback select 'Audio FFT' and a sound, or use your Microphone!</p>
+                `
+            }, 
+            {
+                target: `${props.id}shadereditor`,
+                content: `
+                <h3>Real-Time Shader Coding</h3>
+                <hr>
+                <p>Modify the visualization in real-time—or select from our default shaders.</p>
+                `
+            },
+          ]
+
+          return new TutorialManager(this.info.name, tooltips, this.appletContainer)
+    }
+
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
+
+        this.tutorialManager.responsive()
+
         if(this.three.renderer) {
             this.camera.aspect = this.canvasContainer.offsetWidth/this.canvasContainer.offsetHeight
             this.camera.updateProjectionMatrix()

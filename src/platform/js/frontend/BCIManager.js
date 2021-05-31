@@ -491,17 +491,10 @@ export class BCIAppManager {
                 `
             }
         ]
-
-        let tutorialManager = new TutorialManager('sidebar-tutorial')
-        tutorialManager.setTooltipContent(tooltips)
-        tutorialManager.start()
-
         let helpMenu = document.getElementById('help-menu').querySelector('button')
-        helpMenu.onclick = () => {
-            tutorialManager.reset()
-            tutorialManager.start()
-        }
 
+        let tutorialManager = new TutorialManager('sidebar-tutorial',tooltips, document.body, helpMenu)
+        tutorialManager.init()
     }
 
     deinitUI = () => { //Destroy the UI and logic/loops

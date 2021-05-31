@@ -408,6 +408,7 @@ export class AppletManager {
                 <hr>
                 <h2>Instructions</h2>
                 <p>${appletSettings.instructions}</p>
+                <button class="brainsatplay-default-button">Show Tutorial</button>
             </div>
             `
 
@@ -418,6 +419,7 @@ export class AppletManager {
                     let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
                     let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
                     let dragIcon = appletDiv.querySelector('.brainsatplay-default-drag-icon')
+                    let tutorialButton = infoMask.querySelector('.brainsatplay-default-button')
 
                     let instance = null;
                     appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
@@ -455,7 +457,8 @@ export class AppletManager {
                         }
                     }
 
-                    appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
+                    let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')
+                    infoToggle.onclick = (e) => {
                         if (infoMask.style.opacity != 0) {
                             infoMask.style.opacity = 0
                             infoMask.style.pointerEvents = 'none'
@@ -465,6 +468,12 @@ export class AppletManager {
                             appletMask.style.opacity = 0;
                             appletMask.style.pointerEvents = 'none';
                         }
+                    }
+
+                    thisApplet.tutorialManager.clickToOpen(tutorialButton)
+
+                    tutorialButton.onclick = () => {
+                        infoToggle.click()
                     }
             
                     // Drag functionality

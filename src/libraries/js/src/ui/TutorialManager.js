@@ -1,13 +1,25 @@
 export class TutorialManager {
-    constructor(id, content=[], parentNode=document.body) {
+    constructor(id, content=[], parentNode=document.body, toggleNode=null) {
 
         this.id = id
+        this.props = {
+            id: String(Math.floor(Math.random()*1000000))
+        }
+
         this.tooltipContent = content
+
+        this.open = false
 
         this.tutorialState = 0
 
         this.tutorialContainer = parentNode
 
+        this.clickListeners = []
+        this.resizeListeners = []
+
+        if (toggleNode != null) {
+            this.clickToOpen(toggleNode)
+        }
 
         this.getCookie = (name) => {
             var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
@@ -21,6 +33,22 @@ export class TutorialManager {
         }
     }
 
+    clickToOpen(target) {
+        target.addEventListener('click', this.start)
+        this.clickListeners.push({target, listener: this.start})
+    }
+
+    updateParent = (parentNode) => {
+        let mask = document.getElementById(`${this.props.id}brainsatplay-tutorial-mask-container`)
+        if (mask != null) parentNode.appendChild(mask);
+        this.tutorialContainer = parentNode
+    }
+
+    start = () => {
+        this.reset()
+        this.init()
+    }
+
     reset(){
         this.setTutorialDefault(true)
     }
@@ -29,23 +57,31 @@ export class TutorialManager {
         this.tooltipContent = content
     }
 
-    start = () => {
+    init = () => {
 
         let toShow = this.getTutorialDefault()
-        if (toShow) { // || toShow == null) {
+        if (toShow && !this.open) {
+            this.open = true
             this.setTutorialDefault(true)
             this.tutorialState = 0
-            this.initializeTooltips()
-        }
-        else {
-            this.closeTutorial();
+            this.updateTooltips()            
         }
     }
 
     closeTutorial = () => {
-        this.removeTooltip()
-        this.removeMask()
-        this.setTutorialDefault(false)
+        if (open){
+            this.removeTooltip()
+            this.removeMask()
+            this.setTutorialDefault(false)
+
+            this.resizeListeners.forEach(d => {
+                d.target.removeEventListener('resize', d.listener)
+            })
+            this.resizeListeners = []
+            this.responsive = () => {}
+
+            this.open = false
+        }
     };
 
     setTutorialDefault = (value) => {
@@ -56,8 +92,16 @@ export class TutorialManager {
         return this.getCookie(`showTutorial-${this.id}`) === 'true'
     }
 
-    initializeTooltips = () => {
-        this.updateTooltips()
+
+    responsive = () => {} // Set in updateTooltips()
+
+    deinit = () => {
+        this.clickListeners.forEach(d => {
+            d.target.removeEventListener('click', d.listener)
+        })
+
+        this.clickListeners = []
+        this,closeTutorial()
     }
 
     updateTooltips = (dx=0,start=null) => {
@@ -69,12 +113,18 @@ export class TutorialManager {
         else {
             this.removeTooltip()
             this.removeMask()
+
+            // Remove Listeners
+            this.resizeListeners.forEach(d => {
+                d.target.removeEventListener('resize', d.listener)
+            })
+            this.resizeListeners = []
+
             this.tutorialState = start != null ? start+dx : this.tutorialState+dx
 
             let targetQuery = this.tooltipContent[this.tutorialState].target;
             let target = document.getElementById(targetQuery);
 
-            console.log()
             if (window.getComputedStyle(target).display !== "none"){
 
                 lastState = this.tutorialState === this.tooltipContent.length - 1
@@ -82,7 +132,7 @@ export class TutorialManager {
 
                 target.insertAdjacentHTML('beforeend', 
                 `
-                <div id="tooltip-container" class='brainsatplay-tutorial-tooltip-container'>
+                <div class='brainsatplay-tutorial-tooltip-container'>
                     <div class='brainsatplay-tutorial-tooltip'>
                         ${this.tooltipContent[this.tutorialState].content}
                         <div style="display:flex; justify-content:space-between; pointer-events: auto;">
@@ -115,19 +165,27 @@ export class TutorialManager {
                 tooltip.classList.add('left')
                 tooltipCont.classList.add('left')
 
-                // ADD MASK
+
+                // Set Mask
                 let rect = tooltipCont.getBoundingClientRect();
                 let parentRect = this.tutorialContainer.getBoundingClientRect();
                 let targetRect = target.getBoundingClientRect();
+
+
+                let rectX = Math.max(0,rect.x-parentRect.x)
+                let rectY = Math.max(0,rect.y-parentRect.y)
+                let targetRectX = Math.max(0,targetRect.x-parentRect.x)
+                let targetRectY = Math.max(0,targetRect.y-parentRect.y)
+
                 this.tutorialContainer.insertAdjacentHTML('beforeend', `
-                <div id="brainsatplay-tutorial-mask-container">
-                    <svg viewBox="0 0 ${this.tutorialContainer.offsetWidth} ${this.tutorialContainer.offsetHeight}" id="brainsatplay-tutorial-mask" preserveAspectRatio="none">
+                <div id="${this.props.id}brainsatplay-tutorial-mask-container" class="brainsatplay-tutorial-mask-container">
+                    <svg viewBox="0 0 ${this.tutorialContainer.offsetWidth} ${this.tutorialContainer.offsetHeight}" id="${this.props.id}brainsatplay-tutorial-mask" class="brainsatplay-tutorial-mask" preserveAspectRatio="none">
                         <defs>
                         <mask id="hole">
                             <rect width="100%" height="100%" fill="white"/>
                             <!-- the hole defined a polygon -->
-                            <rect id="brainsatplay-tutorial-mask-${tooltipCont.id}" class="mask-holes" x="${rect.x-parentRect.x}" y="${rect.y-parentRect.y}" width="${rect.width}" height="${rect.height}" fill="black"/>
-                            <rect id="brainsatplay-tutorial-mask-${target.id}" class="mask-holes" x="${targetRect.x-parentRect.x}" y="${targetRect.y-parentRect.y}" width="${targetRect.width}" height="${targetRect.height}" fill="black"/>                        
+                            <rect id="${this.props.id}brainsatplay-tutorial-mask-${tooltipCont.id}" class="mask-holes" x="${rectX}" y="${rectY}" width="${Math.min(rect.width, parentRect.width-rectX)}" height="${Math.min(rect.height, parentRect.height-rectY)}" fill="black"/>
+                            <rect id="${this.props.id}brainsatplay-tutorial-mask-${target.id}" class="mask-holes" x="${targetRectX}" y="${targetRectY}" width="${Math.min(targetRect.width, parentRect.width-targetRectX)}" height="${Math.min(targetRect.height, parentRect.height-targetRectY)}" fill="black"/>                        
                             </mask>
                         </defs>
                         <!-- create a rect, fill it with the color and apply the above mask -->
@@ -136,10 +194,9 @@ export class TutorialManager {
                 </div>
                 `)
 
-
-                // Window Resize
-                window.onresize = () => {
-                    let svg = document.getElementById(`brainsatplay-tutorial-mask-container`).querySelector('svg')
+                this.responsive = () => {
+                    let mask = document.getElementById(`${this.props.id}brainsatplay-tutorial-mask-container`)
+                    let svg = mask.querySelector('svg')
                     svg.setAttribute('viewBox', `0 0 ${this.tutorialContainer.offsetWidth} ${this.tutorialContainer.offsetHeight}`)
                     this.updateTooltipPosition(tooltipCont)
                     this.updateMaskPosition([tooltipCont,target])
@@ -148,22 +205,17 @@ export class TutorialManager {
                 this.updateTooltipPosition(tooltipCont)
                 this.updateMaskPosition([tooltipCont,target])
 
-                // // Hover Events
-                // target.onmousemove = () => {
-                //     this.updateMaskPosition([tooltipCont,target])
-                // }
+                // Resize Events
+                target.addEventListener('resize', this.responsive)
+                this.resizeListeners.push({target:target, listener: this.responsive})
+                tooltipCont.addEventListener('resize', this.responsive)
+                this.resizeListeners.push({target: tooltipCont, listener: this.responsive})
 
-                // target.onmouseleave = () => {
-                //     this.updateMaskPosition([tooltipCont,target])
-                // }
+                if (this.tutorialContainer == document.body){
+                    window.addEventListener('resize', this.responsive)
+                    this.resizeListeners.push({target: window, listener: this.responsive})
+                }
 
-                // tooltipCont.onmousemove = () => {
-                //     this.updateMaskPosition([tooltipCont,target])
-                // }
-
-                // tooltipCont.onmouseleave = () => {
-                //     this.updateMaskPosition([tooltipCont,target])
-                // }
                 } else {
                     this.updateTooltips(1)
                 }
@@ -179,7 +231,7 @@ export class TutorialManager {
 
     removeTooltip = () => {
         let prevSettings = this.tooltipContent[this.tutorialState];
-        let prevToolTip = document.getElementById(prevSettings.target).querySelector('.brainsatplay-tutorial-tooltip')
+        let prevToolTip = document.getElementById(prevSettings.target).querySelector(".brainsatplay-tutorial-tooltip-container")
         if(prevToolTip != null){
             prevToolTip.style.opacity = '0'
             setTimeout(()=>{prevToolTip.remove()}, 1000);
@@ -187,7 +239,7 @@ export class TutorialManager {
     }
 
     removeMask = () => {
-        let mask = document.getElementById(`brainsatplay-tutorial-mask-container`)
+        let mask = document.getElementById(`${this.props.id}brainsatplay-tutorial-mask-container`)
         if (mask != null) mask.remove()
     }
 
@@ -196,71 +248,37 @@ export class TutorialManager {
         let parentRect = this.tutorialContainer.getBoundingClientRect();
         elements.forEach(e => {
             let dimensions = e.getBoundingClientRect();
-            let rect = document.getElementById(`brainsatplay-tutorial-mask-${e.id}`)
-            rect.setAttribute('x',dimensions.x-parentRect.x)
-            rect.setAttribute('y',dimensions.y-parentRect.y)
-            rect.setAttribute('width',dimensions.width)
-            rect.setAttribute('height',dimensions.height)
+            let rect = document.getElementById(`${this.props.id}brainsatplay-tutorial-mask-${e.id}`)
+            let x = Math.max(0,dimensions.x - parentRect.x)
+            let y = Math.max(0,dimensions.y - parentRect.y)
+            rect.setAttribute('x',x)
+            rect.setAttribute('y',y)
+            rect.setAttribute('width',Math.min(dimensions.width, parentRect.width - x))
+            rect.setAttribute('height',Math.min(dimensions.height, parentRect.height - y))
         })
 
     }
 
-    updateTooltipPosition(tooltipCont){
+    findPreferredPosition = (tooltipCont, position) => {
         let tooltip = tooltipCont.querySelector(".brainsatplay-tutorial-tooltip")
+        this.removeDirectionalClasses(tooltip,position)
+        tooltip.classList.add(position)
+        this.removeDirectionalClasses(tooltipCont,position)
+        tooltipCont.classList.add(position)
+
+        let overflow = false
         let rect = tooltipCont.getBoundingClientRect();
+        if (position === 'left') overflow = rect.x + rect.width > this.tutorialContainer.offsetWidth
+        if (position === 'right') overflow =  rect.x < 0
+        if (position === 'up') overflow = rect.y + rect.height > this.tutorialContainer.offsetHeight
+        if (position === 'down') overflow = rect.y < 0
 
-        let overflowRight = rect.x + rect.width > this.tutorialContainer.offsetWidth
-        let overflowLeft = rect.x < 0
-        let overflowBottom = rect.y + rect.height > this.tutorialContainer.offsetHeight
-        let overflowTop = rect.y < 0
+        return !overflow
+    }
 
-        if (overflowRight || overflowLeft || overflowBottom || overflowTop){
-            
-            // Check Rightmost Position Has No Overflow
-            if (overflowRight && !tooltip.classList.contains('right')){
-                this.removeDirectionalClasses(tooltip,'right')
-                tooltip.classList.add('right')
-                this.removeDirectionalClasses(tooltipCont,'right')
-                tooltipCont.classList.add('right')
-                rect = tooltipCont.getBoundingClientRect();
-            } else if (!tooltip.classList.contains('left')) {
-                this.removeDirectionalClasses(tooltip,'left')
-                tooltip.classList.add('left')
-                this.removeDirectionalClasses(tooltipCont,'left')
-                tooltipCont.classList.add('left')
-            }
-
-            overflowLeft = rect.x < 0
-
-            if (overflowLeft && overflowRight && !tooltip.classList.contains('up')) {
-                this.removeDirectionalClasses(tooltip,'up')
-                tooltip.classList.add('up')
-                this.removeDirectionalClasses(tooltipCont,'up')
-                tooltipCont.classList.add('up')
-                rect = tooltipCont.getBoundingClientRect();
-            }
-
-            overflowBottom = rect.y + rect.height > this.tutorialContainer.offsetHeight
-            console.log('overflowBottom', overflowBottom)
-
-            // Check Bottommost Position Has No Overflow
-            if (overflowLeft && overflowRight && overflowBottom && !tooltip.classList.contains('down')){
-                this.removeDirectionalClasses(tooltip,'down')
-                tooltip.classList.add('down')
-                this.removeDirectionalClasses(tooltipCont,'down')
-                tooltipCont.classList.add('down')
-            }
-
-            let overflowTop = rect.y < 0
-
-            if (overflowLeft && overflowRight && overflowBottom && overflowTop){
-                console.log('no good view. Reverting to default...')
-                this.removeDirectionalClasses(tooltip,'left')
-                tooltip.classList.add('left')
-                this.removeDirectionalClasses(tooltipCont,'left')
-                tooltipCont.classList.add('left')
-            }
-        }
+    updateTooltipPosition(tooltipCont){
+        // Find Preferred Position
+        let returned  = ['left', 'right', 'up', 'down', 'left'].find(str => this.findPreferredPosition(tooltipCont, str))
     }
 
     removeDirectionalClasses(e,keep){

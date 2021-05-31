@@ -439,10 +439,10 @@ select {
     text-align: left;
     padding: 15px 25px;
     border-style: 1px solid;
-    border-color: ghostwhite;
+    border-color: black;
     border-radius: 4px;
-    background-color: rgba(0,0,0,0.8);
-    color: white;
+    background-color: rgba(250,250,250,0.95);
+    color: black;
     opacity: 0;
     transition: opacity 1.0s;
 
@@ -475,15 +475,18 @@ select {
 }
 
 .brainsatplay-tutorial-tooltip-container.down{
+    top: 0%;
+    right: 50%;
     padding: 0;
     padding-bottom: 25px;
+    transform: translate(50%,-100%);
 }
 
 .brainsatplay-tutorial-tooltip::after {
     content: " ";
     position: absolute;
     margin-top: -10px;
-    border-width: 5px;
+    border-width: 10px;
     border-style: solid;
 }
 
@@ -524,7 +527,7 @@ select {
 }
 
 
-#brainsatplay-tutorial-mask-container{
+.brainsatplay-tutorial-mask-container{
     margin: auto;
     position: absolute;
     top: 0;
@@ -532,13 +535,13 @@ select {
     width: 33%;
     height: 200px;
     background: transparent;
-    z-index: 100000;
+    z-index: 10;
     width: 100%;
     height: 100%;
     pointer-events: none;
 } 
 
-#brainsatplay-tutorial-mask {
+.brainsatplay-tutorial-mask {
     width: 100%;
     height: 100%;
     top: 0;
