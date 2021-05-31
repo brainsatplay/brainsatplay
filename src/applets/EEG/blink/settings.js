@@ -20,8 +20,8 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'blink', class: brainsatplay.plugins.Blink, params: {}, loop: true},
-        // {id: 'debug', class: brainsatplay.plugins.Debug, params: {}},
+        {id: 'blink', class: brainsatplay.plugins.inputs.Blink, params: {}, loop: true},
+        // {id: 'debug', class: brainsatplay.plugins.outputs.Debug, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [

@@ -53,6 +53,9 @@ import { deviceList } from './devices/deviceList';
 // Plugins
 import {PluginManager} from './PluginManager'
 
+// Event Router
+import { EventRouter } from './EventRouter'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
@@ -176,37 +179,37 @@ export class Session {
 		let newStream;
 
 		if (device.includes('brainstorm')) {
-			// this.deviceStreams.push(
-				newStream = new deviceStream(
-					device,
-					analysis,
-					useFilters,
-					pipeToAtlas,
-					this.info.auth,
-					this
-				)
-			// );
+			newStream = new deviceStream(
+				device,
+				analysis,
+				useFilters,
+				pipeToAtlas,
+				this.info.auth,
+				this
+			)
 		} else {
-			// this.deviceStreams.push(
-				newStream = new deviceStream(
-					device,
-					analysis,
-					useFilters,
-					pipeToAtlas,
-					this.info.auth
-				)
-			// );
+			newStream = new deviceStream(
+				device,
+				analysis,
+				useFilters,
+				pipeToAtlas,
+				this.info.auth
+			)
 		}
 
 		let i = this.deviceStreams.length;
+		let stateId = "device" + (i)
 
 		newStream.onconnect = () => {
 			this.deviceStreams.push(newStream)
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			this.info.nDevices++;
 			if (streamParams[0]) { this.beginStream(streamParams); }
+
+			newStream.info.stateId = stateId
 			//Device info accessible from state
-			this.state.addToState("device" + (i), newStream.info);
+			this.state.addToState(stateId, newStream.info);
+
 			onconnect(newStream);
 			this.onconnected();
 		}
@@ -217,9 +220,9 @@ export class Session {
 			if (newStream.info.analysis.length > 0) {
 				newStream.device.atlas.analyzing = false; //cancel analysis loop
 			}
-
 			this.deviceStreams.splice(i, 1);
-			this.state.removeState("device" + (i))
+			this.state.removeState(stateId)
+
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
 			this.info.nDevices--;
 		}
@@ -1327,7 +1330,7 @@ export class Session {
 	}
 
 
-	createIntro = (applet) => {
+	createIntro = (applet, onsuccess= () => {}) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
@@ -1394,6 +1397,7 @@ export class Session {
 		let multiplayer = modeScreen.querySelector(`[id="${applet.props.id}multiplayer-button"]`)
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
+			onsuccess()
 			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			loginScreen.style.display = 'none'
@@ -1433,6 +1437,7 @@ export class Session {
 		let onjoined = () => {
 			sessionSelection.style.opacity = 0;
 			sessionSelection.style.pointerEvents = 'none'
+			onsuccess()
 		}
 		let onleave = () => {
 			sessionSearch.click()
@@ -1879,11 +1884,12 @@ class deviceStream {
 		};
 
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
-
-		
-			this.deviceConfigs = deviceList
-
+		this.deviceConfigs = deviceList
 		this.pipeToAtlas = pipeToAtlas;
+
+		// Initialize event router for devices (only listen to events internal to plugins for now)
+		this.router = new EventRouter()
+
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -1908,6 +1914,7 @@ class deviceStream {
 
 					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
+					this.router.init(this.device)
 					resolve(true);
 					return true;
 				}
@@ -1920,6 +1927,7 @@ class deviceStream {
 	}
 
 	disconnect = () => {
+		this.router.deinit()
 		this.device.disconnect();
 	}
 

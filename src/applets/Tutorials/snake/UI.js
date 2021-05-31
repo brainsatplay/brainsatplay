@@ -133,16 +133,20 @@ const moveSnake = () => {
 
     up = (userData) => {
         userData.forEach(u => {
-            this.props.dy = -this.props.speed
-            this.props.dx = 0
+            if (u.data === true){
+                this.props.dy = -this.props.speed
+                this.props.dx = 0
+            }
         })
         return userData
     }
 
     down = (userData) => {
         userData.forEach(u => {
-            this.props.dy = this.props.speed
-            this.props.dx = 0
+            if (u.data === true){
+                this.props.dy = this.props.speed
+                this.props.dx = 0
+            }
 
         })
         return userData
@@ -150,16 +154,20 @@ const moveSnake = () => {
 
     left = (userData) => {
         userData.forEach(u => {
-            this.props.dx = -this.props.speed
-            this.props.dy = 0
+            if (u.data === true){
+                this.props.dx = -this.props.speed
+                this.props.dy = 0
+            }
         })
         return userData
     }
 
     right = (userData) => {
         userData.forEach(u => {
-            this.props.dx = this.props.speed
-            this.props.dy = 0
+            if (u.data === true){
+                this.props.dx = this.props.speed
+                this.props.dy = 0
+            }
         })
         return userData
     }

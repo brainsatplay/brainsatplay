@@ -373,9 +373,9 @@ export class AppletManager {
                     var div = document.createElement('div');
 
                     let htmlString = `
-            <div style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.0; transition: opacity 0.5s;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.0;">
+            <div id="${appletDiv.id}-brainsatplay-default-ui" class="brainsatplay-default-interaction-menu" style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.0;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.0;">
                 <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <p>i</p>
+                    <p><strong>i</strong></p>
                 </div>
                 <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <img src="${appletSVG}" 
@@ -390,6 +390,9 @@ export class AppletManager {
                     filter: invert(1);
                     cursor: pointer;
                     padding: 7px;">
+                </div>
+                <div class="brainsatplay-default-help-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <p><strong>?</strong></p>
                 </div>
             </div>
             <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
@@ -411,9 +414,22 @@ export class AppletManager {
             </div>
             `
 
-                    div.innerHTML = htmlString.trim();
-                    div.id = `${appletDiv.id}-brainsatplay-default-ui`
-                    appletDiv.appendChild(div);
+                    appletDiv.insertAdjacentHTML('beforeend', htmlString);
+                    let defaultUI = appletDiv.querySelector(`.brainsatplay-default-interaction-menu`)
+
+                    // Flash UI
+                    defaultUI.style.WebkitTransition = 'opacity 3s';
+                    defaultUI.style.MozTransition = 'opacity 3s';
+                    setTimeout(() => {
+                        defaultUI.style.opacity = 1.0
+                    setTimeout(() => {
+                        defaultUI.style.opacity = 0.0
+                        setTimeout(() => {
+                            defaultUI.style.MozTransition = 'opacity 0.5s';
+                            defaultUI.style.WebkitTransition = 'opacity 0.5s';
+                        }, 1000) // Wait to Reset Transition Time (on hover)
+                    }, 3000) // Wait to Fade Out 
+                }, 1000)
 
                     let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
                     let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
@@ -455,7 +471,8 @@ export class AppletManager {
                         }
                     }
 
-                    appletDiv.querySelector('.brainsatplay-default-info-toggle').onclick = (e) => {
+                    let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')
+                    infoToggle.onclick = (e) => {
                         if (infoMask.style.opacity != 0) {
                             infoMask.style.opacity = 0
                             infoMask.style.pointerEvents = 'none'
@@ -465,6 +482,13 @@ export class AppletManager {
                             appletMask.style.opacity = 0;
                             appletMask.style.pointerEvents = 'none';
                         }
+                    }
+
+                    let tutorialButton = appletDiv.querySelector('.brainsatplay-default-help-toggle')
+                    if (thisApplet.tutorialManager != null) {
+                        thisApplet.tutorialManager.clickToOpen(tutorialButton)
+                    } else {
+                        tutorialButton.remove()
                     }
             
                     // Drag functionality

@@ -1,6 +1,7 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import { Session } from './Session'
+
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
@@ -13,7 +14,7 @@ export class PluginManager{
 
         // Metadata
         this.settings = settings
-        this.registry = {local: {}, brainstorm: {}, devices: {}}
+        this.registry = {local: {}, brainstorm: {}}
 
         // Manage States Locally
         this.state = new StateManager()
@@ -21,7 +22,7 @@ export class PluginManager{
         // Create GUI
         if (this.settings.gui === true){
             this.gui = new GUI({ autoPlace: false });
-            document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
+            document.body.innerHTML += `<div id="brainsatplay-plugin-gui" class='guiContainer'></div>`
             document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
             this.gui.domElement.style.display = 'none'
         }
@@ -31,22 +32,6 @@ export class PluginManager{
             this.session.state.addToState('update',this.session.state.update, (update) => {
 
             if (update.added){
-                // Add Device Listeners
-                update.buffer.forEach(k => {
-                    if (k.includes('device')){
-
-                        // Callback hardcoded for BCI Snake for Now
-                        let deviceCallback = (o) => {
-                            this.state.data['up'].data = (o.data === 1) ? true : false
-                            this.state.data['down'].data = (o.data === 2) ? true : false
-                            this.state.data['left'].data = (o.data === 3) ? true : false
-                            this.state.data['right'].data = (o.data === 4) ? true : false
-                        }
-
-                        this.state.addToState(k,  this.session.state.data[k].states)
-                        this.registry.devices[k] = {count: 1, id: this.state.subscribe(k, deviceCallback), callback: deviceCallback}
-                    }
-                })
 
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
@@ -68,10 +53,6 @@ export class PluginManager{
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
                         this.registry.brainstorm[k].callback()
                         delete this.registry.brainstorm[k]
-                    } else if (k.includes('device')){
-                        if (this.registry.devices[k] != null){
-                            this.state.removeState(k)
-                        }
                     }
                 })
             }
@@ -94,6 +75,14 @@ export class PluginManager{
         // Add Default State
         node.state = {data: null, meta: {}}
 
+        // Instantiate Dependencies
+        let depDict = {}
+        if (node.dependencies){
+            node.dependencies.forEach(d => {
+                depDict[d.id] = this.instantiateNode(d)
+            })
+        }
+        node.dependencies = depDict
 
         return node
     }
@@ -126,6 +115,27 @@ export class PluginManager{
 
         // Declare Applet Info
         if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
+    }
+
+    updateParams(id,name,params) {
+        for (let param in params) this.applets[id].nodes[name].params[param] = params[param]
+    }
+
+    runDefault(id,name,data){
+
+        // Reformat (if necessary)
+        if (
+            (data.constructor != Object) || // If not an object
+            (data.constructor == Object && data.data == null) || // If object without data field
+            (Array.isArray(data) && data[0].data == null) // If array without data field at first index
+            ){
+            data = {data}
+        }
+
+        // Package into Array (if necessary)
+        if (!Array.isArray(data)) data = [data]
+
+        return this.applets[id].nodes[name].default(data)
     }
 
 

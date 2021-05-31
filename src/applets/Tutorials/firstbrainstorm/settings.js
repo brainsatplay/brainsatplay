@@ -2,6 +2,7 @@
 import {UI} from './UI'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
+
 export const settings = {
     name: "My First Brainstorm",
     devices: ["EEG"],
@@ -20,9 +21,9 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'spacebar', class: brainsatplay.plugins.Keyboard, params: {key: 'Space'}},
-        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
-        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Keyboard, params: {key: 'Space'}},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, loop: true},
+        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [
