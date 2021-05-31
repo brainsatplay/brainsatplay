@@ -65,11 +65,11 @@ export class jsEditor {
     }
 
     //Get the text inside of a function (regular or arrow);
-    getFunctionBody = (method) => {
+    static getFunctionBody = (method) => {
         return method.toString().replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
     }
 
-    getFunctionHead = (method) => {
+    static getFunctionHead = (method) => {
         let fnstring = method.toString();
         return fnstring.slice(0,fnstring.indexOf('{') + 1);
     }
