@@ -230,6 +230,14 @@ export class Session {
 		// Wait for Initialization before Connection
 		await newStream.init();
 		await newStream.connect()
+
+		// Initialize Route Management Interface
+		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
+
+		if (Object.keys(newStream.info.events.routes).length > 0){
+			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+		}
+
 		return newStream
 	}
 
@@ -1872,6 +1880,7 @@ class deviceStream {
 			deviceType: null,
 			analysis: analysis, //['eegcoherence','eegfft' etc]
 			session: session,
+			events: new EventRouter(),
 
 			deviceNum: 0,
 
@@ -1886,10 +1895,6 @@ class deviceStream {
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 		this.deviceConfigs = deviceList
 		this.pipeToAtlas = pipeToAtlas;
-
-		// Initialize event router for devices (only listen to events internal to plugins for now)
-		this.router = new EventRouter()
-
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -1914,7 +1919,7 @@ class deviceStream {
 
 					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
-					this.router.init(this.device)
+					this.info.events.init(this.device)
 					resolve(true);
 					return true;
 				}
@@ -1926,8 +1931,13 @@ class deviceStream {
 		return await this.device.connect();
 	}
 
+	configureRoutes = (stateManagerArray, parentNode=document.body) => {
+
+		this.info.events.addControls(stateManagerArray,parentNode)
+    }
+
 	disconnect = () => {
-		this.router.deinit()
+		this.info.events.deinit()
 		this.device.disconnect();
 	}
 

@@ -442,7 +442,8 @@ export class BCIAppManager {
 
         this.session.onconnected = () => {
             try{
-                let device = this.session.deviceStreams[this.session.info.nDevices-1].device
+                let deviceStream = this.session.deviceStreams[this.session.info.nDevices-1]
+                let device = deviceStream.device
                 let contentChild = document.getElementById(`brainsatplay-device-${device.mode.split('_')[0]}`)
                 this.uiFragments.controls = device.addControls(contentChild);
             }

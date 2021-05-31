@@ -48,7 +48,8 @@ export class PluginManager{
             }
 
             if (update.removed){
-                update.buffer.forEach(k => {
+                update.buffer.forEach(k => 
+                    {
                     if (this.registry.brainstorm[k] != null){
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
                         this.registry.brainstorm[k].callback()
@@ -154,7 +155,7 @@ export class PluginManager{
                 if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
 
                 this.gui.addFolder(node.label);
-                this.registry.local[nodeInfo.class.id].gui[node.label] = []
+                this.registry.local[node.label].gui[node.label] = []
 
                 // Capitalize Display Name
                 let folderName = node.label[0].toUpperCase() + node.label.slice(1)
@@ -168,7 +169,7 @@ export class PluginManager{
                 
                 // Numbers and Text
                 if (node.paramOptions[param].options == null){
-                    this.registry.local[nodeInfo.class.id].gui[node.label].push(
+                    this.registry.local[node.label].gui[node.label].push(
                         paramsMenu.add(
                             node.params, 
                             param, 
@@ -180,7 +181,7 @@ export class PluginManager{
                 
                 // Selector
                 else if (node.paramOptions[param].options.length > 1) {
-                    this.registry.local[nodeInfo.class.id].gui[node.label].push(
+                    this.registry.local[node.label].gui[node.label].push(
                         paramsMenu.add(
                             node.params, 
                             param, 
@@ -253,16 +254,15 @@ export class PluginManager{
             let node = nodeInfo.instance
 
             // Add to Registry
-            if (this.registry.local[nodeInfo.class.id] == null){
-                this.registry.local[nodeInfo.class.id] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
-                this.registry.local[nodeInfo.class.id].state = node.state
-
+            if (this.registry.local[node.label] == null){
+                this.registry.local[node.label] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
+                this.registry.local[node.label].state = node.state
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
             else applet.classInstances[nodeInfo.class.id].push(node.label)
 
-            this.registry.local[nodeInfo.class.id].count++
+            this.registry.local[node.label].count++
             this.addToGUI(nodeInfo)
         }
 
@@ -387,12 +387,12 @@ export class PluginManager{
             // Increment the Registry for Each Separate Label (of a particular class)
            
             labels.forEach(label => {
-                this.registry.local[classId].count--
-                if (this.registry.local[classId].count == 0) {
+                this.registry.local[label].count--
+                if (this.registry.local[label].count == 0) {
 
                     // Remove GUI
-                    for (let fname in this.registry.local[classId].gui){
-                        let folder = this.registry.local[classId].gui[fname]
+                    for (let fname in this.registry.local[label].gui){
+                        let folder = this.registry.local[label].gui[fname]
                         folder.forEach(o => {
                             o.remove()
                         })
@@ -409,7 +409,7 @@ export class PluginManager{
                     }
 
                     // Remove Streaming
-                    delete this.registry.local[classId]
+                    delete this.registry.local[label]
                     this.session.removeStreaming(label);
                     this.session.removeStreaming(label, null, this.state);
                 } else {
@@ -423,7 +423,7 @@ export class PluginManager{
                         })
                     }
                     if (localSubs != null){
-                        applet.subscriptions.local[label].forEach(id =>{
+                        applet.subscriptions.local[label].forEach(id => {
                             this.session.removeStreaming(label, id, this.state);
                         })
                     }
@@ -451,7 +451,7 @@ export class PluginManager{
 
             if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
-            this.registry.local[nodeInfo.class.id].callback = () => {
+            this.registry.local[id].callback = () => {
 
                 if (this.session.state.data[id] != null){
                     if (callbacks){
@@ -466,13 +466,13 @@ export class PluginManager{
 
 
         if (found == null) {
-            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[nodeInfo.class.id].state, this.registry.local[nodeInfo.class.id].callback))
+            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].state, this.registry.local[id].callback))
         } else {
-            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.class.id].callback))
+            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
         }
 
         // Pass Callback to Send Existing Session Data
-        return () => {this.registry.local[nodeInfo.class.id].callback(this.session.state.data[id])}
+        return () => {this.registry.local[id].callback(this.session.state.data[id])}
             
     }
 
@@ -488,7 +488,7 @@ export class PluginManager{
             this.session.addStreamFunc(id, callback)
         }
         
-        this.registry.local[nodeInfo.class.id].callback = () => {
+        this.registry.local[id].callback = () => {
             if (this.session.state.data[id] != null){
                 if (callbacks){
                     let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
@@ -499,10 +499,10 @@ export class PluginManager{
             }
         }
 
-        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[nodeInfo.class.id].callback))
+        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
         
         // Pass Callback to Send Existing Stream Data
-        return () => {this.registry.local[nodeInfo.class.id].callback(this.session.state.data[id])}
+        return () => {this.registry.local[id].callback(this.session.state.data[id])}
 }
 
 }

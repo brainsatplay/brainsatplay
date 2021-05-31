@@ -136,6 +136,8 @@ export class StateManager {
         if(key !== null) {
             if(this.listener.hasKey(key)){
                 this.listener.removeFuncs(key, responseIdx);
+            } else {
+                console.error("key does not exist")
             }
         }
         else{console.error("provide key")}
