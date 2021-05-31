@@ -54,6 +54,9 @@ categories.forEach((category,indOut) => {
   })
   bar.then(() => {
     if (indOut === categories.length-1){
+    for(const prop in appletDict){
+      appletDict[prop]['folderUrl'] = appletDict[prop]['folderUrl'].replace(/\\/g,'/');
+    }
     fs.writeFile('./src/platform/appletManifest.js', 'export const appletManifest = ' + JSON.stringify(appletDict), err => {
       if (err) {
         console.error(err)
