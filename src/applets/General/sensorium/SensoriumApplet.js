@@ -283,7 +283,8 @@ export class SensoriumApplet {
                     content: `
                     <h3>Choose your Effects</h3>
                     <hr>
-                    <p>This is where you choose effects.</p>
+                    <p>This is where you choose feedback effects, they will be applied
+                    if a data stream is available. For audio feedback select 'Audio FFT' and a sound, or use your Microphone!</p>
                     `
                 }, 
                 {
