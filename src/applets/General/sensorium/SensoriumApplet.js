@@ -259,16 +259,16 @@ export class SensoriumApplet {
                             </div>
                         </div>
                         <div id='${props.id}shadereditor' style="position: relative; width: 100%; height: 100%; display:none;">
-                            <div id='${props.id}quickref' style='position:absolute; background-color:white; color:black; z-index:10; display:none; font-size:16px bold; height:80%; overflow-y:scroll;'>
+                            <div id='${props.id}quickref' style='position:absolute; background-color:black; color:white; z-index:10; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
                                 <style>
                                     table tr th {
-                                        border: 2px solid black;
+                                        border: 2px solid gold;
                                     }
                                     table tr td {
-                                        border: 1px solid black;
+                                        border: 1px solid blue;
                                     }
                                 </style>
-                                Quick Reference Sheet:
+                                Shader Quick Reference Sheet. For common WebGL see: <a style='color:lightgreen;' href='https://www.khronos.org/files/webgl/webgl-reference-card-1_0.pdf'>WebGL Reference Sheet</a>
                                 <table style='font-size:12px;'>
                                     <tr><th width='30%'>Uniforms</th><th width='20%'>Ranges</th><th width='50%'>Descriptions</th></tr>
                                     <tr><td>uniform float iAudioFFT[256]</td><td>0-255</td><td>Audio power spectrum, higher index = higher frequencies</td></tr>
