@@ -101,7 +101,7 @@ export class TutorialManager {
         })
 
         this.clickListeners = []
-        this,closeTutorial()
+        this.closeTutorial()
     }
 
     updateTooltips = (dx=0,start=null) => {
