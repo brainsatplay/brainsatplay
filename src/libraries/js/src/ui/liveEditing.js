@@ -43,7 +43,7 @@ export class jsEditor {
             newFunc = undefined;
             try{ 
                 let text = document.getElementById(this.randomid+'editor').value;
-                newFunc = eval(text.replace(/window/g,'err').replace(/gapi/g,'err'));
+                newFunc = eval(this.functionHead+text.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
             } 
             catch (er) {}
             if(newFunc)
@@ -64,7 +64,7 @@ export class jsEditor {
         editor.parentNode.removeChild(editor);   
     }
 
-    //Get the text inside of a function
+    //Get the text inside of a function (regular or arrow);
     getFunctionBody = (method) => {
         return method.toString().replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
     }
