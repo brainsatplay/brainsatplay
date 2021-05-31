@@ -273,8 +273,6 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-
-            this.session.createIntro(this)
             
             // Tutorial
             let tooltips = [
@@ -297,9 +295,12 @@ export class SensoriumApplet {
                 },
               ]
             this.session.tutorials.setTooltipContent(tooltips)
-            console.log(this.session.tutorials)
-            this.session.tutorials.reset()
-            this.session.tutorials.start()
+
+            this.session.createIntro(this, () => {
+                this.session.tutorials.reset()
+                this.session.tutorials.start()
+            })
+
 
             // Shader Live Coding
             // Code Editor from https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/

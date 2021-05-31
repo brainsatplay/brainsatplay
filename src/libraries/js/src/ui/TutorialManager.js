@@ -94,7 +94,10 @@ export class TutorialManager {
         // this.tutorialContainer.innerHTML = ''
         this.tutorialContainer.style.opacity = 0;
         this.tutorialContainer.style.pointerEvents = 'none';
-        if (tooltips) this.removeTooltip()
+        if (tooltips) {
+            this.removeTooltip()
+            this.removeMask()
+        }
         this.setTutorialDefault(false)
     };
 
@@ -157,17 +160,17 @@ export class TutorialManager {
         if (lastState) this.closeTutorial()
         else {
             this.removeTooltip()
+            this.removeMask()
             this.tutorialState = start != null ? start+dx : this.tutorialState+dx
 
             let targetQuery = this.tooltipContent[this.tutorialState].target;
             let target = document.getElementById(targetQuery);
                 lastState = this.tutorialState === this.tooltipContent.length - 1
                 let advanceLabel = (!lastState) ? "Next" : "Start Playing"
-            
 
                 target.insertAdjacentHTML('beforeend', 
                 `
-                <div class='brainsatplay-tutorial-tooltip-container'>
+                <div id="tooltip-container" class='brainsatplay-tutorial-tooltip-container'>
                     <div class='brainsatplay-tutorial-tooltip'>
                         ${this.tooltipContent[this.tutorialState].content}
                         <div style="display:flex; justify-content:space-between; pointer-events: auto;">
@@ -204,15 +207,64 @@ export class TutorialManager {
 
                 let rect = tooltipCont.getBoundingClientRect();
                 tooltip.classList.add('left')
+                tooltipCont.classList.add('left')
+                
                 if (rect.x + rect.width > window.innerWidth){
-                    tooltip.classList.remove('right')
+                    tooltip.classList.remove('left')
+                    tooltipCont.classList.remove('left')
                     tooltip.classList.add('right')
+                    tooltipCont.classList.remove('right')
                     tooltipCont.style.transform = 'translate(-100%,-50%)'
                     tooltipCont.style.right = 'auto'
                     tooltipCont.style.left = '0'
                     tooltip.style.left = '0'
                     tooltip.style.right = '25px'
                 }
+
+                // ADD MASK
+                let targetRect = target.getBoundingClientRect();
+                document.body.insertAdjacentHTML('beforeend', `
+                <div id="brainsatplay-tutorial-mask-container">
+                    <svg viewBox="0 0 ${window.innerWidth} ${window.innerHeight}" id="brainsatplay-tutorial-mask" preserveAspectRatio="none">
+                        <defs>
+                        <mask id="hole">
+                            <rect width="100%" height="100%" fill="white"/>
+                            <!-- the hole defined a polygon -->
+                            <rect id="brainsatplay-tutorial-mask-${tooltipCont.id}" class="mask-holes" x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" fill="black"/>
+                            <rect id="brainsatplay-tutorial-mask-${target.id}" class="mask-holes" x="${targetRect.x}" y="${targetRect.y}" width="${targetRect.width}" height="${targetRect.height}" fill="black"/>                        
+                            </mask>
+                        </defs>
+                        <!-- create a rect, fill it with the color and apply the above mask -->
+                        <rect class="mask-fill" fill="rgba(0,0,0,0.7)" width="100%" height="100%" mask="url(#hole)" />
+                    </svg>
+                </div>
+                `)
+
+
+                // Window Resize
+                window.onresize = () => {
+                    let svg = document.getElementById(`brainsatplay-tutorial-mask-container`).querySelector('svg')
+                    svg.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`)
+                    this.updateMaskPosition([tooltipCont,target])
+                }
+
+
+                // // Hover Events
+                // target.onmousemove = () => {
+                //     this.updateMaskPosition([tooltipCont,target])
+                // }
+
+                // target.onmouseleave = () => {
+                //     this.updateMaskPosition([tooltipCont,target])
+                // }
+
+                // tooltipCont.onmousemove = () => {
+                //     this.updateMaskPosition([tooltipCont,target])
+                // }
+
+                // tooltipCont.onmouseleave = () => {
+                //     this.updateMaskPosition([tooltipCont,target])
+                // }
             }
         }
     }
@@ -230,5 +282,23 @@ export class TutorialManager {
             prevToolTip.style.opacity = '0'
             setTimeout(()=>{prevToolTip.remove()}, 1000);
         }  
+    }
+
+    removeMask = () => {
+        let mask = document.getElementById(`brainsatplay-tutorial-mask-container`)
+        if (mask != null) mask.remove()
+    }
+
+    updateMaskPosition = (elements) => {
+
+        elements.forEach(e => {
+            let dimensions = e.getBoundingClientRect();
+            let rect = document.getElementById(`brainsatplay-tutorial-mask-${e.id}`)
+            rect.setAttribute('x',dimensions.x)
+            rect.setAttribute('y',dimensions.y)
+            rect.setAttribute('width',dimensions.width)
+            rect.setAttribute('height',dimensions.height)
+        })
+
     }
 }

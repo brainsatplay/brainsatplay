@@ -1329,7 +1329,7 @@ export class Session {
 	}
 
 
-	createIntro = (applet) => {
+	createIntro = (applet, onsuccess= () => {}) => {
 
 		document.getElementById(`${applet.props.id}`).innerHTML += `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
@@ -1396,6 +1396,7 @@ export class Session {
 		let multiplayer = modeScreen.querySelector(`[id="${applet.props.id}multiplayer-button"]`)
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
+			onsuccess()
 			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			loginScreen.style.display = 'none'
@@ -1435,6 +1436,7 @@ export class Session {
 		let onjoined = () => {
 			sessionSelection.style.opacity = 0;
 			sessionSelection.style.pointerEvents = 'none'
+			onsuccess()
 		}
 		let onleave = () => {
 			sessionSearch.click()
