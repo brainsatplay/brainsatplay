@@ -23,13 +23,13 @@ export class bci2000Plugin {
         this.info = info;
         this.info.states = {
             clicks: [
-                false,
-                false,
-                false,
-                false
+                {data: false, timestamp: Date.now()},
+                {data: false, timestamp: Date.now()},
+                {data: false, timestamp: Date.now()},
+                {data: false, timestamp: Date.now()}
             ],
-            timestamp: Date.now()
         }
+
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
@@ -94,10 +94,14 @@ export class bci2000Plugin {
                 if(this.device.states?.StimulusCode != undefined) {
                     // Clear States
                     let clickIdx = this.device.states?.StimulusCode[0] - 1
-                    if (clickIdx >= 0 && this.info.states.clicks[clickIdx] != true){ // Detect change
-                        this.info.states.clicks = this.info.states.clicks.map(v => false) // Reset all (clicks are exclusive)
-                        this.info.states.clicks[clickIdx] = true
-                        this.info.states.timestamp = Date.now()
+                    if (clickIdx >= 0 && this.info.states.clicks[clickIdx].data != true){ // Detect change
+                        this.info.states.clicks = this.info.states.clicks.map(d => 
+                            {
+                                d.data = false
+                                return d
+                            }) // Reset all (clicks are exclusive)
+                        this.info.states.clicks[clickIdx].data = true 
+                        this.info.states.clicks[clickIdx].timestamp = Date.now()
                     }
                 }
                

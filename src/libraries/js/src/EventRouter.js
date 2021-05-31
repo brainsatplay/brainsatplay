@@ -3,45 +3,40 @@ import { StateManager } from './ui/StateManager'
 
 export class EventRouter{
     constructor(){
+        this.device = null
         this.state = new StateManager()
+
+        this.routes = ['clicks']
     }
 
-    start(device, targetState){
-        let deviceStates = device.info.states
-
-        console.log(device.atlas)
-        // Bind Available Non-Device Events to Clicks
-        let keysToBind = Object.keys(targetState.data)
-        keysToBind = keysToBind.filter(k => !k.includes('device') && !this.clicks.includes(k))
-        for (let idx = 0; idx < deviceStates.clicks.length; idx++){
-            if (keysToBind.length > idx){
-                let key = keysToBind[idx]
-                this.clicks.push({key, idx})
-            } else {
-                console.log('all events have been bound to clicks')
-            }
-        }
-
-        let deviceCallback = (o) => {this.update(o,targetState.data)}
-
-        this.state.addToState('clicks', device.info.states.clicks)
-        this.state.subscribe('clicks', deviceCallback) // On New Device State, Update Clicks in Target State Object
-    }
-
-    // Route Events
-    update(deviceInfo,targetState) {
-
-        // Update Clicks
-        this.clicks.forEach(d => {
-            let newState = deviceInfo.states.clicks[d.idx]
-            if (typeof newState === "boolean"){
-                targetState.data[d.key].data = newState
-                if (newState === true) { // Only on change
-                    console.log(d.key + '!')
+    init(device){
+        this.device = device
+        this.state.addToState(this.device.mode, this.device.info.states)
+        this.routes.forEach(str => {
+            if (this.device.info.states){
+                let states = this.device.info.states[str]
+                if (states != null){
+                    if (!Array.isArray(states)) states = [states]
+                    states.forEach((state,i) => {
+                        this.device.atlas.data.states[str].push(state)
+                        this.state.addToState(str+i, state)
+                        let deviceCallback = (o) => {this.update(o, this.device.atlas.data.states[str][i])}
+                        this.state.subscribe(str+i, deviceCallback)
+                    })
                 }
-            } else {
-                console.log('invalid click type')
             }
         })
+    }
+
+    deinit = () => {}
+
+    // Route Events to Atlas
+    update(o,target) {
+        let newState = o.data
+        target = newState
+    }
+
+    assign(state,){
+
     }
 }

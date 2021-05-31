@@ -83,7 +83,10 @@ export class DataAtlas {
 			emg:[],
 			ecg:[],
 			eyetracker:[],
-			other:{notes:[],games:{}}
+			other:{notes:[],games:{}},
+			states: {
+				clicks: []
+			}
 		};
 
         Object.assign(this.data,initialData);

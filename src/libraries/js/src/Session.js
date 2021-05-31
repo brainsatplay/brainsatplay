@@ -1914,7 +1914,7 @@ class deviceStream {
 
 					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
-					this.router.add(this.device)
+					this.router.init(this.device)
 					resolve(true);
 					return true;
 				}
@@ -1927,7 +1927,7 @@ class deviceStream {
 	}
 
 	disconnect = () => {
-		this.router.remove(this.device)
+		this.router.deinit()
 		this.device.disconnect();
 	}
 
