@@ -39,24 +39,30 @@ export class PluginManager{
                 update.buffer.forEach(k => {
                     if (k.includes('device')){
 
-                        // Callback hardcoded for BCI Snake for Now
+                        // Initialize Device Bindings
+                        let deviceStates =  this.session.state.data[k].states
+
+                        // Bind Clicks to Available Non-Device Events
+                        let keysToBind = Object.keys(this.state.data)
+                        keysToBind = keysToBind.filter(k => !k.includes('device') && !this.bindings.clicks.includes(k))
+                        for (let idx = 0; idx < deviceStates.clicks.length; idx++){
+                            if (keysToBind.length > idx){
+                                let key = keysToBind[idx]
+                                this.bindings.clicks.push({key, idx})
+                            } else {
+                                console.log('all events have been bound')
+                            }
+                        }
+
                         let deviceCallback = (o) => {
 
-                            // Check Clicks (TO-DO: Configure to bind clicks based on the bandwidth of the input)
-                            if (this.bindings.clicks.length === 0){
-                                let keysToBind = Object.keys(this.state.data)
-                                console.log('data to bind', keysToBind)
-                                Object.keys(keysToBind)
-                                keysToBind.splice(0,4)
-                                console.log('data to bind', keysToBind)
-                                // keysToBind.forEach((k,i) => {
-                                //     this.state.data[k].data = o.clicks[i]
-                                // })
-                                this.state.data['up'].data = o.clicks[0]
-                                this.state.data['down'].data = o.clicks[1]
-                                this.state.data['left'].data = o.clicks[2]
-                                this.state.data['right'].data = o.clicks[3]
-                            }
+                            // Update Bindings
+                            this.bindings.clicks.forEach(d => {
+                                this.state.data[d.key].data = o.clicks[d.idx]
+                                if (o.clicks[d.idx] === true) {
+                                    console.log(d.key + '!')
+                                }
+                            })
                         }
 
                         this.state.addToState(k,  this.session.state.data[k].states)

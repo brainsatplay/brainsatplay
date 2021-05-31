@@ -93,11 +93,11 @@ export class bci2000Plugin {
                 // States
                 if(this.device.states?.StimulusCode != undefined) {
                     // Clear States
-                    this.info.states.clicks = this.info.states.clicks.map(v => false)
                     let clickIdx = this.device.states?.StimulusCode[0] - 1
-                    if (code >= 0){
+                    if (clickIdx >= 0 && this.info.states.clicks[clickIdx] != true){ // Detect change
+                        this.info.states.clicks = this.info.states.clicks.map(v => false) // Reset all (clicks are exclusive)
                         this.info.states.clicks[clickIdx] = true
-                        console.log(this.info.states.clicks)
+                        this.info.states.timestamp = Date.now()
                     }
                 }
                
