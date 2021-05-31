@@ -21,7 +21,15 @@ export class bci2000Plugin {
         info.sps = 256 // Arbitrary
         info.deviceType = 'eeg'
         this.info = info;
-        this.info.states = {data: null, meta: {}}
+        this.info.states = {
+            clicks: [
+                false,
+                false,
+                false,
+                false
+            ],
+            timestamp: Date.now()
+        }
         return new Promise((resolve, reject) => {
 
         if (this.mode === 'bci2k_Operator') {
@@ -83,7 +91,15 @@ export class bci2000Plugin {
             this.device.onGenericSignal = (raw) => {
 
                 // States
-                if(this.device.states?.StimulusCode != undefined) this.info.states.data = this.device.states?.StimulusCode[0] || 0;
+                if(this.device.states?.StimulusCode != undefined) {
+                    // Clear States
+                    this.info.states.clicks = this.info.states.clicks.map(v => false)
+                    let clickIdx = this.device.states?.StimulusCode[0] - 1
+                    if (code >= 0){
+                        this.info.states.clicks[clickIdx] = true
+                        console.log(this.info.states.clicks)
+                    }
+                }
                
                 // Raw Data
                 if(this.info.useAtlas) {

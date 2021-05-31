@@ -15,13 +15,17 @@ export class PluginManager{
         this.settings = settings
         this.registry = {local: {}, brainstorm: {}, devices: {}}
 
+        this.bindings = {
+            clicks: []
+        }
+
         // Manage States Locally
         this.state = new StateManager()
 
         // Create GUI
         if (this.settings.gui === true){
             this.gui = new GUI({ autoPlace: false });
-            document.body.innerHTML += `<div class='guiContainer' style="position:absolute; top: 0px; right: 25px; z-index: 999;"></div>`
+            document.body.innerHTML += `<div id="brainsatplay-plugin-gui" class='guiContainer'></div>`
             document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
             this.gui.domElement.style.display = 'none'
         }
@@ -37,10 +41,22 @@ export class PluginManager{
 
                         // Callback hardcoded for BCI Snake for Now
                         let deviceCallback = (o) => {
-                            this.state.data['up'].data = (o.data === 1) ? true : false
-                            this.state.data['down'].data = (o.data === 2) ? true : false
-                            this.state.data['left'].data = (o.data === 3) ? true : false
-                            this.state.data['right'].data = (o.data === 4) ? true : false
+
+                            // Check Clicks (TO-DO: Configure to bind clicks based on the bandwidth of the input)
+                            if (this.bindings.clicks.length === 0){
+                                let keysToBind = Object.keys(this.state.data)
+                                console.log('data to bind', keysToBind)
+                                Object.keys(keysToBind)
+                                keysToBind.splice(0,4)
+                                console.log('data to bind', keysToBind)
+                                // keysToBind.forEach((k,i) => {
+                                //     this.state.data[k].data = o.clicks[i]
+                                // })
+                                this.state.data['up'].data = o.clicks[0]
+                                this.state.data['down'].data = o.clicks[1]
+                                this.state.data['left'].data = o.clicks[2]
+                                this.state.data['right'].data = o.clicks[3]
+                            }
                         }
 
                         this.state.addToState(k,  this.session.state.data[k].states)
@@ -94,6 +110,14 @@ export class PluginManager{
         // Add Default State
         node.state = {data: null, meta: {}}
 
+        // Instantiate Dependencies
+        let depDict = {}
+        if (node.dependencies){
+            node.dependencies.forEach(d => {
+                depDict[d.id] = this.instantiateNode(d)
+            })
+        }
+        node.dependencies = depDict
 
         return node
     }
@@ -126,6 +150,27 @@ export class PluginManager{
 
         // Declare Applet Info
         if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
+    }
+
+    updateParams(id,name,params) {
+        for (let param in params) this.applets[id].nodes[name].params[param] = params[param]
+    }
+
+    runDefault(id,name,data){
+
+        // Reformat (if necessary)
+        if (
+            (data.constructor != Object) || // If not an object
+            (data.constructor == Object && data.data == null) || // If object without data field
+            (Array.isArray(data) && data[0].data == null) // If array without data field at first index
+            ){
+            data = {data}
+        }
+
+        // Package into Array (if necessary)
+        if (!Array.isArray(data)) data = [data]
+
+        return this.applets[id].nodes[name].default(data)
     }
 
 

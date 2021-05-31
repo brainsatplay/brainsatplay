@@ -6,7 +6,7 @@ import { StateManager } from "./ui/StateManager";
 import { WorkerManager } from "./Workers"
 import { PluginManager } from "./PluginManager"
 
-import { Blink } from "./plugins/input/Blink"
+import { Blink } from "./plugins/inputs/Blink"
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -36,9 +36,16 @@ export class DataAtlas {
 			console.log('Workers already created.')
 		}
 
-		this.plugins = {nodes: {}, manager: null}
-		this.plugins.manager = new PluginManager({atlas: this}, {gui: false})
-		this.plugins.nodes['blink'] = this.plugins.manager.instantiateNode({id: 'blink', class: Blink})
+		this.graphs = new PluginManager({atlas: this}, {gui: false})
+		this.graphs.add(String(Math.floor(Math.random()*1000000)), 'DataAtlas', 
+		[
+			{
+				id: 'mygraph',
+				nodes: [
+					{id: 'blink', class: Blink},
+				],
+			}]
+		)
 
 		this.state = new StateManager({
 			deviceConnected: false,
@@ -730,8 +737,9 @@ export class DataAtlas {
 
 	// Check whether the user is blinking
 	getBlink = (params = {}) => {
-		for (let param in params) this.plugins.nodes['blink'].params[param] = params[param]
-		let blink = this.plugins.nodes['blink'].default([{data: this.data}])
+		this.graphs.updateParams(this.props.id, 'blink', params)
+		let blink = this.graphs.runDefault(this.props.id, 'blink', this.data)
+		console.log(blink)
 		return blink.data
 	}
 

@@ -549,3 +549,13 @@ select {
     position: absolute;
     z-index:1;
 }
+
+
+
+/* Plugin GUI */ 
+#brainsatplay-plugin-gui {
+    position:absolute; 
+    bottom: 0px; 
+    right: 25px; 
+    z-index: 100;
+}

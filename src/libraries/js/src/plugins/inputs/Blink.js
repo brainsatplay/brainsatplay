@@ -37,13 +37,7 @@ export class Blink{
             }
         }
 
-        this.dataQuality = new DataQuality('dataquality', this.session, {})
-        // Set Default Parameters
-        for (let param in this.dataQuality.paramOptions){
-            if (this.dataQuality.params[param] == null) this.dataQuality.params[param] = this.dataQuality.paramOptions[param].default
-        }
-        // Add Default State
-        this.dataQuality.state = {data: null, meta: {}}
+        this.dependencies = [{id: 'dataquality', class: DataQuality, params: {}}] // Converted to a dictionary of active instances
 
         this.lastBlink = Date.now()
     }
@@ -61,7 +55,7 @@ export class Blink{
 
                 if (this.params.method === 'Threshold'){
                     let sideChannels = [['AF7','FP1'],['AF8','FP2']]
-                    let quality = this.dataQuality.default([{data: this.session.atlas.data, meta:{}}])[0].data
+                    let quality = this.dependencies['dataquality'].default([{data: this.session.atlas.data, meta:{}}])[0].data
                     if (Date.now() - this.lastBlink > this.params.blinkDuration){
                         sideChannels.forEach((channels,ind) => {
                             channels.forEach(tag => {

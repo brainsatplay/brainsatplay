@@ -19,8 +19,8 @@ export const settings = {
       id: 'mygraph',
       nodes: [
         {id: 'ui', class: UI, params: {}},
-        {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
-        {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, loop: true},
+        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
       ],
       edges: [
         {

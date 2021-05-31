@@ -470,10 +470,14 @@ export class AppletManager {
                         }
                     }
 
-                    thisApplet.tutorialManager.clickToOpen(tutorialButton)
+                    if (thisApplet.tutorialManager != null) {
+                        thisApplet.tutorialManager.clickToOpen(tutorialButton)
 
-                    tutorialButton.onclick = () => {
-                        infoToggle.click()
+                        tutorialButton.onclick = () => {
+                            infoToggle.click()
+                        }
+                    } else {
+                        tutorialButton.remove()
                     }
             
                     // Drag functionality
