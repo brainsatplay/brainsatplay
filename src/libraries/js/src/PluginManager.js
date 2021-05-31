@@ -1,6 +1,7 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import { Session } from './Session'
+
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
@@ -13,11 +14,7 @@ export class PluginManager{
 
         // Metadata
         this.settings = settings
-        this.registry = {local: {}, brainstorm: {}, devices: {}}
-
-        this.bindings = {
-            clicks: []
-        }
+        this.registry = {local: {}, brainstorm: {}}
 
         // Manage States Locally
         this.state = new StateManager()
@@ -35,40 +32,6 @@ export class PluginManager{
             this.session.state.addToState('update',this.session.state.update, (update) => {
 
             if (update.added){
-                // Add Device Listeners
-                update.buffer.forEach(k => {
-                    if (k.includes('device')){
-
-                        // Initialize Device Bindings
-                        let deviceStates =  this.session.state.data[k].states
-
-                        // Bind Clicks to Available Non-Device Events
-                        let keysToBind = Object.keys(this.state.data)
-                        keysToBind = keysToBind.filter(k => !k.includes('device') && !this.bindings.clicks.includes(k))
-                        for (let idx = 0; idx < deviceStates.clicks.length; idx++){
-                            if (keysToBind.length > idx){
-                                let key = keysToBind[idx]
-                                this.bindings.clicks.push({key, idx})
-                            } else {
-                                console.log('all events have been bound')
-                            }
-                        }
-
-                        let deviceCallback = (o) => {
-
-                            // Update Bindings
-                            this.bindings.clicks.forEach(d => {
-                                this.state.data[d.key].data = o.clicks[d.idx]
-                                if (o.clicks[d.idx] === true) {
-                                    console.log(d.key + '!')
-                                }
-                            })
-                        }
-
-                        this.state.addToState(k,  this.session.state.data[k].states)
-                        this.registry.devices[k] = {count: 1, id: this.state.subscribe(k, deviceCallback), callback: deviceCallback}
-                    }
-                })
 
                 // Apply Proper Stream Callback
                 for (let s in this.registry.local){
@@ -90,10 +53,6 @@ export class PluginManager{
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
                         this.registry.brainstorm[k].callback()
                         delete this.registry.brainstorm[k]
-                    } else if (k.includes('device')){
-                        if (this.registry.devices[k] != null){
-                            this.state.removeState(k)
-                        }
                     }
                 })
             }
