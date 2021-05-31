@@ -43,7 +43,7 @@ export class jsEditor {
             newFunc = undefined;
             try{ 
                 let text = document.getElementById(this.randomid+'editor').value;
-                newFunc = eval(text.replace(/window./g,'err').replace(/gapi./g,'err'));
+                newFunc = eval(text.replace(/window/g,'err').replace(/gapi/g,'err'));
             } 
             catch (er) {}
             if(newFunc)
@@ -126,7 +126,7 @@ export class htmlEditor {
 
         document.getElementById(this.randomId+'submit').onclick = () => {
             this.targetDiv.innerHTML = document.getElementById(this.randomId+'editor').value;
-            try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window./g,'err').replace(/gapi./g,'err')); } catch (er) {alert('Script error: ', er);}
+            try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
         }
 
         document.getElementById(this.randomId+'reset').onclick = () => {
