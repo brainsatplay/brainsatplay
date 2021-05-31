@@ -271,6 +271,8 @@ export class SensoriumApplet {
                                 Shader Quick Reference Sheet. For common WebGL see: <a style='color:lightgreen;' href='https://www.khronos.org/files/webgl/webgl-reference-card-1_0.pdf'>WebGL Reference Sheet</a>
                                 <table style='font-size:12px;'>
                                     <tr><th width='30%'>Uniforms</th><th width='20%'>Ranges</th><th width='50%'>Descriptions</th></tr>
+                                    <tr><td>uniform float iTime</td><td>0-</td><td>Time increment</td></tr>
+                                    <tr><td>uniform vec2 iResolution</td><td>0-</td><td>Viewport Resolution</td></tr>
                                     <tr><td>uniform float iAudioFFT[256]</td><td>0-255</td><td>Audio power spectrum, higher index = higher frequencies</td></tr>
                                     <tr><td>uniform float iHEG</td><td>-5-+5 typical</td><td>HEG smoothed ratio score, begins at 0</td></tr>
                                     <tr><td>uniform float iHRV</td><td>0-50(bpm change)</td><td>Heart Rate Variability</td></tr>
@@ -433,18 +435,18 @@ export class SensoriumApplet {
 
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
-                selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
+                selector.innerHTML += `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`
             });
             selector.innerHTML += `<option value='fromtext'>Blank Shader</option>`
             
-            this.currentShader = this.shaders[selector.value];
+            this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
             this.swapShader();
             
             
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
                     // document.getElementById(props.id+'textshader').style.display = '';
-                    
+                this.startTime = Date.now(); //reset start time
                 document.getElementById(props.id+'fragmentshader').value = `
 #define FFTLENGTH 256
 precision mediump float;
@@ -468,10 +470,18 @@ void main(){
                     this.editorhidden = false;
                 }
                 else if (e.target.value != 'Gallery'){
-                    this.currentShader = this.shaders[selector.value]
+                    for(const prop in this.shaders) {
+                        if(e.target.value === this.shaders[prop].name) {
+                            this.currentShader = this.shaders[prop];
+                            break;
+                        }
+                    }
+                    if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
                     this.swapShader();
                     this.setEffectOptions();
-                } else {
+                } 
+                else {
+                   
                     // document.getElementById(props.id+'textshader').style.display = 'none';
                 }
             }
@@ -616,7 +626,7 @@ void main(){
     });
 
         // Animate
-        this.startTime = Date.now() - Math.random()*1000000;
+        this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
 
