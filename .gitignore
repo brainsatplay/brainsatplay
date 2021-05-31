@@ -8,6 +8,7 @@ _site
 .sass-cache
 .jekyll-metadata
 .idea
+.env
 
 # Python
 .eggs

@@ -5,7 +5,12 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const fs = require('fs')
 const path = require('path')
+
 require('dotenv').config()
+let secure
+if (process.env.SECURE == null) secure = true
+else secure = process.env.SECURE === 'true'
+// require('dotenv').config({ path: `.env2` })
 // const brainsatplay = require('brainsatplay')
 
 const brainstorm = require('./src/libraries/js/src/brainstorm/Brainstorm.js')
@@ -73,7 +78,8 @@ const key = fs.readFileSync('./snowpack.key');
 var credentials = {key, cert};
 
 // Settings
-const protocol = 'https';
+let protocol = (secure) ? 'https' : 'http'
+
 const url = 'localhost'
 var port = normalizePort(process.env.PORT || '443'); // Secure
 
@@ -100,6 +106,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //Listen to Port for HTTP Requests
 app.use(function(req, res, next) {
   const validOrigins = [
+    `https://10.0.0.22`,
     `http://localhost`,
     `https://localhost`,
     'https://brainsatplay.azurewebsites.net',

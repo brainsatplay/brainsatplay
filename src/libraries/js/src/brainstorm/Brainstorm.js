@@ -38,7 +38,8 @@ if (protocol === 'https'){
 }
 
 // Create Websocket Server
-let wss = new WebSocket.Server({ clientTracking: false, noServer: true });
+let wss = new WebSocket.Server({ clientTracking: false, noServer: true }); // Use for Production
+
 
 // Create Brainstorm Data Server
 const dataServer = new DataServer();
@@ -54,9 +55,28 @@ if (mongouri) {
     })
 }
 
+// Other Server Events
+server.on('clientError', (a,b,c) => {
+  console.log('clientError', a,b,c)
+})
+
+server.on('checkExpectation', (a,b,c) => {
+  console.log('checkExpectation', a,b,c)
+})
+
+server.on('checkContinue', (a,b,c) => {
+  console.log('checkContinue', a,b,c)
+})
+
+server.on('request', (a,b,c) => {
+  console.log('request', a,b,c)
+})
+
 
 // Authenticate User Before Connecting WebSocket
 server.on('upgrade', async (request, socket, head) => {
+
+  console.log('attempting to create new websocket connection')
 
     // Get User Credentials from Subprotocol / Cookies
     let _subprotocols = request.headers['sec-websocket-protocol'] || undefined
