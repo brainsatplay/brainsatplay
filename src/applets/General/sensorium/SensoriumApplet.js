@@ -48,6 +48,7 @@ import fluteshot2 from './sounds/wav/fluteshot2.wav'
 import drumhit1 from './sounds/wav/drum_hit_1.wav'
 import drumkick1 from './sounds/wav/drum_kick_1.wav'
 import { select } from 'd3-selection';
+import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 
 //Example Applet for integrating with the UI Manager
 export class SensoriumApplet {
@@ -273,7 +274,9 @@ export class SensoriumApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            
+
+            this.appletContainer = document.getElementById(props.id);
+
             // Tutorial
             let tooltips = [
                 {
@@ -294,11 +297,12 @@ export class SensoriumApplet {
                     `
                 },
               ]
-            this.session.tutorials.setTooltipContent(tooltips)
+
+            let tutorialManager = new TutorialManager(this.info.name, tooltips, this.appletContainer)
 
             this.session.createIntro(this, () => {
-                this.session.tutorials.reset()
-                this.session.tutorials.start()
+                tutorialManager.reset()
+                tutorialManager.start()
             })
 
 
@@ -382,7 +386,6 @@ export class SensoriumApplet {
             /**
              * GUI
              */
-            this.appletContainer = document.getElementById(props.id);
             this.canvasContainer = document.getElementById(props.id+'container')
             this.gui = new GUI({ autoPlace: false });
             this.appletContainer.querySelector('.guiContainer').appendChild(this.gui.domElement);

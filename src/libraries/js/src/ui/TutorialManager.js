@@ -1,50 +1,13 @@
-import { DOMFragment } from './DOMFragment';
-
-
 export class TutorialManager {
-    constructor() {
+    constructor(id, content=[], parentNode=document.body) {
 
-        this.ui = new DOMFragment(
-            `  <div class="brainsatplay-tutorial">
-                    <div class="brainsatplay-tutorial-content">
-                            <div id="tutorial-step0" class="brainsatplay-tutorial-dynamic-text"></div>
-                    </div>
-                    </div>`, 
-                    document.body
-        );
-
-        this.standaloneTutorialWindows = [
-        //     `
-        //     <div>
-        //         <h2>0.1</i>
-        //         <h1>Welcome to Brains@Play.</h1>
-        //         <p>We are creating an open-source platform for the future of neurotechnology.</p>
-        //     </div>
-        //     `,
-        //     `
-        //     <div>
-        //         <h2>0.2</i>
-        //         <h1>Connect. Train. Play.</h1>
-        //         <p>Use your brain to play games.</p>
-        //     </div>
-        //     `,
-
-        //     `
-        //     <div>
-        //         <h2>0.3</i>
-        //         <h1>Let's Begin.</h1>
-        //         <p>Click below to enter the platform.</p>
-        //     </div>
-        //     `,
-        ]
-
-        this.tooltipContent = []
+        this.id = id
+        this.tooltipContent = content
 
         this.tutorialState = 0
 
-        this.tutorialContainer = document.body.querySelector('.brainsatplay-tutorial')
+        this.tutorialContainer = parentNode
 
-        this.dynamicTutorialText = this.tutorialContainer.querySelector('.brainsatplay-tutorial-dynamic-text')
 
         this.getCookie = (name) => {
             var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
@@ -62,90 +25,35 @@ export class TutorialManager {
         this.setTutorialDefault(true)
     }
 
-    start() {
-        this.initializeTutorial()
-        // this.openTutorial()
-    }
-
     setTooltipContent(content){
         this.tooltipContent = content
     }
 
-    initializeTutorial = (dx,start) => {
+    start = () => {
 
         let toShow = this.getTutorialDefault()
         if (toShow) { // || toShow == null) {
             this.setTutorialDefault(true)
-            if (this.standaloneTutorialWindows.length > 0) this.updateStandaloneTutorialContent(0,0)
-            else {
-                this.tutorialState = 0
-                this.initializeTooltips()
-                this.closeTutorial(false)
-                this.tutorialContainer.style.opacity = 0;
-                this.tutorialContainer.style.pointerEvents = 'none';
-            }
+            this.tutorialState = 0
+            this.initializeTooltips()
         }
         else {
             this.closeTutorial();
         }
     }
 
-    closeTutorial = (tooltips=true) => {
-        // this.tutorialContainer.innerHTML = ''
-        this.tutorialContainer.style.opacity = 0;
-        this.tutorialContainer.style.pointerEvents = 'none';
-        if (tooltips) {
-            this.removeTooltip()
-            this.removeMask()
-        }
+    closeTutorial = () => {
+        this.removeTooltip()
+        this.removeMask()
         this.setTutorialDefault(false)
     };
 
     setTutorialDefault = (value) => {
-        this.setCookie('showTutorial',value)
+        this.setCookie(`showTutorial-${this.id}`,value)
     }
 
     getTutorialDefault = () => {
-        return this.getCookie('showTutorial') === 'true'
-    }
-
-    openTutorial = () => {
-        this.tutorialContainer.style.opacity = 1;
-        this.tutorialContainer.style.pointerEvents = 'none';
-    }
-
-    updateStandaloneTutorialContent = (dx=0,start=null) => {
-        this.tutorialState = start != null ? start+dx : this.tutorialState+dx
-        let html = this.standaloneTutorialWindows[this.tutorialState]
-        html += `<div style="display:flex; justify-content:space-between;">`
-        if (this.tutorialState != 0) html += `<button class="previous">Previous</button>`
-        if (this.tutorialState != this.standaloneTutorialWindows.length-1) html += `<button class="next">Next</button>`
-        if (this.tutorialState === this.standaloneTutorialWindows.length-1) html += `<button class="next">Continue to App</button>`
-        html += `</div>`
-
-        this.dynamicTutorialText.innerHTML = html
-        let prevButton = this.dynamicTutorialText.querySelector('.previous')
-        if (prevButton) prevButton.onclick = () => {this.updateStandaloneTutorialContent(-1)}
-        let nextButton = this.dynamicTutorialText.querySelector('.next') 
-        if (nextButton) {
-
-            if (this.tutorialState === this.standaloneTutorialWindows.length-1) nextButton.onclick = () => {
-                this.tutorialState = 0;
-                this.tutorialContainer.innerHTML = ''
-                this.tutorialContainer.style.opacity = 0.0;
-                this.tutorialContainer.style.pointerEvents = 'none';
-                this.initializeTooltips()
-            }
-
-            // Default next button
-            else nextButton.onclick = () => {this.updateStandaloneTutorialContent(1)}
-        }
-
-        // MAKE BUTTONS WORK
-        let buttons = this.tutorialContainer.querySelectorAll('button')
-        for (let button of buttons){
-            button.style.pointerEvents = 'auto'
-        }
+        return this.getCookie(`showTutorial-${this.id}`) === 'true'
     }
 
     initializeTooltips = () => {
@@ -165,6 +73,10 @@ export class TutorialManager {
 
             let targetQuery = this.tooltipContent[this.tutorialState].target;
             let target = document.getElementById(targetQuery);
+
+            console.log()
+            if (window.getComputedStyle(target).display !== "none"){
+
                 lastState = this.tutorialState === this.tooltipContent.length - 1
                 let advanceLabel = (!lastState) ? "Next" : "Start Playing"
 
@@ -195,43 +107,27 @@ export class TutorialManager {
                     this.updateTooltips(1)
                 }
                 
-                this.tooltipContent[this.tutorialState].zIndex = target.style.zIndex
-                this.tooltipContent[this.tutorialState].position = target.style.position
                 target.style.position = 'relative'
-
                 let tooltipCont = target.querySelector(".brainsatplay-tutorial-tooltip-container")
                 let tooltip = target.querySelector(".brainsatplay-tutorial-tooltip")
                 tooltip.style.opacity = '1'
-                
                 tooltip.style.display = target.style.display;
-
-                let rect = tooltipCont.getBoundingClientRect();
                 tooltip.classList.add('left')
                 tooltipCont.classList.add('left')
-                
-                if (rect.x + rect.width > window.innerWidth){
-                    tooltip.classList.remove('left')
-                    tooltipCont.classList.remove('left')
-                    tooltip.classList.add('right')
-                    tooltipCont.classList.remove('right')
-                    tooltipCont.style.transform = 'translate(-100%,-50%)'
-                    tooltipCont.style.right = 'auto'
-                    tooltipCont.style.left = '0'
-                    tooltip.style.left = '0'
-                    tooltip.style.right = '25px'
-                }
 
                 // ADD MASK
+                let rect = tooltipCont.getBoundingClientRect();
+                let parentRect = this.tutorialContainer.getBoundingClientRect();
                 let targetRect = target.getBoundingClientRect();
-                document.body.insertAdjacentHTML('beforeend', `
+                this.tutorialContainer.insertAdjacentHTML('beforeend', `
                 <div id="brainsatplay-tutorial-mask-container">
-                    <svg viewBox="0 0 ${window.innerWidth} ${window.innerHeight}" id="brainsatplay-tutorial-mask" preserveAspectRatio="none">
+                    <svg viewBox="0 0 ${this.tutorialContainer.offsetWidth} ${this.tutorialContainer.offsetHeight}" id="brainsatplay-tutorial-mask" preserveAspectRatio="none">
                         <defs>
                         <mask id="hole">
                             <rect width="100%" height="100%" fill="white"/>
                             <!-- the hole defined a polygon -->
-                            <rect id="brainsatplay-tutorial-mask-${tooltipCont.id}" class="mask-holes" x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" fill="black"/>
-                            <rect id="brainsatplay-tutorial-mask-${target.id}" class="mask-holes" x="${targetRect.x}" y="${targetRect.y}" width="${targetRect.width}" height="${targetRect.height}" fill="black"/>                        
+                            <rect id="brainsatplay-tutorial-mask-${tooltipCont.id}" class="mask-holes" x="${rect.x-parentRect.x}" y="${rect.y-parentRect.y}" width="${rect.width}" height="${rect.height}" fill="black"/>
+                            <rect id="brainsatplay-tutorial-mask-${target.id}" class="mask-holes" x="${targetRect.x-parentRect.x}" y="${targetRect.y-parentRect.y}" width="${targetRect.width}" height="${targetRect.height}" fill="black"/>                        
                             </mask>
                         </defs>
                         <!-- create a rect, fill it with the color and apply the above mask -->
@@ -244,10 +140,13 @@ export class TutorialManager {
                 // Window Resize
                 window.onresize = () => {
                     let svg = document.getElementById(`brainsatplay-tutorial-mask-container`).querySelector('svg')
-                    svg.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`)
+                    svg.setAttribute('viewBox', `0 0 ${this.tutorialContainer.offsetWidth} ${this.tutorialContainer.offsetHeight}`)
+                    this.updateTooltipPosition(tooltipCont)
                     this.updateMaskPosition([tooltipCont,target])
                 }
 
+                this.updateTooltipPosition(tooltipCont)
+                this.updateMaskPosition([tooltipCont,target])
 
                 // // Hover Events
                 // target.onmousemove = () => {
@@ -265,6 +164,9 @@ export class TutorialManager {
                 // tooltipCont.onmouseleave = () => {
                 //     this.updateMaskPosition([tooltipCont,target])
                 // }
+                } else {
+                    this.updateTooltips(1)
+                }
             }
         }
     }
@@ -291,14 +193,81 @@ export class TutorialManager {
 
     updateMaskPosition = (elements) => {
 
+        let parentRect = this.tutorialContainer.getBoundingClientRect();
         elements.forEach(e => {
             let dimensions = e.getBoundingClientRect();
             let rect = document.getElementById(`brainsatplay-tutorial-mask-${e.id}`)
-            rect.setAttribute('x',dimensions.x)
-            rect.setAttribute('y',dimensions.y)
+            rect.setAttribute('x',dimensions.x-parentRect.x)
+            rect.setAttribute('y',dimensions.y-parentRect.y)
             rect.setAttribute('width',dimensions.width)
             rect.setAttribute('height',dimensions.height)
         })
 
+    }
+
+    updateTooltipPosition(tooltipCont){
+        let tooltip = tooltipCont.querySelector(".brainsatplay-tutorial-tooltip")
+        let rect = tooltipCont.getBoundingClientRect();
+
+        let overflowRight = rect.x + rect.width > this.tutorialContainer.offsetWidth
+        let overflowLeft = rect.x < 0
+        let overflowBottom = rect.y + rect.height > this.tutorialContainer.offsetHeight
+        let overflowTop = rect.y < 0
+
+        if (overflowRight || overflowLeft || overflowBottom || overflowTop){
+            
+            // Check Rightmost Position Has No Overflow
+            if (overflowRight && !tooltip.classList.contains('right')){
+                this.removeDirectionalClasses(tooltip,'right')
+                tooltip.classList.add('right')
+                this.removeDirectionalClasses(tooltipCont,'right')
+                tooltipCont.classList.add('right')
+                rect = tooltipCont.getBoundingClientRect();
+            } else if (!tooltip.classList.contains('left')) {
+                this.removeDirectionalClasses(tooltip,'left')
+                tooltip.classList.add('left')
+                this.removeDirectionalClasses(tooltipCont,'left')
+                tooltipCont.classList.add('left')
+            }
+
+            overflowLeft = rect.x < 0
+
+            if (overflowLeft && overflowRight && !tooltip.classList.contains('up')) {
+                this.removeDirectionalClasses(tooltip,'up')
+                tooltip.classList.add('up')
+                this.removeDirectionalClasses(tooltipCont,'up')
+                tooltipCont.classList.add('up')
+                rect = tooltipCont.getBoundingClientRect();
+            }
+
+            overflowBottom = rect.y + rect.height > this.tutorialContainer.offsetHeight
+            console.log('overflowBottom', overflowBottom)
+
+            // Check Bottommost Position Has No Overflow
+            if (overflowLeft && overflowRight && overflowBottom && !tooltip.classList.contains('down')){
+                this.removeDirectionalClasses(tooltip,'down')
+                tooltip.classList.add('down')
+                this.removeDirectionalClasses(tooltipCont,'down')
+                tooltipCont.classList.add('down')
+            }
+
+            let overflowTop = rect.y < 0
+
+            if (overflowLeft && overflowRight && overflowBottom && overflowTop){
+                console.log('no good view. Reverting to default...')
+                this.removeDirectionalClasses(tooltip,'left')
+                tooltip.classList.add('left')
+                this.removeDirectionalClasses(tooltipCont,'left')
+                tooltipCont.classList.add('left')
+            }
+        }
+    }
+
+    removeDirectionalClasses(e,keep){
+        ['right','left','down','up'].forEach(str => {
+            if (str !== keep){
+                e.classList.remove(str)
+            }
+        })
     }
 }

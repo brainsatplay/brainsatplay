@@ -23,6 +23,7 @@ import {AppletManager} from './AppletManager'
 import {CSV} from '../general/csv'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
+import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
@@ -31,10 +32,8 @@ import FileManagerIcon from '../../assets/folder-solid.svg';
 import GoogleIcon from '../../assets/google.png';
 import HelpIcon from '../../assets/question-solid.svg';
 
-
-
-
 import * as BrowserFS from 'browserfs'
+
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
@@ -493,13 +492,14 @@ export class BCIAppManager {
             }
         ]
 
-        this.session.tutorials.setTooltipContent(tooltips)
-        this.session.tutorials.start()
+        let tutorialManager = new TutorialManager('sidebar-tutorial')
+        tutorialManager.setTooltipContent(tooltips)
+        tutorialManager.start()
 
         let helpMenu = document.getElementById('help-menu').querySelector('button')
         helpMenu.onclick = () => {
-            this.session.tutorials.reset()
-            this.session.tutorials.start()
+            tutorialManager.reset()
+            tutorialManager.start()
         }
 
     }

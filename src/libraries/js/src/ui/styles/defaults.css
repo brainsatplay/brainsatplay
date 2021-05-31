@@ -423,18 +423,15 @@ select {
 }
 
 .brainsatplay-tutorial-tooltip-container{
-    pointer-events: 'all';
     position: absolute;
-    top: 50%;
-    right: 0;
-    padding-left: 25px;
+    margin: 0px;
     /* width: 200px; */
     z-index: 1000;
-    transform: translate(100%,-50%);
 }
 
 .brainsatplay-tutorial-tooltip {
     /* position: relative; */
+    /* top: 0px; */
     width: 50vw;
     max-width: 400px;
     font-size: 80%;
@@ -454,17 +451,27 @@ select {
 }
 
 .brainsatplay-tutorial-tooltip-container.left{
+    top: 50%;
+    right: 0;
     padding: 0;
     padding-left: 25px;
+    transform: translate(100%,-50%);
 }
+
 .brainsatplay-tutorial-tooltip-container.right{
+    top: 50%;
+    left: 0;
     padding: 0;
     padding-right: 25px;
+    transform: translate(-100%,-50%);
 }
 
 .brainsatplay-tutorial-tooltip-container.up{
+    bottom: 0%;
+    right: 50%;
     padding: 0;
     padding-top: 25px;
+    transform: translate(50%,100%);
 }
 
 .brainsatplay-tutorial-tooltip-container.down{
@@ -475,41 +482,37 @@ select {
 .brainsatplay-tutorial-tooltip::after {
     content: " ";
     position: absolute;
-    right: 100%; /* To the left of the tooltip */
-    top: 50%;
-    margin-top: -5px;
+    margin-top: -10px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent ghostwhite transparent transparent;
 }
 
 .brainsatplay-tutorial-tooltip.left::after{
-    right: 100%;
+    right: 100%; /* To the left of the tooltip */
     top: 50%;
     transform: translateX(25px);
     border-color: transparent ghostwhite transparent transparent;
 }
 
 .brainsatplay-tutorial-tooltip.right::after{
-    left: 100%; 
+    left: 100%; /* To the right of the tooltip */
     top: 50%;
     transform: translateX(-25px);
     border-color: transparent transparent transparent ghostwhite;
 }
 
 .brainsatplay-tutorial-tooltip.up::after{
-    left: 0%; 
-    right: 0%; 
+    left: 50%; /* To the left of the tooltip */
     top: 0%;
+    transform: translateY(25px);
     border-color: transparent transparent ghostwhite transparent;
-    transform: translateY(-25px);
 }
 
 .brainsatplay-tutorial-tooltip.down::after{
-    left: 0%;
-    right: 0%;
-    border-color: ghostwhite transparent transparent transparent;
-    transform: translateY(25px);
+    left: 50%;
+    bottom: 0%;
+    transform: translateY(-25px);
+    border-color: rgb(130, 130, 137) transparent transparent transparent;
 }
 
 .brainsatplay-tutorial-tooltip-container button{
@@ -523,7 +526,9 @@ select {
 
 #brainsatplay-tutorial-mask-container{
     margin: auto;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 33%;
     height: 200px;
     background: transparent;
