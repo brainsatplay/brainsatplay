@@ -62,7 +62,7 @@ categories.forEach((category,indOut) => {
         console.error(err)
         return
       }
-      console.log('applet manifest created')
+      console.log('Applet manifest written.');
     })
   }
   })
