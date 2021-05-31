@@ -27,7 +27,7 @@ export class jsEditor {
         let template = `
             <div id='${this.randomId}editorContainer'>
                 <span id='${this.randomId}head'>Function Head</span>
-                <textarea id='${this.randomId}editor'></textarea>
+                <textarea id='${this.randomId}editor' placeholder='Javascript function body'></textarea>
                 <button id='${this.randomId}submit'>Submit</button>
                 <button id='${this.randomId}reset'>Reset</button>
             </div>
