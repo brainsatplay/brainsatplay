@@ -107,6 +107,7 @@ export class SensoriumApplet {
         this.looping = false;
         this.hidden = false;
         this.editorhidden = true;
+        this.quickrefhidden = true;
 
         // UI
         this.three = {}
@@ -249,7 +250,7 @@ export class SensoriumApplet {
                         <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
                             <div id='${props.id}shaderheader' style='display:none;'>
                                 <h3>Fragment Shader</h3>
-                                <button id='${props.id}saveShader'>Try It Out</button><span style="font-size: 80%;">   Or use CTRL + S</span>
+                                <button id='${props.id}quickreftog'>Reference</button><button id='${props.id}saveShader'>Try It Out</button><span style="font-size: 80%;">   Or use CTRL + S</span>
                             </div>
                             <div>
                                 <select id='${props.id}shaderSelector'>
@@ -258,6 +259,39 @@ export class SensoriumApplet {
                             </div>
                         </div>
                         <div id='${props.id}shadereditor' style="position: relative; width: 100%; height: 100%; display:none;">
+                            <div id='${props.id}quickref' style='position:absolute; background-color:white; color:black; z-index:10; display:none; font-size:16px bold; height:80%; overflow-y:scroll;'>
+                                <style>
+                                    table tr th {
+                                        border: 2px solid black;
+                                    }
+                                    table tr td {
+                                        border: 1px solid black;
+                                    }
+                                </style>
+                                Quick Reference Sheet:
+                                <table style='font-size:12px;'>
+                                    <tr><th width='30%'>Uniforms</th><th width='20%'>Ranges</th><th width='50%'>Descriptions</th></tr>
+                                    <tr><td>uniform float iAudioFFT[256]</td><td>0-255</td><td>Audio power spectrum, higher index = higher frequencies</td></tr>
+                                    <tr><td>uniform float iHEG</td><td>-5-+5 typical</td><td>HEG smoothed ratio score, begins at 0</td></tr>
+                                    <tr><td>uniform float iHRV</td><td>0-50(bpm change)</td><td>Heart Rate Variability</td></tr>
+                                    <tr><td>uniform float iHR</td><td>30-200(bpm)</td><td>Heart Rate</td></tr>
+                                    <tr><td>uniform float iHB</td><td>0-1</td><td>Heart Beat, is 1 when heartbeat occurs and falls off to 0 at 1/sec speed </td></tr>
+                                    <tr><td>uniform float iBRV</td><td>0-10</td><td>Breathing Rate Variability, lower is better</td></tr>
+                                    <tr><td>uniform float iFFT[256]</td><td>0-150(uV) typical</td><td>EEG Power spectrum 0-128Hz, higher frequencies have much lower values</td></tr>
+                                    <tr><td>uniform float iFrontalAlpha1Coherence</td><td>0-1 typical</td><td>Alpha 1 Mean Squared Coherence</td></tr>
+                                    <tr><td>uniform float iDelta</td><td>0-50(uV) typical</td><td>Mean Delta Bandpower</td></tr>
+                                    <tr><td>uniform float iTheta</td><td>0-50(uV) typical</td><td>Mean Theta Bandpower</td></tr>
+                                    <tr><td>uniform float iAlpha1</td><td>0-10(uV) typical</td><td>Mean Alpha1 Bandpower</td></tr>
+                                    <tr><td>uniform float iAlpha2</td><td>0-10(uV) typical</td><td>Mean Alpha2 Bandpower</td></tr>
+                                    <tr><td>uniform float iBeta</td><td>0-10(uV) typical</td><td>Mean Beta Bandpower</td></tr>
+                                    <tr><td>uniform float iGamma</td><td>0-5(uV) typical</td><td>Mean Low Gamma (30-45Hz) Bandpower</td></tr>
+                                    <tr><td>uniform float i40Hz</td><td>0-5(uV) typical</td><td>40Hz Gamma Bandpower</td></tr>
+                                    <tr><td>uniform float iAlphaTheta</td><td>0-10</td><td>Alpha/Theta Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iAlpha1Alpha2</td><td>0-10</td><td>Alpha1/Alpha2 Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iAlphaBeta</td><td>0-10</td><td>Alpha/Beta Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iThetaBeta</td><td>0-10</td><td>Theta/Beta Bandpower Ratio</td></tr>
+                                </table>
+                            </div>
                             <textarea id='${props.id}fragmentshader' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write GLSL Fragment Shader Code' 
                             style=''></textarea>
                             <pre class="brainsatplay-code-highlighting" aria-hidden="true">
@@ -345,6 +379,17 @@ export class SensoriumApplet {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
                     this.setShaderFromText(fragShaderInput.value);
+                }
+            }
+
+            document.getElementById(props.id+'quickreftog').onclick = () => {
+                if(this.quickrefhidden) {
+                    document.getElementById(props.id+'quickref').style.display = '';
+                    this.quickrefhidden = false;
+                }
+                else {
+                    document.getElementById(props.id+'quickref').style.display = 'none';
+                    this.quickrefhidden = true;
                 }
             }
 
