@@ -1,8 +1,10 @@
 import Worker from 'web-worker'
 
-let defaultWorkerThreads = 2
 
-let eegWorkers = []
+let workerURL = './_dist_/libraries/js/src/utils/eeg.worker.js';
+let defaultWorkerThreads = 2;
+
+let eegWorkers = [];
 
 // // WEBPACK
 // import worker from './utils/eeg.worker.js'
@@ -15,7 +17,7 @@ let eegWorkers = []
 for(var i = 0; i < defaultWorkerThreads; i++){
     eegWorkers.push(
         new Worker(
-            new URL('./utils/eeg.worker.js', import.meta.url),
+            workerURL,
             {name:'eegworker_'+i, type: 'module'}
         )
     )
