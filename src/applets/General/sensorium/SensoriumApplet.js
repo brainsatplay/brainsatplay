@@ -10,7 +10,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-c'; // need this
 import 'prismjs/components/prism-glsl'; // need this
 // import "prismjs/plugins/line-numbers/prism-line-numbers";
-import "prism-themes/themes/prism-vsc-dark-plus.css"
+//import "prism-themes/themes/prism-vsc-dark-plus.css"
 // import '../../../libraries/js/src/ui/styles/defaults.css'
 
 import * as settingsFile from './settings'
@@ -532,6 +532,8 @@ void main(){
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
+
+        this.AppletHTML.appendStylesheet("./_dist_/platform/styles/css/prism/prism-vsc-dark-plus.css");
 
         //Add whatever else you need to initialize
         this.looping = true;
