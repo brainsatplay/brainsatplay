@@ -53,7 +53,7 @@ if (!window.isMobile){
 	window.addEventListener('blur', () => {
 		releaseWakeLock();
 	});
-	}
+}
 
 //
 // Check if Chrome (and display our warning message to users of other browsers)
@@ -84,7 +84,8 @@ let checkIfChrome = () => {
 }
 
 window.isChrome = checkIfChrome()
-(window.isChrome) ? console.log('On Chrome') : console.log('Not on Chrome')
+if (window.isChrome) console.log('On Chrome')
+else console.log('Not on Chrome')
 
 
 
@@ -93,9 +94,9 @@ window.isChrome = checkIfChrome()
 //
 
 let protocol = location.protocol
-let localHostURL = `${protocol}//localhost:443`
+let localHostURL = `${protocol}//${location.hostname}:443`
 let remoteHostURL = 'https://brainsatplay.azurewebsites.net' //'https://server.brainsatplay.com'
-let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
+let urlToConnect = (location.origin.includes('app.brainsatplay.com') ? remoteHostURL : localHostURL)
 
 let bcisession = new brainsatplay.Session('guest','', urlToConnect);
 bcisession.getLocalIP()
