@@ -15,7 +15,7 @@ let eegWorkers = []
 for(var i = 0; i < defaultWorkerThreads; i++){
     eegWorkers.push(
         new Worker(
-            new URL('./utils/eeg.worker.js', import.meta.url),
+            new URL('/_dist_/libraries/js/src/utils/eeg.worker.js', import.meta.url),
             {name:'eegworker_'+i, type: 'module'}
         )
     )
