@@ -741,8 +741,8 @@ if (RTCPeerConnection)(function() {
         else addrs[newAddr] = true;  
         var displayAddrs = Object.keys(addrs).filter(function(k) {  
             return addrs[k];  
-		});  
-		console.log(displayAddrs.join(" or perhaps ") || "n/a")
+		});
+		console.log('Local IP Address:', displayAddrs.join(" or perhaps ") || "n/a")
     }  
   
     function grepSDP(sdp) {  
