@@ -14,3 +14,11 @@ _site
 .eggs
 src/platform/appletManifest.js
 src/platform/appletManifest.js
+
+# SSL Certificate
+rootCA.key
+rootCA.pem
+rootCA.srl
+v3.ext
+server.csr.cnf
+server.csr
