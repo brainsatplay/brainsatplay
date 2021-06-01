@@ -1122,10 +1122,7 @@ void main(){
         })
 
         // Update Shader Live Coding Console
-        this.liveEditor.input.value = this.currentShader.fragmentShader.replace(new RegExp(";", "g"), ";\n")
-        .replace(new RegExp("{", "g"), "{\n")
-        .replace(new RegExp("}", "g"), "}\n");
-        this.liveEditor._triggerCodeChange()
+        this.liveEditor.updateSettings({language: 'glsl', target: this.currentShader.fragmentShader})
     }
 
     setShaderFromText = (text) => {

@@ -19,54 +19,30 @@ import './styles/defaults.css'
 
 export class LiveEditor {
 
-        constructor(settings={language: 'javascript'},parentNode=document.body) {
+        constructor(settings={language: 'javascript'},parentNode=document.body,onSave) {
 
             // Internal Attributes
             this.ui
             this.props = {
                 id: Math.floor(Math.random()*10000000),
-                language: settings.language
+                language: settings.language,
+                supportedLanguages: ['javascript', 'html', 'glsl']
             }
 
-            if (settings.onSave){
-                this.onSave = settings.onSave
-            }
+            if (this.props.supportedLanguages.includes(this.props.language)){
 
-            // For JS Editor
-            this.function = settings.function;
-    
-            // For All Editors
-            this.target = settings.target; //e.g. this.session.atlas
-            if (this.props.language === 'javascript'){
-                if (typeof this.target === 'object' && this.target !== null && this.function !== null){
-                    this.head = this.getFunctionHead(this.target[this.function]);
-                    this.body = this.getFunctionBody(this.target[this.function]);
-                    this.copy = this.target[this.function].toString();
-                } else {
-                    console.error('settings file is improperly configured...')
+                this._updateSettings(settings)
+
+                // Where to Insert the Editor
+                this.parentNode = parentNode;
+                if(typeof this.parentNode === 'string') { //can just input the div id
+                    this.parentNode = document.getElementById(this.parentNode);
                 }
-            } else if (this.props.language === 'html') {
-                if (this.target != null){
-                    if (typeof this.target === 'string'){
-                        this.target = document.getElementById(this.target);
-                    }
-                    this.head = this.target.id
-                    this.body = this.target.innerHTML
-                    this.copy = this.target.innerHTML
-                } else {
-                    console.error('settings file does not contain a target...')
-                }
-            } else if (this.props.language != 'glsl'){
-                console.log(`${this.props.language} not supported`)
+        
+                this.init();
+            } else {
+                console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
-
-            // Where to Insert the Editor
-            this.parentNode = parentNode;
-            if(typeof this.parentNode === 'string') { //can just input the div id
-                this.parentNode = document.getElementById(this.parentNode);
-            }
-    
-            this.init();
         }
 
         init = () => {
@@ -114,7 +90,6 @@ export class LiveEditor {
         let setup = () => {
 
 
-            let head = document.getElementById(`${this.props.id}head`)
             this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
@@ -126,17 +101,19 @@ export class LiveEditor {
 
             reset.onclick = () => {
                 if (this.props.language === 'javascript'){
-                    this.target[this.function] = eval(this.body);
-                    this.body = this.getFunctionBody(this.target[this.function]);
-                    this.head = this.getFunctionHead(this.target[this.function]);
-                    this.input.value = this.body;
-                    this._triggerCodeChange()
+                    // this.target[this.function] = eval(this.body);
+                    // this.body = this.getFunctionBody(this.target[this.function]);
+                    // this.head = this.getFunctionHead(this.target[this.function]);
+                    this.target[this.function] = this.copy;
                 } else if (this.props.language === 'html'){
                     this.target.innerHTML = this.copy;   
                     // try{ eval(this.defaultScripts); } catch(er) {alert('Script error: ', er);}
-                } else {
-                    console.error(`reset not supported for ${this.props.language}`)
+                } else if (this.props.language === 'glsl'){
+                    this.target = this.copy;
                 }
+                this.input.value = this.copy;
+                this._triggerCodeChange()
+                this.onSave()
             }
             
             this.input.oninput = () => {
@@ -191,8 +168,6 @@ export class LiveEditor {
 
                 else if (this.props.language === 'glsl'){
                     this.onSave()
-                } else {
-                    console.error(`saving not supported for ${this.props.language}`)
                 }
             }
 
@@ -204,22 +179,6 @@ export class LiveEditor {
 
             this.input.onkeydown = (e) => {
                 this._checkTab(this.input,e)
-            }
-
-            /* 
-
-                Set Default Content
-
-            */
-
-            if (this.head != null) head.innerHTML = this.head;
-
-            if (this.body != null) {
-                this.input.value = this.body
-                this._triggerCodeChange()
-            }
-            else {
-                reset.style.display = 'none'
             }
         }
 
@@ -234,6 +193,70 @@ export class LiveEditor {
     deinit = () => {
         let editor = document.getElementById(`${this.props.id}liveEditor`);
         editor.parentNode.removeChild(editor);   
+    }
+
+    _setContent() {
+
+        let head = document.getElementById(`${this.props.id}head`)
+        this.input = document.getElementById(`${this.props.id}editor`)
+        let reset = document.getElementById(`${this.props.id}reset`)
+
+        if (this.head != null) head.innerHTML = this.head;
+
+        if (this.body != null) {
+            this.input.value = this.body
+            this._triggerCodeChange()
+        }
+        else {
+            reset.style.display = 'none'
+        }
+    }
+
+    _updateSettings(settings){
+        if (settings.onSave){
+            this.onSave = settings.onSave
+        }
+
+        // For JS Editor
+        this.function = settings.function;
+
+        // For All Editors
+        this.target = settings.target; //e.g. this.session.atlas
+        if (this.props.language === 'javascript'){
+            if (typeof this.target === 'object' && this.target !== null && this.function !== null){
+                this.head = this.getFunctionHead(this.target[this.function]);
+                this.body = this.getFunctionBody(this.target[this.function]);
+                this.copy = this.target[this.function].toString();
+            } else {
+                console.error('settings file is improperly configured...')
+            }
+        } else if (this.props.language === 'html') {
+            if (this.target != null){
+                if (typeof this.target === 'string'){
+                    this.target = document.getElementById(this.target);
+                }
+                this.head = this.target.id
+                this.body = this.target.innerHTML
+                this.copy = this.target.innerHTML
+            } else {
+                console.error('settings file does not contain a target...')
+            }
+        } else if (this.props.language === 'glsl'){
+            if (this.target){
+                this.head = 'Fragment Shader'
+                this.body = this.target.replace(new RegExp(";", "g"), ";\n")
+                .replace(new RegExp("{", "g"), "{\n")
+                .replace(new RegExp("}", "g"), "}\n");
+                this.copy = this.body
+            } else {
+                console.error('settings file does not contain a target...')
+            }
+        }
+    }
+
+    updateSettings(settings = {}){
+        this._updateSettings(settings)
+        this._setContent()
     }
 
     onSave = () => {} // Can be set by user
