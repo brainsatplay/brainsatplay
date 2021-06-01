@@ -107,6 +107,7 @@ export class SensoriumApplet {
         this.looping = false;
         this.hidden = false;
         this.editorhidden = true;
+        this.quickrefhidden = true;
 
         // UI
         this.three = {}
@@ -249,7 +250,7 @@ export class SensoriumApplet {
                         <div style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:flex; align-items: center; justify-content: space-between;'>
                             <div id='${props.id}shaderheader' style='display:none;'>
                                 <h3>Fragment Shader</h3>
-                                <button id='${props.id}saveShader'>Try It Out</button><span style="font-size: 80%;">   Or use CTRL + S</span>
+                                <button id='${props.id}quickreftog'>Reference</button><button id='${props.id}saveShader'>Try It Out</button><span style="font-size: 80%;">   Or use CTRL + S</span>
                             </div>
                             <div>
                                 <select id='${props.id}shaderSelector'>
@@ -258,6 +259,41 @@ export class SensoriumApplet {
                             </div>
                         </div>
                         <div id='${props.id}shadereditor' style="position: relative; width: 100%; height: 100%; display:none;">
+                            <div id='${props.id}quickref' style='position:absolute; background-color:black; color:white; z-index:10; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
+                                <style>
+                                    table tr th {
+                                        border: 2px solid gold;
+                                    }
+                                    table tr td {
+                                        border: 1px solid blue;
+                                    }
+                                </style>
+                                Shader Quick Reference Sheet. For common WebGL see: <a style='color:lightgreen;' href='https://www.khronos.org/files/webgl/webgl-reference-card-1_0.pdf'>WebGL Reference Sheet</a>
+                                <table style='font-size:12px;'>
+                                    <tr><th width='30%'>Uniforms</th><th width='20%'>Ranges</th><th width='50%'>Descriptions</th></tr>
+                                    <tr><td>uniform float iTime</td><td>0-</td><td>Time increment</td></tr>
+                                    <tr><td>uniform vec2 iResolution</td><td>0-</td><td>Viewport Resolution</td></tr>
+                                    <tr><td>uniform float iAudioFFT[256]</td><td>0-255</td><td>Audio power spectrum, higher index = higher frequencies</td></tr>
+                                    <tr><td>uniform float iHEG</td><td>-5-+5 typical</td><td>HEG smoothed ratio score, begins at 0</td></tr>
+                                    <tr><td>uniform float iHRV</td><td>0-50(bpm change)</td><td>Heart Rate Variability</td></tr>
+                                    <tr><td>uniform float iHR</td><td>30-200(bpm)</td><td>Heart Rate</td></tr>
+                                    <tr><td>uniform float iHB</td><td>0-1</td><td>Heart Beat, is 1 when heartbeat occurs and falls off to 0 at 1/sec speed </td></tr>
+                                    <tr><td>uniform float iBRV</td><td>0-10</td><td>Breathing Rate Variability, lower is better</td></tr>
+                                    <tr><td>uniform float iFFT[256]</td><td>0-150(uV) typical</td><td>EEG Power spectrum 0-128Hz, higher frequencies have much lower values</td></tr>
+                                    <tr><td>uniform float iFrontalAlpha1Coherence</td><td>0-1 typical</td><td>Alpha 1 Mean Squared Coherence</td></tr>
+                                    <tr><td>uniform float iDelta</td><td>0-50(uV) typical</td><td>Mean Delta Bandpower</td></tr>
+                                    <tr><td>uniform float iTheta</td><td>0-50(uV) typical</td><td>Mean Theta Bandpower</td></tr>
+                                    <tr><td>uniform float iAlpha1</td><td>0-10(uV) typical</td><td>Mean Alpha1 Bandpower</td></tr>
+                                    <tr><td>uniform float iAlpha2</td><td>0-10(uV) typical</td><td>Mean Alpha2 Bandpower</td></tr>
+                                    <tr><td>uniform float iBeta</td><td>0-10(uV) typical</td><td>Mean Beta Bandpower</td></tr>
+                                    <tr><td>uniform float iGamma</td><td>0-5(uV) typical</td><td>Mean Low Gamma (30-45Hz) Bandpower</td></tr>
+                                    <tr><td>uniform float i40Hz</td><td>0-5(uV) typical</td><td>40Hz Gamma Bandpower</td></tr>
+                                    <tr><td>uniform float iAlphaTheta</td><td>0-10</td><td>Alpha/Theta Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iAlpha1Alpha2</td><td>0-10</td><td>Alpha1/Alpha2 Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iAlphaBeta</td><td>0-10</td><td>Alpha/Beta Bandpower Ratio</td></tr>
+                                    <tr><td>uniform float iThetaBeta</td><td>0-10</td><td>Theta/Beta Bandpower Ratio</td></tr>
+                                </table>
+                            </div>
                             <textarea id='${props.id}fragmentshader' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write GLSL Fragment Shader Code' 
                             style=''></textarea>
                             <pre class="brainsatplay-code-highlighting" aria-hidden="true">
@@ -348,6 +384,17 @@ export class SensoriumApplet {
                 }
             }
 
+            document.getElementById(props.id+'quickreftog').onclick = () => {
+                if(this.quickrefhidden) {
+                    document.getElementById(props.id+'quickref').style.display = '';
+                    this.quickrefhidden = false;
+                }
+                else {
+                    document.getElementById(props.id+'quickref').style.display = 'none';
+                    this.quickrefhidden = true;
+                }
+            }
+
             document.getElementById(props.id+'saveShader').onclick = () => {
                 this.setShaderFromText(fragShaderInput.value);
             }
@@ -388,18 +435,18 @@ export class SensoriumApplet {
 
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
-                selector.innerHTML += `<option value='${k}'>${this.shaders[k].name}</option>`
+                selector.innerHTML += `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`
             });
             selector.innerHTML += `<option value='fromtext'>Blank Shader</option>`
             
-            this.currentShader = this.shaders[selector.value];
+            this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
             this.swapShader();
             
             
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
                     // document.getElementById(props.id+'textshader').style.display = '';
-                    
+                this.startTime = Date.now(); //reset start time
                 document.getElementById(props.id+'fragmentshader').value = `
 #define FFTLENGTH 256
 precision mediump float;
@@ -423,10 +470,18 @@ void main(){
                     this.editorhidden = false;
                 }
                 else if (e.target.value != 'Gallery'){
-                    this.currentShader = this.shaders[selector.value]
+                    for(const prop in this.shaders) {
+                        if(e.target.value === this.shaders[prop].name) {
+                            this.currentShader = this.shaders[prop];
+                            break;
+                        }
+                    }
+                    if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
                     this.swapShader();
                     this.setEffectOptions();
-                } else {
+                } 
+                else {
+                   
                     // document.getElementById(props.id+'textshader').style.display = 'none';
                 }
             }
@@ -571,7 +626,7 @@ void main(){
     });
 
         // Animate
-        this.startTime = Date.now() - Math.random()*1000000;
+        this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
 

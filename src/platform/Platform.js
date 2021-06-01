@@ -47,12 +47,15 @@ if (window.isChrome){
 	console.log('Not on Chrome')
 }
 
-let localHostURL = 'https://localhost'
+let protocol = location.protocol
+let localHostURL = `${protocol}//localhost:443`
 let remoteHostURL = 'https://server.brainsatplay.com'
 
 let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
 
 let bcisession = new brainsatplay.Session('guest','', urlToConnect);
+
+bcisession.getLocalIP()
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
 

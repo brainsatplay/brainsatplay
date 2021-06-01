@@ -18,6 +18,10 @@ export class jsEditor {
 
         this.randomId = Math.floor(Math.random()*10000000);
         this.parentNode = parentNode;
+        if(typeof this.parentNode === 'string') { //can just input the div id
+            this.parentNode = document.getElementById(this.parentNode);
+        }
+
 
         this.makeEditor();
     }
@@ -92,7 +96,7 @@ export class htmlEditor {
     */
     constructor(targetDiv='', defaultScripts='', parentNode) {
         this.targetDiv = targetDiv;
-        if(typeof this.targetDiv === 'string') {
+        if(typeof this.targetDiv === 'string') { //can just input the div id
             this.targetDiv = document.getElementById(this.targetDiv);
         }
         
@@ -101,6 +105,9 @@ export class htmlEditor {
         this.defaultScripts = defaultScripts;
 
         this.parentNode = parentNode;
+        if(typeof this.parentNode === 'string') { //can just input the div id
+            this.parentNode = document.getElementById(this.parentNode);
+        }
 
         this.makeEditor();
     }

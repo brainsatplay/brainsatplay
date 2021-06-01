@@ -1,5 +1,12 @@
 // Snowpack Configuration File
 // See all supported options: https://www.snowpack.dev/reference/configuration
+
+require('dotenv').config()
+
+let secure
+if (process.env.SECURE == null) secure = true
+else secure = process.env.SECURE === 'true'
+
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
   mount: {
@@ -24,7 +31,7 @@ module.exports = {
   },
   devOptions: {
     port:1234,
-    secure: true,
+    secure: secure,
     open: "chrome",
     output: 'stream'
   },

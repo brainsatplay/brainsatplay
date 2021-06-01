@@ -230,6 +230,14 @@ export class Session {
 		// Wait for Initialization before Connection
 		await newStream.init();
 		await newStream.connect()
+
+		// Initialize Route Management Interface
+		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
+
+		if (Object.keys(newStream.info.events.routes).length > 0){
+			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+		}
+
 		return newStream
 	}
 
@@ -705,6 +713,59 @@ export class Session {
 		return user
 	}
 
+	getLocalIP() {
+		var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;  
+if (RTCPeerConnection)(function() {  
+    var rtc = new RTCPeerConnection({  
+        iceServers: []  
+    });  
+    if (1 || window.mozRTCPeerConnection) {  
+        rtc.createDataChannel('', {  
+            reliable: false  
+        });  
+    };  
+    rtc.onicecandidate = function(evt) {  
+        if (evt.candidate) grepSDP("a=" + evt.candidate.candidate);  
+    };  
+    rtc.createOffer(function(offerDesc) {  
+        grepSDP(offerDesc.sdp);  
+        rtc.setLocalDescription(offerDesc);  
+    }, function(e) {  
+        console.warn("offer failed", e);  
+    });  
+    var addrs = Object.create(null);  
+    addrs["0.0.0.0"] = false;  
+  
+    function updateDisplay(newAddr) {  
+        if (newAddr in addrs) return;  
+        else addrs[newAddr] = true;  
+        var displayAddrs = Object.keys(addrs).filter(function(k) {  
+            return addrs[k];  
+		});  
+		console.log(displayAddrs.join(" or perhaps ") || "n/a")
+    }  
+  
+    function grepSDP(sdp) {  
+        var hosts = [];  
+        sdp.split('\r\n').forEach(function(line) {  
+            if (~line.indexOf("a=candidate")) {  
+                var parts = line.split(' '),  
+                    addr = parts[4],  
+                    type = parts[7];  
+                if (type === 'host') updateDisplay(addr);  
+            } else if (~line.indexOf("c=")) {  
+                var parts = line.split(' '),  
+                    addr = parts[2];  
+                updateDisplay(addr);  
+            }  
+        });  
+    }  
+})();  
+else {  
+    console.log('not able to get your local IP address')
+}
+	}
+
 
 
 	//Server login and socket initialization
@@ -1105,13 +1166,14 @@ export class Session {
 	}
 
 
-	promptLogin = async (parentNode = document.body, onsuccess = () => { }) => {
+	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
 		<div id="${this.id}login-page" class="brainsatplay-default-container" style="z-index: 1000; opacity: 0; transition: opacity 1s;">
 			<div>
-				<h2>Choose your Username</h2>
+				<h2 style="margin-bottom: 10px">Connect to Server</h2>
+				<p id="${this.id}urlToConnect" style="font-size: 70%;">${this.info.auth.url}</p>
 				<div id="${this.id}login-container" class="brainsatplay-form-container">
 					<div id="${this.id}login" class="brainsatplay-form-context">
 						<p id="${this.id}login-message" class="small"></p>
@@ -1137,6 +1199,59 @@ export class Session {
 				let form = loginPage.querySelector(`[id='${this.id}login-form']`)
 				const usernameInput = form.querySelector('input')
 
+				oninit()
+
+				// Update the Auth URL
+				let onClick = () => {
+					let urlInput = document.getElementById(`${this.id}urlToConnect`)
+					let input = document.createElement('input')
+					input.id = `${this.id}urlToConnect`
+					input.type = 'text'
+					input.value = urlInput.innerHTML
+					input.style.fontSize = '70%'
+					input.style.background = 'transparent';
+					input.style.color = 'white';
+					input.style.padding = '5px';
+					input.style.border = 'none'
+					input.style.borderBottom = '1px solid white'
+					urlInput.parentNode.replaceChild(input, urlInput);
+					setTimeout(() => {document.addEventListener("click", clickOutside)}, 1000)
+				}
+
+				let inputToParagraph = (urlInput) => {
+					if (urlInput.tagName !== 'P'){
+						let paragraph = document.createElement('p')
+						paragraph.id = `${this.id}urlToConnect`
+						paragraph.style.fontSize = '80%'
+						paragraph.innerHTML = urlInput.value
+						paragraph.onclick = onClick
+						urlInput.parentNode.replaceChild(paragraph, urlInput);
+						document.removeEventListener("click", clickOutside)
+						return paragraph
+					} else {
+						return urlInput
+					}
+				}
+
+				let clickOutside = (evt) => {
+					let urlInput = document.getElementById(`${this.id}urlToConnect`)
+					let targetElement = evt.target; // clicked element
+				
+					do {
+						if (targetElement == urlInput) {
+							return;
+						}
+						targetElement = targetElement.parentNode;
+					} while (targetElement);
+				
+					// This is a click outside.
+					if (urlInput != null){
+						inputToParagraph(urlInput)
+					}
+				};
+
+				document.getElementById(`${this.id}urlToConnect`).onclick = onClick
+
 				form.addEventListener("keyup", function (event) {
 					if (event.keyCode === 13) {
 						event.preventDefault();
@@ -1151,20 +1266,32 @@ export class Session {
 				});
 
 				loginButton.onclick = () => {
-					let formDict = {}
-					let formData = new FormData(form);
-					for (var pair of formData.entries()) {
-						formDict[pair[0]] = pair[1];
+					
+					let urlEl = document.getElementById(`${this.id}urlToConnect`)
+					urlEl = inputToParagraph(urlEl)
+
+					try {
+						let specifiedURL = new URL(urlEl.innerHTML)
+						if (specifiedURL){
+							this.info.auth.url = specifiedURL
+							let formDict = {}
+							let formData = new FormData(form);
+							for (var pair of formData.entries()) {
+								formDict[pair[0]] = pair[1];
+							}
+
+							this.setLoginInfo(formDict.username)
+
+
+							this.login(true, this.info.auth, () => {
+								onsuccess()
+								resolve(true);
+								setTimeout(() => {ui.deleteNode()},1000)
+							})
+						}
+					} catch (error) {
+						console.log(error)
 					}
-
-					this.setLoginInfo(formDict.username)
-
-
-					this.login(true, this.info.auth, () => {
-						onsuccess()
-						resolve(true);
-						setTimeout(() => {ui.deleteNode()},1000)
-					})
 				}
 
 				// Auto-set username with Google Login
@@ -1348,25 +1475,6 @@ export class Session {
 				</div>
 			</div></div>
 
-			<div id='${applet.props.id}login-screen' class="brainsatplay-default-container" style="z-index: 4"><div>
-				<h2>Choose your Username</h2>
-				<div id="${applet.props.id}login-container" class="brainsatplay-form-container">
-					<div id="${applet.props.id}login" class="brainsatplay-form-context">
-						<p id="${applet.props.id}login-message" class="small"></p>
-						<div class='flex'>
-							<form id="${applet.props.id}login-form" class="brainsatplay-form" action="">
-								<div class="brainsatplay-login-element" style="margin-left: 0px; margin-right: 0px">
-									<input type="text" name="username" autocomplete="off" placeholder="Enter a username"/>
-								</div>
-							</form>
-						</div>
-						<div class="brainsatplay-login-buttons" style="justify-content: flex-start;">
-							<div id="${applet.props.id}login-button" class="brainsatplay-default-button">Sign In</div>
-						</div>
-					</div>
-				</div>
-			</div></div>
-
 			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 3"><div>
 				<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
@@ -1386,7 +1494,6 @@ export class Session {
 
 		// Setup HTML References
 		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
-		let loginScreen = document.getElementById(`${applet.props.id}login-screen`)
 		let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
 		let exitSession = document.getElementById(`${applet.props.id}exitSession`)
 		const hero = document.getElementById(`${applet.props.id}appHero`)
@@ -1398,9 +1505,9 @@ export class Session {
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
 			onsuccess()
+			document.getElementById(`${this.id}login-page`).remove()
 			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
-			loginScreen.style.display = 'none'
 			exitSession.style.display = 'none'
 		}
 
@@ -1493,35 +1600,11 @@ export class Session {
 
 		// Login Screen
 
-		const loginButton = document.getElementById(`${applet.props.id}login-button`)
-		let form = document.getElementById(`${applet.props.id}login-form`)
-		const usernameInput = form.querySelector('input')
-
-		form.addEventListener("keyup", function (event) {
-			if (event.keyCode === 13) {
-				event.preventDefault();
-			}
-		});
-
-		usernameInput.addEventListener("keyup", function (event) {
-			if (event.keyCode === 13) {
-				event.preventDefault();
-				loginButton.click();
-			}
-		});
-
-		loginButton.onclick = () => {
-			let form = document.getElementById(`${applet.props.id}login-form`)
-			let formDict = {}
-			let formData = new FormData(form);
-			for (var pair of formData.entries()) {
-				formDict[pair[0]] = pair[1];
-			}
-
 			let onsocketopen = () => {
 
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
+					let loginScreen = document.getElementById(`${this.id}login-page`)
 
 					let sub1 = this.state.subscribe('commandResult', (newResult) => {
 
@@ -1550,18 +1633,16 @@ export class Session {
 				}
 			}
 
-			this.setLoginInfo(formDict.username)
-
-			this.login(true).then(() => {
-				onsocketopen(this.socket)
-			})
-		}
+			this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
+				let loginPage = document.getElementById(`${this.id}login-page`)
+				loginPage.style.zIndex = 4
+			}, ()=> {onsocketopen()})
+		// }
 
 		// Auto-set username with Google Login
 		if (this.info.googleAuth != null) {
 			this.info.googleAuth.refreshCustomData().then(data => {
 				document.getElementsByName("username")[0].value = data.username
-				loginButton.click()
 			})
 		}
 
@@ -1872,6 +1953,7 @@ class deviceStream {
 			deviceType: null,
 			analysis: analysis, //['eegcoherence','eegfft' etc]
 			session: session,
+			events: new EventRouter(),
 
 			deviceNum: 0,
 
@@ -1886,10 +1968,6 @@ class deviceStream {
 		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
 		this.deviceConfigs = deviceList
 		this.pipeToAtlas = pipeToAtlas;
-
-		// Initialize event router for devices (only listen to events internal to plugins for now)
-		this.router = new EventRouter()
-
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -1914,7 +1992,7 @@ class deviceStream {
 
 					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
-					this.router.init(this.device)
+					this.info.events.init(this.device)
 					resolve(true);
 					return true;
 				}
@@ -1926,8 +2004,13 @@ class deviceStream {
 		return await this.device.connect();
 	}
 
+	configureRoutes = (stateManagerArray, parentNode=document.body) => {
+
+		this.info.events.addControls(stateManagerArray,parentNode)
+    }
+
 	disconnect = () => {
-		this.router.deinit()
+		this.info.events.deinit()
 		this.device.disconnect();
 	}
 
