@@ -17,7 +17,7 @@ import "prism-themes/themes/prism-vsc-dark-plus.css"
 import './styles/defaults.css'
 
 
-export class liveEditor {
+export class LiveEditor {
 
         constructor(settings={language: 'javascript'},parentNode=document.body) {
 
@@ -26,6 +26,10 @@ export class liveEditor {
             this.props = {
                 id: Math.floor(Math.random()*10000000),
                 language: settings.language
+            }
+
+            if (settings.onSave){
+                this.onSave = settings.onSave
             }
 
             // For JS Editor
@@ -85,17 +89,17 @@ export class liveEditor {
             let targetName = (this.function == null) ? 'From Scratch' : this.function
 
             let template = `
-            <div id='${this.props.id}liveEditor' style="color: white; position: absolute; top: 0; left:0; width: 100%; height: 100%; padding: 50px; z-index: 100000; background: black;">
+            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%;">
             
-                <div id='${this.props.id}shaderheader' style="display: flex; align-items: center;">
-                    <div style='padding-bottom: 25px; padding-top: 25px; width: 50%;'>
+                <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
+                    <div style='width: 50%; padding: 10px;'>
                         <h3 style="margin: 0;">Live Code Editor</h3>
                         <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
                     </div>
                     <div style="display: flex;">
-                        <button id='${this.props.id}reset' class="brainsatplay-default-button">Reset</button>
-                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button">Reference</button>
-                        <button id='${this.props.id}submit' class="brainsatplay-default-button">Save</button>
+                        <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
+                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>
+                        <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
@@ -111,9 +115,9 @@ export class liveEditor {
 
 
             let head = document.getElementById(`${this.props.id}head`)
-            let input = document.getElementById(`${this.props.id}editor`)
+            this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
-
+            let submitElement = document.getElementById(`${this.props.id}submit`)
             /* 
             
                 Declare Events
@@ -125,24 +129,25 @@ export class liveEditor {
                     this.target[this.function] = eval(this.body);
                     this.body = this.getFunctionBody(this.target[this.function]);
                     this.head = this.getFunctionHead(this.target[this.function]);
-                    input.value = this.body;
+                    this.input.value = this.body;
                     this._triggerCodeChange()
                 } else if (this.props.language === 'html'){
                     this.target.innerHTML = this.copy;   
                     // try{ eval(this.defaultScripts); } catch(er) {alert('Script error: ', er);}
                 } else {
-                    console.error('reset not supported for this language')
+                    console.error(`reset not supported for ${this.props.language}`)
                 }
             }
             
-            input.oninput = () => {
-                this._updateDisplay(input.value)
-                this._syncScroll(input)
+            this.input.oninput = () => {
+                this._updateDisplay(this.input.value)
+                this._syncScroll(this.input)
             }
 
             this.onKeyDown = (e) => {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
+                    submitElement.click()
                 }
             }
 
@@ -164,37 +169,41 @@ export class liveEditor {
                 toggle.style.display = 'none'
             }
 
-            document.getElementById(`${this.props.id}submit`).onclick = () => {
+            submitElement.onclick = () => {
 
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
                     try{ 
-                        let text = input.value;
+                        let text = this.input.value;
                         newFunc = eval(this.head+text.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
                     } 
                     catch (er) {}
                     if(newFunc)
                         this.target[this.function] = newFunc;
+                        this.onSave()
                 } 
                 
                 else if (this.props.language === 'html') {
-                    this.target.innerHTML = input.value;
+                    this.target.innerHTML = this.input.value;
+                    this.onSave()
                     // try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
                 }
 
-                else {
-                    console.error('saving not supported for this language')
+                else if (this.props.language === 'glsl'){
+                    this.onSave()
+                } else {
+                    console.error(`saving not supported for ${this.props.language}`)
                 }
             }
 
             document.addEventListener("keydown", this.onKeyDown, false);
 
-            input.onscroll = () => {
-                this._syncScroll(input)
+            this.input.onscroll = () => {
+                this._syncScroll(this.input)
             }
 
-            input.onkeydown = (e) => {
-                this._checkTab(input,e)
+            this.input.onkeydown = (e) => {
+                this._checkTab(this.input,e)
             }
 
             /* 
@@ -206,7 +215,7 @@ export class liveEditor {
             if (this.head != null) head.innerHTML = this.head;
 
             if (this.body != null) {
-                input.value = this.body
+                this.input.value = this.body
                 this._triggerCodeChange()
             }
             else {
@@ -226,6 +235,8 @@ export class liveEditor {
         let editor = document.getElementById(`${this.props.id}liveEditor`);
         editor.parentNode.removeChild(editor);   
     }
+
+    onSave = () => {} // Can be set by user
 
     //Get the text inside of a function (regular or arrow);
     getFunctionBody = (method) => {
