@@ -27,4 +27,6 @@ After this, you can run `npm start` in the terminal again.
 
 ## Conclusion
 ---
-If your certificates have been configured properly, you should now have a secure instance of The Brains@Play Platform running in your local environment. Other computers on your Local Area Network (LAN) may now connect to your local IP address (logged in the terminal and Chrome Developer Console) where their data will be accessible to anyone else connected to your server!
+If your certificates have been configured properly, you should now have a secure instance of The Brains@Play Platform running in your local environment. Other computers on your Local Area Network (LAN) may now connect to your local IP address that is logged in the terminal and Chrome Developer Console (e.g. https://10.0.0.3:1234 for browser window, https://10.0.0.3 for establishing the WebSocket connection on login). 
+
+Now their data will be accessible to anyone else connected to your local Brainstorm!
