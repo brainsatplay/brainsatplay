@@ -3,9 +3,8 @@ import * as THREE from 'three'
 
 // let zoom = 1;
 export class UserMarker {
-  constructor(id, styles, settings) {
+  constructor(id, settings) {
     this.id = id
-    this.styles = styles
     this.name = settings.name
     this.latitude = settings.latitude
     this.longitude = settings.longitude
@@ -33,9 +32,9 @@ export class UserMarker {
 
   createHTMLElement(){
     document.getElementById(`${this.id}nexus-point-container`).innerHTML += `
-    <div class="${this.styles['nexus-point']} nexus-point-${this.name}">
-      <div class="${this.styles['nexus-label']}">${this.name}</div>
-      <div class="${this.styles['nexus-text']}">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
+    <div class="nexus-point nexus-point-${this.name}">
+      <div class="nexus-label">${this.name}</div>
+      <div class="nexus-text">${this.name} is down here. Click here, then scroll to zoom in and see.</div>
     </div>
     `
     this.element = document.getElementById(`${this.id}`).querySelector(`.nexus-point-${this.name}`)
@@ -51,9 +50,9 @@ export class UserMarker {
       camera.position.y,
       camera.position.z))
     if (distanceToPoint > 0.1 && screenPos.z > 0 && this.active){
-      this.element.classList.add(this.styles.visible)
+      this.element.classList.add('visible')
     } else {
-      this.element.classList.remove(this.styles.visible)
+      this.element.classList.remove('visible')
     }
 
   //   function offset(el) {

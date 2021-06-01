@@ -1,6 +1,6 @@
 import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
-// import './ui/styles/defaults.css'
+import './ui/styles/defaults.css'
 
 export class Application{
     constructor(
@@ -35,8 +35,6 @@ export class Application{
         let setupHTML = () => {
 
             if (this.info.intro != null) this.session.createIntro(this)
-
-            console.log('setting up')
             this.uiParams.setupHTML.forEach(f => {
                 f(this)
             })
@@ -52,6 +50,8 @@ export class Application{
             undefined,          //Can have an onchange function fire when properties change
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
+
+        this.AppletHTML.appendStylesheet(styles)
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
     }

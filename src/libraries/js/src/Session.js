@@ -60,12 +60,6 @@ import { EventRouter } from './EventRouter'
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
 
-
-// Default Styling
-// import './ui/styles/defaults.css'
-
-
-
 /**
  * ```javascript
  * import {Session} from 'brainsatplay'

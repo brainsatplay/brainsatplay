@@ -4,6 +4,7 @@ import * as brainsatplay from '../libraries/js/brainsatplay'
 
 import {BCIAppManager} from './js/frontend/BCIManager'
 import { DOMFragment } from '../libraries/js/src/ui/DOMFragment';
+import { liveEditor } from '../libraries/js/src/ui/LiveEditor';
 
 // Check if Mobile
 window.isMobile = false;
@@ -102,4 +103,9 @@ let bcisession = new brainsatplay.Session('guest','', urlToConnect);
 bcisession.getLocalIP()
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
+
+
+// setTimeout(() => {
+// 	let editor = new liveEditor({language: 'javascript'}, document.body)
+// }, 300)
 
