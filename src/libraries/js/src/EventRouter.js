@@ -60,7 +60,8 @@ export class EventRouter{
         for (let event in this.routes){
 
             let routes = this.routes[event]
-            if (routes.length < 2){
+            if (routes.length < 2 && validRoutes.length > 0){
+
                 let newRoute = validRoutes.shift()
                 let target = newRoute.manager.data[newRoute.key]
                 routes.push(target)
