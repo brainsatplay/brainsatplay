@@ -57,10 +57,9 @@ The [USC Bridge Arts and Science Alliance](https://uscbasa.wixsite.com/mysite) h
 - [WebRTC](https://webrtc.org/) implementation for peer-to-peer data streaming ($250)
 - [Automated artifact rejection](https://gitlab.ciirc.cvut.cz/open-source/rps) for online BCI experiments ($100)
 - Unity, Unreal, and Godot plugins ($50 each)
-- [Timeflux UI](https://github.com/timeflux/timeflux_ui) integration ($50)
-- [BCI2000](https://www.bci2000.org/) integration via [BCI2000Web](https://github.com/cronelab/bci2000web) ($50).
 - Build us the [BrainDAO](https://techcrunch.com/2016/05/16/the-tao-of-the-dao-or-how-the-autonomous-corporation-is-already-here/) and create a token that you can mine with your brain ($50).
-- [MOABB](https://github.com/NeuroTechX/moabb) integration ($50).
+- Train ML models (for whavever you want!) during use of a simple application/game.
+- [MOABB](https://github.com/NeuroTechX/moabb) integration ($50). We also need a robust way to benchmark plugins in brainsatplay.js, including latency, performance, etc.
 - Project [Warioware](https://www.youtube.com/watch?v=tdyq57OCXn8): "Micro-games" for single and multiplayer use ($5 per entry)
 
 Each technical bounty must be accompanied by a demo applet showcasing the new feature.

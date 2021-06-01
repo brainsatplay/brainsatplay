@@ -16,7 +16,8 @@ class Brainstorm():
     """A class for interacting with The Brainstorm
     """
 
-    def __init__(self, url='https://server.brainsatplay.com', port=None):
+    def __init__(self, url= 'https://brainsatplay.azurewebsites.net', # 'https://server.brainsatplay.com', 
+    port=None):
         self.url = url
         self.port = port
         self.username = ''

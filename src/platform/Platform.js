@@ -49,7 +49,7 @@ if (window.isChrome){
 
 let protocol = location.protocol
 let localHostURL = `${protocol}//localhost:443`
-let remoteHostURL = 'https://server.brainsatplay.com'
+let remoteHostURL = 'https://brainsatplay.azurewebsites.net' //'https://server.brainsatplay.com'
 
 let urlToConnect = (location.origin.includes('localhost') ? localHostURL : remoteHostURL)
 
