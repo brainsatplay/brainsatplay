@@ -55,22 +55,22 @@ if (mongouri) {
     })
 }
 
-// Other Server Events
-server.on('clientError', (a,b,c) => {
-  console.log('clientError', a,b,c)
-})
+// // Other Server Events
+// server.on('clientError', (a,b,c) => {
+//   console.log('clientError', a,b,c)
+// })
 
-server.on('checkExpectation', (a,b,c) => {
-  console.log('checkExpectation', a,b,c)
-})
+// server.on('checkExpectation', (a,b,c) => {
+//   console.log('checkExpectation', a,b,c)
+// })
 
-server.on('checkContinue', (a,b,c) => {
-  console.log('checkContinue', a,b,c)
-})
+// server.on('checkContinue', (a,b,c) => {
+//   console.log('checkContinue', a,b,c)
+// })
 
-server.on('request', (a,b,c) => {
-  console.log('request', a,b,c)
-})
+// server.on('request', (a,b,c) => {
+//   console.log('request', a,b,c)
+// })
 
 
 // Authenticate User Before Connecting WebSocket

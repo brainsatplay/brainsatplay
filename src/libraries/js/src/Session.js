@@ -92,7 +92,7 @@ export class Session {
 	constructor(
 		username = 'guest',
 		password = '',
-		urlToConnect = 'https://server.brainsatplay.com'
+		urlToConnect = 'https://brainsatplay.azurewebsites.net'//'https://server.brainsatplay.com'
 	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({

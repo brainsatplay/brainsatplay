@@ -8,21 +8,25 @@ hide_title: true
 ## Welcome to Brains@Play
 ---
 
-**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source framework for creating brain-responsive applications using modern web technologies.** With this framework, we have developed [The Brains@Play Platform](https://app.brainsatplay.com) to streamline the deployment of applications built by and for our community.
+**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source library for incorporating biosignals into modern web applications.** We have developed [The Brains@Play Platform](https://app.brainsatplay.com) to host apps built by and for our community.
 
 
 ## Our Ethos
 ---
 
-**The future intrastructure of brain-computer interfaces (BCIs) is being written openly on the Web.** [BCI2000](https://github.com/cronelab/bci2000web) and [Timeflux](https://github.com/timeflux/timeflux_ui) have already caught on. Here's why we think you should take web-based BCIs seriously.
+**Future biosensing intrastructure must be publicly available on the Web.** Accessible for developers and end-users alike, the Web allows for the seamless translation of state-of-the-art algorithms and applications from the lab / clinic / studio to the real world. 
+
+In the realm of brain-computer interfaces (BCIs), [BCI2000](https://github.com/cronelab/bci2000web) and [Timeflux](https://github.com/timeflux/timeflux_ui) have already joined the movement. 
+
+Here's why we think you should take web-based (particularly browser-based) biosensing seriously.
 
 ### 1. Everyone Has A Brain
 **Why not develop applications accessible to all of them?** Brains@Play creates neurotechnology with everyone by taking advantage of the universal interface of modern technology: the web browser. The Web is the only platform positioned to elevate all of society through widespread home use of neurofeedback and BCIs—both by healthy users *as well as* those with neurological disorders. Our device-agnostic data acquisition system standardizes data streams from a variety of devices so you don't have to worry about compatibility when developing applications.
 
 ### 2. Code for the Client
-**We want biosensing applications to seamlessly transfer from your Github repository into the real world!** Whether or not you're connected to the internet, you should always have the opportunity to receive real-time information about your brain. The development of a Javascript BCI library, affordable hardware, and experiences that truly captivate users will extend the benefits of biosensing technology to all.
+**We want biosensing applications to seamlessly transfer from your Github repository to the browser!** Whether or not you're connected to the internet, you should always have the opportunity to receive real-time information about your brain. The development of a Javascript BCI library, affordable hardware, and experiences that truly captivate users will extend the benefits of biosensing technology to all.
 
-### 3. Access to Brains Requires Access to Source Code
+### 3. Access to our Brains and Bodies Requires Access to Source Code
 Since Brains@Play is licensed under the GPLv3 license, **you must distribute your own source code under a GPLv3-compatible license if your software includes or modifies the Brains@Play codebase.** 
 
 A full list of licenses that qualify as free software licenses, and are compatible with the GNU GPL, can be found [here](https://www.gnu.org/licenses/license-list.en.html).
@@ -57,10 +61,9 @@ The [USC Bridge Arts and Science Alliance](https://uscbasa.wixsite.com/mysite) h
 - [WebRTC](https://webrtc.org/) implementation for peer-to-peer data streaming ($250)
 - [Automated artifact rejection](https://gitlab.ciirc.cvut.cz/open-source/rps) for online BCI experiments ($100)
 - Unity, Unreal, and Godot plugins ($50 each)
-- [Timeflux UI](https://github.com/timeflux/timeflux_ui) integration ($50)
-- [BCI2000](https://www.bci2000.org/) integration via [BCI2000Web](https://github.com/cronelab/bci2000web) ($50).
 - Build us the [BrainDAO](https://techcrunch.com/2016/05/16/the-tao-of-the-dao-or-how-the-autonomous-corporation-is-already-here/) and create a token that you can mine with your brain ($50).
-- [MOABB](https://github.com/NeuroTechX/moabb) integration ($50).
+- Train ML models (for whavever you want!) during use of a simple application/game.
+- [MOABB](https://github.com/NeuroTechX/moabb) integration ($50). We also need a robust way to benchmark plugins in brainsatplay.js, including latency, performance, etc.
 - Project [Warioware](https://www.youtube.com/watch?v=tdyq57OCXn8): "Micro-games" for single and multiplayer use ($5 per entry)
 
 Each technical bounty must be accompanied by a demo applet showcasing the new feature.
