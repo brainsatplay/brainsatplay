@@ -13,11 +13,11 @@ export class bci2000Plugin {
         this.filters = [];
 
         this.states = {
-            clicks: [
-                {data: false, timestamp: Date.now()},
-                {data: false, timestamp: Date.now()},
-                {data: false, timestamp: Date.now()},
-                {data: false, timestamp: Date.now()}
+            switches: [
+                {data: false, meta: {label: 'Switch 1'}, timestamp: Date.now()},
+                {data: false, meta: {label: 'Switch 2'}, timestamp: Date.now()},
+                {data: false, meta: {label: 'Switch 3'}, timestamp: Date.now()},
+                {data: false, meta: {label: 'Switch 4'}, timestamp: Date.now()}
             ],
         }
 
@@ -94,14 +94,14 @@ export class bci2000Plugin {
                 if(this.device.states?.StimulusCode != undefined) {
                     // Clear States
                     let clickIdx = this.device.states?.StimulusCode[0] - 1
-                    if (clickIdx >= 0 && this.states.clicks[clickIdx].data != true){ // Detect change
-                        this.states.clicks = this.states.clicks.map(d => 
+                    if (clickIdx >= 0 && this.states.switches[clickIdx].data != true){ // Detect change
+                        this.states.switches = this.states.switches.map(d => 
                             {
                                 d.data = false
                                 return d
-                            }) // Reset all (clicks are exclusive)
-                        this.states.clicks[clickIdx].data = true 
-                        this.states.clicks[clickIdx].timestamp = Date.now()
+                            }) // Reset all (switches are exclusive)
+                        this.states.switches[clickIdx].data = true 
+                        this.states.switches[clickIdx].timestamp = Date.now()
                     }
                 }
                

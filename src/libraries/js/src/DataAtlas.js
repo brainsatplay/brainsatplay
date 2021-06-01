@@ -85,7 +85,7 @@ export class DataAtlas {
 			eyetracker:[],
 			other:{notes:[],games:{}},
 			states: {
-				clicks: []
+				switches: []
 			}
 		};
 

@@ -9,7 +9,7 @@ export class EventRouter{
         this.routes = {}
 
         this.id = String(Math.floor(Math.random()*1000000))
-        this.events = ['clicks']
+        this.events = ['switches']
     }
 
     init(device){
@@ -21,13 +21,13 @@ export class EventRouter{
                     if (!Array.isArray(states)) states = [states]
                     states.forEach((state,i) => {
                         this.device.atlas.data.states[str].push(state)
-                        this.state.addToState(str+i, state)
+                        this.state.addToState(state.meta.label, state)
                         
                         // Always Update Atlas Location
-                        this.routes[str + i] = [this.device.atlas.data.states[str][i]]
+                        this.routes[state.meta.label] = [this.device.atlas.data.states[str][i]]
 
                         // Declare Callback and Subscribe
-                        let deviceCallback = (o) => {this.update(o, this.routes[str + i])}
+                        let deviceCallback = (o) => {this.update(o, this.routes[state.meta.label])}
                         this.state.subscribe(str+i, deviceCallback)
                     })
                 }
@@ -54,9 +54,6 @@ export class EventRouter{
     autoRoute = (stateManagerArray) => {
         let validRoutes = this.getValidRoutes(stateManagerArray)
 
-        console.log('autoroute')
-        console.log(this.routes)
-
         for (let event in this.routes){
 
             let routes = this.routes[event]
@@ -67,7 +64,6 @@ export class EventRouter{
                 routes.push(target)
 
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${event}`)
-                console.log(routeSelector)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
                     for (var opt, j = 0; opt = opts[j]; j++) {
