@@ -44,6 +44,8 @@ export class LiveEditor {
             } else {
                 console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
+
+            this.quickrefhidden = true;
         }
 
         init = () => {
@@ -134,13 +136,13 @@ export class LiveEditor {
                 this.insertGLSLReference()
                 toggle.style.display = ''
                 toggle.onclick = () => {
-                    if(this.quickrefhidden) {
-                        document.getElementById(`${this.props.id}reference`).style.display = '';
-                        this.quickrefhidden = false;
-                    }
-                    else {
+                    if(!this.quickrefhidden) {
                         document.getElementById(`${this.props.id}reference`).style.display = 'none';
                         this.quickrefhidden = true;
+                    }
+                    else {
+                        document.getElementById(`${this.props.id}reference`).style.display = '';
+                        this.quickrefhidden = false;
                     }
                 }
             } else {
