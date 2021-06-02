@@ -42,7 +42,7 @@ export class bci2000Plugin {
             script += `Set Config; `
             script += `Start; `
     
-            this.operator.connect("ws://127.0.0.1","",false).then(() => {
+            this.operator.connect("ws://127.0.0.1").then(() => {
                 console.log("Connected to Operator layer through NodeJS server");
                 this.operator.execute(script);
                 this.connectToDataLayer(info,pipeToAtlas).then(res => {
@@ -79,7 +79,7 @@ export class bci2000Plugin {
 
         let resolved = false
         this.device = new BCI2K.bciData();
-        this.device.connect("ws://127.0.0.1:20100", "", false).then((x) => {
+        this.device.connect("ws://127.0.0.1:20100").then((x) => {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
@@ -98,7 +98,7 @@ export class bci2000Plugin {
                             if (i === value) this.states[k][value].data = 1 // Binary
                             else this.states[k][i].data = 0 // Binary
                         })
-                        
+
                     }
                 })
                
@@ -221,14 +221,13 @@ export class bci2000Plugin {
 
     _onConnected = () => {} //for internal use only on init
 
-    connect = () => {
-
-    }
+    connect = () => {}
 
     disconnect = () => {
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
-        this.device._socket.close()
+        if (this.device) this.device.disconnect()
+        if (this.operator) this.operator.disconnect()
     }
 
     //externally set callbacks
