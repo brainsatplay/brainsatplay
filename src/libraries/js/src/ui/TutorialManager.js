@@ -125,7 +125,7 @@ export class TutorialManager {
             let targetQuery = this.tooltipContent[this.tutorialState].target;
             let target = document.getElementById(targetQuery);
 
-            if (window.getComputedStyle(target).display !== "none"){
+            if (target instanceof HTMLElement && window.getComputedStyle(target).display !== "none"){
 
                 lastState = this.tutorialState === this.tooltipContent.length - 1
                 let advanceLabel = (!lastState) ? "Next" : "Start Playing"
@@ -231,11 +231,14 @@ export class TutorialManager {
 
     removeTooltip = () => {
         let prevSettings = this.tooltipContent[this.tutorialState];
-        let prevToolTip = document.getElementById(prevSettings.target).querySelector(".brainsatplay-tutorial-tooltip-container")
-        if(prevToolTip != null){
-            prevToolTip.style.opacity = '0'
-            setTimeout(()=>{prevToolTip.remove()}, 1000);
-        }  
+        let target = document.getElementById(prevSettings.target)
+        if (target != null){
+            let prevToolTip = document.getElementById(prevSettings.target).querySelector(".brainsatplay-tutorial-tooltip-container")
+            if(prevToolTip != null){
+                prevToolTip.style.opacity = '0'
+                setTimeout(()=>{prevToolTip.remove()}, 1000);
+            }  
+        }
     }
 
     removeMask = () => {

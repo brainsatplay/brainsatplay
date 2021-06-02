@@ -9,7 +9,6 @@ import { DOMFragment } from './DOMFragment';
 import Prism from 'prismjs';
 
 // GLSL
-// import 'prismjs/components/prism-core';
 import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-glsl';
 
@@ -19,7 +18,7 @@ import './styles/defaults.css'
 
 export class LiveEditor {
 
-        constructor(settings={language: 'javascript'},parentNode=document.body,onSave) {
+        constructor(settings={language: 'javascript'},parentNode=document.body) {
 
             // Internal Attributes
             this.ui
@@ -28,21 +27,24 @@ export class LiveEditor {
                 language: settings.language,
                 supportedLanguages: ['javascript', 'html', 'glsl']
             }
+            this.editorId = this.props.id+'editor';
 
             if (this.props.supportedLanguages.includes(this.props.language)){
-
-                this._updateSettings(settings)
 
                 // Where to Insert the Editor
                 this.parentNode = parentNode;
                 if(typeof this.parentNode === 'string') { //can just input the div id
                     this.parentNode = document.getElementById(this.parentNode);
                 }
+
+                this._updateSettings(settings)
         
                 this.init();
             } else {
                 console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
+
+            this.quickrefhidden = true;
         }
 
         init = () => {
@@ -65,7 +67,7 @@ export class LiveEditor {
             let targetName = (this.function == null) ? 'From Scratch' : this.function
 
             let template = `
-            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%;">
+            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%; z-index: 100000;">
             
                 <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
                     <div style='width: 50%; padding: 10px;'>
@@ -73,13 +75,13 @@ export class LiveEditor {
                         <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
                     </div>
                     <div style="display: flex;">
+                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
-                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
-                    <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your Code'></textarea>
+                    <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your ${language} code...'></textarea>
                     <pre class="brainsatplay-code-highlighting" aria-hidden="true">
                         <code class="language-${this.props.language} brainsatplay-code-highlighting-content"></code>
                     </pre>
@@ -100,6 +102,7 @@ export class LiveEditor {
             */
 
             reset.onclick = () => {
+                console.log('reset')
                 if (this.props.language === 'javascript'){
                     // this.target[this.function] = eval(this.body);
                     // this.body = this.getFunctionBody(this.target[this.function]);
@@ -115,7 +118,7 @@ export class LiveEditor {
                 this._triggerCodeChange()
                 this.onSave()
             }
-            
+
             this.input.oninput = () => {
                 this._updateDisplay(this.input.value)
                 this._syncScroll(this.input)
@@ -124,6 +127,7 @@ export class LiveEditor {
             this.onKeyDown = (e) => {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
+                    console.log('save with CTRL + S')
                     submitElement.click()
                 }
             }
@@ -133,13 +137,13 @@ export class LiveEditor {
                 this.insertGLSLReference()
                 toggle.style.display = ''
                 toggle.onclick = () => {
-                    if(this.quickrefhidden) {
-                        document.getElementById(`${this.props.id}reference`).style.display = '';
-                        this.quickrefhidden = false;
-                    }
-                    else {
+                    if(!this.quickrefhidden) {
                         document.getElementById(`${this.props.id}reference`).style.display = 'none';
                         this.quickrefhidden = true;
+                    }
+                    else {
+                        document.getElementById(`${this.props.id}reference`).style.display = '';
+                        this.quickrefhidden = false;
                     }
                 }
             } else {
@@ -147,6 +151,7 @@ export class LiveEditor {
             }
 
             submitElement.onclick = () => {
+                console.log('save')
 
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
@@ -174,12 +179,16 @@ export class LiveEditor {
             document.addEventListener("keydown", this.onKeyDown, false);
 
             this.input.onscroll = () => {
+                console.log('scroll')
+
                 this._syncScroll(this.input)
             }
 
             this.input.onkeydown = (e) => {
                 this._checkTab(this.input,e)
             }
+
+            this._setContent()
         }
 
         this.ui = new DOMFragment(
@@ -213,6 +222,7 @@ export class LiveEditor {
     }
 
     _updateSettings(settings){
+        console.log('updating settings')
         if (settings.onSave){
             this.onSave = settings.onSave
         }
@@ -228,7 +238,7 @@ export class LiveEditor {
                 this.body = this.getFunctionBody(this.target[this.function]);
                 this.copy = this.target[this.function].toString();
             } else {
-                console.error('settings file is improperly configured...')
+                console.warn('settings file is improperly configured...')
             }
         } else if (this.props.language === 'html') {
             if (this.target != null){
@@ -239,17 +249,17 @@ export class LiveEditor {
                 this.body = this.target.innerHTML
                 this.copy = this.target.innerHTML
             } else {
-                console.error('settings file does not contain a target...')
+                console.warn('settings file does not contain a target...')
             }
         } else if (this.props.language === 'glsl'){
             if (this.target){
-                this.head = 'Fragment Shader'
+                this.head = 'Fragment Shader';
                 this.body = this.target.replace(new RegExp(";", "g"), ";\n")
                 .replace(new RegExp("{", "g"), "{\n")
                 .replace(new RegExp("}", "g"), "}\n");
                 this.copy = this.body
             } else {
-                console.error('settings file does not contain a target...')
+                console.warn('settings file does not contain a target...')
             }
         }
     }
@@ -325,7 +335,8 @@ export class LiveEditor {
     _updateDisplay = (text) => {
         let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
-        result_element.innerHTML = replacedText
+        console.log('update display')
+        result_element.innerHTML = replacedText;
         Prism.highlightElement(result_element);
     }
 
@@ -344,7 +355,9 @@ export class LiveEditor {
     _triggerCodeChange(){
         var event = document.createEvent("Event");
         event.initEvent("input", true, true);
+        console.log(document.getElementById(`${this.props.id}editor`))
         document.getElementById(`${this.props.id}editor`).dispatchEvent(event);
+        console.log('trigger code change')
     }
 
     _checkTab = (element, event) => {
