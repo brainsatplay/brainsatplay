@@ -19,7 +19,7 @@ export class Prototype8Plugin {
 
     init = async (info,pipeToAtlas) => {
         info.sps = 500;
-        info.deviceType = 'eeg'
+        info.deviceType = 'eeg';
         //this._onConnected = () => { this.setupAtlas(info,pipeToAtlas); }
 
         info.eegChannelTags = [
@@ -96,7 +96,7 @@ export class Prototype8Plugin {
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,this.device.uVperStep)); 
                 }
                 this.filters[this.filters.length-1].useScaling = true;
-                //this.filters[this.filters.length-1].useBp1 = true;
+                this.filters[this.filters.length-1].useBp1 = true;
             });
         }	
         if(pipeToAtlas === true) {
