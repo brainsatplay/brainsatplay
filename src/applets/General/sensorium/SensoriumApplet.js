@@ -693,6 +693,7 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        console.log("Configure with settings:",settings);
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
                 
