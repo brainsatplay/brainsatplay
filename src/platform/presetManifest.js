@@ -3,6 +3,7 @@
 import placeholderImg from './assets/features/placeholder.png'
 import eegNFImage from './assets/features/eegNF.png'
 import HEGImage from './assets/features/hegbiofeedback.png'
+import hegsens from './assets/features/sensoriumheg.png'
 
 export let presetManifest = [
     {
@@ -23,14 +24,26 @@ export let presetManifest = [
         value: 'HEG',
         name: "HEG Biofeedback",
         applets: [
-            'Boids',
             'Circle',
+            'Boids',
             'Audio',
             'Pulse Monitor',
         ],
         description: "Brain blood flow training!",
         type: "HEG",
         image: HEGImage,
+        lock: false
+    },
+    {
+        value: 'HEGSensorium',
+        name: "HEG Sensorium",
+        applets: [
+            'Sensorium',
+            'Pulse Monitor'
+        ],
+        description: "Sensorium with HEG graphing.",
+        type: "HEG",
+        image: hegsens,
         lock: false
     },
     {
