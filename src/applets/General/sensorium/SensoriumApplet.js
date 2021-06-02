@@ -263,18 +263,21 @@ export class SensoriumApplet {
         let setupHTML = (props=this.props) => {
 
             this.appletContainer = document.getElementById(props.id);
-
+            this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
 
             let editorContainer = document.getElementById(`${props.id}editorContainer`)
             this.liveEditor = new LiveEditor(
-                {language: 'glsl', 
-                onSave: () => {
-                    this.setShaderFromText(this.liveEditor.input.value);
-                }
+                {
+                    language: 'glsl', 
+                    target: this.currentShader.fragmentShader,
+                    onSave: () => {
+                        // this.setShaderFromText(this.liveEditor.input.value);
+                    }
             }, editorContainer)
 
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
+            
             this.session.createIntro(this, () => {
                 this.tutorialManager.init()
             })
@@ -306,16 +309,16 @@ export class SensoriumApplet {
                 selector.innerHTML += `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`
             });
             selector.innerHTML += `<option value='fromtext'>Blank Shader</option>`
-            
-            this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
             this.swapShader();
             
             
             selector.onchange = (e) => {
                 if (e.target.value === 'fromtext') {
+                    console.log('from text')
                     // document.getElementById(props.id+'textshader').style.display = '';
                 this.startTime = Date.now(); //reset start time
-                document.getElementById(this.liveEditor.editorId).value = `
+
+                let fragmentShader = `
 #define FFTLENGTH 256
 precision mediump float;
 uniform vec2 iResolution; //Shader display resolution
@@ -332,7 +335,8 @@ void main(){
     gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
 }                    
 `;
-                    document.getElementById(this.liveEditor.editorId).oninput();
+                    this.liveEditor.updateSettings({language: 'glsl', target: fragmentShader})
+
                     editorContainer.style.display = '';
                     this.editorhidden = false;
                 }

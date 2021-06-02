@@ -9,7 +9,6 @@ import { DOMFragment } from './DOMFragment';
 import Prism from 'prismjs';
 
 // GLSL
-// import 'prismjs/components/prism-core';
 import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-glsl';
 
@@ -32,13 +31,13 @@ export class LiveEditor {
 
             if (this.props.supportedLanguages.includes(this.props.language)){
 
-                this._updateSettings(settings)
-
                 // Where to Insert the Editor
                 this.parentNode = parentNode;
                 if(typeof this.parentNode === 'string') { //can just input the div id
                     this.parentNode = document.getElementById(this.parentNode);
                 }
+
+                this._updateSettings(settings)
         
                 this.init();
             } else {
@@ -118,7 +117,7 @@ export class LiveEditor {
                 this._triggerCodeChange()
                 this.onSave()
             }
-            
+
             this.input.oninput = () => {
                 this._updateDisplay(this.input.value)
                 this._syncScroll(this.input)
@@ -183,6 +182,8 @@ export class LiveEditor {
             this.input.onkeydown = (e) => {
                 this._checkTab(this.input,e)
             }
+
+            this._setContent()
         }
 
         this.ui = new DOMFragment(
@@ -231,7 +232,7 @@ export class LiveEditor {
                 this.body = this.getFunctionBody(this.target[this.function]);
                 this.copy = this.target[this.function].toString();
             } else {
-                console.error('settings file is improperly configured...')
+                console.warn('settings file is improperly configured...')
             }
         } else if (this.props.language === 'html') {
             if (this.target != null){
@@ -242,7 +243,7 @@ export class LiveEditor {
                 this.body = this.target.innerHTML
                 this.copy = this.target.innerHTML
             } else {
-                console.error('settings file does not contain a target...')
+                console.warn('settings file does not contain a target...')
             }
         } else if (this.props.language === 'glsl'){
             if (this.target){
@@ -252,7 +253,7 @@ export class LiveEditor {
                 .replace(new RegExp("}", "g"), "}\n");
                 this.copy = this.body
             } else {
-                console.error('settings file does not contain a target...')
+                console.warn('settings file does not contain a target...')
             }
         }
     }
@@ -348,6 +349,7 @@ export class LiveEditor {
         var event = document.createEvent("Event");
         event.initEvent("input", true, true);
         document.getElementById(`${this.props.id}editor`).dispatchEvent(event);
+        console.log('trigger code change')
     }
 
     _checkTab = (element, event) => {
