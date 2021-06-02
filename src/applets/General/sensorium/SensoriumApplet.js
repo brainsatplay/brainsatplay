@@ -247,7 +247,7 @@ export class SensoriumApplet {
                             </select>
                             <button id='${props.id}editshader'>Edit</button>
                         </div>
-                        <div id='${props.id}editorContainer' style='height: 100%; width: 100%; padding: 25px; position: relative;'>
+                        <div id='${props.id}editorContainer' style='height: 100%; width: 100%; padding: 25px; position: relative; display:none;'>
                         </div>
                     </div>
                 </div>

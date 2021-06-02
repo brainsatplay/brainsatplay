@@ -132,23 +132,23 @@ export class LiveEditor {
                 }
             }
 
-            // let toggle = document.getElementById(`${this.props.id}referenceToggle`)
-            // if (this.props.language === 'glsl'){
-            //     this.insertGLSLReference()
-            //     toggle.style.display = ''
-            //     toggle.onclick = () => {
-            //         if(!this.quickrefhidden) {
-            //             document.getElementById(`${this.props.id}reference`).style.display = 'none';
-            //             this.quickrefhidden = true;
-            //         }
-            //         else {
-            //             document.getElementById(`${this.props.id}reference`).style.display = '';
-            //             this.quickrefhidden = false;
-            //         }
-            //     }
-            // } else {
-            //     toggle.style.display = 'none'
-            // }
+            let toggle = document.getElementById(`${this.props.id}referenceToggle`)
+            if (this.props.language === 'glsl'){
+                this.insertGLSLReference()
+                toggle.style.display = ''
+                toggle.onclick = () => {
+                    if(!this.quickrefhidden) {
+                        document.getElementById(`${this.props.id}reference`).style.display = 'none';
+                        this.quickrefhidden = true;
+                    }
+                    else {
+                        document.getElementById(`${this.props.id}reference`).style.display = '';
+                        this.quickrefhidden = false;
+                    }
+                }
+            } else {
+                toggle.style.display = 'none'
+            }
 
             submitElement.onclick = () => {
                 console.log('save')
