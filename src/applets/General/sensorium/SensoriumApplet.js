@@ -242,13 +242,13 @@ export class SensoriumApplet {
                         <div id='${props.id}effectmenu'></div>
                     </div>
                     <div style="width: 100%; height: 100%;">
-                    <div>
-                        <select id='${props.id}shaderSelector'>
-                        </select>
-                        <button id='${props.id}editshader'>Edit</button>
-                    </div>
-                    <div id='${props.id}editorContainer' style='height: 100%; width: 100%; padding: 25px; position: relative; display: none'>
-                    </div>
+                        <div>
+                            <select id='${props.id}shaderSelector'>
+                            </select>
+                            <button id='${props.id}editshader'>Edit</button>
+                        </div>
+                        <div id='${props.id}editorContainer' style='height: 100%; width: 100%; padding: 25px; position: relative;'>
+                        </div>
                     </div>
                 </div>
 
@@ -271,7 +271,7 @@ export class SensoriumApplet {
                     language: 'glsl', 
                     target: this.currentShader.fragmentShader,
                     onSave: () => {
-                        // this.setShaderFromText(this.liveEditor.input.value);
+                        this.setShaderFromText(this.liveEditor.input.value);
                     }
             }, editorContainer)
 
@@ -306,9 +306,9 @@ export class SensoriumApplet {
 
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
-                selector.innerHTML += `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`
+                selector.insertAdjacentHTML('beforeend', `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`)
             });
-            selector.innerHTML += `<option value='fromtext'>Blank Shader</option>`
+            selector.insertAdjacentHTML('beforeend', `<option value='fromtext'>Blank Shader</option>`)
             this.swapShader();
             
             
@@ -743,14 +743,14 @@ void main(){
             
         }
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='none'>None</option>`;
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='micin'>Mic In</option>`;
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`)
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`)
 
         this.soundUrls.forEach((obj)=>{
-            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='${obj.url}'>${obj.name}</option>`;
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='${obj.url}'>${obj.name}</option>`)
         });
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).innerHTML += `<option value='addfile'>Add Custom File</option>`;
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Custom File</option>`)
 
 
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {

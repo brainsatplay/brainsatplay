@@ -18,7 +18,7 @@ import './styles/defaults.css'
 
 export class LiveEditor {
 
-        constructor(settings={language: 'javascript'},parentNode=document.body,onSave) {
+        constructor(settings={language: 'javascript'},parentNode=document.body) {
 
             // Internal Attributes
             this.ui
@@ -67,7 +67,7 @@ export class LiveEditor {
             let targetName = (this.function == null) ? 'From Scratch' : this.function
 
             let template = `
-            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%;">
+            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%; z-index: 100000;">
             
                 <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
                     <div style='width: 50%; padding: 10px;'>
@@ -102,6 +102,7 @@ export class LiveEditor {
             */
 
             reset.onclick = () => {
+                console.log('reset')
                 if (this.props.language === 'javascript'){
                     // this.target[this.function] = eval(this.body);
                     // this.body = this.getFunctionBody(this.target[this.function]);
@@ -126,29 +127,31 @@ export class LiveEditor {
             this.onKeyDown = (e) => {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
+                    console.log('save with CTRL + S')
                     submitElement.click()
                 }
             }
 
-            let toggle = document.getElementById(`${this.props.id}referenceToggle`)
-            if (this.props.language === 'glsl'){
-                this.insertGLSLReference()
-                toggle.style.display = ''
-                toggle.onclick = () => {
-                    if(!this.quickrefhidden) {
-                        document.getElementById(`${this.props.id}reference`).style.display = 'none';
-                        this.quickrefhidden = true;
-                    }
-                    else {
-                        document.getElementById(`${this.props.id}reference`).style.display = '';
-                        this.quickrefhidden = false;
-                    }
-                }
-            } else {
-                toggle.style.display = 'none'
-            }
+            // let toggle = document.getElementById(`${this.props.id}referenceToggle`)
+            // if (this.props.language === 'glsl'){
+            //     this.insertGLSLReference()
+            //     toggle.style.display = ''
+            //     toggle.onclick = () => {
+            //         if(!this.quickrefhidden) {
+            //             document.getElementById(`${this.props.id}reference`).style.display = 'none';
+            //             this.quickrefhidden = true;
+            //         }
+            //         else {
+            //             document.getElementById(`${this.props.id}reference`).style.display = '';
+            //             this.quickrefhidden = false;
+            //         }
+            //     }
+            // } else {
+            //     toggle.style.display = 'none'
+            // }
 
             submitElement.onclick = () => {
+                console.log('save')
 
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
@@ -176,6 +179,8 @@ export class LiveEditor {
             document.addEventListener("keydown", this.onKeyDown, false);
 
             this.input.onscroll = () => {
+                console.log('scroll')
+
                 this._syncScroll(this.input)
             }
 
@@ -217,6 +222,7 @@ export class LiveEditor {
     }
 
     _updateSettings(settings){
+        console.log('updating settings')
         if (settings.onSave){
             this.onSave = settings.onSave
         }
@@ -329,7 +335,7 @@ export class LiveEditor {
     _updateDisplay = (text) => {
         let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
-        
+        console.log('update display')
         result_element.innerHTML = replacedText;
         Prism.highlightElement(result_element);
     }
@@ -349,6 +355,7 @@ export class LiveEditor {
     _triggerCodeChange(){
         var event = document.createEvent("Event");
         event.initEvent("input", true, true);
+        console.log(document.getElementById(`${this.props.id}editor`))
         document.getElementById(`${this.props.id}editor`).dispatchEvent(event);
         console.log('trigger code change')
     }

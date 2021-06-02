@@ -343,7 +343,7 @@ export class Session {
 				insertionDiv = document.createElement('div')
 				insertionDiv.classList.add(`brainsatplay-companyCard`)
 				insertionDiv.setAttribute("name",cleanCompanyString)
-				insertionDiv.innerHTML += `<h3>${d.company}</h3><div class="devices"></div>`
+				insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
 				deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
 			}
 
@@ -356,7 +356,7 @@ export class Session {
 			header.innerHTML = d.name
 			deviceDiv.insertAdjacentElement('beforeend', header)	
 
-			deviceDiv.innerHTML += `<div class="variants"></div>`
+			deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
 
 			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
 
@@ -1388,12 +1388,12 @@ else {
 					let keys = Object.keys(o)
 					let appMessage = ((o[keys[0]] == '') ? 'Idle' : `Currently in ${o[keys[0]]}`)
 					if (o[keys[1]] !== this.info.auth.username) {
-						userDiv.innerHTML += `
+						userDiv.innerHTML.insertAdjacentHTML('beforeend', `
 						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
 						<p style="font-size: 60%;">${o[keys[2]]}</p>
 						<p>${o[keys[1]]}</p>
 						<p style="font-size: 80%;">${appMessage}</p>
-						</div>`
+						</div>`)
 					} else {
 						userDiv.insertAdjacentHTML('afterbegin',`
 						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}">
@@ -1453,7 +1453,7 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 
-		document.getElementById(`${applet.props.id}`).innerHTML += `
+		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
@@ -1484,7 +1484,7 @@ else {
 				</div>
 			</div></div>
 			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
-			`
+			`)
 
 		// Setup HTML References
 		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
@@ -1525,8 +1525,8 @@ else {
 		
 		// Create Session Brower
 		let baseBrowserId = `${applet.props.id}${applet.info.name}`
-		document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`
-		document.getElementById(`${applet.props.id}multiplayerDiv`).innerHTML += `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`;
+		document.getElementById(`${applet.props.id}multiplayerDiv`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
+		document.getElementById(`${applet.props.id}multiplayerDiv`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
 		let waitForReturnedMsg = (msgs, callback = () => { }) => {
 			if (msgs.includes(this.state.data.commandResult.msg)) {
