@@ -9,30 +9,34 @@ export class EventRouter{
         this.routes = {}
 
         this.id = String(Math.floor(Math.random()*1000000))
-        this.events = ['switches']
+        this.atlasEvents = ['switches']
     }
 
     init(device){
         this.device = device
-        this.events.forEach(str => {
-            if (this.device.states){
-                let states = this.device.states[str]
+        if (this.device.states){
+        Object.keys(this.device.states).forEach(key => {
+                let states = this.device.states[key]
                 if (states != null){
                     if (!Array.isArray(states)) states = [states]
                     states.forEach((state,i) => {
-                        this.device.atlas.data.states[str].push(state)
+
+                        // Add to Event State
                         this.state.addToState(state.meta.label, state)
-                        
-                        // Always Update Atlas Location
-                        this.routes[state.meta.label] = [this.device.atlas.data.states[str][i]]
+                        this.routes[state.meta.label] = [state]
+
+                        // Update Data in Atlas if Included
+                        if (this.atlasEvents.includes(state.meta.label)){                            
+                            this.device.atlas.data.states[str].push(state)
+                        }
 
                         // Declare Callback and Subscribe
                         let deviceCallback = (o) => {this.update(o, this.routes[state.meta.label])}
-                        this.state.subscribe(str+i, deviceCallback)
+                        this.state.subscribe(state.meta.label, deviceCallback)
                     })
                 }
-            }
         })
+    }
     }
 
     deinit = () => {}
@@ -57,7 +61,7 @@ export class EventRouter{
         for (let event in this.routes){
 
             let routes = this.routes[event]
-            if (routes.length < 2 && validRoutes.length > 0){
+            if (((this.atlasEvents.includes(event) && routes.length < 2) || (routes.length == 0)) && validRoutes.length > 0){
 
                 let newRoute = validRoutes.shift()
                 let target = newRoute.manager.data[newRoute.key]
@@ -97,10 +101,10 @@ export class EventRouter{
             return `
             <br>
             <div id='${this.id}routerControls'>
-                <h3>Control Panel</h3>
+                <h4>Control Panel</h4>
                 <button>Update</button>
                 <hr>
-                <div class='brainsatplay-router-options'>
+                <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
                 </div>
             </div>
             `;
@@ -114,10 +118,14 @@ export class EventRouter{
 
             let managerMap = {}
             let selector = document.createElement('select')
-            selector.insertAdjacentHTML('beforeend',`<option value="" disabled selected>Choose an event</option>`)
+            selector.insertAdjacentHTML('beforeend',`
+            <option value="" disabled selected>Choose an event</option>
+            <option value="none">None</option>
+            `)
             validRoutes.forEach(dict => {
                 managerMap[dict.key] = dict.manager
-                selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${dict.key}</option>`)           
+                let upper = dict.key[0].toUpperCase() + dict.key.slice(1)
+                selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
             })
 
             Object.keys(this.state.data).forEach(key => {
@@ -126,9 +134,15 @@ export class EventRouter{
                 thisSelector.id = `${this.id}brainsatplay-router-selector-${key}`
 
                 thisSelector.onchange = (e) => {
-                    let target = managerMap[thisSelector.value].data[thisSelector.value]
-                    if (this.routes[key].length < 2) this.routes[key].push(target)
-                    else this.routes[key][1] = target
+                    try {
+                        let target = managerMap[thisSelector.value].data[thisSelector.value]
+                        if (this.atlasEvents.includes(key)){
+                            if (routes.length < 2) this.routes[key].push(target)
+                            else this.routes[key][1] = target
+                        } else {
+                            this.routes[key][0] = target
+                        }
+                    } catch (e) {}
                 }
 
                 let div = document.createElement('div')

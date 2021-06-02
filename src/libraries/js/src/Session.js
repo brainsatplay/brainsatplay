@@ -1499,7 +1499,8 @@ else {
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
 			onsuccess()
-			document.getElementById(`${this.id}login-page`).remove()
+			let loginPage = document.getElementById(`${this.id}login-page`)
+			if (loginPage != null) loginPage.remove()
 			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			exitSession.style.display = 'none'
@@ -1593,7 +1594,7 @@ else {
 		}
 
 		// Login Screen
-
+		if (applet.info.intro.mode != 'single'){
 			let onsocketopen = () => {
 
 				if (this.socket.readyState === 1) {
@@ -1639,6 +1640,7 @@ else {
 				document.getElementsByName("username")[0].value = data.username
 			})
 		}
+	}
 
 
 		exitSession.onclick = () => {

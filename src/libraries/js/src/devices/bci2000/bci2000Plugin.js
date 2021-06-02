@@ -12,14 +12,7 @@ export class bci2000Plugin {
         this.operator = new BCI2K.bciOperator(); //Invoke a device class here if needed
         this.filters = [];
 
-        this.states = {
-            switches: [
-                {data: false, meta: {label: 'Switch 1'}, timestamp: Date.now()},
-                {data: false, meta: {label: 'Switch 2'}, timestamp: Date.now()},
-                {data: false, meta: {label: 'Switch 3'}, timestamp: Date.now()},
-                {data: false, meta: {label: 'Switch 4'}, timestamp: Date.now()}
-            ],
-        }
+        this.states = {}
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -84,26 +77,26 @@ export class bci2000Plugin {
     connectToDataLayer = async (info,pipeToAtlas) => {
         return new Promise(async (resolve, reject) => {
 
+        let resolved = false
         this.device = new BCI2K.bciData();
         this.device.connect("ws://127.0.0.1:20100", "", false).then((x) => {
 
             // Create Event Handlers
             this.device.onGenericSignal = (raw) => {
 
-                // States
-                if(this.device.states?.StimulusCode != undefined) {
-                    // Clear States
-                    let clickIdx = this.device.states?.StimulusCode[0] - 1
-                    if (clickIdx >= 0 && this.states.switches[clickIdx].data != true){ // Detect change
-                        this.states.switches = this.states.switches.map(d => 
-                            {
-                                d.data = false
-                                return d
-                            }) // Reset all (switches are exclusive)
-                        this.states.switches[clickIdx].data = true 
-                        this.states.switches[clickIdx].timestamp = Date.now()
+                // Update Monitored States
+                let monitoredStates = Object.keys(this.states)
+                monitoredStates.forEach(k => {
+                    if(this.device.states[k] != null) {
+                        let value = this.device.states[k][0]
+                        if (this.states[k][value].data != true){
+                            this.states[k].forEach((state,i) => {
+                                if (i === value) this.states[k][value].data = true // Only support switches for now
+                                else this.states[k][i].data = false
+                            })
+                        }
                     }
-                }
+                })
                
                 // Raw Data
                 if(this.info.useAtlas) {
@@ -128,7 +121,25 @@ export class bci2000Plugin {
                 }
             };
 
-            this.device.onStateFormat = data => console.log(data);
+            // Initialize Possible Device States
+            this.device.onStateFormat = data => {
+                let defaults = ['Recording', 'Running', 'SourceTime', 'StimulusTime','__pad0', 'TrialStart', 'Baseline']
+                let keys = Object.keys(data)
+                keys = keys.filter(k => !defaults.includes(k))
+
+                keys.forEach(k => {
+                    let possibilities = Math.pow(data[k].bitWidth,2)
+                    this.states[k] = Array.from({length: possibilities}, (e,i) => {return {data: null, meta: {label: `${k} ${i}`}, timestamp: Date.now()}})
+                })
+
+                console.log(this.states)
+
+                if (resolved === false){
+                    resolve(true) // Resolve promise when stateFormat is received
+                    resolved = true
+                    console.log('resolving')
+                }
+            }
             this.device.onSignalProperties = data => {
                 // Check if already created (websocket tends to close and reopen...)
                 if (this.atlas == null){
@@ -143,8 +154,7 @@ export class bci2000Plugin {
                     
                     // Validate Connection
                     this.onconnect();
-                }
-                resolve(true)                
+                }                
             }
         });
         })
