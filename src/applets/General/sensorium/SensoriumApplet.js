@@ -597,7 +597,7 @@ void main(){
                 `
             }, 
             {
-                target: `${this.liveEditor.props.id}shadereditor`,
+                target: `${this.props.id}editorContainer`,
                 content: `
                 <h3>Real-Time Shader Coding</h3>
                 <hr>
