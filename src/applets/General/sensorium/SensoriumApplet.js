@@ -62,6 +62,26 @@ export class SensoriumApplet {
         this.AppletHTML = null;
         //------------------------
 
+        //settings structure
+        /*
+        settings input: [{
+            "shader":{
+                "name":"Galaxy"
+                OR
+                "frag": "raw glsl code"
+            }}{
+            "feedback":"iHEG",
+            "soundurl":{
+                "name":"",
+                "url":"", //Optional if you have a custom url
+                OR
+                "buffer":bufferdata //directly copy a sound buffer
+            }
+        }, {
+            //add more feedback and sound settings
+        }];
+        */
+
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
         this.streams = ['modifiers'] // Register your app data streams
@@ -215,6 +235,24 @@ export class SensoriumApplet {
         this.lastColorSwitch=Date.now() 
 
         this.history = 5; 
+
+this.shaderTemplate = `
+#define FFTLENGTH 256
+precision mediump float;
+uniform vec2 iResolution; //Shader display resolution
+uniform float iTime; //Shader time increment
+
+uniform float iHEG;
+uniform float iHRV;
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
+void main(){
+    gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
+}                    
+`;
     }
 
     //---------------------------------
@@ -313,28 +351,18 @@ export class SensoriumApplet {
             
             
             selector.onchange = (e) => {
+                
+                if(this.previousSelect === 'fromtext')
+                    this.shaderTemplate = this.liveEditor.input.value;
+                
+                this.previousSelect = e.target.value;
+
                 if (e.target.value === 'fromtext') {
                     console.log('from text')
                     // document.getElementById(props.id+'textshader').style.display = '';
-                this.startTime = Date.now(); //reset start time
+                    this.startTime = Date.now(); //reset start time
 
-                let fragmentShader = `
-#define FFTLENGTH 256
-precision mediump float;
-uniform vec2 iResolution; //Shader display resolution
-uniform float iTime; //Shader time increment
-
-uniform float iHEG;
-uniform float iHRV;
-uniform float iHR;
-uniform float iHB;
-uniform float iFrontalAlpha1Coherence;
-uniform float iFFT[FFTLENGTH];
-uniform float iAudio[FFTLENGTH];
-void main(){
-    gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
-}                    
-`;
+                    let fragmentShader = this.shaderTemplate;
                     this.liveEditor.updateSettings({language: 'glsl', target: fragmentShader})
 
                     editorContainer.style.display = '';
@@ -640,15 +668,172 @@ void main(){
         
     }
 
+    //settings structure
+    /*
+    settings input: [{
+        "shader":{
+            "name":"Galaxy"
+            OR
+            "frag": "raw glsl code"
+        }}{
+        "feedback":"iHEG",
+        "soundurl":{
+            "name":"",
+            "url":""//Optional if you have a custom url   
+        }
+        OR
+        "soundbuffer"{
+            "buffer": [channel1,channel2], //directly copy sound float32array buffer data sent over network via audioBuffer.getChannelData(channel)
+            "samplerate": samplerate, //e.g. 48000
+            "frameCount": duration // bufferdata.length/samplerate;
+        }
+    }, {
+        //add more feedback and sound settings
+    }];
+    */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
-            //if(cmd === 'x'){//doSomething;}
+            if(typeof cmd === 'object') {
+                
+                if(this.effects.length < i-1) {
+                    document.getElementById(this.props.id+'addeffect').click();
+                    this.effects[i].feedback.value = cmd.feedback;
+                    if(cmd.controls !== undefined) {
+                       if(cmd.controls === false ) {
+                           document.getElementById(props.id+'showhide').click();
+                           document.getElementById(props.id+'showhide').onmouseleave();
+                        }
+                    }
+                    if(cmd.shader) {
+                        let shaderselector = document.getElementById(this.props.id+'shaderSelector');
+                        if(cmd.shader.name) {
+                            Array.from(shaderselector.options).forEach((opt,j) => {
+                                if(opt.value === cmd.shader.name) {
+                                    shaderselector.selectedIndex = j;
+                                    shaderselector.onchange();
+                                }
+                            });
+                        } else if (cmd.shader.frag) {
+                            shaderselector.selectedIndex = shaderselector.options.length-1;
+                            shaderselector.onchange();
+                            this.liveEditor.input.value = cmd.shader.frag;
+                        }
+                    }
+                    if(cmd.feedback) {
+                        Array.from(cmd.feedback.options).forEach((opt,j) => {
+                            if(opt.value === cmd.feedback || opt.text === cmd.feedback)
+                                cmd.feedback.selectedIndex = j;
+                        });
+                    }
+                    if(cmd.soundurl) { //{"name":"etc","url":""}
+                        let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
+                        let foundidx = 0;
+                        let found = Array.from(soundselect.options).forEach((opt,k) => {
+                            if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
+                                foundidx = k; 
+                                return true;
+                            }
+                        });
+                        if(!found) {
+                            this.soundUrls.push(cmd.soundurl); //{"name":"etc","url":""}
+                            soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
+                            foundidx = soundselect.options.length-1;
+                        }
+                        
+                        soundselect.selectedIndex = foundidx;
+                        soundselect.onchange();
+                    }
+                    else if (cmd.soundbuffer) { //load a sound buffer directly from audiosourcenode.buffer sent through the system. 
+                        if(!window.audio) window.audio = new SoundJS();
+                        if(!window.audio.ctx) return false;
+
+                        let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.length/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                        cmd.soundbuffer.buffer.forEach((b,j) => {
+                            buf.copyToChannel(b,j+1,0);
+                        })
+
+                        this.effects[i].input.style.display='none';
+                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
+                        window.audio.finishedLoading([buf]);
+
+                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = 'none';
+                        document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx).selectedIndex = 0;
+        
+                        if(!this.effects[i].controls) {
+                            document.getElementById(this.props.id+'effectWrapper'+this.effects[i].uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                            this.effects[i].controls = document.getElementById(this.props.id+'controlWrapper'+this.effects[i].uiIdx);
+                        } else {this.effects[i].controls.style.display=""}
+                        this.effects[i].source = window.audio.sourceList[sourceListIdx]; 
+                        this.effects[i].sourceIdx = sourceListIdx;
+                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "Loading..." 
+        
+                        this.loadSoundControls(this.effects[i]);
+                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "";
+                    }
+                }
+            }
         });
     }
 
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+
+    //get all settings and additional sound buffers which can be sent as configurations to configure other screens
+    //settings structure
+    /*
+    settings: [{
+        "controls":false,
+        "shader":{
+            "name":"Galaxy"
+            OR
+            "frag": "raw glsl code"
+        }}{
+        "feedback":"iHEG",
+        "soundurl":{
+            "name":"",
+            "url":""//Optional if you have a custom url   
+        }
+        OR
+        "soundbuffer"{
+            "buffer": [channel1,channel2], //directly copy sound float32array buffer data sent over network via audioBuffer.getChannelData(channel)
+            "samplerate": samplerate, //e.g. 48000
+            "frameCount": duration // bufferdata.length/samplerate;
+        }
+    }, {
+        //add more feedback and sound settings
+    }];
+    */
+    getCurrentConfiguration = () => {
+        let settings = [];
+        this.effects.forEach((e,j) => {
+            settings.push({
+                feedback:e.feedback
+            });
+            if(e.sourceIdx) {
+                if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
+                    settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
+                    settings[j].soundbuffer.forEach((channel,k) => {
+                        source.buffer.copyFromChannel(channel,k+1,0);
+                    });
+                } else {
+                    settings[j].soundurl = {
+                        name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
+                        url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
+                    };
+                }
+            }
+        });
+
+        let shaderselector = document.getElementById(this.props.id+'shaderSelector');
+        settings[0].controls = false;
+        settings[0].shader = {};
+        if(shaderselector.value !== 'fromtext')
+            settings[0].shader.name = shaderselector.value;
+        else settings[0].shader.frag = this.liveEditor.input.value;
+
+        return settings;
+    }
 
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
@@ -721,7 +906,7 @@ void main(){
 
         document.getElementById(this.props.id+'selectors'+newEffect.uiIdx).insertAdjacentHTML('beforeend',fdback(idx));
         newEffect.feedback = document.getElementById(this.props.id+'select'+newEffect.uiIdx)
-        console.log(newEffect.feedback.value)
+        //console.log(newEffect.feedback.value)
 
         document.getElementById(this.props.id+'select'+newEffect.uiIdx).onchange = () => {
             let value = document.getElementById(this.props.id+'select'+newEffect.uiIdx).value;
@@ -795,7 +980,7 @@ void main(){
 
                     if(!window.audio) window.audio = new SoundJS();
                     if (window.audio.ctx===null) {return;};
-        
+                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                     window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                         
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
@@ -807,7 +992,7 @@ void main(){
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
                         newEffect.sourceIdx = sourceListIdx;
-                        document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+                        
         
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
@@ -821,7 +1006,7 @@ void main(){
                     
                     if(!window.audio) window.audio = new SoundJS();
                     if (window.audio.ctx===null) {return;};
-
+                    
                     window.audio.addSounds(soundurl,(sourceListIdx)=>{ 
                     
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
@@ -833,8 +1018,8 @@ void main(){
                         } else {newEffect.controls.style.display=""}
                         newEffect.source = window.audio.sourceList[sourceListIdx]; 
                         newEffect.sourceIdx = sourceListIdx;
+                        
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
-        
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
                     }, 
