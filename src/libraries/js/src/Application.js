@@ -1,6 +1,6 @@
 import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
-// import './ui/styles/defaults.css'
+import './ui/styles/defaults.css'
 
 export class Application{
     constructor(
@@ -35,8 +35,6 @@ export class Application{
         let setupHTML = () => {
 
             if (this.info.intro != null) this.session.createIntro(this)
-
-            console.log('setting up')
             this.uiParams.setupHTML.forEach(f => {
                 f(this)
             })

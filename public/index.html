@@ -31,7 +31,7 @@
     </div>
   </div>
 
-<script type="module" src="./_dist_/platform/index.js"></script>
+<script type="module" src="./_dist_/platform/Platform.js"></script>
 <script>
  
   // https://developers.google.com/web/tools/workbox/modules/workbox-cli
@@ -66,47 +66,6 @@
     });
 
     </script>
-
-<script>
-//wakelock
-
-let wakeLock = null;
-
-const requestWakeLock = async () => {
-    try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        wakeLock.addEventListener('release', () => {
-            console.log("Wake Lock released!");
-        });
-        console.log("Keeping awake...");
-    }
-    catch (err) {
-        console.error(err.name,err.message);
-    }
-}
-
-const releaseWakeLock = async () => {
-    if(!wakeLock) {
-        return;
-    }
-    try {
-        await wakeLock.release();
-        wakeLock = null;
-    }
-    catch (err){
-        console.error(err.name,err.message);
-    }
-}
-
-window.addEventListener('focus', () => {
-    requestWakeLock();
-});
-
-window.addEventListener('blur', () => {
-    releaseWakeLock();
-});
-
-</script>
 
 <script>
   

@@ -51,7 +51,7 @@ export class musePlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,1)); 
                 }
-                //this.filters[this.filters.length-1].useBp1 = true;
+                this.filters[this.filters.length-1].useBp1 = true;
             });
         }
 

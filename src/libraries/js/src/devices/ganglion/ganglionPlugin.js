@@ -49,6 +49,7 @@ export class ganglionPlugin {
                 }
                 this.filters[this.filters.length-1].useScaling = true; 
                 this.filters[this.filters.length-1].notch60.pop();
+                //this.filters[this.filters.length-1].useBp1 = true;
             });
         }
 

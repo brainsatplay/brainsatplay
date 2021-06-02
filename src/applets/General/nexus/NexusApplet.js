@@ -1,7 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
  
-import styles from './style.module.css';
 import * as THREE from 'three'
 import {UserMarker} from './UserMarker'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -74,7 +73,7 @@ export class NexusApplet {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id="${this.props.id}rendererContainer"><canvas></canvas></div>
-                <div id='${this.props.id}nexus-point-container' class='${styles['nexus-point-container']}'></div>
+                <div id='${this.props.id}nexus-point-container' class='nexus-point-container'></div>
             </div>
             `;
         }
@@ -92,6 +91,8 @@ export class NexusApplet {
             undefined,          //Can have an onchange function fire when properties change
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
+
+        this.AppletHTML.appendStylesheet("./_dist_/applets/General/nexus/style.css")
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
@@ -548,7 +549,7 @@ this.three.getGeolocation = () => {
     updatePoints(username, location){
 
         if (!this.points.has(username)){
-            this.points.set(username, new UserMarker(this.props.id, styles, {name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
+            this.points.set(username, new UserMarker(this.props.id, {name: username, diameter:this.pointInfo.diameter, meshWidth:this.pointInfo.meshWidth, meshHeight:this.pointInfo.meshHeight, neurofeedbackDimensions: Object.keys(this.neurofeedbackColors), camera: this.camera, controls: this.controls, appletContainer: this.appletContainer}))
         }
         let user = this.points.get(username)
 

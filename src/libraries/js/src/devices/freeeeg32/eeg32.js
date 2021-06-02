@@ -263,26 +263,30 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 					}
 				} catch (error) {
 					console.log(error);// TODO: Handle non-fatal read error.
-                    if(error.message.includes('framing') || error.message.includes('overflow') || error.message.includes('overrun') || error.message.includes('Overflow') || error.message.includes('break')) {
+                    if(error.message.includes('framing') || error.message.includes('overflow') || error.message.includes('Overflow') || error.message.includes('break')) {
                         this.subscribed = false;
                         setTimeout(async ()=>{
+							try{
                             if (this.reader) {
                                 await this.reader.releaseLock();
                                 this.reader = null;
                             }
+							} catch (er){ console.error(er);}
                             this.subscribed = true; 
                             this.subscribe(port);
                             //if that fails then close port and reopen it
                         },30); //try to resubscribe 
-                    } else if (error.message.includes('parity') || error.message.includes('Parity')) {
+                    } else if (error.message.includes('parity') || error.message.includes('Parity') || error.message.includes('overrun') ) {
                         if(this.port){
                             this.subscribed = false;
                             setTimeout(async () => {
+								try{
                                 if (this.reader) {
                                     await this.reader.releaseLock();
                                     this.reader = null;
                                 }
                                 await port.close();
+								} catch (er){ console.error(er);}
                                 //this.port = null;
                                 this.connected = false;
                                 setTimeout(()=>{this.onPortSelected(this.port)},100); //close the port and reopen

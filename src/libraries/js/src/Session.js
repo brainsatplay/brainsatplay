@@ -60,12 +60,6 @@ import { EventRouter } from './EventRouter'
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
 
-
-// Default Styling
-// import './ui/styles/defaults.css'
-
-
-
 /**
  * ```javascript
  * import {Session} from 'brainsatplay'
@@ -741,8 +735,8 @@ if (RTCPeerConnection)(function() {
         else addrs[newAddr] = true;  
         var displayAddrs = Object.keys(addrs).filter(function(k) {  
             return addrs[k];  
-		});  
-		console.log(displayAddrs.join(" or perhaps ") || "n/a")
+		});
+		console.log('Local IP Address:', displayAddrs.join(" or perhaps ") || "n/a")
     }  
   
     function grepSDP(sdp) {  
@@ -1505,7 +1499,8 @@ else {
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
 			onsuccess()
-			document.getElementById(`${this.id}login-page`).remove()
+			let loginPage = document.getElementById(`${this.id}login-page`)
+			if (loginPage != null) loginPage.remove()
 			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			exitSession.style.display = 'none'
@@ -1599,7 +1594,7 @@ else {
 		}
 
 		// Login Screen
-
+		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
 
 				if (this.socket.readyState === 1) {
@@ -1645,6 +1640,7 @@ else {
 				document.getElementsByName("username")[0].value = data.username
 			})
 		}
+	}
 
 
 		exitSession.onclick = () => {
