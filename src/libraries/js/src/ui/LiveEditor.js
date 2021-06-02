@@ -28,6 +28,7 @@ export class LiveEditor {
                 language: settings.language,
                 supportedLanguages: ['javascript', 'html', 'glsl']
             }
+            this.editorId = this.props.id+'editor';
 
             if (this.props.supportedLanguages.includes(this.props.language)){
 
