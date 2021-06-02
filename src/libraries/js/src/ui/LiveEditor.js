@@ -81,7 +81,7 @@ export class LiveEditor {
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
-                    <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your Code'></textarea>
+                    <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your ${language} code...'></textarea>
                     <pre class="brainsatplay-code-highlighting" aria-hidden="true">
                         <code class="language-${this.props.language} brainsatplay-code-highlighting-content"></code>
                     </pre>
@@ -247,7 +247,7 @@ export class LiveEditor {
             }
         } else if (this.props.language === 'glsl'){
             if (this.target){
-                this.head = 'Fragment Shader'
+                this.head = 'Fragment Shader';
                 this.body = this.target.replace(new RegExp(";", "g"), ";\n")
                 .replace(new RegExp("{", "g"), "{\n")
                 .replace(new RegExp("}", "g"), "}\n");
@@ -329,7 +329,8 @@ export class LiveEditor {
     _updateDisplay = (text) => {
         let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
-        result_element.innerHTML = replacedText
+        
+        result_element.innerHTML = replacedText;
         Prism.highlightElement(result_element);
     }
 
