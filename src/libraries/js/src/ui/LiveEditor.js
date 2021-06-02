@@ -28,6 +28,7 @@ export class LiveEditor {
                 language: settings.language,
                 supportedLanguages: ['javascript', 'html', 'glsl']
             }
+            this.editorId = this.props.id+'editor';
 
             if (this.props.supportedLanguages.includes(this.props.language)){
 
@@ -43,6 +44,8 @@ export class LiveEditor {
             } else {
                 console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
+
+            this.quickrefhidden = true;
         }
 
         init = () => {
@@ -73,8 +76,8 @@ export class LiveEditor {
                         <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
                     </div>
                     <div style="display: flex;">
+                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
-                        <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
                     </div>
                 </div>
@@ -133,13 +136,13 @@ export class LiveEditor {
                 this.insertGLSLReference()
                 toggle.style.display = ''
                 toggle.onclick = () => {
-                    if(this.quickrefhidden) {
-                        document.getElementById(`${this.props.id}reference`).style.display = '';
-                        this.quickrefhidden = false;
-                    }
-                    else {
+                    if(!this.quickrefhidden) {
                         document.getElementById(`${this.props.id}reference`).style.display = 'none';
                         this.quickrefhidden = true;
+                    }
+                    else {
+                        document.getElementById(`${this.props.id}reference`).style.display = '';
+                        this.quickrefhidden = false;
                     }
                 }
             } else {

@@ -315,7 +315,7 @@ export class SensoriumApplet {
                 if (e.target.value === 'fromtext') {
                     // document.getElementById(props.id+'textshader').style.display = '';
                 this.startTime = Date.now(); //reset start time
-                document.getElementById(props.id+'fragmentshader').value = `
+                document.getElementById(this.liveEditor.editorId).value = `
 #define FFTLENGTH 256
 precision mediump float;
 uniform vec2 iResolution; //Shader display resolution
@@ -332,9 +332,8 @@ void main(){
     gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
 }                    
 `;
-                    document.getElementById(props.id+'fragmentshader').oninput();
-                    document.getElementById(props.id+'shaderheader').style.display = '';
-                    document.getElementById(props.id+'shadereditor').style.display = '';
+                    document.getElementById(this.liveEditor.editorId).oninput();
+                    editorContainer.style.display = '';
                     this.editorhidden = false;
                 }
                 else if (e.target.value != 'Gallery'){
