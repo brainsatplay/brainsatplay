@@ -1594,7 +1594,7 @@ else {
 		}
 
 		// Login Screen
-		if (applet.info.intro.mode != 'single'){
+		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
 
 				if (this.socket.readyState === 1) {
