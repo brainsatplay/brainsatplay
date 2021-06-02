@@ -76,7 +76,7 @@ export class SensoriumApplet {
             //Add whatever else
         };
 
-        this.tutorialManager = this.createTutorial()
+        this.tutorialManager = null
 
 
         // Audio
@@ -263,11 +263,7 @@ export class SensoriumApplet {
         let setupHTML = (props=this.props) => {
 
             this.appletContainer = document.getElementById(props.id);
-            this.tutorialManager.updateParent(this.appletContainer)
 
-            this.session.createIntro(this, () => {
-                this.tutorialManager.init()
-            })
 
             let editorContainer = document.getElementById(`${props.id}editorContainer`)
             this.liveEditor = new LiveEditor(
@@ -276,6 +272,12 @@ export class SensoriumApplet {
                     this.setShaderFromText(this.liveEditor.input.value);
                 }
             }, editorContainer)
+
+            this.tutorialManager = this.createTutorial()
+            this.tutorialManager.updateParent(this.appletContainer)
+            this.session.createIntro(this, () => {
+                this.tutorialManager.init()
+            })
 
             /**
              * GUI
@@ -286,10 +288,10 @@ export class SensoriumApplet {
 
             document.getElementById(props.id+'editshader').onclick = () => {
                 if(this.editorhidden === false) {
-                    editorContainer.style.display = 'none';
+                    document.getElementById(`${props.id}editorContainer`).style.display = 'none';
                     this.editorhidden = true;
                 } else {
-                    editorContainer.style.display = '';
+                    document.getElementById(`${props.id}editorContainer`).style.display = '';
                     this.editorhidden = false;
                 }
             }
@@ -584,6 +586,7 @@ void main(){
     }
 
     createTutorial = (props=this.props) => {
+        
         let tooltips = [
             {
                 target: `${props.id}effectmenu`,
@@ -595,7 +598,7 @@ void main(){
                 `
             }, 
             {
-                target: `${props.id}shadereditor`,
+                target: `${this.liveEditor.props.id}shadereditor`,
                 content: `
                 <h3>Real-Time Shader Coding</h3>
                 <hr>
