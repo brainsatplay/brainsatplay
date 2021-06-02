@@ -9,11 +9,12 @@ export class EventRouter{
         this.routes = {}
 
         this.id = String(Math.floor(Math.random()*1000000))
-        this.atlasEvents = ['switches']
+        this.atlasEvents = []
     }
 
     init(device){
         this.device = device
+        this.atlasEvents = Object.keys(this.device.atlas.data.states).filter(k => k != 'generic')
         if (this.device.states){
         Object.keys(this.device.states).forEach(key => {
                 let states = this.device.states[key]
@@ -22,17 +23,31 @@ export class EventRouter{
                     states.forEach((state,i) => {
 
                         // Add to Event State
-                        this.state.addToState(state.meta.label, state)
-                        this.routes[state.meta.label] = [state]
+                        let splitId = state.meta.id.split('_')
 
-                        // Update Data in Atlas if Included
-                        if (this.atlasEvents.includes(state.meta.label)){                            
-                            this.device.atlas.data.states[str].push(state)
+                        // Create display label
+                        let labelArr = splitId.map(str => str[0].toUpperCase + str.slice(1))
+                        state.meta.label = labelArr.join(' ')
+                        
+                        this.state.addToState(state.meta.id, state)
+                        this.routes[state.meta.id] = [state]
+
+                        // Route Switches in Atlas by Default
+                        if (this.atlasEvents.includes(splitId[0])){ // Check base route
+                            if (splitId.length > 1) { // Assign to group (if required)
+                                let idx = this.device.atlas.data.states[splitId[0]].findIndex(a => a[0].meta.id.split('_')[1] === splitId[1])
+                                if (idx > -1) this.device.atlas.data.states[splitId[0]][idx].push(state) // Add to group
+                                else this.device.atlas.data.states[splitId[0]].push([state]) // Create array for group
+                            } else {
+                                this.device.atlas.data.states[splitId[0]].push([state]) // Switches with no group specified are their own group
+                            }                       
+                        } else {
+                            this.device.atlas.data.states['generic'].push(state) // No groups for generic switches (even with same IDs)
                         }
 
                         // Declare Callback and Subscribe
-                        let deviceCallback = (o) => {this.update(o, this.routes[state.meta.label])}
-                        this.state.subscribe(state.meta.label, deviceCallback)
+                        let deviceCallback = (o) => {this.update(o, this.routes[state.meta.id])}
+                        this.state.subscribe(state.meta.id, deviceCallback)
                     })
                 }
         })
@@ -58,16 +73,31 @@ export class EventRouter{
     autoRoute = (stateManagerArray) => {
         let validRoutes = this.getValidRoutes(stateManagerArray)
 
-        for (let event in this.routes){
+        for (let id in this.routes){
 
-            let routes = this.routes[event]
-            if (((this.atlasEvents.includes(event) && routes.length < 2) || (routes.length == 0)) && validRoutes.length > 0){
+            let routes = this.routes[id]
+            
+            // If No Additional Route is Specified, Add One (for now, limit only one route besides the atlas)
+            if (routes.length < 2){
 
                 let newRoute = validRoutes.shift()
+
+                // Skip If Not Binary & Group is Zero (i.e. default state)
+                let split = newRoute.split('_')
+                if (split[1] == 0){
+                    let sameBaseRoute = validRoutes.find(str => str[0] === split[0])
+                    if (sameBaseRoute != null){
+                        console.log('skipping zero group')
+                        newRoute = validRoutes.shift()
+                    } else {
+                        console.log('unique zero group')
+                    }
+                }
+
                 let target = newRoute.manager.data[newRoute.key]
                 routes.push(target)
 
-                let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${event}`)
+                let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
                     for (var opt, j = 0; opt = opts[j]; j++) {
@@ -128,20 +158,19 @@ export class EventRouter{
                 selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
             })
 
-            Object.keys(this.state.data).forEach(key => {
+            Object.keys(this.state.data).forEach(id => {
                 let thisSelector = selector.cloneNode(true)
 
-                thisSelector.id = `${this.id}brainsatplay-router-selector-${key}`
+                thisSelector.id = `${this.id}brainsatplay-router-selector-${id}`
 
                 thisSelector.onchange = (e) => {
                     try {
                         let target = managerMap[thisSelector.value].data[thisSelector.value]
-                        if (this.atlasEvents.includes(key)){
-                            if (routes.length < 2) this.routes[key].push(target)
-                            else this.routes[key][1] = target
-                        } else {
-                            this.routes[key][0] = target
-                        }
+
+                        // Switch Route Target
+                        if (this.routes[id].length < 2) this.routes[id].push(target)
+                        else this.routes[id][1] = target
+
                     } catch (e) {}
                 }
 

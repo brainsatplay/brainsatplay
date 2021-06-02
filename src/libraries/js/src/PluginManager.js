@@ -118,25 +118,65 @@ export class PluginManager{
         if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
     }
 
-    updateParams(id,name,params) {
-        for (let param in params) this.applets[id].nodes[name].params[param] = params[param]
+    getNode(id,name){
+        return this.applets[id].nodes[name].instance
     }
 
-    runDefault(id,name,data){
+    updateParams(node,params) {
+        for (let param in params) node.params[param] = params[param]
+    }
 
-        // Reformat (if necessary)
-        if (
-            (data.constructor != Object) || // If not an object
-            (data.constructor == Object && data.data == null) || // If object without data field
-            (Array.isArray(data) && data[0].data == null) // If array without data field at first index
-            ){
-            data = {data}
+    runSafe(input, node, port='default'){
+
+        // Do Not Mutate Input
+        let inputCopy = []
+        // inputCopy = JSON.parse(JSON.stringify(input)) // Deep
+        if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
+        else if (Array.isArray(input)) input.forEach(u => {
+            inputCopy.push(Object.assign({}, u))
+        })
+        
+        // Package Single User
+        if (inputCopy.constructor == Object){
+
+            if (!("data" in inputCopy)){
+                inputCopy = {data: inputCopy, meta: {}, username: 'guest'} // Raw Data (not formatted)
+            }
+
+            if ("timestamp" in inputCopy){
+                inputCopy = inputCopy.data
+            }
+            if (!Array.isArray(inputCopy)) inputCopy = [inputCopy]
+            inputCopy[0].username = this.session.info.auth.username
+            if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = source.label
+
+        } else if (!Array.isArray(inputCopy)){
+            inputCopy = [{data: inputCopy, meta: {}, username: 'guest'}] // Raw Data (not formatted)
         }
 
-        // Package into Array (if necessary)
-        if (!Array.isArray(data)) data = [data]
+        // Otherwise Handle Misformatted Data
 
-        return this.applets[id].nodes[name].default(data)
+        for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
+            let u = inputCopy[i]
+            if ("data" in u){
+                // Nested User Data
+                if (Array.isArray(u.data)){
+                    if (u.data[0] != null && u.data[0].constructor == Object && "username" in u.data[0]){
+                        inputCopy[i] = u.data[0] // Users passed themselves within an array to the data field
+                    }
+                } 
+                else if (u.data != null && u.data.constructor == Object && "username" in u.data){
+                    inputCopy[i] = u.data // Users passed themselves to the data field
+                }
+            } else {
+                if (inputCopy.username) inputCopy.splice(i,1) // Remove user entries without data
+                else inputCopy[i] = {data: inputCopy[i], meta: {}, username: 'guest'}  // Raw Data (not formatted)
+            }
+        }
+
+        let result = node[port](inputCopy)
+
+        return result
     }
 
 
@@ -225,12 +265,15 @@ export class PluginManager{
                         cachedSetup(app)
                         let defaultInput = [{}]
                         for (let port in node.instance.ports){
-                            if (node.instance.ports[port].defaults.input) defaultInput = node.instance.ports[port].defaults.input
-                            defaultInput.forEach(o => {
-                                if (o.data == null)  o.data = []
-                                if (o.meta == null)  o.meta = {}                           
-                            })
-                            node.instance[port](defaultInput)
+                            let defaults = node.instance.ports[port].defaults
+                            if (defaults && defaults.input){
+                                defaultInput = defaults.input
+                                defaultInput.forEach(o => {
+                                    if (o.data == null)  o.data = []
+                                    if (o.meta == null)  o.meta = {}                           
+                                })
+                                node.instance[port](defaultInput)
+                            }
                         }
                     }
 
@@ -281,44 +324,11 @@ export class PluginManager{
 
                 let callback = (input) => {
 
-                    // Package Single User
-                    if ((!Array.isArray(input) && (input.data[0] == null || (typeof input.data[0] !== 'object' || input.data[0].username == null)))){
-                        input.username = this.session.info.auth.username
-                        input.meta.label = source.label
-                        input = [input]
-                    } 
-                    
-                    // Unfold Appropriately
-                    if (input.timestamp != null){
-                            input = input.data
-                    } else if (Array.isArray(input[0].data)){
-                        if (typeof input[0].data[0] === 'object'){
-                            if (input[0].data[0].username != null){
-                                input = input.map((o) => o[0].data)
-                            }
-                        } 
-                    } else if (input[0].data != null && typeof input[0].data === 'object' && input[0].data.username != null){
-                        input = input.map((o) => o.data)
-                    }
-
-                    // }
-
                     // Send to Proper Port
-                    let result;
-                    if (targetPort != null) result = target[targetPort](input)
-                    else if (target.default) result = target.default(input)
-                    else console.log('no return')
-
-                    // Update State
-                    // try {
-                    //     console.log(this.session.state)
-                    // }
-
-                    if (result != null && Array.isArray(result) && result.length === 1) {
-                        target.state.data = result[0]
-                    }
-                    else target.state.data = result // Update State Externally
-                    target.state.timestamp = Date.now()
+                    if (targetPort == null) targetPort = 'default'
+                    let result = this.runSafe(input, target, targetPort)
+                    target.state.data = result
+                    target.state.timestamp = Date.now() // Force recognition of update
 
                     return result
                 }
@@ -346,11 +356,12 @@ export class PluginManager{
                         let found = this.findStreamFunction(source.label)
 
                         // If Already Streaming, Subscribe to Stream
-                        if (found){
+                        if (found != null){
                             if (this.session.state[source.label]) applet.subscriptions.local[source.label].push(this.session.state.subscribe(source.label, callback))
                             else applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
-                            // console.log(this.session.state[data][source.label])
-                            uiParams.setupHTML.push(() => callback(this.session.state[data][source.label]))
+                            let input = this.session.state.data[source.label]
+                            if (input == null) input = this.state.data[source.label]
+                            uiParams.setupHTML.push(() => callback(input))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
@@ -456,7 +467,6 @@ export class PluginManager{
                 if (this.session.state.data[id] != null){
                     if (callbacks){
                         let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
-                        // console.log(propData, this.session.state.data)
                         callbacks.forEach(f => {
                             if (f instanceof Function) f(propData)
                         })

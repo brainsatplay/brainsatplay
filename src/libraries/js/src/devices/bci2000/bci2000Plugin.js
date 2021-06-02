@@ -88,13 +88,17 @@ export class bci2000Plugin {
                 let monitoredStates = Object.keys(this.states)
                 monitoredStates.forEach(k => {
                     if(this.device.states[k] != null) {
-                        let value = this.device.states[k][0]
-                        if (this.states[k][value].data != true){
-                            this.states[k].forEach((state,i) => {
-                                if (i === value) this.states[k][value].data = true // Only support switches for now
-                                else this.states[k][i].data = false
-                            })
-                        }
+
+                        // LIMITATIONS
+                        // BCI2000 only supports (1) exclusive and (2) binary switches for now. 
+                        // The framework itself supports values from 0-1 for any particular state.
+
+                        let value = this.device.states[k][0] // Exclusive (only first index)
+                        this.states[k].forEach((state,i) => { // Exclusive (resets states not chosen)
+                            if (i === value) this.states[k][value].data = 1 // Binary
+                            else this.states[k][i].data = 0 // Binary
+                        })
+                        
                     }
                 })
                
@@ -123,21 +127,26 @@ export class bci2000Plugin {
 
             // Initialize Possible Device States
             this.device.onStateFormat = data => {
+                console.log('state format', data)
                 let defaults = ['Recording', 'Running', 'SourceTime', 'StimulusTime','__pad0', 'TrialStart', 'Baseline']
                 let keys = Object.keys(data)
                 keys = keys.filter(k => !defaults.includes(k))
 
-                keys.forEach(k => {
-                    let possibilities = Math.pow(data[k].bitWidth,2)
-                    this.states[k] = Array.from({length: possibilities}, (e,i) => {return {data: null, meta: {label: `${k} ${i}`}, timestamp: Date.now()}})
-                })
+                keys.forEach(id => {
+                    // Determine Possible Keys
+                    let possibilities = Math.pow(data[id].bitWidth,2)
 
-                console.log(this.states)
+                    // Split ID to Derive Additional Specifiers
+                    // Create States Based on Possibilities
+                    this.states[id] = Array.from({length: possibilities}, (e,i) => {
+                        if (possibilities > 1) id = `${id}_${i}}` // Create unique ID
+                        return {data: null, meta: {id}, timestamp: Date.now()}
+                    })
+                })
 
                 if (resolved === false){
                     resolve(true) // Resolve promise when stateFormat is received
                     resolved = true
-                    console.log('resolving')
                 }
             }
             this.device.onSignalProperties = data => {

@@ -6,7 +6,7 @@ import { StateManager } from "./ui/StateManager";
 import { WorkerManager } from "./Workers"
 import { PluginManager } from "./PluginManager"
 
-import { Blink } from "./plugins/inputs/Blink"
+import { Blink } from "./plugins/algorithms/Blink"
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -36,8 +36,12 @@ export class DataAtlas {
 			console.log('Workers already created.')
 		}
 
+		this.props = {
+			id: String(Math.floor(Math.random()*1000000))
+		}
+		
 		this.graphs = new PluginManager({atlas: this}, {gui: false})
-		this.graphs.add(String(Math.floor(Math.random()*1000000)), 'DataAtlas', 
+		this.graphs.add(this.props.id, 'DataAtlas', 
 		[
 			{
 				id: 'mygraph',
@@ -85,7 +89,9 @@ export class DataAtlas {
 			eyetracker:[],
 			other:{notes:[],games:{}},
 			states: {
-				switches: []
+				generic: [],
+				blink: [],
+				intent: []
 			}
 		};
 
@@ -740,35 +746,11 @@ export class DataAtlas {
 
 	// Check whether the user is blinking
 	getBlink = (params = {}) => {
-		this.graphs.updateParams(this.props.id, 'blink', params)
-		let blink = this.graphs.runDefault(this.props.id, 'blink', this.data)
-		console.log(blink)
+		let node = this.graphs.getNode(this.props.id, 'blink')
+		this.graphs.updateParams(node, params)
+		let blink = this.graphs.runSafe([this.data],node)
 		return blink.data
 	}
-
-	// getBlink = () => {
-    //     let sideChannels = [['AF7','FP1'],['AF8','FP2']]
-	// 	let blinks = [false,false]
-	// 	if (this.data.blink == null) this.data.blink = {
-	// 		blinkDuration: 1, // One second
-	// 		blinkThreshold: 220, // uV
-	// 		lastBlink: Date.now()
-	// 	}
-    //     // let quality = this.contactQuality(this.blink.threshold,this.blink.duration)
-    //     if (Date.now() - this.data.blink.lastBlink > this.data.blink.blinkDuration*1000){
-    //     sideChannels.forEach((channels,ind) => {
-	// 			let data = this.getEEGDataByTag(channels[0]) ?? this.getEEGDataByTag(channels[1])
-	// 			let blinkRange = data.filtered.slice(data.filtered.length-this.data.blink.blinkDuration*this.data.eegshared.sps)
-	// 			let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-	// 			blinks[ind] = (max > this.data.blink.blinkThreshold)
-    //         })
-    //         this.data.blink.lastBlink = Date.now()
-	// 	}
-		
-	// 	console.log(blinks)
-        
-	// 	return blinks
-	// }
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];

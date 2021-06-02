@@ -17,11 +17,7 @@ class UI{
 
         // Port Definition
         this.ports = {
-            default: {
-                defaults: {
-                    input: [{username: 'Username', data: [false,false], meta: {label: 'Waiting for Data'}}]
-                }
-            }
+            default: {}
         }
 
         this.sub1 = undefined;
@@ -58,15 +54,11 @@ class UI{
         return {HTMLtemplate, setupHTML}
     }
 
-    default = (userData) => {
+    left = (userData) => {
         userData.forEach(u => {
             let leftEye = document.getElementById(this.props.id+"-left")
-            let rightEye = document.getElementById(this.props.id+"-right")
-            let blink = u.data
-            let leftOpacity = 1-(blink[0]? 1 : 0)
-            let rightOpacity = 1-(blink[1]? 1 : 0)
-            let newcolor = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
-            if(!blink[0]) { 
+            let leftOpacity = 1-(u.data? 1 : 0)
+            if(!u.data) { 
                 this.leftred-=0.5;    
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
             } else {
@@ -76,10 +68,19 @@ class UI{
             if(this.leftred <= 50) {
                 this.leftred = 255;
                 leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
-                document.getElementById(this.props.id+"-leftiris").style.background = newcolor;      
+                document.getElementById(this.props.id+"-leftiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';      
                 leftOpacity = 0;
             }
-            if(!blink[1]) {
+            leftEye.style.opacity = leftOpacity;
+        })
+        return userData
+    }
+
+    right = (userData) => {
+        userData.forEach(u => {
+            let rightEye = document.getElementById(this.props.id+"-right")
+            let rightOpacity = 1-(u.data? 1 : 0)
+            if(!u.data) {
                 this.rightred-=0.5;
                 rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
             } else {
@@ -88,13 +89,17 @@ class UI{
             } 
             if(this.rightred <= 50){
                 this.rightred = 255;
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-                document.getElementById(this.props.id+"-rightiris").style.background = newcolor;
+                rightEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                document.getElementById(this.props.id+"-rightiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
                 rightOpacity = 0;
             }
-            leftEye.style.opacity = leftOpacity;
             rightEye.style.opacity = rightOpacity;
         })
+        return userData
+    }
+
+    default = (userData) => {
+        this.session.atlas.getBlink()
         return userData
     }
 

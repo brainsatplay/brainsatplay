@@ -1988,7 +1988,6 @@ class deviceStream {
 
 					// Initialize Device
 					await this.device.init(info, pipeToAtlas);
-					this.info.events.init(this.device)
 					resolve(true);
 					return true;
 				}
@@ -1997,7 +1996,9 @@ class deviceStream {
 	}
 
 	connect = async () => {
-		return await this.device.connect();
+		let res = await this.device.connect();
+		this.info.events.init(this.device)
+		return res
 	}
 
 	configureRoutes = (stateManagerArray, parentNode=document.body) => {

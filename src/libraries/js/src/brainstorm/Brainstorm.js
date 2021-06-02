@@ -76,8 +76,6 @@ if (mongouri) {
 // Authenticate User Before Connecting WebSocket
 server.on('upgrade', async (request, socket, head) => {
 
-  console.log('attempting to create new websocket connection')
-
     // Get User Credentials from Subprotocol / Cookies
     let _subprotocols = request.headers['sec-websocket-protocol'] || undefined
     if (_subprotocols){
