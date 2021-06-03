@@ -210,8 +210,8 @@ export class Session {
 		newStream.ondisconnect = () => {
 			ondisconnect(newStream);
 			this.ondisconnected();
-			if (newStream.info.analysis.length > 0) {
-				newStream.device.atlas.analyzing = false; //cancel analysis loop
+			if (newStream.info.analysis.length > 0 || this.deviceStreams.length === 1) {
+				newStream.device.atlas.settings.analyzing = false; //cancel analysis loop
 			}
 			this.deviceStreams.splice(i, 1);
 			this.state.removeState(stateId)
