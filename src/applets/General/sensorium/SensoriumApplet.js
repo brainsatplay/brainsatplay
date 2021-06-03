@@ -722,7 +722,7 @@ void main(){
                         }
                     }
                     if(cmd.modifiers) {
-                        this.modifiers = cmd.modifiers;
+                        Object.assign(this.modifiers,cmd.modifiers);
                     }
                     if(cmd.feedback) {
 
