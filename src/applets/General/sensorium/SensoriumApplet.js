@@ -719,6 +719,7 @@ void main(){
                             shaderselector.selectedIndex = shaderselector.options.length-1;
                             shaderselector.onchange();
                             this.liveEditor.input.value = cmd.shader.frag;
+                            this.setShaderFromText(this.liveEditor.input.value);
                         }
                     }
                     if(cmd.feedback) {
