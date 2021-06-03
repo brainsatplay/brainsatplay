@@ -18,7 +18,7 @@ class UI{
         this.ports = {
             default: {
                 defaults: {
-                    input: [{username: 'Username', value: 'Value', meta: {label: 'Waiting for Data'}}]
+                    input: [{username: 'Username', data: 'Value', meta: {label: 'Waiting for Data'}}]
                 }
             }
         }

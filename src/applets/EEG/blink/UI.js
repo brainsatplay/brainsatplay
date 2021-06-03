@@ -99,7 +99,7 @@ class UI{
     }
 
     default = (userData) => {
-        this.session.atlas.getBlink()
+        // this.session.atlas.getBlink()
         return userData
     }
 

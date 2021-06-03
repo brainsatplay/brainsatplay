@@ -46,7 +46,10 @@ export class EventRouter{
                         }
 
                         // Declare Callback and Subscribe
-                        let deviceCallback = (o) => {this.update(o, this.routes[state.meta.id])}
+                        let deviceCallback = (o) => {
+                            this.update(o, this.routes[state.meta.id])
+                        }
+
                         this.state.subscribe(state.meta.id, deviceCallback)
                     })
                 }
@@ -54,14 +57,24 @@ export class EventRouter{
     }
     }
 
-    deinit = () => {}
+    deinit = () => {
+        this.ui.deleteNode()
+    }
 
     // Route Events to Atlas
     update(o,targets=[]) {
         let newState = o.data
 
         targets.forEach(t => {
-            t.data = newState
+            if ('data' in t) {
+                t.data = newState
+            }
+            else if ('data' in t[0]){
+                t[0].data = newState
+            }
+            else if ('data' in t[0].data[0]) {
+                t[0].data[0] = newState
+            }
         })
     }
 
@@ -72,27 +85,16 @@ export class EventRouter{
 
     autoRoute = (stateManagerArray) => {
         let validRoutes = this.getValidRoutes(stateManagerArray)
-
         for (let id in this.routes){
+
+            // Skip If Not Binary & Group is Zero (i.e. default state)
+            if (id.split('_')[1] == 0 && Object.keys(this.routes).find(str => str.split('_')[0] === id.split('_')[0]) != null) continue
 
             let routes = this.routes[id]
             
             // If No Additional Route is Specified, Add One (for now, limit only one route besides the atlas)
-            if (routes.length < 2){
-
+            if (routes.length < 2 && validRoutes.length > 0){
                 let newRoute = validRoutes.shift()
-
-                // Skip If Not Binary & Group is Zero (i.e. default state)
-                let split = newRoute.split('_')
-                if (split[1] == 0){
-                    let sameBaseRoute = validRoutes.find(str => str[0] === split[0])
-                    if (sameBaseRoute != null){
-                        console.log('skipping zero group')
-                        newRoute = validRoutes.shift()
-                    } else {
-                        console.log('unique zero group')
-                    }
-                }
 
                 let target = newRoute.manager.data[newRoute.key]
                 routes.push(target)
@@ -114,11 +116,21 @@ export class EventRouter{
     getValidRoutes = (stateManagerArray) => {
         let validRoutes = []
 
-        let reservedKeys = ['info','commandResult', 'update']
         stateManagerArray.forEach(manager => {
             let keys = Object.keys(manager.data)
-            let regex = new RegExp('device[0-9]+')
-            keys = keys.filter(k => !reservedKeys.includes(k) && !regex.test(k))
+
+            let notArrayOrObject = (input) => {
+                try{
+                    return (input.constructor != Object && !Array.isArray(input))
+                } catch{return false}
+            }
+            keys = keys.filter(k => {
+                let state = manager.data[k]
+                // Guess if State is Binary or Continuous
+                if (notArrayOrObject(state?.data) || (Array.isArray(state) && notArrayOrObject(state[0]?.data)) || (Array.isArray(state[0]?.data) && notArrayOrObject(state[0]?.data[0]))){
+                    return k
+                }
+            })
             keys.forEach((key) => {
                 validRoutes.push({key,manager})
             })
@@ -130,9 +142,14 @@ export class EventRouter{
         let template = () => {
             return `
             <br>
-            <div id='${this.id}routerControls'>
-                <h4>Control Panel</h4>
-                <button>Update</button>
+            <div id='${this.id}routerControls' style="padding: 10px;">
+                <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
+                    <h4>Control Panel</h4>
+                    <button class="brainsatplay-default-button" style="flex-wrap: wrap;">
+                    <p style="margin-bottom: 0;">Update Available Events<p>
+                    <p style="font-size: 70%; margin-top: 0;">(e.g. when you switch games)</p>
+                    </button>
+                </div>
                 <hr>
                 <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
                 </div>
@@ -175,7 +192,8 @@ export class EventRouter{
                 }
 
                 let div = document.createElement('div')
-                div.insertAdjacentHTML('beforeend', `<h3>${key}</h3>`)
+                div.style.padding = '10px'
+                div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${id.replace('_', ' ')}</p>`)
                 div.insertAdjacentElement('beforeend', thisSelector)
                 routerOptions.insertAdjacentElement('beforeend',div)
             })
@@ -185,6 +203,7 @@ export class EventRouter{
 
         let setup = () => {
             let updateButton = document.getElementById(`${this.id}routerControls`).querySelector('button')
+            updateButton.style.display = 'none'
            updateButton.onclick = () => {
             update()
            }

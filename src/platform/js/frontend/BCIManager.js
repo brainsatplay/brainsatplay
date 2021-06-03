@@ -677,7 +677,6 @@ export class BCIAppManager {
                     let sub = this.session.state.subscribe('info', (info) => {
                         if (info.nDevices > 0) {
                             let mainDevice = this.session.deviceStreams[info.nDevices - 1].info.deviceType;
-                            console.log(this.session.deviceStreams[info.nDevices - 1].info.deviceName)
                             if (mainDevice === 'eeg') {
                                 this.session.subscribe(this.session.deviceStreams[info.nDevices - 1].info.deviceName, this.session.deviceStreams[info.nDevices - 1].info.eegChannelTags[0].ch, undefined, (row) => {
                                     //console.log(row.count, this.state.data.eegSaveCounter);

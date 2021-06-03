@@ -33,7 +33,7 @@ export class PluginManager{
 
             if (update.added){
 
-                // Apply Proper Stream Callback
+                // Attach Proper Stream Callback to New Brainstorm States
                 for (let s in this.registry.local){
                     let label = this.registry.local[s].label
                     update.buffer.forEach(k => {
@@ -75,6 +75,16 @@ export class PluginManager{
 
         // Add Default State
         node.state = {data: null, meta: {}}
+        let defaults = (node.ports == null) ? undefined : node.ports['default'].defaults
+        if (defaults && defaults.output) {
+            try {
+                if (Array.isArray(defaults.output) && defaults.output[0].constructor == Object && 'data' in defaults.output[0]) node.state = defaults.output[0]
+                else if (defaults.output.constructor == Object && 'data' in defaults.output) node.state = defaults.output
+            } catch {
+                node.state = {data: defaults.output, meta:{}}
+            }
+
+        }
 
         // Instantiate Dependencies
         let depDict = {}
@@ -127,14 +137,17 @@ export class PluginManager{
     }
 
     runSafe(input, node, port='default'){
+        // console.log(input)
 
         // Do Not Mutate Input
         let inputCopy = []
         // inputCopy = JSON.parse(JSON.stringify(input)) // Deep
-        if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
-        else if (Array.isArray(input)) input.forEach(u => {
-            inputCopy.push(Object.assign({}, u))
-        })
+        // if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
+        // else if (Array.isArray(input)) input.forEach(u => {
+        //     inputCopy.push(Object.assign({}, u))
+        // })
+
+        inputCopy = input
         
         // Package Single User
         if (inputCopy.constructor == Object){
@@ -146,9 +159,13 @@ export class PluginManager{
             if ("timestamp" in inputCopy){
                 inputCopy = inputCopy.data
             }
+
+            // console.log(inputCopy)
             if (!Array.isArray(inputCopy)) inputCopy = [inputCopy]
-            inputCopy[0].username = this.session.info.auth.username
-            if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = source.label
+            if (inputCopy[0].constructor == Object){
+                inputCopy[0].username = this.session?.info?.auth?.username
+                if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = source.label
+            }
 
         } else if (!Array.isArray(inputCopy)){
             inputCopy = [{data: inputCopy, meta: {}, username: 'guest'}] // Raw Data (not formatted)
@@ -158,7 +175,7 @@ export class PluginManager{
 
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
             let u = inputCopy[i]
-            if ("data" in u){
+            if (u.constructor == Object && "data" in u){
                 // Nested User Data
                 if (Array.isArray(u.data)){
                     if (u.data[0] != null && u.data[0].constructor == Object && "username" in u.data[0]){
@@ -175,6 +192,8 @@ export class PluginManager{
         }
 
         let result = node[port](inputCopy)
+        node.state.data = result
+        node.state.timestamp = Date.now() // Force recognition of update
 
         return result
     }
@@ -266,13 +285,15 @@ export class PluginManager{
                         let defaultInput = [{}]
                         for (let port in node.instance.ports){
                             let defaults = node.instance.ports[port].defaults
-                            if (defaults && defaults.input){
-                                defaultInput = defaults.input
-                                defaultInput.forEach(o => {
-                                    if (o.data == null)  o.data = []
-                                    if (o.meta == null)  o.meta = {}                           
-                                })
-                                node.instance[port](defaultInput)
+                            if (defaults){
+                                if (defaults.input){
+                                    defaultInput = defaults.input
+                                    defaultInput.forEach(o => {
+                                        if (o.data == null)  o.data = []
+                                        if (o.meta == null)  o.meta = {}                           
+                                    })
+                                    node.instance[port](defaultInput)
+                                }
                             }
                         }
                     }
@@ -327,8 +348,6 @@ export class PluginManager{
                     // Send to Proper Port
                     if (targetPort == null) targetPort = 'default'
                     let result = this.runSafe(input, target, targetPort)
-                    target.state.data = result
-                    target.state.timestamp = Date.now() // Force recognition of update
 
                     return result
                 }

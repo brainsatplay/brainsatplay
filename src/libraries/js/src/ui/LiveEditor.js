@@ -102,7 +102,6 @@ export class LiveEditor {
             */
 
             reset.onclick = () => {
-                console.log('reset')
                 if (this.props.language === 'javascript'){
                     // this.target[this.function] = eval(this.body);
                     // this.body = this.getFunctionBody(this.target[this.function]);
@@ -127,7 +126,6 @@ export class LiveEditor {
             this.onKeyDown = (e) => {
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
-                    console.log('save with CTRL + S')
                     submitElement.click()
                 }
             }
@@ -151,7 +149,6 @@ export class LiveEditor {
             }
 
             submitElement.onclick = () => {
-                console.log('save')
 
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
@@ -179,8 +176,6 @@ export class LiveEditor {
             document.addEventListener("keydown", this.onKeyDown, false);
 
             this.input.onscroll = () => {
-                console.log('scroll')
-
                 this._syncScroll(this.input)
             }
 
@@ -222,7 +217,6 @@ export class LiveEditor {
     }
 
     _updateSettings(settings){
-        console.log('updating settings')
         if (settings.onSave){
             this.onSave = settings.onSave
         }
@@ -335,7 +329,6 @@ export class LiveEditor {
     _updateDisplay = (text) => {
         let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
-        console.log('update display')
         result_element.innerHTML = replacedText;
         Prism.highlightElement(result_element);
     }
@@ -355,9 +348,7 @@ export class LiveEditor {
     _triggerCodeChange(){
         var event = document.createEvent("Event");
         event.initEvent("input", true, true);
-        console.log(document.getElementById(`${this.props.id}editor`))
         document.getElementById(`${this.props.id}editor`).dispatchEvent(event);
-        console.log('trigger code change')
     }
 
     _checkTab = (element, event) => {

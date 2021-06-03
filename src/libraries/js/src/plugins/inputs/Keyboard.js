@@ -12,6 +12,14 @@ export class Keyboard{
         this.paramOptions = {
             keycode: {default: 'Space', options: null},
         }
+
+        this.ports = {
+            default: {
+                defaults: {
+                    output: [{data: false, meta: {label: 'keycode'}}]
+                }
+            }
+        }
     }
 
     init = () => {
@@ -25,7 +33,10 @@ export class Keyboard{
     }
 
     handleKeyDown = (e) => {
-        if (this.matchKey(e.code) && this.state.data != true) this.state.data = true
+        if (this.matchKey(e.code) && this.state.data != true){
+            this.state.data = true
+            console.log(e.code)
+        } 
     }
     
     handleKeyUp = (e) => {

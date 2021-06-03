@@ -94,11 +94,18 @@ export class bci2000Plugin {
                         // The framework itself supports values from 0-1 for any particular state.
 
                         let value = this.device.states[k][0] // Exclusive (only first index)
+                        if (this.states[k][value].data != true){
                         this.states[k].forEach((state,i) => { // Exclusive (resets states not chosen)
-                            if (i === value) this.states[k][value].data = 1 // Binary
-                            else this.states[k][i].data = 0 // Binary
+                            if (i === value) {
+                                this.states[k][value].data = true // Binary
+                            }
+                            else {
+                                if (this.states[k][i].data != false) {
+                                    this.states[k][i].data = false // Binary
+                                }
+                            }
                         })
-
+                    }
                     }
                 })
                
@@ -127,35 +134,28 @@ export class bci2000Plugin {
 
             // Initialize Possible Device States
             this.device.onStateFormat = data => {
-                console.log('state format', data)
                 let defaults = ['Recording', 'Running', 'SourceTime', 'StimulusTime','__pad0', 'TrialStart', 'Baseline']
                 let keys = Object.keys(data)
                 keys = keys.filter(k => !defaults.includes(k))
 
-                keys.forEach(id => {
+                keys.forEach(stateId => {
                     // Determine Possible Keys
-                    let possibilities = Math.pow(data[id].bitWidth,2)
+                    let possibilities = Math.pow(data[stateId].bitWidth,2)
 
                     // Split ID to Derive Additional Specifiers
                     // Create States Based on Possibilities
-                    this.states[id] = Array.from({length: possibilities}, (e,i) => {
-                        if (possibilities > 1) id = `${id}_${i}}` // Create unique ID
-                        return {data: null, meta: {id}, timestamp: Date.now()}
+                    let id = ''
+                    this.states[stateId] = Array.from({length: possibilities}, (e,i) => {
+                        if (possibilities > 1) id = `${stateId}_${i}` // Create unique ID
+                        else id = stateId
+                        return {data: false, meta: {id}, timestamp: Date.now()} // Set with expected (boolean) value
                     })
                 })
-
-                if (resolved === false){
-                    resolve(true) // Resolve promise when stateFormat is received
-                    resolved = true
-                }
             }
             this.device.onSignalProperties = data => {
-                // Check if already created (websocket tends to close and reopen...)
+
+                // Check if already created
                 if (this.atlas == null){
-                    // let eegChannelTags = []
-                    // data.channels.forEach((t,i) => {
-                    //     eegChannelTags.push({ch: i, tag: t, analyze: true})
-                    // })
                     this.info.eegChannelTags = data.channels.length//eegChannelTags
 
                     // Create Data Atlas Given Signal Properties
@@ -163,6 +163,8 @@ export class bci2000Plugin {
                     
                     // Validate Connection
                     this.onconnect();
+
+                    resolve(true) // Resolve promise when signalProperties are received
                 }                
             }
         });
@@ -227,7 +229,7 @@ export class bci2000Plugin {
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
         if (this.device) this.device.disconnect()
-        if (this.operator) this.operator.disconnect()
+        // if (this.operator) this.operator.disconnect()
     }
 
     //externally set callbacks

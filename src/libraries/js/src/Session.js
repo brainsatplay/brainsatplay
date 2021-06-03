@@ -198,12 +198,11 @@ export class Session {
 			this.deviceStreams.push(newStream)
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			this.info.nDevices++;
-			if (streamParams[0]) { this.beginStream(streamParams); }
-
+			if (streamParams[0]) { 
+				this.beginStream(streamParams); 
+			}
 			newStream.info.stateId = stateId
-			//Device info accessible from state
-			this.state.addToState(stateId, newStream.info);
-
+			this.state.addToState(stateId, newStream.info); //Device info accessible from state
 			onconnect(newStream);
 			this.onconnected();
 		}
@@ -1996,9 +1995,9 @@ class deviceStream {
 	}
 
 	connect = async () => {
-		let res = await this.device.connect();
+		await this.device.connect();
 		this.info.events.init(this.device)
-		return res
+		return true
 	}
 
 	configureRoutes = (stateManagerArray, parentNode=document.body) => {

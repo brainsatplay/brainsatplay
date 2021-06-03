@@ -26,25 +26,21 @@ export const settings = {
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [
-        // {
-        //   source: 'signal', 
-        //   target: 'blink:left'
-        // },
-        // {
-        //   source: 'signal', 
-        //   target: 'blink:right'
-        // },
-        // {
-        //   source: 'blink:left', 
-        //   target: 'ui:left'
-        // }, 
-        // {
-        //   source: 'blink:right', 
-        //   target: 'ui:right'
-        // }, 
         {
           source: 'signal', 
-          target: 'ui'
+          target: 'blink:left'
+        },
+        {
+          source: 'signal', 
+          target: 'blink:right'
+        },
+        {
+          source: 'blink:left', 
+          target: 'ui:left'
+        }, 
+        {
+          source: 'blink:right', 
+          target: 'ui:right'
         }
       ]
     }],
