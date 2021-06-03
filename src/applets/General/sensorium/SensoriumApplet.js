@@ -699,7 +699,6 @@ void main(){
                 
                 if(this.effects.length < i-1) {
                     document.getElementById(this.props.id+'addeffect').click();
-                    this.effects[i].feedback.value = cmd.feedback;
                     if(cmd.controls !== undefined) {
                        if(cmd.controls === false ) {
                            document.getElementById(props.id+'showhide').click();
@@ -723,9 +722,10 @@ void main(){
                         }
                     }
                     if(cmd.feedback) {
+
                         Array.from(cmd.feedback.options).forEach((opt,j) => {
                             if(opt.value === cmd.feedback || opt.text === cmd.feedback)
-                                cmd.feedback.selectedIndex = j;
+                                this.effects[i].feedback.selectedIndex = j;
                         });
                     }
                     if(cmd.soundurl) { //{"name":"etc","url":""}
@@ -807,25 +807,27 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = () => {
+    getCurrentConfiguration = (includeSounds=false) => {
         let settings = [];
         this.effects.forEach((e,j) => {
             settings.push({
                 feedback:e.feedback
             });
-            if(e.sourceIdx) {
-                if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
-                    settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
-                    settings[j].soundbuffer.forEach((channel,k) => {
-                        source.buffer.copyFromChannel(channel,k+1,0);
-                    });
-                    settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
-                    settings[j].soundbuffer.duration = source.buffer.duration;
-                } else {
-                    settings[j].soundurl = {
-                        name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
-                        url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
-                    };
+            if(includeSounds){ //optional for speed. should only run once otherwise
+                if(e.sourceIdx) {
+                    if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
+                        settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
+                        settings[j].soundbuffer.forEach((channel,k) => {
+                            source.buffer.copyFromChannel(channel,k+1,0);
+                        });
+                        settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
+                        settings[j].soundbuffer.duration = source.buffer.duration;
+                    } else {
+                        settings[j].soundurl = {
+                            name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
+                            url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
+                        };
+                    }
                 }
             }
         });
