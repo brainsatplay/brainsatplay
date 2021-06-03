@@ -139,9 +139,9 @@ export class Prototype8Plugin {
 
     _onConnected = () => {} //for internal use only on init
  
-    connect = () => {
+    connect = async () => {
         //Insert connection protocols here...
-        this.device.setupSerialAsync(1000000);
+        await this.device.setupSerialAsync(1000000);
         //Setup Atlas via this callback AFTER connection is confirmed, you may need to move this or create an additional callback
         //this._onConnected();
         //run callbacks

@@ -1960,7 +1960,7 @@ class deviceStream {
 			simulating: false
 		};
 
-		this.device = null, //Device object, can be instance of eeg32, MuseClient, etc.
+		this.device = null, //Device object, can be instance of our device plugin classes.
 		this.deviceConfigs = deviceList
 		this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
