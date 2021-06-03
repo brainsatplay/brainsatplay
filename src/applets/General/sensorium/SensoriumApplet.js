@@ -129,7 +129,10 @@ export class SensoriumApplet {
         this.currentShader = null;
 
         this.three.planes = [];
-        this.guiControllers = []
+        this.guiControllers = [];
+
+        this.mouseclicked = false;
+        this.mousexy = [0,0];
 
         //Available uniforms for shaders. See comments for usage
         this.modifiers = {
@@ -180,7 +183,7 @@ export class SensoriumApplet {
             iResolution: ['x','y'], //viewport resolution
             iMouse: ['x','y'],  //XY mouse coordinates
             iMouseInput: false, //Click occurred before past frame?
-            iTexture: {}  //Texture map returned from shader (to keep state)
+            iImage: undefined //Texture map returned from shader (to keep state)
         }
 
         this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
@@ -270,7 +273,6 @@ void main(){
     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
     init() {
 
-
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
@@ -311,7 +313,7 @@ void main(){
             this.appletContainer = document.getElementById(props.id);
             this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
 
-            let editorContainer = document.getElementById(`${props.id}editorContainer`)
+            let editorContainer = document.getElementById(`${props.id}editorContainer`);
             this.liveEditor = new LiveEditor(
                 {
                     language: 'glsl', 
@@ -325,8 +327,18 @@ void main(){
             this.tutorialManager.updateParent(this.appletContainer)
             
             this.session.createIntro(this, () => {
-                this.tutorialManager.init()
-            })
+                this.tutorialManager.init();
+            });
+
+
+            document.getElementById(this.props.id).onmousemove = (e) => {
+                this.mousexy[0] = e.offsetX;
+                this.mousexy[1] = e.offsetY;
+            }
+
+            document.getElementById(this.props.id).onmousedown = (e) => {
+                this.mouseclicked = 1.0;
+            }
 
             /**
              * GUI
@@ -1325,7 +1337,7 @@ void main(){
         });
         
         this.updateMaterialUniforms(newMaterial,this.modifiers);
-        this.generateGUI(this.currentShader.uniforms)
+        this.generateGUI(this.currentShader.uniforms);
 
         this.three.planes.forEach(p => {
             p.material.dispose();
@@ -1355,10 +1367,13 @@ void main(){
                 }
             }
             let found = Object.keys(this.additionalUniforms).find((k) => {
-                if(u === k)
+                if(u === k) {
                     return true;
+                }
             });
-            if(!found && bciuniforms.indexOf(u) < 0) bciuniforms.push(u); //add arbitrary uniforms not listed anywhere
+            if(!found && bciuniforms.indexOf(u) < 0) {
+                bciuniforms.push(u);
+            } //add arbitrary uniforms not listed anywhere
         })
         this.currentShader.uniforms = bciuniforms;
 
@@ -1370,6 +1385,10 @@ void main(){
             transparent: true,
         });
         try{
+            if(this.currentShader.uniforms.find((name)=>{if(name === 'iImage') return true;})) {
+                newMaterial.uniforms[name] = {type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+            }
+
             this.updateMaterialUniforms(newMaterial,this.modifiers);
             this.generateGUI(this.currentShader.uniforms);
 
@@ -1415,6 +1434,13 @@ void main(){
 
             if (Object.keys(this.defaultUniforms).includes(name)){
                 material.uniforms[name].value = this.getData(name)
+            } else if (name === 'iImage') { 
+                material.uniforms[name].value = new THREE.Texture(this.three.renderer.domElement.toDataURL());
+            } else if (name === 'iMouse') {
+                material.uniforms[name].value = new THREE.Vector2(...this.mousexy);
+            } else if (name === 'iMouseInput') {
+                material.uniforms[name].value = this.mouseclicked;
+                this.mouseclicked = 0.0;
             } else if (material.uniforms[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {
@@ -1422,7 +1448,8 @@ void main(){
             }
         }
 
-        return material
+
+        return material;
     }
     
 
