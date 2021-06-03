@@ -873,11 +873,11 @@ void main(){
             <div style="display: flex;">
 
                 <div style="padding-right: 25px;">
-                    <h4 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect</h4>
+                    <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effect</span>
                     <div id='${props.id}selectors${idx}'></div>
                 </div>
                 <div class="sound">
-                    <h4 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</h4>
+                    <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</span>
                     <div id='${props.id}fileWrapper${idx}' style="">  
                         <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
                         <span id='${props.id}status${idx}'></span>
