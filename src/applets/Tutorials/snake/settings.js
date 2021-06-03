@@ -23,8 +23,8 @@ export const settings = {
         {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
         {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
+        // {id: 'mouse', class: brainsatplay.plugins.outputs.Mouse, params: {}},
         {id: 'ui', class: UI, params: {}},
-        
         // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
       ],
       edges: [
