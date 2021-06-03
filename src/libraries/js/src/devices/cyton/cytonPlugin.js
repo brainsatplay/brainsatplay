@@ -57,14 +57,6 @@ export class cytonPlugin {
 
         let onConnect = () => {
             this.setupAtlas(pipeToAtlas,info);
-            if(info.useAtlas === true){			
-                this.atlas.data.eegshared.startTime = Date.now();
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
-                    this.atlas.settings.analyzing = true;
-                    setTimeout(() => {this.atlas.analyzer();},1200);		
-                }
-            }
-            this.atlas.settings.deviceConnected = true;
             this.onconnect(); 
         }
 
@@ -74,10 +66,8 @@ export class cytonPlugin {
             this.ondisconnect();   
         }
 
-        let eegChannelTags = [];
-
         if(this.mode.indexOf('Daisy') > -1 ) {
-            eegChannelTags = [
+            info.eegChannelTags = [
                 {ch: 0, tag: "FP1", analyze:true},
                 {ch: 1, tag: "FP2", analyze:true},
                 {ch: 2, tag: "C3", analyze:true},
@@ -100,7 +90,7 @@ export class cytonPlugin {
                 'daisy'
             );
         } else {
-            eegChannelTags = [      
+            info.eegChannelTags = [      
                 {ch: 0, tag: "FP1", analyze:true},
                 {ch: 1, tag: "FP2", analyze:true},
                 {ch: 2, tag: "C3",  analyze:true},
@@ -115,13 +105,11 @@ export class cytonPlugin {
                 'single'
             );
         }
-
-        info.eegChannelTags = eegChannelTags;
     }
 
     setupAtlas = (pipeToAtlas=true,info) => {
         if(info.useFilters === true) {
-            eegChannelTags.forEach((row,i) => {
+            info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,true,this.device.uVperStep));
                 }
@@ -134,7 +122,6 @@ export class cytonPlugin {
             });
         }
 
-        info.eegChannelTags = eegChannelTags;
 
         if(pipeToAtlas === true) { //New Atlas
 			let config = '10_20';
@@ -171,6 +158,15 @@ export class cytonPlugin {
                 }
 			}
         }
+
+        if(info.useAtlas === true){			
+            this.atlas.data.eegshared.startTime = Date.now();
+            if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                this.atlas.settings.analyzing = true;
+                setTimeout(() => {this.atlas.analyzer();},1200);		
+            }
+        }
+        this.atlas.settings.deviceConnected = true;
 
     }
 
