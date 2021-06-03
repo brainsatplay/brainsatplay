@@ -128,6 +128,8 @@ export class cytonPlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,info.sps,false,this.device.uVperStep)); 
                 }
+                this.filters[this.filters.length-1].notch60.pop();
+                this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].useBp1 = true;
             });
         }
