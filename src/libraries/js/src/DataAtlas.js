@@ -88,11 +88,7 @@ export class DataAtlas {
 			ecg:[],
 			eyetracker:[],
 			other:{notes:[],games:{}},
-			states: {
-				generic: [],
-				blink: [],
-				intent: []
-			}
+			states: {} // Dynamically assigned discrete and continuous events (in Event Router)
 		};
 
         Object.assign(this.data,initialData);

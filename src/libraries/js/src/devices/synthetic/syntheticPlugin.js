@@ -19,6 +19,18 @@ export class syntheticPlugin {
         this.loop;
         this.looping = true;
 
+
+        this.states = {
+            'key_ArrowUp': {data: false, meta: {id:'key_ArrowUp'}, timestamp: Date.now()},
+            'key_ArrowDown': {data: false, meta: {id:'key_ArrowDown'}, timestamp: Date.now()},
+            'key_ArrowLeft': {data: false, meta: {id:'key_ArrowLeft'}, timestamp: Date.now()},
+            'key_ArrowRight': {data: false, meta: {id:'key_ArrowRight'}, timestamp: Date.now()},
+        }
+
+
+        // Simulated BCI2000 States
+        document.addEventListener('keydown',this.handleKeyDown)
+        document.addEventListener('keyup',this.handleKeyUp)
     }
 
     init = async (info,pipeToAtlas) => {
@@ -111,6 +123,11 @@ export class syntheticPlugin {
         if (typeof window != undefined){
             window.cancelAnimationFrame(this.loop)
         }
+
+        // Simulated BCI2000 States
+        document.removeEventListener('keydown',this.handleKeyDown)
+        document.removeEventListener('keyup',this.handleKeyDown)
+
         this.looping = false;
     }
 
@@ -217,5 +234,31 @@ export class syntheticPlugin {
     addControls(){
 
     }
+
+    handleKeyDown = (e) => {
+        Object.keys(this.states).forEach(k => {
+            let splitId = k.split('_')
+            if (splitId[0] === 'key'){
+                if (this.matchKey(e.code, splitId[1]) && this.states[k] != true) {
+                    this.states[k].data = true
+                }
+            }
+        })
+    }
+    
+    handleKeyUp = (e) => {
+        Object.keys(this.states).forEach(k => {
+            let splitId = k.split('_')
+            if (splitId[0] === 'key'){
+                if (this.matchKey(e.code, splitId[1])) this.states[k].data = false
+            }
+        })
+    }
+
+    matchKey(keycode, k){
+            let regex = new RegExp(`(?:^|\W)${k}(?:$|\W)`,'i')
+            return (keycode.match(regex) || keycode.replace('Key', '').match(regex) || keycode.replace('Digit', '').match(regex))
+    }
+
 
 }

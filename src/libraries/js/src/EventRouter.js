@@ -9,12 +9,10 @@ export class EventRouter{
         this.routes = {}
 
         this.id = String(Math.floor(Math.random()*1000000))
-        this.atlasEvents = []
     }
 
     init(device){
         this.device = device
-        this.atlasEvents = Object.keys(this.device.atlas.data.states).filter(k => k != 'generic')
         if (this.device.states){
         Object.keys(this.device.states).forEach(key => {
                 let states = this.device.states[key]
@@ -26,24 +24,17 @@ export class EventRouter{
                         let splitId = state.meta.id.split('_')
 
                         // Create display label
-                        let labelArr = splitId.map(str => str[0].toUpperCase + str.slice(1))
+                        let labelArr = splitId.map(str => str[0].toUpperCase() + str.slice(1))
                         state.meta.label = labelArr.join(' ')
                         
                         this.state.addToState(state.meta.id, state)
                         this.routes[state.meta.id] = [state]
 
                         // Route Switches in Atlas by Default
-                        if (this.atlasEvents.includes(splitId[0])){ // Check base route
-                            if (splitId.length > 1) { // Assign to group (if required)
-                                let idx = this.device.atlas.data.states[splitId[0]].findIndex(a => a[0].meta.id.split('_')[1] === splitId[1])
-                                if (idx > -1) this.device.atlas.data.states[splitId[0]][idx].push(state) // Add to group
-                                else this.device.atlas.data.states[splitId[0]].push([state]) // Create array for group
-                            } else {
-                                this.device.atlas.data.states[splitId[0]].push([state]) // Switches with no group specified are their own group
-                            }                       
-                        } else {
-                            this.device.atlas.data.states['generic'].push(state) // No groups for generic switches (even with same IDs)
-                        }
+                        if (!(splitId[0] in this.device.atlas.data.states)) this.device.atlas.data.states[splitId[0]] = {}
+                        if (splitId.length > 1) splitId.push('default')
+                        if (!(splitId[1] in this.device.atlas.data.states[splitId[0]])) this.device.atlas.data.states[splitId[0]][splitId[1]] = [state]
+                        else this.device.atlas.data.states[splitId[0]][splitId[1]].push([state])
 
                         // Declare Callback and Subscribe
                         let deviceCallback = (o) => {
@@ -127,7 +118,7 @@ export class EventRouter{
             keys = keys.filter(k => {
                 let state = manager.data[k]
                 // Guess if State is Binary or Continuous
-                if (notArrayOrObject(state?.data) || (Array.isArray(state) && notArrayOrObject(state[0]?.data)) || (Array.isArray(state[0]?.data) && notArrayOrObject(state[0]?.data[0]))){
+                if (notArrayOrObject(state?.data) || (Array.isArray(state) && notArrayOrObject(state[0]?.data)) || (Array.isArray(state?.data) && notArrayOrObject(state?.data[0].data))){
                     return k
                 }
             })
@@ -171,7 +162,11 @@ export class EventRouter{
             `)
             validRoutes.forEach(dict => {
                 managerMap[dict.key] = dict.manager
-                let upper = dict.key[0].toUpperCase() + dict.key.slice(1)
+
+                let splitId = dict.key.split('_')
+                splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
+
+                let upper = splitId.join(' ')
                 selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
             })
 
@@ -193,7 +188,7 @@ export class EventRouter{
 
                 let div = document.createElement('div')
                 div.style.padding = '10px'
-                div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${id.replace('_', ' ')}</p>`)
+                div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
                 div.insertAdjacentElement('beforeend', thisSelector)
                 routerOptions.insertAdjacentElement('beforeend',div)
             })

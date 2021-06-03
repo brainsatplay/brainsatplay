@@ -84,6 +84,8 @@ class UI{
             if (typeof value === "number") value = value.toFixed(2)
             outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.data}</p>`
         })
+
+        return userData
     }
 
     color = (userData) => {

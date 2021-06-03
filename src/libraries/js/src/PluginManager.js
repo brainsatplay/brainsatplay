@@ -39,7 +39,9 @@ export class PluginManager{
                     update.buffer.forEach(k => {
                         if (this.registry.brainstorm[k] == null){
                                 if (k.includes(label) && k !== label){
-                                this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].callback), callback: this.registry.local[s].callback}
+
+                                // Only Defaults on the Brainstorm for Now
+                                this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].registry['default'].callback), callback: this.registry.local[s].registry['default'].callback}
                                 this.registry.brainstorm[k].callback()
                             }
                         } 
@@ -65,7 +67,7 @@ export class PluginManager{
     }
     }
 
-    instantiateNode(nodeInfo,session=this.session){
+    instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
 
         // Set Default Parameters
@@ -73,19 +75,30 @@ export class PluginManager{
             if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
         }
 
-        // Add Default State
-        node.state = {data: null, meta: {}}
-        let defaults = (node.ports == null) ? undefined : node.ports['default'].defaults
-        if (defaults && defaults.output) {
-            try {
-                if (Array.isArray(defaults.output) && defaults.output[0].constructor == Object && 'data' in defaults.output[0]) node.state = defaults.output[0]
-                else if (defaults.output.constructor == Object && 'data' in defaults.output) node.state = defaults.output
-            } catch {
-                node.state = {data: defaults.output, meta:{}}
-            }
+        // Add Default States
+        node.states = {}
 
+        if (node.ports != null){
+            for (let port in node.ports){
+                node.states[port] = {data: [{}], meta: {}}
+                let defaults = node.ports[port].defaults
+                if (defaults && defaults.output) {
+                    try {
+                        if (Array.isArray(defaults.output)) node.states[port].data = defaults.output
+                        else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port].data = [defaults.output]
+                    } catch {
+                        node.states[port].data = defaults.output
+                    }
+                    node.states[port].meta.label = node.states[port].data[0].meta.label
+                }
+            }
         }
 
+        // Catch Active Ports without Defaults
+        activePorts.forEach(p => {
+            if (node.states[p] == null) node.states[p] = {data: [{}], meta: {}}
+        })
+        
         // Instantiate Dependencies
         let depDict = {}
         if (node.dependencies){
@@ -108,18 +121,26 @@ export class PluginManager{
 
         let nodes = {}
         let edges = []
+        let activePorts = {}
         graphs.forEach(g => {
 
             if (Array.isArray(g.edges)){
                 g.edges.forEach(e => {
                     edges.push(e)
+
+                    // Capture Active Ports
+                    for (let k in e){
+                        let [node,port] = e[k].split(':')
+                        if (activePorts[node] == null) activePorts[node] = new Set(['default'])
+                        if (port) activePorts[node].add(port)
+                    }
                 })
             }
 
             g.nodes.forEach(nodeInfo => {
                 if (nodes[nodeInfo.id] == null){
                     nodes[nodeInfo.id] = nodeInfo
-                    nodes[nodeInfo.id].instance = this.instantiateNode(nodeInfo,this.session)
+                    nodes[nodeInfo.id].instance = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id])
                 }
             })
         })
@@ -137,17 +158,14 @@ export class PluginManager{
     }
 
     runSafe(input, node, port='default'){
-        // console.log(input)
 
         // Do Not Mutate Input
         let inputCopy = []
         // inputCopy = JSON.parse(JSON.stringify(input)) // Deep
-        // if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
-        // else if (Array.isArray(input)) input.forEach(u => {
-        //     inputCopy.push(Object.assign({}, u))
-        // })
-
-        inputCopy = input
+        if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
+        else if (Array.isArray(input)) input.forEach(u => {
+            inputCopy.push(Object.assign({}, u))
+        })
         
         // Package Single User
         if (inputCopy.constructor == Object){
@@ -160,11 +178,10 @@ export class PluginManager{
                 inputCopy = inputCopy.data
             }
 
-            // console.log(inputCopy)
             if (!Array.isArray(inputCopy)) inputCopy = [inputCopy]
             if (inputCopy[0].constructor == Object){
                 inputCopy[0].username = this.session?.info?.auth?.username
-                if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = source.label
+                if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = (sourcePort != null) ? `${source.label}_${sourcePort}` : source.label
             }
 
         } else if (!Array.isArray(inputCopy)){
@@ -190,10 +207,12 @@ export class PluginManager{
                 else inputCopy[i] = {data: inputCopy[i], meta: {}, username: 'guest'}  // Raw Data (not formatted)
             }
         }
-
         let result = node[port](inputCopy)
-        node.state.data = result
-        node.state.timestamp = Date.now() // Force recognition of update
+
+        if (result){ // If you have a loop, this will always update. Otherwise it waits for a direct state change on a node.
+            node.states[port].data = result
+            node.states[port].timestamp = Date.now() // Force recognition of update
+        }
 
         return result
     }
@@ -289,7 +308,7 @@ export class PluginManager{
                                 if (defaults.input){
                                     defaultInput = defaults.input
                                     defaultInput.forEach(o => {
-                                        if (o.data == null)  o.data = []
+                                        if (o.data == null)  o.data = [{}]
                                         if (o.meta == null)  o.meta = {}                           
                                     })
                                     node.instance[port](defaultInput)
@@ -319,8 +338,12 @@ export class PluginManager{
 
             // Add to Registry
             if (this.registry.local[node.label] == null){
-                this.registry.local[node.label] = {label: node.label, count: 0, state: null, gui: {}, callback: ()=>{}}
-                this.registry.local[node.label].state = node.state
+                this.registry.local[node.label] = {label: node.label, count: 0, registry: {}, gui: {}}
+                for (let port in node.states){
+                    this.registry.local[node.label].registry[port] = {}
+                    this.registry.local[node.label].registry[port].state = node.states
+                    this.registry.local[node.label].registry[port].callback = () => {}
+                }
             }
 
             if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
@@ -335,62 +358,62 @@ export class PluginManager{
 
                 let splitSource = e.source.split(':')
                 let sourceName = splitSource[0]
-                let sourcePort = splitSource[1]
+                let sourcePort = splitSource[1] ?? 'default'
                 let sourceInfo = applet.nodes[sourceName]
                 let source = sourceInfo.instance
                 let splitTarget = e.target.split(':')
                 let targetName = splitTarget[0]
-                let targetPort = splitTarget[1]
+                let targetPort = splitTarget[1] ?? 'default'
                 let target = applet.nodes[targetName].instance
 
+                // Pass Data from Source to Target
                 let callback = (input) => {
-
-                    // Send to Proper Port
-                    if (targetPort == null) targetPort = 'default'
-                    let result = this.runSafe(input, target, targetPort)
-
-                    return result
+                    return this.runSafe(input, target, targetPort)
                 }
 
                 // Pass Output From Brainstorm (and automatically stream this input)
                 if (sourcePort == 'brainstorm') {
-                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, source.default, [callback])) // Add stream function
+                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, source['default'], [callback])) // Add stream function
                     else uiParams.setupHTML.push(this._addData(sourceInfo, appId, [callback])) // Add data to listen to
 
                     // Add to Stream List
                     if (source.label != null) applet.streams.add(source.label) // Keep track of streams to pass to the Brainstorm
                 } 
 
-                // Otherwise Just Listen for Local Changes
+                // Otherwise Just Listen for Local Changes (on each port)
                 else {
-                if (source.label && source.state){
+                if (source.label){
 
-                    this.state.data[source.label] = source.state
+                    // Create State for Port
+                    let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
 
-                    if (applet.subscriptions.local[source.label] == null) applet.subscriptions.local[source.label] = []
+                    // Grab Default Output for Port
+                    this.state.data[label] = source.states[sourcePort] // this.getDefaultState(node, sourcePort)
+
+                    if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
 
                     if (sourceInfo.loop){
 
                         // Check if Already Streaming
-                        let found = this.findStreamFunction(source.label)
+                        let found = this.findStreamFunction(label)
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            if (this.session.state[source.label]) applet.subscriptions.local[source.label].push(this.session.state.subscribe(source.label, callback))
-                            else applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
-                            let input = this.session.state.data[source.label]
-                            if (input == null) input = this.state.data[source.label]
-                            uiParams.setupHTML.push(() => callback(input))
+                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, callback))
+                            else applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
+                            // let input = this.session.state.data[label]
+                            // if (input == null) input = this.state.data[label]
+                            // uiParams.setupHTML.push(() => callback(input))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
-                            this.session.addStreamFunc(source.label, source.default, this.state, false)
-                            applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
+                            this.session.addStreamFunc(label, source[sourcePort], this.state, false)
+                            applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
                         }
 
                     } else {
-                        applet.subscriptions.local[source.label].push(this.state.subscribe(source.label, callback))
+                        applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
                     }
                 }
             }
@@ -493,9 +516,10 @@ export class PluginManager{
                 }
             }
 
+            console.log('trying')
 
         if (found == null) {
-            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].state, this.registry.local[id].callback))
+            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].states, this.registry.local[id].callback))
         } else {
             applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
         }
@@ -527,6 +551,8 @@ export class PluginManager{
                 }
             }
         }
+
+        console.log('trying')
 
         applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
         
