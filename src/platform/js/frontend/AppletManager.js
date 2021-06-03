@@ -216,12 +216,11 @@ export class AppletManager {
             // disabled settings reloading for now
             if (appletConfigs.length === 1) {
                 
-                if (appletConfigs[0].includes('_baas_client_app_id')){
-                    handleAuthRedirect();
-                    return
-                } 
-                
-                else if (typeof appletConfigs[0] === 'string') {
+                if (typeof appletConfigs[0] === 'string') {
+                    if (appletConfigs[0].includes('_baas_client_app_id')){
+                        handleAuthRedirect();
+                        return
+                    } 
                     preset = this.appletPresets.find((p) => {
                         if (p.value.toLowerCase() == appletConfigs[0].toLowerCase()) {
                             document.getElementById("preset-selector").value = p.value;
