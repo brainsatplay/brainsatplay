@@ -38,8 +38,16 @@ export class cytonPlugin {
                         let coord;
                         if(o.tag !== null) { coord = this.atlas.getEEGDataByTag(o.tag); } 
                         else { coord = this.atlas.getEEGDataByChannel(o.ch); }
+
+
+                        // Check Sampling Rate
+                        // let times = this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count)
+                        // let timeToSample = (times[times.length-1] - times[0])/times.length 
+                        // console.log(1000/timeToSample)
+
+
                         coord.count += newLinesInt;
-                        coord.times.push(...this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count));
+                        coord.times.push(...times);
                         coord.filtered.push(...latestFiltered);
                         coord.raw.push(...latest);
                     }
@@ -55,10 +63,13 @@ export class cytonPlugin {
             });
         }
 
-        let onConnect = () => {
+
+        this._onConnect = () => {
             this.setupAtlas(pipeToAtlas,info);
             this.onconnect(); 
         }
+
+        let onConnect = () => {}
 
         let onDisconnect = () => {
             this.atlas.settings.analyzing = false;
@@ -172,6 +183,7 @@ export class cytonPlugin {
 
     connect = async () => {
         await this.device.setupSerialAsync();
+        this._onConnect()
     }
 
 

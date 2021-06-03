@@ -124,7 +124,6 @@ export class ganglionPlugin {
         this.atlas.settings.deviceConnected = true; 
 
         this.onconnect();
-        //onconnected: this.atlas.settings.deviceConnected = true;
     }
 
     disconnect = () => {
@@ -133,7 +132,6 @@ export class ganglionPlugin {
         this.atlas.settings.deviceConnected = false;
         if (this.ui) this.ui.deleteNode()
         this.ondisconnect();
-        //ondisconnected: this.atlas.settings.deviceConnected = false;
     }
 
     //externally set callbacks

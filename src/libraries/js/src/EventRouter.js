@@ -58,7 +58,7 @@ export class EventRouter{
     }
 
     deinit = () => {
-        this.ui.deleteNode()
+        if (this.ui) this.ui.deleteNode()
     }
 
     // Route Events to Atlas
