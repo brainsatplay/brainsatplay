@@ -70,7 +70,7 @@ export class SensoriumApplet {
                 OR
                 "frag": "raw glsl code"
             }}{
-            "feedback":"iHEG",
+            "feedback":"iHEG",  //can use the option value OR text i.e. "HEG Ratio"
             "soundurl":{
                 "name":"",
                 "url":"", //Optional if you have a custom url
@@ -677,7 +677,7 @@ void main(){
             OR
             "frag": "raw glsl code"
         }}{
-        "feedback":"iHEG",
+        "feedback":"iHEG", //can use the option value OR text i.e. "HEG Ratio"
         "soundurl":{
             "name":"",
             "url":""//Optional if you have a custom url   
@@ -791,7 +791,7 @@ void main(){
             OR
             "frag": "raw glsl code"
         }}{
-        "feedback":"iHEG",
+        "feedback":"iHEG", //use the uniform or the option text
         "soundurl":{
             "name":"",
             "url":""//Optional if you have a custom url   
