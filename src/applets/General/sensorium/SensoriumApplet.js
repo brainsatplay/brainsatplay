@@ -721,6 +721,9 @@ void main(){
                             this.setShaderFromText(this.liveEditor.input.value);
                         }
                     }
+                    if(cmd.modifiers) {
+                        this.modifiers = cmd.modifiers;
+                    }
                     if(cmd.feedback) {
 
                         Array.from(cmd.feedback.options).forEach((opt,j) => {
@@ -838,6 +841,8 @@ void main(){
         if(shaderselector.value !== 'fromtext')
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
+
+        settings[0].modifiers = this.modifiers;
 
         return settings;
     }
