@@ -749,10 +749,10 @@ void main(){
                         if(!window.audio) window.audio = new SoundJS();
                         if(!window.audio.ctx) return false;
 
-                        let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.length/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                        let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
                         cmd.soundbuffer.buffer.forEach((b,j) => {
                             buf.copyToChannel(b,j+1,0);
-                        })
+                        });
 
                         this.effects[i].input.style.display='none';
                         document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
@@ -818,6 +818,8 @@ void main(){
                     settings[j].soundbuffer.forEach((channel,k) => {
                         source.buffer.copyFromChannel(channel,k+1,0);
                     });
+                    settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
+                    settings[j].soundbuffer.duration = source.buffer.duration;
                 } else {
                     settings[j].soundurl = {
                         name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
