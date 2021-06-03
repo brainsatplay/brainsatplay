@@ -341,7 +341,7 @@ export class PluginManager{
                 this.registry.local[node.label] = {label: node.label, count: 0, registry: {}, gui: {}}
                 for (let port in node.states){
                     this.registry.local[node.label].registry[port] = {}
-                    this.registry.local[node.label].registry[port].state = node.states
+                    this.registry.local[node.label].registry[port].state = node.states[port]
                     this.registry.local[node.label].registry[port].callback = () => {}
                 }
             }
@@ -373,8 +373,8 @@ export class PluginManager{
 
                 // Pass Output From Brainstorm (and automatically stream this input)
                 if (sourcePort == 'brainstorm') {
-                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, source['default'], [callback])) // Add stream function
-                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, [callback])) // Add data to listen to
+                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [callback])) // Add stream function
+                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [callback])) // Add data to listen to
 
                     // Add to Stream List
                     if (source.label != null) applet.streams.add(source.label) // Keep track of streams to pass to the Brainstorm
@@ -494,8 +494,9 @@ export class PluginManager{
 
     // Internal Methods
 
-    _addData(nodeInfo, appletId, callbacks) {
+    _addData(nodeInfo, appletId, port, callbacks) {
 
+        port = 'default' // Only default port
 
         let applet = this.applets[appletId]
         let id = nodeInfo.instance.label
@@ -504,7 +505,7 @@ export class PluginManager{
 
             if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
-            this.registry.local[id].callback = () => {
+            this.registry.local[id].registry[port].callback = () => {
 
                 if (this.session.state.data[id] != null){
                     if (callbacks){
@@ -516,20 +517,21 @@ export class PluginManager{
                 }
             }
 
-            console.log('trying')
-
         if (found == null) {
-            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].states, this.registry.local[id].callback))
+            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].registry[port].state, this.registry.local[id].registry[port].callback))
         } else {
-            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
+            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].registry[port].callback))
         }
 
         // Pass Callback to Send Existing Session Data
-        return () => {this.registry.local[id].callback(this.session.state.data[id])}
+        return () => {this.registry.local[id].registry[port].callback(this.session.state.data[id])}
             
     }
 
-    _addStream(nodeInfo, appletId, callback, callbacks){
+    _addStream(nodeInfo, appletId, port, callbacks){
+
+        port = 'default' // Only default port
+        callback = nodeInfo.instance[port] 
 
         let applet = this.applets[appletId]
         let id = nodeInfo.instance.label
@@ -541,7 +543,7 @@ export class PluginManager{
             this.session.addStreamFunc(id, callback)
         }
         
-        this.registry.local[id].callback = () => {
+        this.registry.local[id].registry[port].callback = () => {
             if (this.session.state.data[id] != null){
                 if (callbacks){
                     let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
@@ -552,12 +554,10 @@ export class PluginManager{
             }
         }
 
-        console.log('trying')
-
-        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].callback))
+        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].registry[port].callback))
         
         // Pass Callback to Send Existing Stream Data
-        return () => {this.registry.local[id].callback(this.session.state.data[id])}
+        return () => {this.registry.local[id].registry[port].callback(this.session.state.data[id])}
 }
 
 }
