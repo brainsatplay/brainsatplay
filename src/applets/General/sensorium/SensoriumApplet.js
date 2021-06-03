@@ -175,6 +175,14 @@ export class SensoriumApplet {
             iFrontalAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
+        this.additionalUniforms = {
+            iTime: 0, //milliseconds elapsed from shader begin
+            iResolution: ['x','y'], //viewport resolution
+            iMouse: ['x','y'],  //XY mouse coordinates
+            iMouseInput: false, //Click occurred before past frame?
+            iTexture: {}  //Texture map returned from shader (to keep state)
+        }
+
         this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
 
         this.shaders = {
@@ -1346,6 +1354,11 @@ void main(){
                     bciuniforms.push(u);
                 }
             }
+            let found = Object.keys(this.additionalUniforms).find((k) => {
+                if(u === k)
+                    return true;
+            });
+            if(!found && bciuniforms.indexOf(u) < 0) bciuniforms.push(u); //add arbitrary uniforms not listed anywhere
         })
         this.currentShader.uniforms = bciuniforms;
 
@@ -1453,18 +1466,34 @@ void main(){
         })
         this.guiControllers = [];        
 
-        for (let name in this.modifiers){
-            if(typeof this.modifiers[name] !== 'object' && uniforms.indexOf(name) > -1){
+        let keys = Object.keys(this.modifiers);
+        let otherkeys = Object.keys(this.additionalUniforms);
+        uniforms.forEach((name)=> {
+            if(keys.indexOf(name) > -1){
+                if(typeof this.modifiers[name] !== 'object'){
+                    this.guiControllers.push(
+                        paramsMenu.add(
+                            this.modifiers, 
+                            name, 
+                            this.uniformSettings[name].min,
+                            this.uniformSettings[name].max,
+                            this.uniformSettings[name].step).onChange(
+                                (val) => updateUniformsWithGUI(name,val)));
+                }
+            } else if (otherkeys.indexOf(name) < 0) {
+                this.modifiers[name] = 0;
                 this.guiControllers.push(
                     paramsMenu.add(
                         this.modifiers, 
                         name, 
-                        this.uniformSettings[name].min,
-                        this.uniformSettings[name].max,
-                        this.uniformSettings[name].step).onChange(
+                        0,
+                        1000,
+                        1
+                        ).onChange(
                             (val) => updateUniformsWithGUI(name,val)));
             }
-        }    
+        });
+
     }
 
 
