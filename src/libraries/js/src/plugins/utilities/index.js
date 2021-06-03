@@ -1,1 +1,1 @@
-export {Brainstorm} from '/Brainstorm.js'
+export {Brainstorm} from './Brainstorm.js'

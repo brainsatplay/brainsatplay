@@ -13,9 +13,6 @@ export class Brainstorm{
     deinit = () => {}
 
     default = (userData) => {
-        userData.forEach(u => {
-            console.log(u)
-        })
         return userData
     }
 }

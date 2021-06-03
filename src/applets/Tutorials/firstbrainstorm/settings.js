@@ -25,6 +25,7 @@ export const settings = {
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal, loop: true},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'ui', class: UI, params: {}},
+        {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
       ],
       edges: [
         {
@@ -32,11 +33,19 @@ export const settings = {
           target: 'neurofeedback'
         },
         {
-          source: 'spacebar:brainstorm', 
+          source: 'spacebar', 
+          target: 'brainstorm'
+        },
+        {
+          source: 'neurofeedback', 
+          target: 'brainstorm'
+        },
+        {
+          source: 'brainstorm:spacebar', 
           target: 'ui:color'
         },
         {
-          source: 'neurofeedback:brainstorm', 
+          source: 'brainstorm:neurofeedback', 
           target: 'ui:readout'
         }
       ]

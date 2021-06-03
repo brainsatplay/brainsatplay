@@ -1,7 +1,7 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import { Session } from './Session'
-
+import { Brainstorm } from './plugins/utilities/Brainstorm'
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
@@ -207,6 +207,7 @@ export class PluginManager{
                 else inputCopy[i] = {data: inputCopy[i], meta: {}, username: 'guest'}  // Raw Data (not formatted)
             }
         }
+
         let result = node[port](inputCopy)
 
         if (result){ // If you have a loop, this will always update. Otherwise it waits for a direct state change on a node.
@@ -366,23 +367,38 @@ export class PluginManager{
                 let targetPort = splitTarget[1] ?? 'default'
                 let target = applet.nodes[targetName].instance
 
+                let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
+
                 // Pass Data from Source to Target
-                let callback = (input) => {
+                let defaultCallback = (input) => {
                     return this.runSafe(input, target, targetPort)
                 }
+                
 
-                // Pass Output From Brainstorm (and automatically stream this input)
-                if (sourcePort == 'brainstorm') {
-                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [callback])) // Add stream function
-                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [callback])) // Add data to listen to
+                // Log Output in Global State (for Brainstorm)
+                if (applet.nodes[targetName].instance instanceof Brainstorm) {
+
+                    if (applet.nodes[targetName].instance.apps == null) applet.nodes[targetName].instance.apps = {}
+                    applet.nodes[targetName].instance.apps[appId] = {}
+
+                    let brainstormCallback = (input) => {
+                        let portCallback = applet.nodes[targetName].instance.apps[appId][sourceName]
+                        if (portCallback instanceof Function) portCallback(input)
+                    }
+
+                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add stream function
+                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add data to listen to
 
                     // Add to Stream List
-                    if (source.label != null) applet.streams.add(source.label) // Keep track of streams to pass to the Brainstorm
+                    applet.streams.add(label) // Keep track of streams to pass to the Brainstorm
                 } 
 
-                // Otherwise Just Listen for Local Changes (on each port)
+                // Assign Proper Callback to Route Data from the Brainstorm
+                else if (applet.nodes[sourceName].instance instanceof Brainstorm) {
+                    applet.nodes[sourceName].instance.apps[appId][sourcePort] = defaultCallback
+                }
+                // Otherwise Just Listen for Local Changes
                 else {
-                if (source.label){
 
                     // Create State for Port
                     let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
@@ -399,23 +415,19 @@ export class PluginManager{
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, callback))
-                            else applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
-                            // let input = this.session.state.data[label]
-                            // if (input == null) input = this.state.data[label]
-                            // uiParams.setupHTML.push(() => callback(input))
+                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
+                            else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
                             this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
+                            applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                         }
 
                     } else {
-                        applet.subscriptions.local[label].push(this.state.subscribe(label, callback))
+                        applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                     }
-                }
             }
         })
 
@@ -496,17 +508,13 @@ export class PluginManager{
 
     _addData(nodeInfo, appletId, port, callbacks) {
 
-        port = 'default' // Only default port
-
         let applet = this.applets[appletId]
-        let id = nodeInfo.instance.label
-
+        let id = (port != 'default') ? `${ nodeInfo.instance.label}_${port}` :  nodeInfo.instance.label
         let found = this.findStreamFunction(id)
 
             if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
             this.registry.local[id].registry[port].callback = () => {
-
                 if (this.session.state.data[id] != null){
                     if (callbacks){
                         let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
@@ -530,11 +538,11 @@ export class PluginManager{
 
     _addStream(nodeInfo, appletId, port, callbacks){
 
-        port = 'default' // Only default port
         callback = nodeInfo.instance[port] 
 
         let applet = this.applets[appletId]
-        let id = nodeInfo.instance.label
+        let id = (port != 'default') ? `${ nodeInfo.instance.label}_${port}` :  nodeInfo.instance.label
+
         if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
     
         let found = this.findStreamFunction(id)
