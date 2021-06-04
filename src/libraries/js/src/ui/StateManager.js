@@ -170,6 +170,15 @@ export class StateManager {
         return this.pushToState;
     }
 
+    //only push to an object that keeps the sequences of updates instead of synchronously updating the whole state.
+    setSequentialState(updateObj={}) {
+        //console.log("setting state");
+        if(!this.listener.hasKey('pushToState')) {
+            this.setupSynchronousUpdates();
+        }
+        this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
+    }
+
     //Set main onchange response for the property-specific object listener. Don't touch the state
     setPrimaryKeyResponse(key=null, onchange=null, debug=false) {
         if(onchange !== null){
