@@ -22,7 +22,6 @@ export class Signal{
             }
         }
 
-
         this.props = {
             state: new StateManager(),
             deviceSubscriptions: {}
@@ -35,7 +34,7 @@ export class Signal{
         let removed = (arr) => {
             arr.forEach(k => {
                 if (k.includes('device')){
-                    // this.props.state.removeState(`${this.params.device}_FP1`)
+                    this.props.state.removeState(`${this.params.device}_FP1`)
                 }
             })
         }

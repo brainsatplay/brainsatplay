@@ -214,9 +214,8 @@ export class StateManager {
     }
 
     onUpdate = (update) => {
-       
-        update.buffer.delete('update')
 
+        update.buffer.delete('update')
 
         if (update.added){
             this.updateCallbacks.added.forEach(f => {
