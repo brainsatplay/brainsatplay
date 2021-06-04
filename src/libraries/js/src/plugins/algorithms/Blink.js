@@ -17,12 +17,12 @@ export class Blink{
             },
             left: {
                 defaults: {
-                    output: [{data: false, meta: {label: 'blink_left'}}]
+                    output: [{data: false, meta: {label: 'blink_left'}}] // Declares data types for binding
                 }
             },
             right: {
                 defaults: {
-                    output: [{data: false, meta: {label: 'blink_right'}}]
+                    output: [{data: false, meta: {label: 'blink_right'}}] // Declares data types for binding
                 }
             }
         }

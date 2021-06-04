@@ -88,10 +88,13 @@ export class PluginManager{
                     node.states[port].meta.label = node.states[port].data[0].meta.label
                 }
 
+                // Derive Control Structure
                 let firstUserDefault= node.states[port].data[0]
                 if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
                     firstUserDefault.meta.format = typeof firstUserDefault.data
-                    controlsToBind.push(firstUserDefault.meta)
+                    let controlDict = Object.assign({}, firstUserDefault.meta)
+                    controlDict.target = node.states[port].data
+                    controlsToBind.push(controlDict)
                 }
             }
         }

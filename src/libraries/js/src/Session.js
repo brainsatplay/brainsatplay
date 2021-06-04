@@ -1166,7 +1166,10 @@ else {
 
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
-			if (d.info.events) d.info.events.updateRouteDisplay()
+			if (d.info.events) {
+				d.info.events.registerControls(this.info.apps[appId].controls)
+				d.info.events.updateRouteDisplay()
+			}
 		})
 
 		return info

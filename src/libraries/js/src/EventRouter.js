@@ -7,7 +7,7 @@ export class EventRouter{
         this.device = null
         this.state = new StateManager()
         this.routes = {}
-        this.managers = null
+        this.managers = []
 
         this.id = String(Math.floor(Math.random()*1000000))
     }
@@ -57,15 +57,21 @@ export class EventRouter{
     update(o,targets=[]) {
         let newState = o.data
 
+        // Bit-Ify Continuous Inputs
+        // TO DO: Modify based on expected inputs (binary or continuous)
+        newState = newState > 0.5
+
         targets.forEach(t => {
-            if ('data' in t) {
-                t.data = newState
-            }
-            else if ('data' in t[0]){
-                t[0].data = newState
-            }
-            else if ('data' in t[0].data[0]) {
-                t[0].data[0] = newState
+            if (t){
+                if ('data' in t) {
+                    t.data = newState
+                }
+                else if ('data' in t[0]){
+                    t[0].data = newState
+                }
+                else if ('data' in t[0].data[0]) {
+                    t[0].data[0] = newState
+                }
             }
         })
     }
@@ -82,20 +88,57 @@ export class EventRouter{
         // Remove Invalid Events
         eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes).find(str => str.split('_')[0] === id.split('_')[0]) != null))
 
-        // Remove Events Already Selected
-        // for (let id in this.routes){
-        //     eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes).find(str => str.split('_')[0] === id.split('_')[0]) != null))
-        // }
+        // Preselect Events based on Keys
+        let removeEvents = []
+        validRoutes = validRoutes.map(r => {
+            let k1 = r.key
+            let pair = eventsToBind.find((k2,i) => {
+                let sk1 = k1.split('_')
+                sk1 = sk1.map(s => new RegExp(`${s}`,'i'))
+                let sk2 = k2.split('_')
+
+                let res1 = sk1.find(rexp => {
+                    let res2 = sk2.find(k => {
+                        if (rexp.test(k)){
+                            removeEvents.push(i)
+                            return true
+                        }
+                    })
+                    return res2
+                })
+                return res1
+            })
+            return {route: r, event: pair}
+        })
+
+        for (let i = removeEvents.length; i > 0; i--){
+            eventsToBind.splice(i,1)
+        }
 
         validRoutes.forEach(newRoute => {
 
-            if (eventsToBind.length > 0){
-                let id = eventsToBind.shift()
-                let routes = this.routes[id]
-                
-                let target = newRoute.manager.data[newRoute.key]
-                routes[1] = target
+            let id
 
+            // Grab Preselected Route if Necessary
+            if ('event' in newRoute){
+                id = newRoute.event
+                newRoute = newRoute.route
+            } else if (eventsToBind.length > 0){
+                id = eventsToBind.shift()
+            }
+
+            // Select Route if Possible
+            if (id){
+
+                let routes = this.routes[id]
+
+                // Replace If Not Already Assigned
+                if (routes[1] == null){
+                    routes[1] = newRoute.manager.data[newRoute.key]
+                } else {
+                    newRoute.key = routes[1].meta.label
+                }
+                
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
@@ -110,7 +153,7 @@ export class EventRouter{
         })
     }
 
-    getValidRoutes = (stateManagerArray) => {
+    getValidRoutes = (stateManagerArray=this.managers) => {
         let validRoutes = []
 
         stateManagerArray.forEach(manager => {
@@ -132,6 +175,9 @@ export class EventRouter{
                 validRoutes.push({key,manager})
             })
         })
+
+        console.log(validRoutes, this.availableControls)
+        
         return validRoutes
     }
 
@@ -157,65 +203,13 @@ export class EventRouter{
             `;
         }
 
-        let update = () => {
-            let routerOptions = document.getElementById(`${this.id}routerControls`).querySelector('.brainsatplay-router-options')
-            routerOptions.innerHTML = ''
-            
-            let validRoutes = this.getValidRoutes(stateManagerArray)
-
-            let managerMap = {}
-            let selector = document.createElement('select')
-            selector.insertAdjacentHTML('beforeend',`
-            <option value="" disabled selected>Choose an event</option>
-            <option value="none">None</option>
-            `)
-            validRoutes.forEach(dict => {
-                managerMap[dict.key] = dict.manager
-
-                let splitId = dict.key.split('_')
-                splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
-
-                let upper = splitId.join(' ')
-                selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
-            })
-
-            Object.keys(this.state.data).forEach(id => {
-                if (!['update'].includes(id)){
-                    let thisSelector = selector.cloneNode(true)
-
-                    thisSelector.id = `${this.id}brainsatplay-router-selector-${id}`
-
-                    thisSelector.onchange = (e) => {
-                        try {
-                            let target = managerMap[thisSelector.value].data[thisSelector.value]
-
-                            // Switch Route Target
-                            if (this.routes[id].length < 2) this.routes[id].push(target)
-                            else this.routes[id][1] = target
-
-                        } catch (e) {}
-                    }
-
-                    let div = document.createElement('div')
-                    div.style.padding = '10px'
-                    div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
-                    div.insertAdjacentElement('beforeend', thisSelector)
-                    routerOptions.insertAdjacentElement('beforeend',div)
-                }
-            })
-            
-            this.autoRoute(stateManagerArray)
-        }
-
         let setup = () => {
             let updateButton = document.getElementById(`${this.id}routerControls`).querySelector('button')
             updateButton.style.display = 'none'
            updateButton.onclick = () => {
-               update()
-            // this.updateRouteDisplay(stateManagerArray)
+            this.updateRouteDisplay(stateManagerArray)
            }
-           update()
-            // this.updateRouteDisplay(stateManagerArray)
+            this.updateRouteDisplay(stateManagerArray)
         }
 
         this.ui = new DOMFragment(
@@ -224,6 +218,11 @@ export class EventRouter{
             undefined,
             setup
         )
+    }
+
+    registerControls(controls){
+        this.availableControls = controls
+        console.log(this.availableControls)
     }
 
     updateRouteDisplay(stateManagerArray=this.managers, autoroute=true){

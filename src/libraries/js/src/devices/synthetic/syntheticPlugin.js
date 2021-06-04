@@ -21,10 +21,10 @@ export class syntheticPlugin {
 
 
         this.states = {
-            'key_ArrowUp': {data: false, meta: {id:'key_ArrowUp'}, timestamp: Date.now()},
-            'key_ArrowDown': {data: false, meta: {id:'key_ArrowDown'}, timestamp: Date.now()},
-            'key_ArrowLeft': {data: false, meta: {id:'key_ArrowLeft'}, timestamp: Date.now()},
-            'key_ArrowRight': {data: false, meta: {id:'key_ArrowRight'}, timestamp: Date.now()},
+            'key_ArrowUp': {data: 0, meta: {id:'key_ArrowUp'}, timestamp: Date.now()},
+            'key_ArrowDown': {data: 0, meta: {id:'key_ArrowDown'}, timestamp: Date.now()},
+            'key_ArrowLeft': {data: 0, meta: {id:'key_ArrowLeft'}, timestamp: Date.now()},
+            'key_ArrowRight': {data: 0, meta: {id:'key_ArrowRight'}, timestamp: Date.now()},
         }
 
 
@@ -239,8 +239,8 @@ export class syntheticPlugin {
         Object.keys(this.states).forEach(k => {
             let splitId = k.split('_')
             if (splitId[0] === 'key'){
-                if (this.matchKey(e.code, splitId[1]) && this.states[k] != true) {
-                    this.states[k].data = true
+                if (this.matchKey(e.code, splitId[1]) && this.states[k] != 1) {
+                    this.states[k].data = 1
                 }
             }
         })
@@ -250,7 +250,7 @@ export class syntheticPlugin {
         Object.keys(this.states).forEach(k => {
             let splitId = k.split('_')
             if (splitId[0] === 'key'){
-                if (this.matchKey(e.code, splitId[1])) this.states[k].data = false
+                if (this.matchKey(e.code, splitId[1])) this.states[k].data = 0
             }
         })
     }
