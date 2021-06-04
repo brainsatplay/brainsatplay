@@ -250,6 +250,7 @@ export class StateManager {
 
     onUpdate = (update) => {
 
+        console.log(update)
         update.buffer.delete('update')
 
         if (update.added){
