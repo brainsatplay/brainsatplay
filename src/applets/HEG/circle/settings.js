@@ -4,7 +4,7 @@ export const settings = {
     "name": "Circle",
     "author": "Joshua Brewster",
     "devices": ["HEG"],
-    "description": "Working with brains!",
+    "description": "Easy HEG training.",
     "categories": ["train"],
     "module": "CircleApplet",
     "image":  featureImg,

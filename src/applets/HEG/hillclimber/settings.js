@@ -3,7 +3,7 @@ export const settings = {
     "name": "Hill Climber",
     "author": "Joshua Brewster",
     "devices": ["HEG"],
-    "description": "Increase HEG ratio, go up.",
+    "description": "Increase HEG ratio: go up the hill.",
     "categories": ["train"],
     "module": "HillClimberApplet",
 		"instructions":`
