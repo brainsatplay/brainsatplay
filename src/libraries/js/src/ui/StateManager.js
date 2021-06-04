@@ -190,6 +190,7 @@ export class StateManager {
         if(!this.listener.hasKey('pushToState')) {
             this.setupSynchronousUpdates();
         }
+        updateObj.stateUpdateTimeStamp = Date.now();
         this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
     }
 
