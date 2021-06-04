@@ -13,14 +13,20 @@ export class ganglionPlugin {
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
 
+        // we will need to figure out how to short circuit this, but for now, it gets connected.
+        this.pipeToAtlas = null;
+        this.info = null;
+
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
     }
 
-    init = async (info,pipeToAtlas) => {
+    init = async (info,pipeToAtlas=true) => {
 
-        info.sps = 200;
-        info.deviceType = 'eeg';
+        this.pipeToAtlas = pipeToAtlas;
+        this.info = info;
+        this.info.sps = 200;
+        this.info.deviceType = 'eeg';
 
         info.eegChannelTags = [
             {ch: 0, tag: "FP1", analyze:true},
@@ -89,9 +95,14 @@ export class ganglionPlugin {
     _onConnected = () => {} //for internal use on init
 
     connect = async () => {
+
         this.device = new Ganglion();
         await this.device.connect();
         await this.device.start();
+
+        var info = this.info;
+        var pipeToAtlas = this.pipeToAtlas;
+
         this.setupAtlas(pipeToAtlas, info);
         
         this.device.stream.subscribe(sample => {
