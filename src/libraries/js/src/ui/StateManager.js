@@ -9,11 +9,20 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
-        this.prev = Object.assign({},this.data);
-                
+       
+        // Allow Updates to State to Be Subscribed To
+        this.update = {added:'', removed: '', buffer: new Set()}
+        this.updateCallbacks = {
+                added: [],
+                removed: []
+        }
+
+
         this.listener = new ObjectListener();
 
         /*
+        this.prev = Object.assign({},this.data);
+         
         const onStateChanged = () => {
             this.prev = Object.assign({},this.data);
             //this.prev=JSON.parse(JSON.stringifyFast(this.data));
@@ -29,14 +38,7 @@ export class StateManager {
         );
         */
 
-        // Allow Updates to State to Be Subscribed To
-        this.update = {added:'', removed: '', buffer: new Set()}
-        this.updateCallbacks = {
-            added: [],
-            removed: []
-        }
 
-        this.addToState('update',this.update, this.onUpdate)
 
     }
 
@@ -69,10 +71,12 @@ export class StateManager {
     setupSynchronousUpdates() {
         if(!this.listener.hasKey('pushToState')) {
 
+            this.addToState('update',this.update, this.onUpdate)
+
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {
-                    Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
+                    //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
