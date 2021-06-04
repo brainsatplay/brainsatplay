@@ -94,7 +94,20 @@ export class StateManager {
             );
 
             this.addToState('update',this.update, this.onUpdate);
-            this.addToState('pushRecord',this.pushRecord,()=>{this.pushRecord.pushed = [];});
+            this.addToState('pushRecord',this.pushRecord,(record)=>{
+                record.pushed.forEach((updateObj) => {
+                    for(const prop in updateObj) {
+                        if(this.pushRecord.callbacks[prop]) {
+                            for(const p in this.pushRecord.callbacks) {
+                                this.pushRecord.callbacks[p].forEach((onchange) =>{
+                                    onchange(updateObj[prop]);
+                                });
+                            }
+                        }
+                    }
+                });
+                this.pushRecord.pushed = [];
+            });
 
         }
     }
