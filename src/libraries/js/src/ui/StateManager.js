@@ -9,8 +9,8 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
-        this.pushRecord={pushed:[],callbacks:{}}; //all setStates between frames
-       
+        this.pushRecord={pushed:[]}; //all setStates between frames
+        this.pushCallbacks = {};
         // Allow Updates to State to Be Subscribed To
         this.update = {added:'', removed: '', buffer: new Set()}
         this.updateCallbacks = {
@@ -97,9 +97,9 @@ export class StateManager {
             this.addToState('pushRecord',this.pushRecord,(record)=>{
                 record.pushed.forEach((updateObj) => {
                     for(const prop in updateObj) {
-                        if(this.pushRecord.callbacks[prop]) {
-                            for(const p in this.pushRecord.callbacks) {
-                                this.pushRecord.callbacks[p].forEach((onchange) =>{
+                        if(this.pushCallbacks[prop]) {
+                            for(const p in this.pushCallbacks) {
+                                this.pushCallbacks[p].forEach((onchange) =>{
                                     onchange(updateObj[prop]);
                                 });
                             }
@@ -193,12 +193,12 @@ export class StateManager {
 
     subscribeSequential(key=undefined,onchange=undefined) {
         if(key) {
-            if(!this.pushRecord.callbacks[key])
-                this.pushRecord.callbacks[key] = [];
+            if(!this.pushCallbacks[key])
+                this.pushCallbacks[key] = [];
 
             if(onchange) {
-                this.pushRecord.callbacks[key].push(onchange);
-                return this.pushRecord.callbacks[key].length-1; //get key sub index for unsubscribing
+                this.pushCallbacks[key].push(onchange);
+                return this.pushCallbacks[key].length-1; //get key sub index for unsubscribing
             } 
             else return undefined;
         } else return undefined;
@@ -206,9 +206,9 @@ export class StateManager {
 
     unsubscribeSequential(key=undefined,idx=0) {
         if(key){
-            if(this.pushRecord.callbacks[key]) {
-                if(this.pushRecord.callbacks[key][idx]) {
-                    this.pushRecord.callbacks[key].splice(idx,1);
+            if(this.pushCallbacks[key]) {
+                if(this.pushCallbacks[key][idx]) {
+                    this.pushCallbacks[key].splice(idx,1);
                 }
             }
         }
@@ -216,9 +216,9 @@ export class StateManager {
 
     unsubscribeAllSequential(key) {
         if(key) {
-            if(this.pushRecord.callbacks[key]) {
-                if(this.pushRecord.callbacks[key]) {
-                    delete this.pushRecord.callbacks[key];
+            if(this.pushCallbacks[key]) {
+                if(this.pushCallbacks[key]) {
+                    delete this.pushCallbacks[key];
                 }
             }
         }
