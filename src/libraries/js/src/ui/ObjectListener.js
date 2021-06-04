@@ -444,6 +444,13 @@ if(JSON.stringifyFast === undefined) {
                         let obj = {};
                         for(const prop in val) {
                             if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
+                            else if (typeof val[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
+                                obj[prop] = {};
+                                for(const p in val[prop]) {
+                                    if(Array.isArray(val[prop][p])) { obj[prop][p] = val[prop][p].slice(val[prop][p].length-20); }
+                                    else { obj[prop][p] = val[prop][p]; }
+                                }
+                            }
                             else { obj[prop] = val[prop]; }
                         }
                     }

@@ -38,7 +38,7 @@ export class CircleApplet {
         this.ctx = null;
         this.angle = 1.57;
         this.angleChange = 0;
-        this.soundFX = null;
+        window.audio = null;
         this.hidden = false;
         this.bgColor = "#34baeb";
         this.cColor = "#ff3a17";
@@ -73,19 +73,19 @@ export class CircleApplet {
             let aud = document.getElementById(props.id+'audio');
             aud.style.opacity = 0.3;
             aud.onclick = () => {
-                if(this.soundFX === null) {
-                    this.soundFX = new SoundJS();
-                    this.soundFX.gainNode.gain.value = 0.1;
-                    this.soundFX.playFreq([300]);
+                if(!window.audio) {
+                    window.audio = new SoundJS();
+                    window.audio.gainNode.gain.value = 0.1;
+                    window.audio.playFreq([300]);
                     aud.style.opacity = 1.0;
                 }
                 else {
-                    if(this.soundFX.gainNode.gain.value === 0) {
-                            this.soundFX.gainNode.gain.value = 0.1;
+                    if(window.audio.gainNode.gain.value === 0) {
+                            window.audio.gainNode.gain.value = 0.1;
                             aud.style.opacity = 1.0;
                     }
                     else {
-                        this.soundFX.gainNode.gain.value = 0;
+                        window.audio.gainNode.gain.value = 0;
                         aud.style.opacity = 0.2;
                     }
                 }
@@ -140,8 +140,10 @@ export class CircleApplet {
     deinit() {
         this.looping = false;
         cancelAnimationFrame(this.loop);
-        if(this.soundFX !== null){
-            this.soundFX.osc[0].stop(0);
+        if(window.audio){
+            if(window.audio.osc[0] != undefined) {
+                window.audio.osc[0].stop(0);
+            }
         }
 
         this.AppletHTML.deleteNode();
@@ -207,8 +209,8 @@ export class CircleApplet {
 
         if(((this.angle > 1.57) || (this.angleChange > 0)) && ((this.angle < 3.14) || (this.angleChange < 0))){ //generalize
             this.angle += this.angleChange*0.1;
-            if(this.soundFX !== null){
-                this.soundFX.osc[0].frequency.value += this.angleChange*100;
+            if(window.audio !== null){
+                window.audio.osc[0].frequency.value += this.angleChange*100;
             }
         }
 

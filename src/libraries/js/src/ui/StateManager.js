@@ -66,9 +66,8 @@ export class StateManager {
             this.update.buffer.add( key )
     }
 
-    //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
-    addToState(key, value, onchange=null, debug=false) {
-        if(!this.listener.hasKey('push')) {
+    setupSynchronousUpdates() {
+        if(!this.listener.hasKey('pushToState')) {
 
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
@@ -84,12 +83,19 @@ export class StateManager {
             }
     
             this.listener.addListener(
-                "push",
+                "pushToState",
                 this.pushToState,
                 "__ANY__",
                 pushToStateResponse,
                 this.interval
             );
+        }
+    }
+
+    //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
+    addToState(key, value, onchange=null, debug=false) {
+        if(!this.listener.hasKey('pushToState')) {
+            this.setupSynchronousUpdates();
         }
 
         this.data[key] = value;
@@ -107,8 +113,38 @@ export class StateManager {
         return JSON.parse(JSON.stringifyFast(this.data));
     }
 
+    //Synchronous set-state, only updates main state on interval.
     setState(updateObj={}){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
+        if(!this.listener.hasKey('push')) {
+            this.setupSynchronousUpdates();
+        }
+        
+        for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
+            if(this.pushToState.hasKey(prop)) {
+                if(Array.isArray(this.pushToState[prop]) && Array.isArray(updateObj[prop])) {
+                    updateObj[prop] = this.pushToState[prop].push(...updateObj[prop]);
+                } else if (typeof this.pushToState[prop] === 'object' && typeof updateObj[prop] === 'object') {
+                    for(const p in updateObj[prop]) {
+                        if(this.pushToState[prop].hasKey(p)) {
+                            if(Array.isArray(this.pushToState[prop][p]) && Array.isArray(updateObj[prop][p])) {
+                                updateObj[prop][p] = this.pushToState[prop][p].push(...updateObj[prop][p]);
+                            }
+                            else if (typeof this.pushToState[prop][p] === 'object' && typeof updateObj[prop][p] === 'object') {
+                                for(const p2 in updateObj[prop][p]) {
+                                    if(this.pushToState[prop][p].hasKey(p2)) {
+                                        if(Array.isArray(this.pushToState[prop][p][p2]) && Array.isArray(updateObj[prop][p][p2])) {
+                                            updateObj[prop][p][p2] = this.pushToState[prop][p][p2].push(...updateObj[prop][p][p2]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Object.assign(this.pushToState,updateObj);
         return this.pushToState;
     }
@@ -257,6 +293,13 @@ if(JSON.stringifyFast === undefined) {
                         let obj = {};
                         for(const prop in val) {
                             if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
+                            else if (typeof val[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
+                                obj[prop] = {};
+                                for(const p in val[prop]) {
+                                    if(Array.isArray(val[prop][p])) { obj[prop][p] = val[prop][p].slice(val[prop][p].length-20); }
+                                    else { obj[prop][p] = val[prop][p]; }
+                                }
+                            }
                             else { obj[prop] = val[prop]; }
                         }
                     }

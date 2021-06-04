@@ -8,5 +8,9 @@ export const settings = {
     "categories": ["train"],
     "module": "CircleApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":`
+      <p>The circle size increases with your blood oxygen ratio!</p>
+      <h3>Easy breathing exercises:</h3>
+      <h4>Diaphragmatic Vagal Breathing:</h4>
+      `
 }

@@ -35,7 +35,7 @@ export class HillClimberApplet {
         this.c=false;
         this.ctx=false;
         this.gradient=null;
-        this.soundFX = null;
+        window.audio = null;
         this.hidden=false;
 
         this.updateInterval = 1000;
@@ -120,17 +120,17 @@ export class HillClimberApplet {
                 else{this.mode = 0;}
             }
             document.getElementById(props.id+"hillsAudbutton").onclick = () => {
-                if(this.soundFX == null){
-                    this.soundFX = new SoundJS(); //Init on gesture
+                if(!window.audio){
+                    window.audio = new SoundJS(); //Init on gesture
                     document.getElementById(props.id+"hillsAudbutton").style.opacity = 1.0;
                 }
                 else{
-                    if(this.soundFX.gainNode.gain.value == 0){
-                    this.soundFX.gainNode.gain.value = 1;
+                    if(window.audio.gainNode.gain.value == 0){
+                    window.audio.gainNode.gain.value = 1;
                     document.getElementById(props.id+"hillsAudbutton").style.opacity = 1.0;
                     }
                     else {
-                    this.soundFX.gainNode.gain.value = 0;
+                    window.audio.gainNode.gain.value = 0;
                     document.getElementById(props.id+"hillsAudbutton").style.opacity = 0.3;
                     }
                 }
@@ -172,9 +172,9 @@ export class HillClimberApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.stop();
-        if(this.soundFX != null){
-            if(this.soundFX.osc[0] != undefined) {
-              this.soundFX.osc[0].stop(0);
+        if(window.audio){
+            if(window.audio.osc[0] != undefined) {
+              window.audio.osc[0].stop(0);
             }
           }
         this.AppletHTML.deleteNode();
@@ -256,12 +256,12 @@ export class HillClimberApplet {
         // Create background and bars
         // Change height of bars based on avg or rms. (all at 0 on fresh session)
         // Update last bar for every t time interval based on change
-        if(this.soundFX != null){
+        if(window.audio != null){
           if(this.hillScore[this.hillScore.length - 1] > this.hillScore[this.hillScore.length - 2]) {
-            this.soundFX.playFreq([650+this.hillScore[this.hillScore.length - 1]], 0.05);
+            window.audio.playFreq([650+this.hillScore[this.hillScore.length - 1]], 0.05);
           }
           else if(this.hillScore[this.hillScore.length - 1] < this.hillScore[this.hillScore.length - 2]){
-            this.soundFX.playFreq([250+this.hillScore[this.hillScore.length - 1]], 0.05);
+            window.audio.playFreq([250+this.hillScore[this.hillScore.length - 1]], 0.05);
           }
         }
     
