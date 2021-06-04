@@ -9,6 +9,7 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
+        this.pushRecord=[]; //all setStates between frames
        
         // Allow Updates to State to Be Subscribed To
         this.update = {added:'', removed: '', buffer: new Set()}
@@ -78,6 +79,7 @@ export class StateManager {
                     //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
+                    this.pushRecord = [];
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
                     for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
                         delete this.pushToState[prop];
@@ -94,6 +96,7 @@ export class StateManager {
             );
 
             this.addToState('update',this.update, this.onUpdate);
+            this.addToState('pushRecord',this.pushRecord);
 
         }
     }
@@ -119,12 +122,14 @@ export class StateManager {
         return JSON.parse(JSON.stringifyFast(this.data));
     }
 
-    //Synchronous set-state, only updates main state on interval.
+    //Synchronous set-state, only updates main state on interval. Can append arrays instead of replacing them
     setState(updateObj={},appendArrs=true){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
         if(!this.listener.hasKey('pushToState')) {
             this.setupSynchronousUpdates();
         }
+
+        this.pushRecord.push(JSON.parse(JSON.stringify(updateObj)));
         
         if(appendArrs) {
             for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
