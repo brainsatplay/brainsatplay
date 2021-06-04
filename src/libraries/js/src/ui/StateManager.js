@@ -120,7 +120,7 @@ export class StateManager {
     //Synchronous set-state, only updates main state on interval.
     setState(updateObj={}){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
-        if(!this.listener.hasKey('push')) {
+        if(!this.listener.hasKey('pushToState')) {
             this.setupSynchronousUpdates();
         }
         
