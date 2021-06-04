@@ -9,5 +9,7 @@ export const settings = {
     "categories": ["visualize"],
     "module": "PulseMonitorApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":`
+    <p>View HEG data in real time, see your raw blood oxygen ratio and heart rate variability over time.</p>
+    `
 }
