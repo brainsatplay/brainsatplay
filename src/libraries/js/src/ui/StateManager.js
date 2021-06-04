@@ -28,33 +28,15 @@ export class StateManager {
             interval,
         );
         */
-               // Allow Updates to State to Be Subscribed To
-               this.update = {added:'', removed: '', buffer: new Set()}
-               this.updateCallbacks = {
-                   added: [],
-                   removed: []
-               }
 
-        this.addToState('update',this.update,(update) => {
-       
-            update.buffer.delete('update')
+        // Allow Updates to State to Be Subscribed To
+        this.update = {added:'', removed: '', buffer: new Set()}
+        this.updateCallbacks = {
+            added: [],
+            removed: []
+        }
 
-            if (update.added){
-                this.updateCallbacks.added.forEach(f => {
-                    f(update.buffer)
-                })
-            }
-
-            if (update.removed){
-                this.updateCallbacks.removed.forEach(f => {
-                    f(update.buffer)
-                })
-            }
-
-            update.added = ''
-            update.removed = ''
-            update.buffer.clear()
-        })
+        this.addToState('update',this.update, this.onUpdate)
 
     }
 
@@ -190,9 +172,31 @@ export class StateManager {
         this.clearAllKeyResponses(key);
     }
 
-    onUpdate(added,removed){
-        this.updateCallbacks.added.push(added)
-        this.updateCallbacks.removed.push(removed)
+    addUpdateFunction = (added,removed) => {
+        if (added) this.updateCallbacks.added.push(added)
+        if (removed) this.updateCallbacks.removed.push(removed)
+    }
+
+    onUpdate = (update) => {
+       
+        update.buffer.delete('update')
+
+
+        if (update.added){
+            this.updateCallbacks.added.forEach(f => {
+                if (f instanceof Function) f(update.buffer)
+            })
+        }
+
+        if (update.removed){
+            this.updateCallbacks.removed.forEach(f => {
+                if (f instanceof Function) f(update.buffer)
+            })
+        }
+
+        update.added = ''
+        update.removed = ''
+        update.buffer.clear()
     }
 
 }

@@ -58,7 +58,7 @@ export class PluginManager{
                 })
             }
 
-            this.session.state.onUpdate(added, removed)
+            this.session.state.addUpdateFunction(added, removed)
     }
     }
 
