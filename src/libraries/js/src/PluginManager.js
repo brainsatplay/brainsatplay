@@ -245,7 +245,13 @@ export class PluginManager{
         
         if (node.paramOptions){
             let paramKeys = Object.keys(node.paramOptions)
-            if (paramKeys.length > 0 && !(paramKeys.length === 1 && node.paramOptions[paramKeys[0]].show === false)){
+            let toShow = false
+            paramKeys.forEach(k => {
+                if (node.paramOptions[k].show !== false){
+                    toShow = true
+                }
+            })
+            if (paramKeys.length > 0 && toShow){
             if (!Object.keys(this.gui.__folders).includes(node.label)){
 
                 if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
@@ -366,10 +372,11 @@ export class PluginManager{
                     this.registry.local[node.label].registry[port].state = node.states[port]
                     this.registry.local[node.label].registry[port].callback = () => {}
                 }
-
-                if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
-                applet.classInstances[nodeInfo.class.id][node.label] = []
             }
+
+
+            if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
+            applet.classInstances[nodeInfo.class.id][node.label] = []
 
             this.registry.local[node.label].count++
             this.addToGUI(nodeInfo)
@@ -500,7 +507,6 @@ export class PluginManager{
 
                     // Remove Streaming
                     delete this.registry.local[label]
-
                     openPorts.forEach(p => {
                         this.session.removeStreaming(p);
                         this.session.removeStreaming(p, null, this.state);

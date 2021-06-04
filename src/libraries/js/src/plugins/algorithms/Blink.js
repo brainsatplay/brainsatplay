@@ -111,15 +111,19 @@ export class Blink{
 
     _calculateBlinkFromTag = (user,tag) => {
         let blink = false
-        let data = this.session.atlas.getEEGDataByTag(tag,user.data) // Grab from user's own atlas data
-        let chQ = this._dataQuality[tag] 
-        if (data != null && chQ < this.params.qualityThreshold){
-            if (data.filtered.length > 0){
-                let blinkRange = data.filtered.slice(data.filtered.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
-                let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-                blink = (max > this.params.blinkThreshold)
+
+        try {
+            let data = this.session.atlas.getEEGDataByTag(tag,user.data) // Grab from user's own atlas data
+            let chQ = this._dataQuality[tag] 
+            if (data != null && chQ < this.params.qualityThreshold){
+                if (data.filtered.length > 0){
+                    let blinkRange = data.filtered.slice(data.filtered.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
+                    let max = Math.max(...blinkRange.map(v => Math.abs(v)))
+                    blink = (max > this.params.blinkThreshold)
+                }
             }
-        }
+        } catch (e) {console.error('input not formatted properly')}
+
         return blink
     }
 }

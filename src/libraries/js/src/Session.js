@@ -526,29 +526,29 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceName = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
+	subscribe = (deviceType = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null;
-		if (deviceName.toLowerCase().indexOf('eeg') > -1 || deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
+		if (deviceType.toLowerCase().indexOf('eeg') > -1 ){//|| deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
 			atlasDataProp = 'eeg';
 			if (atlasTag === 'shared') { atlasTag = 'eegshared'; }
 		}
-		else if (deviceName.toLowerCase().indexOf('heg') > -1) {
+		else if (deviceType.toLowerCase().indexOf('heg') > -1) {
 			atlasDataProp = 'heg';
 			if (atlasTag === 'shared') { atlasTag = 'hegshared'; }
 		}
 
 		if (atlasDataProp !== null) {
 			let device = this.deviceStreams.find((o, i) => {
-				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
+				if (o.info.deviceType.indexOf(deviceType) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
 					if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null);
 					else if (atlasTag === null || atlasTag === 'all') { coord = o.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
 					else coord = o.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
 					if (coord !== undefined) {
 						if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
-							sub = stateManager.addToState(atlasTag, coord, onData);
+							sub = stateManager.addToState(deviceType + '_' + atlasTag, coord, onData);
 						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
 							sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
 						}
@@ -1183,7 +1183,7 @@ else {
 		this.deviceStreams.forEach(d => {
 			if (d.info.events) d.info.events.updateRouteDisplay()
 		})
-		
+
 		delete this.info.apps[appId]
 		return info
 	}
