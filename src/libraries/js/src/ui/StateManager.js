@@ -140,6 +140,8 @@ export class StateManager {
             this.setupSynchronousUpdates();
         }
 
+        updateObj.stateUpdateTimeStamp = Date.now();
+
         this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
         
         if(appendArrs) {
