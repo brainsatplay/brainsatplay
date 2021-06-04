@@ -29,14 +29,12 @@ export class PluginManager{
 
         // Listen to Added/Removed States in Session (if provided)
         if (session instanceof Session){
-            this.session.state.addToState('update',this.session.state.update, (update) => {
 
-            if (update.added){
-
+            let added = (arr) => {
                 // Attach Proper Stream Callback to New Brainstorm States
                 for (let s in this.registry.local){
                     let label = this.registry.local[s].label
-                    update.buffer.forEach(k => {
+                    arr.forEach(k => {
                         if (this.registry.brainstorm[k] == null){
                                 if (k.includes(label) && k !== label){
 
@@ -49,8 +47,8 @@ export class PluginManager{
                 }
             }
 
-            if (update.removed){
-                update.buffer.forEach(k => 
+            let removed = (arr) => {
+                arr.forEach(k => 
                     {
                     if (this.registry.brainstorm[k] != null){
                         this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
@@ -60,10 +58,7 @@ export class PluginManager{
                 })
             }
 
-            update.added = ''
-            update.removed = ''
-            update.buffer.clear()
-        })
+            this.session.state.onUpdate(added, removed)
     }
     }
 

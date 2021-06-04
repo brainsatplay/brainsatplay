@@ -10,7 +10,6 @@ export class StateManager {
         this.interval = interval;
         this.pushToState={};
         this.prev = Object.assign({},this.data);
-        this.update = {added:'', removed: '', buffer: new Set()}
                 
         this.listener = new ObjectListener();
 
@@ -29,6 +28,33 @@ export class StateManager {
             interval,
         );
         */
+               // Allow Updates to State to Be Subscribed To
+               this.update = {added:'', removed: '', buffer: new Set()}
+               this.updateCallbacks = {
+                   added: [],
+                   removed: []
+               }
+
+        this.addToState('update',this.update,(update) => {
+       
+            update.buffer.delete('update')
+
+            if (update.added){
+                this.updateCallbacks.added.forEach(f => {
+                    f(update.buffer)
+                })
+            }
+
+            if (update.removed){
+                this.updateCallbacks.removed.forEach(f => {
+                    f(update.buffer)
+                })
+            }
+
+            update.added = ''
+            update.removed = ''
+            update.buffer.clear()
+        })
 
     }
 
@@ -162,6 +188,11 @@ export class StateManager {
 
     unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
+    }
+
+    onUpdate(added,removed){
+        this.updateCallbacks.added.push(added)
+        this.updateCallbacks.removed.push(removed)
     }
 
 }

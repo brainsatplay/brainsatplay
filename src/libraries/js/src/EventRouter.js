@@ -171,26 +171,28 @@ export class EventRouter{
             })
 
             Object.keys(this.state.data).forEach(id => {
-                let thisSelector = selector.cloneNode(true)
+                if (!['update'].includes(id)){
+                    let thisSelector = selector.cloneNode(true)
 
-                thisSelector.id = `${this.id}brainsatplay-router-selector-${id}`
+                    thisSelector.id = `${this.id}brainsatplay-router-selector-${id}`
 
-                thisSelector.onchange = (e) => {
-                    try {
-                        let target = managerMap[thisSelector.value].data[thisSelector.value]
+                    thisSelector.onchange = (e) => {
+                        try {
+                            let target = managerMap[thisSelector.value].data[thisSelector.value]
 
-                        // Switch Route Target
-                        if (this.routes[id].length < 2) this.routes[id].push(target)
-                        else this.routes[id][1] = target
+                            // Switch Route Target
+                            if (this.routes[id].length < 2) this.routes[id].push(target)
+                            else this.routes[id][1] = target
 
-                    } catch (e) {}
+                        } catch (e) {}
+                    }
+
+                    let div = document.createElement('div')
+                    div.style.padding = '10px'
+                    div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
+                    div.insertAdjacentElement('beforeend', thisSelector)
+                    routerOptions.insertAdjacentElement('beforeend',div)
                 }
-
-                let div = document.createElement('div')
-                div.style.padding = '10px'
-                div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
-                div.insertAdjacentElement('beforeend', thisSelector)
-                routerOptions.insertAdjacentElement('beforeend',div)
             })
             
             this.autoRoute(stateManagerArray)
