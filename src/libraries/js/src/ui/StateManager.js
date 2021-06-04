@@ -9,7 +9,7 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
-        this.pushRecord=[]; //all setStates between frames
+        this.pushRecord={pushed:[]}; //all setStates between frames
        
         // Allow Updates to State to Be Subscribed To
         this.update = {added:'', removed: '', buffer: new Set()}
@@ -78,7 +78,7 @@ export class StateManager {
                     //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
-                    this.pushRecord = [];
+                    this.pushRecord.pushed = [];
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
                     for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
                         delete this.pushToState[prop];
@@ -128,7 +128,7 @@ export class StateManager {
             this.setupSynchronousUpdates();
         }
 
-        this.pushRecord.push(JSON.parse(JSON.stringify(updateObj)));
+        this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
         
         if(appendArrs) {
             for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
