@@ -103,6 +103,7 @@ export class Session {
 				password: password,
 				authenticated: false
 			},
+			apps: {},
 			subscriptions: [],
 		}
 
@@ -1158,6 +1159,36 @@ else {
 	}
 
 
+	// App Management
+	startApp(appId){
+		let info = this.graphs.start(appId)
+		this.info.apps[appId] = {streams: info.streams, controls: info.controls}
+
+		// Update Routing UI
+		this.deviceStreams.forEach(d => {
+			if (d.info.events) d.info.events.updateRouteDisplay()
+		})
+
+		return info
+	}
+
+	registerApp(appId,appName,graphs){
+		return this.graphs.add(appId, appName, graphs)
+	}
+
+	removeApp(appId){
+		let info = this.graphs.stop(appId)
+
+		// Update Routing UI
+		this.deviceStreams.forEach(d => {
+			if (d.info.events) d.info.events.updateRouteDisplay()
+		})
+		
+		delete this.info.apps[appId]
+		return info
+	}
+
+
 	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
 		return new Promise((resolve, reject) => {
 			let template = () => {
@@ -1956,7 +1987,7 @@ class deviceStream {
 			sps: null,
 			useFilters: useFilters,
 			useAtlas: false,
-			simulating: false
+			simulating: false,
 		};
 
 		this.device = null, //Device object, can be instance of our device plugin classes.

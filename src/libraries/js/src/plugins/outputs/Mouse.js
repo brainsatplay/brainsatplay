@@ -63,8 +63,6 @@ export class Mouse{
             let middleY = window.innerHeight/2
             this.props.cursor.style.left = middleX + ((middleX) * (0.5*Math.sin(Date.now()/1000))) + 'px'
             this.props.cursor.style.top = middleY + ((middleY) * (0.5*Math.cos(Date.now()/1000))) + 'px'
-
-            console.log(this.props.cursor.style.left, this.props.cursor.style.top)
             setTimeout(() => {animate()}, 1000/60)
         }
 

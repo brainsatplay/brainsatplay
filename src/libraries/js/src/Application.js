@@ -22,13 +22,13 @@ export class Application{
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.session.graphs.add(this.props.id, this.info.name, this.info.graphs)
+        this.session.registerApp(this.props.id, this.info.name, this.info.graphs)
     }
 
 
     init() {
 
-        let info = this.session.graphs.start(this.props.id)
+        let info = this.session.startApp(this.props.id)
         this.streams = info.streams
         this.uiParams = info.uiParams
 
@@ -56,7 +56,7 @@ export class Application{
 
         //Delete all event listeners and loops here and delete the HTML block
         deinit() {
-            this.session.graphs.stop(this.props.id)
+            this.session.removeApp(this.props.id)
             if (this.AppletHTML) this.AppletHTML.deleteNode();
         }
     

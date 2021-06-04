@@ -53,7 +53,7 @@ export class Signal{
     }
 
     default = () => {
-        this.states['default'].data = {data: this.session.atlas.data, meta: {}, username: this.session.info.auth.username}
+        this.states['default'].data = this.session.atlas.data
         return this.states['default']
     }
 }

@@ -64,6 +64,7 @@ export class PluginManager{
 
     instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+        let controlsToBind = []
 
         // Set Default Parameters
         for (let param in node.paramOptions){
@@ -86,6 +87,12 @@ export class PluginManager{
                     }
                     node.states[port].meta.label = node.states[port].data[0].meta.label
                 }
+
+                let firstUserDefault= node.states[port].data[0]
+                if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
+                    firstUserDefault.meta.format = typeof firstUserDefault.data
+                    controlsToBind.push(firstUserDefault.meta)
+                }
             }
         }
 
@@ -96,14 +103,16 @@ export class PluginManager{
         
         // Instantiate Dependencies
         let depDict = {}
+        let instance;
         if (node.dependencies){
             node.dependencies.forEach(d => {
-                depDict[d.id] = this.instantiateNode(d)
+                ({instance} = this.instantiateNode(d))
+                depDict[d.id] = instance
             })
         }
         node.dependencies = depDict
 
-        return node
+        return {instance: node, controls: controlsToBind}
     }
 
     add(id, name, graphs){
@@ -113,6 +122,8 @@ export class PluginManager{
             session: {},
             local: {}
         }
+
+        let controlsToBind = []
 
         let nodes = {}
         let edges = []
@@ -132,16 +143,21 @@ export class PluginManager{
                 })
             }
 
+            let instance,controls;
             g.nodes.forEach(nodeInfo => {
                 if (nodes[nodeInfo.id] == null){
-                    nodes[nodeInfo.id] = nodeInfo
-                    nodes[nodeInfo.id].instance = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id])
+                    nodes[nodeInfo.id] = nodeInfo;
+
+                    ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
+                    
+                    nodes[nodeInfo.id].instance = instance;
+                    controlsToBind.push(...controls);
                 }
             })
         })
 
         // Declare Applet Info
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions}
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls: controlsToBind}
     }
 
     getNode(id,name){
@@ -152,17 +168,25 @@ export class PluginManager{
         for (let param in params) node.params[param] = params[param]
     }
 
+    shallowCopy(input){
+
+        let inputCopy = []
+        if (input.constructor == Object) {
+            inputCopy = Object.assign({}, input); // Shallow
+        }
+        else if (Array.isArray(input)) {input.forEach(u => {
+                inputCopy.push(Object.assign({}, u))
+        })}
+        return inputCopy
+    }
+
     runSafe(input, node, port='default'){
 
-        // Do Not Mutate Input
+        // Shallow Copy State before Repackaging
         let inputCopy = []
-        // inputCopy = JSON.parse(JSON.stringify(input)) // Deep
-        if (input.constructor == Object) inputCopy = Object.assign({}, input); // Shallow
-        else if (Array.isArray(input)) input.forEach(u => {
-            inputCopy.push(Object.assign({}, u))
-        })
-        
-        // Package Single User
+        inputCopy = this.shallowCopy(input)
+        // Reformat State
+        // By Packaging Single Users
         if (inputCopy.constructor == Object){
 
             if (!("data" in inputCopy)){
@@ -182,9 +206,7 @@ export class PluginManager{
         } else if (!Array.isArray(inputCopy)){
             inputCopy = [{data: inputCopy, meta: {}, username: 'guest'}] // Raw Data (not formatted)
         }
-
-        // Otherwise Handle Misformatted Data
-
+        // And Handle Misformatted Data
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
             let u = inputCopy[i]
             if (u.constructor == Object && "data" in u){
@@ -274,6 +296,10 @@ export class PluginManager{
         applet.streams = new Set()
         applet.classInstances = {}
 
+        // Track Controls 
+        applet.conrols = []
+
+        // Track UI Setup Variables
         let uiArray = []
         let uiParams = {
             HTMLtemplate: '',
@@ -340,10 +366,10 @@ export class PluginManager{
                     this.registry.local[node.label].registry[port].state = node.states[port]
                     this.registry.local[node.label].registry[port].callback = () => {}
                 }
-            }
 
-            if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = [node.label] // Keep track of streams to pass to the Brainstorm
-            else applet.classInstances[nodeInfo.class.id].push(node.label)
+                if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
+                applet.classInstances[nodeInfo.class.id][node.label] = []
+            }
 
             this.registry.local[node.label].count++
             this.addToGUI(nodeInfo)
@@ -363,6 +389,7 @@ export class PluginManager{
                 let target = applet.nodes[targetName].instance
 
                 let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
+                applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
                 // Pass Data from Source to Target
                 let defaultCallback = (input) => {
@@ -426,7 +453,7 @@ export class PluginManager{
             }
         })
 
-        return {uiParams: uiParams, streams:this.applets[appId].streams}
+        return {uiParams: uiParams, streams:this.applets[appId].streams, controls: this.applets[appId].controls}
     }
 
     findStreamFunction(prop) {
@@ -442,11 +469,14 @@ export class PluginManager{
 
         // Remove Listeners
         Object.keys(applet.classInstances).forEach(classId => {
-            let labels = applet.classInstances[classId]
+            let labels = Object.keys(applet.classInstances[classId])
 
             // Increment the Registry for Each Separate Label (of a particular class)
            
             labels.forEach(label => {
+
+                let openPorts = applet.classInstances[classId][label]
+
                 this.registry.local[label].count--
                 if (this.registry.local[label].count == 0) {
 
@@ -470,23 +500,30 @@ export class PluginManager{
 
                     // Remove Streaming
                     delete this.registry.local[label]
-                    this.session.removeStreaming(label);
-                    this.session.removeStreaming(label, null, this.state);
-                } else {
-                    // Remove Subscriptions
-                    let sessionSubs = applet.subscriptions.session[label]
-                    let localSubs = applet.subscriptions.local[label]
 
-                    if (sessionSubs != null){
-                        applet.subscriptions.session[label].forEach(id =>{
-                            this.session.removeStreaming(label, id);
-                        })
-                    }
-                    if (localSubs != null){
-                        applet.subscriptions.local[label].forEach(id => {
-                            this.session.removeStreaming(label, id, this.state);
-                        })
-                    }
+                    openPorts.forEach(p => {
+                        this.session.removeStreaming(p);
+                        this.session.removeStreaming(p, null, this.state);
+                    })
+                } else {
+
+                    // Remove Subscriptions
+                    openPorts.forEach(p => {
+                        let sessionSubs = applet.subscriptions.session[p]
+                        let localSubs = applet.subscriptions.local[p]
+
+                        if (sessionSubs != null){
+                            applet.subscriptions.session[p].forEach(id =>{
+                                this.session.removeStreaming(p, id);
+                            })
+                        }
+                        if (localSubs != null){
+                            applet.subscriptions.local[p].forEach(id => {
+                                this.session.removeStreaming(p, id, this.state);
+                            })
+                        }
+                    })
+
                 }
             })
         })
