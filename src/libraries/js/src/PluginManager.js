@@ -504,7 +504,7 @@ export class PluginManager{
                     }
 
                     // Hide GUI When Not Required
-                    if (Object.keys(this.gui.__folders).length){
+                    if (Object.keys(this.gui.__folders).length === 0){
                         if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
                     }
 

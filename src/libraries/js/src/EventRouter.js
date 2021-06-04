@@ -176,7 +176,7 @@ export class EventRouter{
             })
         })
 
-        console.log(validRoutes, this.availableControls)
+        // console.log(validRoutes, this.availableControls)
         
         return validRoutes
     }
