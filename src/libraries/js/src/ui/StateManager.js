@@ -93,7 +93,7 @@ export class StateManager {
                 this.interval
             );
 
-            this.addToState('update',this.update, this.onUpdate)
+            this.addToState('update',this.update, this.onUpdate);
 
         }
     }
@@ -127,25 +127,25 @@ export class StateManager {
         }
         
         for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
-            if(this.pushToState.hasKey(prop)) {
+            if(this.pushToState[prop]) {
                 if(Array.isArray(this.pushToState[prop]) && Array.isArray(updateObj[prop])) {
                     updateObj[prop] = this.pushToState[prop].push(...updateObj[prop]);
                 } else if (typeof this.pushToState[prop] === 'object' && typeof updateObj[prop] === 'object') {
                     for(const p in updateObj[prop]) {
-                        if(this.pushToState[prop].hasKey(p)) {
+                        if(this.pushToState[prop][p]) {
                             if(Array.isArray(this.pushToState[prop][p]) && Array.isArray(updateObj[prop][p])) {
                                 updateObj[prop][p] = this.pushToState[prop][p].push(...updateObj[prop][p]);
                             }
                             else if (typeof this.pushToState[prop][p] === 'object' && typeof updateObj[prop][p] === 'object') {
                                 for(const p2 in updateObj[prop][p]) {
-                                    if(this.pushToState[prop][p].hasKey(p2)) {
+                                    if(this.pushToState[prop][p][p2]) {
                                         if(Array.isArray(this.pushToState[prop][p][p2]) && Array.isArray(updateObj[prop][p][p2])) {
                                             updateObj[prop][p][p2] = this.pushToState[prop][p][p2].push(...updateObj[prop][p][p2]);
                                         }
                                     }
                                     else if (typeof this.pushToState[prop][p][p2] === 'object' && typeof updateObj[prop][p][p2] === 'object') {
                                         for(const p3 in updateObj[prop][p][p2]) {
-                                            if(this.pushToState[prop][p][p2].hasKey(p3)) {
+                                            if(this.pushToState[prop][p][p2][p3]) {
                                                 if(Array.isArray(this.pushToState[prop][p][p2][p3]) && Array.isArray(updateObj[prop][p][p2][p3])) {
                                                     updateObj[prop][p][p2][p3] = this.pushToState[prop][p][p2][p3].push(...updateObj[prop][p][p2][p3]);
                                                 }
