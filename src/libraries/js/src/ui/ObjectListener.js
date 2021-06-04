@@ -39,6 +39,13 @@ export class ObjectListener {
         this.listeners.push(listener);
     }
 
+    getListener(key) {
+        let found = this.listeners.find((item,i) =>{
+            if(item.key === key) return true;
+        });
+        return found;
+    }
+
     hasKey(key) {
         var found = false;
         this.listeners.forEach((item,i) =>{
@@ -90,6 +97,18 @@ export class ObjectListener {
             }
         }
         return callbackIdx;
+    }
+
+    //get the array of secondary onchange functions
+    getFuncs = (key=undefined) => {
+        if(key) {
+            var found = this.listeners.find((o,i) => {
+                if(o.key === key) {
+                    return true;
+                }
+            });
+            return found.onchangeFuncs;
+        } else return undefined;
     }
 
     //Remove extra onchange functions

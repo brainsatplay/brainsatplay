@@ -72,7 +72,6 @@ export class StateManager {
     setupSynchronousUpdates() {
         if(!this.listener.hasKey('pushToState')) {
 
-
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {
@@ -214,12 +213,18 @@ export class StateManager {
         if(this.listener.hasKey(key)) this.listener.remove(key);
     }
 
+    //Get all of the onchange functions added via subscribe/addSecondaryKeyResponse
+    getKeySubCallbacks(key) {
+        let callbacks = this.listener.getFuncs(key);
+        return callbacks;
+    }
+
     //Save the return value to provide as the responseIdx in unsubscribe
     subscribe(key, onchange) {
         if(this.data[key] === undefined) {this.addToState(key,null,onchange);}
         else {return this.addSecondaryKeyResponse(key,onchange);}
     }
-
+    
     //Unsubscribe from the given key using the index of the response saved from the subscribe() function
     unsubscribe(key, responseIdx=null) {
         if(responseIdx !== null) this.removeSecondaryKeyResponse(key, responseIdx);
