@@ -71,7 +71,6 @@ export class StateManager {
     setupSynchronousUpdates() {
         if(!this.listener.hasKey('pushToState')) {
 
-            this.addToState('update',this.update, this.onUpdate)
 
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
@@ -93,6 +92,9 @@ export class StateManager {
                 pushToStateResponse,
                 this.interval
             );
+
+            this.addToState('update',this.update, this.onUpdate)
+
         }
     }
 
