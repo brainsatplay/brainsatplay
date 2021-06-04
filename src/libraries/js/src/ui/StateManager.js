@@ -137,6 +137,15 @@ export class StateManager {
                                             updateObj[prop][p][p2] = this.pushToState[prop][p][p2].push(...updateObj[prop][p][p2]);
                                         }
                                     }
+                                    else if (typeof this.pushToState[prop][p][p2] === 'object' && typeof updateObj[prop][p][p2] === 'object') {
+                                        for(const p3 in updateObj[prop][p][p2]) {
+                                            if(this.pushToState[prop][p][p2].hasKey(p3)) {
+                                                if(Array.isArray(this.pushToState[prop][p][p2][p3]) && Array.isArray(updateObj[prop][p][p2][p3])) {
+                                                    updateObj[prop][p][p2][p3] = this.pushToState[prop][p][p2][p3].push(...updateObj[prop][p][p2][p3]);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
