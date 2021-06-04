@@ -78,7 +78,6 @@ export class StateManager {
                     //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
-                    this.pushRecord.pushed = [];
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
                     for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
                         delete this.pushToState[prop];
@@ -95,7 +94,7 @@ export class StateManager {
             );
 
             this.addToState('update',this.update, this.onUpdate);
-            this.addToState('pushRecord',this.pushRecord);
+            this.addToState('pushRecord',this.pushRecord,()=>{this.pushRecord.pushed = [];});
 
         }
     }
