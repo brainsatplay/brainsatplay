@@ -16,6 +16,8 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
+import {PluginManager} from '../../../libraries/js/src/PluginManager'
+import {Buzz} from '../../../libraries/js/src/plugins/outputs/Buzz'
 
 //Import shader urls
 import vertexShader from './shaders/vertex.glsl'
@@ -95,6 +97,18 @@ export class SensoriumApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
+
+        // Plugins
+        this.graphs = new PluginManager(this.session, {gui: false})
+        this.graphs.add(this.props.id, this.info.name, 
+        [
+            {
+                id: 'mygraph',
+                nodes: [
+                    {id: 'neosensory', class: Buzz},
+                ],
+            }]
+        )
 
         this.tutorialManager = null
 
@@ -584,7 +598,7 @@ void main(){
 
                     let neosensoryBuzz = this.session.getDevice('buzz')
                     if (neosensoryBuzz){
-                        this.updateBuzz( neosensoryBuzz.device, averageModifiers)
+                        this.updateBuzz(averageModifiers)
                     }
 
                     this.three.planes.forEach(p => {
@@ -1524,24 +1538,18 @@ void main(){
     }
 
 
-    updateBuzz(buzz, modifiers) {
-        // console.log(modifiers)
-        let motorCommand;
+    updateBuzz(modifiers) {
+        let node = this.graphs.getNode(this.props.id, 'buzz')
 
-        // if (modifiers.iAudio){
-        //     motorCommand = buzz.device.mapFrequencies(modifiers.iAudio)
-        //     buzz.device.vibrateMotors([motorCommand])
-        // } 
-        // else if (modifiers.iFFT){
-        //     motorCommand = buzz.device.mapFrequencies(modifiers.iFFT)
-        //     buzz.device.vibrateMotors([motorCommand])
-        // }
+        if (modifiers.iAudio){
+            this.graphs.runSafe([{data: modifiers.iAudio, meta: {label: 'iAudio'}}],node, 'motors')
+        } 
+        else if (modifiers.iFFT){
+            this.graphs.runSafe([{data: modifiers.iFFT, meta: {label: 'iFFT'}}],node, 'motors')
+        }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            let i1 = Math.min(modifiers.iFrontalAlpha1Coherence/.33,1)
-            let i2 = (i1 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.33)/.33,1) : 0)
-            let i3 = (i2 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.66)/.33,1) : 0)
-            buzz.device.setLEDs([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
+            this.graphs.runSafe([{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}],node, 'leds')
         }
     }
 } 
