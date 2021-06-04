@@ -98,16 +98,16 @@ export class StateManager {
                 record.pushed.forEach((updateObj) => {
                     for(const prop in updateObj) {
                         if(this.pushCallbacks[prop]) {
-                            for(const p in this.pushCallbacks) {
-                                this.pushCallbacks[p].forEach((onchange) =>{
-                                    onchange(updateObj[prop]);
-                                });
-                            }
+                            this.pushCallbacks[prop].forEach((onchange) =>{
+                                onchange(updateObj[prop]);
+                            });
                         }
                     }
                 });
                 this.pushRecord.pushed = [];
             });
+
+            this.data.pushCallbacks = this.pushCallbacks;
 
         }
     }
