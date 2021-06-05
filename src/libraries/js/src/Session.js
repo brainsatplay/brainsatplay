@@ -1961,7 +1961,7 @@ else {
 	getHostData(appname){
 		let state = this.state.data.commandResult
 		if (state.msg === 'sessionData' && state.appname === appname){
-			return state.hostData
+			return {data: state.hostData, username: state.hostname}
 		}
 	}
 
