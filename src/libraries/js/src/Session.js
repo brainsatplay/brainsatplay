@@ -1192,6 +1192,98 @@ else {
 	}
 
 
+	addNodeEditor(applet, parentNode = document.body, onsuccess = () => { }){
+
+		let ui
+		let plugins = this.graphs.applets[applet.props.id]
+
+		if (plugins){
+			let template = () => {
+				return `
+				<div id="${this.id}nodeEditorMask" class="brainsatplay-default-container" style="
+				z-index: 999;
+				opacity: 0; 
+				transition: opacity 1s;
+				">
+				<div id="${this.id}nodeEditor" class="brainsatplay-node-editor">
+				</div>
+				</div>
+				`}
+
+			let setup = () => {
+				let container = document.getElementById(`${this.id}nodeEditorMask`)
+				let editor = document.getElementById(`${this.id}nodeEditor`)
+
+				// Resize Editor
+				let closeUI = () => {
+					ui.node.style.opacity = '0'
+					window.removeEventListener('resize', resizeDisplay)
+					setTimeout(() => {ui.deleteNode()},t*1000)
+				}
+
+
+				const resizeDisplay = () => {
+					let padding = 50;
+					container.style.padding = `${padding}px`
+					editor.style.height = `${container.offsetHeight - 2 * padding}px`
+					editor.style.width = `${container.offsetWidth - 2 * padding}px`
+				}
+
+				// let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
+				// exitBrowser.onclick = closeUI
+
+				resizeDisplay()
+				window.addEventListener('resize', resizeDisplay)
+
+				// Populate Nodes
+				let nodeDiv = document.createElement('div')
+				nodeDiv.className = 'brainsatplay-default-node-div'
+
+				editor.insertAdjacentHTML('beforeend',`<h2>Nodes</h2>`)
+				for (let key in plugins.nodes){
+					let node = plugins.nodes[key].instance
+					let params = ``
+					for (let param in node.params){
+						params += `<p>${param}: ${node.params[param]}</p>`
+					}
+					console.log(node)
+					nodeDiv.insertAdjacentHTML('beforeend',`
+					<div class="brainsatplay-default-node">
+						<h3>${node.label}</h3>
+						${params}
+					</div>
+					`)
+				}
+				editor.insertAdjacentElement('beforeend',nodeDiv)
+
+				// Populate Edges
+				let edgeDiv = document.createElement('div')
+				edgeDiv.className = 'brainsatplay-default-node-div'
+
+				editor.insertAdjacentHTML('beforeend',`<h2>Edges</h2>`)
+				for (let key in plugins.edges){
+					let edge = plugins.edges[key]
+					edgeDiv.insertAdjacentHTML('beforeend',`
+					<div class="brainsatplay-default-node">
+						<h3>${edge.source} — ${edge.target}</h3>
+					</div>`
+					)
+				}
+				editor.insertAdjacentElement('beforeend',edgeDiv)
+			}
+
+			ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		}
+
+		return ui
+	}
+
+
 	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
 		return new Promise((resolve, reject) => {
 			let template = () => {

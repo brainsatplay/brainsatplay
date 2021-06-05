@@ -64,7 +64,7 @@ The [USC Bridge Arts and Science Alliance](https://uscbasa.wixsite.com/mysite) h
 - Build us the [BrainDAO](https://techcrunch.com/2016/05/16/the-tao-of-the-dao-or-how-the-autonomous-corporation-is-already-here/) and create a token that you can mine with your brain ($50).
 - Train ML models (for whavever you want!) during use of a simple application/game.
 - [MOABB](https://github.com/NeuroTechX/moabb) integration ($50). We also need a robust way to benchmark plugins in brainsatplay.js, including latency, performance, etc.
-- Project [Warioware](https://www.youtube.com/watch?v=tdyq57OCXn8): "Micro-games" for single and multiplayer use ($5 per entry)
+- One Bit Bonanza [Warioware]: "Micro-games" for single and multiplayer use ($5 per entry)
 
 Each technical bounty must be accompanied by a demo applet showcasing the new feature.
 

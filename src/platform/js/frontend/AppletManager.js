@@ -4,6 +4,7 @@ import {appletManifest} from '../../appletManifest'
 import { getApplet, getAppletSettings } from "../general/importUtils"
 import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
+import nodeSVG from '../../../libraries/js/src/ui/assets/network-wired-solid.svg'
 
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 
@@ -347,7 +348,10 @@ export class AppletManager {
         })
     }
 
-    setAppletDefaultUI = (appletDiv, appletIdx) => {
+    setAppletDefaultUI = (appnode) => {
+
+        let appletDiv = appnode.classinstance.AppletHTML.node
+        let appletIdx = appnode.appletIdx - 1
 
         // Brains@Play Default Overlays
 
@@ -376,6 +380,13 @@ export class AppletManager {
             <div id="${appletDiv.id}-brainsatplay-default-ui" class="brainsatplay-default-interaction-menu" style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.0;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.0;">
                 <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <p><strong>i</strong></p>
+                </div>
+                <div class="brainsatplay-default-node-editor" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${nodeSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
                 </div>
                 <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <img src="${appletSVG}" 
@@ -469,6 +480,24 @@ export class AppletManager {
                                 })
                             }
                         }
+                    }
+
+                    let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
+                    let ui = this.session.addNodeEditor(appnode.classinstance, appletDiv)
+
+                    if (ui){
+                        ui.node.style.opacity = 0
+                        nodeIcon.onclick = (e) => {
+                            if (ui.node.style.opacity != 0) {
+                                ui.node.style.opacity = 0
+                                ui.node.style.pointerEvents = 'none'
+                            } else {
+                                ui.node.style.opacity = 1
+                                ui.node.style.pointerEvents = 'auto'
+                            }
+                        }
+                    } else {
+                        nodeIcon.remove()
                     }
 
                     let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')
@@ -755,7 +784,7 @@ export class AppletManager {
 
         activeNodes.forEach((appnode, i) => {
             // Set Generic Applet Settings
-            if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode.classinstance.AppletHTML.node, appnode.appletIdx - 1);
+            if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode);
         });
         this.updateOptionVisibility()
     }

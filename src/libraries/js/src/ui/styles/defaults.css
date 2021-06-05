@@ -560,3 +560,25 @@ select {
     right: 25px; 
     z-index: 100;
 }
+
+/* Node Editor */
+.brainsatplay-node-editor{
+    overflow-y: scroll;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+
+.brainsatplay-default-node-div{
+    /* flex: 50%; */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.brainsatplay-default-node{
+    padding: 10px; 
+    flex: 50%;
+    flex-grow: 1;
+}
