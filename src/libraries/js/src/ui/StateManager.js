@@ -356,12 +356,11 @@ if(JSON.stringifyFast === undefined) {
                                     }
                                     else { 
                                         let con = value[prop][p].constructor.name;
-                                        if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                            obj[prop][p] = "instanceof_"+con;
-                                        } else if (con.includes("Set")) {
+                                        if (con.includes("Set")) {
                                             obj[prop][p] = value[prop][p].toArray();
-                                        }
-                                        else {
+                                        } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                            obj[prop][p] = "instanceof_"+con;
+                                        }  else {
                                             obj[prop][p] = value[prop][p]; 
                                         }
                                     }
@@ -369,11 +368,11 @@ if(JSON.stringifyFast === undefined) {
                             }
                             else { 
                                 let con = value[prop].constructor.name;
-                                if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                    obj[prop] = "instanceof_"+con;
-                                } else if (con.includes("Set")) {
+                                if (con.includes("Set")) {
                                     obj[prop] = value[prop].toArray();
-                                }else {
+                                } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                    obj[prop] = "instanceof_"+con;
+                                } else {
                                     obj[prop] = value[prop]; 
                                 }
                             }
