@@ -248,7 +248,6 @@ export class EventRouter{
             })
 
             Object.keys(this.state.data).forEach(id => {
-                if (!['update'].includes(id)){
                     let thisSelector = selector.cloneNode(true)
 
                     thisSelector.id = `${this.id}brainsatplay-router-selector-${id}`
@@ -264,12 +263,13 @@ export class EventRouter{
                         } catch (e) {}
                     }
 
-                    let div = document.createElement('div')
-                    div.style.padding = '10px'
-                    div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
-                    div.insertAdjacentElement('beforeend', thisSelector)
-                    routerOptions.insertAdjacentElement('beforeend',div)
-                }
+                    if ('meta' in this.state.data[id] && 'data' in this.state.data[id]){
+                        let div = document.createElement('div')
+                        div.style.padding = '10px'
+                        div.insertAdjacentHTML('beforeend', `<p style="font-size: 80%;">${this.state.data[id].meta.label}</p>`)
+                        div.insertAdjacentElement('beforeend', thisSelector)
+                        routerOptions.insertAdjacentElement('beforeend',div)
+                    }
             })
         
         if (autoroute){

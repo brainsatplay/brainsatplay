@@ -39,7 +39,19 @@ export class StateManager {
         );
         */
 
+       this.setSequentialState({statesAdded: 'added a state'})
+       this.setSequentialState({statesRemoved: 'removed a state'})
+       this.subscribeSequential('statesAdded', (update)=>{console.log('added', update)})
+       this.subscribeSequential('statesRemoved', (update)=>{console.log('removed', update)})
 
+       setTimeout(() => {
+            this.setSequentialState({statesAdded: 'added a state'})
+            this.setSequentialState({statesRemoved: 'removed a state'})
+
+            console.log(this.pushRecord)
+            console.log(this.pushCallbacks)
+
+        }, 2000)
 
     }
 
