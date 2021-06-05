@@ -455,7 +455,7 @@ if(JSON.stringifyFast === undefined) {
                         return '[Circular Reference]' + other;
                     } else if(c === "Array" && value.length > 20) { //Cut arrays down to 100 samples for referencing
                         val = value.slice(value.length-20);
-                        refs.set(val, path.join('.'));
+                       // refs.set(val, path.join('.'));
                     } else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
                         refs.set(val, path.join('.'));
@@ -473,7 +473,7 @@ if(JSON.stringifyFast === undefined) {
                             else { obj[prop] = val[prop]; }
                         }
                         val = obj;
-                        refs.set(val, path.join('.'));
+                        //refs.set(val, path.join('.'));
                     }
                     else {
                         refs.set(val, path.join('.'));
