@@ -69,7 +69,7 @@ export class StateManager {
             this.update.buffer.add( key )
     }
 
-    setupSynchronousUpdates() {
+    setupSynchronousUpdates = () => {
         if(!this.listener.hasKey('pushToState')) {
 
             //we won't add this listener unless we use this function
@@ -96,7 +96,6 @@ export class StateManager {
             this.addToState('update',this.update, this.onUpdate);
 
             this.addToState('pushRecord',this.pushRecord,(record)=>{
-                console.log(record);
                 record.pushed.forEach((updateObj) => {
                     for(const prop in updateObj) {
                         if(this.pushCallbacks[prop]) {
@@ -388,6 +387,7 @@ if(JSON.stringifyFast === undefined) {
                                 }
                             }
                             else { obj[prop] = val[prop]; }
+                            val = obj;
                         }
                     }
                     else {

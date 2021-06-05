@@ -472,6 +472,7 @@ if(JSON.stringifyFast === undefined) {
                             }
                             else { obj[prop] = val[prop]; }
                         }
+                        val = obj;
                     }
                     else {
                         refs.set(val, path.join('.'));
