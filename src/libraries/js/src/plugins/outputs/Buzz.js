@@ -23,7 +23,7 @@ export class Buzz{
         }
 
         let added = (k) => {
-            this._subscribeToDevices(arr,['buzz'])
+            this._subscribeToDevices(k,['buzz'])
             this.status()
         }
 

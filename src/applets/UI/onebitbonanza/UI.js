@@ -166,7 +166,7 @@ class UI{
             if (!settings.devices.includes(device.info.deviceType) && !settings.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
         })
         let applet;
-        if (prohibitedApplets.includes(settings.name) || !compatible) applet = await this.getNewApplet()
+        if (prohibitedApplets.includes(settings.name) || !compatible) applet = await this._getNewApplet()
         else applet = await getApplet(settings)
 
         return [applet,settings]

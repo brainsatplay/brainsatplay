@@ -239,7 +239,7 @@ export class syntheticPlugin {
         Object.keys(this.states).forEach(k => {
             let splitId = k.split('_')
             if (splitId[0] === 'key'){
-                if (this.matchKey(e.code, splitId[1]) && this.states[k] != 1) {
+                if (this.matchKey(e.code, splitId[1]) && this.states[k].data != 1) {
                     this.states[k].data = 1
                 }
             }

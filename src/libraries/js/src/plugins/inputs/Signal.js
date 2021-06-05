@@ -17,7 +17,7 @@ export class Signal{
         this.ports = {
             default: {
                 defaults: {
-                    output: {data: {}, meta: {label: 'signal'}}
+                    output: [{data: {}, meta: {label: 'signal'}}]
                 }
             }
         }
@@ -32,7 +32,7 @@ export class Signal{
         }
 
         let added = (k) => {
-            this._subscribeToDevices(k)
+            this._subscribeToDevices([k])
         }
 
         let removed = (k) => {
@@ -70,11 +70,14 @@ export class Signal{
     }
 
 
-    _subscribeToDevices(k) {
-        if (k.includes('device')){
-            this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
-                this.default()
-            }, this.props.state)
-        }
+    _subscribeToDevices(arr) {
+        arr.forEach(k => {
+            if (k.includes('device')){
+                this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
+                    this.default()
+                }, this.props.state)
+            }
+        })
+
     }
 }

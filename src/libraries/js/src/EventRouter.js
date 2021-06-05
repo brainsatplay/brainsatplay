@@ -57,8 +57,6 @@ export class EventRouter{
     update(o,targets=[]) {
         let newState = o.data
 
-        console.log(o, newState)
-
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
