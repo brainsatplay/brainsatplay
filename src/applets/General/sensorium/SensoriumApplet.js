@@ -437,6 +437,9 @@ void main(){
                     menu.style.maxHeight = "0";
                     menu.style.padding = "0% 25px"
                     document.getElementById(props.id+"showhide").innerHTML = "Show Controls";
+                    if(document.getElementById(props.id+'exitSession')) {
+                        document.getElementById(props.id+'exitSession').style.display = 'none';   
+                    }
                     // document.getElementById(props.id+'addeffect').style.display = "none";
                     // document.getElementById(props.id+'effectmenu').style.display = "none";
                     // document.getElementById(props.id+'shaderSelector').style.display = "none";
@@ -452,6 +455,9 @@ void main(){
                     document.getElementById(props.id+'effectmenu').style.display = "";
                     document.getElementById(props.id+'shaderSelector').style.display = "";
                     this.appletContainer.querySelector('.guiContainer').style.display = "";
+                    if(document.getElementById(props.id+'exitSession')) {
+                        document.getElementById(props.id+'exitSession').style.display = '';   
+                    }
                 }
             }
 
