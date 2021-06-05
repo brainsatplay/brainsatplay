@@ -461,16 +461,16 @@ if(JSON.stringifyFast === undefined) {
                         refs.set(val, path.join('.'));
                     } else if (c === 'Object') {
                         let obj = {};
-                        for(const prop in val) {
-                            if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
-                            else if (typeof val[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
+                        for(const prop in value) {
+                            if(Array.isArray(value[prop])) { obj[prop] = value[prop].slice(value[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
+                            else if (typeof value[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
-                                for(const p in val[prop]) {
-                                    if(Array.isArray(val[prop][p])) { obj[prop][p] = val[prop][p].slice(val[prop][p].length-20); }
-                                    else { obj[prop][p] = val[prop][p]; }
+                                for(const p in value[prop]) {
+                                    if(Array.isArray(value[prop][p])) { obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); }
+                                    else { obj[prop][p] = value[prop][p]; }
                                 }
                             }
-                            else { obj[prop] = val[prop]; }
+                            else { obj[prop] = value[prop]; }
                         }
                         val = obj;
                         //refs.set(val, path.join('.'));
