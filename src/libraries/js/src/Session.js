@@ -1679,7 +1679,12 @@ else {
 				let gridhtml = '';
 				result.sessions.forEach((g, i) => {
 					if (g.usernames.length < 10) { // Limit connections to the same session server
-						gridhtml += `<div><h3>` + g.id + `</h3><p>Streamers: ` + g.usernames.length + `</p><div><button id='` + g.id + `connect' style="margin-top: 5px;" class="brainsatplay-default-button">Connect</button><input id='` + baseBrowserId + `spectate' type='checkbox' style="display: none"></div></div>`
+						gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
+						<div style="display: flex; padding-top: 5px;">
+							<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
+							<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
+						</div>
+						</div>`
 					} else {
 						result.sessions.splice(i, 1)
 					}
@@ -1687,13 +1692,9 @@ else {
 
 				document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
 
-				let connecToGame = (g) => {
+				let connecToGame = (g, spectate) => {
 
-					// TODO: Add button to spectate
-					// let spectate = true
-					// if (this.atlas.settings.deviceConnected) { spectate = false; }
-
-					this.subscribeToSession(g.id, false, (subresult) => {
+					this.subscribeToSession(g.id, spectate, (subresult) => {
 
 						onjoined(g);
 
@@ -1710,8 +1711,11 @@ else {
 
 
 				result.sessions.forEach((g) => {
-					let connectButton = document.getElementById(`${g.id}connect`)
-					connectButton.addEventListener('click', () => { connecToGame(g) })
+					let playButton = document.getElementById(`${g.id}play`)
+					playButton.addEventListener('click', () => { connecToGame(g, false) })
+
+					let spectateButton = document.getElementById(`${g.id}spectate`)
+					spectateButton.addEventListener('click', () => { connecToGame(g, true) })
 				});
 			});
 		}
@@ -1957,7 +1961,7 @@ else {
 	getHostData(appname){
 		let state = this.state.data.commandResult
 		if (state.msg === 'sessionData' && state.appname === appname){
-			return state.hostData
+			return {data: state.hostData, username: state.hostname}
 		}
 	}
 

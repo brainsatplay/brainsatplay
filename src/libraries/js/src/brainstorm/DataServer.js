@@ -759,7 +759,7 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    hostname: sub.host,
+                    hostname: sub.hostname,
                     hostData:sub.hostData
                 };
 

@@ -582,8 +582,7 @@ void main(){
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
                 let hostData = this.session.getHostData(this.info.name)
 
-                //console.log(userData);
-                if (hostData && Object.keys(hostData).length != 0){
+                if (hostData && Object.keys(hostData.data).length != 0){
                     console.log(hostData)
                 }
 

@@ -57,22 +57,27 @@ export class EventRouter{
     update(o,targets=[]) {
         let newState = o.data
 
+        console.log(newState)
+
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
 
         targets.forEach(t => {
+            console.log(t)
+
             if (t){
-                if ('data' in t) {
-                    t.data = newState
-                }
-                else if ('data' in t[0]){
+                if (Array.isArray(t) && 'data' in t[0]){
+                    console.log('setting within array')
                     t[0].data = newState
                 }
-                else if ('data' in t[0].data[0]) {
-                    t[0].data[0] = newState
+                else if ('data' in t) {
+                    t.data = newState
                 }
             }
+
+            console.log(t)
+
         })
     }
 
