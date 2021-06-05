@@ -465,7 +465,7 @@ if(JSON.stringifyFast === undefined) {
                         let obj = {};
                         for(const prop in value) {
                             if(Array.isArray(value[prop])) { 
-                                if(value[prop][p].length>20)
+                                if(value[prop].length>20)
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
                             } //deal with arrays in nested objects (e.g. means, slices)
@@ -475,7 +475,7 @@ if(JSON.stringifyFast === undefined) {
                                     if(Array.isArray(value[prop][p])) {
                                         if(value[prop][p].length>20)
                                             obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
-                                        else obj[prop][p] = value[prop][p]
+                                        else obj[prop][p] = value[prop][p];
                                     }
                                     else { 
                                         let con = value[prop][p].constructor.name;
