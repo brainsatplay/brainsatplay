@@ -94,7 +94,9 @@ export class StateManager {
             );
 
             this.addToState('update',this.update, this.onUpdate);
+
             this.addToState('pushRecord',this.pushRecord,(record)=>{
+                console.log(record);
                 record.pushed.forEach((updateObj) => {
                     for(const prop in updateObj) {
                         if(this.pushCallbacks[prop]) {
@@ -106,6 +108,7 @@ export class StateManager {
                 });
                 this.pushRecord.pushed = [];
             });
+
 
             this.data.pushCallbacks = this.pushCallbacks;
 
