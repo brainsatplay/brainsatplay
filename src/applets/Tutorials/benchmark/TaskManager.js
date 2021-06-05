@@ -8,10 +8,11 @@ export class TaskManager{
         this.params = params
         this.paramOptions = {
             paradigm: {default: 'Task', options: ['Task']},
-            duration: {default: 5, options: null},
+            duration: {default: 2},
             trialCount: {default: 10},
-            trialTypes: {default:['Go', 'No Go'], show: false},
+            trialTypes: {default:['Blink Left', 'Blink Right', "Don't Blink", 'Blink Both'], show: false},
             trialProgression: {default: [], show: false},
+            interTrialInterval: {default: 2}
         }
 
         this.ports = {
@@ -21,8 +22,8 @@ export class TaskManager{
 
         this.props = {
             loop: null,
-            taskData: [{tStart: Date.now()}],
-            currentTrial: 0,
+            taskData: [],
+            currentTrial: -1,
         }
     }
 
@@ -37,15 +38,17 @@ export class TaskManager{
                 this.params.trialProgression.push(this.params.trialTypes[choice])
             }
         }
+
+        this.default()
     }
 
-    deinit = () => {
-        window.cancelAnimationFrame(this.props.loop)
-    }
+    deinit = () => {}
 
     default = () => {
-        this.states['default'].data = true // Do somethinng
-        this.states['default'].meta.label = `audio`
+        this.states['default'].data = this.props.currentTrial // Update State Data
+        this.states['default'].meta.state = this.params.trialProgression[this.props.currentTrial]
+        this.states['default'].meta.trialCount = this.params.trialCount
+
         return this.states['default']
     }
 
@@ -66,27 +69,42 @@ export class TaskManager{
         }
     }
 
-    fft = () => {
-        let channel = undefined // Get FFT Data
-        if(channel) this.states['fft'].data = channel.fft;
-        else this.states['fft'].data = new Array(256).fill(0);
-        this.states['fft'].meta.label = `audio_fft`
-        return this.states['fft']
-    }
-
-
-
     _taskLoop = () => {
 
-        // Start New Trial
-        if (Date.now() - this.props.taskData[this.props.currentTrial].tStart > this.params.duration*1000){
-            this.props.currentTrial++ // Increment Trial Counter
-            this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
+        if (this.props.currentTrial > 0){
+            let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
 
+            // Main Trial Loop
+            if (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000){  
+
+                this._startNewTrial()
+
+                // Stop on Last Trial
+                if (this.props.currentTrial === this.params.trialCount){ // Stop Loop
+                    this.states['default'].data = this.props.currentTrial // Update State Data
+                    this.states['default'].meta.state = 'Done!'
+                    this.states['default'].meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+                    this.states['default'].meta.stateDuration = this.params.duration*1000
+                } else {
+                    this.default() // Update State
+                }
+            } 
+
+            // Inter-trial Interval Loop
+            else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1){
+                this.states['default'].meta.state = 'ITI'
+                this.states['default'].meta.stateDuration = this.params.interTrialInterval*1000
+            }
         } else {
+            this._startNewTrial()
+            this.default()
         }
 
+        if (this.props.currentTrial != this.params.trialCount) this.props.loop = setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
+    }
 
-        this.props.loop = setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
+    _startNewTrial(){
+        this.props.currentTrial++ // Increment Trial Counter
+        this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
     }
 }

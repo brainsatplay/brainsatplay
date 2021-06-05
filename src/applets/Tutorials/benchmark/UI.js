@@ -16,11 +16,7 @@ class UI{
 
         // Port Definition
         this.ports = {
-            default: {
-                defaults: {
-                    input: [{username: 'Username', data: 'Value', meta: {label: 'Waiting for Data'}}]
-                }
-            }
+            default: {}
         }
     }
 
@@ -44,11 +40,10 @@ class UI{
 
     default = (userData) => {
         let labelDiv = document.getElementById(`${this.props.id}-label`)
-        labelDiv.innerHTML = userData[0].meta.label
+        labelDiv.innerHTML = userData[0].meta.state
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
-        let value = (!Array.isArray(userData[0].data)) ? userData[0].data : userData[0].data[0]
-        if (typeof value === "number") value = value.toFixed(2)
-        outputDiv.innerHTML = `<p>${userData[0].username}: ${value}</p>`
+        let statePercentage = userData[0].meta.stateTimeElapsed / userData[0].meta.stateDuration
+        outputDiv.innerHTML = `<p>Percent Complete: ${statePercentage}</p>`
 
         return userData
     }
