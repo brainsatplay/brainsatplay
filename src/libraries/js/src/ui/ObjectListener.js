@@ -467,11 +467,26 @@ if(JSON.stringifyFast === undefined) {
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
                                     if(Array.isArray(value[prop][p])) { obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); }
-                                    else { obj[prop][p] = value[prop][p]; }
+                                    else { 
+                                        let con = value[prop][p].constructor.name;
+                                        if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                            obj[prop] = "instanceof_"+con;
+                                        } else {
+                                            obj[prop] = value[prop]; 
+                                        }
+                                    }
                                 }
                             }
-                            else { obj[prop] = value[prop]; }
+                            else { 
+                                let con = value[prop].constructor.name;
+                                if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                    obj[prop] = "instanceof_"+con;
+                                } else {
+                                    obj[prop] = value[prop]; 
+                                }
+                            }
                         }
+                        //console.log(obj, value)
                         val = obj;
                         //refs.set(val, path.join('.'));
                     }
@@ -487,9 +502,11 @@ if(JSON.stringifyFast === undefined) {
             try {
                 parents.push(obj);
                 return JSON.stringify(obj, checkValues, space);
-            } finally {
+            } catch(er) {
+                console.error(obj, er);
+            }finally {
                 clear();
-            }
+            } 
         }
     })();
 }
