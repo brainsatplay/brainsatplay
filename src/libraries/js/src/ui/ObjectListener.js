@@ -518,12 +518,12 @@ if(JSON.stringifyFast === undefined) {
 
         return function stringifyFast(obj, space) {
             try {
-                parents.push(obj);
+                //parents.push(obj);
                 return JSON.stringify(obj, checkValues, space);
             } catch(er) {
                 console.error(obj, er);
-            }finally {
-                clear();
+            } finally {
+                //clear();
             } 
         }
     })();
