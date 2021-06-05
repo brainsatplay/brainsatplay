@@ -33,6 +33,10 @@ export const settings = {
           target: 'buzz:leds'
         },
         {
+          source: 'signal:fft', 
+          target: 'buzz:motors'
+        },
+        {
           source: 'buzz:status', 
           target: 'ui'
         }

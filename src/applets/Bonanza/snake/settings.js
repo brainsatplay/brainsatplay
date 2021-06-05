@@ -15,7 +15,7 @@ export const settings = {
       mode: 'single'
     },
     bonanza: {
-      minTime: 20, // s
+      minTime: 60, // s
     },
     // App Logic
     graphs: [

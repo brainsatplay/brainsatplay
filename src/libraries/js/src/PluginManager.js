@@ -101,10 +101,27 @@ export class PluginManager{
                     controlsToBind.push(controlDict)
                 }
             }
+        } else {
+            node.ports = {}
         }
 
-        // Catch Active Ports without Defaults
+        console.log(node.label, activePorts)
+
         activePorts.forEach(p => {
+
+            // Add Ports Variable + Show If Active
+            if (node.ports[p] == null) {
+                node.ports[p] = {
+                    defaults: {
+                        output: {data: [{}], meta: {}}
+                    },
+                    active: true
+                }
+            } else {
+                node.ports[p].active = true
+            }
+
+            // Catch Active Ports without Default State Assigned
             if (node.states[p] == null) node.states[p] = {data: [{}], meta: {}}
         })
         
@@ -144,11 +161,18 @@ export class PluginManager{
                     // Capture Active Ports
                     for (let k in e){
                         let [node,port] = e[k].split(':')
-                        if (activePorts[node] == null) activePorts[node] = new Set(['default'])
+                        if (activePorts[node] == null) activePorts[node] = new Set()
                         if (port) activePorts[node].add(port)
                     }
                 })
             }
+
+            // Auto-Assign Default Port to Empty Set
+            Object.keys(activePorts).forEach(p => {
+                if (activePorts[p].size == 0){
+                    activePorts[p].add('default')
+                }
+            })
 
             let instance,controls;
             g.nodes.forEach(nodeInfo => {

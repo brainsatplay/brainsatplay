@@ -61,7 +61,9 @@ export class Buzz{
         return userData
     }
 
-    motors = (userData) => {     
+    motors = (userData) => {    
+        
+        console.log(userData[0].data)
 
         if (this.device){
             // Vibrate Wrist Based on Frequencies (Single User)
