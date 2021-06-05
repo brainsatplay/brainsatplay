@@ -65,7 +65,7 @@ export class PluginManager{
     }
     }
 
-    instantiateNode(nodeInfo,session=this.session, activePorts=['default']){
+    instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
 
@@ -81,6 +81,7 @@ export class PluginManager{
             for (let port in node.ports){
                 node.states[port] = {data: [{}], meta: {}}
                 let defaults = node.ports[port].defaults
+
                 if (defaults && defaults.output) {
                     try {
                         if (Array.isArray(defaults.output)) node.states[port].data = defaults.output
@@ -154,9 +155,6 @@ export class PluginManager{
                 if (nodes[nodeInfo.id] == null){
                     nodes[nodeInfo.id] = nodeInfo;
 
-                    if (activePorts[nodeInfo.id]) activePorts[nodeInfo.id] = Array.from(activePorts[nodeInfo.id])
-                    else {activePorts[nodeInfo.id] = ['default']}
-
                     ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
                     
                     nodes[nodeInfo.id].instance = instance;
@@ -190,8 +188,6 @@ export class PluginManager{
     }
 
     runSafe(input, node, port='default'){
-
-        console.log(node)
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -471,7 +467,7 @@ export class PluginManager{
             }
         })
 
-        return {uiParams: uiParams, streams:Array.from(this.applets[appId].streams), controls: this.applets[appId].controls}
+        return {uiParams: uiParams, streams:this.applets[appId].streams, controls: this.applets[appId].controls}
     }
 
     findStreamFunction(prop) {

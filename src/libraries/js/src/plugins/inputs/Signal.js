@@ -17,7 +17,7 @@ export class Signal{
         this.ports = {
             default: {
                 defaults: {
-                    output: [{data: {}, meta: {label: 'signal'}}]
+                    output: {data: {}, meta: {label: 'signal'}}
                 }
             }
         }
