@@ -1102,7 +1102,6 @@ else {
 
 	//connect using the unique id of the subscription
 	subscribeToSession(sessionid, spectating = false, onsuccess = (newResult) => { }) {
-		console.log(this.info.auth.username)
 		if (this.socket !== null && this.socket.readyState === 1) {
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
@@ -1689,11 +1688,12 @@ else {
 				document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
 
 				let connecToGame = (g) => {
-					let spectate = true
 
-					if (this.atlas.settings.deviceConnected) { spectate = false; }
+					// TODO: Add button to spectate
+					// let spectate = true
+					// if (this.atlas.settings.deviceConnected) { spectate = false; }
 
-					this.subscribeToSession(g.id, spectate, (subresult) => {
+					this.subscribeToSession(g.id, false, (subresult) => {
 
 						onjoined(g);
 
