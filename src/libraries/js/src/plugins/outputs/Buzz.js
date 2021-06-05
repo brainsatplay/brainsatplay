@@ -15,26 +15,29 @@ export class Buzz{
 
         this.props = {
             state: new StateManager(),
-            deviceSubscriptions: {}
+            deviceSubscriptions: {},
+            toUnsubscribe: {
+                stateAdded: [],
+                stateRemoved: []
+            }
         }
 
-        let added = (arr) => {
+        let added = (k) => {
             this._subscribeToDevices(arr,['buzz'])
             this.status()
         }
 
-        let removed = (arr) => {
-            arr.forEach(k => {
-                if (k.includes('device')){
-                    // Update Internal Device State
-                    this.props.device = this.session.getDevice('buzz')
-                    if (this.props.device)  this.props.device = this.props.device.device
-                }
-            })
+        let removed = (k) => {
+            if (k.includes('device')){
+                // Update Internal Device State
+                this.props.device = this.session.getDevice('buzz')
+                if (this.props.device)  this.props.device = this.props.device.device
+            }
             this.status()
         }
 
-        this.session.state.addUpdateFunction(added,removed)
+        this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
+        this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
 
     init = () => {
@@ -86,15 +89,13 @@ export class Buzz{
     }
 
     
-    _subscribeToDevices(arr, nameArray=[]) {
-        arr.forEach(k => {
-             if (k.includes('device')){
-                 let deviceInfo = this.session.state.data[k]
-                 if (nameArray.includes(deviceInfo.deviceName)){
-                    this.props.device = this.session.getDevice(deviceInfo.deviceName).device
-                }
-             }
-         })
+    _subscribeToDevices(k, nameArray=[]) {
+        if (k.includes('device')){
+            let deviceInfo = this.session.state.data[k]
+            if (nameArray.includes(deviceInfo.deviceName)){
+            this.props.device = this.session.getDevice(deviceInfo.deviceName).device
+        }
+        }
      }
 
 }

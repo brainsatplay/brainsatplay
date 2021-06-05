@@ -57,6 +57,8 @@ export class EventRouter{
     update(o,targets=[]) {
         let newState = o.data
 
+        console.log(o, newState)
+
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
@@ -263,6 +265,7 @@ export class EventRouter{
                         } catch (e) {}
                     }
 
+                    console.log(this.state.data)
                     if ('meta' in this.state.data[id] && 'data' in this.state.data[id]){
                         let div = document.createElement('div')
                         div.style.padding = '10px'

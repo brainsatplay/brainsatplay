@@ -24,23 +24,25 @@ export class Signal{
 
         this.props = {
             state: new StateManager(),
-            deviceSubscriptions: {}
+            deviceSubscriptions: [],
+            toUnsubscribe: {
+                stateAdded: [],
+                stateRemoved: []
+            }
         }
 
-        let added = (arr) => {
-            this._subscribeToDevices(arr)
+        let added = (k) => {
+            this._subscribeToDevices(k)
         }
 
-        let removed = (arr) => {
-            arr.forEach(k => {
-                if (k.includes('device')){
-                    this.props.state.removeState(`${this.params.device}_FP1`)
-                }
-            })
+        let removed = (k) => {
+            if (k.includes('device')){
+                this.props.state.removeState(`${this.params.device}_FP1`)
+            }
         }
 
-        this.session.state.addUpdateFunction(added,removed)
-        // this.prevAtlas = null
+        this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
+        this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
 
     init = () => {
@@ -55,6 +57,11 @@ export class Signal{
 
     deinit = () => {
         // MUST DISCONNECT STREAM
+        for (let key in this.props.toUnsubscribe){
+            this.props.toUnsubscribe[key].forEach(idx => {
+                this.session.state.unsubscribeSequential(key,idx)
+            })
+        }
     }
 
     default = () => {
@@ -63,13 +70,11 @@ export class Signal{
     }
 
 
-    _subscribeToDevices(arr) {
-       arr.forEach(k => {
-            if (k.includes('device')){
-                this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
-                    this.default()
-                }, this.props.state)
-            }
-        })
+    _subscribeToDevices(k) {
+        if (k.includes('device')){
+            this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
+                this.default()
+            }, this.props.state)
+        }
     }
 }

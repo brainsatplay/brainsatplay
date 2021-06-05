@@ -11,13 +11,6 @@ export class StateManager {
         this.pushToState={};
         this.pushRecord={pushed:[]}; //all setStates between frames
         this.pushCallbacks = {};
-        // Allow Updates to State to Be Subscribed To
-        this.update = {added:'', removed: '', buffer: new Set()}
-        this.updateCallbacks = {
-                added: [],
-                removed: []
-        }
-
 
         this.listener = new ObjectListener();
 
@@ -38,28 +31,6 @@ export class StateManager {
             interval,
         );
         */
-
-        this.setSequentialState({statesAdded: 'added a state'})
-        this.setSequentialState({statesRemoved: 'removed a state'})
-        this.subscribeSequential('statesAdded', (update)=>{console.log('added', update)})
-        this.subscribeSequential('statesRemoved', (update)=>{console.log('removed', update)})
-
-        this.setSequentialState({statesAdded: 'added another state'})
-        this.setSequentialState({statesRemoved: 'removed another state'});
-
-        
-        console.log(this.pushRecord)
-        console.log(this.pushCallbacks)
-        
-    //    setTimeout(() => {
-    //         this.setSequentialState({statesAdded: 'added a state'})
-    //         this.setSequentialState({statesRemoved: 'removed a state'})
-
-    //         console.log(this.pushRecord)
-    //         console.log(this.pushCallbacks)
-
-    //     }, 2000)
-
     }
 
     setInterval(interval="FRAMERATE") {
@@ -84,8 +55,7 @@ export class StateManager {
             delete this.data[key]
 
             // Log Update
-            this.update.removed = key
-            this.update.buffer.add( key )
+            this.setSequentialState({stateRemoved: key})
     }
 
     setupSynchronousUpdates = () => {
@@ -111,8 +81,6 @@ export class StateManager {
                 pushToStateResponse,
                 this.interval
             );
-
-            this.addToState('update',this.update, this.onUpdate);
 
             this.addToState('pushRecord',this.pushRecord,(record)=>{
                 record.pushed.forEach((updateObj) => {
@@ -142,8 +110,7 @@ export class StateManager {
         this.data[key] = value;
 
         // Log Update
-        this.update.added = key
-        this.update.buffer.add( key )
+        this.setSequentialState({stateAdded: key})
 
         if(onchange !== null){
             return this.addSecondaryKeyResponse(key,onchange,debug);
@@ -311,33 +278,6 @@ export class StateManager {
 
     unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
-    }
-
-    addUpdateFunction = (added,removed) => {
-        if (added) this.updateCallbacks.added.push(added)
-        if (removed) this.updateCallbacks.removed.push(removed)
-    }
-
-    onUpdate = (update) => {
-
-        console.log(update)
-        update.buffer.delete('update')
-
-        if (update.added){
-            this.updateCallbacks.added.forEach(f => {
-                if (f instanceof Function) f(update.buffer)
-            })
-        }
-
-        if (update.removed){
-            this.updateCallbacks.removed.forEach(f => {
-                if (f instanceof Function) f(update.buffer)
-            })
-        }
-
-        update.added = ''
-        update.removed = ''
-        update.buffer.clear()
     }
 
 }

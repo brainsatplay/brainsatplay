@@ -16,6 +16,13 @@ export class PluginManager{
         this.settings = settings
         this.registry = {local: {}, brainstorm: {}}
 
+        this.props = {
+            toUnsubscribe: {
+                stateAdded: [],
+                stateRemoved: []
+            }
+        }
+
         // Manage States Locally
         this.state = new StateManager()
 
@@ -30,39 +37,35 @@ export class PluginManager{
         // Listen to Added/Removed States in Session (if provided)
         if (session instanceof Session){
 
-            let added = (arr) => {
+            let added = (k) => {
                 // Attach Proper Stream Callback to New Brainstorm States
                 for (let s in this.registry.local){
                     let label = this.registry.local[s].label
-                    arr.forEach(k => {
-                        if (this.registry.brainstorm[k] == null){
-                                if (k.includes(label) && k !== label){
+                    if (this.registry.brainstorm[k] == null){
+                            if (k.includes(label) && k !== label){
 
-                                // Only Defaults on the Brainstorm for Now
-                                this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].registry['default'].callback), callback: this.registry.local[s].registry['default'].callback}
-                                this.registry.brainstorm[k].callback()
-                            }
-                        } 
-                    })
+                            // Only Defaults on the Brainstorm for Now
+                            this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribe(k, this.registry.local[s].registry['default'].callback), callback: this.registry.local[s].registry['default'].callback}
+                            this.registry.brainstorm[k].callback()
+                        }
+                    } 
                 }
             }
 
-            let removed = (arr) => {
-                arr.forEach(k => 
-                    {
-                    if (this.registry.brainstorm[k] != null){
-                        this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
-                        this.registry.brainstorm[k].callback()
-                        delete this.registry.brainstorm[k]
-                    }
-                })
+            let removed = (k) => {
+                if (this.registry.brainstorm[k] != null){
+                    this.session.state.unsubscribe(k,this.registry.brainstorm[k].id)
+                    this.registry.brainstorm[k].callback()
+                    delete this.registry.brainstorm[k]
+                }
             }
 
-            this.session.state.addUpdateFunction(added, removed)
+            this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
+            this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
     }
 
-    instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
+    instantiateNode(nodeInfo,session=this.session, activePorts=['default']){
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
 
@@ -151,6 +154,9 @@ export class PluginManager{
                 if (nodes[nodeInfo.id] == null){
                     nodes[nodeInfo.id] = nodeInfo;
 
+                    if (activePorts[nodeInfo.id]) activePorts[nodeInfo.id] = Array.from(activePorts[nodeInfo.id])
+                    else {activePorts[nodeInfo.id] = ['default']}
+
                     ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
                     
                     nodes[nodeInfo.id].instance = instance;
@@ -184,6 +190,8 @@ export class PluginManager{
     }
 
     runSafe(input, node, port='default'){
+
+        console.log(node)
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -463,7 +471,7 @@ export class PluginManager{
             }
         })
 
-        return {uiParams: uiParams, streams:this.applets[appId].streams, controls: this.applets[appId].controls}
+        return {uiParams: uiParams, streams:Array.from(this.applets[appId].streams), controls: this.applets[appId].controls}
     }
 
     findStreamFunction(prop) {
