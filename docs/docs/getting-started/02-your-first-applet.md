@@ -8,225 +8,108 @@ hide_title: true
 ## Overview
 ---
 
-Now that you've set up a local version of The Brains@Play Platform, this tutorial will guide you through the creation of an applet using brainsatplay.js.
+This tutorial will guide you through the creation and deployment of a web-based brain-computer interface (BCI) application using brainsatplay.js. Learn the basics of JavaScript and design your own multi-user neurofeedback application!
 
-## Create your Applet
+## Clone our Starter Project
 ---
 
-### Copy the Template
-First, copy the Applet Template folder (`src/applets/Templates/app`) into the relevant category folder of the `src/applets` directory. 
+Head over to our [Brains@Play Starter Project](https://github.com/brainsatplay/brainsatplay-starter) and clone this to your local development environment. 
 
-Rename the template according to the details of your applet. It should look something like this:
-```
-myapplet
-    settings.js
-    MyApplet.js
-```
 
-### Edit Applet Metadata
-Information contained in `settings.js` is used to populate an Applet Manifest used to quickly reference information about applets on The Brains@Play Platform.  Specify a name (and other metadata) for your applet here!
+## Dig into Applet Architecture
+---
+Brains@Play applications are written as Javascript dictionaries contained in a `settings.js` file. This file contains the essential information to assemble your application, including **metadata** and **graphs**.
 
-```js
+### Applet Folder
+The `applet` folder contains a `settings.js` file and `UI.js` file. These define the logic and style of your application.
 
-// import featureImg from './feature.png'
+#### UI.js 
+The `UI.js` file contains an **output** plugin. These are usually located at the end of your application graph and display results to your user.
+
+#### settings.js
+The `settings.js` file contains the required information to assemble your application.
+ 
+```javascript
+import { UI } from './UI.js'
 
 export const settings = {
-    "name": "My First App", // The name of your applet
-    "devices": ["EEG"], // Compatible devices for your applet
-    "author": "Me", // The author of your applet
-    "description": "This is my first applet.", // A short description of your applet
-    "categories": ["train"], // Category tags for your applet
-    "module": "Applet", // The module name for your applet (must match the Applet.js file name)
-    // "image":  featureImg,
-	"instructions":"Coming soon..." // Extended instructions on how to use your applet
+
+  // App Metadata
+  name: "My First Applet", // The name of your applet
+  devices: ["EEG"], // Compatible devices for your applet
+  intro: {
+    mode: 'single' // The default intro sequence for your application. Leave blank for no intro.
+  },
+
+  // App Logic
+  graphs: [
+    {
+    id: 'mygraph',
+    nodes: [
+      {id: 'signal', class: brainsatplay.plugins.Signal, loop: true}, // A default node from Brains@Play that grabs session data
+
+      {id: 'neurofeedback', class: brainsatplay.plugins.Neurofeedback, params: {}}, // A default node from Brains@Play to process session data into neurofeedback outputs
+
+      {id: 'ui', class: UI, params: {}} // A user-defined node for displaying neurofeedback results
+    ],
+    edges: [
+      {
+        source: 'signal', // Grab session data
+        target: 'neurofeedback' // Convert to the selected neurofeedback output
+      },
+      {
+        source: 'neurofeedback', // Grab the selected neurofeedback output
+        target: 'ui' // Display to the user
+      }
+    ]
+  }],
 }
 
 ```
 
-To specify a custom thumbnail image, place your image within your applet's directory and edit the commented code in `settings.js` to point to it. When left unspecified, this will default to a placeholder thumbnail.
+### index.js
+The `index.js` file assembles your applet from the provided `settings.js` file.
 
-### Test Applet Configuration
-Restart your development environment using `npm start`. If everything is shipshape, your applet will appear in the Applet Browser! 
+```javascript 
+import {settings} from './applet/settings.js'
 
-![Applet Browser](../../static/img/02-your-first-applet/browser.png)
+// Load your settings.js file into a Brains@Play Application class
+let applet =  new brainsatplay.Application(settings)
 
+// Inject your Application into the DOM
+applet.init()
 
-If you enter your applet from the Applet Browser, a URL fragment (e.g. `https://localhost:1234/#My%20First%20Applet` will appear in the address bar to ensure that you return to your applet when refreshing the page.
-
-## Review Applet Methods
----
-
-Each applet is self-contained and, therefore, all applet logic should be written internally to the class. 
-
-### constructor()
-On initialization, applets are passed a [**Session**](../reference/classes/session) that contains all information about device streams and references a **Data Atlas** where all current user data is stored.
-
-``` javascript
-import {Session} from './../../../../library/src/Session'
-import {DOMFragment} from './../../../../library/src/ui/DOMFragment'
-import * as settingsFile from './settings'
-
-//Example Applet for integrating with the UI Manager
-export class Applet {
-
-    constructor(
-        parent=document.body,
-        session=new Session(),
-        settings=[]
-    ) {
-    
-        //-------Keep these------- 
-        this.session = session; //Reference to the Session to access data and subscribe
-        this.parentNode = parent;
-        this.info = settingsFile.settings;
-        this.settings = settings;
-        this.AppletHTML = null;
-        //------------------------
-
-        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            //Add whatever else
-        };
-    }
-}
+ // Configure a button to connect any Brains@Play-compatible device
+applet.session.connectDevice()
 ```
 
-### init()
-The `init()` function contains an HMTLtemplate string, a `setupHTML()` function, and any other logic and functions to handle your rendering and logic in your applet. 
+### index.html
+The `index.html` file simply declares `script` tags to import **brainatplay.js** into your project and inject your application into the DOM using `index.js`. 
 
-``` javascript
-//Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
-init() {
-    //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
-    let HTMLtemplate = (props=this.props) => { 
-        return `<div id='${props.id}' style='height:100%; width:100%;'></div>`;
-    }
+Since applets fill the space provided to them, we've defined some inline styling to make the `body` tag (default app location) to fill the viewport.
 
-    //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
-    let setupHTML = (props=this.props) => {
-        document.getElementById(props.id);
-    }
-
-    this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-        HTMLtemplate,       //Define the html template string or function with properties
-        this.parentNode,    //Define where to append to (use the parentNode)
-        this.props,         //Reference to the HTML render properties (optional)
-        setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-        undefined,          //Can have an onchange function fire when properties change
-        "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
-    );  
-
-    if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-
-
-    //Add whatever else you need to initialize
-}
+```html 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Brains@Play Starter App" />
+    <title>Brains@Play Starter Project</title>
+    <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.10"></script>
+    <script src="./index.js" type="module"></script>
+  </head>
+  <body style="width: 100vw; height: 100vh; color: white; background: black;">
+</body>
+</html>
 ```
 
-### deinit()
-The `deinit()` function should destroy animation loops, delete event listeners, and remove extraneous HTML elements from the document. It is called whenever the applet is removed from our **Applet Manager** in the Brains@Play Platform.
-
-``` javascript
-//Delete all event listeners and loops here and delete the HTML block
-deinit() {
-    this.AppletHTML.deleteNode();
-    //Be sure to unsubscribe from state if using it and remove any extra event listeners
-}
-```
-
-
-### responsive()
-The `responsive()` function is called when your applet is resized *and* when new devices are connected. It should handle any window resizing logic—as well as spawning HTML elements (e.g. selectors, buttons, etc.) depending on device connections.
-
-``` javascript
-//Responsive UI update, for resizing and responding to new connections detected by the UI manager
-responsive() {
-    //let canvas = document.getElementById(this.props.id+"canvas");
-    //canvas.width = this.AppletHTML.node.clientWidth;
-    //canvas.height = this.AppletHTML.node.clientHeight;
-}
-```
-
-### configure()
-The `configure()` function is called on initialization if you have multiple specifications available for your applet. 
-
-``` javascript
-configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
-    settings.forEach((cmd,i) => {
-        //if(cmd === 'x'){//doSomething;}
-    });
-}
-```
-
-In our **Applet Manager**, URL fragments (e.g. `https://localhost:1234/#{"name":"My Applet","settings":["EEG"]}`) will spawn the named applet and pass the array of arguments from the settings property. This allows you to customize which state your applet initializes in. 
-
-## Incorporate Biosignals
-Now that you understand how an applet is organized, it's time to use brain data from the **Data Atlas** of the [**Session**](../reference/classes/session). Here we'll set up our applet to display frontal alpha coherence.
-
-``` javascript
-init() {
-
-    let HTMLtemplate = (props=this.props) => { 
-        return `
-            <div id='${props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
-                <div>
-                    <h1>Frontal Alpha Coherence</h1>
-                    <p id="${props.id}-coherence"></p>
-                </div>
-            </div>
-        `;
-    }
-
-    // ...
-
-    let animate = () => {
-
-        // Get Frontal Alpha Coherence
-        let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
-
-        // Display Alpha Coherence
-        document.getElementById(`${this.props.id}-coherence`).innerHTML = coherence
-
-        // Continue Animation
-        setTimeout(this.animation = window.requestAnimationFrame(animate),1000/60) // Limit framerate to 60fps
-    }
-
-    // Start Animation
-    animate()
-
-}
-```
-
-Don't forget to clean up after yourself!
-``` javascript
-deinit() {
-
-    // Stop Animation
-    if (this.animation){
-        window.cancelAnimationFrame(this.animation)
-        this.animation = undefined  
-    }
-
-    // Delete Applet HTML
-    this.AppletHTML.deleteNode();
-}
-```
-
-After adding this code, your applet should look like this:
-
-![Applet UI](../../static/img/02-your-first-applet/ui.png)
-
-## Test Out your Hard Work
-After everything is wired up, head over to your applet and activate the **Synthetic Stream** from the Device Manager. 
-
-![Applet Readout](../../static/img/02-your-first-applet/devices.png)
-
-This should begin updating the real-time readout on your applet.
-
-![Applet Readout](../../static/img/02-your-first-applet/readout.png)
-
+## Try It Out!
+Now that you understand the starter applet, open the `index.html` to view the neurofeedback application.
 
 ## Conclusion
-Congratulations on creating your first application with Brains@Play! Of course, there's much more that can be done with our framework—but we hope this has inspired you to dive deeper into the growing field of neurotechnology and begin developing fully-featured applications. 
+Congratulations on creating your first application with Brains@Play! 
+
+Of course, there's much more that can be done with our framework—but we hope this has inspired you to dive deeper into the growing field of neurotechnology and begin developing fully-featured applications. 
 
 To get the specific data required by your application, head over to the [**Reference**](../reference) page of our documentation. We're so excited to experience what you dream up!
