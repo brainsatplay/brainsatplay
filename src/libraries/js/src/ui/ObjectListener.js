@@ -449,11 +449,8 @@ if(JSON.stringifyFast === undefined) {
             if (value != null) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
-                    let other = refs.get(val);
                     let c = value.constructor.name;
-                    if (other) {
-                        return '[Circular Reference]' + other;
-                    } else if(c === "Array") { //Cut arrays down to 100 samples for referencing
+                    if(c === "Array") { //Cut arrays down to 100 samples for referencing
                         if(value.length > 20) {
                             val = value.slice(value.length-20);
                         } else val = value;
@@ -464,7 +461,6 @@ if(JSON.stringifyFast === undefined) {
                     }  
                     else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
-                        refs.set(val, path.join('.'));
                     }
                     else if (c === 'Object') {
                         let obj = {};
@@ -512,8 +508,9 @@ if(JSON.stringifyFast === undefined) {
                     }
                     else {
                         val = value;
-                        refs.set(val, path.join('.'));
                     }
+                } else {
+                    val = value;
                 }
             }
             //console.log(value, val)
