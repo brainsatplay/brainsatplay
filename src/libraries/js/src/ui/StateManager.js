@@ -39,19 +39,26 @@ export class StateManager {
         );
         */
 
-       this.setSequentialState({statesAdded: 'added a state'})
-       this.setSequentialState({statesRemoved: 'removed a state'})
-       this.subscribeSequential('statesAdded', (update)=>{console.log('added', update)})
-       this.subscribeSequential('statesRemoved', (update)=>{console.log('removed', update)})
+        this.setSequentialState({statesAdded: 'added a state'})
+        this.setSequentialState({statesRemoved: 'removed a state'})
+        this.subscribeSequential('statesAdded', (update)=>{console.log('added', update)})
+        this.subscribeSequential('statesRemoved', (update)=>{console.log('removed', update)})
 
-       setTimeout(() => {
-            this.setSequentialState({statesAdded: 'added a state'})
-            this.setSequentialState({statesRemoved: 'removed a state'})
+        this.setSequentialState({statesAdded: 'added another state'})
+        this.setSequentialState({statesRemoved: 'removed another state'});
 
-            console.log(this.pushRecord)
-            console.log(this.pushCallbacks)
+        
+        console.log(this.pushRecord)
+        console.log(this.pushCallbacks)
+        
+    //    setTimeout(() => {
+    //         this.setSequentialState({statesAdded: 'added a state'})
+    //         this.setSequentialState({statesRemoved: 'removed a state'})
 
-        }, 2000)
+    //         console.log(this.pushRecord)
+    //         console.log(this.pushCallbacks)
+
+    //     }, 2000)
 
     }
 
