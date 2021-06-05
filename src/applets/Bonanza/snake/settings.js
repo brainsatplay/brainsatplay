@@ -8,11 +8,14 @@ export const settings = {
     devices: ["EEG"],
     author: "Christopher Coogan + Garrett Flynn",
     description: "Snake + BCI2000.",
-    categories: ["tutorial"],
+    categories: ["Train"],
     // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {
       mode: 'single'
+    },
+    bonanza: {
+      minTime: 20, // s
     },
     // App Logic
     graphs: [

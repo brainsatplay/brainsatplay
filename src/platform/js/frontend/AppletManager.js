@@ -366,6 +366,7 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
+
             if (!appletManifest[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(appletManifest[appletName].folderUrl).then(appletSettings => {
 

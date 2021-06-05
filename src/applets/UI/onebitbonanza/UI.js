@@ -1,8 +1,14 @@
 import logo from '../../../platform/assets/logo_and_sub(v3).png'
+import nasa from '../../../platform/assets/nasa.jpg'
 import {appletManifest} from '../../../platform/appletManifest'
 import {Application} from '../../../libraries/js/src/Application'
 
 import { getApplet, getAppletSettings} from "../../../platform/js/general/importUtils"
+
+let bonanzaApps = Object.assign({},appletManifest)
+Object.keys(bonanzaApps).forEach(k => {
+    if(!bonanzaApps[k].folderUrl.includes('/Bonanza/')) delete bonanzaApps[k]
+})
 
 
 class UI{
@@ -53,7 +59,7 @@ class UI{
             return `
             <div id='${this.props.id}' style='height:100%; width:100%; position: relative;'>
                 <div id='${this.props.id}-ui' style='position: absolute; top: 0; left: 0; height:100%; width:100%; z-index: 1; pointer-events:none;'>
-                    <div id='${this.props.id}-mask' style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; opacity: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                    <div id='${this.props.id}-mask' style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${nasa}); background-position: center; background-repeat: no-repeat; background-size: cover; pointer-events: none;opacity: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
                         <img src='${logo}' style="width: 50%;">
                     </div>
                 </div>
@@ -80,7 +86,10 @@ class UI{
 
             this._animate = () => {
                 if (this.props.currentApplet != null && this.props.mode == 'timer'){
-                    let timeLeft = this.params.timeLimit - (Date.now() - this.props.currentApplet.tInit)/1000
+
+                    let actualLimit = Math.max(this.params.timeLimit, this.props.currentApplet.settings.bonanza.minTime)
+
+                    let timeLeft = actualLimit - (Date.now() - this.props.currentApplet.tInit)/1000
                     if (this.props.currentApplet.tUp == false){
                         this.props.countdown.innerHTML = Math.max(0, timeLeft).toFixed(2)
                         if (timeLeft <= 0){
@@ -118,6 +127,7 @@ class UI{
     _createInstance = (appletCls, info=undefined) => {
         let parentNode = document.getElementById(`${this.props.id}-applet`)
         if (appletCls === Application){
+            delete info.intro // Never show intro
             return new Application(info, parentNode, this.session, [])
         } else {
             return new appletCls(parentNode, this.session, [])
@@ -140,6 +150,7 @@ class UI{
             this.props.currentApplet = {
                 tInit: Date.now(),
                 instance: this._createInstance(applet, settings),
+                settings,
                 tUp: false
             }
             this.props.currentApplet.instance.init()
@@ -155,10 +166,9 @@ class UI{
     }
 
     _getNewApplet = async () => {
-        let appletKeys = Object.keys(appletManifest)
-        let settings = await getAppletSettings(appletManifest[appletKeys[Math.floor(Math.random() * appletKeys.length)]].folderUrl)
+        let appletKeys = Object.keys(bonanzaApps)
+        let settings = Object.assign({}, await getAppletSettings(bonanzaApps[appletKeys[Math.floor(Math.random() * appletKeys.length)]].folderUrl))
         // Check that the chosen applet is not prohibited, compatible with current devices, and not the same applet as last time
-        let prohibitedApplets = ['One Bit Bonanza','Applet Browser', 'Sunrise'] // Sunrise takes too long to load
         let compatible = true
         let instance;
         if (this.props.currentApplet != null) instance = this.props.currentApplet.instance
@@ -166,7 +176,7 @@ class UI{
             if (!settings.devices.includes(device.info.deviceType) && !settings.devices.includes(device.info.deviceName) && instance instanceof applet) compatible = false
         })
         let applet;
-        if (prohibitedApplets.includes(settings.name) || !compatible) applet = await this._getNewApplet()
+        if (!compatible) applet = await this._getNewApplet()
         else applet = await getApplet(settings)
 
         return [applet,settings]
