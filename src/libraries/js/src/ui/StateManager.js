@@ -334,10 +334,15 @@ if(JSON.stringifyFast === undefined) {
                             val = value.slice(value.length-20);
                         } else val = value;
                        // refs.set(val, path.join('.'));
-                    } else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                    }  
+                    else if (c.includes("Set")) {
+                        val = value.toArray();
+                    }  
+                    else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
                         refs.set(val, path.join('.'));
-                    } else if (c === 'Object') {
+                    }
+                    else if (c === 'Object') {
                         let obj = {};
                         for(const prop in value) {
                             if(Array.isArray(value[prop])) { 
@@ -345,20 +350,23 @@ if(JSON.stringifyFast === undefined) {
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
                             } //deal with arrays in nested objects (e.g. means, slices)
-                            else if (typeof value[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
+                            else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
                                     if(Array.isArray(value[prop][p])) {
                                         if(value[prop][p].length>20)
                                             obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
-                                        else obj[prop][p] = value[prop][p]
+                                        else obj[prop][p] = value[prop][p];
                                     }
                                     else { 
                                         let con = value[prop][p].constructor.name;
                                         if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                            obj[prop] = "instanceof_"+con;
-                                        } else {
-                                            obj[prop] = value[prop]; 
+                                            obj[prop][p] = "instanceof_"+con;
+                                        } else if (con.includes("Set")) {
+                                            obj[prop][p] = value[prop][p].toArray();
+                                        }
+                                        else {
+                                            obj[prop][p] = value[prop][p]; 
                                         }
                                     }
                                 }
@@ -367,7 +375,9 @@ if(JSON.stringifyFast === undefined) {
                                 let con = value[prop].constructor.name;
                                 if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
                                     obj[prop] = "instanceof_"+con;
-                                } else {
+                                } else if (con.includes("Set")) {
+                                    obj[prop] = value[prop].toArray();
+                                }else {
                                     obj[prop] = value[prop]; 
                                 }
                             }
@@ -377,6 +387,7 @@ if(JSON.stringifyFast === undefined) {
                         //refs.set(val, path.join('.'));
                     }
                     else {
+                        val = value;
                         refs.set(val, path.join('.'));
                     }
                 }
