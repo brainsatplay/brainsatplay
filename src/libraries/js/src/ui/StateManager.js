@@ -360,9 +360,10 @@ if(JSON.stringifyFast === undefined) {
             }
         }
 
+        
         function checkValues(key, value) {
-            let val = value;
-            if (val !== null) {
+            let val;
+            if (value != null) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
                     let other = refs.get(val);
@@ -371,11 +372,11 @@ if(JSON.stringifyFast === undefined) {
                         return '[Circular Reference]' + other;
                     } else if(c === "Array" && value.length > 20) { //Cut arrays down to 100 samples for referencing
                         val = value.slice(value.length-20);
-                        //refs.set(val, path.join('.'));
+                       // refs.set(val, path.join('.'));
                     } else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
                         refs.set(val, path.join('.'));
-                    } else if (typeof val === 'object') {
+                    } else if (c === 'Object') {
                         let obj = {};
                         for(const prop in val) {
                             if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
