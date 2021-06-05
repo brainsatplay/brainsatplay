@@ -300,6 +300,8 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;' id='${props.id}menuspan'>User Controls:</span><input style='display:none;' type='checkbox' id='${props.id}controls' checked>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -580,6 +582,7 @@ void main(){
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
                 let hostData = this.session.getHostData(this.info.name)
 
+                //console.log(userData);
                 if (hostData && Object.keys(hostData).length != 0){
                     console.log(hostData)
                 }
