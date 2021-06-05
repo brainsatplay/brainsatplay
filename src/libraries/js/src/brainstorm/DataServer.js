@@ -378,9 +378,11 @@ class DataServer {
             let u = this.userData.get(data.username);
 
             for(const prop in data.userData) {
-                u.props[prop] = data.userData[prop];
-                if(u.updatedPropnames.indexOf(prop) < 0)
-                    u.updatedPropnames.push(prop);
+                if (prop != 'hostData'){
+                    u.props[prop] = data.userData[prop];
+                    if(u.updatedPropnames.indexOf(prop) < 0)
+                        u.updatedPropnames.push(prop);
+                }
             }
 
             let now = Date.now();
@@ -394,6 +396,11 @@ class DataServer {
             });
 
             this.appSubscriptions.forEach((o,i) => {
+
+                if (o.hostname == data.username){
+                    o.hostData = data.userData.hostData
+                }
+
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
                 }
@@ -502,7 +509,8 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    spectators:[]
+                    spectators:[],
+                    host: sub.host
                 };
                 
                 let allUsernames = [...sub.usernames,...sub.spectators]
@@ -536,6 +544,12 @@ class DataServer {
         let u = this.userData.get(username);
 
 		if(g !== undefined && u !== undefined) {
+
+            if (g.usernames.length == 0 && !spectating){
+                g.hostname = username
+                g.hostData = {}
+            }
+
             if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
                 if(spectating === true) g.spectators.push(username);
                 else {
@@ -546,8 +560,9 @@ class DataServer {
             }
 			
 			g.propnames.forEach((prop,j) => {
-				if(!(prop in u.props)) u.props[prop] = '';
-			});
+                if(!(prop in u.props)) u.props[prop] = '';
+            });
+            
             u.sessions.push(id);
             
 			//Now send to the user which props are expected from their client to the server on successful subscription
@@ -744,6 +759,8 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
+                    hostname: sub.host,
+                    hostData:sub.hostData
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users

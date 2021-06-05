@@ -55,7 +55,7 @@ export class SensoriumApplet {
         session=new Session(),
         settings=[]
     ) {
-    
+
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
@@ -340,8 +340,18 @@ void main(){
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
             
-            this.session.createIntro(this, () => {
+            this.session.createIntro(this, (info) => {
                 this.tutorialManager.init();
+
+                console.log(info)
+                if (info && info.usernames.length === 0){
+                    this.hostData = {}
+                    this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
+                    
+                    window.onkeypress = (e) => {
+                        this.hostData.key = e.code
+                    }
+                }
             });
 
 
@@ -474,9 +484,7 @@ void main(){
 
 
     // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {
-        //console.log('new data!')
-    }));
+    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
 
 
     /**
@@ -564,6 +572,12 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                let hostData = this.session.getHostData(this.info.name)
+
+                if (hostData && Object.keys(hostData).length != 0){
+                    console.log(hostData)
+                }
+
                 //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};

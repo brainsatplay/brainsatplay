@@ -1659,10 +1659,10 @@ else {
 			}
 		}
 
-		let onjoined = () => {
+		let onjoined = (g) => {
 			sessionSelection.style.opacity = 0;
 			sessionSelection.style.pointerEvents = 'none'
-			onsuccess()
+			onsuccess(g)
 		}
 		let onleave = () => {
 			sessionSearch.click()
@@ -1954,6 +1954,12 @@ else {
 	}
 
 
+	getHostData(appname){
+		let state = this.state.data.commandResult
+		if (state.msg === 'sessionData' && state.appname === appname){
+			return state.hostData
+		}
+	}
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
