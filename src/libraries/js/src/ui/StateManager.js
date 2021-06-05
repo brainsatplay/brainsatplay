@@ -400,11 +400,19 @@ if(JSON.stringifyFast === undefined) {
                     } else if (c === 'Object') {
                         let obj = {};
                         for(const prop in value) {
-                            if(Array.isArray(value[prop])) { obj[prop] = value[prop].slice(value[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
+                            if(Array.isArray(value[prop])) { 
+                                if(value[prop][p].length>20)
+                                    obj[prop] = value[prop].slice(value[prop].length-20); 
+                                else obj[prop] = value[prop];
+                            } //deal with arrays in nested objects (e.g. means, slices)
                             else if (typeof value[prop] === 'object') { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
-                                    if(Array.isArray(value[prop][p])) { obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); }
+                                    if(Array.isArray(value[prop][p])) {
+                                        if(value[prop][p].length>20)
+                                            obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
+                                        else obj[prop][p] = value[prop][p]
+                                    }
                                     else { 
                                         let con = value[prop][p].constructor.name;
                                         if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
@@ -436,7 +444,7 @@ if(JSON.stringifyFast === undefined) {
             //console.log(value, val)
             return val;
         }
-        
+
         return function stringifyFast(obj, space) {
             try {
                 parents.push(obj);
