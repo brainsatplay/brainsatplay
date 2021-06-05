@@ -8,7 +8,10 @@ export class TaskManager{
         this.params = params
         this.paramOptions = {
             paradigm: {default: 'Task', options: ['Task']},
-            duration: {default: 5, options: null}
+            duration: {default: 5, options: null},
+            trialCount: {default: 10},
+            trialTypes: {default:['Go', 'No Go'], show: false},
+            trialProgression: {default: [], show: false},
         }
 
         this.ports = {
@@ -26,6 +29,14 @@ export class TaskManager{
     init = () => {
         // Start Task Loop
         this._taskLoop()
+
+        // Create Random Progression
+        for (let i = 0; i < this.params.trialCount; i ++){
+            if (this.params.trialProgression.length-1 < i){
+                let choice = Math.floor(this.params.trialTypes.length * Math.random())
+                this.params.trialProgression.push(this.params.trialTypes[choice])
+            }
+        }
     }
 
     deinit = () => {
