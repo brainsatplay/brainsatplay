@@ -321,7 +321,7 @@ export class AppletManager {
                             config = this.appletConfigs[i].settings;
                         }
 
-                        let clsInstance = this.createInstance(appletCls, appletInfo[1])
+                        let clsInstance = this.createInstance(appletCls, appletInfo[1], config)
 
                         this.applets[i] = {
                             appletIdx: i + 1,
@@ -611,11 +611,11 @@ export class AppletManager {
     }
 
 
-    createInstance = (appletCls, info=undefined) => {
+    createInstance = (appletCls, info={}, config=[]) => {
         if (appletCls === Application){
-            return new Application(info, "applets", this.session, [])
+            return new Application(info, "applets", this.session, config)
         } else {
-            return new appletCls("applets", this.session, [])
+            return new appletCls("applets", this.session, config)
         }
     }
 
