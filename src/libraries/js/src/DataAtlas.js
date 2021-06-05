@@ -650,6 +650,13 @@ export class DataAtlas {
 		}
 	}
 
+	mode(arr){
+		return arr.sort((a,b) =>
+			  arr.filter(v => v===a).length
+			- arr.filter(v => v===b).length
+		).pop();
+	}
+
 	//Report moving average of frontal coherence
 	getCoherenceScore = (coh_data,band='alpha1') => {
 		let scores = []

@@ -105,8 +105,6 @@ export class PluginManager{
             node.ports = {}
         }
 
-        console.log(node.label, activePorts)
-
         activePorts.forEach(p => {
 
             // Add Ports Variable + Show If Active
