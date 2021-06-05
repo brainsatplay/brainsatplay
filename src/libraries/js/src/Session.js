@@ -2034,7 +2034,6 @@ class deviceStream {
 	}
 
 	configureRoutes = (stateManagerArray, parentNode=document.body) => {
-
 		this.info.events.addControls(stateManagerArray,parentNode)
     }
 

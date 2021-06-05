@@ -208,9 +208,9 @@ export class EventRouter{
         let setup = () => {
             let updateButton = document.getElementById(`${this.id}routerControls`).querySelector('button')
             updateButton.style.display = 'none'
-           updateButton.onclick = () => {
-            this.updateRouteDisplay(stateManagerArray)
-           }
+            updateButton.onclick = () => {
+                    this.updateRouteDisplay(stateManagerArray)
+            }
             this.updateRouteDisplay(stateManagerArray)
         }
 
@@ -224,7 +224,6 @@ export class EventRouter{
 
     registerControls(controls){
         this.availableControls = controls
-        console.log(this.availableControls)
     }
 
     updateRouteDisplay(stateManagerArray=this.managers, autoroute=true){
@@ -265,7 +264,6 @@ export class EventRouter{
                         } catch (e) {}
                     }
 
-                    console.log(this.state.data)
                     if ('meta' in this.state.data[id] && 'data' in this.state.data[id]){
                         let div = document.createElement('div')
                         div.style.padding = '10px'
