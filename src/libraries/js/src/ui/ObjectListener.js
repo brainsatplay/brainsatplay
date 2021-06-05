@@ -465,12 +465,15 @@ if(JSON.stringifyFast === undefined) {
                     else if (c === 'Object') {
                         let obj = {};
                         for(const prop in value) {
-                            if(Array.isArray(value[prop])) { 
+                            if (value[prop] == null){
+                                obj[prop] = value[prop]; 
+                            }
+                            else if(Array.isArray(value[prop])) { 
                                 if(value[prop].length>20)
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
                             } //deal with arrays in nested objects (e.g. means, slices)
-                            else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
+                            else if (value[prop].constructor == Object) { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
                                     if(Array.isArray(value[prop][p])) {
@@ -479,12 +482,16 @@ if(JSON.stringifyFast === undefined) {
                                         else obj[prop][p] = value[prop][p];
                                     }
                                     else { 
-                                        let con = value[prop][p].constructor.name;
-                                        if (con.includes("Set")) {
-                                            obj[prop][p] = Array.from(value[prop][p])
-                                        } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                            obj[prop][p] = "instanceof_"+con;
-                                        }  else {
+                                        if (value[prop][p] != null){
+                                            let con = value[prop][p].constructor.name;
+                                            if (con.includes("Set")) {
+                                                obj[prop][p] = Array.from(value[prop][p])
+                                            } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                                obj[prop][p] = "instanceof_"+con;
+                                            }  else {
+                                                obj[prop][p] = value[prop][p]; 
+                                            }
+                                        } else {
                                             obj[prop][p] = value[prop][p]; 
                                         }
                                     }

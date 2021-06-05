@@ -1,34 +1,37 @@
 
 import {UI} from './UI.js'
+import {TaskManager} from './TaskManager.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "My First Applet",
+    name: "Benchmarker",
     devices: ["EEG"],
     author: "Brains@Play",
-    description: "This is my first applet.",
+    description: "Benchmark your first Brains@Play plugin.",
     categories: ["tutorial"],
     instructions:"Coming soon...",
-    intro: {
-      mode: 'single'
-    },
     
     // App Logic
     graphs: [
       {
-      id: 'mygraph',
+      id: 'benchmark',
       nodes: [
-        {id: 'ui', class: UI, params: {}},
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
+        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
+        {id: 'task', class: TaskManager, params: {}},
+        {id: 'ui', class: UI, params: {}},
       ],
       edges: [
         {
           source: 'signal', 
-          target: 'neurofeedback'
+          target: 'My Algorithm'
         },
         {
-          source: 'neurofeedback', 
+          source: 'My Algorithm', 
+          target: 'ui'
+        },
+        {
+          source: 'task', 
           target: 'ui'
         }
       ]

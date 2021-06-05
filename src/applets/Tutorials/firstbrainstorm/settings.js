@@ -6,7 +6,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 export const settings = {
     name: "My First Brainstorm",
     devices: ["EEG"],
-    author: "Me",
+    author: "Brains@Play",
     description: "This is my first brainstorm.",
     categories: ["tutorial","brainstorm"],
     instructions:"Coming soon...",

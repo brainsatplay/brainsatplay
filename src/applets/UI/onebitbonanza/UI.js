@@ -44,11 +44,11 @@ class UI{
         // Operator Configuration 
         this.paramOptions = {
             timeLimit: {
-                default: 10,
+                default: 60, // 60 Seconds
                 options: null,
                 min: 0,
-                max: 25,
-                step: 0.1
+                max: 60*10, // 10 Minutes
+                step: 0.5
             }
         }
     }

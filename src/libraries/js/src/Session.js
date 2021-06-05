@@ -1246,7 +1246,6 @@ else {
 					for (let param in node.params){
 						params += `<p>${param}: ${node.params[param]}</p>`
 					}
-					console.log(node)
 					nodeDiv.insertAdjacentHTML('beforeend',`
 					<div class="brainsatplay-default-node">
 						<h3>${node.label}</h3>

@@ -37,23 +37,28 @@ class UI{
         let HTMLtemplate = () => {
             return `
             <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-                <canvas id="${this.props.id}gameCanvas" width="400" height="400" style="border: 1px solid white;" ></canvas>
+                <canvas id="${this.props.id}gameCanvas" style="border: 1px solid white;" ></canvas>
             </div>`
         }
 
 
         let setupHTML = (app) => {
 
+const container = document.getElementById(`${this.props.id}`);
 const canvas = document.getElementById(`${this.props.id}gameCanvas`);
 const context = canvas.getContext("2d");
 
+let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
+canvas.width = squareLength
+canvas.height = squareLength
+
 this.props.snake = [{
-    x: Math.floor(400*Math.random()/10)*10, 
-    y:Math.floor(400*Math.random() /10)*10    
+    x: Math.floor(canvas.width*Math.random()/10)*10, 
+    y:Math.floor(canvas.height*Math.random() /10)*10    
 }]
 let initialGoal = {
-    x: Math.floor(400*Math.random()/10)*10, 
-    y:Math.floor(400*Math.random() /10)*10
+    x: Math.floor(canvas.width*Math.random()/10)*10, 
+    y:Math.floor(canvas.height*Math.random() /10)*10
 }
 let currentGoal = initialGoal;
 
@@ -98,33 +103,41 @@ const moveSnake = () => {
                         x: currentGoal.x,
                         y: currentGoal.y
                     })
-                    currentGoal = {x: Math.floor(400*Math.random()/this.props.speed)*this.props.speed, y:Math.floor(400*Math.random() /this.props.speed)*this.props.speed}
+                    currentGoal = {x: Math.floor(canvas.width*Math.random()/this.props.speed)*this.props.speed, y:Math.floor(canvas.height*Math.random() /this.props.speed)*this.props.speed}
                     clearCanas()
                     drawSnack({x: currentGoal.x,y:currentGoal.y})
                     this.props.snake.forEach(drawSnake);
                     moveSnake()
                 }
-                if(this.props.snake[0].x >= 400){
+                if(this.props.snake[0].x >= canvas.width){
                     this.props.snake[0].x = 0;
                 }
                 if(this.props.snake[0].x < 0){
-                    this.props.snake[0].x = 400;
+                    this.props.snake[0].x = canvas.width;
                 }
-                if(this.props.snake[0].y >= 400){
+                if(this.props.snake[0].y >= canvas.height){
                     this.props.snake[0].y = 0;
                 }
                 if(this.props.snake[0].y < 0){
-                    this.props.snake[0].y = 400;
+                    this.props.snake[0].y = canvas.height;
                 }
                 main()
                 },500)
             }
 
             main()
-
         }
 
         return {HTMLtemplate, setupHTML}
+    }
+
+    responsive = () => {
+        const container = document.getElementById(`${this.props.id}`);
+        const canvas = document.getElementById(`${this.props.id}gameCanvas`);
+        let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
+        canvas.width = squareLength
+        canvas.height = squareLength
+        console.log('responding')
     }
 
     default = (userData) => {

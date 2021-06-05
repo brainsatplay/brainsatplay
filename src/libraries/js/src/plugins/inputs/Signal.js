@@ -17,7 +17,12 @@ export class Signal{
         this.ports = {
             default: {
                 defaults: {
-                    output: [{data: {}, meta: {label: 'signal'}}]
+                    output: [{data: {}, meta: {label: `signal_${this.paramOptions.device.default}`}}]
+                },
+            }, 
+            fft: {
+                defaults: {
+                    output: [{data: {}, meta: {label: `signal_${this.paramOptions.device.default}_fft`}}]
                 }
             }
         }
@@ -66,15 +71,31 @@ export class Signal{
 
     default = () => {
         this.states['default'].data = this.session.atlas.data
+        this.states['default'].meta.label = `signal_${this.params.device}`
         return this.states['default']
+    }
+
+    fft = () => {
+        let channel = this.session.atlas.getLatestFFTData()[0];
+        if(channel) this.states['fft'].data = channel.fft;
+        else this.states['fft'].data = new Array(256).fill(0);
+        this.states['fft'].meta.label = `signal_${this.params.device}_fft`
+        return this.states['fft']
     }
 
 
     _subscribeToDevices(arr) {
         arr.forEach(k => {
             if (k.includes('device')){
+
+                let callbacks = []
+                for (let port in this.ports){
+                    if (this.ports[port].active) callbacks.push(this[port])
+                }
                 this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
-                    this.default()
+                    callbacks.forEach(f => {
+                        f()
+                    })
                 }, this.props.state)
             }
         })

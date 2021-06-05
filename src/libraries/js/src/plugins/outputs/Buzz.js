@@ -61,8 +61,8 @@ export class Buzz{
         return userData
     }
 
-    motors = (userData) => {     
-
+    motors = (userData) => {    
+        
         if (this.device){
             // Vibrate Wrist Based on Frequencies (Single User)
             let motorCommand = this.device.mapFrequencies(userData[0].data)
@@ -82,7 +82,10 @@ export class Buzz{
             let i1 = Math.min(mean/.33,1)
             let i2 = (i1 === 1 ? Math.min((mean-.33)/.33,1) : 0)
             let i3 = (i2 === 1 ? Math.min((mean-.66)/.33,1) : 0)
-            this.device.setLEDs([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
+
+            let ledColors = [[0,255,0],[0,255,0],[0,255,0]]
+            let ledIntensities = [i1,i2,i3]
+            this.device.setLEDs(ledColors, ledIntensities)
         }
 
         return userData
