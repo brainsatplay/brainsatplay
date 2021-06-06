@@ -349,7 +349,8 @@ void main(){
 
                 console.log(info)
                 if (info && info.usernames.length === 0){
-                    this.hostData = {}
+                    this.hostData = {};
+
                     this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
                     
                     window.onkeypress = (e) => {
@@ -596,7 +597,7 @@ void main(){
                 let hostData = this.session.getHostData(this.info.name);
 
                 if (hostData){
-                    console.log(hostData);
+                    console.log(hostData.data.config);
                     if(this.session.info.auth.username === hostData.username && !this.isHost) {
                         this.isHost = true;
                         document.getElementById(this.props.id+'submitconfig').style.display = '';
@@ -607,7 +608,7 @@ void main(){
                         document.getElementById(this.props.id+'submitconfig').style.display = 'none';
                         document.getElementById(this.props.id+'menuspan').style.display = 'none';
                         document.getElementById(this.props.id+'controls').style.display = 'none';
-                    
+                        
                     }
                 }
 
@@ -897,9 +898,10 @@ void main(){
     */
     getCurrentConfiguration = (includeSounds=false) => {
         let settings = [];
+        console.log(this.effects)
         this.effects.forEach((e,j) => {
             settings.push({
-                feedback:e.feedback
+                feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
                 if(e.sourceIdx) {
