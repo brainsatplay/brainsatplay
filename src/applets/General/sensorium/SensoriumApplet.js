@@ -258,6 +258,8 @@ export class SensoriumApplet {
 
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
+        this.isHost = false;
+        this.hostSoundsUpdated = false;
 
         this.history = 5; 
 
@@ -469,6 +471,17 @@ void main(){
             showhide.onmouseleave = () => {
                 showhide.style.opacity = 0.2;
             }
+
+            document.getElementById(this.props.id+'submitconfig').onclick = () => {
+                let config;
+                if(this.hostSoundsUpdated) {
+                    config = this.getCurrentConfiguration(true);
+                    this.hostSoundsUpdated = true;
+                } else {
+                    config = this.getCurrentConfiguration(false);
+                }
+                this.hostData.config = config;
+            }
         }
 
 
@@ -580,10 +593,22 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                let hostData = this.session.getHostData(this.info.name)
+                let hostData = this.session.getHostData(this.info.name);
 
-                if (hostData && Object.keys(hostData.data).length != 0){
-                    console.log(hostData)
+                if (hostData){
+                    console.log(hostData);
+                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
+                        this.isHost = true;
+                        document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        document.getElementById(this.props.id+'menuspan').style.display = '';
+                        document.getElementById(this.props.id+'controls').style.display = '';
+                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
+                        this.isHost = false;
+                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                        document.getElementById(this.props.id+'controls').style.display = 'none';
+                    
+                    }
                 }
 
                 //console.log(userData)
@@ -1039,8 +1064,10 @@ void main(){
                             fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
+                            this.hostSoundsUpdated = false;
                         }
                     });
+                   
                 }
             } else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
@@ -1068,6 +1095,7 @@ void main(){
         
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
@@ -1094,6 +1122,7 @@ void main(){
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
