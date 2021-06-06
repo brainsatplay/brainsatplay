@@ -47,12 +47,12 @@ export let presetManifest = [
         lock: false
     },
     {
-        value: 'randomizer',
-        name: "Randomizer",
+        value: 'onebitbonanza',
+        name: "One Bit Bonanza",
         applets: [
-            'Randomizer',
+            'One Bit Bonanza',
         ],
-        description: "Experience a random applet every 10 seconds!",
+        description: "Experience a random low-bandwidth game every 10 seconds!",
         type: "All",
         image: placeholderImg,
         lock: true	

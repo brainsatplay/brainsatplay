@@ -5,7 +5,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 export const settings = {
     name: "My First Applet",
     devices: ["EEG"],
-    author: "Me",
+    author: "Brains@Play",
     description: "This is my first applet.",
     categories: ["tutorial"],
     instructions:"Coming soon...",
@@ -19,7 +19,7 @@ export const settings = {
       id: 'mygraph',
       nodes: [
         {id: 'ui', class: UI, params: {}},
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, loop: true},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
       ],
       edges: [

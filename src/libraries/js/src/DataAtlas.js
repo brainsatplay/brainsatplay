@@ -88,11 +88,7 @@ export class DataAtlas {
 			ecg:[],
 			eyetracker:[],
 			other:{notes:[],games:{}},
-			states: {
-				generic: [],
-				blink: [],
-				intent: []
-			}
+			states: {} // Dynamically assigned discrete and continuous events (in Event Router)
 		};
 
         Object.assign(this.data,initialData);
@@ -654,6 +650,13 @@ export class DataAtlas {
 		}
 	}
 
+	mode(arr){
+		return arr.sort((a,b) =>
+			  arr.filter(v => v===a).length
+			- arr.filter(v => v===b).length
+		).pop();
+	}
+
 	//Report moving average of frontal coherence
 	getCoherenceScore = (coh_data,band='alpha1') => {
 		let scores = []
@@ -748,8 +751,8 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graphs.getNode(this.props.id, 'blink')
 		this.graphs.updateParams(node, params)
-		let blink = this.graphs.runSafe([this.data],node)
-		return blink.data
+		let blink = this.graphs.runSafe([{data: this.data, meta: {}}],node)
+		return blink[0].data
 	}
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped

@@ -108,6 +108,7 @@ export class eeg32Plugin {
             },
             ()=>{
                 this.atlas.settings.analyzing = false;
+                this.atlas.settings.deviceConnected = false;
                 this.ondisconnect();
             }
         );

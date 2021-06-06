@@ -8,11 +8,14 @@ export const settings = {
     devices: ["EEG"],
     author: "Christopher Coogan + Garrett Flynn",
     description: "Snake + BCI2000.",
-    categories: ["tutorial"],
+    categories: ["Train"],
     // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {
       mode: 'single'
+    },
+    bonanza: {
+      minTime: 60, // s
     },
     // App Logic
     graphs: [
@@ -23,8 +26,8 @@ export const settings = {
         {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
         {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
+        // {id: 'mouse', class: brainsatplay.plugins.outputs.Mouse, params: {}},
         {id: 'ui', class: UI, params: {}},
-        
         // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
       ],
       edges: [

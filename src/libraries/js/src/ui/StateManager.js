@@ -9,12 +9,14 @@ export class StateManager {
         this.data = init;
         this.interval = interval;
         this.pushToState={};
-        this.prev = Object.assign({},this.data);
-        this.update = {added:'', removed: '', buffer: new Set()}
-                
+        this.pushRecord={pushed:[]}; //all setStates between frames
+        this.pushCallbacks = {};
+
         this.listener = new ObjectListener();
 
         /*
+        this.prev = Object.assign({},this.data);
+         
         const onStateChanged = () => {
             this.prev = Object.assign({},this.data);
             //this.prev=JSON.parse(JSON.stringifyFast(this.data));
@@ -29,7 +31,6 @@ export class StateManager {
             interval,
         );
         */
-
     }
 
     setInterval(interval="FRAMERATE") {
@@ -49,23 +50,21 @@ export class StateManager {
         }    
     }
 
-    removeState(key){
-            this.unsubscribeAll(key);
+    removeState(key, sequential=false){
+            if (sequential) this.unsubscribeAllSequential(key);
+            else this.unsubscribeAll(key);
             delete this.data[key]
 
             // Log Update
-            this.update.removed = key
-            this.update.buffer.add( key )
+            this.setSequentialState({stateRemoved: key})
     }
 
-    //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
-    addToState(key, value, onchange=null, debug=false) {
-        if(!this.listener.hasKey('push')) {
-
+    setupSynchronousUpdates = () => {
+        if(!this.listener.hasKey('pushToState')) {
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {
-                    Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
+                    //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
                     //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
@@ -76,33 +75,147 @@ export class StateManager {
             }
     
             this.listener.addListener(
-                "push",
+                "pushToState",
                 this.pushToState,
                 "__ANY__",
                 pushToStateResponse,
                 this.interval
             );
+
+            this.addToState('pushRecord',this.pushRecord,(record)=>{
+
+                for (let i = record.pushed.length-1; i >= 0; i--){
+                    let updateObj = record.pushed[i]
+                        for(const prop in updateObj) {
+                            if(this.pushCallbacks[prop]) {
+                                this.pushCallbacks[prop].forEach((onchange) =>{
+                                    onchange(updateObj[prop]);
+                                });
+                            }
+                        }
+                    this.pushRecord.pushed.splice(i,1)
+                }
+            });
+
+            this.data.pushCallbacks = this.pushCallbacks;
+
+        }
+    }
+
+    //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
+    addToState(key, value, onchange=null, debug=false) {
+        if(!this.listener.hasKey('pushToState')) {
+            this.setupSynchronousUpdates();
         }
 
         this.data[key] = value;
 
         // Log Update
-        this.update.added = key
-        this.update.buffer.add( key )
+        this.setSequentialState({stateAdded: key})
 
         if(onchange !== null){
             return this.addSecondaryKeyResponse(key,onchange,debug);
         }
     }
 
-    getState() { //Return a hard copy of the latest state with reduced values
+    getState() { //Return a hard copy of the latest state with reduced values. Otherwise just use this.state.data
         return JSON.parse(JSON.stringifyFast(this.data));
     }
 
-    setState(updateObj={}){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
+    //Synchronous set-state, only updates main state on interval. Can append arrays instead of replacing them
+    setState(updateObj={},appendArrs=true){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
+        if(!this.listener.hasKey('pushToState')) {
+            this.setupSynchronousUpdates();
+        }
+
+        updateObj.stateUpdateTimeStamp = Date.now();
+        this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
+        
+        if(appendArrs) {
+            for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
+                if(this.pushToState[prop]) {
+                    if(Array.isArray(this.pushToState[prop]) && Array.isArray(updateObj[prop])) {
+                        updateObj[prop] = this.pushToState[prop].push(...updateObj[prop]);
+                    } else if (typeof this.pushToState[prop] === 'object' && typeof updateObj[prop] === 'object') {
+                        for(const p in updateObj[prop]) {
+                            if(this.pushToState[prop][p]) {
+                                if(Array.isArray(this.pushToState[prop][p]) && Array.isArray(updateObj[prop][p])) {
+                                    updateObj[prop][p] = this.pushToState[prop][p].push(...updateObj[prop][p]);
+                                }
+                                else if (typeof this.pushToState[prop][p] === 'object' && typeof updateObj[prop][p] === 'object') {
+                                    for(const p2 in updateObj[prop][p]) {
+                                        if(this.pushToState[prop][p][p2]) {
+                                            if(Array.isArray(this.pushToState[prop][p][p2]) && Array.isArray(updateObj[prop][p][p2])) {
+                                                updateObj[prop][p][p2] = this.pushToState[prop][p][p2].push(...updateObj[prop][p][p2]);
+                                            }
+                                        }
+                                        else if (typeof this.pushToState[prop][p][p2] === 'object' && typeof updateObj[prop][p][p2] === 'object') {
+                                            for(const p3 in updateObj[prop][p][p2]) {
+                                                if(this.pushToState[prop][p][p2][p3]) {
+                                                    if(Array.isArray(this.pushToState[prop][p][p2][p3]) && Array.isArray(updateObj[prop][p][p2][p3])) {
+                                                        updateObj[prop][p][p2][p3] = this.pushToState[prop][p][p2][p3].push(...updateObj[prop][p][p2][p3]);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Object.assign(this.pushToState,updateObj);
         return this.pushToState;
+    }
+
+    //only push to an object that keeps the sequences of updates instead of synchronously updating the whole state.
+    setSequentialState(updateObj={}) {
+        //console.log("setting state");
+        if(!this.listener.hasKey('pushToState')) {
+            this.setupSynchronousUpdates();
+        }
+        updateObj.stateUpdateTimeStamp = Date.now();
+        this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
+    }
+
+    subscribeSequential(key=undefined,onchange=undefined) {
+        if(key) {
+            
+            if(this.data[key] === undefined) {this.addToState(key,null,undefined);}
+
+            if(!this.pushCallbacks[key])
+                this.pushCallbacks[key] = [];
+
+            if(onchange) {
+                this.pushCallbacks[key].push(onchange);
+                return this.pushCallbacks[key].length-1; //get key sub index for unsubscribing
+            } 
+            else return undefined;
+        } else return undefined;
+    }
+
+    unsubscribeSequential(key=undefined,idx=0) {
+        if(key){
+            if(this.pushCallbacks[key]) {
+                if(this.pushCallbacks[key][idx]) {
+                    this.pushCallbacks[key].splice(idx,1);
+                }
+            }
+        }
+    }
+
+    unsubscribeAllSequential(key) {
+        if(key) {
+            if(this.pushCallbacks[key]) {
+                if(this.pushCallbacks[key]) {
+                    delete this.pushCallbacks[key];
+                }
+            }
+        }
     }
 
     //Set main onchange response for the property-specific object listener. Don't touch the state
@@ -148,12 +261,18 @@ export class StateManager {
         if(this.listener.hasKey(key)) this.listener.remove(key);
     }
 
+    //Get all of the onchange functions added via subscribe/addSecondaryKeyResponse
+    getKeySubCallbacks(key) {
+        let callbacks = this.listener.getFuncs(key);
+        return callbacks;
+    }
+
     //Save the return value to provide as the responseIdx in unsubscribe
     subscribe(key, onchange) {
         if(this.data[key] === undefined) {this.addToState(key,null,onchange);}
         else {return this.addSecondaryKeyResponse(key,onchange);}
     }
-
+    
     //Unsubscribe from the given key using the index of the response saved from the subscribe() function
     unsubscribe(key, responseIdx=null) {
         if(responseIdx !== null) this.removeSecondaryKeyResponse(key, responseIdx);
@@ -203,33 +322,76 @@ if(JSON.stringifyFast === undefined) {
             }
         }
 
+        
         function checkValues(key, value) {
-            let val = value;
-            if (val !== null) {
+            let val;
+            if (value != null) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
-                    let other = refs.get(val);
                     let c = value.constructor.name;
-                    if (other) {
-                        return '[Circular Reference]' + other;
-                    } else if(c === "Array" && value.length > 20) { //Cut arrays down to 100 samples for referencing
-                        val = value.slice(value.length-20);
-                        refs.set(val, path.join('.'));
-                    } else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                    if(c === "Array") { //Cut arrays down to 100 samples for referencing
+                        if(value.length > 20) {
+                            val = value.slice(value.length-20);
+                        } else val = value;
+                       // refs.set(val, path.join('.'));
+                    }  
+                    else if (c.includes("Set")) {
+                        val = Array.from(value);
+                    }  
+                    else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
-                        refs.set(val, path.join('.'));
-                    } else if (typeof val === 'object') {
+                    }
+                    else if (c === 'Object') {
                         let obj = {};
-                        for(const prop in val) {
-                            if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
-                            else { obj[prop] = val[prop]; }
+                        for(const prop in value) {
+                            if(Array.isArray(value[prop])) { 
+                                if(value[prop].length>20)
+                                    obj[prop] = value[prop].slice(value[prop].length-20); 
+                                else obj[prop] = value[prop];
+                            } //deal with arrays in nested objects (e.g. means, slices)
+                            else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
+                                obj[prop] = {};
+                                for(const p in value[prop]) {
+                                    if(Array.isArray(value[prop][p])) {
+                                        if(value[prop][p].length>20)
+                                            obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
+                                        else obj[prop][p] = value[prop][p];
+                                    }
+                                    else { 
+                                        let con = value[prop][p].constructor.name;
+                                        if (con.includes("Set")) {
+                                            obj[prop][p] = Array.from(value[prop][p]);
+                                        } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                            obj[prop][p] = "instanceof_"+con;
+                                        }  else {
+                                            obj[prop][p] = value[prop][p]; 
+                                        }
+                                    }
+                                }
+                            }
+                            else { 
+                                let con = value[prop].constructor.name;
+                                if (con.includes("Set")) {
+                                    obj[prop] = Array.from(value[prop]);
+                                } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                    obj[prop] = "instanceof_"+con;
+                                } else {
+                                    obj[prop] = value[prop]; 
+                                }
+                            }
                         }
+                        //console.log(obj, value)
+                        val = obj;
+                        //refs.set(val, path.join('.'));
                     }
                     else {
-                        refs.set(val, path.join('.'));
+                        val = value;
                     }
+                } else {
+                    val = value;
                 }
             }
+            //console.log(value, val)
             return val;
         }
 

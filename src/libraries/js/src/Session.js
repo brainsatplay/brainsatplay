@@ -103,6 +103,7 @@ export class Session {
 				password: password,
 				authenticated: false
 			},
+			apps: {},
 			subscriptions: [],
 		}
 
@@ -203,6 +204,7 @@ export class Session {
 			}
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
+
 			onconnect(newStream);
 			this.onconnected();
 		}
@@ -229,6 +231,10 @@ export class Session {
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
 			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+			for (let id in this.info.apps){
+				newStream.info.events.addApp(id, this.info.apps[id].controls)
+			}
+			newStream.info.events.updateRouteDisplay()
 		}
 
 		return newStream
@@ -525,32 +531,31 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceName = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }) => {
+	subscribe = (deviceType = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null;
-		if (deviceName.toLowerCase().indexOf('eeg') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
+		if (deviceType.toLowerCase().indexOf('eeg') > -1 ){//|| deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
 			atlasDataProp = 'eeg';
-			if (atlasTag === 'shared') { atlasTag = 'eeghared'; }
+			if (atlasTag === 'shared') { atlasTag = 'eegshared'; }
 		}
-		else if (deviceName.toLowerCase().indexOf('heg') > -1) {
+		else if (deviceType.toLowerCase().indexOf('heg') > -1) {
 			atlasDataProp = 'heg';
 			if (atlasTag === 'shared') { atlasTag = 'hegshared'; }
 		}
 
 		if (atlasDataProp !== null) {
 			let device = this.deviceStreams.find((o, i) => {
-				if (o.info.deviceName.indexOf(deviceName) > -1 && o.info.useAtlas === true) {
+				if (o.info.deviceType.indexOf(deviceType) > -1 && o.info.useAtlas === true) {
 					let coord = undefined;
-					if (typeof atlasTag === 'string') { if (atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null); }
+					if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null);
 					else if (atlasTag === null || atlasTag === 'all') { coord = o.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
 					else coord = o.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
-
 					if (coord !== undefined) {
 						if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
-							sub = this.state.addToState(atlasTag, coord, onData);
+							sub = stateManager.addToState(deviceType + '_' + atlasTag, coord, onData);
 						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
-							sub = this.state.addToState(atlasTag + "_" + prop, coord[prop], onData);
+							sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
 						}
 					}
 					return true;
@@ -628,15 +633,18 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id, responseIdx, manager = this.state) {
+	removeStreaming(id, responseIdx, manager = this.state, sequential=false) {
 		if (responseIdx == null){
-			manager.removeState(id)
-			manager.removeState(id+"_flag")
+			manager.removeState(id, sequential)
+			manager.removeState(id+"_flag", sequential)
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			manager.unsubscribe(id, responseIdx); //unsub state
+			if (sequential) {
+				manager.unsubscribeSequential(id, responseIdx); //unsub state
+			}
+			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 
 
@@ -848,7 +856,7 @@ else {
 
 	processSocketMessage(received = '') {
 		let parsed = JSON.parse(received);
-
+		console.log(received);
 		if (!parsed.msg) {
 			console.log(received);
 			return;
@@ -936,26 +944,28 @@ else {
 
 	async setupWebSocket(auth = this.info.auth) {
 
-		let encodeForSubprotocol = (info) => {
-			return info.replace(' ', '%20')
-		}
+		return new Promise(resolve => {
 
-		let socket = null;
-		let subprotocol = [
-			'username&' + encodeForSubprotocol(auth.username),
-			'password&' + encodeForSubprotocol(auth.password),
-			'origin&' + encodeForSubprotocol('brainsatplay.js')
-		];
-		if (auth.url.protocol === 'http:') {
-			socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
-		} else if (auth.url.protocol === 'https:') {
-			socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
-		} else {
-			console.log('invalid protocol');
-			return;
-		}
+			let encodeForSubprotocol = (info) => {
+				return info.replace(' ', '%20')
+			}
 
-		let wsPromise = new Promise((resolve, reject) => {
+			let socket = null;
+			let subprotocol = [
+				'username&' + encodeForSubprotocol(auth.username),
+				'password&' + encodeForSubprotocol(auth.password),
+				'origin&' + encodeForSubprotocol('brainsatplay.js')
+			];
+
+			if (auth.url.protocol === 'http:') {
+				socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
+			} else if (auth.url.protocol === 'https:') {
+				socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
+			} else {
+				console.log('invalid protocol');
+				return;
+			}
+
 			socket.onerror = (e) => {
 				console.log('error', e);
 			};
@@ -974,7 +984,6 @@ else {
 				console.log('close');
 			}
 		})
-		return wsPromise
 	}
 
 	subscribeToUser(username = '', userProps = [], onsuccess = (newResult) => { }) { // if successful, props will be available in state under this.state.data['username_prop']
@@ -1102,12 +1111,12 @@ else {
 
 	//connect using the unique id of the subscription
 	subscribeToSession(sessionid, spectating = false, onsuccess = (newResult) => { }) {
-		console.log(this.info.auth.username)
 		if (this.socket !== null && this.socket.readyState === 1) {
+
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
+			
 			let sub = this.state.subscribe('commandResult', (newResult) => {
-
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
@@ -1159,7 +1168,136 @@ else {
 	}
 
 
-	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
+	// App Management
+	startApp(appId){
+		let info = this.graphs.start(appId)
+		this.info.apps[appId] = {streams: info.streams, controls: info.controls}
+
+		// Update Routing UI
+		this.deviceStreams.forEach(d => {
+			if (d.info.events) {
+				d.info.events.addApp(appId, this.info.apps[appId].controls)
+				d.info.events.updateRouteDisplay()
+			}
+		})
+
+		return info
+	}
+
+	registerApp(appId,appName,graphs){
+		return this.graphs.add(appId, appName, graphs)
+	}
+
+	removeApp(appId){
+		let info = this.graphs.stop(appId)
+		
+		// Update Routing UI
+		this.deviceStreams.forEach(d => {
+			if (d.info.events) {
+				d.info.events.removeApp(appId)
+				d.info.events.updateRouteDisplay()
+			}
+		})
+
+		delete this.info.apps[appId]
+
+		return info
+	}
+
+
+	addNodeEditor(applet, parentNode = document.body, onsuccess = () => { }){
+
+		let ui
+		let plugins = this.graphs.applets[applet.props.id]
+
+		if (plugins){
+			let template = () => {
+				return `
+				<div id="${this.id}nodeEditorMask" class="brainsatplay-default-container" style="
+				z-index: 999;
+				opacity: 0; 
+				transition: opacity 1s;
+				pointer-events: none;
+				">
+				<div id="${this.id}nodeEditor" class="brainsatplay-node-editor">
+				</div>
+				</div>
+				`}
+
+			let setup = () => {
+				let container = document.getElementById(`${this.id}nodeEditorMask`)
+				let editor = document.getElementById(`${this.id}nodeEditor`)
+
+				// Resize Editor
+				let closeUI = () => {
+					ui.node.style.opacity = '0'
+					window.removeEventListener('resize', resizeDisplay)
+					setTimeout(() => {ui.deleteNode()},t*1000)
+				}
+
+
+				const resizeDisplay = () => {
+					let padding = 50;
+					container.style.padding = `${padding}px`
+					editor.style.height = `${container.offsetHeight - 2 * padding}px`
+					editor.style.width = `${container.offsetWidth - 2 * padding}px`
+				}
+
+				// let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
+				// exitBrowser.onclick = closeUI
+
+				resizeDisplay()
+				window.addEventListener('resize', resizeDisplay)
+
+				// Populate Nodes
+				let nodeDiv = document.createElement('div')
+				nodeDiv.className = 'brainsatplay-default-node-div'
+
+				editor.insertAdjacentHTML('beforeend',`<h2>Nodes</h2>`)
+				for (let key in plugins.nodes){
+					let node = plugins.nodes[key].instance
+					let params = ``
+					for (let param in node.params){
+						params += `<p>${param}: ${node.params[param]}</p>`
+					}
+					nodeDiv.insertAdjacentHTML('beforeend',`
+					<div class="brainsatplay-default-node">
+						<h3>${node.label}</h3>
+						${params}
+					</div>
+					`)
+				}
+				editor.insertAdjacentElement('beforeend',nodeDiv)
+
+				// Populate Edges
+				let edgeDiv = document.createElement('div')
+				edgeDiv.className = 'brainsatplay-default-node-div'
+
+				editor.insertAdjacentHTML('beforeend',`<h2>Edges</h2>`)
+				for (let key in plugins.edges){
+					let edge = plugins.edges[key]
+					edgeDiv.insertAdjacentHTML('beforeend',`
+					<div class="brainsatplay-default-node">
+						<h3>${edge.source} — ${edge.target}</h3>
+					</div>`
+					)
+				}
+				editor.insertAdjacentElement('beforeend',edgeDiv)
+			}
+
+			ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		}
+
+		return ui
+	}
+
+
+	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {		
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
@@ -1452,6 +1590,19 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 
+		// Override App Settings with Configuration Settings
+		applet.settings.forEach((cmd,i) => {
+            if(typeof cmd === 'object') {
+				if (applet.info.intro == null) applet.info.intro = {}
+				if (cmd.title != null) applet.info.intro.title = cmd.title
+				if (cmd.login != null) applet.info.intro.login = cmd.login
+				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
+				if (cmd.mode != null) applet.info.intro.mode = cmd.mode
+				if (cmd.session != null) applet.info.intro.session = cmd.session
+				if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
+			}
+		})
+
 		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
@@ -1482,7 +1633,7 @@ else {
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
 			`)
 
 		// Setup HTML References
@@ -1515,11 +1666,22 @@ else {
 			multiplayer.style.pointerEvents = 'none'
 		}
 
+		// Auto-Toggle Title and Mode Selection
+		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
-		// Autoselect
 		if (applet.info.intro){
-			if (applet.info.intro.mode === 'single') solo.click()
-			if (applet.info.intro.mode === 'multi') multiplayer.click()
+			if (!showTitle){
+				const hero = document.getElementById(`${applet.props.id}appHero`)
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}
+			if (applet.info.intro.mode){
+				if (applet.info.intro.mode === 'single') solo.click()
+				if (applet.info.intro.mode === 'multi') multiplayer.click()
+				modeScreen.style.display = 'none'
+			}
 		}
 		
 		// Create Session Brower
@@ -1535,18 +1697,55 @@ else {
 			}
 		}
 
-		let onjoined = () => {
+		let onjoined = (g) => {
 			sessionSelection.style.opacity = 0;
 			sessionSelection.style.pointerEvents = 'none'
-			onsuccess()
+			onsuccess(g)
 		}
 		let onleave = () => {
 			sessionSearch.click()
-			sessionSelection.style.opacity = 1;
+			sessionSelection.style.opacity = '1';
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
 		let sessionSearch = document.getElementById(`${baseBrowserId}search`)
+
+		
+		let connectToGame = (g, spectate) => {
+
+			this.subscribeToSession(g.id, spectate, (subresult) => {
+				onjoined(g);
+
+				let leaveSession = () => {
+					this.unsubscribeFromSession(g.id, () => {
+						onleave(g);
+					});
+				}
+
+				exitSession.addEventListener('click', leaveSession)
+			});
+		}
+
+
+		let autoJoinSession = (applet, autoId) => {
+			if (autoId != null){
+				let playing = applet.info.intro.spectating != true // Default to player
+				if (playing){
+					connectToGame(autoId, false)
+				} else {
+					connectToGame(autoId, true)
+				}
+
+				// Clear Auto-Join Parameters
+				applet.info.intro.session = false
+			}
+		}
+
+		let autoId = false
+
+		if (applet.info.intro && applet.info.intro.session){
+			sessionSelection.style.opacity = '0'
+		}
 
 		sessionSearch.onclick = () => {
 
@@ -1554,48 +1753,51 @@ else {
 			this.getSessions(applet.info.name, (result) => {
 
 				let gridhtml = '';
-				result.sessions.forEach((g, i) => {
-					if (g.usernames.length < 10) { // Limit connections to the same session server
-						gridhtml += `<div><h3>` + g.id + `</h3><p>Streamers: ` + g.usernames.length + `</p><div><button id='` + g.id + `connect' style="margin-top: 5px;" class="brainsatplay-default-button">Connect</button><input id='` + baseBrowserId + `spectate' type='checkbox' style="display: none"></div></div>`
-					} else {
-						result.sessions.splice(i, 1)
-					}
-				});
 
-				document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
-
-				let connecToGame = (g) => {
-					let spectate = true
-
-					if (this.atlas.settings.deviceConnected) { spectate = false; }
-
-					this.subscribeToSession(g.id, spectate, (subresult) => {
-
-						onjoined(g);
-
-
-						let leaveSession = () => {
-							this.unsubscribeFromSession(g.id, () => {
-								onleave(g);
-							});
-						}
-
-						exitSession.addEventListener('click', leaveSession)
-					});
+				if (applet.info.intro && applet.info.intro.session){
+					let sessionToJoin = applet.info.intro.session
+					if (sessionToJoin == true) autoId = result.sessions[0]
+					else if (sessionToJoin == null) autoId = result.sessions[0]
+					else autoId = result.sessions.find(g => g.id === sessionToJoin)
+				} else {
+					autoId = false
 				}
 
 
+				if (!autoId || autoId == null){
+					
+					result.sessions.forEach((g, i) => {
+						if (g.usernames.length < 10) { // Limit connections to the same session server
+							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
+							<div style="display: flex; padding-top: 5px;">
+								<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
+								<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
+							</div>
+							</div>`
+						} else {
+							result.sessions.splice(i, 1)
+						}
+					});
+
+					document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
+
+
 				result.sessions.forEach((g) => {
-					let connectButton = document.getElementById(`${g.id}connect`)
-					connectButton.addEventListener('click', () => { connecToGame(g) })
+					let playButton = document.getElementById(`${g.id}play`)
+					let spectateButton = document.getElementById(`${g.id}spectate`)
+					playButton.addEventListener('click', () => { connectToGame(g, false) })
+					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
 				});
+			} else {
+				console.log('auto joining again')
+				autoJoinSession(applet,autoId)
+			}
 			});
 		}
 
 		// Login Screen
 		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
-
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
@@ -1609,8 +1811,10 @@ else {
 
 								if (newResult.msg === 'sessionCreated') {
 									sessionSearch.click()
-									loginScreen.style.opacity = 0;
-									loginScreen.style.pointerEvents = 'none'
+									if (loginScreen){
+										loginScreen.style.opacity = 0;
+										loginScreen.style.pointerEvents = 'none'
+									}
 									this.state.unsubscribe('commandResult', sub2);
 								}
 							})
@@ -1618,8 +1822,10 @@ else {
 
 						} else if ('getSessionsResult') {
 							this.state.unsubscribe('commandResult', sub1);
-							loginScreen.style.opacity = 0;
-							loginScreen.style.pointerEvents = 'none'
+							if (loginScreen){
+								loginScreen.style.opacity = 0;
+								loginScreen.style.pointerEvents = 'none'
+							}
 						}
 					})
 				} else {
@@ -1627,18 +1833,24 @@ else {
 				}
 			}
 
-			this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
-				let loginPage = document.getElementById(`${this.id}login-page`)
-				loginPage.style.zIndex = 4
-			}, ()=> {onsocketopen()})
-		// }
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null) {
+				this.info.googleAuth.refreshCustomData().then(data => {
+					this.info.auth.username = data.username
+				})
+			}
 
-		// Auto-set username with Google Login
-		if (this.info.googleAuth != null) {
-			this.info.googleAuth.refreshCustomData().then(data => {
-				document.getElementsByName("username")[0].value = data.username
-			})
-		}
+			// Prompt Login or Skip
+			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+
+			if (applet.info.intro && applet.info.intro.login === false){
+				this.login(true, this.info.auth, onsocketopen)
+			} else {
+				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
+					let loginPage = document.getElementById(`${this.id}login-page`)
+					loginPage.style.zIndex = 4
+				}, onsocketopen)
+			}
 	}
 
 
@@ -1660,21 +1872,23 @@ else {
 		let loaded = 0
 		const loadInc = 5
 		const loadTime = 3000
-		setTimeout(() => {
-			loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
-			loadingBarElement.style.transform = `scaleX(1)`
-		}, 1000)
-		setTimeout(() => {
-			if (loadingBarElement) {
-				loadingBarElement.classList.add('ended')
-				loadingBarElement.style.transform = ''
-			}
-			const hero = document.getElementById(`${applet.props.id}appHero`)
-			if (hero) {
-				hero.style.opacity = 0;
-				hero.style.pointerEvents = 'none'
-			}
-		}, loadTime)
+
+		if (showTitle){
+			setTimeout(() => {
+				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
+				loadingBarElement.style.transform = `scaleX(1)`
+			}, 1000)
+			setTimeout(() => {
+				if (loadingBarElement) {
+					loadingBarElement.classList.add('ended')
+					loadingBarElement.style.transform = ''
+				}
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}, loadTime)
+		}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
@@ -1775,10 +1989,10 @@ else {
 
 	waitForOpenConnection = (socket) => {
 		return new Promise((resolve, reject) => {
-			const maxNumberOfAttempts = 10
-			const intervalTime = 200 //ms
+			const maxNumberOfAttempts = 10;
+			const intervalTime = 200; //ms
 
-			let currentAttempt = 0
+			let currentAttempt = 0;
 			const interval = setInterval(() => {
 				if (currentAttempt > maxNumberOfAttempts - 1) {
 					clearInterval(interval)
@@ -1830,6 +2044,12 @@ else {
 	}
 
 
+	getHostData(appname){
+		let state = this.state.data.commandResult
+		if (state.msg === 'sessionData' && state.appname === appname){
+			return {data: state.hostData, username: state.hostname}
+		}
+	}
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
@@ -1909,8 +2129,8 @@ else {
 
 				// Plugin Format
 				if (format === 'plugin'){
-					arr[i].data = this.state.data[prop].data
-					arr[i].meta = this.state.data[prop].meta
+					arr[i].data = this.state.data[prop][0].data
+					arr[i].meta = this.state.data[prop][0].meta
 				} 
 				
 				// Default Format
@@ -1957,7 +2177,7 @@ class deviceStream {
 			sps: null,
 			useFilters: useFilters,
 			useAtlas: false,
-			simulating: false
+			simulating: false,
 		};
 
 		this.device = null, //Device object, can be instance of our device plugin classes.
@@ -2001,7 +2221,6 @@ class deviceStream {
 	}
 
 	configureRoutes = (stateManagerArray, parentNode=document.body) => {
-
 		this.info.events.addControls(stateManagerArray,parentNode)
     }
 

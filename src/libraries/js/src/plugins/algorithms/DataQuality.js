@@ -35,14 +35,13 @@ export class DataQuality{
     }
 
     default = (userData) => {
-        
         userData.forEach(u => {
             
             let dict = {}
             let arr = []
 
             // Grab Atlas by Default (if not passed already)
-            let data = (u.data != null) ? u.data : this.session.atlas.data
+            let data = u.data //(u.data != null) ? u.data : this.session.atlas.data
 
             try {
 
@@ -73,7 +72,6 @@ export class DataQuality{
             else u.data = dict
             u.meta.label = this.params.metric
         })
-
         return userData
     }
 }

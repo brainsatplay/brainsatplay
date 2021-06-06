@@ -6,7 +6,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 export const settings = {
     name: "My First Brainstorm",
     devices: ["EEG"],
-    author: "Me",
+    author: "Brains@Play",
     description: "This is my first brainstorm.",
     categories: ["tutorial","brainstorm"],
     instructions:"Coming soon...",
@@ -22,8 +22,9 @@ export const settings = {
       id: 'mygraph',
       nodes: [
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Keyboard, params: {key: 'Space'}},
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, loop: true},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
+        {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [
@@ -32,11 +33,19 @@ export const settings = {
           target: 'neurofeedback'
         },
         {
-          source: 'spacebar:brainstorm', 
+          source: 'spacebar', 
+          target: 'brainstorm'
+        },
+        {
+          source: 'neurofeedback', 
+          target: 'brainstorm'
+        },
+        {
+          source: 'brainstorm:spacebar', 
           target: 'ui:color'
         },
         {
-          source: 'neurofeedback:brainstorm', 
+          source: 'brainstorm:neurofeedback', 
           target: 'ui:readout'
         }
       ]

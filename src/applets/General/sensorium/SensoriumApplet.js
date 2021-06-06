@@ -16,6 +16,8 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
+import {PluginManager} from '../../../libraries/js/src/PluginManager'
+import {Buzz} from '../../../libraries/js/src/plugins/outputs/Buzz'
 
 //Import shader urls
 import vertexShader from './shaders/vertex.glsl'
@@ -53,7 +55,7 @@ export class SensoriumApplet {
         session=new Session(),
         settings=[]
     ) {
-    
+
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
@@ -81,6 +83,7 @@ export class SensoriumApplet {
             //add more feedback and sound settings
         }];
         */
+        if(this.settings.length === 0) this.settings = [{}];
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
@@ -95,6 +98,18 @@ export class SensoriumApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
+
+        // Plugins
+        this.graphs = new PluginManager(this.session, {gui: false})
+        this.graphs.add(this.props.id, this.info.name, 
+        [
+            {
+                id: 'mygraph',
+                nodes: [
+                    {id: 'neosensory', class: Buzz},
+                ],
+            }]
+        )
 
         this.tutorialManager = null
 
@@ -244,6 +259,8 @@ export class SensoriumApplet {
 
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
+        this.isHost = false;
+        this.hostSoundsUpdated = false;
 
         this.history = 5; 
 
@@ -286,6 +303,8 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;' id='${props.id}menuspan'>User Controls:</span><input style='display:none;' type='checkbox' id='${props.id}controls' checked>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -325,10 +344,6 @@ void main(){
 
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
-            
-            this.session.createIntro(this, () => {
-                this.tutorialManager.init();
-            });
 
 
             document.getElementById(this.props.id).onmousemove = (e) => {
@@ -413,6 +428,9 @@ void main(){
                     menu.style.maxHeight = "0";
                     menu.style.padding = "0% 25px"
                     document.getElementById(props.id+"showhide").innerHTML = "Show Controls";
+                    if(document.getElementById(props.id+'exitSession')) {
+                        document.getElementById(props.id+'exitSession').style.display = 'none';   
+                    }
                     // document.getElementById(props.id+'addeffect').style.display = "none";
                     // document.getElementById(props.id+'effectmenu').style.display = "none";
                     // document.getElementById(props.id+'shaderSelector').style.display = "none";
@@ -428,6 +446,9 @@ void main(){
                     document.getElementById(props.id+'effectmenu').style.display = "";
                     document.getElementById(props.id+'shaderSelector').style.display = "";
                     this.appletContainer.querySelector('.guiContainer').style.display = "";
+                    if(document.getElementById(props.id+'exitSession')) {
+                        document.getElementById(props.id+'exitSession').style.display = '';   
+                    }
                 }
             }
 
@@ -436,6 +457,17 @@ void main(){
             }
             showhide.onmouseleave = () => {
                 showhide.style.opacity = 0.2;
+            }
+
+            document.getElementById(this.props.id+'submitconfig').onclick = () => {
+                let config;
+                if(this.hostSoundsUpdated) {
+                    config = this.getCurrentConfiguration(true);
+                    this.hostSoundsUpdated = true;
+                } else {
+                    config = this.getCurrentConfiguration(false);
+                }
+                this.hostData.config = config;
             }
         }
 
@@ -460,9 +492,7 @@ void main(){
 
 
     // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {
-        //console.log('new data!')
-    }));
+    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
 
 
     /**
@@ -550,6 +580,24 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                let hostData = this.session.getHostData(this.info.name);
+
+                if (hostData){
+                    console.log(hostData.data.config);
+                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
+                        this.isHost = true;
+                        document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        document.getElementById(this.props.id+'menuspan').style.display = '';
+                        document.getElementById(this.props.id+'controls').style.display = '';
+                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
+                        this.isHost = false;
+                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                        document.getElementById(this.props.id+'controls').style.display = 'none';
+                        
+                    }
+                }
+
                 //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
@@ -584,7 +632,7 @@ void main(){
 
                     let neosensoryBuzz = this.session.getDevice('buzz')
                     if (neosensoryBuzz){
-                        this.updateBuzz( neosensoryBuzz.device, averageModifiers)
+                        this.updateBuzz(averageModifiers)
                     }
 
                     this.three.planes.forEach(p => {
@@ -608,7 +656,9 @@ void main(){
         
         document.getElementById(this.props.id+'addeffect').click();
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        //console.log(this.settings);
+
+        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
 
     }
 
@@ -713,89 +763,114 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        
+        // Auto-Join Configuration Settings
+        this.settings[0].title = false
+        this.settings[0].mode = 'multi'
+        this.settings[0].domain = 'https://localhost:443'
+        this.settings[0].login = false
+        this.settings[0].session = true
+        this.settings[0].spectating = false
+
+        this.session.createIntro(this, (info) => {
+            this.tutorialManager.init();
+
+            if (info && info.usernames.length === 0){
+                this.hostData = {};
+
+                this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
+                
+                window.onkeypress = (e) => {
+                    this.hostData.key = e.code
+                }
+            }
+        });
+
         console.log("Configure with settings:",settings);
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
                 
-                if(this.effects.length < i-1) {
+                if(this.effects.length === i) {
                     document.getElementById(this.props.id+'addeffect').click();
-                    if(cmd.controls !== undefined) {
-                       if(cmd.controls === false ) {
-                           document.getElementById(props.id+'showhide').click();
-                           document.getElementById(props.id+'showhide').onmouseleave();
-                        }
-                    }
-                    if(cmd.shader) {
-                        let shaderselector = document.getElementById(this.props.id+'shaderSelector');
-                        if(cmd.shader.name) {
-                            Array.from(shaderselector.options).forEach((opt,j) => {
-                                if(opt.value === cmd.shader.name) {
-                                    shaderselector.selectedIndex = j;
-                                    shaderselector.onchange();
-                                }
-                            });
-                        } else if (cmd.shader.frag) {
-                            shaderselector.selectedIndex = shaderselector.options.length-1;
-                            shaderselector.onchange();
-                            this.liveEditor.input.value = cmd.shader.frag;
-                            this.setShaderFromText(this.liveEditor.input.value);
-                        }
-                    }
-                    if(cmd.modifiers) {
-                        Object.assign(this.modifiers,cmd.modifiers);
-                    }
-                    if(cmd.feedback) {
-
-                        Array.from(cmd.feedback.options).forEach((opt,j) => {
-                            if(opt.value === cmd.feedback || opt.text === cmd.feedback)
-                                this.effects[i].feedback.selectedIndex = j;
-                        });
-                    }
-                    if(cmd.soundurl) { //{"name":"etc","url":""}
-                        let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
-                        let foundidx = 0;
-                        let found = Array.from(soundselect.options).forEach((opt,k) => {
-                            if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
-                                foundidx = k; 
-                                return true;
+                }
+                if(cmd.controls == 'false') {
+                    document.getElementById(this.props.id+'showhide').onclick();
+                    document.getElementById(this.props.id+'showhide').onmouseleave();
+                
+                }
+                if(cmd.shader) {
+                    let shaderselector = document.getElementById(this.props.id+'shaderSelector');
+                    if(cmd.shader.name) {
+                        Array.from(shaderselector.options).forEach((opt,j) => {
+                            if(opt.value === cmd.shader.name) {
+                                shaderselector.selectedIndex = j;
+                                //console.log(shaderselector.value);
+                                let e = {target:shaderselector}
+                                shaderselector.onchange(e);
                             }
                         });
-                        if(!found) {
-                            this.soundUrls.push(cmd.soundurl); //{"name":"etc","url":""}
-                            soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
-                            foundidx = soundselect.options.length-1;
+                    } else if (cmd.shader.frag) {
+                        shaderselector.selectedIndex = shaderselector.options.length-1;
+                        let e = {target:shaderselector}
+                        shaderselector.onchange(e);
+                        this.liveEditor.input.value = cmd.shader.frag;
+                        this.setShaderFromText(this.liveEditor.input.value);
+                    }
+                }
+                if(cmd.modifiers) {
+                    Object.assign(this.modifiers,cmd.modifiers);
+                }
+                if(cmd.feedback) {
+
+                    Array.from(cmd.feedback.options).forEach((opt,j) => {
+                        if(opt.value === cmd.feedback || opt.text === cmd.feedback)
+                            this.effects[i].feedback.selectedIndex = j;
+                    });
+                }
+                if(cmd.soundurl) { //{"name":"etc","url":""}
+                    let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
+                    let foundidx = 0;
+                    let found = Array.from(soundselect.options).forEach((opt,k) => {
+                        if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
+                            foundidx = k; 
+                            return true;
                         }
-                        
-                        soundselect.selectedIndex = foundidx;
-                        soundselect.onchange();
+                    });
+                    if(!found) {
+                        this.soundUrls.push(cmd.soundurl); //{"name":"etc","url":""}
+                        soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
+                        foundidx = soundselect.options.length-1;
                     }
-                    else if (cmd.soundbuffer) { //load a sound buffer directly from audiosourcenode.buffer sent through the system. 
-                        if(!window.audio) window.audio = new SoundJS();
-                        if(!window.audio.ctx) return false;
+                    
+                    soundselect.selectedIndex = foundidx;
+                    soundselect.onchange();
+                }
+                else if (cmd.soundbuffer) { //load a sound buffer directly from audiosourcenode.buffer sent through the system. 
+                    if(!window.audio) window.audio = new SoundJS();
+                    if(!window.audio.ctx) return false;
 
-                        let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
-                        cmd.soundbuffer.buffer.forEach((b,j) => {
-                            buf.copyToChannel(b,j+1,0);
-                        });
+                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                    cmd.soundbuffer.buffer.forEach((b,j) => {
+                        buf.copyToChannel(b,j+1,0);
+                    });
 
-                        this.effects[i].input.style.display='none';
-                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
-                        window.audio.finishedLoading([buf]);
+                    this.effects[i].input.style.display='none';
+                    document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
+                    window.audio.finishedLoading([buf]);
 
-                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = 'none';
-                        document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx).selectedIndex = 0;
-        
-                        if(!this.effects[i].controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+this.effects[i].uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
-                            this.effects[i].controls = document.getElementById(this.props.id+'controlWrapper'+this.effects[i].uiIdx);
-                        } else {this.effects[i].controls.style.display=""}
-                        this.effects[i].source = window.audio.sourceList[sourceListIdx]; 
-                        this.effects[i].sourceIdx = sourceListIdx;
-                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "Loading..." 
-        
-                        this.loadSoundControls(this.effects[i]);
-                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "";
-                    }
+                    document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = 'none';
+                    document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx).selectedIndex = 0;
+    
+                    if(!this.effects[i].controls) {
+                        document.getElementById(this.props.id+'effectWrapper'+this.effects[i].uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                        this.effects[i].controls = document.getElementById(this.props.id+'controlWrapper'+this.effects[i].uiIdx);
+                    } else {this.effects[i].controls.style.display=""}
+                    this.effects[i].source = window.audio.sourceList[sourceListIdx]; 
+                    this.effects[i].sourceIdx = sourceListIdx;
+                    document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "Loading..." 
+    
+                    this.loadSoundControls(this.effects[i]);
+                    document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "";
                 }
             }
         });
@@ -832,9 +907,10 @@ void main(){
     */
     getCurrentConfiguration = (includeSounds=false) => {
         let settings = [];
+        console.log(this.effects)
         this.effects.forEach((e,j) => {
             settings.push({
-                feedback:e.feedback
+                feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
                 if(e.sourceIdx) {
@@ -999,8 +1075,10 @@ void main(){
                             fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
+                            this.hostSoundsUpdated = false;
                         }
                     });
+                   
                 }
             } else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
@@ -1028,6 +1106,7 @@ void main(){
         
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
@@ -1054,6 +1133,7 @@ void main(){
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
@@ -1524,24 +1604,18 @@ void main(){
     }
 
 
-    updateBuzz(buzz, modifiers) {
-        // console.log(modifiers)
-        let motorCommand;
+    updateBuzz(modifiers) {
+        let node = this.graphs.getNode(this.props.id, 'buzz')
 
-        // if (modifiers.iAudio){
-        //     motorCommand = buzz.device.mapFrequencies(modifiers.iAudio)
-        //     buzz.device.vibrateMotors([motorCommand])
-        // } 
-        // else if (modifiers.iFFT){
-        //     motorCommand = buzz.device.mapFrequencies(modifiers.iFFT)
-        //     buzz.device.vibrateMotors([motorCommand])
-        // }
+        if (modifiers.iAudio){
+            this.graphs.runSafe([{data: modifiers.iAudio, meta: {label: 'iAudio'}}],node, 'motors')
+        } 
+        else if (modifiers.iFFT){
+            this.graphs.runSafe([{data: modifiers.iFFT, meta: {label: 'iFFT'}}],node, 'motors')
+        }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            let i1 = Math.min(modifiers.iFrontalAlpha1Coherence/.33,1)
-            let i2 = (i1 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.33)/.33,1) : 0)
-            let i3 = (i2 === 1 ? Math.min((modifiers.iFrontalAlpha1Coherence-.66)/.33,1) : 0)
-            buzz.device.setLEDs([[0,255,0],[0,255,0],[0,255,0]], [i1,i2,i3])
+            this.graphs.runSafe([{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}],node, 'leds')
         }
     }
 } 

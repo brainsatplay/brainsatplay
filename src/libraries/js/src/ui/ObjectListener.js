@@ -39,6 +39,13 @@ export class ObjectListener {
         this.listeners.push(listener);
     }
 
+    getListener(key) {
+        let found = this.listeners.find((item,i) =>{
+            if(item.key === key) return true;
+        });
+        return found;
+    }
+
     hasKey(key) {
         var found = false;
         this.listeners.forEach((item,i) =>{
@@ -90,6 +97,18 @@ export class ObjectListener {
             }
         }
         return callbackIdx;
+    }
+
+    //get the array of secondary onchange functions
+    getFuncs = (key=undefined) => {
+        if(key) {
+            var found = this.listeners.find((o,i) => {
+                if(o.key === key) {
+                    return true;
+                }
+            });
+            return found.onchangeFuncs;
+        } else return undefined;
     }
 
     //Remove extra onchange functions
@@ -173,7 +192,7 @@ export class ObjectListenerInstance {
         this.setListenerRef(propName);
 
         this.running = true;
-
+        this.funcs = 0;
 
         this.interval;
         if(interval < 10) {
@@ -196,19 +215,23 @@ export class ObjectListenerInstance {
 
     //Add extra onchange functions for execution
     addFunc = (onchange=null) => {
+        let sub = 0;
         if(onchange !== null){
-            this.onchangeFuncs.push(onchange);
+            this.onchangeFuncs.push({idx:this.funcs, onchange:onchange});
+            sub=this.funcs;
+            this.funcs++;
         }
-        return this.onchangeFuncs.length-1;
+        return sub;
     }
 
     //Remove extra onchange functions
     removeFuncs(idx = null) {
+        let i = 0;
         if(idx === null) {
             this.onchangeFuncs = [];
         }
-        else if(this.onchangeFuncs[idx] !== undefined) {
-            this.onchangeFuncs.splice(idx,1);
+        else if(this.onchangeFuncs.find((o,j)=>{if(o.idx===idx){ i=j; return true;}}) !== undefined) {
+            this.onchangeFuncs.splice(i,1);
         }
     }
 
@@ -216,8 +239,8 @@ export class ObjectListenerInstance {
     onchangeMulti = (newData) => {
         let onChangeCache = [...this.onchangeFuncs]
         onChangeCache.forEach((func,i) => {
-            if(this.debug === true) { console.log(func); }
-            func(newData);
+            if(this.debug === true) { console.log(func.onchange); }
+            func.onchange(newData);
         });
     }
 
@@ -426,42 +449,93 @@ if(JSON.stringifyFast === undefined) {
         }
 
         function checkValues(key, value) {
-            let val = value;
-            if (val !== null) {
+            let val;
+            if (value != null) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
-                    let other = refs.get(val);
                     let c = value.constructor.name;
-                    if (other) {
-                        return '[Circular Reference]' + other;
-                    } else if(c === "Array" && value.length > 20) { //Cut arrays down to 100 samples for referencing
-                        val = value.slice(value.length-20);
-                        refs.set(val, path.join('.'));
-                    } else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                    if(c === "Array") { //Cut arrays down to 100 samples for referencing
+                        if(value.length > 20) {
+                            val = value.slice(value.length-20);
+                        } else val = value;
+                       // refs.set(val, path.join('.'));
+                    }  
+                    else if (c.includes("Set")) {
+                        val = Array.from(value)
+                    }  
+                    else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
-                        refs.set(val, path.join('.'));
-                    } else if (typeof val === 'object') {
+                    }
+                    else if (c === 'Object') {
                         let obj = {};
-                        for(const prop in val) {
-                            if(Array.isArray(val[prop])) { obj[prop] = val[prop].slice(val[prop].length-20); } //deal with arrays in nested objects (e.g. means, slices)
-                            else { obj[prop] = val[prop]; }
+                        for(const prop in value) {
+                            if (value[prop] == null){
+                                obj[prop] = value[prop]; 
+                            }
+                            else if(Array.isArray(value[prop])) { 
+                                if(value[prop].length>20)
+                                    obj[prop] = value[prop].slice(value[prop].length-20); 
+                                else obj[prop] = value[prop];
+                            } //deal with arrays in nested objects (e.g. means, slices)
+                            else if (value[prop].constructor == Object) { //additional layer of recursion for 3 object-deep array checks
+                                obj[prop] = {};
+                                for(const p in value[prop]) {
+                                    if(Array.isArray(value[prop][p])) {
+                                        if(value[prop][p].length>20)
+                                            obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
+                                        else obj[prop][p] = value[prop][p];
+                                    }
+                                    else { 
+                                        if (value[prop][p] != null){
+                                            let con = value[prop][p].constructor.name;
+                                            if (con.includes("Set")) {
+                                                obj[prop][p] = Array.from(value[prop][p])
+                                            } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                                obj[prop][p] = "instanceof_"+con;
+                                            }  else {
+                                                obj[prop][p] = value[prop][p]; 
+                                            }
+                                        } else {
+                                            obj[prop][p] = value[prop][p]; 
+                                        }
+                                    }
+                                }
+                            }
+                            else { 
+                                let con = value[prop].constructor.name;
+                                if (con.includes("Set")) {
+                                    obj[prop] = Array.from(value[prop])
+                                } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                    obj[prop] = "instanceof_"+con;
+                                } else {
+                                    obj[prop] = value[prop]; 
+                                }
+                            }
                         }
+                        //console.log(obj, value)
+                        val = obj;
+                        //refs.set(val, path.join('.'));
                     }
                     else {
-                        refs.set(val, path.join('.'));
+                        val = value;
                     }
+                } else {
+                    val = value;
                 }
             }
+            //console.log(value, val)
             return val;
         }
 
         return function stringifyFast(obj, space) {
             try {
-                parents.push(obj);
+                //parents.push(obj);
                 return JSON.stringify(obj, checkValues, space);
+            } catch(er) {
+                console.error(obj, er);
             } finally {
-                clear();
-            }
+                //clear();
+            } 
         }
     })();
 }

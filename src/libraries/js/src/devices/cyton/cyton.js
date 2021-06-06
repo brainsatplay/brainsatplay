@@ -16,11 +16,9 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.onConnectedCallback = onConnectedCallback;
 		this.onDisconnectedCallback = onDisconnectedCallback;
 		this.decode = CustomDecoder;
-		//Free EEG 32 data structure:
-        /*
-            [stop byte, start byte, counter byte, 32x3 channel data bytes (24 bit), 3x2 accelerometer data bytes, stop byte, start byte...] Gyroscope not enabled yet but would be printed after the accelerometer..
-            Total = 105 bytes/line
-        */
+
+		this.encoder = new TextEncoder("ascii");
+
 		this.connected = false;
 		this.subscribed = false;
         this.buffer = [];
@@ -236,10 +234,9 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 
 	async sendMsg(msg) {
 		msg+="\n";
-        var encodedString = unescape(encodeURIComponent(msg));
-        var bytes = new Uint8Array(encodedString.length);
+        var bytes = this.encoder.encode(msg)
 		const writer = this.port.writable.getWriter();
-        await writer.write(bytes.buffer);
+        await writer.write(bytes);
         writer.releaseLock();
 		return true;
 	}

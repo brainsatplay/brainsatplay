@@ -690,7 +690,8 @@ export class BCIAppManager {
                                     }
                                 });
                                 document.getElementById("saveBCISession").onclick = () => {
-                                    let row = this.session.deviceStreams[info.nDevices - 1].device.atlas.getEEGDataByChannel(info.eegChannelTags[0].ch);
+                                    console.log(this.session.deviceStreams)
+                                    let row = this.session.deviceStreams[info.nDevices - 1].device.atlas.getEEGDataByChannel(this.session.deviceStreams[info.nDevices - 1].info.eegChannelTags[0].ch);
                                     saveSettings();
                                     if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                                     autoSaveEEGChunk(this.state.data.saveCounter, undefined, this.session.deviceStreams[info.nDevices - 1].info.deviceType + "_" + this.session.deviceStreams[info.nDevices - 1].info.deviceName);

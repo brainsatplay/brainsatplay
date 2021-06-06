@@ -17,12 +17,12 @@ export class Blink{
             },
             left: {
                 defaults: {
-                    output: [{data: false, meta: {label: 'blink_left'}}]
+                    output: [{data: false, meta: {label: 'blink_left'}}] // Declares data types for binding
                 }
             },
             right: {
                 defaults: {
-                    output: [{data: false, meta: {label: 'blink_right'}}]
+                    output: [{data: false, meta: {label: 'blink_right'}}] // Declares data types for binding
                 }
             }
         }
@@ -95,7 +95,7 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
-        this._dataQuality = this.session.atlas.graphs.runSafe(user, this.dependencies['dataquality'],'default')[0].data // Grab results of dependencies (no mutation)
+        this._dataQuality = this.session.atlas.graphs.runSafe([user], this.dependencies['dataquality'],'default')[0].data // Grab results of dependencies (no mutation)
         if (Date.now() - this.lastBlink > this.params.blinkDuration){
             tags.forEach(tag => {
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
@@ -111,15 +111,19 @@ export class Blink{
 
     _calculateBlinkFromTag = (user,tag) => {
         let blink = false
-        let data = this.session.atlas.getEEGDataByTag(tag,user.data) // Grab from user's own atlas data
-        let chQ = this._dataQuality[tag] 
-        if (data != null && chQ < this.params.qualityThreshold){
-            if (data.filtered.length > 0){
-                let blinkRange = data.filtered.slice(data.filtered.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
-                let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-                blink = (max > this.params.blinkThreshold)
+
+        try {
+            let data = this.session.atlas.getEEGDataByTag(tag,user.data) // Grab from user's own atlas data
+            let chQ = this._dataQuality[tag] 
+            if (data != null && chQ < this.params.qualityThreshold){
+                if (data.filtered.length > 0){
+                    let blinkRange = data.filtered.slice(data.filtered.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
+                    let max = Math.max(...blinkRange.map(v => Math.abs(v)))
+                    blink = (max > this.params.blinkThreshold)
+                }
             }
-        }
+        } catch (e) {console.error('input not formatted properly')}
+
         return blink
     }
 }
