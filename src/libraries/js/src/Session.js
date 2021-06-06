@@ -1140,10 +1140,10 @@ else {
 				}
 			});
 			
-			console.log(this.state.data)
-			console.log(this.state.listener)
-			console.log(this.state.data.commandResult);
-			console.log(this.state.data.commandResult);
+			// console.log(this.state.data)
+			// console.log(this.state.listener)
+			// console.log(this.state.data.commandResult);
+			// console.log(this.state.data.commandResult);
 		}
 	}
 
