@@ -20,7 +20,8 @@ export class PluginManager{
             toUnsubscribe: {
                 stateAdded: [],
                 stateRemoved: []
-            }
+            },
+            sequential: true
         }
 
         // Manage States Locally
@@ -79,7 +80,7 @@ export class PluginManager{
 
         if (node.ports != null){
             for (let port in node.ports){
-                node.states[port] = [{data: null, meta: {}}]
+                node.states[port] = [{}]
                 let defaults = node.ports[port].defaults
 
                 if (defaults && defaults.output) {
@@ -110,7 +111,7 @@ export class PluginManager{
             if (node.ports[p] == null) {
                 node.ports[p] = {
                     defaults: {
-                        output: [{data: null, meta: {}}]
+                        output: [{}]
                     },
                     active: true
                 }
@@ -119,7 +120,7 @@ export class PluginManager{
             }
 
             // Catch Active Ports without Default State Assigned
-            if (node.states[p] == null) node.states[p] = [{data: null, meta: {}}]
+            if (node.states[p] == null) node.states[p] = [{}]
         })
         
         
@@ -205,6 +206,7 @@ export class PluginManager{
         }
         else if (Array.isArray(input)) {input.forEach(u => {
                 inputCopy.push(Object.assign({}, u))
+
         })}
         return inputCopy
     }
@@ -212,27 +214,34 @@ export class PluginManager{
     // Input Must Be An Array
     runSafe(input, node, port='default'){
 
+        console.log(input)
+
         // Shallow Copy State before Repackaging
         let inputCopy = []
         inputCopy = this.shallowCopy(input)
 
         // Add Username to Self
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
-            if (!inputCopy.username) inputCopy[i].username = this.session?.info?.auth?.username // Add Uername
+            // Remove Users with Empty Dictionaries
+            if (Object.keys(inputCopy[i]) == 0) inputCopy.splice(i,1)
+            // Or Add Username
+            else if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
         }
 
         let result = node[port](inputCopy)
 
-        if (result){ // If you have a loop, this will always update. Otherwise it waits for a direct state change on a node.
-            
-            // Unpack Result Array
-            result.forEach((r,i) => {
-                if (node.states[port].length-1 < i) node.states[port].push(r)
-                else node.states[port][i] = r
-            })
+        if (result && result.length > 0){
+            node.states[port] = result
+
+            // Sync State Updates
+            if (node.stateUpdates){
+                let updateObj = {}
+                updateObj[node.stateUpdates.label] = true
+                node.stateUpdates.manager.setState(updateObj)
+            }
         }
 
-        return result
+        return node.states[port]
     }
 
 
@@ -399,8 +408,11 @@ export class PluginManager{
                 applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
                 // Pass Data from Source to Target
-                let defaultCallback = (input) => {
-                    return this.runSafe(input, target, targetPort)
+                let defaultCallback = (trigger) => {
+                    if (trigger){
+                        let input = source.states[sourcePort]
+                        return this.runSafe(input, target, targetPort)
+                    }
                 }
                 
 
@@ -432,8 +444,15 @@ export class PluginManager{
                     // Create State for Port
                     let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
 
-                    // Grab Default Output for Port
-                    this.state.data[label] = source.states[sourcePort] // this.getDefaultState(node, sourcePort)
+                    // Initialize port with Default Output
+                    this.state.data[label] = source.states[sourcePort]
+                    let updateObj = {}
+                    updateObj[label] = true
+                    this.state.setState(updateObj)
+                    source.stateUpdates = {}
+                    source.stateUpdates.manager = this.state
+                    source.stateUpdates.label = label
+
 
                     if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
 
@@ -444,19 +463,31 @@ export class PluginManager{
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
-                            else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            // if (!this.props.sequential){   
+                            //     if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
+                            //     else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            // } else {
+                                if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
+                                else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                            // }
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
-                            // MAKE SEQUENTIAL
                             this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            // if (!this.props.sequential){ 
+                            //     applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            // } else {
+                                applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                            // }
                         }
 
                     } else {
-                        applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                        // if (!this.props.sequential){ 
+                        //     applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                        // } else {
+                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                        // }
                     }
             }
         })

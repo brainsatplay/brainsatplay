@@ -15,16 +15,8 @@ export class Signal{
         }
 
         this.ports = {
-            default: {
-                defaults: {
-                    output: [{data: {}, meta: {label: `signal_${this.paramOptions.device.default}`}}]
-                },
-            }, 
-            fft: {
-                defaults: {
-                    output: [{data: {}, meta: {label: `signal_${this.paramOptions.device.default}_fft`}}]
-                }
-            }
+            default: {}, 
+            fft: {}
         }
 
         this.props = {
@@ -70,16 +62,18 @@ export class Signal{
     }
 
     default = () => {
-        this.states['default'][0].data = this.session.atlas.data
-        this.states['default'][0].meta.label = `signal_${this.params.device}`
+        let updateObj = {}
+        updateObj[this.stateUpdates.label] = true // New data
+        this.stateUpdates.manager.setState(updateObj)
+        this.states['default'] = [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
         return this.states['default']
     }
 
     fft = () => {
-        let channel = this.session.atlas.getLatestFFTData()[0];
-        if(channel) this.states['fft'][0].data = channel.fft;
-        else this.states['fft'][0].data = new Array(256).fill(0);
-        this.states['fft'][0].meta.label = `signal_${this.params.device}_fft`
+        let data = this.session.atlas.getLatestFFTData()[0];
+        if(data) data = channel.fft;
+        else data= new Array(256).fill(0);
+        this.states['fft'] = [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
         return this.states['fft']
     }
 

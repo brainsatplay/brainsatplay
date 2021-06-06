@@ -35,7 +35,6 @@ export class DataQuality{
     }
 
     default = (userData) => {
-        
         userData.forEach(u => {
             
             let dict = {}

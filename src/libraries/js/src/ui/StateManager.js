@@ -83,18 +83,19 @@ export class StateManager {
             );
 
             this.addToState('pushRecord',this.pushRecord,(record)=>{
-                record.pushed.forEach((updateObj) => {
-                    for(const prop in updateObj) {
-                        if(this.pushCallbacks[prop]) {
-                            this.pushCallbacks[prop].forEach((onchange) =>{
-                                onchange(updateObj[prop]);
-                            });
-                        }
-                    }
-                });
-                this.pushRecord.pushed = [];
-            });
 
+                for (let i = record.pushed.length-1; i >= 0; i--){
+                    let updateObj = record.pushed[i]
+                        for(const prop in updateObj) {
+                            if(this.pushCallbacks[prop]) {
+                                this.pushCallbacks[prop].forEach((onchange) =>{
+                                    onchange(updateObj[prop]);
+                                });
+                            }
+                        }
+                    this.pushRecord.pushed.splice(i,1)
+                }
+            });
 
             this.data.pushCallbacks = this.pushCallbacks;
 
@@ -129,7 +130,6 @@ export class StateManager {
         }
 
         updateObj.stateUpdateTimeStamp = Date.now();
-
         this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
         
         if(appendArrs) {

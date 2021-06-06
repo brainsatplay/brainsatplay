@@ -59,15 +59,15 @@ export class EventRouter{
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
-
         targets.forEach(t => {
             if (t){
 
-                // if (Array.isArray(t.data) && 'data' in t.data[0]){
-                //     console.log('type 1')
-                //     t.data[0].data = newState
-                // } else 
-                if (Array.isArray(t) && 'data' in t[0]){
+                if (t.constructor == Object && 'manager' in t){
+                    let updateObj = {}
+                    updateObj[t.label] = [{data: newState, meta: {label: t.label}}]
+                    t.manager.setSequentialState(updateObj)
+                }
+                else if (Array.isArray(t) && 'data' in t[0]){
                     t[0].data = newState
                 }
             }
@@ -89,7 +89,7 @@ export class EventRouter{
         // Preselect Events based on Keys
         let removeEvents = []
         validRoutes = validRoutes.map(r => {
-            let k1 = r.key
+            let k1 = r.label
             let pair = eventsToBind.find((k2,i) => {
                 let sk1 = k1.split('_')
                 sk1 = sk1.map(s => new RegExp(`${s}`,'i'))
@@ -132,16 +132,16 @@ export class EventRouter{
 
                 // Replace If Not Already Assigned
                 if (routes[1] == null){
-                    routes[1] = newRoute.manager.data[newRoute.key]
+                    routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
-                    newRoute.key = routes[1].meta.label
+                    newRoute.label = routes[1].meta.label
                 }
                 
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
                     for (var opt, j = 0; opt = opts[j]; j++) {
-                        if (opt.value == newRoute.key) {
+                        if (opt.value == newRoute.label) {
                             routeSelector.selectedIndex = j;
                         break;
                         }
@@ -169,8 +169,8 @@ export class EventRouter{
                     return k
                 }
             })
-            keys.forEach((key) => {
-                validRoutes.push({key,manager})
+            keys.forEach((label) => {
+                validRoutes.push({label,manager})
             })
         })
 
@@ -235,13 +235,13 @@ export class EventRouter{
             <option value="none">None</option>
             `)
             validRoutes.forEach(dict => {
-                managerMap[dict.key] = dict.manager
+                managerMap[dict.label] = dict.manager
 
-                let splitId = dict.key.split('_')
+                let splitId = dict.label.split('_')
                 splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
 
                 let upper = splitId.join(' ')
-                selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
+                selector.insertAdjacentHTML('beforeend',`<option value="${dict.label}">${upper}</option>`)           
             })
 
             Object.keys(this.state.data).forEach(id => {
@@ -251,8 +251,8 @@ export class EventRouter{
 
                     thisSelector.onchange = (e) => {
                         try {
-                            let target = managerMap[thisSelector.value].data[thisSelector.value]
-
+                            // let target = managerMap[thisSelector.value].data[thisSelector.value]
+                            let target = {manager: managerMap[thisSelector.value], label:thisSelector.value}
                             // Switch Route Target
                             if (this.routes[id].length < 2) this.routes[id].push(target)
                             else this.routes[id][1] = target
