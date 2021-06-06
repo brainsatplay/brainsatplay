@@ -192,7 +192,7 @@ export class ObjectListenerInstance {
         this.setListenerRef(propName);
 
         this.running = true;
-
+        this.funcs = 0;
 
         this.interval;
         if(interval < 10) {
@@ -215,19 +215,23 @@ export class ObjectListenerInstance {
 
     //Add extra onchange functions for execution
     addFunc = (onchange=null) => {
+        let sub = 0;
         if(onchange !== null){
-            this.onchangeFuncs.push(onchange);
+            this.onchangeFuncs.push({idx:this.funcs, onchange:onchange});
+            sub=this.funcs;
+            this.funcs++;
         }
-        return this.onchangeFuncs.length-1;
+        return sub;
     }
 
     //Remove extra onchange functions
     removeFuncs(idx = null) {
+        let i = 0;
         if(idx === null) {
             this.onchangeFuncs = [];
         }
-        else if(this.onchangeFuncs[idx] !== undefined) {
-            this.onchangeFuncs.splice(idx,1);
+        else if(this.onchangeFuncs.find((o,j)=>{if(o.idx===idx){ i=j; return true;}}) !== undefined) {
+            this.onchangeFuncs.splice(i,1);
         }
     }
 
@@ -235,8 +239,8 @@ export class ObjectListenerInstance {
     onchangeMulti = (newData) => {
         let onChangeCache = [...this.onchangeFuncs]
         onChangeCache.forEach((func,i) => {
-            if(this.debug === true) { console.log(func); }
-            func(newData);
+            if(this.debug === true) { console.log(func.onchange); }
+            func.onchange(newData);
         });
     }
 

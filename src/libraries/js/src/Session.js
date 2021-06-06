@@ -849,7 +849,7 @@ else {
 
 	processSocketMessage(received = '') {
 		let parsed = JSON.parse(received);
-
+		console.log(received);
 		if (!parsed.msg) {
 			console.log(received);
 			return;
@@ -1108,8 +1108,8 @@ else {
 
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
+			
 			let sub = this.state.subscribe('commandResult', (newResult) => {
-
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
@@ -1139,6 +1139,11 @@ else {
 					}
 				}
 			});
+			
+			console.log(this.state.data)
+			console.log(this.state.listener)
+			console.log(this.state.data.commandResult);
+			console.log(this.state.data.commandResult);
 		}
 	}
 
