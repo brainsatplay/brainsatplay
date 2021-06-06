@@ -1283,7 +1283,7 @@ else {
 	}
 
 
-	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
+	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {		
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
@@ -1576,6 +1576,20 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 
+		// Override App Settings with Configuration Settings
+		applet.settings.forEach((cmd,i) => {
+            if(typeof cmd === 'object') {
+				if (applet.info.intro == null) applet.info.intro = {}
+				if (cmd.title != null) applet.info.intro.title = cmd.title
+				if (cmd.login != null) applet.info.intro.login = cmd.login
+				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
+				if (cmd.mode != null) applet.info.intro.mode = cmd.mode
+				if (cmd.session != null) applet.info.intro.session = cmd.session
+				if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
+			}
+		})
+
+
 		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
@@ -1640,7 +1654,7 @@ else {
 		}
 
 		// Auto-Toggle Title and Mode Selection
-		let showTitle = applet.info.intro.title ?? true
+		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
 		if (applet.info.intro){
 			if (!showTitle){
@@ -1701,8 +1715,8 @@ else {
 
 
 		let autoJoinSession = (applet, autoId) => {
-			if (applet.info.intro && applet.info.intro.autoJoin){
-				let playing = !applet.info.intro.autoJoin.spectating
+			if (applet.info.intro && applet.info.intro.session){
+				let playing = applet.info.intro.spectating != false // Default to player
 				if (playing){
 					connectToGame(autoId, false)
 				} else {
@@ -1713,7 +1727,7 @@ else {
 
 		let autoId = false
 
-		if (applet.info.intro && applet.info.intro.autoJoin){
+		if (applet.info.intro && applet.info.intro.session){
 			sessionSelection.style.display = 'none'
 		}
 
@@ -1724,16 +1738,15 @@ else {
 
 				let gridhtml = '';
 
-				if (applet.info.intro && applet.info.intro.autoJoin){
-					let sessionToJoin = applet.info.intro.autoJoin.session
-					if (typeof sessionToJoin === 'boolean'){
-						if (applet.info.intro.autoJoin) autoId = result.sessions[0]
-					} else if (sessionToJoin == null){
-						autoId = result.sessions[0]
-					} else autoId = result.sessions.find(g => g.id === asessionToJoin)
+				if (applet.info.intro && applet.info.intro.session){
+					let sessionToJoin = applet.info.intro.session
+					if (typeof sessionToJoin === true) autoId = result.sessions[0]
+					else if (sessionToJoin == null) autoId = result.sessions[0]
+					else autoId = result.sessions.find(g => g.id === sessionToJoin)
 				}
 
-				if (!autoId){
+				if (!autoId || autoId == null){
+					
 					result.sessions.forEach((g, i) => {
 						if (g.usernames.length < 10) { // Limit connections to the same session server
 							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
@@ -1809,12 +1822,13 @@ else {
 			}
 
 			// Prompt Login or Skip
-			if (applet.info.intro && applet.info.intro.autoLogin){
-				if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+			if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+			if (applet.info.intro && !applet.info.intro.login){
 				this.login(true, this.info.auth, onsocketopen)
 			} else {
 				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
-					document.getElementById(`${this.id}login-page`).display = 'none'
+					let loginPage = document.getElementById(`${this.id}login-page`)
+					loginPage.style.zIndex = 4
 				}, onsocketopen)
 			}
 	}

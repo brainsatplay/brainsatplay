@@ -343,32 +343,6 @@ void main(){
 
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
-            
-            // Auto-Join Configuration Settings
-            if (this.info.intro == null) this.info.intro = {}
-            this.info.intro.title = false
-            this.info.intro.autoLogin = true
-            this.info.intro.domain = 'https://localhost:443'
-            this.info.intro.mode = 'multi'
-            this.info.intro.autoJoin = {
-                session: true,
-                spectating: false,
-            }
-
-
-            this.session.createIntro(this, (info) => {
-                this.tutorialManager.init();
-
-                if (info && info.usernames.length === 0){
-                    this.hostData = {};
-
-                    this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
-                    
-                    window.onkeypress = (e) => {
-                        this.hostData.key = e.code
-                    }
-                }
-            });
 
 
             document.getElementById(this.props.id).onmousemove = (e) => {
@@ -683,7 +657,7 @@ void main(){
 
         //console.log(this.settings);
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
 
     }
 
@@ -788,6 +762,29 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        
+        // Auto-Join Configuration Settings
+        this.settings[0].title = false
+        this.settings[0].mode = 'multi'
+        this.settings[0].domain = 'https://localhost:443'
+        this.settings[0].login = false
+        this.settings[0].session = true
+        this.settings[0].spectating = false
+
+        this.session.createIntro(this, (info) => {
+            this.tutorialManager.init();
+
+            if (info && info.usernames.length === 0){
+                this.hostData = {};
+
+                this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
+                
+                window.onkeypress = (e) => {
+                    this.hostData.key = e.code
+                }
+            }
+        });
+
         console.log("Configure with settings:",settings);
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
