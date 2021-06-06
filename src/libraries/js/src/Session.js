@@ -1139,11 +1139,6 @@ else {
 					}
 				}
 			});
-			
-			// console.log(this.state.data)
-			// console.log(this.state.listener)
-			// console.log(this.state.data.commandResult);
-			// console.log(this.state.data.commandResult);
 		}
 	}
 
@@ -1627,7 +1622,7 @@ else {
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:100;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
 			`)
 
 		// Setup HTML References
@@ -1698,7 +1693,7 @@ else {
 		}
 		let onleave = () => {
 			sessionSearch.click()
-			sessionSelection.style.opacity = 1;
+			sessionSelection.style.opacity = '1';
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
@@ -1708,6 +1703,7 @@ else {
 		let connectToGame = (g, spectate) => {
 
 			this.subscribeToSession(g.id, spectate, (subresult) => {
+				console.log('subscribed to session')
 
 				onjoined(g);
 
@@ -1730,13 +1726,16 @@ else {
 				} else {
 					connectToGame(autoId, true)
 				}
+
+				// Clear Auto-Join Parameters
+				applet.info.intro.session = false
 			}
 		}
 
 		let autoId = false
 
 		if (applet.info.intro && applet.info.intro.session){
-			sessionSelection.style.display = 'none'
+			sessionSelection.style.opacity = '0'
 		}
 
 		sessionSearch.onclick = () => {
@@ -1751,7 +1750,10 @@ else {
 					if (sessionToJoin == true) autoId = result.sessions[0]
 					else if (sessionToJoin == null) autoId = result.sessions[0]
 					else autoId = result.sessions.find(g => g.id === sessionToJoin)
+				} else {
+					autoId = false
 				}
+
 
 				if (!autoId || autoId == null){
 					
@@ -1778,6 +1780,7 @@ else {
 					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
 				});
 			} else {
+				console.log('auto joining again')
 				autoJoinSession(applet,autoId)
 			}
 			});
