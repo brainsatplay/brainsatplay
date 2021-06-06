@@ -205,14 +205,30 @@ export class PluginManager{
     shallowCopy(input){
 
         let inputCopy = []
-        if (input.constructor == Object) {
-            inputCopy = Object.assign({}, input); // Shallow
-        }
-        else if (Array.isArray(input)) {input.forEach(u => {
-                inputCopy.push(Object.assign({}, u))
+        input.forEach(u => {
+            inputCopy.push(Object.assign({}, u))
 
-        })}
+        })
         return inputCopy
+    }
+
+    deepCopy(input){
+        return JSON.parse(JSON.stringifyFast(input))
+    }
+
+    deeperCopy(input){
+        let inputCopy = []
+
+        input.forEach(u => {
+            inputCopy.push(Object.assign({}, u))
+            for (let key in u){
+                if (u[key].constructor == Object){
+                    u[key] = Object.assign({}, u[key])
+                }
+            }
+        })
+        return inputCopy
+
     }
 
     getLabel(node,port){
@@ -224,7 +240,10 @@ export class PluginManager{
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
-        inputCopy = this.shallowCopy(input)
+
+        let t1 = performance.now()
+        inputCopy = this.deeperCopy(input)
+        let t2 = performance.now()
 
         // Add Username to Self
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
@@ -234,15 +253,26 @@ export class PluginManager{
             else if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
         }
 
-        // Only Continue the Chain with Data
+        // Only Continue the Chain with Updated Data
         if (inputCopy.length > 0){
             let result = node[port](inputCopy)
 
             if (result && result.length > 0){
-                node.states[port] = result
-
-                // Sync State Updates
-                if (node.stateUpdates){
+                let allEqual = true
+                result.forEach((o,i) => {
+                    if (node.states[port].length > i){
+                        let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
+                        if (!thisEqual){
+                            node.states[port][i] = o
+                            allEqual = false
+                        } else {
+                        }
+                    } else {
+                        node.states[port].push(o)
+                        allEqual = false
+                    }
+                })
+                if (!allEqual && node.stateUpdates){
                     let updateObj = {}
                     updateObj[this.getLabel(node,port)] = true
                     node.stateUpdates.manager.setSequentialState(updateObj)

@@ -67,7 +67,6 @@ export class EventRouter{
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
         targets.forEach(t => {
-            console.log(t)
             if (t){
                 if (t.constructor == Object && 'manager' in t){
                     t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
