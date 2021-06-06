@@ -184,6 +184,9 @@ export class StateManager {
 
     subscribeSequential(key=undefined,onchange=undefined) {
         if(key) {
+            
+            if(this.data[key] === undefined) {this.addToState(key,null,undefined);}
+
             if(!this.pushCallbacks[key])
                 this.pushCallbacks[key] = [];
 
