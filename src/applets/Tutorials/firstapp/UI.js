@@ -49,7 +49,6 @@ class UI{
         let value = (!Array.isArray(userData[0].data)) ? userData[0].data : userData[0].data[0]
         if (typeof value === "number") value = value.toFixed(2)
         outputDiv.innerHTML = `<p>${userData[0].username}: ${value}</p>`
-
         return userData
     }
 

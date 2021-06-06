@@ -29,6 +29,15 @@ export class Neurofeedback{
             }
             
         }
+
+        // Defaults
+        this.ports = {
+            default: {
+                defaults: {
+                    output: [{data: 0, meta: {label: `neurofeedback`}}]
+                },
+            }, 
+        } 
     }
 
     init = () => {}

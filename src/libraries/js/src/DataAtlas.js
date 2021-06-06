@@ -751,8 +751,8 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graphs.getNode(this.props.id, 'blink')
 		this.graphs.updateParams(node, params)
-		let blink = this.graphs.runSafe([this.data],node)
-		return blink.data
+		let blink = this.graphs.runSafe([{data: this.data, meta: {}}],node)
+		return blink[0].data
 	}
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped

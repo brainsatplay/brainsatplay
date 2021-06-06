@@ -60,8 +60,8 @@ export class PluginManager{
                 }
             }
 
-            this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribe('stateAdded', added))
-            this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribe('stateRemoved', removed))
+            this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
+            this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
     }
 
@@ -79,21 +79,20 @@ export class PluginManager{
 
         if (node.ports != null){
             for (let port in node.ports){
-                node.states[port] = {data: [{}], meta: {}}
+                node.states[port] = [{data: null, meta: {}}]
                 let defaults = node.ports[port].defaults
 
                 if (defaults && defaults.output) {
                     try {
-                        if (Array.isArray(defaults.output)) node.states[port].data = defaults.output
-                        else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port].data = [defaults.output]
+                        if (Array.isArray(defaults.output)) node.states[port] = defaults.output
+                        else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port] = [defaults.output]
                     } catch {
-                        node.states[port].data = defaults.output
+                        node.states[port] = defaults.output
                     }
-                    node.states[port].meta.label = node.states[port].data[0].meta.label
                 }
 
                 // Derive Control Structure
-                let firstUserDefault= node.states[port].data[0]
+                let firstUserDefault= node.states[port][0]
                 if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
                     firstUserDefault.meta.format = typeof firstUserDefault.data
                     let controlDict = Object.assign({}, firstUserDefault.meta)
@@ -111,7 +110,7 @@ export class PluginManager{
             if (node.ports[p] == null) {
                 node.ports[p] = {
                     defaults: {
-                        output: {data: [{}], meta: {}}
+                        output: [{data: null, meta: {}}]
                     },
                     active: true
                 }
@@ -120,8 +119,9 @@ export class PluginManager{
             }
 
             // Catch Active Ports without Default State Assigned
-            if (node.states[p] == null) node.states[p] = {data: [{}], meta: {}}
+            if (node.states[p] == null) node.states[p] = [{data: null, meta: {}}]
         })
+        
         
         // Instantiate Dependencies
         let depDict = {}
@@ -209,59 +209,27 @@ export class PluginManager{
         return inputCopy
     }
 
+    // Input Must Be An Array
     runSafe(input, node, port='default'){
-
-        // console.log(node.label, 'calculating')
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
         inputCopy = this.shallowCopy(input)
-        // Reformat State
-        // By Packaging Single Users
-        if (inputCopy.constructor == Object){
 
-            if (!("data" in inputCopy)){
-                inputCopy = {data: inputCopy, meta: {}, username: 'guest'} // Raw Data (not formatted)
-            }
-
-            if ("timestamp" in inputCopy){
-                inputCopy = inputCopy.data
-            }
-
-            if (!Array.isArray(inputCopy)) inputCopy = [inputCopy]
-            if (inputCopy[0].constructor == Object){
-                inputCopy[0].username = this.session?.info?.auth?.username
-                if (!"label" in inputCopy[0].meta) inputCopy[0].meta.label = (sourcePort != null) ? `${source.label}_${sourcePort}` : source.label
-            }
-
-        } else if (!Array.isArray(inputCopy)){
-            inputCopy = [{data: inputCopy, meta: {}, username: 'guest'}] // Raw Data (not formatted)
-        }
-        // And Handle Misformatted Data
+        // Add Username to Self
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
-            let u = inputCopy[i]
-            if (u.constructor == Object && "data" in u){
-                // Nested User Data
-                if (Array.isArray(u.data)){
-                    if (u.data[0] != null && u.data[0].constructor == Object && "username" in u.data[0]){
-                        inputCopy[i] = u.data[0] // Users passed themselves within an array to the data field
-                    }
-                } 
-                else if (u.data != null && u.data.constructor == Object && "username" in u.data){
-                    inputCopy[i] = u.data // Users passed themselves to the data field
-                }
-            } else {
-                if (inputCopy.username) inputCopy.splice(i,1) // Remove user entries without data
-                else inputCopy[i] = {data: inputCopy[i], meta: {}, username: 'guest'}  // Raw Data (not formatted)
-            }
+            if (!inputCopy.username) inputCopy[i].username = this.session?.info?.auth?.username // Add Uername
         }
 
         let result = node[port](inputCopy)
 
         if (result){ // If you have a loop, this will always update. Otherwise it waits for a direct state change on a node.
-
-            node.states[port].data = result
-            node.states[port].timestamp = Date.now() // Force recognition of update
+            
+            // Unpack Result Array
+            result.forEach((r,i) => {
+                if (node.states[port].length-1 < i) node.states[port].push(r)
+                else node.states[port][i] = r
+            })
         }
 
         return result
@@ -368,7 +336,7 @@ export class PluginManager{
                                 if (defaults.input){
                                     defaultInput = defaults.input
                                     defaultInput.forEach(o => {
-                                        if (o.data == null)  o.data = [{}]
+                                        if (o.data == null)  o.data = null
                                         if (o.meta == null)  o.meta = {}                           
                                     })
                                     node.instance[port](defaultInput)

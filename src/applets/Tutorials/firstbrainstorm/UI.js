@@ -23,7 +23,7 @@ class UI{
             },
             readout: {
                 defaults: {
-                    input: [{}]
+                    input: [{username: 'Username', data: 'Value', meta: {label: 'Waiting for Data'}}]
                 }
             }, 
             color: {
@@ -57,7 +57,6 @@ class UI{
 
     // Write UI using Graph Ports
     readout = (userData) => {
-
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].meta.label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)

@@ -24,8 +24,8 @@ export const settings = {
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Keyboard, params: {key: 'Space'}},
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
-        {id: 'ui', class: UI, params: {}},
         {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
+        {id: 'ui', class: UI, params: {}},
       ],
       edges: [
         {

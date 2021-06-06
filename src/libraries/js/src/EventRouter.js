@@ -62,15 +62,14 @@ export class EventRouter{
 
         targets.forEach(t => {
             if (t){
-                if (Array.isArray(t.data) && 'data' in t.data[0]){
-                    t.data[0].data = newState
-                } else if (Array.isArray(t) && 'data' in t[0].data){
+
+                // if (Array.isArray(t.data) && 'data' in t.data[0]){
+                //     console.log('type 1')
+                //     t.data[0].data = newState
+                // } else 
+                if (Array.isArray(t) && 'data' in t[0]){
                     t[0].data = newState
                 }
-                else if ('data' in t) {
-                    t.data = newState
-                }
-                t.timestamp = Date.now()
             }
         })
     }
