@@ -83,6 +83,7 @@ export class SensoriumApplet {
             //add more feedback and sound settings
         }];
         */
+        if(this.settings.length === 0) this.settings = [{}];
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
@@ -764,12 +765,12 @@ void main(){
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         
         // Auto-Join Configuration Settings
-        // this.settings[0].title = false
-        // this.settings[0].mode = 'multi'
-        // this.settings[0].domain = 'https://localhost:443'
-        // this.settings[0].login = false
-        // this.settings[0].session = true
-        // this.settings[0].spectating = false
+        this.settings[0].title = false
+        this.settings[0].mode = 'multi'
+        this.settings[0].domain = 'https://localhost:443'
+        this.settings[0].login = false
+        this.settings[0].session = true
+        this.settings[0].spectating = false
 
         this.session.createIntro(this, (info) => {
             this.tutorialManager.init();
