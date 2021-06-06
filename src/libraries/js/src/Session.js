@@ -1626,7 +1626,7 @@ else {
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:100;">Exit Session</div>
 			`)
 
 		// Setup HTML References
@@ -1977,10 +1977,10 @@ else {
 
 	waitForOpenConnection = (socket) => {
 		return new Promise((resolve, reject) => {
-			const maxNumberOfAttempts = 10
-			const intervalTime = 200 //ms
+			const maxNumberOfAttempts = 10;
+			const intervalTime = 200; //ms
 
-			let currentAttempt = 0
+			let currentAttempt = 0;
 			const interval = setInterval(() => {
 				if (currentAttempt > maxNumberOfAttempts - 1) {
 					clearInterval(interval)
