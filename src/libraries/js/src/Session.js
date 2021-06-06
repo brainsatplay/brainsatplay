@@ -780,6 +780,7 @@ else {
 						if (newResult.msg === 'resetUsername') {
 							this.info.auth.username = newResult.username
 							this.state.unsubscribe('commandResult', sub);
+							console.log('resetting username')
 							onsuccess(newResult)
 						}
 					}
@@ -937,31 +938,34 @@ else {
 
 	async setupWebSocket(auth = this.info.auth) {
 
-		let encodeForSubprotocol = (info) => {
-			return info.replace(' ', '%20')
-		}
+		return new Promise(resolve => {
 
-		let socket = null;
-		let subprotocol = [
-			'username&' + encodeForSubprotocol(auth.username),
-			'password&' + encodeForSubprotocol(auth.password),
-			'origin&' + encodeForSubprotocol('brainsatplay.js')
-		];
-		if (auth.url.protocol === 'http:') {
-			socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
-		} else if (auth.url.protocol === 'https:') {
-			socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
-		} else {
-			console.log('invalid protocol');
-			return;
-		}
+			let encodeForSubprotocol = (info) => {
+				return info.replace(' ', '%20')
+			}
 
-		let wsPromise = new Promise((resolve, reject) => {
+			let socket = null;
+			let subprotocol = [
+				'username&' + encodeForSubprotocol(auth.username),
+				'password&' + encodeForSubprotocol(auth.password),
+				'origin&' + encodeForSubprotocol('brainsatplay.js')
+			];
+
+			if (auth.url.protocol === 'http:') {
+				socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
+			} else if (auth.url.protocol === 'https:') {
+				socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
+			} else {
+				console.log('invalid protocol');
+				return;
+			}
+
 			socket.onerror = (e) => {
 				console.log('error', e);
 			};
 
 			socket.onopen = () => {
+				console.log(socket)
 				this.streamObj.socket = socket;
 				resolve(socket);
 			};
@@ -975,7 +979,6 @@ else {
 				console.log('close');
 			}
 		})
-		return wsPromise
 	}
 
 	subscribeToUser(username = '', userProps = [], onsuccess = (newResult) => { }) { // if successful, props will be available in state under this.state.data['username_prop']
@@ -1204,6 +1207,7 @@ else {
 				z-index: 999;
 				opacity: 0; 
 				transition: opacity 1s;
+				pointer-events: none;
 				">
 				<div id="${this.id}nodeEditor" class="brainsatplay-node-editor">
 				</div>
@@ -1589,6 +1593,8 @@ else {
 			}
 		})
 
+		console.log(applet.info.intro)
+
 
 		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
@@ -1702,6 +1708,7 @@ else {
 
 			this.subscribeToSession(g.id, spectate, (subresult) => {
 
+				console.log('subscribed')
 				onjoined(g);
 
 				let leaveSession = () => {
@@ -1716,7 +1723,7 @@ else {
 
 
 		let autoJoinSession = (applet, autoId) => {
-			if (autoId){
+			if (autoId != null){
 				let playing = applet.info.intro.spectating != false // Default to player
 				if (playing){
 					connectToGame(autoId, false)
@@ -1741,7 +1748,7 @@ else {
 
 				if (applet.info.intro && applet.info.intro.session){
 					let sessionToJoin = applet.info.intro.session
-					if (typeof sessionToJoin === true) autoId = result.sessions[0]
+					if (sessionToJoin == true) autoId = result.sessions[0]
 					else if (sessionToJoin == null) autoId = result.sessions[0]
 					else autoId = result.sessions.find(g => g.id === sessionToJoin)
 				}
@@ -1770,6 +1777,8 @@ else {
 					playButton.addEventListener('click', () => { connectToGame(g, false) })
 					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
 				});
+			} else {
+				autoJoinSession(applet,autoId)
 			}
 			});
 		}
@@ -1777,7 +1786,6 @@ else {
 		// Login Screen
 		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
-
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
@@ -1795,7 +1803,6 @@ else {
 										loginScreen.style.opacity = 0;
 										loginScreen.style.pointerEvents = 'none'
 									}
-									autoJoinSession(applet,autoId)
 									this.state.unsubscribe('commandResult', sub2);
 								}
 							})
@@ -1807,7 +1814,6 @@ else {
 								loginScreen.style.opacity = 0;
 								loginScreen.style.pointerEvents = 'none'
 							}
-							autoJoinSession(applet,autoId)
 						}
 					})
 				} else {
@@ -1824,7 +1830,8 @@ else {
 
 			// Prompt Login or Skip
 			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
-			if (applet.info.intro && !applet.info.intro.login){
+
+			if (applet.info.intro && applet.info.intro.login === false){
 				this.login(true, this.info.auth, onsocketopen)
 			} else {
 				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {

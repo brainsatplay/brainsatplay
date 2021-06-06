@@ -50,7 +50,7 @@ export class Application{
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );  
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
     }
 
         //Delete all event listeners and loops here and delete the HTML block
@@ -66,7 +66,7 @@ export class Application{
             })
         }
     
-        configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        configure(settings=[{}]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
             
             if (this.info.intro != null) this.session.createIntro(this)
             
