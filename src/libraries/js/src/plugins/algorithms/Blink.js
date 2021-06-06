@@ -95,7 +95,7 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
-        this._dataQuality = this.session.atlas.graphs.runSafe(user, this.dependencies['dataquality'],'default')[0].data // Grab results of dependencies (no mutation)
+        this._dataQuality = this.session.atlas.graphs.runSafe([user], this.dependencies['dataquality'],'default')[0].data // Grab results of dependencies (no mutation)
         if (Date.now() - this.lastBlink > this.params.blinkDuration){
             tags.forEach(tag => {
                 let tryBlink = this._calculateBlinkFromTag(user,tag)

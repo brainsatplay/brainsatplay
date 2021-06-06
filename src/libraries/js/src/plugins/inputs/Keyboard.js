@@ -33,13 +33,13 @@ export class Keyboard{
     }
 
     handleKeyDown = (e) => {
-        if (this.matchKey(e.code) && this.states['default'].data != true){
-            this.states['default'].data = true
+        if (this.matchKey(e.code) && this.states['default'][0].data != true){
+            this.states['default'][0].data = true
         } 
     }
     
     handleKeyUp = (e) => {
-        if (this.matchKey(e.code)) this.states['default'].data = false
+        if (this.matchKey(e.code)) this.states['default'][0].data = false
     }
 
     matchKey(keycode){

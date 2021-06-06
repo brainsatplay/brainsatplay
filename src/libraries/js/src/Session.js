@@ -1703,8 +1703,6 @@ else {
 		let connectToGame = (g, spectate) => {
 
 			this.subscribeToSession(g.id, spectate, (subresult) => {
-				console.log('subscribed to session')
-
 				onjoined(g);
 
 				let leaveSession = () => {
@@ -2120,8 +2118,8 @@ else {
 
 				// Plugin Format
 				if (format === 'plugin'){
-					arr[i].data = this.state.data[prop].data
-					arr[i].meta = this.state.data[prop].meta
+					arr[i].data = this.state.data[prop][0].data
+					arr[i].meta = this.state.data[prop][0].meta
 				} 
 				
 				// Default Format

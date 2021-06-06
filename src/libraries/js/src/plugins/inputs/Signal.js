@@ -70,16 +70,16 @@ export class Signal{
     }
 
     default = () => {
-        this.states['default'].data = this.session.atlas.data
-        this.states['default'].meta.label = `signal_${this.params.device}`
+        this.states['default'][0].data = this.session.atlas.data
+        this.states['default'][0].meta.label = `signal_${this.params.device}`
         return this.states['default']
     }
 
     fft = () => {
         let channel = this.session.atlas.getLatestFFTData()[0];
-        if(channel) this.states['fft'].data = channel.fft;
-        else this.states['fft'].data = new Array(256).fill(0);
-        this.states['fft'].meta.label = `signal_${this.params.device}_fft`
+        if(channel) this.states['fft'][0].data = channel.fft;
+        else this.states['fft'][0].data = new Array(256).fill(0);
+        this.states['fft'][0].meta.label = `signal_${this.params.device}_fft`
         return this.states['fft']
     }
 

@@ -73,7 +73,6 @@ export class DataQuality{
             else u.data = dict
             u.meta.label = this.params.metric
         })
-
         return userData
     }
 }
