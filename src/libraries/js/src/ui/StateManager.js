@@ -336,7 +336,7 @@ if(JSON.stringifyFast === undefined) {
                        // refs.set(val, path.join('.'));
                     }  
                     else if (c.includes("Set")) {
-                        val = value.toArray();
+                        val = Array.from(value);
                     }  
                     else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
@@ -360,7 +360,7 @@ if(JSON.stringifyFast === undefined) {
                                     else { 
                                         let con = value[prop][p].constructor.name;
                                         if (con.includes("Set")) {
-                                            obj[prop][p] = value[prop][p].toArray();
+                                            obj[prop][p] = Array.from(value[prop][p]);
                                         } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
                                             obj[prop][p] = "instanceof_"+con;
                                         }  else {
@@ -372,7 +372,7 @@ if(JSON.stringifyFast === undefined) {
                             else { 
                                 let con = value[prop].constructor.name;
                                 if (con.includes("Set")) {
-                                    obj[prop] = value[prop].toArray();
+                                    obj[prop] = Array.from(value[prop]);
                                 } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
                                     obj[prop] = "instanceof_"+con;
                                 } else {
