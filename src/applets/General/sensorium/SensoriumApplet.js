@@ -258,6 +258,8 @@ export class SensoriumApplet {
 
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
+        this.isHost = false;
+        this.hostSoundsUpdated = false;
 
         this.history = 5; 
 
@@ -300,6 +302,8 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;' id='${props.id}menuspan'>User Controls:</span><input style='display:none;' type='checkbox' id='${props.id}controls' checked>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -353,7 +357,8 @@ void main(){
                 this.tutorialManager.init();
 
                 if (info && info.usernames.length === 0){
-                    this.hostData = {}
+                    this.hostData = {};
+
                     this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
                     
                     window.onkeypress = (e) => {
@@ -475,6 +480,17 @@ void main(){
             showhide.onmouseleave = () => {
                 showhide.style.opacity = 0.2;
             }
+
+            document.getElementById(this.props.id+'submitconfig').onclick = () => {
+                let config;
+                if(this.hostSoundsUpdated) {
+                    config = this.getCurrentConfiguration(true);
+                    this.hostSoundsUpdated = true;
+                } else {
+                    config = this.getCurrentConfiguration(false);
+                }
+                this.hostData.config = config;
+            }
         }
 
 
@@ -586,10 +602,22 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                let hostData = this.session.getHostData(this.info.name)
+                let hostData = this.session.getHostData(this.info.name);
 
-                if (hostData && Object.keys(hostData.data).length != 0){
-                    console.log(hostData)
+                if (hostData){
+                    console.log(hostData.data.config);
+                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
+                        this.isHost = true;
+                        document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        document.getElementById(this.props.id+'menuspan').style.display = '';
+                        document.getElementById(this.props.id+'controls').style.display = '';
+                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
+                        this.isHost = false;
+                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                        document.getElementById(this.props.id+'controls').style.display = 'none';
+                        
+                    }
                 }
 
                 //console.log(userData)
@@ -878,9 +906,10 @@ void main(){
     */
     getCurrentConfiguration = (includeSounds=false) => {
         let settings = [];
+        console.log(this.effects)
         this.effects.forEach((e,j) => {
             settings.push({
-                feedback:e.feedback
+                feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
                 if(e.sourceIdx) {
@@ -1045,8 +1074,10 @@ void main(){
                             fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
+                            this.hostSoundsUpdated = false;
                         }
                     });
+                   
                 }
             } else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
@@ -1074,6 +1105,7 @@ void main(){
         
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
@@ -1100,6 +1132,7 @@ void main(){
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
