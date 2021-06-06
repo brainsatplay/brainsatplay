@@ -123,7 +123,7 @@ wss.on('connection', function (ws, msg, req) {
 
   // add user
   dataServer.addUser(username, origin, ws);
-    ws.send(JSON.stringify({msg:'resetUsername',username:username}));
+  setTimeout(() => {ws.send(JSON.stringify({msg:'resetUsername',username:username}))}, 500)
   });
   
 

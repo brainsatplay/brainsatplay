@@ -780,7 +780,6 @@ else {
 						if (newResult.msg === 'resetUsername') {
 							this.info.auth.username = newResult.username
 							this.state.unsubscribe('commandResult', sub);
-							console.log('resetting username')
 							onsuccess(newResult)
 						}
 					}
@@ -965,7 +964,6 @@ else {
 			};
 
 			socket.onopen = () => {
-				console.log(socket)
 				this.streamObj.socket = socket;
 				resolve(socket);
 			};
@@ -1107,6 +1105,7 @@ else {
 	//connect using the unique id of the subscription
 	subscribeToSession(sessionid, spectating = false, onsuccess = (newResult) => { }) {
 		if (this.socket !== null && this.socket.readyState === 1) {
+
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
 			let sub = this.state.subscribe('commandResult', (newResult) => {
@@ -1593,9 +1592,6 @@ else {
 			}
 		})
 
-		console.log(applet.info.intro)
-
-
 		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
@@ -1708,7 +1704,6 @@ else {
 
 			this.subscribeToSession(g.id, spectate, (subresult) => {
 
-				console.log('subscribed')
 				onjoined(g);
 
 				let leaveSession = () => {
@@ -1724,7 +1719,7 @@ else {
 
 		let autoJoinSession = (applet, autoId) => {
 			if (autoId != null){
-				let playing = applet.info.intro.spectating != false // Default to player
+				let playing = applet.info.intro.spectating != true // Default to player
 				if (playing){
 					connectToGame(autoId, false)
 				} else {
@@ -1786,6 +1781,8 @@ else {
 		// Login Screen
 		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
+
+				console.log('onsocketopen')
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
