@@ -54,7 +54,7 @@ export class BreathTrainerApplet {
             <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id='${props.id}menu'>
                     <select id='${props.id}select'>
-                        <option value='dvb' selected>Diaphragmatic/Vagal</option>
+                        <option value='dvb' selected>Diaphragmatic</option>
                         <option value='rlx'>Relaxation</option>
                         <option value='jmr'>Jacobson's Muscular Relaxation</option>
                         <option value='wmhf'>Wim Hof Method</option>
@@ -183,18 +183,18 @@ export class BreathTrainerApplet {
             }
         });
 
-        this.xDiff = (this.xi1-this.xi0);
+        this.xDiff = undefined;
 
         //console.log(amplitudes);
     }
 
     animate = () => {
 
-        this.inc = 0.001*(Date.now() - this.startTime);
+        if(this.inc > this.amplitudes[0][this.amplitudes[0].length-1]) { this.startTime = Date.now(); }
+        this.inc = 0.001*(Date.now() - this.startTime)*5;       
         this.incscaled = this.inc*this.xscaling;
         //console.log(this.inc,this.x[this.x.length-1]);
-        if(this.inc > this.x[this.x.length-1]) { this.startTime = Date.now(); }
-        
+        //console.log(this.inc,this.x[Math.floor(this.x.length*0.5)])
         if(this.animation === 'sine') {
 
             //console.log('mapping');
@@ -205,25 +205,26 @@ export class BreathTrainerApplet {
                 if(xn < this.incscaled) {
                     this.xi0 = i+this.xi0;
                 } 
-                if (this.xi0 > (x.length-1)*0.5) {
+                if (this.xi0 > (Math.floor(x.length*0.5))+this.xDiff) {
                     this.xi0 = 0;
                     this.xi1 = this.xDiff;
                     return true;
                 }
-                if(xn > this.canvas.width) {
+                if(xn > this.canvas.width+this.incscaled+this.xscaling) {
                     this.xi1 = i+this.xi0;
+                    if(!this.xDiff) this.xDiff = this.xi1-this.xi0;
                     return true;
                 }
             });
 
-
-            console.log(this.xi0,this.xi1)
-            if(this.xi0 > 0) {
-                let xspliced = x.splice(1,this.xi0-1);
-                x.push(...xspliced);
-                let yspliced = y.splice(1,this.xi0-1);
-                y.push(...yspliced);
-            }
+            console.log(this.xi0,this.xi1,x[0],this.inc,this.incscaled)
+            // if(this.xi0 > 0) {
+            //     let xspliced = x.splice(1,this.xi0-1);
+            //     x.push(...xspliced);
+            //     let yspliced = y.splice(1,this.xi0-1);
+            //     y.push(...yspliced);
+            // }
+            //console.log(x,y)
 
             //console.log([x[0],y[0]],[x[xi1],y[xi1]])
             //console.log("drawing");
