@@ -60,8 +60,8 @@ export class PluginManager{
                 }
             }
 
-            this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
-            this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
+            this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribe('stateAdded', added))
+            this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribe('stateRemoved', removed))
     }
     }
 
@@ -211,7 +211,7 @@ export class PluginManager{
 
     runSafe(input, node, port='default'){
 
-        console.log(node.label, 'calculating')
+        // console.log(node.label, 'calculating')
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -476,19 +476,19 @@ export class PluginManager{
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
-                            else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
+                            else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
                             // MAKE SEQUENTIAL
                             this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                            applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                         }
 
                     } else {
-                        applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                        applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
                     }
             }
         })

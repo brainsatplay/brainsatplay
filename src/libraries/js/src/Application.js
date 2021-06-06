@@ -34,7 +34,6 @@ export class Application{
 
         let setupHTML = () => {
 
-            if (this.info.intro != null) this.session.createIntro(this)
             this.uiParams.setupHTML.forEach(f => {
                 f(this)
             })
@@ -68,6 +67,9 @@ export class Application{
         }
     
         configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+            
+            if (this.info.intro != null) this.session.createIntro(this)
+            
             settings.forEach((cmd,i) => {});
         }
 }

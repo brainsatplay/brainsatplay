@@ -1697,6 +1697,7 @@ else {
 
 		let sessionSearch = document.getElementById(`${baseBrowserId}search`)
 
+		
 		let connectToGame = (g, spectate) => {
 
 			this.subscribeToSession(g.id, spectate, (subresult) => {
@@ -1715,7 +1716,7 @@ else {
 
 
 		let autoJoinSession = (applet, autoId) => {
-			if (applet.info.intro && applet.info.intro.session){
+			if (autoId){
 				let playing = applet.info.intro.spectating != false // Default to player
 				if (playing){
 					connectToGame(autoId, false)
