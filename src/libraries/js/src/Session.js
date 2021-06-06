@@ -1823,7 +1823,7 @@ else {
 			}
 
 			// Prompt Login or Skip
-			if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
 			if (applet.info.intro && !applet.info.intro.login){
 				this.login(true, this.info.auth, onsocketopen)
 			} else {
