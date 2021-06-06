@@ -211,6 +211,8 @@ export class PluginManager{
 
     runSafe(input, node, port='default'){
 
+        console.log(node.label, 'calculating')
+
         // Shallow Copy State before Repackaging
         let inputCopy = []
         inputCopy = this.shallowCopy(input)
@@ -257,6 +259,7 @@ export class PluginManager{
         let result = node[port](inputCopy)
 
         if (result){ // If you have a loop, this will always update. Otherwise it waits for a direct state change on a node.
+
             node.states[port].data = result
             node.states[port].timestamp = Date.now() // Force recognition of update
         }
@@ -473,18 +476,19 @@ export class PluginManager{
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
-                            else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
+                            else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
+                            // MAKE SEQUENTIAL
                             this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                         }
 
                     } else {
-                        applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
+                        applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                     }
             }
         })
@@ -554,7 +558,7 @@ export class PluginManager{
                         }
                         if (localSubs != null){
                             applet.subscriptions.local[p].forEach(id => {
-                                this.session.removeStreaming(p, id, this.state);
+                                this.session.removeStreaming(p, id, this.state, true);
                             })
                         }
                     })

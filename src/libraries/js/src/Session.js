@@ -628,7 +628,7 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id, responseIdx, manager = this.state) {
+	removeStreaming(id, responseIdx, manager = this.state, sequential=false) {
 		if (responseIdx == null){
 			manager.removeState(id)
 			manager.removeState(id+"_flag")
@@ -636,7 +636,8 @@ export class Session {
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			manager.unsubscribe(id, responseIdx); //unsub state
+			if (sequential) manager.unsubscribeSequential(id, responseIdx); //unsub state
+			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 
 
@@ -1671,52 +1672,76 @@ else {
 
 		let sessionSearch = document.getElementById(`${baseBrowserId}search`)
 
+		let connectToGame = (g, spectate) => {
+
+			this.subscribeToSession(g.id, spectate, (subresult) => {
+
+				onjoined(g);
+
+				let leaveSession = () => {
+					this.unsubscribeFromSession(g.id, () => {
+						onleave(g);
+					});
+				}
+
+				exitSession.addEventListener('click', leaveSession)
+			});
+		}
+
+
+		let autoJoinSession = (applet, autoId) => {
+			if (applet.info.intro && applet.info.intro.autoJoin){
+				let playing = !applet.info.intro.autoJoin.spectating
+				if (playing){
+					connectToGame(autoId, false)
+				} else {
+					connectToGame(autoId, true)
+				}
+			}
+		}
+
+		let autoId = false
+
 		sessionSearch.onclick = () => {
 
 
 			this.getSessions(applet.info.name, (result) => {
 
 				let gridhtml = '';
-				result.sessions.forEach((g, i) => {
-					if (g.usernames.length < 10) { // Limit connections to the same session server
-						gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
-						<div style="display: flex; padding-top: 5px;">
-							<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
-							<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
-						</div>
-						</div>`
-					} else {
-						result.sessions.splice(i, 1)
-					}
-				});
 
-				document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
-
-				let connecToGame = (g, spectate) => {
-
-					this.subscribeToSession(g.id, spectate, (subresult) => {
-
-						onjoined(g);
-
-
-						let leaveSession = () => {
-							this.unsubscribeFromSession(g.id, () => {
-								onleave(g);
-							});
-						}
-
-						exitSession.addEventListener('click', leaveSession)
-					});
+				if (applet.info.intro && applet.info.intro.autoJoin){
+					let sessionToJoin = applet.info.intro.autoJoin.session
+					if (typeof sessionToJoin === 'boolean'){
+						if (applet.info.intro.autoJoin) autoId = result.sessions[0]
+					} else if (sessionToJoin == null){
+						autoId = result.sessions[0]
+					} else autoId = result.sessions.find(g => g.id === asessionToJoin)
 				}
+
+				if (!autoId){
+					result.sessions.forEach((g, i) => {
+						if (g.usernames.length < 10) { // Limit connections to the same session server
+							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
+							<div style="display: flex; padding-top: 5px;">
+								<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
+								<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
+							</div>
+							</div>`
+						} else {
+							result.sessions.splice(i, 1)
+						}
+					});
+
+					document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
 
 
 				result.sessions.forEach((g) => {
 					let playButton = document.getElementById(`${g.id}play`)
-					playButton.addEventListener('click', () => { connecToGame(g, false) })
-
 					let spectateButton = document.getElementById(`${g.id}spectate`)
-					spectateButton.addEventListener('click', () => { connecToGame(g, true) })
+					playButton.addEventListener('click', () => { connectToGame(g, false) })
+					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
 				});
+			}
 			});
 		}
 
@@ -1737,8 +1762,11 @@ else {
 
 								if (newResult.msg === 'sessionCreated') {
 									sessionSearch.click()
-									loginScreen.style.opacity = 0;
-									loginScreen.style.pointerEvents = 'none'
+									if (loginScreen){
+										loginScreen.style.opacity = 0;
+										loginScreen.style.pointerEvents = 'none'
+									}
+									autoJoinSession(applet,autoId)
 									this.state.unsubscribe('commandResult', sub2);
 								}
 							})
@@ -1746,8 +1774,11 @@ else {
 
 						} else if ('getSessionsResult') {
 							this.state.unsubscribe('commandResult', sub1);
-							loginScreen.style.opacity = 0;
-							loginScreen.style.pointerEvents = 'none'
+							if (loginScreen){
+								loginScreen.style.opacity = 0;
+								loginScreen.style.pointerEvents = 'none'
+							}
+							autoJoinSession(applet,autoId)
 						}
 					})
 				} else {
@@ -1755,18 +1786,22 @@ else {
 				}
 			}
 
-			this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
-				let loginPage = document.getElementById(`${this.id}login-page`)
-				loginPage.style.zIndex = 4
-			}, ()=> {onsocketopen()})
-		// }
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null) {
+				this.info.googleAuth.refreshCustomData().then(data => {
+					this.info.auth.username = data.username
+				})
+			}
 
-		// Auto-set username with Google Login
-		if (this.info.googleAuth != null) {
-			this.info.googleAuth.refreshCustomData().then(data => {
-				document.getElementsByName("username")[0].value = data.username
-			})
-		}
+			// Prompt Login or Skip
+			if (applet.info.intro && applet.info.intro.autoLogin){
+				this.login(true, this.info.auth, onsocketopen)
+			} else {
+				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
+					let loginPage = document.getElementById(`${this.id}login-page`)
+					loginPage.style.zIndex = 4
+				}, onsocketopen)
+			}
 	}
 
 

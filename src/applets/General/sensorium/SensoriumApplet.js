@@ -340,10 +340,18 @@ void main(){
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
             
+            // Auto-Join Configuration Settings
+            if (this.info.intro == null) this.info.intro = {}
+            this.info.intro.autoLogin = true
+            this.info.intro.mode = 'multi'
+            this.info.intro.autoJoin = {
+                session: true,
+                spectating: false
+            }
+
             this.session.createIntro(this, (info) => {
                 this.tutorialManager.init();
 
-                console.log(info)
                 if (info && info.usernames.length === 0){
                     this.hostData = {}
                     this.stateIds.push(this.session.streamAppData('hostData', this.hostData));

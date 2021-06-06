@@ -56,28 +56,22 @@ export class EventRouter{
     // Route Events to Atlas
     update(o,targets=[]) {
         let newState = o.data
-
-        console.log(newState)
-
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
 
         targets.forEach(t => {
-            console.log(t)
-
             if (t){
-                if (Array.isArray(t) && 'data' in t[0]){
-                    console.log('setting within array')
+                if (Array.isArray(t.data) && 'data' in t.data[0]){
+                    t.data[0].data = newState
+                } else if (Array.isArray(t) && 'data' in t[0].data){
                     t[0].data = newState
                 }
                 else if ('data' in t) {
                     t.data = newState
                 }
+                t.timestamp = Date.now()
             }
-
-            console.log(t)
-
         })
     }
 
