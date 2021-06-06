@@ -250,7 +250,8 @@ export class industryKiller { //Contains structs and necessary functions/API cal
                             //if that fails then close port and reopen it
                         },30); //try to resubscribe 
                     } else if (error.message.includes('parity') || error.message.includes('Parity') || error.message.includes('overrun')) {
-                        if(this.port){
+                        console.log(this.port);
+						if(this.port){
                             this.subscribed = false;
                             setTimeout(async () => {
 								try{
