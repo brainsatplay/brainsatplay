@@ -1639,11 +1639,22 @@ else {
 			multiplayer.style.pointerEvents = 'none'
 		}
 
+		// Auto-Toggle Title and Mode Selection
+		let showTitle = applet.info.intro.title ?? true
 
-		// Autoselect
 		if (applet.info.intro){
-			if (applet.info.intro.mode === 'single') solo.click()
-			if (applet.info.intro.mode === 'multi') multiplayer.click()
+			if (!showTitle){
+				const hero = document.getElementById(`${applet.props.id}appHero`)
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}
+			if (applet.info.intro.mode){
+				if (applet.info.intro.mode === 'single') solo.click()
+				if (applet.info.intro.mode === 'multi') multiplayer.click()
+				modeScreen.style.display = 'none'
+			}
 		}
 		
 		// Create Session Brower
@@ -1701,6 +1712,10 @@ else {
 		}
 
 		let autoId = false
+
+		if (applet.info.intro && applet.info.intro.autoJoin){
+			sessionSelection.style.display = 'none'
+		}
 
 		sessionSearch.onclick = () => {
 
@@ -1795,11 +1810,11 @@ else {
 
 			// Prompt Login or Skip
 			if (applet.info.intro && applet.info.intro.autoLogin){
+				if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
 				this.login(true, this.info.auth, onsocketopen)
 			} else {
 				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
-					let loginPage = document.getElementById(`${this.id}login-page`)
-					loginPage.style.zIndex = 4
+					document.getElementById(`${this.id}login-page`).display = 'none'
 				}, onsocketopen)
 			}
 	}
@@ -1823,21 +1838,23 @@ else {
 		let loaded = 0
 		const loadInc = 5
 		const loadTime = 3000
-		setTimeout(() => {
-			loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
-			loadingBarElement.style.transform = `scaleX(1)`
-		}, 1000)
-		setTimeout(() => {
-			if (loadingBarElement) {
-				loadingBarElement.classList.add('ended')
-				loadingBarElement.style.transform = ''
-			}
-			const hero = document.getElementById(`${applet.props.id}appHero`)
-			if (hero) {
-				hero.style.opacity = 0;
-				hero.style.pointerEvents = 'none'
-			}
-		}, loadTime)
+
+		if (showTitle){
+			setTimeout(() => {
+				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
+				loadingBarElement.style.transform = `scaleX(1)`
+			}, 1000)
+			setTimeout(() => {
+				if (loadingBarElement) {
+					loadingBarElement.classList.add('ended')
+					loadingBarElement.style.transform = ''
+				}
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}, loadTime)
+		}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {

@@ -346,12 +346,15 @@ void main(){
             
             // Auto-Join Configuration Settings
             if (this.info.intro == null) this.info.intro = {}
+            this.info.intro.title = false
             this.info.intro.autoLogin = true
+            this.info.intro.domain = 'https://localhost:443'
             this.info.intro.mode = 'multi'
             this.info.intro.autoJoin = {
                 session: true,
-                spectating: false
+                spectating: false,
             }
+
 
             this.session.createIntro(this, (info) => {
                 this.tutorialManager.init();
