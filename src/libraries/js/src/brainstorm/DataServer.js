@@ -397,7 +397,7 @@ class DataServer {
 
             this.appSubscriptions.forEach((o,i) => {
 
-                if (o.hostname == data.username){
+                if (o.hostname === data.username){
                     o.hostData = data.userData.hostData
                 }
 
@@ -545,7 +545,7 @@ class DataServer {
 
 		if(g !== undefined && u !== undefined) {
 
-            if (g.usernames.length == 0 && !spectating){
+            if (g.usernames.length === 0 && !spectating){
                 g.hostname = username
                 g.hostData = {}
             }
@@ -760,7 +760,7 @@ class DataServer {
                     newUsers:sub.newUsers,
                     userData:[],
                     hostname: sub.hostname,
-                    hostData:sub.hostData
+                    hostData: sub.hostData
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users

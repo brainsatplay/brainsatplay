@@ -1781,8 +1781,6 @@ else {
 		// Login Screen
 		if (applet.info.intro?.mode != 'single'){
 			let onsocketopen = () => {
-
-				console.log('onsocketopen')
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
