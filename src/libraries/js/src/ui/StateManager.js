@@ -50,8 +50,9 @@ export class StateManager {
         }    
     }
 
-    removeState(key){
-            this.unsubscribeAll(key);
+    removeState(key, sequential=false){
+            if (sequential) this.unsubscribeAllSequential(key);
+            else this.unsubscribeAll(key);
             delete this.data[key]
 
             // Log Update
@@ -60,7 +61,6 @@ export class StateManager {
 
     setupSynchronousUpdates = () => {
         if(!this.listener.hasKey('pushToState')) {
-
             //we won't add this listener unless we use this function
             const pushToStateResponse = () => {
                 if(Object.keys(this.pushToState).length > 0) {

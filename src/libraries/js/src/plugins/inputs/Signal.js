@@ -63,8 +63,8 @@ export class Signal{
 
     default = () => {
         let updateObj = {}
-        updateObj[this.stateUpdates.label] = true // New data
-        this.stateUpdates.manager.setState(updateObj)
+        updateObj[this.label] = true // New data
+        this.stateUpdates.manager.setSequentialState(updateObj)
         this.states['default'] = [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
         return this.states['default']
     }
@@ -73,7 +73,10 @@ export class Signal{
         let data = this.session.atlas.getLatestFFTData()[0];
         if(data) data = channel.fft;
         else data= new Array(256).fill(0);
-        this.states['fft'] = [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
+        let updateObj = {}
+        updateObj[`${this.label}_fft`] = true // New data
+        this.stateUpdates.manager.setSequentialState(updateObj)
+        this.states['fft'] = [{data, meta: {label: `signal_${this.params.device}_fft`}}]
         return this.states['fft']
     }
 

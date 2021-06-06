@@ -35,8 +35,8 @@ export class Keyboard{
     handleKeyDown = (e) => {
         if (this.matchKey(e.code) && this.states['default'][0].data != true){
             let updateObj  = {}
-            updateObj[this.stateUpdates.label] = true
-            this.stateUpdates.manager.setState(updateObj)
+            updateObj[this.label] = true
+            this.stateUpdates.manager.setSequentialState(updateObj)
             this.states['default'] = [{data: true, meta: {label: `key_${e.code}`}}]
         } 
     }
@@ -44,7 +44,7 @@ export class Keyboard{
     handleKeyUp = (e) => {
         if (this.matchKey(e.code)){
                 let updateObj  = {}
-                updateObj[this.stateUpdates.label] = true
+                updateObj[this.label] = true
                 this.stateUpdates.manager.setSequentialState(updateObj)
                 this.states['default'] = [{data: false, meta: {label: `key_${e.code}`}}]
         }

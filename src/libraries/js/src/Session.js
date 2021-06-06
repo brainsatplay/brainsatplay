@@ -204,6 +204,7 @@ export class Session {
 			}
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
+
 			onconnect(newStream);
 			this.onconnected();
 		}
@@ -230,6 +231,10 @@ export class Session {
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
 			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+			for (let id in this.info.apps){
+				newStream.info.events.addApp(id, this.info.apps[id].controls)
+			}
+			newStream.info.events.updateRouteDisplay()
 		}
 
 		return newStream
@@ -630,13 +635,15 @@ export class Session {
 	//Remove arbitrary data streams made with streamAppData
 	removeStreaming(id, responseIdx, manager = this.state, sequential=false) {
 		if (responseIdx == null){
-			manager.removeState(id)
-			manager.removeState(id+"_flag")
+			manager.removeState(id, sequential)
+			manager.removeState(id+"_flag", sequential)
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			if (sequential) manager.unsubscribeSequential(id, responseIdx); //unsub state
+			if (sequential) {
+				manager.unsubscribeSequential(id, responseIdx); //unsub state
+			}
 			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 
@@ -1169,7 +1176,7 @@ else {
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
 			if (d.info.events) {
-				d.info.events.registerControls(this.info.apps[appId].controls)
+				d.info.events.addApp(appId, this.info.apps[appId].controls)
 				d.info.events.updateRouteDisplay()
 			}
 		})
@@ -1183,13 +1190,17 @@ else {
 
 	removeApp(appId){
 		let info = this.graphs.stop(appId)
-
+		
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
-			if (d.info.events) d.info.events.updateRouteDisplay()
+			if (d.info.events) {
+				d.info.events.removeApp(appId)
+				d.info.events.updateRouteDisplay()
+			}
 		})
 
 		delete this.info.apps[appId]
+
 		return info
 	}
 

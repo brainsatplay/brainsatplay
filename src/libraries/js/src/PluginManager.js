@@ -95,9 +95,13 @@ export class PluginManager{
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
                 if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
-                    firstUserDefault.meta.format = typeof firstUserDefault.data
-                    let controlDict = Object.assign({}, firstUserDefault.meta)
-                    controlDict.target = node.states[port].data
+                    let controlDict = {}
+                    controlDict.format = typeof firstUserDefault.data
+                    controlDict.label = this.getLabel(node,port) // Display Label
+                    controlDict.target = {
+                        state: node.states,
+                        port: port
+                    }
                     controlsToBind.push(controlDict)
                 }
             }
@@ -146,7 +150,7 @@ export class PluginManager{
             local: {}
         }
 
-        let controlsToBind = []
+        let controlsToBind = {options: [], manager: this.state}
 
         let nodes = {}
         let edges = []
@@ -181,7 +185,7 @@ export class PluginManager{
                     ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
                     
                     nodes[nodeInfo.id].instance = instance;
-                    controlsToBind.push(...controls);
+                    controlsToBind.options.push(...controls);
                 }
             })
         })
@@ -211,10 +215,12 @@ export class PluginManager{
         return inputCopy
     }
 
+    getLabel(node,port){
+        return (port != 'default') ? `${node.label}_${port}` : node.label
+    }
+
     // Input Must Be An Array
     runSafe(input, node, port='default'){
-
-        console.log(input)
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -228,16 +234,19 @@ export class PluginManager{
             else if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
         }
 
-        let result = node[port](inputCopy)
+        // Only Continue the Chain with Data
+        if (inputCopy.length > 0){
+            let result = node[port](inputCopy)
 
-        if (result && result.length > 0){
-            node.states[port] = result
+            if (result && result.length > 0){
+                node.states[port] = result
 
-            // Sync State Updates
-            if (node.stateUpdates){
-                let updateObj = {}
-                updateObj[node.stateUpdates.label] = true
-                node.stateUpdates.manager.setState(updateObj)
+                // Sync State Updates
+                if (node.stateUpdates){
+                    let updateObj = {}
+                    updateObj[this.getLabel(node,port)] = true
+                    node.stateUpdates.manager.setSequentialState(updateObj)
+                }
             }
         }
 
@@ -404,7 +413,7 @@ export class PluginManager{
                 let targetPort = splitTarget[1] ?? 'default'
                 let target = applet.nodes[targetName].instance
 
-                let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
+                let label = this.getLabel(source,sourcePort)
                 applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
                 // Pass Data from Source to Target
@@ -440,19 +449,12 @@ export class PluginManager{
                 }
                 // Otherwise Just Listen for Local Changes
                 else {
-
-                    // Create State for Port
-                    let label = (sourcePort != 'default') ? `${source.label}_${sourcePort}` : source.label
-
                     // Initialize port with Default Output
                     this.state.data[label] = source.states[sourcePort]
                     let updateObj = {}
                     updateObj[label] = true
-                    this.state.setState(updateObj)
                     source.stateUpdates = {}
                     source.stateUpdates.manager = this.state
-                    source.stateUpdates.label = label
-
 
                     if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
 
@@ -463,31 +465,18 @@ export class PluginManager{
 
                         // If Already Streaming, Subscribe to Stream
                         if (found != null){
-                            // if (!this.props.sequential){   
-                            //     if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribe(label, defaultCallback))
-                            //     else applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
-                            // } else {
-                                if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
-                                else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
-                            // }
+                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
+                            else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                         } 
 
                         // Otherwise Create Local Stream and Subscribe Locally
                         else {
                             this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            // if (!this.props.sequential){ 
-                            //     applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
-                            // } else {
                                 applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
-                            // }
                         }
 
                     } else {
-                        // if (!this.props.sequential){ 
-                        //     applet.subscriptions.local[label].push(this.state.subscribe(label, defaultCallback))
-                        // } else {
-                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
-                        // }
+                        applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                     }
             }
         })
@@ -517,6 +506,7 @@ export class PluginManager{
                 let openPorts = applet.classInstances[classId][label]
 
                 this.registry.local[label].count--
+
                 if (this.registry.local[label].count == 0) {
 
                     // Remove GUI
@@ -541,7 +531,7 @@ export class PluginManager{
                     delete this.registry.local[label]
                     openPorts.forEach(p => {
                         this.session.removeStreaming(p);
-                        this.session.removeStreaming(p, null, this.state);
+                        this.session.removeStreaming(p, null, this.state, true);
                     })
                 } else {
 
@@ -555,8 +545,9 @@ export class PluginManager{
                                 this.session.removeStreaming(p, id);
                             })
                         }
+
                         if (localSubs != null){
-                            applet.subscriptions.local[p].forEach(id => {
+                            localSubs.forEach(id => {
                                 this.session.removeStreaming(p, id, this.state, true);
                             })
                         }
