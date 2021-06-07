@@ -120,7 +120,7 @@ export class SessionManagerApplet {
         //Add whatever else you need to initialize
         let awaitsignin = () => {   
             if(this.looping){
-                if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+                if(window.gapi?.auth2.getAuthInstance().isSignedIn.get()){
                     console.log("Signed in, getting files...");
                     this.checkFolder();
                     this.listDriveFiles();

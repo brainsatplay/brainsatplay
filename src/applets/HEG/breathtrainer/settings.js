@@ -9,5 +9,8 @@ export const settings = {
     "categories": ["train"], // Category tags for your applet
     "module": "BreathTrainerApplet", // The module name for your applet (must match the exported class name in Applet.js)
     // "image":  featureImg,
+    "display": {
+      production:false
+    },
 		"instructions":"Coming soon..." // Extended instructions on how to use your applet
-}
+  }
