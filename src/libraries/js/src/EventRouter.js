@@ -137,7 +137,7 @@ export class EventRouter{
                 let routes = this.routes.registry[id]
 
                 // Replace If Not Already Assigned
-                if (!("manager" in routes[1])){
+                if (routes[1]==null || !("manager" in routes[1])){
                     routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
                     newRoute.label = routes[1].label

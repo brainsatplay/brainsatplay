@@ -16,7 +16,11 @@ export class TaskManager{
         }
 
         this.ports = {
-            default: {}, 
+            default: {
+                defaults: {
+                    output: [{data: -1, meta: {}}]
+                }
+            }, 
             choice: {}
         }
 
@@ -28,8 +32,6 @@ export class TaskManager{
     }
 
     init = () => {
-        // Start Task Loop
-        this._taskLoop()
 
         // Create Random Progression
         for (let i = 0; i < this.params.trialCount; i ++){
@@ -39,16 +41,21 @@ export class TaskManager{
             }
         }
 
-        this.default()
+        // Start Task Loop
+        this._taskLoop()
     }
 
     deinit = () => {}
 
     default = () => {
-        this.states['default'].data = this.props.currentTrial // Update State Data
-        this.states['default'].meta.state = this.params.trialProgression[this.props.currentTrial]
-        this.states['default'].meta.trialCount = this.params.trialCount
-
+        let updateObj = {}
+        updateObj[this.label] = true // New data
+        this.stateUpdates.manager.setSequentialState(updateObj)
+        if (this.states['default'][0].meta.state != 'ITI'){
+            this.states['default'][0].meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+        } else {
+            this.states['default'][0].meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+        }
         return this.states['default']
     }
 
@@ -71,7 +78,7 @@ export class TaskManager{
 
     _taskLoop = () => {
 
-        if (this.props.currentTrial > 0){
+        if (this.props.currentTrial > -1){
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
 
             // Main Trial Loop
@@ -81,30 +88,31 @@ export class TaskManager{
 
                 // Stop on Last Trial
                 if (this.props.currentTrial === this.params.trialCount){ // Stop Loop
-                    this.states['default'].data = this.props.currentTrial // Update State Data
-                    this.states['default'].meta.state = 'Done!'
-                    this.states['default'].meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
-                    this.states['default'].meta.stateDuration = this.params.duration*1000
-                } else {
-                    this.default() // Update State
+                    this.states['default'][0].data = this.props.currentTrial // Update State Data
+                    this.states['default'][0].meta.state = 'Done!'
+                    this.states['default'][0].meta.stateDuration = 1
+                    this.states['default'][0].meta.stateTimeElapsed = 1
                 }
             } 
 
             // Inter-trial Interval Loop
             else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1){
-                this.states['default'].meta.state = 'ITI'
-                this.states['default'].meta.stateDuration = this.params.interTrialInterval*1000
+                this.states['default'][0].meta.state = 'ITI'
+                this.states['default'][0].meta.stateDuration = this.params.interTrialInterval*1000
             }
         } else {
             this._startNewTrial()
-            this.default()
+            this.states['default'][0].meta.trialCount = this.params.trialCount
         }
 
+        this.default()
         if (this.props.currentTrial != this.params.trialCount) this.props.loop = setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
     }
 
     _startNewTrial(){
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
+        this.states['default'][0].meta.state = this.params.trialProgression[this.props.currentTrial]
+        this.states['default'][0].meta.stateDuration = this.params.duration*1000
     }
 }
