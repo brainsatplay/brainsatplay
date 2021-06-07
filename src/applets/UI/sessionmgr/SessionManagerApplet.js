@@ -1012,7 +1012,7 @@ export class SessionManagerApplet {
                             this.uplot.uPlotData.push(dummyarr);
                         });
                     }
-                    console.log(newSeries,this.uplot.uPlotData)
+                    //console.log(newSeries,this.uplot.uPlotData)
                     if(!gmode.includes('stacked')) {
                         this.uplot.makeuPlot(
                             newSeries, 

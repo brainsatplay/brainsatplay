@@ -425,7 +425,7 @@ export class uPlotMaker {
 			let yvalues = (u, splits) => splits.map((v,i) => axmapper(v,i));
 			this.plot.axes[1].values = yvalues;
 		}
-		console.log(uPlotData)
+		//console.log(uPlotData)
 		this.plot.setData(uPlotData);
 	}
 
