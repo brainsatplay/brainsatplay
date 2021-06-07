@@ -31,6 +31,9 @@ a {
 a:hover{
     color: rgb(200, 200, 200)
 }
+a.hover{
+    color: rgb(200, 200, 200)
+}
 
 /* Selector */
 select {
@@ -135,6 +138,9 @@ select {
 .brainsatplay-default-button:hover {
     background-color: rgb(35,35,35);
 }
+.brainsatplay-default-button.hover {
+    background-color: rgb(35,35,35);
+}
 
 
 
@@ -211,6 +217,9 @@ select {
 }
 
 .brainsatplay-variantButton:hover {
+    background-color: rgb(35,35,35);
+}
+.brainsatplay-variantButton.hover {
     background-color: rgb(35,35,35);
 }
 
@@ -413,6 +422,9 @@ select {
 
 
 .brainsatplay-tutorial button:hover {
+    background-color: rgb(35,35,35);
+}
+.brainsatplay-tutorial button.hover {
     background-color: rgb(35,35,35);
 }
 

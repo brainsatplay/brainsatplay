@@ -7,7 +7,7 @@ export const settings = {
     devices: ["EEG"],
     author: "Christopher Coogan + Garrett Flynn",
     description: "Control a mouse with your brain",
-    categories: ["Train"],
+    categories: ["UI"],
     // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {

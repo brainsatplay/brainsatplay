@@ -1,6 +1,4 @@
-import {transformCSSForBCICursor} from '../../ui/cssForBCI'
-
-export class Cursor{
+export class Mouse{
 
     static id = String(Math.floor(Math.random()*1000000))
     
@@ -23,7 +21,6 @@ export class Cursor{
                 width: 15,
                 height: 20
             },
-            prevHovered: null,
             globalStyles: []
         }
     }
@@ -46,7 +43,37 @@ export class Cursor{
         this.props.cursor.style.position = 'absolute'
         this.props.mutex = false;
 
-        this.props.globalStyles.push(transformCSSForBCICursor())
+        document.body.style.cursor = 'none'
+
+
+        // Add hover repacement for styling
+        let bcifiyCSS = (selector) => {
+            var style = "";
+            console.log('running in')
+
+            console.log(document.styleSheets)
+            for (var i in document.styleSheets) {
+                var rules = document.styleSheets[i].cssRules;
+                for (var r in rules) {
+                    if(rules[r].cssText && rules[r].selectorText){
+                        if(rules[r].selectorText.indexOf(selector) > -1){
+                            var regex = new RegExp(selector,"g")
+                            var text = rules[r].cssText.replace(regex,"");
+                            style += text+"\n";
+                        }
+                    }
+                }
+            }
+
+            let globalStyle = document.createElement('style');
+            globalStyle.innerHTML = style
+            document.getElementsByTagName('head')[0].appendChild(globalStyle);
+            this.props.globalStyles.push(globalStyle)
+        };
+
+        console.log('running')
+
+        bcifiyCSS(":hover")
         let globalStyle = document.createElement('style');
         globalStyle.innerHTML = `
         * {
@@ -66,20 +93,13 @@ export class Cursor{
         let animate = () => {
 
             if (this.props.looping){
-                let initialX = this.props.x
-                let initialY = this.props.y
                 if (this.props.moveRight) this.right()
                 if (this.props.moveLeft) this.left()
                 if (this.props.moveUp) this.up()
                 if (this.props.moveDown) this.down()
 
-                // Illusory Cursor Has Moved
-                if (initialX != this.props.x || initialY != this.props.y){
-                    this.props.cursor.style.left = `${this.props.x}px`
-                    this.props.cursor.style.top = `${this.props.y}px`
-
-                    this._mouseHover()
-                }
+                this.props.cursor.style.left = `${this.props.x}px`
+                this.props.cursor.style.top = `${this.props.y}px`
 
                 setTimeout(() => {animate()}, 1000/60)
             }
@@ -102,7 +122,6 @@ export class Cursor{
         })
     }
 
-  
     default = (userData) => {
         return userData
     }
@@ -133,14 +152,14 @@ export class Cursor{
 
     click = (userData) => {
         let decision = this._getDecision(userData)
-        if (decision) this._mouseClick()
+        if (decision < 1) this._mouseClick()
     }
 
     _getDecision(userData, command){
         let choices = userData.map(u => Number(u.data))
         let mean = this.session.atlas.mean(choices)
         if (command) this.props[command] = mean
-        return (mean >= 0.5)
+        return mean
     }
 
     _mouseClick = () => {          
@@ -162,51 +181,5 @@ export class Cursor{
             // sets the image cursor to new relative position
             this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
             this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
-
-            this._mouseHover(false)
-    }
-
-    _mouseHover = (trigger=true) => {
-        let currentHovered = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
-
-        if (this.props.prevHovered != currentHovered){
-
-            // Trigger Mouse Out on Previous
-            if (this.props.prevHovered != null){
-
-                let prevHovered = this.props.prevHovered
-                let event = new MouseEvent('mouseout', {
-                    'view': window,
-                    'bubbles': true,
-                    'cancelable': true
-                    });
-                    prevHovered.dispatchEvent(event);
-                    
-                while (prevHovered) {
-                    prevHovered.classList.remove('hover')
-                    prevHovered = prevHovered.parentNode;
-                    if (prevHovered == null || prevHovered.tagName == 'BODY' || prevHovered.tagName == null) prevHovered = null
-                }
-            }
-
-            this.props.prevHovered = currentHovered
-
-            if (trigger){
-                //Trigger Mouse Over on Current
-                let event = new MouseEvent('mouseover', {
-                'view': window,
-                'bubbles': true,
-                'cancelable': true
-                });
-
-                currentHovered.dispatchEvent(event);
-
-                while (currentHovered) {
-                    currentHovered.classList.add('hover')
-                    currentHovered = currentHovered.parentNode;
-                    if (currentHovered.tagName == 'BODY' || currentHovered.tagName == null) currentHovered = null
-                }
-            }
-        }
     }
 }

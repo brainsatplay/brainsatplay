@@ -144,11 +144,16 @@ button {
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
 
-
+#sidebar.hover {
+    width: 75px;
+}
 #sidebar:hover {
     width: 75px;
 }
 
+#sidebar-container.hover .overlay{
+    opacity: 50%;
+}
 #sidebar-container:hover .overlay{
     opacity: 50%;
 }
@@ -195,7 +200,9 @@ button {
     align-items: center;
     justify-content: flex-start;
 }
-
+#sidebar button.hover {
+    background-color: rgb(35,35,35);
+}
 #sidebar button:hover {
     background-color: rgb(35,35,35);
 }
@@ -305,6 +312,12 @@ button {
     justify-content: center;
     align-items:  center;
     transition: all 0.5s ease-in-out;
+}
+
+.logo-container.hover{
+    border: 1px solid white;
+    /* border-radius: 5px; */
+    background-color: rgb(20,20,20);
 }
 
 .logo-container:hover{
@@ -463,6 +476,15 @@ input:focus{
     #sidebar:hover button .img-cont span{
         visibility: visible;
         opacity: 1;
+    }
+
+    /* For BCI Accessibility */
+    #sidebar.hover button .img-cont span{
+        visibility: visible;
+        opacity: 1;
+    }
+    #sidebar.hover {
+        width: clamp(75px, 200px, 40vw);
     }
         
 }
