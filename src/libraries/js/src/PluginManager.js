@@ -460,6 +460,8 @@ export class PluginManager{
                 let defaultCallback = (trigger) => {
 
                     if (trigger){
+
+                        if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
                         let input = source.states[sourcePort]
                         if (targetLabel.includes('brainstorm_')){
 

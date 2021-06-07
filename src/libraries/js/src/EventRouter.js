@@ -69,7 +69,7 @@ export class EventRouter{
         targets.forEach(t => {
             if (t){
                 if (t.constructor == Object && 'manager' in t){
-                    t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
+                    t.target.state[t.target.port].push({data: newState, meta: {label: t.label}})
                     let updateObj = {}
                     updateObj[t.label] = true
                     t.manager.setSequentialState(updateObj)
