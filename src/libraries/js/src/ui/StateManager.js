@@ -89,8 +89,8 @@ export class StateManager {
                     let updateObj = record.pushed[i];
                     for(const prop in updateObj) {
                         if(this.pushCallbacks[prop]) {
-                            this.pushCallbacks[prop].forEach((onchange) =>{
-                                onchange(updateObj[prop]);
+                            this.pushCallbacks[prop].forEach((o) =>{
+                                o.onchange(updateObj[prop]);
                             });
                         }
                     }
@@ -192,7 +192,8 @@ export class StateManager {
                 this.pushCallbacks[key] = [];
 
             if(onchange) {
-                this.pushCallbacks[key].push(onchange);
+                let idx = this.pushCallbacks[key].length;
+                this.pushCallbacks[key].push({idx:idx, onchange:onchange});
                 return this.pushCallbacks[key].length-1; //get key sub index for unsubscribing
             } 
             else return undefined;
@@ -202,12 +203,14 @@ export class StateManager {
     unsubscribeSequential(key=undefined,idx=0) {
         if(key){
             if(this.pushCallbacks[key]) {
-                if(this.pushCallbacks[key][idx]) {
-                    this.pushCallbacks[key].splice(idx,1);
+                let i;
+                if(this.pushCallbacks[key].find((o,j)=>{if(o.idx === idx) i=j;  return true;})) {
+                    this.pushCallbacks[key].splice(i);
                 }
             }
         }
     }
+
 
     unsubscribeAllSequential(key) {
         if(key) {
