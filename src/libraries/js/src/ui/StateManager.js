@@ -87,11 +87,13 @@ export class StateManager {
                 let l = record.pushed.length;
                 //let currentRecord = record.pushed.reverse();
                 for (let i = 0; i < l; i++){
-                    console.log(record.pushed[i]);
+                    //console.log(record.pushed[i]);
                     let updateObj = record.pushed[i];
                     for(const prop in updateObj) {
+                        //console.log(prop)
                         if(this.pushCallbacks[prop]) {
                             this.pushCallbacks[prop].forEach((onchange) =>{
+                                console.log(prop,updateObj[prop],onchange);
                                 onchange(updateObj[prop]);
                             });
                         }
