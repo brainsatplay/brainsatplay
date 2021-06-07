@@ -56,7 +56,6 @@ class UI{
 
     left = (userData) => {
 
-        console.log(userData)
         userData.forEach(u => {
             let leftEye = document.getElementById(this.props.id+"-left")
             let leftOpacity = 1-(u.data? 1 : 0)
