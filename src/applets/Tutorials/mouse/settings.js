@@ -1,21 +1,17 @@
 
 // import featureImg from './feature.png'
-import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "BCI Snake",
+    name: "BCI Mouse",
     devices: ["EEG"],
     author: "Christopher Coogan + Garrett Flynn",
-    description: "Snake + BCI2000.",
+    description: "Control a mouse with your brain",
     categories: ["Train"],
     // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {
       mode: 'single'
-    },
-    bonanza: {
-      minTime: 60, // s
     },
     // App Logic
     graphs: [
@@ -26,31 +22,30 @@ export const settings = {
         {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
         {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'Space'}},
         {id: 'mouse', class: brainsatplay.plugins.outputs.Mouse, params: {}},
-        {id: 'ui', class: UI, params: {}},
-        // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
       ],
       edges: [
         {
           source: 'up', 
-          target: 'ui:up'
+          target: 'mouse:up'
         },
         {
           source: 'down', 
-          target: 'ui:down'
+          target: 'mouse:down'
         },
         {
           source: 'left', 
-          target: 'ui:left'
-        },
-        {
-          source: 'right', 
-          target: 'ui:right'
+          target: 'mouse:left'
         },
         {
           source: 'right', 
           target: 'mouse:right'
-        }
+        },
+        {
+          source: 'spacebar', 
+          target: 'mouse:click'
+        },
       ]
     }],
 }
