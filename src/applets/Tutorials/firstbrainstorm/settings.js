@@ -15,6 +15,9 @@ export const settings = {
     intro: {
       subtitle: 'A Simple Networked Game',
     },
+    display: {
+      production: false
+    },
 
     // App Logic
     graphs: [
@@ -27,6 +30,7 @@ export const settings = {
         {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
+
       edges: [
         {
           source: 'signal', 

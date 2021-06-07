@@ -10,7 +10,10 @@ export const settings = {
     description: "Benchmark your first Brains@Play plugin.",
     categories: ["tutorial"],
     instructions:"Coming soon...",
-    
+    display: {
+      production: false
+    },
+
     // App Logic
     graphs: [
       {

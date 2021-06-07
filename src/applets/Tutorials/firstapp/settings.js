@@ -12,7 +12,10 @@ export const settings = {
     intro: {
       mode: 'single'
     },
-    
+    display: {
+      production: false
+    },
+
     // App Logic
     graphs: [
       {

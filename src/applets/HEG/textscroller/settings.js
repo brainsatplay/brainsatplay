@@ -2,14 +2,14 @@
 import featureImg from './img/feature.png'
 
 export const settings = {
-    "name": "Text Scroller",
-    "author": "Joshua Brewster",
-    "devices": ["EEG","HEG"],
-    "description": "Words of affirmation.",
-    "categories": ["train"],
-    "module": "TextScrollerApplet",
-    "image":  featureImg,
-		"instructions":`
+    name: "Text Scroller",
+    author: "Joshua Brewster",
+    devices: ["EEG","HEG"],
+    description: "Words of affirmation.",
+    categories: ["train"],
+    module: "TextScrollerApplet",
+    image:  featureImg,
+		instructions:`
     <p>The text speeds up/slows down with your blood oxygen ratio.</p>
     <h3>Easy breathing exercises:</h3>
     <h4>Diaphragmatic Vagal Breathing (increase score and HRV):</h4>

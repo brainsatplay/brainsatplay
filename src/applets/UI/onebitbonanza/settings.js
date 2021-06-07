@@ -9,6 +9,10 @@ export const settings = {
     description: "Play a new low-bandwidth game every few seconds!",
     categories: ["UI"],
     instructions:"Coming soon...",
+    display: {
+      development: false,
+      production: false
+    },
     
     // App Logic
     graphs: [
