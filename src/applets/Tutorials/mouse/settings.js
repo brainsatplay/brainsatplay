@@ -22,29 +22,29 @@ export const settings = {
         {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
         {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
-        {id: 'spacebar', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'Space'}},
-        {id: 'mouse', class: brainsatplay.plugins.outputs.Mouse, params: {}},
+        {id: 'click', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'Space'}},
+        {id: 'cursor', class: brainsatplay.plugins.outputs.Cursor, params: {}},
       ],
       edges: [
         {
           source: 'up', 
-          target: 'mouse:up'
+          target: 'cursor:up'
         },
         {
           source: 'down', 
-          target: 'mouse:down'
+          target: 'cursor:down'
         },
         {
           source: 'left', 
-          target: 'mouse:left'
+          target: 'cursor:left'
         },
         {
           source: 'right', 
-          target: 'mouse:right'
+          target: 'cursor:right'
         },
         {
-          source: 'spacebar', 
-          target: 'mouse:click'
+          source: 'click', 
+          target: 'cursor:click'
         },
       ]
     }],

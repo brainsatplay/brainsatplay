@@ -1,4 +1,4 @@
-export class Mouse{
+export class Cursor{
 
     static id = String(Math.floor(Math.random()*1000000))
     

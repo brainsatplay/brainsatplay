@@ -1,5 +1,5 @@
 export {Debug} from './Debug'
-export {Mouse} from './Mouse'
+export {Cursor} from './Cursor'
 export {Buzz} from './Buzz'
 
 
