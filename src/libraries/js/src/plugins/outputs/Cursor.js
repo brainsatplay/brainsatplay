@@ -136,14 +136,15 @@ export class Cursor{
 
     click = (userData) => {
         let decision = this._getDecision(userData)
-        if (decision < 1) this._mouseClick()
+        if (decision) this._mouseClick()
     }
 
     _getDecision(userData, command){
+        console.log(userData)
         let choices = userData.map(u => Number(u.data))
         let mean = this.session.atlas.mean(choices)
         if (command) this.props[command] = mean
-        return mean
+        return (mean >= 0.5)
     }
 
     _mouseClick = () => {          
