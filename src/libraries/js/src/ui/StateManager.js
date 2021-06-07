@@ -93,7 +93,7 @@ export class StateManager {
                         //console.log(prop)
                         if(this.pushCallbacks[prop]) {
                             this.pushCallbacks[prop].forEach((onchange) =>{
-                                console.log(prop,updateObj[prop],onchange);
+                                //console.log(prop,updateObj[prop],onchange);
                                 onchange(updateObj[prop]);
                             });
                         }
