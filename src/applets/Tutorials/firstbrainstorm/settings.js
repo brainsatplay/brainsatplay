@@ -34,11 +34,11 @@ export const settings = {
         },
         {
           source: 'spacebar', 
-          target: 'brainstorm'
+          target: 'brainstorm:spacebar'
         },
         {
           source: 'neurofeedback', 
-          target: 'brainstorm'
+          target: 'brainstorm:neurofeedback'
         },
         {
           source: 'brainstorm:spacebar', 

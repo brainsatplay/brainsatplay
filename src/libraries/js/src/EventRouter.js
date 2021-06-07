@@ -251,14 +251,15 @@ export class EventRouter{
             let routerOptions = document.getElementById(`${this.id}routerControls`).querySelector('.brainsatplay-router-options')
             routerOptions.innerHTML = ''
             
-            let managerMap = {}
+            let infoMap = {}
             let selector = document.createElement('select')
             selector.insertAdjacentHTML('beforeend',`
             <option value="" disabled selected>Choose an event</option>
             <option value="none">None</option>
             `)
+
             this.routes.reserve.pool.forEach(dict => {
-                managerMap[dict.label] = dict.manager
+                infoMap[dict.label] = dict
 
                 let splitId = dict.label.split('_')
                 splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
@@ -274,7 +275,7 @@ export class EventRouter{
 
                     thisSelector.onchange = (e) => {
                         try {
-                            let target = {manager: managerMap[thisSelector.value], label:thisSelector.value}
+                            let target = infoMap[thisSelector.value]
                             // Switch Route Target
                             if (this.routes.registry[id].length < 2) this.routes.registry[id].push(target)
                             else this.routes.registry[id][1] = target

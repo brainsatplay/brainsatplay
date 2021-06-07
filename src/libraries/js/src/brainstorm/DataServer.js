@@ -543,8 +543,6 @@ class DataServer {
         let g = this.getAppSubscription(id);
         let u = this.userData.get(username);
 
-        console.log('subscribing')
-
 		if(g !== undefined && u !== undefined) {
 
             if (g.usernames.length === 0 && !spectating){

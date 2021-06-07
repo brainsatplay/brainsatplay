@@ -222,13 +222,12 @@ export class PluginManager{
         input.forEach(u => {
             inputCopy.push(Object.assign({}, u))
             for (let key in u){
-                if (u[key].constructor == Object){
+                if (u[key] != null && u[key].constructor == Object){
                     u[key] = Object.assign({}, u[key])
                 }
             }
         })
         return inputCopy
-
     }
 
     getLabel(node,port){
@@ -238,24 +237,29 @@ export class PluginManager{
     // Input Must Be An Array
     runSafe(input, node, port='default'){
 
+        let stateLabel = this.getLabel(node,port)
+
         // Shallow Copy State before Repackaging
         let inputCopy = []
 
-        let t1 = performance.now()
         inputCopy = this.deeperCopy(input)
-        let t2 = performance.now()
 
-        // Add Username to Self
+        // Add Metadata
         for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
             // Remove Users with Empty Dictionaries
             if (Object.keys(inputCopy[i]) == 0) inputCopy.splice(i,1)
             // Or Add Username
-            else if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+            else {
+                if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+            }
         }
 
         // Only Continue the Chain with Updated Data
+
         if (inputCopy.length > 0){
-            let result = node[port](inputCopy)
+            let result
+            if (node[port] instanceof Function) result = node[port](inputCopy)
+            else result = node['default'](inputCopy) 
 
             if (result && result.length > 0){
                 let allEqual = true
@@ -265,17 +269,17 @@ export class PluginManager{
                         if (!thisEqual){
                             node.states[port][i] = o
                             allEqual = false
-                        } else {
                         }
                     } else {
                         node.states[port].push(o)
                         allEqual = false
                     }
                 })
+
                 if (!allEqual && node.stateUpdates){
                     let updateObj = {}
-                    updateObj[this.getLabel(node,port)] = true
-                    node.stateUpdates.manager.setSequentialState(updateObj)
+                    updateObj[stateLabel] = true
+                    node.stateUpdates.manager.setState(updateObj)
                 }
             }
         }
@@ -444,71 +448,71 @@ export class PluginManager{
                 let target = applet.nodes[targetName].instance
 
                 let label = this.getLabel(source,sourcePort)
+                let targetLabel = this.getLabel(target, targetPort)
                 applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
                 // Pass Data from Source to Target
                 let defaultCallback = (trigger) => {
+
                     if (trigger){
                         let input = source.states[sourcePort]
+                        if (targetLabel.includes('brainstorm_')){
+
+                            // Update Session State
+                            this.session.state.data[label] = input[0]
+
+                            // Add Default Metadata
+                            if (!('source' in input[0].meta)) input[0].meta.route = label
+                            if (!('app' in input[0].meta)) input[0].meta.app = applet.name
+                        }
+
                         return this.runSafe(input, target, targetPort)
                     }
                 }
                 
 
+                // Initialize port with Default Output
+                this.state.data[label] = source.states[sourcePort]
+                let updateObj = {}
+                updateObj[label] = true
+                source.stateUpdates = {}
+                source.stateUpdates.manager = this.state
+
                 // Log Output in Global State (for Brainstorm)
                 if (applet.nodes[targetName].instance instanceof Brainstorm) {
+                    // if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add stream function
+                    uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [defaultCallback])) // Add data to listen to
 
-                    if (applet.nodes[targetName].instance.apps == null) applet.nodes[targetName].instance.apps = {}
-                    applet.nodes[targetName].instance.apps[appId] = {}
-
-                    let brainstormCallback = (input) => {
-                        let portCallback = applet.nodes[targetName].instance.apps[appId][sourceName]
-                        if (portCallback instanceof Function) portCallback(input)
-                    }
-
-                    if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add stream function
-                    else uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add data to listen to
+                    // Add Default State to the Global State
+                    this.session.state.data[label] = this.state.data[label][0]
 
                     // Add to Stream List
                     applet.streams.add(label) // Keep track of streams to pass to the Brainstorm
                 } 
 
-                // Assign Proper Callback to Route Data from the Brainstorm
-                else if (applet.nodes[sourceName].instance instanceof Brainstorm) {
-                    applet.nodes[sourceName].instance.apps[appId][sourcePort] = defaultCallback
-                }
-                // Otherwise Just Listen for Local Changes
-                else {
-                    // Initialize port with Default Output
-                    this.state.data[label] = source.states[sourcePort]
-                    let updateObj = {}
-                    updateObj[label] = true
-                    source.stateUpdates = {}
-                    source.stateUpdates.manager = this.state
+                // // And  Listen for Local Changes
+                if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
 
-                    if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
+                if (sourceInfo.loop){
 
-                    if (sourceInfo.loop){
+                    // Check if Already Streaming
+                    let found = this.findStreamFunction(label)
 
-                        // Check if Already Streaming
-                        let found = this.findStreamFunction(label)
+                    // If Already Streaming, Subscribe to Stream
+                    if (found != null){
+                        if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
+                        else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                    } 
 
-                        // If Already Streaming, Subscribe to Stream
-                        if (found != null){
-                            if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
-                            else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
-                        } 
-
-                        // Otherwise Create Local Stream and Subscribe Locally
-                        else {
-                            this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                                applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
-                        }
-
-                    } else {
-                        applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                    // Otherwise Create Local Stream and Subscribe Locally
+                    else {
+                        this.session.addStreamFunc(label, source[sourcePort], this.state, false)
+                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
                     }
-            }
+
+                } else {
+                    applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                }
         })
 
         return {uiParams: uiParams, streams:this.applets[appId].streams, controls: this.applets[appId].controls}
@@ -603,18 +607,18 @@ export class PluginManager{
         let id = (port != 'default') ? `${ nodeInfo.instance.label}_${port}` :  nodeInfo.instance.label
         let found = this.findStreamFunction(id)
 
-            if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
+        if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
 
-            this.registry.local[id].registry[port].callback = () => {
-                if (this.session.state.data[id] != null){
-                    if (callbacks){
-                        let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
-                        callbacks.forEach(f => {
-                            if (f instanceof Function) f(propData)
-                        })
-                    }
+        this.registry.local[id].registry[port].callback = () => {
+            if (this.session.state.data[id] != null){
+                if (callbacks){
+                    let propData = this.session.getBrainstormData(applet.name,[id], 'app', 'plugin')
+                    callbacks.forEach(f => {
+                        if (f instanceof Function) f(propData)
+                    })
                 }
             }
+        }
 
         if (found == null) {
             applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].registry[port].state, this.registry.local[id].registry[port].callback))
