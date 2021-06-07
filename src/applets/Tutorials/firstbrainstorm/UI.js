@@ -90,8 +90,6 @@ class UI{
 
     color = (userData) => {
 
-        console.log(userData)
-
         let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
         if (Array.isArray(userData)){
             userData.forEach(u =>{
