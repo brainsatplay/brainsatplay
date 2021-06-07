@@ -28,7 +28,7 @@ class UI{
                 <div style="width: 100%; padding: 0px 10%;">
                     <h1 id="${this.props.id}-label"></h1>
                     <p id="${this.props.id}-readout"></p>
-                    <div id="${this.props.id}-bar" style="background: transparent; height: 5px; width: 100%; border: 1px solid white; ">
+                    <div id="${this.props.id}-bar" style="background: transparent; height: 7px; width: 100%; border: 1px solid white; ">
                         <div style="background: white; height: 100%; width: 100%;">
                     </div>
                 </div>
@@ -50,8 +50,8 @@ class UI{
 
         // Fill a Progress Bar
         let fillBar = barDiv.querySelector('div')
-        if (userData[0].meta.state === 'ITI') fillBar.style.background = 'lime'
-        else fillBar.style.background = 'green'
+        if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'
+        else fillBar.style.background = 'lime'
 
         fillBar.style.width = `${statePercentage*100}%`
 

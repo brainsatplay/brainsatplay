@@ -7,8 +7,16 @@ export class Mouse{
         this.session = session
         this.params = params
 
-        this.props = {
+        this.paramOptions = {
+            speed: {default: 1, min: 0, max: 10, step: 0.01}
+        }
 
+        this.props = {
+            moveRight: false,
+            moveLeft: false,
+            moveUp: false,
+            moveDown: false,
+            looping: false
         }
     }
 
@@ -31,11 +39,14 @@ export class Mouse{
              
         this.props.mutex = false;
 
+
+        document.body.style.cursor = 'none'
+
         // document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock;
         // document.body.requestPointerLock()
   
-        // window.addEventListener("mouseup", this.mouseUp)
-        // window.addEventListener("mousemove", this.mouseMove);
+        window.addEventListener("mouseClick", this._mouseClick)
+        window.addEventListener("mousemove", this._mouseMove);
   
         /* The following function re-calculates px,py 
            with respect to new position
@@ -58,34 +69,79 @@ export class Mouse{
         //     }
         // }
 
+        let middleX = window.innerWidth/2
+        let middleY = window.innerHeight/2
+        this.props.cursor.style.left = middleX + 'px'
+        this.props.cursor.style.top = middleY + 'px'
+        this.props.looping = true
+
         let animate = () => {
-            let middleX = window.innerWidth/2
-            let middleY = window.innerHeight/2
-            this.props.cursor.style.left = middleX + ((middleX) * (0.5*Math.sin(Date.now()/1000))) + 'px'
-            this.props.cursor.style.top = middleY + ((middleY) * (0.5*Math.cos(Date.now()/1000))) + 'px'
-            setTimeout(() => {animate()}, 1000/60)
+
+            if (this.props.looping){
+                if (this.props.moveRight) this.right()
+                if (this.props.moveLeft) this.left()
+                if (this.props.moveUp) this.up()
+                if (this.props.moveDown) this.down()
+
+                setTimeout(() => {animate()}, 1000/60)
+            }
         }
-
+    
         animate()
-
     }
 
     deinit = () => {
         var cursor = document.getElementById("brainsatplay-cursor"); 
         if (cursor != null) cursor.remove()
 
-        window.removeEventListener("mouseup", this.mouseUp)
-        window.removeEventListener("mousemove", this.mouseMove);
+        document.body.style.cursor = 'default'
+        this.props.looping = false
+
+        window.removeEventListener("mouseClick", this._mouseClick)
+        window.removeEventListener("mousemove", this._mouseMove);
     }
 
     default = (userData) => {
-        userData.forEach(u => {
-            console.log(u)
-        })
         return userData
     }
 
-    mouseUp = (e) => {          
+    right = (userData) => {
+        if (userData) this._getDecision(userData, 'moveRight')
+        let prevPos = parseFloat(this.props.cursor.style.left.replace('px', ''))
+        this.props.cursor.style.left = `${prevPos + this.params.speed}px`
+    }
+
+    left = (userData) => {
+        if (userData) this._getDecision(userData, 'moveLeft')
+        let prevPos = parseFloat(this.props.cursor.style.left.replace('px', ''))
+        this.props.cursor.style.left = `${prevPos - this.params.speed}px`
+    }
+
+    up = (userData) => {
+        if (userData) this._getDecision(userData, 'moveUp')
+        let prevPos = parseFloat(this.props.cursor.style.top.replace('px', ''))
+        this.props.cursor.style.top = `${prevPos - this.params.speed}px`
+    }
+
+    down = (userData) => {
+        if (userData) this._getDecision(userData, 'moveDown')
+        let prevPos = parseFloat(this.props.cursor.style.top.replace('px', ''))
+        this.props.cursor.style.top = `${prevPos + this.params.speed}px`
+    }
+
+    click = (userData) => {
+        let decision = this._getDecision(userData)
+        if (decision < 1) this._mouseClick()
+    }
+
+    _getDecision(userData, command){
+        let choices = userData.map(u => Number(u.data))
+        let mean = this.session.atlas.mean(choices)
+        if (command) this.props[command] = mean
+        return mean
+    }
+
+    _mouseClick = () => {          
         // gets the object on image cursor position
         var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
         this.props.mutex = true;
@@ -95,7 +151,7 @@ export class Mouse{
     }
 
 
-    mouseMove = (e) => {
+    _mouseMove = (e) => {
             // Gets the x,y position of the mouse cursor
             this.props.x = e.clientX;
             this.props.y = e.clientY;
