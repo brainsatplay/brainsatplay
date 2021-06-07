@@ -369,7 +369,12 @@ export class PluginManager{
 
         // Get UI Components from Nodes
         for (let id in applet.nodes){
+
+            // Add State Manager
             let node = applet.nodes[id]
+            node.instance.stateUpdates = {}
+            node.instance.stateUpdates.manager = this.state
+
             if (!initializedNodes.includes(node.id)){
                 let ui = node.instance.init(node.params)
                 if (ui != null) {
@@ -455,6 +460,8 @@ export class PluginManager{
                 let defaultCallback = (trigger) => {
 
                     if (trigger){
+
+                        if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
                         let input = source.states[sourcePort]
                         if (targetLabel.includes('brainstorm_')){
 
@@ -465,7 +472,6 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
-
                         return this.runSafe(input, target, targetPort)
                     }
                 }
@@ -473,10 +479,6 @@ export class PluginManager{
 
                 // Initialize port with Default Output
                 this.state.data[label] = source.states[sourcePort]
-                let updateObj = {}
-                updateObj[label] = true
-                source.stateUpdates = {}
-                source.stateUpdates.manager = this.state
 
                 // Log Output in Global State (for Brainstorm)
                 if (applet.nodes[targetName].instance instanceof Brainstorm) {

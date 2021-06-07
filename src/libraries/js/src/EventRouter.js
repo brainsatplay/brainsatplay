@@ -69,7 +69,7 @@ export class EventRouter{
         targets.forEach(t => {
             if (t){
                 if (t.constructor == Object && 'manager' in t){
-                    t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
+                    t.target.state[t.target.port].push({data: newState, meta: {label: t.label}})
                     let updateObj = {}
                     updateObj[t.label] = true
                     t.manager.setSequentialState(updateObj)
@@ -137,7 +137,7 @@ export class EventRouter{
                 let routes = this.routes.registry[id]
 
                 // Replace If Not Already Assigned
-                if (!("manager" in routes[1])){
+                if (routes[1]==null || !("manager" in routes[1])){
                     routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
                     newRoute.label = routes[1].label

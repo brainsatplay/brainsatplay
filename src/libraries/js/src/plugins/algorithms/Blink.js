@@ -34,13 +34,13 @@ export class Blink{
             //     options: ['Threshold']
             // }, 
             blinkDuration: {
-                default: 200,
+                default: 100,
                 options: null,
                 min: 0,
                 max: 2000,
                 step: 1
             }, blinkThreshold: {
-                default: 220,
+                default: 100,
                 options: null,
                 min: 0,
                 max: 1000,

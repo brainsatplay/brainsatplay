@@ -171,54 +171,53 @@ export class BreathTrainerApplet {
         
         this.amplitudes = amplitudes;
                 
-        this.x = [...this.amplitudes[0],...this.amplitudes[0].map((x)=> {return x+this.amplitudes[0][this.amplitudes[0].length-1]})];
-        this.y = [...this.amplitudes[1],...this.amplitudes[1]];
+        // this.x = [...this.amplitudes[0],...this.amplitudes[0].map((x)=> {return x+this.amplitudes[0][this.amplitudes[0].length-1]})];
+        // this.y = [...this.amplitudes[1],...this.amplitudes[1]];
 
-        this.xi0=0;
-        this.xi1=this.x.length-1;
-        this.x.find((xn,i)=>{
-            if(xn > this.canvas.width || i === this.xi1-1) {
-                this.xi1 = i;
-                return true;
-            }
-        });
+        // this.xi0=0;
+        // this.xi1=this.x.length-1;
+        // this.x.find((xn,i)=>{
+        //     if(xn > this.canvas.width || i === this.xi1-1) {
+        //         this.xi1 = i;
+        //         return true;
+        //     }
+        // });
 
-        this.xDiff = undefined;
+        // this.xDiff = undefined;
 
-        //console.log(amplitudes);
+        // //console.log(amplitudes);
     }
 
     animate = () => {
 
         if(this.inc > this.amplitudes[0][this.amplitudes[0].length-1]) { this.startTime = Date.now(); }
-        this.inc = 0.001*(Date.now() - this.startTime)*5;       
-        this.incscaled = this.inc*this.xscaling;
+        this.inc = 0.001*(Date.now() - this.startTime)
         //console.log(this.inc,this.x[this.x.length-1]);
         //console.log(this.inc,this.x[Math.floor(this.x.length*0.5)])
         if(this.animation === 'sine') {
 
-            //console.log('mapping');
-            let y=this.y.map((yn)=>{return this.yscaling*yn+this.canvas.height*0.5;});
-            let x=this.x.map((xn)=>{return this.xscaling*xn-this.incscaled;});
+            // //console.log('mapping');
+            // let y=this.y.map((yn)=>{return this.yscaling*yn+this.canvas.height*0.5;});
+            // let x=this.x.map((xn)=>{return this.xscaling*xn-this.incscaled;});
 
-            x.slice(this.xi0).find((xn,i)=>{
-                if(xn < this.incscaled) {
-                    this.xi0 = i+this.xi0;
-                } 
-                if (this.xi0 > (Math.floor(x.length*0.5))+this.xDiff) {
-                    this.xi0 = 0;
-                    this.xi1 = this.xDiff;
-                    return true;
-                }
-                if(xn > this.canvas.width+this.incscaled+this.xscaling) {
-                    this.xi1 = i+this.xi0;
-                    if(!this.xDiff) this.xDiff = this.xi1-this.xi0;
-                    return true;
-                }
-            });
+            // x.slice(this.xi0).find((xn,i)=>{
+            //     if(xn < this.incscaled) {
+            //         this.xi0 = i+this.xi0;
+            //     } 
+            //     if (this.xi0 > (Math.floor(x.length*0.5))+this.xDiff) {
+            //         this.xi0 = 0;
+            //         this.xi1 = this.xDiff;
+            //         return true;
+            //     }
+            //     if(xn > this.canvas.width+this.incscaled+this.xscaling) {
+            //         this.xi1 = i+this.xi0;
+            //         if(!this.xDiff) this.xDiff = this.xi1-this.xi0;
+            //         return true;
+            //     }
+            // });
 
-            console.log(this.xi0,this.xi1,x[0],this.inc,this.incscaled)
-            // if(this.xi0 > 0) {
+            // console.log(this.xi0,this.xi1,x[0],this.inc,this.incscaled)
+            // // if(this.xi0 > 0) {
             //     let xspliced = x.splice(1,this.xi0-1);
             //     x.push(...xspliced);
             //     let yspliced = y.splice(1,this.xi0-1);
