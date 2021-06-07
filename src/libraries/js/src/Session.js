@@ -313,7 +313,11 @@ export class Session {
 			deviceSelection.style.pointerEvents = 'none'
 		}
 		
+		// Apply User Filter
 		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
+
+		// Apply Browser Filter
+		if (!window.isChrome)  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
 		newDeviceList.sort(function(a, b) {
 			let translate = (d) => {

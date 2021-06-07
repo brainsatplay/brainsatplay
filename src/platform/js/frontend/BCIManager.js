@@ -430,12 +430,7 @@ export class BCIAppManager {
 
     updateOverlay = () => {
         // Remove overlay only if on Chrome
-        if (window.isChrome) {
-            document.body.querySelector('.loader').style.opacity = 0;
-        } else {
-            document.body.querySelector('.loader-error').innerHTML = '<h2>The Brains@Play Platform has been developed for Google Chrome.</h2>';
-            document.body.querySelector('.loader-error').style.opacity = 1;
-        }
+        document.body.querySelector('.loader').style.opacity = 0;
     }
 
     initUI = () => { //Setup all of the UI rendering and logic/loops for menus and other non-applet things
