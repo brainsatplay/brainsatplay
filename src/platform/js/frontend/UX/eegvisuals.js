@@ -393,6 +393,7 @@ export class uPlotMaker {
 				sum += 1;
 				k++;
 			}
+			if(t === 0 || maxs[k] === 0) return k;
 			return (t/maxs[k]) + k; //+(Math.abs(min)/max); //+0.5
 
 		}
@@ -422,7 +423,7 @@ export class uPlotMaker {
 			let yvalues = (u, splits) => splits.map((v,i) => axmapper(v,i));
 			this.plot.axes[1].values = yvalues;
 		}
-
+		console.log(uPlotData)
 		this.plot.setData(uPlotData);
 	}
 

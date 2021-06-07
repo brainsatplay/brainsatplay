@@ -1005,15 +1005,18 @@ export class SessionManagerApplet {
                 else if (gmode.includes('eeg')) {
                     let newSeries = this.makeSeries(gmode,head);
                     newSeries[0].label = "t";
-                    let dummyarr = new Array(100).fill(1);
-                    newSeries.forEach((s)=>{
-                        this.uplot.uPlotData.push(dummyarr);
-                    });
-
+                    if(this.uplot.uPlotData.length === 0) {
+                        
+                        let dummyarr = new Array(100).fill(1);
+                        newSeries.forEach((s)=>{
+                            this.uplot.uPlotData.push(dummyarr);
+                        });
+                    }
+                    console.log(newSeries,this.uplot.uPlotData)
                     if(!gmode.includes('stacked')) {
                         this.uplot.makeuPlot(
                             newSeries, 
-                            this.uplot.uPlotData, 
+                            this.uplot.uPlotData,
                             this.AppletHTML.node.clientWidth, 
                             400
                         );
