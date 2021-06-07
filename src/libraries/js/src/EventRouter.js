@@ -69,7 +69,9 @@ export class EventRouter{
         targets.forEach(t => {
             if (t){
                 if (t.constructor == Object && 'manager' in t){
+                    t.target.state[t.target.port] = []
                     t.target.state[t.target.port].push({data: newState, meta: {label: t.label}})
+                    // t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
                     let updateObj = {}
                     updateObj[t.label] = true
                     t.manager.setSequentialState(updateObj)
@@ -115,34 +117,33 @@ export class EventRouter{
             return {route: r, event: pair}
         })
 
-        for (let i = removeEvents.length; i > 0; i--){
+        removeEvents = removeEvents.reverse()
+        removeEvents.forEach(i => {
             eventsToBind.splice(i,1)
-        }
+        })
 
         mappedRoutes.forEach(newRoute => {
 
             let id
-
             // Grab Preselected Route if Necessary
-            if ('event' in newRoute){
+            if (newRoute.event != null){
                 id = newRoute.event
-                newRoute = newRoute.route
             } else if (eventsToBind.length > 0){
                 id = eventsToBind.shift()
             }
+            newRoute = newRoute.route
 
             // Select Route if Possible
             if (id){
 
                 let routes = this.routes.registry[id]
-
                 // Replace If Not Already Assigned
                 if (routes[1]==null || !("manager" in routes[1])){
                     routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
                     newRoute.label = routes[1].label
                 }
-                
+
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;

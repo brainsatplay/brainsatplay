@@ -16,7 +16,7 @@ export class Keyboard{
         this.ports = {
             default: {
                 defaults: {
-                    output: [{data: false, meta: {label: 'keycode'}}]
+                    output: [{data: false, meta: {label: `${this.params.keycode}`}}]
                 }
             }
         }

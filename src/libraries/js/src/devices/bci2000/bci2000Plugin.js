@@ -94,6 +94,7 @@ export class bci2000Plugin {
                         // The framework itself supports values from 0-1 for any particular state.
 
                         let value = this.device.states[k][0] // Exclusive (only first index)
+                        // if (Object.keys(this.states[k].length == 1) || value != 0){
                         if (this.states[k][value].data != true){
                         this.states[k].forEach((state,i) => { // Exclusive (resets states not chosen)
                             if (i === value) {
@@ -105,6 +106,7 @@ export class bci2000Plugin {
                                 }
                             }
                         })
+                    // }
                     }
                     }
                 })
