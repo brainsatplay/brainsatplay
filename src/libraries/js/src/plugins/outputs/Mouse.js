@@ -16,21 +16,25 @@ export class Mouse{
             moveLeft: false,
             moveUp: false,
             moveDown: false,
-            looping: false
+            looping: false,
+            cursorSize: {
+                width: 15,
+                height: 20
+            }
         }
     }
 
     init = () => {
 
-        this.props.x = null
-        this.props.y = null
+        this.props.x = window.innerWidth/2
+        this.props.y = window.innerHeight/2
         this.props.py = 0
         this.props.px = 0
         
         // Image of cursor
         this.props.cursor = document.getElementById("brainsatplay-cursor"); 
         if (this.props.cursor == null){
-            document.body.insertAdjacentHTML('beforeend', `<img id="brainsatplay-cursor" src="https://media.geeksforgeeks.org/wp-content/uploads/20200319212118/cursor2.png" width="15" height="20" />`)
+            document.body.insertAdjacentHTML('beforeend', `<img id="brainsatplay-cursor" src="https://media.geeksforgeeks.org/wp-content/uploads/20200319212118/cursor2.png" width="${this.props.cursorSize.width}" height="${this.props.cursorSize.height}" />`)
             this.props.cursor = document.getElementById("brainsatplay-cursor"); 
         }
         this.props.cursor.style.zIndex = 10000000;
@@ -69,10 +73,8 @@ export class Mouse{
         //     }
         // }
 
-        let middleX = window.innerWidth/2
-        let middleY = window.innerHeight/2
-        this.props.cursor.style.left = middleX + 'px'
-        this.props.cursor.style.top = middleY + 'px'
+        this.props.cursor.style.left = this.props.x + 'px'
+        this.props.cursor.style.top = this.props.y + 'px'
         this.props.looping = true
 
         let animate = () => {
@@ -82,6 +84,9 @@ export class Mouse{
                 if (this.props.moveLeft) this.left()
                 if (this.props.moveUp) this.up()
                 if (this.props.moveDown) this.down()
+
+                this.props.cursor.style.left = `${this.props.x}px`
+                this.props.cursor.style.top = `${this.props.y}px`
 
                 setTimeout(() => {animate()}, 1000/60)
             }
@@ -107,26 +112,26 @@ export class Mouse{
 
     right = (userData) => {
         if (userData) this._getDecision(userData, 'moveRight')
-        let prevPos = parseFloat(this.props.cursor.style.left.replace('px', ''))
-        this.props.cursor.style.left = `${prevPos + this.params.speed}px`
+        let desiredPos = this.props.x + this.params.speed
+        if (desiredPos < (window.innerWidth - this.props.cursorSize.width)) this.props.x = desiredPos
     }
 
     left = (userData) => {
         if (userData) this._getDecision(userData, 'moveLeft')
-        let prevPos = parseFloat(this.props.cursor.style.left.replace('px', ''))
-        this.props.cursor.style.left = `${prevPos - this.params.speed}px`
+        let desiredPos = this.props.x - this.params.speed
+        if (desiredPos > 0) this.props.x = desiredPos
     }
 
     up = (userData) => {
         if (userData) this._getDecision(userData, 'moveUp')
-        let prevPos = parseFloat(this.props.cursor.style.top.replace('px', ''))
-        this.props.cursor.style.top = `${prevPos - this.params.speed}px`
+        let desiredPos = this.props.y - this.params.speed
+        if (desiredPos > 0) this.props.y = desiredPos
     }
 
     down = (userData) => {
         if (userData) this._getDecision(userData, 'moveDown')
-        let prevPos = parseFloat(this.props.cursor.style.top.replace('px', ''))
-        this.props.cursor.style.top = `${prevPos + this.params.speed}px`
+        let desiredPos = this.props.y + this.params.speed
+        if (desiredPos < (window.innerHeight - this.props.cursorSize.height)) this.props.y = desiredPos
     }
 
     click = (userData) => {
