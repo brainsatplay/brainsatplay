@@ -85,15 +85,13 @@ export class StateManager {
             this.addToState('pushRecord',this.pushRecord,(record)=>{
 
                 let l = record.pushed.length;
-                //let currentRecord = record.pushed.reverse();
+                let currentRecord = record.pushed
                 for (let i = 0; i < l; i++){
-                    //console.log(record.pushed[i]);
-                    let updateObj = record.pushed[i];
+                    let updateObj = currentRecord[i];
                     for(const prop in updateObj) {
-                        //console.log(prop)
                         if(this.pushCallbacks[prop]) {
                             this.pushCallbacks[prop].forEach((onchange) =>{
-                                console.log(prop,updateObj[prop],onchange);
+                                if (prop.includes('blink'))console.log(prop,updateObj[prop],onchange);
                                 onchange(updateObj[prop]);
                             });
                         }
