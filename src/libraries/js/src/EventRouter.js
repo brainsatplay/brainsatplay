@@ -36,7 +36,7 @@ export class EventRouter{
                         state.meta.label = labelArr.join(' ')
                         
                         this.state.addToState(state.meta.id, state)
-                        this.routes.registry[state.meta.id] = [state, null]
+                        this.routes.registry[state.meta.id] = [state, {}]
 
                         // Route Switches in Atlas by Default
                         if (!(splitId[0] in this.device.atlas.data.states)) this.device.atlas.data.states[splitId[0]] = {}
@@ -137,7 +137,7 @@ export class EventRouter{
                 let routes = this.routes.registry[id]
 
                 // Replace If Not Already Assigned
-                if (routes[1] == null){
+                if (!("manager" in routes[1])){
                     routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
                     newRoute.label = routes[1].label
