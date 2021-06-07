@@ -84,7 +84,7 @@ export class StateManager {
 
             this.addToState('pushRecord',this.pushRecord,(record)=>{
 
-                let l = record.pushed.length-1;
+                let l = record.pushed.length;
                 //let currentRecord = record.pushed.reverse();
                 for (let i = 0; i < l; i++){
                     console.log(record.pushed[i]);
