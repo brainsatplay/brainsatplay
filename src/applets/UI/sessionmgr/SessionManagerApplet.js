@@ -166,12 +166,23 @@ export class SessionManagerApplet {
             lastseries.forEach((ser,j)=> {
                 newSeries[j].show = ser.show;
             });
-            this.uplot.makeuPlot(
-                newSeries, 
-                this.uplot.uPlotData, 
-                this.AppletHTML.node.clientWidth, 
-                400
-            );
+            if(plotselect !== 'stackedeegraw') {
+                this.uplot.makeuPlot(
+                    newSeries, 
+                    this.uplot.uPlotData, 
+                    this.AppletHTML.node.clientWidth, 
+                    400
+                );
+            } else {
+                this.uplot.makeStackeduPlot(
+                    newSeries,
+                    this.uplot.uPlotData,
+                    undefined,
+                    undefined,
+                    this.AppletHTML.node.clientWidth,
+                    400
+                );
+            }
             if(plotselect === 'heg' || plotselect.includes('eegraw')) {
                 this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(0) + "s");}
             }
