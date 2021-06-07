@@ -192,7 +192,8 @@ export class StateManager {
                 this.pushCallbacks[key] = [];
 
             if(onchange) {
-                this.pushCallbacks[key].push({idx:this.pushCallbacks[key].length, onchange:onchange});
+                let idx = this.pushCallbacks[key].length;
+                this.pushCallbacks[key].push({idx:idx, onchange:onchange});
                 return this.pushCallbacks[key].length-1; //get key sub index for unsubscribing
             } 
             else return undefined;
