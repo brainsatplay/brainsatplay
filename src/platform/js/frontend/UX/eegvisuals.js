@@ -251,6 +251,7 @@ export class uPlotMaker {
 				sum += 1;
 				k++;
 			}
+			if(t === 0 || maxs[k] === 0) return k;
 			return (t/maxs[k]) + k; //+(Math.abs(min)/max); //+0.5
 
 		}
@@ -391,7 +392,8 @@ export class uPlotMaker {
 			var sum = 0;
 			while(k < mapidx){
 				sum += 1;
-				k++;
+				if(this.plot.series[sum].show === true)
+					k++;
 			}
 			if(t === 0 || maxs[k] === 0) return k;
 			return (t/maxs[k]) + k; //+(Math.abs(min)/max); //+0.5
