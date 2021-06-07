@@ -94,6 +94,7 @@ export class StateManager {
                                 });
                             }
                         }
+                        this.pushRecord.pushed.splice(i,1)
                 }
                 this.pushRecord.pushed.splice(0,l);
             });

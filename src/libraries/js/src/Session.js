@@ -856,7 +856,6 @@ else {
 
 	processSocketMessage(received = '') {
 		let parsed = JSON.parse(received);
-		console.log(received);
 		if (!parsed.msg) {
 			console.log(received);
 			return;
@@ -875,6 +874,7 @@ else {
 					if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
 				}
 			});
+
 
 			if (parsed.userLeft) {
 				for (const prop in this.state.data) {
@@ -2129,8 +2129,8 @@ else {
 
 				// Plugin Format
 				if (format === 'plugin'){
-					arr[i].data = this.state.data[prop][0].data
-					arr[i].meta = this.state.data[prop][0].meta
+					arr[i].data = this.state.data[prop].data
+					arr[i].meta = this.state.data[prop].meta
 				} 
 				
 				// Default Format

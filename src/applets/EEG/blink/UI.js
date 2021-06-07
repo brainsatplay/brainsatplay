@@ -55,6 +55,7 @@ class UI{
     }
 
     left = (userData) => {
+
         userData.forEach(u => {
             let leftEye = document.getElementById(this.props.id+"-left")
             let leftOpacity = 1-(u.data? 1 : 0)
@@ -77,6 +78,7 @@ class UI{
     }
 
     right = (userData) => {
+
         userData.forEach(u => {
             let rightEye = document.getElementById(this.props.id+"-right")
             let rightOpacity = 1-(u.data? 1 : 0)
