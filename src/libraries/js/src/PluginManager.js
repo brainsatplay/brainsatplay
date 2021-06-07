@@ -251,6 +251,7 @@ export class PluginManager{
             // Or Add Username
             else {
                 if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                if (!inputCopy[i].meta) inputCopy[i].meta = {}
             }
         }
 
