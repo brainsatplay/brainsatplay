@@ -166,12 +166,23 @@ export class SessionManagerApplet {
             lastseries.forEach((ser,j)=> {
                 newSeries[j].show = ser.show;
             });
-            this.uplot.makeuPlot(
-                newSeries, 
-                this.uplot.uPlotData, 
-                this.AppletHTML.node.clientWidth, 
-                400
-            );
+            if(plotselect !== 'stackedeegraw') {
+                this.uplot.makeuPlot(
+                    newSeries, 
+                    this.uplot.uPlotData, 
+                    this.AppletHTML.node.clientWidth, 
+                    400
+                );
+            } else {
+                this.uplot.makeStackeduPlot(
+                    newSeries,
+                    this.uplot.uPlotData,
+                    undefined,
+                    undefined,
+                    this.AppletHTML.node.clientWidth,
+                    400
+                );
+            }
             if(plotselect === 'heg' || plotselect.includes('eegraw')) {
                 this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(0) + "s");}
             }
@@ -1005,15 +1016,18 @@ export class SessionManagerApplet {
                 else if (gmode.includes('eeg')) {
                     let newSeries = this.makeSeries(gmode,head);
                     newSeries[0].label = "t";
-                    let dummyarr = new Array(100).fill(1);
-                    newSeries.forEach((s)=>{
-                        this.uplot.uPlotData.push(dummyarr);
-                    });
-
+                    if(this.uplot.uPlotData.length === 0) {
+                        
+                        let dummyarr = new Array(100).fill(1);
+                        newSeries.forEach((s)=>{
+                            this.uplot.uPlotData.push(dummyarr);
+                        });
+                    }
+                    //console.log(newSeries,this.uplot.uPlotData)
                     if(!gmode.includes('stacked')) {
                         this.uplot.makeuPlot(
                             newSeries, 
-                            this.uplot.uPlotData, 
+                            this.uplot.uPlotData,
                             this.AppletHTML.node.clientWidth, 
                             400
                         );

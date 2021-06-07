@@ -27,7 +27,8 @@ export class Prototype8Plugin {
             {ch: 1,  tag: "FP2",  analyze:true},
             {ch: 2,  tag: "FZ",   analyze:true},
             {ch: 3,  tag: "C3",   analyze:true},
-            {ch: 5,  tag: "C4",   analyze:true},
+            {ch: 4,  tag: "C4",   analyze:true},
+            {ch: 5,  tag: "CZ",   analyze:true},
             {ch: 6,  tag: "O1",   analyze:true},
             {ch: 7,  tag: "O2",   analyze:true}
         ];
