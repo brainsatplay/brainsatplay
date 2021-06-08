@@ -1155,7 +1155,7 @@ export class DataAtlas {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
-	readyEEGDataForWriting = (from=0,to='end') => {
+	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
 		 
 		let header = ["TimeStamps","UnixTime"];
 		let data = [];
@@ -1188,39 +1188,41 @@ export class DataAtlas {
 						line.push(row.raw[i].toFixed(0));
 					}
 				});
-				//then get the fft/coherence data
-				if(fft_ref_ch.fftCount >= mapidx && fft_ref_ch.fftTimes[mapidx] === datums[0].times[i]) {
-					datums.forEach((row,j) => {
-						if(mapidx === 0) {
-							let found = this.data.eegshared.eegChannelTags.find((o,k) => {
-								if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
-									return true;
+				if(getFFTs) {
+					//then get the fft/coherence data
+					if(fft_ref_ch.fftCount >= mapidx && fft_ref_ch.fftTimes[mapidx] === datums[0].times[i]) {
+						datums.forEach((row,j) => {
+							if(mapidx === 0) {
+								let found = this.data.eegshared.eegChannelTags.find((o,k) => {
+									if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
+										return true;
+									}
+								});
+								if(!found){ //don't add headers for rows not being analyzed
+									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+									header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 								}
-							});
-							if(!found){ //don't add headers for rows not being analyzed
-								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
-								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 							}
-						}
-						if(datums[0].times[i] === row.fftTimes[mapidx]) {
-							line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
-						}
-					});
-					if(this.settings.coherence) {
-						this.data.coherence.forEach((row,j) => {
-							if(mapidx===0) {
-								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
-								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
-							}
-							if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
-								try{
-									line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
-								}
-								catch(err) { console.log(err, mapidx, row); }
+							if(datums[0].times[i] === row.fftTimes[mapidx]) {
+								line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
 							}
 						});
+						if(this.settings.coherence) {
+							this.data.coherence.forEach((row,j) => {
+								if(mapidx===0) {
+									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+									header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+								}
+								if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
+									try{
+										line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
+									}
+									catch(err) { console.log(err, mapidx, row); }
+								}
+							});
+						}
+						mapidx++;	
 					}
-					mapidx++;	
 				}
 				if(this.data.other.notes.length > 0) {
 					if(i === 0) {
