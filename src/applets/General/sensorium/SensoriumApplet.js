@@ -1617,14 +1617,14 @@ void main(){
         let node = this.graphs.getNode(this.props.id, 'buzz')
 
         if (modifiers.iAudio){
-            this.graphs.runSafe([{data: modifiers.iAudio, meta: {label: 'iAudio'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         } 
         else if (modifiers.iFFT){
-            this.graphs.runSafe([{data: modifiers.iFFT, meta: {label: 'iFFT'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            this.graphs.runSafe([{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}],node, 'leds')
+            this.graphs.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
         }
     }
 } 

@@ -1,8 +1,8 @@
 
-import {UI} from './UI.js'
+import {Train} from './Train'
 import {Scheduler} from './Scheduler.js'
 import {DataManager} from './DataManager.js'
-import {TimeTrainer} from './TimeTrainer.js'
+import {Test} from './Test.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
@@ -24,10 +24,10 @@ export const settings = {
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
         {id: 'scheduler', class: Scheduler, params: {}},
-        {id: 'ui', class: UI, params: {}},
+        {id: 'Train', class: Train, params: {}},
         {id: 'data', class: DataManager, params: {}},
-        // {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        // {id: 'ui', class: TimeTrainer, params: {}},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
+        {id: 'Test', class: Test, params: {}},
       ],
       edges: [
         {
@@ -36,28 +36,32 @@ export const settings = {
         },
         {
           source: 'My Algorithm', 
-          target: 'ui'
+          target: 'Train'
         },
         {
           source: 'scheduler', 
-          target: 'ui'
+          target: 'Train'
         },
         {
           source: 'scheduler:state', 
           target: 'data:log'
         },
-        // {
-        //   source: 'spacebar', 
-        //   target: 'data'
-        // },
-        // {
-        //   source: 'spacebar', 
-        //   target: 'ui:click'
-        // },
-        // {
-        //   source: 'ui:click', 
-        //   target: 'data'
-        // },
+        {
+          source: 'spacebar', 
+          target: 'data'
+        },
+        {
+          source: 'scheduler:done', 
+          target: 'Test:show'
+        },
+        {
+          source: 'spacebar', 
+          target: 'Test:click'
+        },
+        {
+          source: 'Test:performance', 
+          target: 'data'
+        },
       ]
     }],
 }

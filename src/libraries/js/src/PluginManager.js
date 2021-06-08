@@ -240,7 +240,7 @@ export class PluginManager{
     }
 
     // Input Must Be An Array
-    runSafe(input, node, port='default'){
+    runSafe(node, port='default',input=[{data: null, meta:{}}]){
 
         let stateLabel = this.getLabel(node,port)
 
@@ -265,10 +265,11 @@ export class PluginManager{
         if (inputCopy.length > 0){
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
-            else result = node['default'](inputCopy) 
+            else if (node.states[port] != null) result = node['default'](inputCopy) 
 
             if (result && result.length > 0){
                 let allEqual = true
+
                 result.forEach((o,i) => {
                     if (node.states[port].length > i){
                         let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
@@ -281,7 +282,7 @@ export class PluginManager{
                         allEqual = false
                     }
                 })
-
+                
                 if (!allEqual && node.stateUpdates){
                     let updateObj = {}
                     updateObj[stateLabel] = true
@@ -480,7 +481,7 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
-                        return this.runSafe(input, target, targetPort)
+                        return this.runSafe(target, targetPort, input)
                     }
                 }
                 
