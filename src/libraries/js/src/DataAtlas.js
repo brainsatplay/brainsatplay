@@ -404,23 +404,23 @@ export class DataAtlas {
 			if(this.settings.eeg) {
 				let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
 				timestamp = row.times[row.times.length-1]
-				if(this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
 				else this.data.other.notes.push({time:timestamp, note:text});
 			}
 			if(this.settings.heg) {
 				timestamp = this.data.heg[0].times[this.data.heg[0].times.length-1];
 				this.data.other.notes.push({time:timestamp, note:text});
-				if(this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
 				else this.data.other.notes.push({time:timestamp, note:text});
 			}
 			else {
 				let timestamp = Date.now();
-				if(this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
 				else this.data.other.notes.push({time:Date.now(), note:text});
 			}
 		}
 		else {
-			if(this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+			if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
 			else this.data.other.notes.push({time:timestamp, note:text});
 		}
 	}

@@ -18,7 +18,7 @@ import {
     login_template
 } from './menus/UITemplates'
 
-import {file_template} from '../../../libraries/js/src/utils/DataLoader'
+import {file_template} from '../../../libraries/js/src/utils/DataManager'
 
 import { AppletManager } from './AppletManager'
 import { CSV } from '../../../libraries/js/src/utils/csv'
