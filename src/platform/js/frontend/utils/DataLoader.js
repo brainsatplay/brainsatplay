@@ -28,8 +28,8 @@ export class DataLoader {
         return data;
     }
 
-    readyEEGDataForWriting = (from=0,to='end') => {
-        let data = this.atlas.readyEEGDataForWriting(from,to);
+    readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
+        let data = this.atlas.readyEEGDataForWriting(from,to,getFFTs);
         return data;
     }
 
@@ -37,8 +37,8 @@ export class DataLoader {
         CSV.saveCSV(this.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
     }
 
-    saveEEGdata = (from=0,to='end') => {
-        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to),this.toISOLocal(new Date())+"_eeg");
+    saveEEGdata = (from=0,to='end',getFFTs=true) => {
+        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
     }
 
     mean(arr){
