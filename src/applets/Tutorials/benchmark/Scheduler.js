@@ -18,9 +18,10 @@ export class Scheduler{
         this.ports = {
             default: {
                 defaults: {
-                    output: [{data: -1, meta: {}}]
+                    output: [{data: -1, meta: {label: this.label}}]
                 }
             }, 
+            state: {}, 
         }
 
         this.props = {
@@ -46,32 +47,32 @@ export class Scheduler{
 
     deinit = () => {}
 
-    default = () => {
-        if (this.states['default'][0].meta.state != 'ITI'){
-            this.states['default'][0].meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
-        } else {
-            this.states['default'][0].meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
-        }
-        this._triggerUpdate()
-        return this.states['default']
+    default = (userData) => {
+        userData.forEach(u => {
+            if (u.meta.state != 'ITI'){
+                u.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+            } else {
+                u.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+            }
+        })
+
+        return userData
     }
     
-    state = () => {
-        this.states['state'] = this.states['default'].map(u => {
+    state = (userData) => {
+        return userData.map(u => {
             u.data = u.meta.state;
             return u
         })
-        this._triggerUpdate('state')
     }
 
-    _triggerUpdate(port='default'){
-        let label = (port === 'default') ? this.label : `${this.label}_${port}`
-        let updateObj = {}
-        updateObj[label] = true // New data
-        this.stateUpdates.manager.setSequentialState(updateObj)
+    done = (userData) => {
+        return [{data:true, meta: `${this.label}_done`}]
     }
 
     _taskLoop = () => {
+
+        let state = this.session.atlas.graphs.deeperCopy(this.states['default'])[0]
 
         if (this.props.currentTrial > -1){
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
@@ -79,31 +80,32 @@ export class Scheduler{
             // Main Trial Loop
             if (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000){  
 
-                this._startNewTrial()
+                state = this._startNewTrial()
 
                 // Stop on Last Trial
                 if (this.props.currentTrial === this.params.trialCount){ // Stop Loop
-                    this.states['default'][0].data = this.props.currentTrial // Update State Data
-                    this.states['default'][0].meta.state = 'Done!'
-                    this.states['default'][0].meta.stateDuration = 1
-                    this.states['default'][0].meta.stateTimeElapsed = 1
-                    this.state()
+                    state.data = this.props.currentTrial // Update State Data
+                    state.meta.state = 'Done!'
+                    state.meta.stateDuration = 1
+                    state.meta.stateTimeElapsed = 1
+                    this.session.atlas.graphs.runSafe(this,'state',[state])
+                    this.session.atlas.graphs.runSafe(this,'done',[state])
                 }
             } 
 
             // Inter-trial Interval Loop
             else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
-                this.states['default'][0].meta.state = 'ITI'
-                this.states['default'][0].meta.stateDuration = this.params.interTrialInterval*1000
+                state.meta.state = 'ITI'
+                state.meta.stateDuration = this.params.interTrialInterval*1000
                 this.props.iti = true
-                this.state()
+                this.session.atlas.graphs.runSafe(this,'state',[state])
             }
         } else {
-            this._startNewTrial()
-            this.states['default'][0].meta.trialCount = this.params.trialCount
+            state = this._startNewTrial()
+            state.meta.trialCount = this.params.trialCount
         }
 
-        this.default()
+        this.session.atlas.graphs.runSafe(this,'default', [state])
         if (this.props.currentTrial != this.params.trialCount) setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
     }
 
@@ -111,8 +113,11 @@ export class Scheduler{
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
-        this.states['default'][0].meta.state = this.params.trialProgression[this.props.currentTrial]
-        this.states['default'][0].meta.stateDuration = this.params.duration*1000
-        this.state()
+        let state = this.session.atlas.graphs.deeperCopy(this.states['default'])[0]
+        state.data = this.props.currentTrial
+        state.meta.state = this.params.trialProgression[this.props.currentTrial]
+        state.meta.stateDuration = this.params.duration*1000
+        this.session.atlas.graphs.runSafe(this,'state',[state])
+        return state
     }
 }

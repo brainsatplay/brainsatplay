@@ -758,7 +758,7 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graphs.getNode(this.props.id, 'blink')
 		this.graphs.updateParams(node, params)
-		let blink = this.graphs.runSafe([{data: this.data, meta: {}}],node)
+		let blink = this.graphs.runSafe(node,'default', [{data: this.data, meta: {}}])
 		return blink[0].data
 	}
 

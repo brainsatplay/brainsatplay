@@ -18,7 +18,7 @@ export class DataManager{
     deinit = () => {}
 
     default = (userData) => {
-        this.log(userData)
+        this.session.atlas.graphs.runSafe(this,'log', userData)
     }
 
     log = (userData) => {

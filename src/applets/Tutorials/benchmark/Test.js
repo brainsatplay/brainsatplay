@@ -1,4 +1,4 @@
-class TimeTrainer{
+class Test{
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -33,9 +33,12 @@ class TimeTrainer{
 
     init = () => {
 
+
+        let display = ("show" in this.states) ? 'none' : 'flex'
+
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
+            <div id='${this.props.id}' style='display: ${display}; align-items: center; justify-content: center; width: 100%; height: 100%;'>
                 <canvas id="${this.props.id}gameCanvas"></canvas>
             </div>`
         }
@@ -86,6 +89,12 @@ class TimeTrainer{
         this._updateTargetPosition()
     }
 
+    show = (userData) => {
+        let show = userData[0].data
+        if (show) document.getElementById(`${this.props.id}`).style.display = 'flex'
+        this.responsive()
+    }
+
     _updateTargetPosition = () => {
         this.props.target.x = Math.random() * (this.props.canvas.width - this.props.size.x)
         this.props.target.y = (this.props.canvas.height - this.props.size.x)/2
@@ -132,24 +141,27 @@ class TimeTrainer{
 
         // Only Push Forward on Click = True
 
-        let decisionMade = false
-        userData = userData.filter(u => {
-            if (u.data === true){
-                u.data = Math.abs(this.props.pointer.x - this.props.target.x)
-                u.meta.label = `${this.label}_distance`
-                decisionMade = true
-                return true
-            }
-        })
+        userData = userData.filter(u => u.data === true)
 
-        if (decisionMade){
+        if (userData.length > 0){
             this._updateTargetPosition()
+            this.session.atlas.graphs.runSafe(this,'performance',userData)
         }
 
         return userData
     }
 
+    performance = (userData) => {
+        return userData.filter(u => {
+            if (u.data === true){
+                u.data = Math.abs(this.props.pointer.x - this.props.target.x)
+                u.meta.label = `${this.label}_distance`
+                return true
+            }
+        })
+    }
+
     deinit = () => {}
 }
 
-export {TimeTrainer}
+export {Test}

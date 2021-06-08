@@ -1,4 +1,4 @@
-class UI{
+class Train{
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -21,7 +21,6 @@ class UI{
     }
 
     init = () => {
-
         let HTMLtemplate = () => {
             return `
             <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
@@ -60,4 +59,4 @@ class UI{
     deinit = () => {}
 }
 
-export {UI}
+export {Train}
