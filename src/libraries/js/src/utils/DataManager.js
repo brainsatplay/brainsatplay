@@ -4,6 +4,10 @@ import {DataAtlas} from '../DataAtlas'
 import { StateManager } from '../ui/StateManager';
 import {CSV} from './csv'
 
+import filesvg from '../ui/assets/file_noun.svg'
+import csvsvg from '../ui/assets/file-csv-solid.svg'
+import deletesvg from '../ui/assets/trash-alt-regular.svg'
+
 export function file_template(props={id:Math.random()}) {
     return `
     <div id="`+props.id+`">
@@ -217,11 +221,17 @@ export class DataManager {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
-    initFS = (oninit=()=>{}) => {
+    //----------------------
+    //------BrowserFS-------
+    //----------------------
+
+
+    initFS = (oninit=()=>{}, onerror=()=>{}) => {
         let oldmfs = fs.getRootFS();
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
             if (e) throw e;
             if (!rootForMfs) {
+                onerror();
                 throw new Error(`Error creating BrowserFS`);
             }
             BrowserFS.initialize(rootForMfs); //fs now usable with imports after this
@@ -384,29 +394,32 @@ export class DataManager {
     }
 
     //
-    listFiles = (fs_html_id='filesystem') => {
-        fs.readdir('/data', (e, dirr) => {
-            if (e) return;
-            if (dirr) {
-                console.log("files", dirr)
-                let filediv = document.getElementById(fs_html_id);
-                filediv.innerHTML = "";
-                dirr.forEach((str, i) => {
-                    if (str !== "settings.json") {
-                        filediv.innerHTML += file_template({ id: str });
-                    }
-                });
-                dirr.forEach((str, i) => {
-                    if (str !== "settings.json") {
-                        document.getElementById(str + "svg").onclick = () => {
-                            console.log(str);
-                            this.writeToCSV(str);
+    listFiles = (onload=(directory)=>{},fs_html_id="filesystem") => {
+        fs.readdir('/data', (e, directory) => {
+            if (e) throw e;
+            if (directory) {
+                console.log("files", directory);
+                onload(directory);
+                if(fs_html_id){
+                    let filediv = document.getElementById(fs_html_id);
+                    filediv.innerHTML = "";
+                    directory.forEach((str, i) => {
+                        if (str !== "settings.json") {
+                            filediv.innerHTML += file_template({ id: str });
                         }
-                        document.getElementById(str + "delete").onclick = () => {
-                            this.deleteFile("/data/" + str);
+                    });
+                    directory.forEach((str, i) => {
+                        if (str !== "settings.json") {
+                            document.getElementById(str + "svg").onclick = () => {
+                                console.log(str);
+                                this.writeToCSV(str);
+                            }
+                            document.getElementById(str + "delete").onclick = () => {
+                                this.deleteFile("/data/" + str);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         });
     }

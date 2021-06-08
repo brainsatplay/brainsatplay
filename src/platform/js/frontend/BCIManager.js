@@ -18,7 +18,7 @@ import {
     login_template
 } from './menus/UITemplates'
 
-import {file_template} from '../../../libraries/js/src/utils/DataManager'
+import {DataManager, file_template} from '../../../libraries/js/src/utils/DataManager'
 
 import { AppletManager } from './AppletManager'
 import { CSV } from '../../../libraries/js/src/utils/csv'
@@ -38,6 +38,7 @@ import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
+export let DataMgr = "";
 
 export class BCIAppManager {
     /**
@@ -73,6 +74,8 @@ export class BCIAppManager {
         this.appletManager;
         this.fs;
         this.useFS = useFS;
+        this.DataManager = new DataManager()
+        DataMgr = this.DataManager;
 
         if (this.useFS === true) {
             this.initFS();
@@ -373,17 +376,21 @@ export class BCIAppManager {
         const checkIfLoggedIn = () => {
             if (window.gapi?.auth2?.initialized !== true && window.navigator.onLine && checkIters < 3) {
                 setTimeout(checkIfLoggedIn, 50);//wait 50 millisecnds then recheck
-                checkIters++
+                checkIters++;
                 return;
             } else {
                 if (window.gapi?.auth2?.getAuthInstance()?.isSignedIn?.get()) {
-                    this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
-                        this.updateProfileUI(user)
-                        this.updateOverlay()
-                    })
+                    try{
+                        this.session.loginWithRealm(auth.currentUser.get().getAuthResponse()).then(user => {
+                            this.updateProfileUI(user);
+                            this.updateOverlay();
+                        });
+                    } catch (er) {console.error(er);}
                 } else {
-                    this.updateProfileUI()
-                    this.updateOverlay()
+                    try{
+                        this.updateProfileUI();
+                        this.updateOverlay();
+                    } catch (er) {console.error(er);}
                 }
             }
         }
@@ -611,317 +618,93 @@ export class BCIAppManager {
 
     //Inits the AppletManager within the context of the filesystem so the data can be autosaved on demand (there should be a better method than mine)
     initFS = () => {
-        let oldmfs = fs.getRootFS();
-        BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
-            if (e) throw e;
-            if (!rootForMfs) {
-                let configs = this.getConfigsFromHashes();
-                this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs, undefined, this.session);
-                throw new Error(`Error creating BrowserFS`);
-            }
-            this.fs = rootForMfs;
-            BrowserFS.initialize(rootForMfs);
-            fs.exists('/data', (exists) => {
-                if (exists) {
-                    console.log('exists!')
-                    initWithDirectory();
-                }
-                else {
-                    fs.mkdir('data', (errr) => {
-                        if (errr) throw err;
-                        else initWithDirectory();
+
+        const listFiles = () => {
+            fs.readdir('/data', (e, dirr) => {
+                if (e) return;
+                if (dirr) {
+                    console.log("files", dirr)
+                    let filediv = document.getElementById("filesystem");
+                    filediv.innerHTML = "";
+                    dirr.forEach((str, i) => {
+                        if (str !== "settings.json") {
+                            filediv.innerHTML += file_template({ id: str });
+                        }
+                    });
+                    dirr.forEach((str, i) => {
+                        if (str !== "settings.json") {
+                            document.getElementById(str + "svg").onclick = () => {
+                                console.log(str);
+                                this.DataManager.writeToCSV(str);
+                            }
+                            document.getElementById(str + "delete").onclick = () => {
+                                this.DataManager.deleteFile("/data/" + str, listFiles);
+                            }
+                        }
                     });
                 }
-
             });
+        }
 
-            const initWithDirectory = () => {
-                let contents = "";
-                fs.readFile('/data/settings.json', (err, data) => {
-                    if (err) {
-                        console.log("New settings file created.");
-                        contents = JSON.stringify(
-                            {
-                                appletConfigs: [],
-                                autosaving: true
-                            }
-                        )
-                        fs.writeFile('/data/settings.json',
-                            contents,
-                            (errr) => {
-                                this.init(contents);
-                                listFiles();
-                                if (errr) throw errr;
-                            }
-                        );
-                        //if(err) throw err;
-                    }
-                    else {
-                        //console.log("Grabbed settings successfully")
-                        contents = data.toString();
-                        this.init(contents);
-                        listFiles();
-                        document.getElementById("saveBCISession").onclick = () => {
-                            saveSettings();
+        
+        const saveSettings = () => {
+            let configs = [];
+            this.appletManager.applets.forEach((applet) => {
+                if (applet.name)
+                    configs.push(applet.name)
+            });
+            this.appletConfigs = configs;
+            let newsettings = JSON.stringify({
+                time: this.DataManager.toISOLocal(new Date()),
+                appletConfigs: this.appletConfigs,
+                autosaving: this.DataManager.state.data.autosaving
+            });
+            fs.writeFile('/data/settings.json',
+                newsettings,
+                (err) => {
+                    if (err) throw err;
+                    console.log("saved settings to /data/settings.json", newsettings);
+                });
+        }
+
+        const initWithDirectory = () => {
+            let contents = "";
+            fs.readFile('/data/settings.json', (err, data) => {
+                if (err) {
+                    console.log("New settings file created.");
+                    contents = JSON.stringify(
+                        {
+                            appletConfigs: [],
+                            autosaving: true
                         }
-                    }
-
-                    //configure autosaving when the device is connected
-                    this.session.state.data.info = this.session.info;
-
-                    //console.log(this.session.state.data.info);
-                    let sub = this.session.state.subscribe('info', (info) => {
-                        if (info.nDevices > 0) {
-                            let mainDevice = this.session.deviceStreams[info.nDevices - 1].info.deviceType;
-                            if (mainDevice === 'eeg') {
-                                this.session.subscribe(this.session.deviceStreams[info.nDevices - 1].info.deviceName, this.session.deviceStreams[info.nDevices - 1].info.eegChannelTags[0].ch, undefined, (row) => {
-                                    //console.log(row.count, this.state.data.eegSaveCounter);
-                                    if (this.state.data.autosaving) {
-                                        if (this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        if (row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) {
-                                            saveSettings();
-                                            autoSaveEEGChunk(this.state.data.eegSaveCounter, undefined, this.session.deviceStreams[info.nDevices - 1].info.deviceType + "_" + this.session.deviceStreams[info.nDevices - 1].info.deviceName);
-                                            this.state.data.eegSaveCounter = row.count;
-                                        }
-                                    }
-                                });
-                                document.getElementById("saveBCISession").onclick = () => {
-                                    console.log(this.session.deviceStreams)
-                                    let row = this.session.deviceStreams[info.nDevices - 1].device.atlas.getEEGDataByChannel(this.session.deviceStreams[info.nDevices - 1].info.eegChannelTags[0].ch);
-                                    saveSettings();
-                                    if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                    autoSaveEEGChunk(this.state.data.saveCounter, undefined, this.session.deviceStreams[info.nDevices - 1].info.deviceType + "_" + this.session.deviceStreams[info.nDevices - 1].info.deviceName);
-                                    this.state.data.eegSaveCounter = row.count;
-
-                                }
-
-                                document.getElementById("newBCISession").onclick = () => {
-                                    newSession();
-                                }
-
-                            } else if (mainDevice === 'heg') {
-                                this.session.subscribe(this.session.deviceStreams[info.nDevices - 1].info.deviceName, info.nDevices - 1, undefined, (row) => {
-                                    if (this.state.data.autosaving) {
-                                        //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                        if (this.session.atlas.data.heg[0].count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
-                                            saveSettings();
-                                            autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[info.nDevices - 1].info.deviceType + "_" + this.session.deviceStreams[info.nDevices - 1].info.deviceName);
-                                            this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
-                                        }
-                                    }
-                                });
-                                document.getElementById("saveBCISession").onclick = () => {
-                                    saveSettings();
-                                    autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[info.nDevices - 1].info.deviceType + "_" + this.session.deviceStreams[info.nDevices - 1].info.deviceName);
-                                    this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
-
-                                }
-
-                                document.getElementById("newBCISession").onclick = () => {
-                                    newSession();
-                                }
-                            }
+                    )
+                    fs.writeFile('/data/settings.json',
+                        contents,
+                        (errr) => {
+                            this.init(contents);
+                            listFiles();
+                            if (errr) throw errr;
                         }
-                    });
-                });
-            }
-
-            const newSession = () => {
-                let deviceType = this.session.deviceStreams[info.nDevices - 1].info.deviceType
-                let sessionName = new Date().toISOString(); //Use the time stamp as the session name
-                if (deviceType === 'eeg') {
-                    sessionName += "_eeg"
-                } else if (deviceType === 'heg') {
-                    sessionName += "_heg"
-                }
-                this.state.data.sessionName = sessionName;
-                this.state.data.sessionChunks = 0;
-                this.state.data.saveChunkSize = 2000;
-                this.state.data.newSessionCt++;
-                fs.appendFile('/data/' + sessionName, "", (e) => {
-                    if (e) throw e;
-                    listFiles();
-                });
-            }
-
-            const deleteFile = (path) => {
-                fs.unlink(path, (e) => {
-                    if (e) console.error(e);
-                    listFiles();
-                });
-            }
-
-            const listFiles = () => {
-                fs.readdir('/data', (e, dirr) => {
-                    if (e) return;
-                    if (dirr) {
-                        console.log("files", dirr)
-                        let filediv = document.getElementById("filesystem");
-                        filediv.innerHTML = "";
-                        dirr.forEach((str, i) => {
-                            if (str !== "settings.json") {
-                                filediv.innerHTML += file_template({ id: str });
-                            }
-                        });
-                        dirr.forEach((str, i) => {
-                            if (str !== "settings.json") {
-                                document.getElementById(str + "svg").onclick = () => {
-                                    console.log(str);
-                                    writeToCSV(str);
-                                }
-                                document.getElementById(str + "delete").onclick = () => {
-                                    deleteFile("/data/" + str);
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
-
-            const saveSettings = () => {
-                let configs = [];
-                this.appletManager.applets.forEach((applet) => {
-                    if (applet.name)
-                        configs.push(applet.name)
-                });
-                this.appletConfigs = configs;
-                let newsettings = JSON.stringify({
-                    time: toISOLocal(new Date()),
-                    appletConfigs: this.appletConfigs,
-                    autosaving: this.state.data.autosaving
-                });
-                fs.writeFile('/data/settings.json',
-                    newsettings,
-                    (err) => {
-                        if (err) throw err;
-                        console.log("saved settings to /data/settings.json", newsettings);
-                    });
-            }
-
-            function toISOLocal(d) {
-                var z = n => ('0' + n).slice(-2);
-                var zz = n => ('00' + n).slice(-3);
-                var off = d.getTimezoneOffset();
-                var sign = off < 0 ? '+' : '-';
-                off = Math.abs(off);
-
-                return d.getFullYear() + '-' //https://stackoverflow.com/questions/49330139/date-toisostring-but-local-time-instead-of-utc
-                    + z(d.getMonth() + 1) + '-' +
-                    z(d.getDate()) + 'T' +
-                    z(d.getHours()) + ':' +
-                    z(d.getMinutes()) + ':' +
-                    z(d.getSeconds()) + '.' +
-                    zz(d.getMilliseconds()) +
-                    "(UTC" + sign + z(off / 60 | 0) + ':00)'
-            }
-
-            const autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg') => {
-                if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
-                let from = startidx;
-                if (this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
-                let data = this.session.deviceStreams[0].device.atlas.readyEEGDataForWriting(from, to);
-                console.log("Saving chunk to /data/" + this.state.data.sessionName, this.state.data.sessionChunks);
-                if (this.state.data.sessionChunks === 0) {
-                    fs.appendFile('/data/' + this.state.data.sessionName, data[0] + data[1], (e) => {
-                        if (e) throw e;
-                        this.state.data.sessionChunks++;
-                        listFiles();
-                    }); //+"_c"+State.data.sessionChunks
-
+                    );
+                    //if(err) throw err;
                 }
                 else {
-                    fs.appendFile('/data/' + this.state.data.sessionName, "\n" + data[1], (e) => {
-                        if (e) throw e;
-                        this.state.data.sessionChunks++;
-                    }); //+"_c"+State.data.sessionChunks
+                    //console.log("Grabbed settings successfully")
+                    contents = data.toString();
+                    this.init(contents);
+                    listFiles();
+                    document.getElementById("saveBCISession").onclick = () => {
+                        saveSettings();
+                    }
                 }
 
-            }
+                this.DataManager.setupAutosaving();
+            });
+        }
 
-            const autoSaveHEGChunk = (startidx = 0, to = 'end', deviceName = "heg") => {
-                if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
-                let from = startidx;
-                if (this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
-                let data = this.session.deviceStreams[0].device.atlas.readyHEGDataForWriting(from, to);
-                console.log("Saving chunk to /data/" + this.state.data.sessionName, this.state.data.sessionChunks);
-                if (this.state.data.sessionChunks === 0) {
-                    fs.appendFile('/data/' + this.state.data.sessionName, data[0] + data[1], (e) => {
-                        if (e) throw e;
-                        this.state.data.sessionChunks++;
-                        listFiles();
-                    }); //+"_c"+State.data.sessionChunks
-                }
-                else {
-                    fs.appendFile('/data/' + this.state.data.sessionName, "\n" + data[1], (e) => {
-                        if (e) throw e;
-                        this.state.data.sessionChunks++;
-                    }); //+"_c"+State.data.sessionChunks
-                }
-            }
-
-            //Read a chunk of data from a saved dataset
-            const readFromDB = (path, begin = 0, end = 5120) => {
-                fs.open('/data/' + path, 'r', (e, fd) => {
-                    if (e) throw e;
-
-                    fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
-                        if (er) throw er;
-                        if (bytesRead !== 0) {
-                            let data = output.toString();
-                            //Now parse the data back into the buffers.
-                            fs.close(fd);
-                            return data;
-                        };
-                    });
-                });
-            }
-
-            //Write CSV data in chunks to not overwhelm memory
-            const writeToCSV = (path) => {
-                fs.stat('/data/' + path, (e, stats) => {
-                    if (e) throw e;
-                    let filesize = stats.size;
-                    console.log(filesize)
-                    fs.open('/data/' + path, 'r', (e, fd) => {
-                        if (e) throw e;
-                        let i = 0;
-                        let maxFileSize = this.state.data.fileSizeLimitMb * 1024 * 1024;
-                        let end = maxFileSize;
-                        if (filesize < maxFileSize) {
-                            end = filesize;
-                            fs.read(fd, end, 0, 'utf-8', (e, output, bytesRead) => {
-                                if (e) throw e;
-                                if (bytesRead !== 0) CSV.saveCSV(output.toString(), path);
-                                fs.close(fd);
-                            });
-                        }
-                        else {
-                            const writeChunkToFile = () => {
-                                if (i < filesize) {
-                                    if (i + end > filesize) { end = filesize - i; }
-                                    let chunk = 0;
-                                    fs.read(fd, end, i, 'utf-8', (e, output, bytesRead) => {
-                                        if (e) throw e;
-                                        if (bytesRead !== 0) {
-                                            CSV.saveCSV(output.toString(), path + "_" + chunk);
-                                            i += maxFileSize;
-                                            chunk++;
-                                            writeChunkToFile();
-                                            fs.close(fd);
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                        //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
-                        //file.write(data.toString());
-                    });
-                });
-
-            }
-
-
+        this.DataManager.initFS(initWithDirectory,()=>{
+            let configs = this.getConfigsFromHashes();
+            this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs, undefined, this.session);    
         });
     }
 
