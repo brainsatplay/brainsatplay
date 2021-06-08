@@ -56,6 +56,9 @@ import {PluginManager} from './PluginManager'
 // Event Router
 import { EventRouter } from './EventRouter'
 
+// Data Manager
+import { DataManager } from './utils/DataManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
@@ -113,7 +116,7 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
-		this.dataManager = new DataManager()
+		this.dataManager = new DataManager(this)
 	}
 
 	/**

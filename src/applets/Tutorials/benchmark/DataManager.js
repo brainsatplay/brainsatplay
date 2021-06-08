@@ -8,7 +8,12 @@ export class DataManager{
         this.params = params
         this.paramOptions = {}
 
-        this.ports = {}
+        this.ports = {
+            default:{},
+            log:{},
+            get:{},
+            csv:{},
+        }
 
         this.props = {}
     }
@@ -24,5 +29,22 @@ export class DataManager{
     log = (userData) => {
         let u = userData[0]
         this.session.atlas.makeNote(`${u.meta.label} ${u.data}`)
+    }
+
+    get = (userData) => {
+        let trigger = userData[0].data
+        if (trigger) {
+            let data = this.session.dataManager.readFromDB()
+            return data
+        }
+    }
+
+    csv = (userData) => {
+        let trigger = userData[0].data
+        if (trigger) {
+            let csv = this.session.dataManager.writeToCSV()
+            console.log(csv)
+            return csv
+        }
     }
 }
