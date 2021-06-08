@@ -18,7 +18,7 @@ import {
     login_template
 } from './menus/UITemplates'
 
-import {DataManager, file_template} from '../../../libraries/js/src/utils/DataManager'
+import {file_template} from '../../../libraries/js/src/utils/DataManager'
 
 import { AppletManager } from './AppletManager'
 import { CSV } from '../../../libraries/js/src/utils/csv'
@@ -74,8 +74,6 @@ export class BCIAppManager {
         this.appletManager;
         this.fs;
         this.useFS = useFS;
-        this.DataManager = new DataManager()
-        DataMgr = this.DataManager;
 
         if (this.useFS === true) {
             this.initFS();
@@ -635,10 +633,10 @@ export class BCIAppManager {
                         if (str !== "settings.json") {
                             document.getElementById(str + "svg").onclick = () => {
                                 console.log(str);
-                                this.DataManager.writeToCSV(str);
+                                this.session.dataManager.writeToCSV(str);
                             }
                             document.getElementById(str + "delete").onclick = () => {
-                                this.DataManager.deleteFile("/data/" + str, listFiles);
+                                this.session.dataManager.deleteFile("/data/" + str, listFiles);
                             }
                         }
                     });
@@ -655,9 +653,9 @@ export class BCIAppManager {
             });
             this.appletConfigs = configs;
             let newsettings = JSON.stringify({
-                time: this.DataManager.toISOLocal(new Date()),
+                time: this.session.dataManager.toISOLocal(new Date()),
                 appletConfigs: this.appletConfigs,
-                autosaving: this.DataManager.state.data.autosaving
+                autosaving: this.session.dataManager.state.data.autosaving
             });
             fs.writeFile('/data/settings.json',
                 newsettings,
@@ -698,11 +696,11 @@ export class BCIAppManager {
                     }
                 }
 
-                this.DataManager.setupAutosaving();
+                this.session.dataManager.setupAutosaving();
             });
         }
 
-        this.DataManager.initFS(initWithDirectory,()=>{
+        this.session.dataManager.initFS(initWithDirectory,()=>{
             let configs = this.getConfigsFromHashes();
             this.appletManager = new AppletManager(this.initUI, this.deinitUI, configs, undefined, this.session);    
         });

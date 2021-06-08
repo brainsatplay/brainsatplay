@@ -2,7 +2,6 @@ import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager'
 import {CSV} from '../../../libraries/js/src/utils/csv'
-import {DataManager} from '../../../libraries/js/src/utils/DataManager'
 import * as settingsFile from './settings'
 import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs');
@@ -50,8 +49,6 @@ export class SessionManagerApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        this.dataloader = new DataManager(this.bci.atlas);
         
         this.state = new StateManager({dirr:[], filelist:[]},1000);
 
@@ -151,7 +148,7 @@ export class SessionManagerApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.dataloader.deinit();
+        this.session.dataManager.deinit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -162,7 +159,7 @@ export class SessionManagerApplet {
             let lastseries = this.uplot.plot.series;
             this.uplot.deInit();
             let plotselect = document.getElementById(this.props.id+'plotselect').value;
-            let newSeries = this.makeSeries(plotselect,this.dataloader.state.data.loaded.header);
+            let newSeries = this.makeSeries(plotselect,this.session.dataManager.state.data.loaded.header);
             lastseries.forEach((ser,j)=> {
                 newSeries[j].show = ser.show;
             });
@@ -511,12 +508,12 @@ export class SessionManagerApplet {
         lines.shift(); 
         if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
         if(filename.indexOf('heg') >-1 ) {
-            this.dataloader.parseHEGData(lines,head);
-            //this.dataloader.loaded
+            this.session.dataManager.parseHEGData(lines,head);
+            //this.session.dataManager.loaded
         } else { //eeg data
-            this.dataloader.parseEEGData(lines,head);
+            this.session.dataManager.parseEEGData(lines,head);
         }
-        return this.dataloader.state.data.loaded;
+        return this.session.dataManager.state.data.loaded;
     }
 
 

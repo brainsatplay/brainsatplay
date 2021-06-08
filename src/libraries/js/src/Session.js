@@ -113,6 +113,7 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
+		this.dataManager = new DataManager()
 	}
 
 	/**
