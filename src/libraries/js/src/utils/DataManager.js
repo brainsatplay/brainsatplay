@@ -268,7 +268,6 @@ export class DataManager {
                         if (this.state.data.autosaving) {
                             if (this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                             if (row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) {
-                                this.saveSettings();
                                 this.autoSaveEEGChunk(this.state.data.eegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" +  this.deviceName);
                                 this.state.data.eegSaveCounter = row.count;
                             }
@@ -277,7 +276,6 @@ export class DataManager {
                     document.getElementById("saveBCISession").onclick = () => {
                         console.log(this.session.deviceStreams)
                         let row = this.session.deviceStreams[deviceIdx].device.atlas.getEEGDataByChannel(this.session.deviceStreams[deviceIdx].info.eegChannelTags[0].ch);
-                        this.saveSettings();
                         if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                         this.autoSaveEEGChunk(this.state.data.saveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
                         this.state.data.eegSaveCounter = row.count;
@@ -294,14 +292,12 @@ export class DataManager {
                         if (this.state.data.autosaving) {
                             //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                             if (this.session.atlas.data.heg[0].count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
-                                saveSettings();
                                 this.autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
                                 this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
                             }
                         }
                     });
                     document.getElementById("saveBCISession").onclick = () => {
-                        this.saveSettings();
                         this.autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
                         this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
 

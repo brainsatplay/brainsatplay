@@ -38,7 +38,6 @@ import * as BrowserFS from 'browserfs'
 const fs = BrowserFS.BFSRequire('fs')
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
-export let DataMgr = "";
 
 export class BCIAppManager {
     /**
@@ -53,15 +52,7 @@ export class BCIAppManager {
     ) {
 
         this.state = new StateManager({
-            sessionName: '',
-            autosaving: true,
-            saveChunkSize: 0,
-            saveChunkSize: 2000,
-            sessionChunks: 0,
-            eegSaveCounter: 0,
-            hegSaveCounter: 0,
-            newSessionCt: 0,
-            fileSizeLimitMb: 250
+            autosaving: true
         });
 
         this.uiFragments = {

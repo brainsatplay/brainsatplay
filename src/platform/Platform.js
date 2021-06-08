@@ -98,7 +98,7 @@ let localHostURL = `${protocol}//${location.hostname}:443`
 let remoteHostURL = 'https://brainsatplay.azurewebsites.net' //'https://server.brainsatplay.com'
 let urlToConnect = (location.origin.includes('app.brainsatplay.com') ? remoteHostURL : localHostURL)
 
-let bcisession = new brainsatplay.Session('guest','', urlToConnect);
+let bcisession = new brainsatplay.Session('guest','', urlToConnect, false);
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
 

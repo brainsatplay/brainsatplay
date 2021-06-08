@@ -59,6 +59,9 @@ import { EventRouter } from './EventRouter'
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
+import { DataManager } from './utils/DataManager';
+
+export let DataMgr = null;
 
 /**
  * ```javascript
@@ -86,8 +89,9 @@ export class Session {
 	constructor(
 		username = 'guest',
 		password = '',
-		urlToConnect = 'https://brainsatplay.azurewebsites.net'//'https://server.brainsatplay.com'
-	) {
+		urlToConnect = 'https://brainsatplay.azurewebsites.net',//'https://server.brainsatplay.com'
+		initFS = false
+		) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
@@ -113,7 +117,10 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
-		this.dataManager = new DataManager()
+		this.dataManager = new DataManager(this);
+		DataMgr = this.dataManager;
+
+		if(initFS) this.initFS();
 	}
 
 	/**
@@ -2158,6 +2165,10 @@ else {
 		}
 
 		return arr
+	}
+
+	initFS = (oninit=()=>{console.log("BrowserFS ready!")},onerror=()=>{}) => {
+		this.session.dataManager.initFS(oninit,onerror);
 	}
 
 }
