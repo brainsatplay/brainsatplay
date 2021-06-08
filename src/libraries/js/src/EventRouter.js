@@ -16,11 +16,45 @@ export class EventRouter{
         this.managers = []
         this.apps = {}
 
-        this.id = String(Math.floor(Math.random()*1000000))
+        this.props = {
+            id: String(Math.floor(Math.random()*1000000)),
+            deviceSub: null
+        }
     }
 
     init(device){
         this.device = device
+
+        // Default EEG Controls
+
+        // Blink 
+        // TO DO: Check for Frontal Electrodes
+        if (this.device.info.deviceType === 'eeg'){
+            this.device.states['blink_left'] = {data: 0, meta: {id:'blink_left'}, timestamp: Date.now()}
+            this.device.states['blink_right'] = {data: 0, meta: {id:'blink_right'}, timestamp: Date.now()}
+            this.device.states['blink_both'] = {data: 0, meta: {id:'blink_both'}, timestamp: Date.now()}
+
+            let atlasTag = 'eeg'
+            let prop = this.device.atlas.data.eegshared.eegChannelTags[0].tag
+            let coord = this.device.atlas.getDeviceDataByTag('eeg', prop);
+            this.props.deviceSub = atlasTag + "_" + prop
+            this.state.addToState(this.props.deviceSub, coord, () => {
+                
+                // Only Calculate if Required
+                let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
+                let blinkLeft = Object.keys(this.routes.registry['blink_left'][1]).length !== 0
+                let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
+
+                if (blinkBoth || blinkLeft || blinkRight){
+                    let blinks = this.device.atlas.getBlink()
+                    if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
+                    if (blinkLeft) this.device.states['blink_left'].data = blinks[0]
+                    if (blinkRight) this.device.states['blink_right'].data = blinks[1]
+                }
+            });
+        }
+
+
         if (this.device.states){
         Object.keys(this.device.states).forEach(key => {
                 let states = this.device.states[key]
@@ -57,6 +91,7 @@ export class EventRouter{
     }
 
     deinit = () => {
+        this.state.removeState(this.props.deviceSub)
         if (this.ui) this.ui.deleteNode()
     }
 
@@ -70,8 +105,7 @@ export class EventRouter{
             if (t){
                 if (t.constructor == Object && 'manager' in t){
                     t.target.state[t.target.port] = []
-                    t.target.state[t.target.port].push({data: newState, meta: {label: t.label}})
-                    // t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
+                    t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
                     let updateObj = {}
                     updateObj[t.label] = true
                     t.manager.setSequentialState(updateObj)
@@ -95,32 +129,35 @@ export class EventRouter{
         eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes.registry).find(str => str.split('_')[0] === id.split('_')[0]) != null))
 
         // Preselect Events based on Keys
-        let removeEvents = []
         let mappedRoutes = this.routes.reserve.pool.map(r => {
             let k1 = r.label
-            let pair = eventsToBind.find((k2,i) => {
-                let sk1 = k1.split('_')
-                sk1 = sk1.map(s => new RegExp(`${s}`,'i'))
-                let sk2 = k2.split('_')
-
-                let res1 = sk1.find(rexp => {
-                    let res2 = sk2.find(k => {
-                        if (rexp.test(k)){
-                            removeEvents.push(i)
-                            return true
-                        }
-                    })
-                    return res2
+            let desired = k1.split('_')
+            desired = desired.map(s => new RegExp(`${s}`,'i'))
+            // Match First Key
+            let pair
+            desired.find((regex,i) => {
+                let toRemove
+                pair = eventsToBind.find((k2,j) => {
+                    let current = k2.split('_')[i]
+                    if (regex.test(current)){
+                        console.log(regex, current)
+                        toRemove = j
+                        return true
+                    }
                 })
-                return res1
+
+                // Remove Found Event
+                if (pair) {
+                    eventsToBind.splice(toRemove,1)
+                    return true
+                }
             })
+
+            console.log(pair)
+
             return {route: r, event: pair}
         })
 
-        removeEvents = removeEvents.reverse()
-        removeEvents.forEach(i => {
-            eventsToBind.splice(i,1)
-        })
 
         mappedRoutes.forEach(newRoute => {
 
@@ -165,7 +202,7 @@ export class EventRouter{
                 if ('manager' in routes[i]){
                     sources.find(o => {
                         if (routes[i].label === o.label) {
-                            routes.splice(i,1)
+                            routes[i] = {}
                             return true
                         }
                     })
