@@ -133,14 +133,14 @@ export class EventRouter{
             let k1 = r.label
             let desired = k1.split('_')
             desired = desired.map(s => new RegExp(`${s}`,'i'))
-            // Match First Key
+            
+            // Match Keys (first is first)
             let pair
             desired.find((regex,i) => {
                 let toRemove
                 pair = eventsToBind.find((k2,j) => {
                     let current = k2.split('_')[i]
                     if (regex.test(current)){
-                        console.log(regex, current)
                         toRemove = j
                         return true
                     }

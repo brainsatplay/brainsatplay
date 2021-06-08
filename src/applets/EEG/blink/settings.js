@@ -20,8 +20,8 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'blink_left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
-        {id: 'blink_right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
+        {id: 'blink_left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
+        {id: 'blink_right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [

@@ -22,10 +22,10 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
-        {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
-        {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
+        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
+        {id: 'down', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowDown'}},
+        {id: 'left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
+        {id: 'right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
         {id: 'ui', class: UI, params: {}},
         // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
       ],

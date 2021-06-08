@@ -1,4 +1,4 @@
 export {Signal} from './Signal'
-export {Keyboard} from './Keyboard'
+export {Event} from './Event'
 export {Audio} from './Audio'
 

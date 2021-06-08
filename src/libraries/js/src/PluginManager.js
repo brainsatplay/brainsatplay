@@ -2,6 +2,8 @@
 import { StateManager } from './ui/StateManager'
 import { Session } from './Session'
 import { Brainstorm } from './plugins/utilities/Brainstorm'
+import { Event } from './plugins/inputs/Event'
+
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
@@ -94,7 +96,10 @@ export class PluginManager{
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
-                if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
+                if (
+                    node instanceof Event
+                    // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
+                    ){
                     let controlDict = {}
                     controlDict.format = typeof firstUserDefault.data
                     controlDict.label = this.getLabel(node,port) // Display Label
@@ -313,7 +318,9 @@ export class PluginManager{
                 this.registry.local[node.label].gui[node.label] = []
 
                 // Capitalize Display Name
-                let folderName = node.label[0].toUpperCase() + node.label.slice(1)
+                let splitName = node.label.split('_')
+                splitName = splitName.map(str => str[0].toUpperCase() + str.slice(1))
+                let folderName = splitName.join(' ')
                 this.gui.__folders[node.label].name = folderName
             }
             paramsMenu = this.gui.__folders[node.label]

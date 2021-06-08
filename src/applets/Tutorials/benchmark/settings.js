@@ -19,23 +19,28 @@ export const settings = {
       {
       id: 'benchmark',
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
+        // {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
+        // {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
         {id: 'task', class: TaskManager, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [
-        {
-          source: 'signal', 
-          target: 'My Algorithm'
-        },
-        {
-          source: 'My Algorithm', 
-          target: 'ui'
-        },
+        // {
+        //   source: 'signal', 
+        //   target: 'My Algorithm'
+        // },
+        // {
+        //   source: 'My Algorithm', 
+        //   target: 'ui'
+        // },
         {
           source: 'task', 
           target: 'ui'
+        },
+        {
+          source: 'spacebar', 
+          target: 'task:events'
         }
       ]
     }],

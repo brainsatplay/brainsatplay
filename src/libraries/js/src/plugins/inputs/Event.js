@@ -1,6 +1,6 @@
+// Generic Event Trigger. Uses Key Presses by Default.
 
-
-export class Keyboard{
+export class Event{
 
     static id = String(Math.floor(Math.random()*1000000))
 

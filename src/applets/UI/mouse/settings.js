@@ -21,11 +21,11 @@ export const settings = {
       {
       id: 'mygraph',
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowDown'}},
-        {id: 'left', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowLeft'}},
-        {id: 'right', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'ArrowRight'}},
-        {id: 'click', class: brainsatplay.plugins.inputs.Keyboard, params: {keycode: 'Space'}},
+        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
+        {id: 'down', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowDown'}},
+        {id: 'left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
+        {id: 'right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
+        {id: 'click', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
         {id: 'cursor', class: brainsatplay.plugins.outputs.Cursor, params: {}},
       ],
       edges: [

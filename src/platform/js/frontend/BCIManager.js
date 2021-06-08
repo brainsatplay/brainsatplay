@@ -15,12 +15,13 @@ import {
     appletbox_template,
     appletselect_template,
     filemenu_template,
-    file_template,
     login_template
 } from './menus/UITemplates'
 
+import {file_template} from '../../../libraries/js/src/utils/DataLoader'
+
 import { AppletManager } from './AppletManager'
-import { CSV } from '../general/csv'
+import { CSV } from '../../../libraries/js/src/utils/csv'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
