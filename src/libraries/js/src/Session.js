@@ -206,7 +206,6 @@ export class Session {
 		newStream.onconnect = () => {
 			this.deviceStreams.push(newStream)
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
-			this.info.nDevices++;
 			if (streamParams[0]) { 
 				this.beginStream(streamParams); 
 			}
@@ -215,6 +214,8 @@ export class Session {
 
 			onconnect(newStream);
 			this.onconnected();
+			this.info.nDevices++;
+			
 		}
 
 		newStream.ondisconnect = () => {
