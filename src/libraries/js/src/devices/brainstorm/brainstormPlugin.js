@@ -35,7 +35,7 @@ export class brainstormPlugin {
                 resolve(true)
             })
         }
-            if (!this.session.info.auth.authenticated){
+            if (!this.session.info.auth.connected){
                 this.session.promptLogin(document.body,()=>{},onAuth)
             } else {
                 onAuth()

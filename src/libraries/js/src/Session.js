@@ -101,7 +101,7 @@ export class Session {
 				url: new URL(urlToConnect),
 				username: username,
 				password: password,
-				authenticated: false
+				connected: false
 			},
 			apps: {},
 			subscriptions: [],
@@ -718,9 +718,11 @@ export class Session {
 		return user
 	}
 
-	getLocalIP() {
+	 getLocalIP = async () => {
+		return new Promise(resolve => {
+
 		var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;  
-if (RTCPeerConnection)(function() {  
+if (RTCPeerConnection)(() => {  
     var rtc = new RTCPeerConnection({  
         iceServers: []  
     });  
@@ -729,12 +731,15 @@ if (RTCPeerConnection)(function() {
             reliable: false  
         });  
     };  
-    rtc.onicecandidate = function(evt) {  
-        if (evt.candidate) grepSDP("a=" + evt.candidate.candidate);  
+    rtc.onicecandidate = (evt) => {  
+		if (evt.candidate) {
+			let res = grepSDP("a=" + evt.candidate.candidate);  
+			resolve(res)
+		}
     };  
     rtc.createOffer(function(offerDesc) {  
-        grepSDP(offerDesc.sdp);  
-        rtc.setLocalDescription(offerDesc);  
+        let res = grepSDP(offerDesc.sdp);  
+		rtc.setLocalDescription(offerDesc);  
     }, function(e) {  
         console.warn("offer failed", e);  
     });  
@@ -747,28 +752,32 @@ if (RTCPeerConnection)(function() {
         var displayAddrs = Object.keys(addrs).filter(function(k) {  
             return addrs[k];  
 		});
-		console.log('Local IP Address:', displayAddrs.join(" or perhaps ") || "n/a")
+		return displayAddrs
     }  
   
     function grepSDP(sdp) {  
-        var hosts = [];  
+		var hosts = [];  
+		let urlArray
         sdp.split('\r\n').forEach(function(line) {  
             if (~line.indexOf("a=candidate")) {  
                 var parts = line.split(' '),  
                     addr = parts[4],  
                     type = parts[7];  
-                if (type === 'host') updateDisplay(addr);  
+                if (type === 'host') urlArray = updateDisplay(addr);  
             } else if (~line.indexOf("c=")) {  
                 var parts = line.split(' '),  
                     addr = parts[2];  
-                updateDisplay(addr);  
+					urlArray = updateDisplay(addr);  
             }  
-        });  
+		});  
+		
+		return urlArray
     }  
 })();  
 else {  
     console.log('not able to get your local IP address')
 }
+		})
 	}
 
 
@@ -780,7 +789,7 @@ else {
 		if (this.socket == null || this.socket.readyState !== 1) {
 			this.socket = this.setupWebSocket(dict).then(socket => {
 				this.socket = socket
-				this.info.auth.authenticated = true;
+				this.info.auth.connected = true;
 				if (this.socket !== null && this.socket.readyState === 1) {
 					if (beginStream === true) {
 						this.beginStream();
@@ -985,6 +994,7 @@ else {
 			}
 
 			socket.onclose = (msg) => {
+				this.info.auth.connected = false;
 				console.log('close');
 			}
 		})

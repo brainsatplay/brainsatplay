@@ -8,7 +8,7 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
 */
 
 const OSCManager = require('./OSCManager.js');
-
+const RobotManager = require('./RobotManager.js');
 
 class DataServer {
     /**
@@ -38,9 +38,10 @@ class DataServer {
             this.userData.set(username, {
                 username:username,
                 sessions:[],
+                robot: new RobotManager(),
                 sockets: {
                     ws: socket,
-                    osc: new OSCManager(socket)
+                    osc: new OSCManager(socket),
                 },
                 props: {},
                 updatedPropnames: [],
@@ -367,6 +368,15 @@ class DataServer {
             u.sockets.ws.send(JSON.stringify({msg:'Message sent over OSC'}))
         }else if( commands[0] === 'stopOSC') {
             u.sockets.osc.remove(commands[1], commands[2])
+        }
+
+        // Robot
+        else if(commands[0] === 'moveMouse') {
+            u.robot.move(commands[1])
+        }  else if (commands[0] === 'clickMouse') {
+            u.robot.click()
+        } else if (commands[0] === 'typeKeys') {
+            u.robot.move(keys)
         }
     }
 

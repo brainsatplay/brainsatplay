@@ -99,7 +99,6 @@ let remoteHostURL = 'https://brainsatplay.azurewebsites.net' //'https://server.b
 let urlToConnect = (location.origin.includes('app.brainsatplay.com') ? remoteHostURL : localHostURL)
 
 let bcisession = new brainsatplay.Session('guest','', urlToConnect);
-bcisession.getLocalIP()
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
 
