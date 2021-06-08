@@ -328,6 +328,16 @@ export class DataManager {
         });
     }
 
+    getFilenames = (onload=(directory)=>{}, directory = '/data') => {
+        fs.readdir('/data', (e, directory) => {
+            if (e) throw e;
+            if (directory) {
+                console.log("files", directory);
+                onload(directory);
+            }
+        });
+    }
+
     getFileSize = (filename,onread=(size)=>{console.log(size);}) => {
         fs.stat('/data/'+filename,(e,stats) => {
             if(e) throw e;
