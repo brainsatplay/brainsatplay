@@ -1,6 +1,7 @@
 
 import {UI} from './UI.js'
 import {TaskManager} from './TaskManager.js'
+import {TimeTrainer} from './TimeTrainer.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
@@ -23,7 +24,8 @@ export const settings = {
         // {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
         {id: 'task', class: TaskManager, params: {}},
-        {id: 'ui', class: UI, params: {}},
+        // {id: 'ui', class: UI, params: {}},
+        {id: 'ui', class: TimeTrainer, params: {}},
       ],
       edges: [
         // {
@@ -41,7 +43,15 @@ export const settings = {
         {
           source: 'spacebar', 
           target: 'task:events'
-        }
+        },
+        {
+          source: 'spacebar', 
+          target: 'ui:click'
+        },
+        {
+          source: 'ui:click', 
+          target: 'task:error'
+        },
       ]
     }],
 }

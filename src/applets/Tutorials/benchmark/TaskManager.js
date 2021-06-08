@@ -28,7 +28,6 @@ export class TaskManager{
         }
 
         this.props = {
-            loop: null,
             taskData: [],
             currentTrial: -1,
         }
@@ -74,20 +73,9 @@ export class TaskManager{
     }
 
     // Log the Choice Passed to this Port
-    choice = (userData) => {
-        
-        let choices = userData.map(u => u.data)
-        let allFloats = choices.reduce((a,b) => a * (typeof b == 'number' && !Number.isSafeInteger(b)), true)
-
-        // Output the Average for Floats
-        if (allFloats){
-            return this.session.atlas.mean(choices)
-        } 
-
-        // Otherwise Output the Most Chosen Choice
-        else {
-            return this.session.atlas.mode(choices)
-        }
+    error = (userData) => {
+        let u = userData[0]
+        this.session.atlas.makeNote(`error ${u.data}`)
     }
 
     _taskLoop = () => {
@@ -122,7 +110,7 @@ export class TaskManager{
         }
 
         this.default()
-        if (this.props.currentTrial != this.params.trialCount) this.props.loop = setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
+        if (this.props.currentTrial != this.params.trialCount) setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
     }
 
     _startNewTrial(){
