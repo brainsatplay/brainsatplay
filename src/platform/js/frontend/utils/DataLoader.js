@@ -208,6 +208,10 @@ export class DataLoader {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
+    //-----------------
+    //-BrowserFS-------
+    //-----------------
+
     initFS = (oninit=()=>{}) => {
         let oldmfs = fs.getRootFS();
         BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
