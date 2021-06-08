@@ -30,6 +30,8 @@ export const settings = {
         {id: 'Test', class: Test, params: {}},
       ],
       edges: [
+
+        // Set Up Your Algorithm
         {
           source: 'signal', 
           target: 'My Algorithm'
@@ -38,29 +40,46 @@ export const settings = {
           source: 'My Algorithm', 
           target: 'Train'
         },
+
+        // Schedule an Experiment 
         {
           source: 'scheduler', 
           target: 'Train'
         },
-        {
-          source: 'scheduler:state', 
-          target: 'data:log'
-        },
-        {
-          source: 'spacebar', 
-          target: 'data'
-        },
-        {
-          source: 'scheduler:done', 
-          target: 'Test:show'
-        },
+
+        // Declare User Commands
         {
           source: 'spacebar', 
           target: 'Test:click'
         },
+
+        // Log App Events
+        {
+          source: 'spacebar', 
+          target: 'data'
+        },
         {
           source: 'Test:performance', 
           target: 'data'
+        },{
+          source: 'scheduler:state', 
+          target: 'data:log'
+        },
+
+        // Trigger Data Events 
+        {
+          source: 'scheduler:done', 
+          target: 'data:get'
+        },
+        {
+          source: 'scheduler:done', 
+          target: 'data:csv'
+        },
+
+        // Test your Model
+        {
+          source: 'scheduler:done', 
+          target: 'Test:show'
         },
       ]
     }],

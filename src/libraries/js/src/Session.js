@@ -56,6 +56,9 @@ import {PluginManager} from './PluginManager'
 // Event Router
 import { EventRouter } from './EventRouter'
 
+// Data Manager
+import { DataManager } from './utils/DataManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";

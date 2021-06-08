@@ -1,6 +1,5 @@
 //Load and save CSV data
 import { Session } from '../Session';
-import {DataAtlas} from '../DataAtlas'
 import { StateManager } from '../ui/StateManager';
 import {CSV} from './csv'
 
@@ -252,7 +251,7 @@ export class DataManager {
     }
 
 
-    setupAutosaving = (deviceIdx=this.session.info.nDevices-1) => {
+    setupAutosaving = (deviceIdx=this.session.info.nDevices) => {
         //configure autosaving when the device is connected
         this.session.state.data.info = this.session.info;
 
@@ -312,7 +311,7 @@ export class DataManager {
     }
 
     newSession = (oncreated=this.listFiles) => {
-        let deviceType = this.session.deviceStreams[deviceIdx].info.deviceType
+        let deviceType = this.session.deviceStreams[this.session.info.nDevices].info.deviceType
         let sessionName = new Date().toISOString(); //Use the time stamp as the session name
         if (deviceType === 'eeg') {
             sessionName += "_eeg"
@@ -337,28 +336,38 @@ export class DataManager {
         });
     }
 
-    deleteFile = (path, ondelete=this.listFiles) => {
-        fs.unlink(path, (e) => {
-            if (e) console.error(e);
-            ondelete();
-        });
+    deleteFile = (path=this.state.data['sessionName'], ondelete=this.listFiles) => {
+        if (path != ''){
+            fs.unlink(path, (e) => {
+                if (e) console.error(e);
+                ondelete();
+            });
+        } else {
+            console.error('Path name is not defined')
+        }
     }
 
     //Read a chunk of data from a saved dataset
-    readFromDB = (path, begin = 0, end = 5120) => {
+    readFromDB = (path=this.state.data['sessionName'], begin = 0, end = 5120) => {
+        console.log(path)
+        if (path != ''){
+
         fs.open('/data/' + path, 'r', (e, fd) => {
             if (e) throw e;
 
-            fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
-                if (er) throw er;
-                if (bytesRead !== 0) {
-                    let data = output.toString();
-                    //Now parse the data back into the buffers.
-                    fs.close(fd);
-                    return data;
-                };
+                fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
+                    if (er) throw er;
+                    if (bytesRead !== 0) {
+                        let data = output.toString();
+                        //Now parse the data back into the buffers.
+                        fs.close(fd);
+                        return data;
+                    };
+                });
             });
-        });
+        } else {
+            console.error('Path name is not defined')
+        }
     }
 
     loadCSVintoDB = (onload=(data)=>{}) => {
@@ -469,7 +478,8 @@ export class DataManager {
     }
 
     //Write CSV data in chunks to not overwhelm memory
-    writeToCSV = (path) => {
+    writeToCSV = (path=this.state.data['sessionName']) => {
+        if (path != ''){
         fs.stat('/data/' + path, (e, stats) => {
             if (e) throw e;
             let filesize = stats.size;
@@ -509,7 +519,9 @@ export class DataManager {
                 //file.write(data.toString());
             });
         });
-
+    } else {
+        console.error('Path name is not defined.')
+    }
     }
 
     //------------------------
