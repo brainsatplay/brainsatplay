@@ -552,4 +552,40 @@ export class DataLoader {
         }
     }
 
+    //doSomething(){}
+    listDriveFiles(listDivId,onload=this.listFiles) {
+        this.checkFolder((result)=> {
+            window.gapi.client.drive.files.list({
+                q: `'${result.files[0].id}' in parents`,
+                'pageSize': 10,
+                'fields': "nextPageToken, files(id, name)"
+            }).then((response) => {
+                document.getElementById(this.props.id+'drivefiles').innerHTML = ``;
+                //this.appendContent('Drive Files (Brainsatplay_Data folder):','drivefiles');
+                var files = response.result.files;
+                if (files && files.length > 0) {
+                  for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    document.getElementById(listDivId).insertAdjacentHTML('beforeend',`<div id=${file.id} style='border: 1px solid white;'>${file.name}<button id='${file.id}dload'>Download</button></div>`);
+                    document.getElementById(file.id+'dload').onclick = () => {
+                          
+                        //Get CSV data from drive
+                        var request = gapi.client.drive.files.export({'fileId': file.id, 'mimeType':'text/csv'});
+                          request.then((resp) => {
+                            let filename = file.name;
+                            fs.appendFile('/data/'+filename,resp.body,(e)=>{
+                                if(e) throw e;
+                                onload();
+                            });
+                        });
+                    }
+                }
+                } else {
+                    return undefined;//this.appendContent('<p>No files found.</p>','drivefiles');
+                }
+              });
+        })
+        
+    }
+
 }
