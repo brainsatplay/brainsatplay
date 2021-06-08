@@ -260,6 +260,7 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
         this.isHost = false;
+        this.hostStreamId = null;
         this.hostSoundsUpdated = false;
 
         this.history = 5; 
@@ -580,23 +581,9 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                let hostData = this.session.getHostData(this.info.name);
+                //let hostData = this.session.getHostData(this.info.name);
 
-                if (hostData){
-                    console.log(hostData.data.config);
-                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
-                        this.isHost = true;
-                        document.getElementById(this.props.id+'submitconfig').style.display = '';
-                        document.getElementById(this.props.id+'menuspan').style.display = '';
-                        document.getElementById(this.props.id+'controls').style.display = '';
-                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
-                        this.isHost = false;
-                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
-                        document.getElementById(this.props.id+'controls').style.display = 'none';
-                        
-                    }
-                }
+                
 
                 //console.log(userData)
                 if (userData.length > 0){
@@ -778,11 +765,33 @@ void main(){
             if (info && info.usernames.length === 0){
                 this.hostData = {};
 
-                this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
+                this.stateIds.push(this.hostStreamId);
                 
-                window.onkeypress = (e) => {
-                    this.hostData.key = e.code
-                }
+                // window.onkeypress = (e) => {
+                //     this.hostData.key = e.code
+                // }
+
+                this.hostStreamSub = this.session.state.subscribe(this.hostStreamId,(hostData)=>{
+                    console.log(hostData.data.config);
+
+                    if(hostData.data.config) {
+                        this.configure(hostData.data.config);
+                    }
+
+                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
+                        this.isHost = true;
+                        document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        document.getElementById(this.props.id+'menuspan').style.display = '';
+                        document.getElementById(this.props.id+'controls').style.display = '';
+                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
+                        this.isHost = false;
+                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                        document.getElementById(this.props.id+'controls').style.display = 'none';
+                        
+                    }
+                })
             }
         });
 

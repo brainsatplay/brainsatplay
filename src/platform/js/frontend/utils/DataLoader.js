@@ -1,22 +1,47 @@
 //Load and save CSV data
+import { Session } from '../../../../libraries/js/src/Session';
 import {DataAtlas} from '../../../../libraries/js/src/DataAtlas'
 import { StateManager } from '../../../../libraries/js/src/ui/StateManager';
 import {CSV} from '../../general/csv'
 
+
+import {
+    file_template
+} from './menus/UITemplates'
+
+import * as BrowserFS from 'browserfs'
+const fs = BrowserFS.BFSRequire('fs');
+const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
+
 export class DataLoader {
-    constructor(atlas=new DataAtlas(), onload = this.onload) {
-        this.atlas = atlas;
+    constructor(session=new Session(), onload = this.onload) {
+        this.session = session;
+        this.atlas = this.session.atlas;
         this.state = new StateManager({
+            sessionName: '',
+            autosaving: true,
+            saveChunkSize: 0,
+            saveChunkSize: 2000,
+            sessionChunks: 0,
+            eegSaveCounter: 0,
+            hegSaveCounter: 0,
+            newSessionCt: 0,
+            fileSizeLimitMb: 250,
             loaded:{header:[],data:{},type:''}
         });
 
         this.onload = onload;
 
         this.sub = this.state.subscribe('loaded',(loaded)=>{this.onload(loaded);});
+        this.infoSub = null;
+        this.deviceSub = null;
+        this.deviceName = null;
     }
 
     deinit = () => {
         this.state.unsubscribeAll('loaded');
+        if(this.infoSub) this.state.unsubscribe('info',this.infoSub);
+        if(this.deviceSub) this.state.unsubscribe('')
     }      
     
     onload = (loaded) => {
@@ -28,8 +53,8 @@ export class DataLoader {
         return data;
     }
 
-    readyEEGDataForWriting = (from=0,to='end') => {
-        let data = this.atlas.readyEEGDataForWriting(from,to);
+    readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
+        let data = this.atlas.readyEEGDataForWriting(from,to,getFFTs);
         return data;
     }
 
@@ -37,8 +62,8 @@ export class DataLoader {
         CSV.saveCSV(this.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
     }
 
-    saveEEGdata = (from=0,to='end') => {
-        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to),this.toISOLocal(new Date())+"_eeg");
+    saveEEGdata = (from=0,to='end',getFFTs=true) => {
+        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
     }
 
     mean(arr){
@@ -182,5 +207,386 @@ export class DataLoader {
 			   zz(d.getMilliseconds()) + 
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
+
+    initFS = (oninit=()=>{}) => {
+        let oldmfs = fs.getRootFS();
+        BrowserFS.FileSystem.IndexedDB.Create({}, (e, rootForMfs) => {
+            if (e) throw e;
+            if (!rootForMfs) {
+                throw new Error(`Error creating BrowserFS`);
+            }
+            BrowserFS.initialize(rootForMfs); //fs now usable with imports after this
+            fs.exists('/data', (exists) => {
+                if (exists) {
+                    console.log('exists!')
+                    oninit();
+                }
+                else {
+                    fs.mkdir('data', (errr) => {
+                        if (errr) throw err;
+                        oninit();
+                    });
+                }
+
+            });
+        });
+    }
+
+
+    setupAutosaving = (deviceIdx=this.session.info.nDevices-1) => {
+        //configure autosaving when the device is connected
+        this.session.state.data.info = this.session.info;
+
+        //console.log(this.session.state.data.info);
+        this.infoSub = this.session.state.subscribe('info', (info) => {
+            if (info.nDevices > 0) {
+                let mainDevice = this.session.deviceStreams[deviceIdx].info.deviceType;
+                this.deviceType = mainDevice;
+                if (mainDevice === 'eeg') {
+                    this.deviceName = this.session.deviceStreams[deviceIdx].info.deviceName;
+                    this.deviceSub = this.session.subscribe(this.deviceName, this.session.deviceStreams[deviceIdx].info.eegChannelTags[0].ch, undefined, (row) => {
+                        //console.log(row.count, this.state.data.eegSaveCounter);
+                        if (this.state.data.autosaving) {
+                            if (this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                            if (row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) {
+                                this.saveSettings();
+                                this.autoSaveEEGChunk(this.state.data.eegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" +  this.deviceName);
+                                this.state.data.eegSaveCounter = row.count;
+                            }
+                        }
+                    });
+                    document.getElementById("saveBCISession").onclick = () => {
+                        console.log(this.session.deviceStreams)
+                        let row = this.session.deviceStreams[deviceIdx].device.atlas.getEEGDataByChannel(this.session.deviceStreams[deviceIdx].info.eegChannelTags[0].ch);
+                        this.saveSettings();
+                        if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                        this.autoSaveEEGChunk(this.state.data.saveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
+                        this.state.data.eegSaveCounter = row.count;
+
+                    }
+
+                    document.getElementById("newBCISession").onclick = () => {
+                        this.newSession();
+                    }
+
+                } else if (mainDevice === 'heg') {
+                    this.deviceName = this.session.deviceStreams[deviceIdx].info.deviceName;
+                    this.deviceSub = this.session.subscribe(this.deviceName, deviceIdx, undefined, (row) => {
+                        if (this.state.data.autosaving) {
+                            //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                            if (this.session.atlas.data.heg[0].count - this.state.data.hegSaveCounter >= this.state.data.saveChunkSize) {
+                                saveSettings();
+                                this.autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
+                                this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
+                            }
+                        }
+                    });
+                    document.getElementById("saveBCISession").onclick = () => {
+                        this.saveSettings();
+                        this.autoSaveHEGChunk(this.state.data.hegSaveCounter, undefined, this.session.deviceStreams[deviceIdx].info.deviceType + "_" + this.deviceName);
+                        this.state.data.hegSaveCounter = this.session.atlas.data.heg[0].count;
+
+                    }
+
+                    document.getElementById("newBCISession").onclick = () => {
+                        this.newSession();
+                    }
+                }
+            }
+        });
+    }
+
+    newSession = (oncreated=this.listFiles) => {
+        let deviceType = this.session.deviceStreams[deviceIdx].info.deviceType
+        let sessionName = new Date().toISOString(); //Use the time stamp as the session name
+        if (deviceType === 'eeg') {
+            sessionName += "_eeg"
+        } else if (deviceType === 'heg') {
+            sessionName += "_heg"
+        }
+        this.state.data.sessionName = sessionName;
+        this.state.data.sessionChunks = 0;
+        this.state.data.saveChunkSize = 2000;
+        this.state.data.newSessionCt++;
+        fs.appendFile('/data/' + sessionName, "", (e) => {
+            if (e) throw e;
+            oncreated();
+        });
+    }
+
+    getFileSize = (filename,onread=(size)=>{console.log(size);}) => {
+        fs.stat('/data/'+filename,(e,stats) => {
+            if(e) throw e;
+            let filesize = stats.size;
+            onread(filesize);
+        });
+    }
+
+    deleteFile = (path, ondelete=this.listFiles) => {
+        fs.unlink(path, (e) => {
+            if (e) console.error(e);
+            ondelete();
+        });
+    }
+
+    //Read a chunk of data from a saved dataset
+    readFromDB = (path, begin = 0, end = 5120) => {
+        fs.open('/data/' + path, 'r', (e, fd) => {
+            if (e) throw e;
+
+            fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
+                if (er) throw er;
+                if (bytesRead !== 0) {
+                    let data = output.toString();
+                    //Now parse the data back into the buffers.
+                    fs.close(fd);
+                    return data;
+                };
+            });
+        });
+    }
+
+    loadCSVintoDB = (onload=(data)=>{}) => {
+        CSV.openCSVRaw((data,path)=>{
+            let split = path.split(`\\`);
+            let filename = split[split.length-1].slice(0,split[split.length-1].length-4);
+            console.log(filename);
+            fs.appendFile('/data/'+filename,data,(e)=>{
+                if(e) throw e;
+                onload(data);
+            });
+        });
+    }
+
+    getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
+        fs.open('/data/'+filename,'r',(e,fd) => {
+            if(e) throw e;
+            fs.read(fd,65535,0,'utf-8',(er,output,bytesRead) => {  //could be a really long header for all we know
+                if (er) throw er;
+                if(bytesRead !== 0) {
+                    let data = output.toString();
+                    let lines = data.split('\n');
+                    let header = lines[0];
+                    //Now parse the data back into the buffers.
+                    onOpen(header, filename);
+                };
+            }); 
+        });
+    }
+
+    //
+    listFiles = (fs_html_id='filesystem') => {
+        fs.readdir('/data', (e, dirr) => {
+            if (e) return;
+            if (dirr) {
+                console.log("files", dirr)
+                let filediv = document.getElementById(fs_html_id);
+                filediv.innerHTML = "";
+                dirr.forEach((str, i) => {
+                    if (str !== "settings.json") {
+                        filediv.innerHTML += file_template({ id: str });
+                    }
+                });
+                dirr.forEach((str, i) => {
+                    if (str !== "settings.json") {
+                        document.getElementById(str + "svg").onclick = () => {
+                            console.log(str);
+                            this.writeToCSV(str);
+                        }
+                        document.getElementById(str + "delete").onclick = () => {
+                            this.deleteFile("/data/" + str);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+
+    autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg', getFFTs=true, onsaved=this.listFiles) => {
+        if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
+        let from = startidx;
+        if (this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
+        let data = this.session.atlas.readyEEGDataForWriting(from, to, getFFTs);
+        console.log("Saving chunk to /data/" + this.state.data.sessionName, this.state.data.sessionChunks);
+        if (this.state.data.sessionChunks === 0) {
+            fs.appendFile('/data/' + this.state.data.sessionName, data[0] + data[1], (e) => {
+                if (e) throw e;
+                this.state.data.sessionChunks++;
+                onsaved();
+            }); //+"_c"+State.data.sessionChunks
+
+        }
+        else {
+            fs.appendFile('/data/' + this.state.data.sessionName, "\n" + data[1], (e) => {
+                if (e) throw e;
+                this.state.data.sessionChunks++;
+                onsaved();
+            }); //+"_c"+State.data.sessionChunks
+        }
+
+    }
+
+    autoSaveHEGChunk = (startidx = 0, to = 'end', deviceName = "heg", onsaved=this.listFiles) => {
+        if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
+        let from = startidx;
+        if (this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
+        let data = this.session.atlas.readyHEGDataForWriting(from, to);
+        console.log("Saving chunk to /data/" + this.state.data.sessionName, this.state.data.sessionChunks);
+        if (this.state.data.sessionChunks === 0) {
+            fs.appendFile('/data/' + this.state.data.sessionName, data[0] + data[1], (e) => {
+                if (e) throw e;
+                this.state.data.sessionChunks++;
+                onsaved();
+            }); //+"_c"+State.data.sessionChunks
+        }
+        else {
+            fs.appendFile('/data/' + this.state.data.sessionName, "\n" + data[1], (e) => {
+                if (e) throw e;
+                this.state.data.sessionChunks++;
+                onsaved();
+            }); //+"_c"+State.data.sessionChunks
+        }
+    }
+
+    //Write CSV data in chunks to not overwhelm memory
+    writeToCSV = (path) => {
+        fs.stat('/data/' + path, (e, stats) => {
+            if (e) throw e;
+            let filesize = stats.size;
+            console.log(filesize)
+            fs.open('/data/' + path, 'r', (e, fd) => {
+                if (e) throw e;
+                let i = 0;
+                let maxFileSize = this.state.data.fileSizeLimitMb * 1024 * 1024;
+                let end = maxFileSize;
+                if (filesize < maxFileSize) {
+                    end = filesize;
+                    fs.read(fd, end, 0, 'utf-8', (e, output, bytesRead) => {
+                        if (e) throw e;
+                        if (bytesRead !== 0) CSV.saveCSV(output.toString(), path);
+                        fs.close(fd);
+                    });
+                }
+                else {
+                    const writeChunkToFile = () => {
+                        if (i < filesize) {
+                            if (i + end > filesize) { end = filesize - i; }
+                            let chunk = 0;
+                            fs.read(fd, end, i, 'utf-8', (e, output, bytesRead) => {
+                                if (e) throw e;
+                                if (bytesRead !== 0) {
+                                    CSV.saveCSV(output.toString(), path + "_" + chunk);
+                                    i += maxFileSize;
+                                    chunk++;
+                                    writeChunkToFile();
+                                    fs.close(fd);
+                                }
+                            });
+                        }
+                    }
+                }
+                //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
+                //file.write(data.toString());
+            });
+        });
+
+    }
+
+    //------------------------
+    //-GOOGLE DRIVE FUNCTIONS-
+    //------------------------
+    
+    checkFolder(onResponse=(result)=>{}) {
+        window.gapi.client.drive.files.list({
+            q:"name='Brainsatplay_Data' and mimeType='application/vnd.google-apps.folder'",
+        }).then((response) => {
+            if(response.result.files.length === 0) {
+                this.createDriveFolder();
+                if(onResponse) onResponse(response.result);
+            }
+            else if(onResponse) onResponse(response.result);
+        });
+    }
+
+    createDriveFolder(name='Brainsatplay_Data') {
+        let data = new Object();
+        data.name = name;
+        data.mimeType = "application/vnd.google-apps.folder";
+        gapi.client.drive.files.create({'resource': data}).then((response)=>{
+            console.log(response.result);
+        });
+    }
+
+    //backup file to drive by name (requires gapi authorization)
+    backupToDrive = (filename) => {
+        if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+            fs.readFile('/data/'+filename,(e,output)=>{
+                if(e) throw e;
+                let file = new Blob([output.toString()],{type:'text/csv'});
+                this.checkFolder((result)=>{
+                    let metadata = {
+                        'name':filename+".csv",
+                        'mimeType':'application/vnd.google-apps.spreadsheet',
+                        'parents':[result.files[0].id]
+                    }
+                    let token = gapi.auth.getToken().access_token;
+                    var form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+                    form.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.responseType = 'json';
+                    xhr.onload = () => {
+                        console.log("Uploaded file id: ",xhr.response.id); // Retrieve uploaded file ID.
+                        this.listDriveFiles();
+                    };
+                    xhr.send(form);
+                });   
+            });
+        } else {
+            alert("Sign in with Google first!")
+        }
+    }
+
+    //doSomething(){}
+    listDriveFiles(listDivId,onload=this.listFiles,ondownload=(csvdata)=>{}) {
+        this.checkFolder((result)=> {
+            window.gapi.client.drive.files.list({
+                q: `'${result.files[0].id}' in parents`,
+                'pageSize': 10,
+                'fields': "nextPageToken, files(id, name)"
+            }).then((response) => {
+                document.getElementById(this.props.id+'drivefiles').innerHTML = ``;
+                //this.appendContent('Drive Files (Brainsatplay_Data folder):','drivefiles');
+                var files = response.result.files;
+                if (files && files.length > 0) {
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        document.getElementById(listDivId).insertAdjacentHTML('beforeend',`<div id=${file.id} style='border: 1px solid white;'>${file.name}<button id='${file.id}dload'>Download</button></div>`);
+                        document.getElementById(file.id+'dload').onclick = () => {
+                            
+                            //Get CSV data from drive
+                            var request = gapi.client.drive.files.export({'fileId': file.id, 'mimeType':'text/csv'});
+                            request.then((resp) => {
+                                let filename = file.name;
+                                fs.appendFile('/data/'+filename,resp.body,(e)=>{
+                                    if(e) throw e;
+                                    ondownload(resp.body);
+                                });
+                            });
+                        }
+                    }
+                    onload();
+                } else {
+                    return undefined;//this.appendContent('<p>No files found.</p>','drivefiles');
+                }
+              });
+        })
+        
+    }
 
 }

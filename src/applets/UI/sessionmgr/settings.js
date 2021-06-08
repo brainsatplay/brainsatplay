@@ -8,7 +8,7 @@ export const settings = {
     module: "SessionManagerApplet",
     instructions:"Coming soon...",
     display: {
-      development: false,
-      production: false
+      development: true,
+      production: true
     }
 }
