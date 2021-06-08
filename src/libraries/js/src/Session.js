@@ -62,7 +62,6 @@ import { DataManager } from './utils/DataManager'
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
-import { DataManager } from './utils/DataManager';
 
 export let DataMgr = null;
 
