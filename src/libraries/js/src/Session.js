@@ -2172,7 +2172,7 @@ else {
 		return arr
 	}
 
-	initFS = (oninit=()=>{console.log("BrowserFS ready!")},onerror=()=>{}) => {
+	initFS = (oninit=()=>{console.log("BrowserFS ready!");this.dataManager.setupAutosaving();},onerror=()=>{}) => {
 		this.session.dataManager.initFS(oninit,onerror);
 	}
 

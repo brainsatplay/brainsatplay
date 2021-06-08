@@ -251,7 +251,7 @@ export class DataManager {
     }
 
 
-    setupAutosaving = (deviceIdx=this.session.info.nDevices) => {
+    setupAutosaving = (deviceIdx=this.session.info.nDevices-1) => {
         //configure autosaving when the device is connected
         this.session.state.data.info = this.session.info;
 
