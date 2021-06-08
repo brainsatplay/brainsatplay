@@ -1,6 +1,7 @@
 
 import {UI} from './UI.js'
-import {TaskManager} from './TaskManager.js'
+import {Scheduler} from './Scheduler.js'
+import {DataManager} from './DataManager.js'
 import {TimeTrainer} from './TimeTrainer.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
@@ -20,38 +21,43 @@ export const settings = {
       {
       id: 'benchmark',
       nodes: [
-        // {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        // {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
-        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'task', class: TaskManager, params: {}},
-        // {id: 'ui', class: UI, params: {}},
-        {id: 'ui', class: TimeTrainer, params: {}},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
+        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
+        {id: 'scheduler', class: Scheduler, params: {}},
+        {id: 'ui', class: UI, params: {}},
+        {id: 'data', class: DataManager, params: {}},
+        // {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
+        // {id: 'ui', class: TimeTrainer, params: {}},
       ],
       edges: [
-        // {
-        //   source: 'signal', 
-        //   target: 'My Algorithm'
-        // },
-        // {
-        //   source: 'My Algorithm', 
-        //   target: 'ui'
-        // },
         {
-          source: 'task', 
+          source: 'signal', 
+          target: 'My Algorithm'
+        },
+        {
+          source: 'My Algorithm', 
           target: 'ui'
         },
         {
-          source: 'spacebar', 
-          target: 'task:events'
+          source: 'scheduler', 
+          target: 'ui'
         },
         {
-          source: 'spacebar', 
-          target: 'ui:click'
+          source: 'scheduler:state', 
+          target: 'data:log'
         },
-        {
-          source: 'ui:click', 
-          target: 'task:error'
-        },
+        // {
+        //   source: 'spacebar', 
+        //   target: 'data'
+        // },
+        // {
+        //   source: 'spacebar', 
+        //   target: 'ui:click'
+        // },
+        // {
+        //   source: 'ui:click', 
+        //   target: 'data'
+        // },
       ]
     }],
 }

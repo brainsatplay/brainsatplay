@@ -82,7 +82,7 @@ export class PluginManager{
 
         if (node.ports != null){
             for (let port in node.ports){
-                node.states[port] = [{}]
+                node.states[port] = [{data: null, meta:{}}]
                 let defaults = node.ports[port].defaults
 
                 if (defaults && defaults.output) {
@@ -120,7 +120,7 @@ export class PluginManager{
             if (node.ports[p] == null) {
                 node.ports[p] = {
                     defaults: {
-                        output: [{}]
+                        output: [{data: null, meta:{}}]
                     },
                     active: true
                 }
@@ -129,7 +129,7 @@ export class PluginManager{
             }
 
             // Catch Active Ports without Default State Assigned
-            if (node.states[p] == null) node.states[p] = [{}]
+            if (node.states[p] == null) node.states[p] = [{data: null, meta:{}}]
         })
         
         

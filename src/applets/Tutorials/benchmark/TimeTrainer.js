@@ -70,7 +70,7 @@ class TimeTrainer{
                 setTimeout(animate, 1000/60) // 60 Loops/Second
             }
             animate()
-
+     
 
         }
 

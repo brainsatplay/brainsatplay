@@ -41,16 +41,16 @@ export class EventRouter{
             this.state.addToState(this.props.deviceSub, coord, () => {
                 
                 // Only Calculate if Required
-                let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
-                let blinkLeft = Object.keys(this.routes.registry['blink_left'][1]).length !== 0
-                let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
+                    let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
+                    let blinkLeft = Object.keys(this.routes.registry['blink_left'][1]).length !== 0
+                    let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
 
-                if (blinkBoth || blinkLeft || blinkRight){
-                    let blinks = this.device.atlas.getBlink()
-                    if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
-                    if (blinkLeft) this.device.states['blink_left'].data = blinks[0]
-                    if (blinkRight) this.device.states['blink_right'].data = blinks[1]
-                }
+                    if (blinkBoth || blinkLeft || blinkRight){
+                        let blinks = this.device.atlas.getBlink()
+                        if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
+                        if (blinkLeft) this.device.states['blink_left'].data = blinks[0]
+                        if (blinkRight) this.device.states['blink_right'].data = blinks[1]
+                    }
             });
         }
 
@@ -152,8 +152,6 @@ export class EventRouter{
                     return true
                 }
             })
-
-            console.log(pair)
 
             return {route: r, event: pair}
         })
@@ -314,12 +312,13 @@ export class EventRouter{
                     thisSelector.onchange = (e) => {
                         try {
                             let target = infoMap[thisSelector.value]
+                            if (target == null) target = {}
                             // Switch Route Target
                             if (this.routes.registry[id].length < 2) this.routes.registry[id].push(target)
                             else this.routes.registry[id][1] = target
-
                         } catch (e) {}
                     }
+ 
 
                     if ('meta' in this.state.data[id] && 'data' in this.state.data[id]){
                         let div = document.createElement('div')

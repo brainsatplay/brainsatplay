@@ -44,7 +44,6 @@ class UI{
     default = (userData) => {
         let labelDiv = document.getElementById(`${this.props.id}-label`)
         labelDiv.innerHTML = userData[0].meta.state
-        let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let barDiv = document.getElementById(`${this.props.id}-bar`)
         let statePercentage = userData[0].meta.stateTimeElapsed / userData[0].meta.stateDuration
 
@@ -54,34 +53,6 @@ class UI{
         else fillBar.style.background = 'lime'
 
         fillBar.style.width = `${statePercentage*100}%`
-
-        return userData
-    }
-
-    click = (userData) => {
-
-        // let choice
-        // let choices = userData.map(u => u.data)
-        // let allFloats = choices.reduce((a,b) => a * (typeof b == 'number' && !Number.isSafeInteger(b)), true)
-
-        // // Output the Average for Floats
-        // if (allFloats){
-        //     choice = this.session.atlas.mean(choices)
-        // } 
-
-        // // Otherwise Output the Most Chosen Choice
-        // else {
-        //     choice = this.session.atlas.mode(choices)
-        // }
-
-        // Only Push Forward on Click = True
-        userData = userData.filter(u => {
-            if (u.data === true){
-                u.data = Math.abs(Math.sin(Date.now()/1000))
-                u.meta.label = `${this.label}_distance`
-                return true
-            }
-        })
 
         return userData
     }

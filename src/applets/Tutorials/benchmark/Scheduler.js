@@ -1,7 +1,4 @@
-import {DataManager} from '../../../libraries/js/src/utils/DataManager'
-
-
-export class TaskManager{
+export class Scheduler{
     
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -24,12 +21,12 @@ export class TaskManager{
                     output: [{data: -1, meta: {}}]
                 }
             }, 
-            choice: {}
         }
 
         this.props = {
             taskData: [],
             currentTrial: -1,
+            iti: false
         }
     }
 
@@ -50,32 +47,28 @@ export class TaskManager{
     deinit = () => {}
 
     default = () => {
-        let updateObj = {}
-        updateObj[this.label] = true // New data
-        this.stateUpdates.manager.setSequentialState(updateObj)
         if (this.states['default'][0].meta.state != 'ITI'){
             this.states['default'][0].meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
         } else {
             this.states['default'][0].meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
         }
+        this._triggerUpdate()
         return this.states['default']
     }
-
-    // Single User Only
-    events = (userData) => {
-        let u = userData[0]
-
-        // Log Event
-        this.session.atlas.makeNote(`${u.meta.label} ${u.data}`)
-
-        return userData
-        
+    
+    state = () => {
+        this.states['state'] = this.states['default'].map(u => {
+            u.data = u.meta.state;
+            return u
+        })
+        this._triggerUpdate('state')
     }
 
-    // Log the Choice Passed to this Port
-    error = (userData) => {
-        let u = userData[0]
-        this.session.atlas.makeNote(`error ${u.data}`)
+    _triggerUpdate(port='default'){
+        let label = (port === 'default') ? this.label : `${this.label}_${port}`
+        let updateObj = {}
+        updateObj[label] = true // New data
+        this.stateUpdates.manager.setSequentialState(updateObj)
     }
 
     _taskLoop = () => {
@@ -94,15 +87,16 @@ export class TaskManager{
                     this.states['default'][0].meta.state = 'Done!'
                     this.states['default'][0].meta.stateDuration = 1
                     this.states['default'][0].meta.stateTimeElapsed = 1
-                    this.session.atlas.makeNote(`state Done`)
+                    this.state()
                 }
             } 
 
             // Inter-trial Interval Loop
-            else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1){
+            else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
                 this.states['default'][0].meta.state = 'ITI'
-                this.session.atlas.makeNote(`state ITI`)
                 this.states['default'][0].meta.stateDuration = this.params.interTrialInterval*1000
+                this.props.iti = true
+                this.state()
             }
         } else {
             this._startNewTrial()
@@ -116,9 +110,9 @@ export class TaskManager{
     _startNewTrial(){
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
+        this.props.iti = false
         this.states['default'][0].meta.state = this.params.trialProgression[this.props.currentTrial]
         this.states['default'][0].meta.stateDuration = this.params.duration*1000
-
-        this.session.atlas.makeNote(`state Trial${this.states['default'][0].meta.state}`)
+        this.state()
     }
 }
