@@ -259,21 +259,21 @@ export class SessionManagerApplet {
     appendContent(message,id='content') {
         var pre = document.getElementById(this.props.id+id);
         pre.insertAdjacentHTML('beforeend',message);
-      }
+    }
 
     checkFolder(onResponse=(result)=>{}) {
         window.gapi.client.drive.files.list({
             q:"name='Brainsatplay_Data' and mimeType='application/vnd.google-apps.folder'",
         }).then((response) => {
             if(response.result.files.length === 0) {
-                this.createFolder();
+                this.createDriveFolder();
                 if(onResponse) onResponse(response.result);
             }
             else if(onResponse) onResponse(response.result);
         });
     }
 
-    createFolder(name='Brainsatplay_Data') {
+    createDriveFolder(name='Brainsatplay_Data') {
         let data = new Object();
         data.name = name;
         data.mimeType = "application/vnd.google-apps.folder";
