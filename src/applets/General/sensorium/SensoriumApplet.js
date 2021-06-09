@@ -970,6 +970,16 @@ void main(){
         return settings;
     }
 
+    generateSharableAddress = () => {
+        let config = this.getCurrentConfiguration();
+        let address = ``;
+        if(this.settings.domain) address = this.settings.domain;
+        else address = `https://app.brainsatplay.com`
+        address+=`#{"name":"Sensorium","settings":${config}}`;
+        
+        return address;
+    }
+
     addSoundInput = () => {
         let fileinput = (idx=0, props=this.props) => {
             return `
