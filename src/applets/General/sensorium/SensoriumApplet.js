@@ -771,12 +771,11 @@ void main(){
 
                     console.log(this.session.state.data)
                     this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
-                    this.session.state.data['hostData'] = this.hostData;
                     this.stateIds.push(this.hostStreamId);
                 
                     window.onkeypress = (e) => {
                         this.hostData.key = e.code;
-                        console.log(this.session.state.data['hostData'])
+                        console.log(this.session.state.data.hostData)
                     }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
