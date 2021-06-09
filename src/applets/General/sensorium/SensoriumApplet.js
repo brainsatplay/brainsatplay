@@ -93,7 +93,7 @@ export class SensoriumApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = [this.props.id+'modifiers',this.props.id+'hostData'] // Register your app data streams
+        this.streams = ['modifiers','hostData'] // Register your app data streams
         //----------------------------------------------
 
         //-------Other Multiplayer Properties------- 
@@ -495,7 +495,7 @@ void main(){
 
 
     // Multiplayer
-    this.stateIds.push(this.session.streamAppData(this.props.id+'modifiers', this.modifiers));
+    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
 
 
     /**
@@ -591,15 +591,15 @@ void main(){
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
-                       if (data[this.props.id+'modifiers']){
+                       if (data['modifiers']){
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
 
-                                if (data[this.props.id+'modifiers'][name] != null && data[this.props.id+'modifiers'][name].constructor === Uint8Array) {
-                                    data[this.props.id+'modifiers'][name] = Array.from(data[this.props.id+'modifiers'][name])
+                                if (data['modifiers'][name] != null && data['modifiers'][name].constructor === Uint8Array) {
+                                    data['modifiers'][name] = Array.from(data['modifiers'][name])
                                 }
-                                averageModifiers[name].push(data[this.props.id+'modifiers'][name])
+                                averageModifiers[name].push(data['modifiers'][name])
                             });
                         }
                     })
@@ -770,12 +770,13 @@ void main(){
                 if(!this.hostStreamId) {
 
                     console.log(this.session.state.data)
-                    this.hostStreamId = this.session.streamAppData(this.props.id+'hostData', this.hostData);
+                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
+                    this.session.state.data['hostData'] = this.hostData;
                     this.stateIds.push(this.hostStreamId);
                 
                     window.onkeypress = (e) => {
-                        this.hostData.key = e.code
-                        console.log(this.session.state.data[this.props.id+'hostData'])
+                        this.hostData.key = e.code;
+                        console.log(this.session.state.data['hostData'])
                     }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
