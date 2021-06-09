@@ -345,11 +345,11 @@ export class DataManager {
     }
 
     getFilenames = (onload=(directory)=>{}, directory = '/data') => {
-        fs.readdir('/data', (e, directory) => {
+        fs.readdir(directory, (e, dir) => {
             if (e) throw e;
-            if (directory) {
-                console.log("files", directory);
-                onload(directory);
+            if (dir) {
+                console.log("files", dir);
+                onload(dir);
             }
         });
     }
