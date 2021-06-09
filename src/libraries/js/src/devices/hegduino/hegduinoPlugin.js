@@ -29,15 +29,17 @@ export class hegduinoPlugin {
     }
 
     init = async (info,pipeToAtlas) => {
-		info.sps = 32;
-        info.deviceType = 'heg';
+
+        this.info = info
+		this.info.sps = 32;
+        this.info.deviceType = 'heg';
 
         let ondata = (newline) => {
             if(newline.indexOf("|") > -1) {
                 let data = newline.split("|");
                 //console.log(data);
                 if(data.length > 3) {
-                    let coord = this.atlas.data.heg[info.deviceNum];
+                    let coord = this.atlas.data.heg[this.info.deviceNum];
                     coord.count++;
                     if(coord.count === 1) { coord.startTime = Date.now(); }
                     if(this.device.mode === 'ble' && this.device.interface.android === true) {
@@ -76,16 +78,17 @@ export class hegduinoPlugin {
                     }
 
                     //Simple beat detection. For breathing detection applying a ~3 second moving average and peak finding should work
-                    this.atlas.beatDetection(coord, info.sps);
+                    this.atlas.beatDetection(coord, this.info.sps);
                 }
             } else {console.log("HEGDUINO: ", newline); }
         }
+
         if(this.mode === 'hegduino_wifi' || this.mode === 'hegduino_sse') {
-            info.sps = 20; //20sps incoming rate fixed for wifi
+            this.info.sps = 20; //20sps incoming rate fixed for wifi
             this.device = new hegduino('wifi',ondata,
             ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                this.setupAtlas(pipeToAtlas);
+                if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
@@ -98,8 +101,8 @@ export class hegduinoPlugin {
         else if (this.mode === 'hegduino_Bluetooth') {
             this.device= new hegduino('ble',ondata,
             ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                this.setupAtlas(pipeToAtlas);
+                if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
@@ -112,8 +115,8 @@ export class hegduinoPlugin {
         else if (this.mode === 'hegduino_USB') {
             this.device= new hegduino('usb',ondata,
             ()=>{
-                this.setupAtlas(pipeToAtlas,info);
-                if(this.atlas.settings.analyzing !== true && info.analysis.length > 0) {
+                this.setupAtlas(pipeToAtlas);
+                if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
                     this.atlas.settings.analyzing = true;
                     setTimeout(() => {this.atlas.analyzer();},1200);		
                 }
@@ -123,11 +126,9 @@ export class hegduinoPlugin {
             },
             ()=>{ this.atlas.settings.analyzing = false; this.atlas.settings.deviceConnected = false; this.ondisconnect();});
         }
-
-        
     }
 
-    setupAtlas = (pipeToAtlas,info) => {
+    setupAtlas = (pipeToAtlas) => {
 
         this.filters.push(new BiquadChannelFilterer('red',100,false,1),new BiquadChannelFilterer('ir',100,false,1),new BiquadChannelFilterer('ratio',100,false,1),new BiquadChannelFilterer('ambient',100,false,1));
         this.filters.forEach((filter)=> {
@@ -140,23 +141,23 @@ export class hegduinoPlugin {
             let config = 'hegduino';
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
-                {hegshared:{sps:info.sps}},
+                {hegshared:{sps:this.info.sps}},
                 config,false,true,
-                info.analysis
+                this.info.analysis
                 );
 
-            info.deviceNum = this.atlas.data.heg.length-1;
-            info.useAtlas = true;
+            this.info.deviceNum = this.atlas.data.heg.length-1;
+            this.info.useAtlas = true;
             
         } else if (typeof pipeToAtlas === 'object') {
             this.atlas = pipeToAtlas; //External atlas reference
-            info.deviceNum = this.atlas.data.heg.length; 
-            this.atlas.data.hegshared = {sps:info.sps};
+            this.info.deviceNum = this.atlas.data.heg.length; 
+            this.atlas.data.hegshared = {sps:this.info.sps};
             this.atlas.addHEGCoord(this.atlas.data.heg.length); 
             this.atlas.settings.heg = true;
-            info.useAtlas = true;
-            if(info.analysis.length > 0 ) {
-                this.atlas.settings.analysis.push(...info.analysis);
+            this.info.useAtlas = true;
+            if(this.info.analysis.length > 0 ) {
+                this.atlas.settings.analysis.push(...this.info.analysis);
                 if(!this.atlas.settings.analyzing) { 
                     this.atlas.settings.analyzing = true;
                     this.atlas.analyzer();

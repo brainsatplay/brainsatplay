@@ -362,7 +362,7 @@ export class DataManager {
         });
     }
 
-    deleteFile = (path=this.state.data['sessionName'], ondelete=this.listFiles) => {
+    deleteFile = (path="/data/" + this.state.data['sessionName'], ondelete=this.listFiles) => {
         if (path != ''){
             fs.unlink(path, (e) => {
                 if (e) console.error(e);
@@ -374,11 +374,11 @@ export class DataManager {
     }
 
     //Read a chunk of data from a saved dataset
-    readFromDB = (path=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
-        console.log(path)
-        if (path != ''){
+    readFromDB = (filename=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
+        console.log(filename)
+        if (filename != ''){
 
-        fs.open('/data/' + path, 'r', (e, fd) => {
+        fs.open('/data/' + filename, 'r', (e, fd) => {
             if (e) throw e;
 
                 fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
@@ -505,8 +505,7 @@ export class DataManager {
 
     //Write CSV data in chunks to not overwhelm memory
     writeToCSV = (filename=this.state.data['sessionName']) => {
-        console.log(filename)
-        if (path != ''){
+        if (filename != ''){
             fs.stat('/data/' + filename, (e, stats) => {
                 if (e) throw e;
                 let filesize = stats.size;

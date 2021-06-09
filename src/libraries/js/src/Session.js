@@ -242,7 +242,7 @@ export class Session {
 		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
-			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+			newStream.configureRoutes(contentChild)
 			for (let id in this.info.apps){
 				newStream.info.events.addApp(id, this.info.apps[id].controls)
 			}
@@ -2250,8 +2250,8 @@ class deviceStream {
 		return true
 	}
 
-	configureRoutes = (stateManagerArray, parentNode=document.body) => {
-		this.info.events.addControls(stateManagerArray,parentNode)
+	configureRoutes = (parentNode=document.body) => {
+		this.info.events.addControls(parentNode)
     }
 
 	disconnect = () => {

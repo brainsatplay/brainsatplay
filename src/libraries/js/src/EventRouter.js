@@ -13,7 +13,6 @@ export class EventRouter{
                 pool: []
             }
         }
-        this.managers = []
         this.apps = {}
 
         this.props = {
@@ -237,43 +236,37 @@ export class EventRouter{
         }
     }
 
-    addControls = (stateManagerArray=this.managers, parentNode=document.body) => {
+    addControls = (parentNode=document.body) => {
         
-        this.managers = stateManagerArray
-
-        let template = () => {
-            return `
-            <br>
-            <div id='${this.id}routerControls' style="padding: 10px;">
-                <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
-                    <h4>Control Panel</h4>
-                    <button class="brainsatplay-default-button" style="flex-wrap: wrap;">
-                    <p style="margin-bottom: 0;">Update Available Events<p>
-                    <p style="font-size: 70%; margin-top: 0;">(e.g. when you switch games)</p>
-                    </button>
+        if (Object.keys(this.device.states).length > 0){
+            let template = () => {
+                return `
+                <br>
+                <div id='${this.id}routerControls' style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
+                        <h4>Event Router</h4>
+                        <button class="brainsatplay-default-button" style="flex-wrap: wrap;">
+                        <p style="font-size: 70%; margin-top: 0;">(e.g. when you switch games)</p>
+                        </button>
+                    </div>
+                    <hr>
+                    <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
+                    </div>
                 </div>
-                <hr>
-                <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
-                </div>
-            </div>
-            `;
-        }
-
-        let setup = () => {
-            let updateButton = document.getElementById(`${this.id}routerControls`).querySelector('button')
-            updateButton.style.display = 'none'
-            updateButton.onclick = () => {
-                    this.updateRouteDisplay(stateManagerArray)
+                `;
             }
-            this.updateRouteDisplay(stateManagerArray)
-        }
 
-        this.ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
+            let setup = () => {
+                this.updateRouteDisplay()
+            }
+
+            this.ui = new DOMFragment(
+                template,
+                parentNode,
+                undefined,
+                setup
+            )
+        }
     }
 
     addApp(id,controls){
@@ -286,7 +279,10 @@ export class EventRouter{
 
     updateRouteDisplay(autoroute=true){
 
-            let routerOptions = document.getElementById(`${this.id}routerControls`).querySelector('.brainsatplay-router-options')
+            let controls = document.getElementById(`${this.id}routerControls`)
+
+            if (controls){
+            let routerOptions = controls.querySelector('.brainsatplay-router-options')
             routerOptions.innerHTML = ''
             
             let infoMap = {}
@@ -334,5 +330,6 @@ export class EventRouter{
         if (autoroute){
             this.autoRoute()
         }
+    }
     }
 }

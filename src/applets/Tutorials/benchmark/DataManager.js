@@ -35,6 +35,7 @@ export class DataManager{
         let trigger = userData[0].data
         if (trigger) {
             let data = this.session.dataManager.readFromDB()
+            console.log(data)
             return data
         }
     }
