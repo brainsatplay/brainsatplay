@@ -374,7 +374,7 @@ export class DataManager {
     }
 
     //Read a chunk of data from a saved dataset
-    readFromDB = (path=this.state.data['sessionName'], begin = 0, end = 5120) => {
+    readFromDB = (path=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
         console.log(path)
         if (path != ''){
 
@@ -387,7 +387,7 @@ export class DataManager {
                         let data = output.toString();
                         //Now parse the data back into the buffers.
                         fs.close(fd);
-                        return data;
+                        onread(data);
                     };
                 });
             });
