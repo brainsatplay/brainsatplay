@@ -148,6 +148,7 @@ export class SensoriumApplet {
         this.hidden = false;
         this.editorhidden = true;
         this.quickrefhidden = true;
+        this.shaderEdited = false;
 
         // UI
         this.three = {}
@@ -351,6 +352,7 @@ void main(){
                     language: 'glsl', 
                     target: this.currentShader.fragmentShader,
                     onSave: () => {
+                        this.shaderEdited = true;
                         this.setShaderFromText(this.liveEditor.input.value);
                     }
             }, editorContainer)
@@ -424,6 +426,7 @@ void main(){
                         }
                     }
                     if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
+                    this.shaderEdited = false;
                     this.swapShader();
                     this.setEffectOptions();
                 } 
@@ -974,7 +977,7 @@ void main(){
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
-        if(shaderselector.value !== 'fromtext')
+        if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
