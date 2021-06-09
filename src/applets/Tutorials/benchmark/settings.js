@@ -24,10 +24,10 @@ export const settings = {
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
         {id: 'scheduler', class: Scheduler, params: {}},
-        {id: 'Train', class: Train, params: {}},
+        {id: 'Train UI', class: Train, params: {}},
         {id: 'data', class: DataManager, params: {}},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'Test', class: Test, params: {}},
+        {id: 'Test UI', class: Test, params: {}},
       ],
       edges: [
 
@@ -38,19 +38,19 @@ export const settings = {
         },
         {
           source: 'My Algorithm', 
-          target: 'Train'
+          target: 'Train UI'
         },
 
         // Schedule an Experiment 
         {
           source: 'scheduler', 
-          target: 'Train'
+          target: 'Train UI'
         },
 
         // Declare User Commands
         {
           source: 'spacebar', 
-          target: 'Test:click'
+          target: 'Test UI:click'
         },
 
         // Log App Events
@@ -59,7 +59,7 @@ export const settings = {
           target: 'data'
         },
         {
-          source: 'Test:performance', 
+          source: 'Test UI:performance', 
           target: 'data'
         },{
           source: 'scheduler:state', 
@@ -79,7 +79,7 @@ export const settings = {
         // Test your Model
         {
           source: 'scheduler:done', 
-          target: 'Test:show'
+          target: 'Test UI:show'
         },
       ]
     }],

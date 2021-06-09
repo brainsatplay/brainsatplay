@@ -16,7 +16,7 @@ class Test{
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
-            target: {x: 0, y: 0},
+            target: {x: 0, y: 0, relX: 0, relY: 0},
             pointer: {x: 0, y: 0},
             canvas: null,
             context: null,
@@ -50,6 +50,7 @@ class Test{
             this.props.canvas = document.getElementById(`${this.props.id}gameCanvas`);
             this.props.context = this.props.canvas.getContext("2d");
             this.responsive()
+            this._updateTargetPosition()
 
             // Animation Loop
             let animate = () => {
@@ -81,12 +82,10 @@ class Test{
     }
 
     responsive = () => {
-        // let squareLength = Math.min(this.props.container.offsetHeight*.8, this.props.container.offsetWidth*.8)
-        // this.props.canvas.width = squareLength
-        // this.props.canvas.height = squareLength
         this.props.canvas.width = this.props.container.offsetWidth
         this.props.canvas.height = this.props.container.offsetHeight
-        this._updateTargetPosition()
+        this.props.target.x = this.props.target.relX * (this.props.canvas.width - this.props.size.x)
+        this.props.target.y = this.props.target.relY * (this.props.canvas.height - this.props.size.y)
     }
 
     show = (userData) => {
@@ -96,8 +95,10 @@ class Test{
     }
 
     _updateTargetPosition = () => {
-        this.props.target.x = Math.random() * (this.props.canvas.width - this.props.size.x)
-        this.props.target.y = (this.props.canvas.height - this.props.size.x)/2
+            this.props.target.relX = Math.random()
+            this.props.target.relY = .5
+            this.props.target.x = this.props.target.relX * (this.props.canvas.width - this.props.size.x)
+            this.props.target.y = this.props.target.relY * (this.props.canvas.height - this.props.size.y)
     }
 
     _drawPointer = () => {
