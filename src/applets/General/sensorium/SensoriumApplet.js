@@ -930,7 +930,6 @@ void main(){
     */
     getCurrentConfiguration = (includeSounds=false) => {
         let settings = [];
-        console.log(this.effects)
         this.effects.forEach((e,j) => {
             settings.push({
                 feedback:e.feedback.value
@@ -962,7 +961,7 @@ void main(){
         else settings[0].shader.frag = this.liveEditor.input.value;
 
         settings[0].modifiers = this.modifiers;
-
+        console.log(settings)
         return settings;
     }
 
