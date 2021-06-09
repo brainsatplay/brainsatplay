@@ -55,11 +55,13 @@ body {
     font-family: Montserrat, sans-serif; /* Specify a font to use in the whole document */
     color: white; /* Specify text color for the whole documentt */
     background: black; /* Specify background color for the whole documentt */
+    width: 100vw; /* Specify width of the element relative to the viewport */
+    height: 100vh; /* Specify height of the element relative to the viewport */
 }
 
 #application {
-    width: 100vw; /* Specify width of the element relative to the viewport */
-    height: 100vh; /* Specify height of the element relative to the viewport */
+    width: 100%; /* Specify width of the element relative to the parent element */
+    height: 100%; /* Specify height of the element relative to he parent element */
     display: flex; /* Declare that Flexbox should be used (responsive elements inside the container) */
     align-items: center; /* Specify where to vertically align items in the Flexbox */
     justify-content: center; /* Specify where to horizontally align items in the Flexbox */

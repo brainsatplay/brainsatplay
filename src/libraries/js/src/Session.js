@@ -284,6 +284,31 @@ export class Session {
 		} else { console.log("No devices connected"); }
 	}
 
+	// Check if Chrome
+	checkIfChrome = () => {
+		// https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome/13348618#13348618
+		let isChromium = window.chrome;
+		let winNav = window.navigator;
+		let vendorName = winNav.vendor;
+		let isOpera = typeof window.opr !== "undefined";
+		let isIEedge = winNav.userAgent.indexOf("Edge") > -1;
+		let isIOSChrome = winNav.userAgent.match("CriOS");
+	
+		if (isIOSChrome) {
+			return true
+		} else if(
+		isChromium !== null &&
+		typeof isChromium !== "undefined" &&
+		vendorName === "Google Inc." &&
+		isOpera === false &&
+		isIEedge === false
+		) {
+			return true
+		} else { 
+			return false
+		}
+	}
+
 	/**
      * @method module:brainsatplay.Session.connectDevice
      * @description Generate DOM fragment with a selector for available devices.
@@ -331,7 +356,7 @@ export class Session {
 			let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
 			// Apply Browser Filter
-			if (!window.isChrome)  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
+			if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
 			newDeviceList.sort(function(a, b) {
 				let translate = (d) => {
@@ -439,7 +464,7 @@ export class Session {
 				toggleButton.style = `
 					position: absolute; 
 					bottom: 25px; 
-					right: 25px;
+					left: 25px;
 					z-index: 100;
 				`
 				toggleButton.innerHTML = 'Open Device Manager'
@@ -1625,11 +1650,12 @@ else {
 	createIntro = (applet, onsuccess= () => {}) => {
 
 		// Override App Settings with Configuration Settings
+		if (applet.info.intro == null) applet.info.intro = {}
+		else if (applet.info.intro == true) applet.info.intro = {title: true}
+
 		applet.settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
-				if (applet.info.intro == null) applet.info.intro = {}
-				if (applet.info.intro == true) applet.info.intro = {title: true}
-				else if (cmd.title != null) applet.info.intro.title = cmd.title
+				if (cmd.title != null) applet.info.intro.title = cmd.title
 				if (cmd.login != null) applet.info.intro.login = cmd.login
 				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
 				if (cmd.mode != null) applet.info.intro.mode = cmd.mode

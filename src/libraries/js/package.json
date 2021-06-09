@@ -1,12 +1,11 @@
 {
   "name": "brainsatplay",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "webpack": "webpack --mode production"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

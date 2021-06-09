@@ -182,7 +182,6 @@ export class PluginManager{
         })
 
         let instance,controls;
-        console.log(graph)
         graph.nodes.forEach(nodeInfo => {
             if (nodes[nodeInfo.id] == null){
                 nodes[nodeInfo.id] = nodeInfo;

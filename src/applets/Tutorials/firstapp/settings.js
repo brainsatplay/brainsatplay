@@ -9,9 +9,7 @@ export const settings = {
     description: "This is my first applet.",
     categories: ["tutorial"],
     instructions:"Coming soon...",
-    intro: {
-      mode: 'single'
-    },
+    intro: true,
     display: {
       production: false
     },
