@@ -763,10 +763,10 @@ void main(){
             this.tutorialManager.init();
 
             if (info && info.usernames.length === 0){
-                this.hostData = {};
 
                 if(!this.hostStreamId) {
 
+                    this.hostData = {};
                     console.log(this.session.state.data)
                     this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
                     this.stateIds.push(this.hostStreamId);
