@@ -2079,7 +2079,7 @@ else {
 	getHostData(appid){
 		let state = this.state.data[appid];
 		if (state.msg === 'sessionData' && state.id === appid){
-			return {data: state.hostData, username: state.hostname}
+			return {data: state.userData.find((o)=>{if(o.username === state.hostname) return true;}), username: state.hostname}
 		}
 	}
 
