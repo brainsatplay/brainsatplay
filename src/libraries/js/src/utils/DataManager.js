@@ -263,9 +263,10 @@ export class DataManager {
                 if (mainDevice === 'eeg') {
                     this.deviceName = this.session.deviceStreams[this.session.info.nDevices-1].info.deviceName;
                     if (this.state.data.sessionName === '') { 
-                        this.state.data.sessionName = toISOLocal(new Date()) + "_" + this.deviceName;
+                        this.state.data.sessionName = this.toISOLocal(new Date()) + "_" + this.deviceName;
                         fs.appendFile('/data/' + this.state.data.sessionName, '', (e) => {
                             if (e) throw e;
+                            this.listFiles();
                         }); //+"_c"+State.data.sessionChunks
                     } 
                     this.deviceSub = this.session.subscribe(this.deviceName, this.session.deviceStreams[this.session.info.nDevices-1].info.eegChannelTags[0].ch, undefined, (row) => {
@@ -295,10 +296,12 @@ export class DataManager {
                     this.deviceName = this.session.deviceStreams[this.session.info.nDevices-1].info.deviceName;
                     
                     if (this.state.data.sessionName === '') { 
-                        this.state.data.sessionName = toISOLocal(new Date()) + "_" + this.deviceName;
+                        this.state.data.sessionName = this.toISOLocal(new Date()) + "_" + this.deviceName;
                         fs.appendFile('/data/' + this.state.data.sessionName, '', (e) => {
                             if (e) throw e;
+                            this.listFiles();
                         }); //+"_c"+State.data.sessionChunks
+                        
                     }   
                     this.deviceSub = this.session.subscribe(this.deviceName, this.session.info.nDevices-1, undefined, (row) => {
                         if (this.state.data.autosaving) {
@@ -455,7 +458,7 @@ export class DataManager {
 
 
     autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg', getFFTs=true, onsaved=this.listFiles) => {
-        if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
+        if (this.state.data.sessionName === '') { this.state.data.sessionName = this.toISOLocal(new Date()) + "_" + deviceName; }
         let from = startidx;
         if (this.state.data.sessionChunks > 0) { from = this.state.data.eegSaveCounter; }
         let data = this.session.atlas.readyEEGDataForWriting(from, to, getFFTs);
@@ -479,7 +482,7 @@ export class DataManager {
     }
 
     autoSaveHEGChunk = (startidx = 0, to = 'end', deviceName = "heg", onsaved=this.listFiles) => {
-        if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + deviceName; }
+        if (this.state.data.sessionName === '') { this.state.data.sessionName = this.toISOLocal(new Date()) + "_" + deviceName; }
         let from = startidx;
         if (this.state.data.sessionChunks > 0) { from = this.state.data.hegSaveCounter; }
         let data = this.session.atlas.readyHEGDataForWriting(from, to);
@@ -503,48 +506,48 @@ export class DataManager {
     //Write CSV data in chunks to not overwhelm memory
     writeToCSV = (path=this.state.data['sessionName']) => {
         if (path != ''){
-        fs.stat('/data/' + path, (e, stats) => {
-            if (e) throw e;
-            let filesize = stats.size;
-            console.log(filesize)
-            fs.open('/data/' + path, 'r', (e, fd) => {
+            fs.stat('/data/' + path, (e, stats) => {
                 if (e) throw e;
-                let i = 0;
-                let maxFileSize = this.state.data.fileSizeLimitMb * 1024 * 1024;
-                let end = maxFileSize;
-                if (filesize < maxFileSize) {
-                    end = filesize;
-                    fs.read(fd, end, 0, 'utf-8', (e, output, bytesRead) => {
-                        if (e) throw e;
-                        if (bytesRead !== 0) CSV.saveCSV(output.toString(), path);
-                        fs.close(fd);
-                    });
-                }
-                else {
-                    const writeChunkToFile = () => {
-                        if (i < filesize) {
-                            if (i + end > filesize) { end = filesize - i; }
-                            let chunk = 0;
-                            fs.read(fd, end, i, 'utf-8', (e, output, bytesRead) => {
-                                if (e) throw e;
-                                if (bytesRead !== 0) {
-                                    CSV.saveCSV(output.toString(), path + "_" + chunk);
-                                    i += maxFileSize;
-                                    chunk++;
-                                    writeChunkToFile();
-                                    fs.close(fd);
-                                }
-                            });
+                let filesize = stats.size;
+                console.log(filesize)
+                fs.open('/data/' + path, 'r', (e, fd) => {
+                    if (e) throw e;
+                    let i = 0;
+                    let maxFileSize = this.state.data.fileSizeLimitMb * 1024 * 1024;
+                    let end = maxFileSize;
+                    if (filesize < maxFileSize) {
+                        end = filesize;
+                        fs.read(fd, end, 0, 'utf-8', (e, output, bytesRead) => {
+                            if (e) throw e;
+                            if (bytesRead !== 0) CSV.saveCSV(output.toString(), path);
+                            fs.close(fd);
+                        });
+                    }
+                    else {
+                        const writeChunkToFile = () => {
+                            if (i < filesize) {
+                                if (i + end > filesize) { end = filesize - i; }
+                                let chunk = 0;
+                                fs.read(fd, end, i, 'utf-8', (e, output, bytesRead) => {
+                                    if (e) throw e;
+                                    if (bytesRead !== 0) {
+                                        CSV.saveCSV(output.toString(), path + "_" + chunk);
+                                        i += maxFileSize;
+                                        chunk++;
+                                        writeChunkToFile();
+                                        fs.close(fd);
+                                    }
+                                });
+                            }
                         }
                     }
-                }
-                //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
-                //file.write(data.toString());
+                    //let file = fs.createWriteStream('./'+State.data.sessionName+'.csv');
+                    //file.write(data.toString());
+                });
             });
-        });
-    } else {
-        console.error('Path name is not defined.')
-    }
+        } else {
+            console.error('Path name is not defined.')
+        }
     }
 
     //------------------------
