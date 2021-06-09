@@ -1027,6 +1027,7 @@ void main(){
                     <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</span>
                     <div id='${props.id}fileWrapper${idx}' style="">  
                         <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
+                        <span id='${props.id}customspan${idx}' style='display:none;'><input type='text' id='${props.id}customname${idx}' placeholder='File Name'></input><input type='text' id='${props.id}customurl${idx}' placeholder='File URL'></input><button id='${props.id}customsubmit${idx}'>Load</button></span>
                         <span id='${props.id}status${idx}'></span>
                     </div>
                     <span id='${props.id}fileinfo${idx}' style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;'>Loading...</span>
@@ -1107,14 +1108,32 @@ void main(){
             
         }
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`)
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`)
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`);
+
+        document.getElementById(this.props.id+'customsubmit'+newEffect.uiIdx).onclick = () => {
+            let name = document.getElementById(this.props.id+'customname'+newEffect.uiIdx).value;
+            let url = document.getElementById(this.props.id+'customurl'+newEffect.uiIdx).value;
+            if(name.length>0 && url.length>0) {
+                var option = document.createElement("option");
+                option.innerHTML = name;
+                option.value = url;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).options.length-1;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange();
+            }
+        }
 
         this.soundUrls.forEach((obj)=>{
-            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='${obj.url}'>${obj.name}</option>`)
+            var option = document.createElement("option");
+            option.innerHTML = obj.name;
+            option.value = obj.url;
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
         });
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Custom File</option>`)
+        
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='custom'>Add Audio URL</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Local File</option>`)
 
 
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
@@ -1127,6 +1146,12 @@ void main(){
                     return true;
                 }
             });
+
+            if (soundurl === 'custom') {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = '';
+            } else {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = 'none';   
+            }
 
             if (soundurl === 'micin'){
                 if(!found){
@@ -1153,17 +1178,18 @@ void main(){
                     console.log(fx)
                    
                 }
-            } else if (found != null){
+            }
+            else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
                 this.effects.splice(idx,1);
             } 
 
-            if (!['micin', 'none'].includes(soundurl)) {
+            if (!['micin', 'none', 'custom'].includes(soundurl)) {
+                console.log(soundurl)
                 if (soundurl === 'addfile') {
-
                     if(!window.audio) window.audio = new SoundJS();
                     if (window.audio.ctx===null) {return;};
-                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+                    //document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                     window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                         
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
@@ -1212,7 +1238,7 @@ void main(){
                         console.log("Decoding...");
                         newEffect.input.style.display='none';
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
-                    });
+                    }, false);
                 }
             }
 
