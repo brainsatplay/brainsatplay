@@ -845,7 +845,7 @@ void main(){
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
                         let fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
-                        this.liveEditor.updateSettings({language: 'glsl', target: fragment });
+                        //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
                         this.setShaderFromText(fragment);
                         console.log(this.liveEditor.input.value)
                     }
