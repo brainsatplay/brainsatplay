@@ -170,8 +170,8 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
     }
  
     //Typical web BLE calls
-    connect = (serviceUUID = this.serviceUUID, rxUUID = this.rxUUID, txUUID = this.txUUID) => { //Must be run by button press or user-initiated call
-     navigator.bluetooth.requestDevice({   
+    connect = async (serviceUUID = this.serviceUUID, rxUUID = this.rxUUID, txUUID = this.txUUID) => { //Must be run by button press or user-initiated call
+     await navigator.bluetooth.requestDevice({   
     //    acceptAllDevices: true,
         filters: [{ services: [serviceUUID] }, { namePrefix: 'HEG' }],
        optionalServices: [serviceUUID] 
