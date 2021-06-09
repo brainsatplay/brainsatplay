@@ -8,10 +8,11 @@ export class Scheduler{
         this.params = params
         this.paramOptions = {
             paradigm: {default: 'Task', options: ['Task']},
+            mode: {default: 'Auto', options: ['Auto', 'Manual']},
             duration: {default: 2},
             trialCount: {default: 10},
             trialTypes: {default:['Blink Left', 'Blink Right', "Don't Blink", 'Blink Both'], show: false},
-            trialProgression: {default: [], show: false},
+            trialProgression: {default: null, show: false},
             interTrialInterval: {default: 2}
         }
 
@@ -26,15 +27,21 @@ export class Scheduler{
 
         this.props = {
             taskData: [],
-            currentTrial: -1,
-            iti: false
+            currentTrial: null,
+            iti: null
         }
     }
 
     init = () => {
 
+        this.props.currentTrial = -1
+        this.props.taskData = []
+        this.props.iti = false
+
+        if (this.params.trialProgression == null) this.params.trialProgression = []
+
         // Create Random Progression
-        for (let i = 0; i < this.params.trialCount; i ++){
+        for (let i = 0; i < this.params.trialCount; i++){
             if (this.params.trialProgression.length-1 < i){
                 let choice = Math.floor(this.params.trialTypes.length * Math.random())
                 this.params.trialProgression.push(this.params.trialTypes[choice])
@@ -42,7 +49,11 @@ export class Scheduler{
         }
 
         // Start Task Loop
-        this._taskLoop()
+        if (this.params.mode === 'Auto'){
+            this._taskUpdate()
+        } else {
+            this._taskUpdate(false)
+        }
     }
 
     deinit = () => {}
@@ -66,11 +77,32 @@ export class Scheduler{
         })
     }
 
-    done = (userData) => {
-        return [{data:true, meta: `${this.label}_done`}]
+    done = () => {
+        return [{data:true, meta: {label: `${this.label}_done`}}]
     }
 
-    _taskLoop = () => {
+    update = (userData) => {
+        let trigger = userData[0].data
+        if (trigger && this.params.mode === 'Manual') {
+            this._taskUpdate(false, true)
+            return [{data:true, meta: {label: `${this.label}_update`}}]
+        }
+    }
+
+    reset = (userData) => {
+        let trigger = userData[0].data
+        if (trigger) {
+            if ('params' in userData[0].meta){
+                for (let param in userData[0].meta.params){
+                    this.params[param] = userData[0].meta.params[param]
+                }
+            }
+            this.init()
+            return [{data:true, meta: {label: `${this.label}_reset`}}]
+        }
+    }
+
+    _taskUpdate = (loop=true, forceUpdate=false) => {
 
         let state = this.session.atlas.graphs.deeperCopy(this.states['default'])[0]
 
@@ -78,12 +110,12 @@ export class Scheduler{
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
 
             // Main Trial Loop
-            if (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000){  
+            if (forceUpdate || (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000)){  
 
                 state = this._startNewTrial()
 
                 // Stop on Last Trial
-                if (this.props.currentTrial === this.params.trialCount){ // Stop Loop
+                if (this.props.currentTrial >= this.params.trialCount){ // Stop Loop
                     state.data = this.props.currentTrial // Update State Data
                     state.meta.state = 'Done!'
                     state.meta.stateDuration = 1
@@ -106,7 +138,7 @@ export class Scheduler{
         }
 
         this.session.atlas.graphs.runSafe(this,'default', [state])
-        if (this.props.currentTrial != this.params.trialCount) setTimeout(this._taskLoop, 1000/60) // 60 Loops/Second
+        if (loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
     _startNewTrial(){

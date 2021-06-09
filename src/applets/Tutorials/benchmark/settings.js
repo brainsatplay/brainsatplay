@@ -22,12 +22,12 @@ export const settings = {
       id: 'benchmark',
       nodes: [
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink, params: {}},
-        {id: 'scheduler', class: Scheduler, params: {}},
-        {id: 'Train UI', class: Train, params: {}},
-        {id: 'data', class: DataManager, params: {}},
+        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink},
+        {id: 'scheduler', class: Scheduler, params:{}},
+        {id: 'Train UI', class: Train},
+        {id: 'data', class: DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'Test UI', class: Test, params: {}},
+        {id: 'Test UI', class: Test},
       ],
       edges: [
 
@@ -48,6 +48,10 @@ export const settings = {
         },
 
         // Declare User Commands
+        {
+          source: 'spacebar', 
+          target: 'scheduler:update'
+        },
         {
           source: 'spacebar', 
           target: 'Test UI:click'
@@ -80,6 +84,9 @@ export const settings = {
         {
           source: 'scheduler:done', 
           target: 'Test UI:show'
+        },{
+          source: 'Test UI:show', 
+          target: 'scheduler:reset'
         },
       ]
     }],
