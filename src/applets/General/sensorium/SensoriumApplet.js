@@ -846,8 +846,11 @@ void main(){
                         shaderselector.onchange(e);
                         let fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
                         //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
+                        console.log(fragment);
+                        this.liveEditor.input.value = fragment;
+                        this.liveEditor.input.oninput();
                         this.setShaderFromText(fragment);
-                        console.log(this.liveEditor.input.value)
+                        console.log(fragment)
                     }
                 }
                 if(cmd.modifiers) {
@@ -968,7 +971,7 @@ void main(){
         settings[0].shader = {};
         if(shaderselector.value !== 'fromtext')
             settings[0].shader.name = shaderselector.value;
-        else settings[0].shader.frag = this.currentShader.fragmentShader;
+        else settings[0].shader.frag = this.liveEditor.input.value;
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
         console.log(settings)
