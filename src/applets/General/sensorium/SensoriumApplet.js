@@ -817,6 +817,9 @@ void main(){
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
 
         console.log("Configure with settings:",settings);
+        
+        let textdecoder = new TextDecoder();
+
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
                 
@@ -840,7 +843,6 @@ void main(){
                             }
                         });
                     } else if (cmd.shader.frag) {
-                        let textdecoder = new TextDecoder();
                         shaderselector.selectedIndex = shaderselector.options.length-1;
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
@@ -885,9 +887,9 @@ void main(){
                     if(!window.audio) window.audio = new SoundJS();
                     if(!window.audio.ctx) return false;
 
-                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
-                    cmd.soundbuffer.buffer.forEach((b,j) => {
-                        buf.copyToChannel(b,j+1,0);
+                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                    cmd.soundbuffer.buffers.forEach((b,j) => {
+                        buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
                     });
 
                     this.effects[i].input.style.display='none';
@@ -950,9 +952,9 @@ void main(){
             if(includeSounds){ //optional for speed. should only run once otherwise
                 if(e.sourceIdx) {
                     if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
-                        settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
-                        settings[j].soundbuffer.forEach((channel,k) => {
-                            source.buffer.copyFromChannel(channel,k+1,0);
+                        settings[j].soundbuffer.buffers = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
+                        settings[j].soundbuffer.buffers.forEach((channel,k) => {
+                            "["+source.buffer.copyFromChannel(channel,k+1,0).join(',')+"]";
                         });
                         settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
                         settings[j].soundbuffer.duration = source.buffer.duration;
