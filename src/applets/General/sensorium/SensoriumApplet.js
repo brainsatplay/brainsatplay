@@ -663,21 +663,15 @@ void main(){
                 if(!this.hostStreamId) {
 
                     this.hostData = {};
-                    console.log(this.session.state.data)
+                    //console.log(this.session.state.data)
                     
                     // Multiplayer
                     this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
                     this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
                     this.stateIds.push(this.hostStreamId);
-                
-                    window.onkeypress = (e) => {
-                        this.hostData.key = e.code;
-                        console.log("Applet data: ",this.hostData)
-                        console.log("State data ",this.session.state.data[info.id])
-                    }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                        console.log(newResult)
+                        //console.log(newResult)
                         let user = newResult.userData.find((o)=>{
                             if(o.username === newResult.hostname) {
                                 if(o.hostData) {
@@ -959,7 +953,7 @@ void main(){
         });
 
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
-        settings[0].controls = false;
+        settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
         if(shaderselector.value !== 'fromtext')
             settings[0].shader.name = shaderselector.value;
