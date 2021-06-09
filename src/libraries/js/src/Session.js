@@ -650,7 +650,7 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname = 'data', props = {}, appid, onData = (newData) => { }) {
+	streamAppData(propname = 'data', props = {}, appid=undefined, onData = (newData) => { }) {
 
 		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
@@ -660,14 +660,16 @@ export class Session {
 		
 		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
-			if(!this.state.data[appid]) this.state.data[appid] = {id:appid, userData:[{username:this.info.auth.username}]};
-			let found = this.state.data[appid].userData.find((o)=>{
-				if(o.username === this.info.auth.username) {
-					o[id] = newData; 
-					return true;
-				}
-			});
-			if(!found) this.state.data[appid].userData.push({username:this.info.auth.username, [id]:newData});
+			if(appid) {
+				if(!this.state.data[appid]) this.state.data[appid] = {id:appid, userData:[{username:this.info.auth.username}]};
+				let found = this.state.data[appid].userData.find((o)=>{
+					if(o.username === this.info.auth.username) {
+						o[id] = newData; 
+						return true;
+					}
+				});
+				if(!found) this.state.data[appid].userData.push({username:this.info.auth.username, [id]:newData});
+			}
 		});
 
 		let newStreamFunc = () => {
