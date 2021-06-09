@@ -165,8 +165,8 @@ export class hegduinoPlugin {
         }
     }
 
-    connect = () => {
-        this.device.connect();
+    connect = async () => {
+        await this.device.connect();
     }
 
     disconnect = () => {
