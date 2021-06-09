@@ -505,6 +505,7 @@ export class DataManager {
 
     //Write CSV data in chunks to not overwhelm memory
     writeToCSV = (path=this.state.data['sessionName']) => {
+        console.log(path)
         if (path != ''){
             fs.stat('/data/' + path, (e, stats) => {
                 if (e) throw e;
