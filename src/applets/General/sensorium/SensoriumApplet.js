@@ -491,11 +491,6 @@ void main(){
         this.ct = 0;
 
 
-
-    // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
-
-
     /**
      * Scene
      */
@@ -582,13 +577,11 @@ void main(){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
                 //let hostData = this.session.getHostData(this.info.name);
-
-                
-
                 //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
+                       if(!data['modifiers']) data['modifiers'] = this.modifiers;
                        if (data['modifiers']){
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
@@ -768,13 +761,16 @@ void main(){
 
                     this.hostData = {};
                     console.log(this.session.state.data)
-                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
+                    
+                    // Multiplayer
+                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
+                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
                     this.stateIds.push(this.hostStreamId);
                 
                     window.onkeypress = (e) => {
                         this.hostData.key = e.code;
                         console.log("Applet data: ",this.hostData)
-                        console.log("State Data: ",this.session.state.data.hostData)
+                        console.log("State data ",this.session.state.data[info.id])
                     }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
