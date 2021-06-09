@@ -262,6 +262,7 @@ export class DataManager {
                 this.deviceType = mainDevice;
                 if (mainDevice === 'eeg') {
                     this.deviceName = this.session.deviceStreams[this.session.info.nDevices-1].info.deviceName;
+                    if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + this.deviceName; }
                     this.deviceSub = this.session.subscribe(this.deviceName, this.session.deviceStreams[this.session.info.nDevices-1].info.eegChannelTags[0].ch, undefined, (row) => {
                         //console.log(row.count, this.state.data.eegSaveCounter);
                         if (this.state.data.autosaving) {
@@ -287,6 +288,8 @@ export class DataManager {
 
                 } else if (mainDevice === 'heg') {
                     this.deviceName = this.session.deviceStreams[this.session.info.nDevices-1].info.deviceName;
+                    
+                    if (this.state.data.sessionName === '') { this.state.data.sessionName = toISOLocal(new Date()) + "_" + this.deviceName; }
                     this.deviceSub = this.session.subscribe(this.deviceName, this.session.info.nDevices-1, undefined, (row) => {
                         if (this.state.data.autosaving) {
                             //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
