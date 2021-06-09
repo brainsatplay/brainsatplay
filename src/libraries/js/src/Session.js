@@ -97,7 +97,7 @@ export class Session {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
-			sessionInfo: [],
+			sessionInfo: undefined,
 		});
 
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
@@ -920,7 +920,7 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.data.sessionInfo.push(parsed);
+			this.state.data.sessionInfo = parsed;
 			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
