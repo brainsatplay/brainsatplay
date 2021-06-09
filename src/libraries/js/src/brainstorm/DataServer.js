@@ -472,6 +472,7 @@ class DataServer {
                     newUsers:[], //indicates users that just joined and have received no data yet
                     spectators:[], //usernames of spectators
                     propnames:propnames,
+                    hostname:'',
                     lastTransmit:Date.now()
                 });
             // } else {
@@ -514,8 +515,7 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    spectators:[],
-                    host: sub.host
+                    spectators:[]
                 };
                 
                 let allUsernames = [...sub.usernames,...sub.spectators]
