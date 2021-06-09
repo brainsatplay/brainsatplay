@@ -765,33 +765,40 @@ void main(){
             if (info && info.usernames.length === 0){
                 this.hostData = {};
 
-                this.hostStreamId = this.session.streamAppData('hostData', this.hostData);
-                this.stateIds.push(this.hostStreamId);
-                
-                // window.onkeypress = (e) => {
-                //     this.hostData.key = e.code
-                // }
+                console.log(this.session.state.data)
+                if(!this.hostStreamId) {
 
-                this.hostStreamSub = this.session.state.subscribe(this.hostStreamId,(hostData)=>{
-                    console.log(hostData.data.config);
-
-                    if(hostData.data.config) {
-                        this.configure(hostData.data.config);
-                    }
-
-                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
-                        this.isHost = true;
-                        document.getElementById(this.props.id+'submitconfig').style.display = '';
-                        document.getElementById(this.props.id+'menuspan').style.display = '';
-                        document.getElementById(this.props.id+'controls').style.display = '';
-                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
-                        this.isHost = false;
-                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
-                        document.getElementById(this.props.id+'controls').style.display = 'none';
-                        
-                    }
-                })
+                    this.hostStreamId = this.session.streamAppData(this.props.id+'hostData', this.hostData);
+                    this.stateIds.push(this.hostStreamId);
+                    
+                    // window.onkeypress = (e) => {
+                    //     this.hostData.key = e.code
+                    // }
+                    this.hostStreamSub = this.session.state.subscribe('commandResult',(newResult)=>{
+                        console.log(newResult)
+                        if(newResult.id === info.id) {
+                            if(newResult.hostData && newResult.hostData.data) {
+                                if(newResult.hostData.data.config) {
+                                    this.configure(hostData.data.config);
+                                }
+                            }    
+                            if(newResult.hostname) {
+                                if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                                    this.isHost = true;
+                                    document.getElementById(this.props.id+'submitconfig').style.display = '';
+                                    document.getElementById(this.props.id+'menuspan').style.display = '';
+                                    document.getElementById(this.props.id+'controls').style.display = '';
+                                } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                                    this.isHost = false;
+                                    document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                                    document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                                    document.getElementById(this.props.id+'controls').style.display = 'none';
+                                    
+                                }
+                            }                  
+                        }
+                    });
+                }
             }
         });
 

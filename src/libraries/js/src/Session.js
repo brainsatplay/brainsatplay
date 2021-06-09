@@ -97,6 +97,7 @@ export class Session {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
+			sessionInfo: [],
 		});
 
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
@@ -917,7 +918,8 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.updateState(`commandResult`,parsed)
+			this.state.data.sessionInfo.push(parsed);
+			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
 			this.state.updateState(`commandResult`,parsed)
@@ -1184,6 +1186,7 @@ else {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(sessionid) > -1) {
 							this.state.removeState(prop)
+							delete this.info.subscriptions[this.info.subscriptions.indexOf(sessionid)];
 						}
 					}
 					onsuccess(newResult);
