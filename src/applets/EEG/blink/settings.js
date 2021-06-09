@@ -16,9 +16,8 @@ export const settings = {
     //   mode: 'single'
     // },
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
         {id: 'blink_left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
         {id: 'blink_right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
@@ -34,5 +33,5 @@ export const settings = {
           target: 'ui:right'
         }
       ]
-    }],
+    },
 }

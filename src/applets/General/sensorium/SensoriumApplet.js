@@ -104,13 +104,11 @@ export class SensoriumApplet {
         // Plugins
         this.graphs = new PluginManager(this.session, {gui: false})
         this.graphs.add(this.props.id, this.info.name, 
-        [
             {
-                id: 'mygraph',
                 nodes: [
                     {id: 'neosensory', class: Buzz},
                 ],
-            }]
+            }
         )
 
         this.tutorialManager = null

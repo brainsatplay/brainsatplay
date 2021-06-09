@@ -1,14 +1,13 @@
 ---
 title: Your First Applet
-hide_title: true
+hide_title: false
 ---
 
-![Your First Applet](../../static/img/02-your-first-applet/header.png)
+<!-- ![Your First Applet](../../static/img/02-your-first-applet/header.png) -->
 
-## Overview
----
-
-This tutorial will guide you through the creation and deployment of a web-based brain-computer interface (BCI) application using brainsatplay.js. Learn the basics of JavaScript and design your own multi-user neurofeedback application!
+<!-- ## Overview
+--- -->
+Now that we're a bit further along, it's time to understand the architecture of a Brains@Play application.
 
 ## Clone our Starter Project
 ---
@@ -42,9 +41,8 @@ export const settings = {
   },
 
   // App Logic
-  graphs: [
+  graph:
     {
-    id: 'mygraph',
     nodes: [
       {id: 'signal', class: brainsatplay.plugins.Signal, loop: true}, // A default node from Brains@Play that grabs session data
 
@@ -62,7 +60,7 @@ export const settings = {
         target: 'ui' // Display to the user
       }
     ]
-  }],
+  },
 }
 
 ```

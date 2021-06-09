@@ -15,9 +15,8 @@ export const settings = {
     },
     
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
         {id: 'ui', class: UI, params: {}}
       ],
@@ -31,5 +30,5 @@ export const settings = {
         //   target: 'ui'
         // }
       ]
-    }],
+    },
 }

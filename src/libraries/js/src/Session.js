@@ -294,177 +294,179 @@ export class Session {
 	 */
 
 	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
-				
-		let template = () => {return `
-		<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
-			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
-			<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-				<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
-				<hr>
-				<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+		
+		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+			let template = () => {return `
+			<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+				<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+				<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+					<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
+					<hr>
+					<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+				</div>
 			</div>
-		</div>
-		`}
+			`}
 
-		let setup = () => {
+			let setup = () => {
 
-		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-		let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
-		let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+			let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
+			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
 
-		const resizeDisplay = () => {
-			let main = deviceSelection.querySelector(`.main`)
-			deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
-			// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
-		}
-		resizeDisplay()
-
-		window.addEventListener('resize', resizeDisplay)
-
-		closeButton.onclick = () => {
-			deviceSelection.style.opacity = '0'
-			deviceSelection.style.pointerEvents = 'none'
-		}
-		
-		// Apply User Filter
-		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
-
-		// Apply Browser Filter
-		if (!window.isChrome)  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
-
-		newDeviceList.sort(function(a, b) {
-			let translate = (d) => {
-				if (d.company == 'Brains@Play'){
-					return 0 // B@P
-				} else if (d.company == 'HEGAlpha'){
-					return 1 // HEG
-				} else if (d.company == 'Neuroidss'){
-					return 2 // FreEEG
-				} else if (d.company == 'OpenBCI'){
-					return 3 // OpenBCI
-				} else if (d.company == 'Neosensory'){
-					return 4 // Neosensory
-				} else if (d.company == 'InteraXon'){
-					return 5 // InteraXon
-				} else {
-					return 3 // other
-				}
+			const resizeDisplay = () => {
+				let main = deviceSelection.querySelector(`.main`)
+				deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
+				// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
 			}
-			let pos1 = translate(a)
-			let pos2 = translate(b)
-			return pos1 - pos2;
-		});
-		
-		newDeviceList.forEach((d, i) => {
-			if (d.variants == null) d.variants = ['']
+			resizeDisplay()
 
-			let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+			window.addEventListener('resize', resizeDisplay)
 
-			let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
-			if (!insertionDiv) {
-				insertionDiv = document.createElement('div')
-				insertionDiv.classList.add(`brainsatplay-companyCard`)
-				insertionDiv.setAttribute("name",cleanCompanyString)
-				insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
-				deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
+			closeButton.onclick = () => {
+				deviceSelection.style.opacity = '0'
+				deviceSelection.style.pointerEvents = 'none'
 			}
+			
+			// Apply User Filter
+			let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
-			let deviceDiv = document.createElement('div')
-			deviceDiv.id = `brainsatplay-device-${d.id}`
-			deviceDiv.classList.add('brainsatplay-deviceCard')
+			// Apply Browser Filter
+			if (!window.isChrome)  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
-			let header = document.createElement('h4')
-			header.id = `brainsatplay-header-${d.id}`
-			header.innerHTML = d.name
-			deviceDiv.insertAdjacentElement('beforeend', header)	
-
-			deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
-
-			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
-
-			let deviceIndicator = document.createElement('div')
-			deviceIndicator.classList.add('indicator')
-			deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
-
-			d.variants.forEach(v => {
-				let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
-				let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
-				let variantLabel = ((v != '') ? v : 'Connect')
-				let div = document.createElement('div')
-				div.id = `brainsatplay-${variantName}`
-				div.classList.add('brainsatplay-variantButton')
-
-				// Add label to button
-				div.innerHTML = `<p>${variantLabel}</p>`
-
-				let setIndicator = (on=true) => {
-					if (on){
-						deviceIndicator.classList.add('on')
+			newDeviceList.sort(function(a, b) {
+				let translate = (d) => {
+					if (d.company == 'Brains@Play'){
+						return 0 // B@P
+					} else if (d.company == 'HEGAlpha'){
+						return 1 // HEG
+					} else if (d.company == 'Neuroidss'){
+						return 2 // FreEEG
+					} else if (d.company == 'OpenBCI'){
+						return 3 // OpenBCI
+					} else if (d.company == 'Neosensory'){
+						return 4 // Neosensory
+					} else if (d.company == 'InteraXon'){
+						return 5 // InteraXon
 					} else {
-						deviceIndicator.classList.remove('on')
+						return 3 // other
 					}
 				}
+				let pos1 = translate(a)
+				let pos2 = translate(b)
+				return pos1 - pos2;
+			});
+			
+			newDeviceList.forEach((d, i) => {
+				if (d.variants == null) d.variants = ['']
 
-				let updatedOnConnect = (device) => {
-					onconnect()
-					div.querySelector('p').innerHTML = "Disconnect"
-					setIndicator(true)
-					div.onclick = () => {this.disconnect()}
+				let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+
+				let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
+				if (!insertionDiv) {
+					insertionDiv = document.createElement('div')
+					insertionDiv.classList.add(`brainsatplay-companyCard`)
+					insertionDiv.setAttribute("name",cleanCompanyString)
+					insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
+					deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
 				}
 
-				let updatedOnDisconnect = (device) => {
-					ondisconnect()
-					setIndicator(false)
-					div.querySelector('p').innerHTML = variantLabel
-					div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
-				}
+				let deviceDiv = document.createElement('div')
+				deviceDiv.id = `brainsatplay-device-${d.id}`
+				deviceDiv.classList.add('brainsatplay-deviceCard')
 
-				div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+				let header = document.createElement('h4')
+				header.id = `brainsatplay-header-${d.id}`
+				header.innerHTML = d.name
+				deviceDiv.insertAdjacentElement('beforeend', header)	
 
-				deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
-			})
-			insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
-		});
+				deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
 
-		let openDeviceSelectionMenu = () => {
-			deviceSelection.style.opacity = '1'
-			deviceSelection.style.pointerEvents = 'auto'
-		}
+				let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
 
-		if (toggleButton == null){
-			let toggleButton = document.createElement('div')
-			toggleButton.id = 'deviceManagerOpen'
-			toggleButton.classList.add('brainsatplay-default-button')
-			toggleButton.style = `
-				position: absolute; 
-				bottom: 25px; 
-				right: 25px;
-				z-index: 100;
-			`
-			toggleButton.innerHTML = 'Open Device Manager'
-			document.body.insertAdjacentElement('afterbegin',toggleButton)
-			toggleButton.onclick = openDeviceSelectionMenu
-		}  else {
-			toggleButton.onclick = openDeviceSelectionMenu
-		}
+				let deviceIndicator = document.createElement('div')
+				deviceIndicator.classList.add('indicator')
+				deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
 
-		// Autoselect the Correct Device (if declared)
-		if (autoselect != null){
-			this.autoselectDevice(autoselect)
-		}
-	}
+				d.variants.forEach(v => {
+					let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
+					let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
+					let variantLabel = ((v != '') ? v : 'Connect')
+					let div = document.createElement('div')
+					div.id = `brainsatplay-${variantName}`
+					div.classList.add('brainsatplay-variantButton')
 
-		let main = document.getElementById(`${this.id}DeviceSelection`)
-		if (main == null){
-			let ui = new DOMFragment(
-				template,
-				parentNode,
-				undefined,
-				setup
-			)
-		} else {
+					// Add label to button
+					div.innerHTML = `<p>${variantLabel}</p>`
+
+					let setIndicator = (on=true) => {
+						if (on){
+							deviceIndicator.classList.add('on')
+						} else {
+							deviceIndicator.classList.remove('on')
+						}
+					}
+
+					let updatedOnConnect = (device) => {
+						onconnect()
+						div.querySelector('p').innerHTML = "Disconnect"
+						setIndicator(true)
+						div.onclick = () => {this.disconnect()}
+					}
+
+					let updatedOnDisconnect = (device) => {
+						ondisconnect()
+						setIndicator(false)
+						div.querySelector('p').innerHTML = variantLabel
+						div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+					}
+
+					div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+
+					deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
+				})
+				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
+			});
+
+			let openDeviceSelectionMenu = () => {
+				deviceSelection.style.opacity = '1'
+				deviceSelection.style.pointerEvents = 'auto'
+			}
+
+			if (toggleButton == null){
+				let toggleButton = document.createElement('div')
+				toggleButton.id = 'deviceManagerOpen'
+				toggleButton.classList.add('brainsatplay-default-button')
+				toggleButton.style = `
+					position: absolute; 
+					bottom: 25px; 
+					right: 25px;
+					z-index: 100;
+				`
+				toggleButton.innerHTML = 'Open Device Manager'
+				document.body.insertAdjacentElement('afterbegin',toggleButton)
+				toggleButton.onclick = openDeviceSelectionMenu
+			}  else {
+				toggleButton.onclick = openDeviceSelectionMenu
+			}
+
+			// Autoselect the Correct Device (if declared)
 			if (autoselect != null){
 				this.autoselectDevice(autoselect)
+			}
+		}
+
+			let main = document.getElementById(`${this.id}DeviceSelection`)
+			if (main == null){
+				let ui = new DOMFragment(
+					template,
+					parentNode,
+					undefined,
+					setup
+				)
+			} else {
+				if (autoselect != null){
+					this.autoselectDevice(autoselect)
+				}
 			}
 		}
 	}
@@ -1626,7 +1628,8 @@ else {
 		applet.settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
 				if (applet.info.intro == null) applet.info.intro = {}
-				if (cmd.title != null) applet.info.intro.title = cmd.title
+				if (applet.info.intro == true) applet.info.intro = {title: true}
+				else if (cmd.title != null) applet.info.intro.title = cmd.title
 				if (cmd.login != null) applet.info.intro.login = cmd.login
 				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
 				if (cmd.mode != null) applet.info.intro.mode = cmd.mode

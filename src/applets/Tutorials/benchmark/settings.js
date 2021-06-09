@@ -17,7 +17,7 @@ export const settings = {
     },
 
     // App Logic
-    graphs: [
+    graph:
       {
       id: 'benchmark',
       nodes: [
@@ -89,5 +89,5 @@ export const settings = {
           target: 'scheduler:reset'
         },
       ]
-    }],
+    },
 }

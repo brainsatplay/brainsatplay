@@ -20,9 +20,8 @@ export const settings = {
     },
 
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {key: 'Space'}},
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
@@ -53,5 +52,5 @@ export const settings = {
           target: 'ui:readout'
         }
       ]
-    }],
+    },
 }

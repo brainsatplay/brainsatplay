@@ -18,9 +18,8 @@ export const settings = {
       minTime: 60, // s
     },
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
         {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
         {id: 'down', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowDown'}},
@@ -47,5 +46,5 @@ export const settings = {
           target: 'ui:right'
         },
       ]
-    }],
+    },
 }

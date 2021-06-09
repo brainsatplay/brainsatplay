@@ -42,13 +42,11 @@ export class DataAtlas {
 		
 		this.graphs = new PluginManager({atlas: this}, {gui: false})
 		this.graphs.add(this.props.id, 'DataAtlas', 
-		[
 			{
-				id: 'mygraph',
 				nodes: [
 					{id: 'blink', class: Blink},
 				],
-			}]
+			}
 		)
 
 		this.state = new StateManager({

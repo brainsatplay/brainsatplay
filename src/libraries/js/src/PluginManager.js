@@ -147,7 +147,7 @@ export class PluginManager{
         return {instance: node, controls: controlsToBind}
     }
 
-    add(id, name, graphs){
+    add(id, name, graph){
         let streams = new Set()
         let outputs = {}
         let subscriptions = {
@@ -160,39 +160,38 @@ export class PluginManager{
         let nodes = {}
         let edges = []
         let activePorts = {}
-        graphs.forEach(g => {
 
-            if (Array.isArray(g.edges)){
-                g.edges.forEach(e => {
-                    edges.push(e)
+        if (Array.isArray(graph.edges)){
+            graph.edges.forEach(e => {
+                edges.push(e)
 
-                    // Capture Active Ports
-                    for (let k in e){
-                        let [node,port] = e[k].split(':')
-                        if (activePorts[node] == null) activePorts[node] = new Set()
-                        if (port) activePorts[node].add(port)
-                    }
-                })
+                // Capture Active Ports
+                for (let k in e){
+                    let [node,port] = e[k].split(':')
+                    if (activePorts[node] == null) activePorts[node] = new Set()
+                    if (port) activePorts[node].add(port)
+                }
+            })
+        }
+
+        // Auto-Assign Default Port to Empty Set
+        Object.keys(activePorts).forEach(p => {
+            if (activePorts[p].size == 0){
+                activePorts[p].add('default')
             }
+        })
 
-            // Auto-Assign Default Port to Empty Set
-            Object.keys(activePorts).forEach(p => {
-                if (activePorts[p].size == 0){
-                    activePorts[p].add('default')
-                }
-            })
+        let instance,controls;
+        console.log(graph)
+        graph.nodes.forEach(nodeInfo => {
+            if (nodes[nodeInfo.id] == null){
+                nodes[nodeInfo.id] = nodeInfo;
 
-            let instance,controls;
-            g.nodes.forEach(nodeInfo => {
-                if (nodes[nodeInfo.id] == null){
-                    nodes[nodeInfo.id] = nodeInfo;
-
-                    ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
-                    
-                    nodes[nodeInfo.id].instance = instance;
-                    controlsToBind.options.push(...controls);
-                }
-            })
+                ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
+                
+                nodes[nodeInfo.id].instance = instance;
+                controlsToBind.options.push(...controls);
+            }
         })
 
         // Declare Applet Info
@@ -448,7 +447,7 @@ export class PluginManager{
             this.addToGUI(nodeInfo)
         }
 
-        // Start Graphs
+        // Start Graph
         applet.edges.forEach((e,i) => {
 
                 let splitSource = e.source.split(':')
