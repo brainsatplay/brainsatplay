@@ -840,11 +840,14 @@ void main(){
                             }
                         });
                     } else if (cmd.shader.frag) {
+                        let textdecoder = new TextDecoder();
                         shaderselector.selectedIndex = shaderselector.options.length-1;
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
-                        this.liveEditor.input.value = decodeURIComponent(cmd.shader.frag);
-                        this.setShaderFromText(this.liveEditor.input.value);
+                        let fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
+                        this.liveEditor.updateSettings({language: 'glsl', target: fragment });
+                        this.setShaderFromText(fragment);
+                        console.log(this.liveEditor.input.value)
                     }
                 }
                 if(cmd.modifiers) {
@@ -974,6 +977,13 @@ void main(){
 
     generateSharableAddress = () => {
         let config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
+        
+        if(config[0].shader.frag) {
+            let textencoder = new TextEncoder();
+            config[0].shader.frag = "[" +textencoder.encode(config[0].shader.frag).toString() + "]";
+            console.log(config[0].shader.frag)
+        }
+
         let address = window.location.href;
         if(address.indexOf("#Sensorium") > -1) address = address.slice(0,address.indexOf("#Sensorium"));
         address+=`#{"name":"Sensorium","settings":${JSON.stringify(config)}}`;
@@ -1468,7 +1478,7 @@ void main(){
 
     setShaderFromText = (text) => {
 
-        let fragShader = text
+        let fragShader = text;
 
         // Dynamically Extract Uniforms
         let regex = new RegExp('uniform (.*) (.*);', 'g')
