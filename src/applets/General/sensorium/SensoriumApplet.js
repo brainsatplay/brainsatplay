@@ -775,6 +775,7 @@ void main(){
                 
                     window.onkeypress = (e) => {
                         this.hostData.key = e.code
+                        console.log(this.session.state.data[this.props.id+'hostData'])
                     }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
