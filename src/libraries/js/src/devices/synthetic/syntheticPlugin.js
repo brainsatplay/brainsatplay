@@ -126,7 +126,7 @@ export class syntheticPlugin {
 
         // Simulated BCI2000 States
         document.removeEventListener('keydown',this.handleKeyDown)
-        document.removeEventListener('keyup',this.handleKeyDown)
+        document.removeEventListener('keyup',this.handleKeyUp)
 
         this.looping = false;
     }

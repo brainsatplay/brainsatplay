@@ -187,8 +187,12 @@ export class AppletBrowser {
 
             let categoryArray = []
             let deviceArray = []
+
+            let platformLocation = (location.origin.includes('app.brainsatplay.com') ? 'production' : 'development')
+
             appletSettings.forEach(async settings => {
-                if (!settings.categories.includes('UI')){
+                if (settings.display != null && (settings.display.development === false || settings.display[platformLocation] === false)){}
+                else {
                     let type;
                     if (settings.devices.length > 1){
                         type = 'All'

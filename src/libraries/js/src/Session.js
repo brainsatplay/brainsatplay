@@ -56,9 +56,14 @@ import {PluginManager} from './PluginManager'
 // Event Router
 import { EventRouter } from './EventRouter'
 
+// Data Manager
+import { DataManager } from './utils/DataManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
+
+export let DataMgr = null;
 
 /**
  * ```javascript
@@ -86,11 +91,13 @@ export class Session {
 	constructor(
 		username = 'guest',
 		password = '',
-		urlToConnect = 'https://brainsatplay.azurewebsites.net'//'https://server.brainsatplay.com'
-	) {
+		urlToConnect = 'https://brainsatplay.azurewebsites.net',//'https://server.brainsatplay.com'
+		initFS = false
+		) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
+			sessionInfo: undefined,
 		});
 
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
@@ -101,7 +108,7 @@ export class Session {
 				url: new URL(urlToConnect),
 				username: username,
 				password: password,
-				authenticated: false
+				connected: false
 			},
 			apps: {},
 			subscriptions: [],
@@ -113,6 +120,10 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
+		this.dataManager = new DataManager(this);
+		DataMgr = this.dataManager;
+
+		if(initFS) this.initFS();
 	}
 
 	/**
@@ -196,8 +207,9 @@ export class Session {
 		let stateId = "device" + (i)
 
 		newStream.onconnect = () => {
-			this.deviceStreams.push(newStream)
+			this.deviceStreams.push(newStream);
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
+			
 			this.info.nDevices++;
 			if (streamParams[0]) { 
 				this.beginStream(streamParams); 
@@ -207,6 +219,7 @@ export class Session {
 
 			onconnect(newStream);
 			this.onconnected();
+			
 		}
 
 		newStream.ondisconnect = () => {
@@ -230,7 +243,7 @@ export class Session {
 		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
-			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+			newStream.configureRoutes(contentChild)
 			for (let id in this.info.apps){
 				newStream.info.events.addApp(id, this.info.apps[id].controls)
 			}
@@ -271,6 +284,31 @@ export class Session {
 		} else { console.log("No devices connected"); }
 	}
 
+	// Check if Chrome
+	checkIfChrome = () => {
+		// https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome/13348618#13348618
+		let isChromium = window.chrome;
+		let winNav = window.navigator;
+		let vendorName = winNav.vendor;
+		let isOpera = typeof window.opr !== "undefined";
+		let isIEedge = winNav.userAgent.indexOf("Edge") > -1;
+		let isIOSChrome = winNav.userAgent.match("CriOS");
+	
+		if (isIOSChrome) {
+			return true
+		} else if(
+		isChromium !== null &&
+		typeof isChromium !== "undefined" &&
+		vendorName === "Google Inc." &&
+		isOpera === false &&
+		isIEedge === false
+		) {
+			return true
+		} else { 
+			return false
+		}
+	}
+
 	/**
      * @method module:brainsatplay.Session.connectDevice
      * @description Generate DOM fragment with a selector for available devices.
@@ -281,173 +319,179 @@ export class Session {
 	 */
 
 	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
-				
-		let template = () => {return `
-		<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
-			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
-			<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-				<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
-				<hr>
-				<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+		
+		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+			let template = () => {return `
+			<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+				<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+				<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+					<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
+					<hr>
+					<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+				</div>
 			</div>
-		</div>
-		`}
+			`}
 
-		let setup = () => {
+			let setup = () => {
 
-		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-		let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
-		let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+			let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
+			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
 
-		const resizeDisplay = () => {
-			let main = deviceSelection.querySelector(`.main`)
-			deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
-			// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
-		}
-		resizeDisplay()
-
-		window.addEventListener('resize', resizeDisplay)
-
-		closeButton.onclick = () => {
-			deviceSelection.style.opacity = '0'
-			deviceSelection.style.pointerEvents = 'none'
-		}
-		
-		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
-
-		newDeviceList.sort(function(a, b) {
-			let translate = (d) => {
-				if (d.company == 'Brains@Play'){
-					return 0 // B@P
-				} else if (d.company == 'HEGAlpha'){
-					return 1 // HEG
-				} else if (d.company == 'Neuroidss'){
-					return 2 // FreEEG
-				} else if (d.company == 'OpenBCI'){
-					return 3 // OpenBCI
-				} else if (d.company == 'Neosensory'){
-					return 4 // Neosensory
-				} else if (d.company == 'InteraXon'){
-					return 5 // InteraXon
-				} else {
-					return 3 // other
-				}
+			const resizeDisplay = () => {
+				let main = deviceSelection.querySelector(`.main`)
+				deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
+				// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
 			}
-			let pos1 = translate(a)
-			let pos2 = translate(b)
-			return pos1 - pos2;
-		});
-		
-		newDeviceList.forEach((d, i) => {
-			if (d.variants == null) d.variants = ['']
+			resizeDisplay()
 
-			let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+			window.addEventListener('resize', resizeDisplay)
 
-			let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
-			if (!insertionDiv) {
-				insertionDiv = document.createElement('div')
-				insertionDiv.classList.add(`brainsatplay-companyCard`)
-				insertionDiv.setAttribute("name",cleanCompanyString)
-				insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
-				deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
+			closeButton.onclick = () => {
+				deviceSelection.style.opacity = '0'
+				deviceSelection.style.pointerEvents = 'none'
 			}
+			
+			// Apply User Filter
+			let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
-			let deviceDiv = document.createElement('div')
-			deviceDiv.id = `brainsatplay-device-${d.id}`
-			deviceDiv.classList.add('brainsatplay-deviceCard')
+			// Apply Browser Filter
+			if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
-			let header = document.createElement('h4')
-			header.id = `brainsatplay-header-${d.id}`
-			header.innerHTML = d.name
-			deviceDiv.insertAdjacentElement('beforeend', header)	
-
-			deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
-
-			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
-
-			let deviceIndicator = document.createElement('div')
-			deviceIndicator.classList.add('indicator')
-			deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
-
-			d.variants.forEach(v => {
-				let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
-				let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
-				let variantLabel = ((v != '') ? v : 'Connect')
-				let div = document.createElement('div')
-				div.id = `brainsatplay-${variantName}`
-				div.classList.add('brainsatplay-variantButton')
-
-				// Add label to button
-				div.innerHTML = `<p>${variantLabel}</p>`
-
-				let setIndicator = (on=true) => {
-					if (on){
-						deviceIndicator.classList.add('on')
+			newDeviceList.sort(function(a, b) {
+				let translate = (d) => {
+					if (d.company == 'Brains@Play'){
+						return 0 // B@P
+					} else if (d.company == 'HEGAlpha'){
+						return 1 // HEG
+					} else if (d.company == 'Neuroidss'){
+						return 2 // FreEEG
+					} else if (d.company == 'OpenBCI'){
+						return 3 // OpenBCI
+					} else if (d.company == 'Neosensory'){
+						return 4 // Neosensory
+					} else if (d.company == 'InteraXon'){
+						return 5 // InteraXon
 					} else {
-						deviceIndicator.classList.remove('on')
+						return 3 // other
 					}
 				}
+				let pos1 = translate(a)
+				let pos2 = translate(b)
+				return pos1 - pos2;
+			});
+			
+			newDeviceList.forEach((d, i) => {
+				if (d.variants == null) d.variants = ['']
 
-				let updatedOnConnect = (device) => {
-					onconnect()
-					div.querySelector('p').innerHTML = "Disconnect"
-					setIndicator(true)
-					div.onclick = () => {this.disconnect()}
+				let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+
+				let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
+				if (!insertionDiv) {
+					insertionDiv = document.createElement('div')
+					insertionDiv.classList.add(`brainsatplay-companyCard`)
+					insertionDiv.setAttribute("name",cleanCompanyString)
+					insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
+					deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
 				}
 
-				let updatedOnDisconnect = (device) => {
-					ondisconnect()
-					setIndicator(false)
-					div.querySelector('p').innerHTML = variantLabel
-					div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
-				}
+				let deviceDiv = document.createElement('div')
+				deviceDiv.id = `brainsatplay-device-${d.id}`
+				deviceDiv.classList.add('brainsatplay-deviceCard')
 
-				div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+				let header = document.createElement('h4')
+				header.id = `brainsatplay-header-${d.id}`
+				header.innerHTML = d.name
+				deviceDiv.insertAdjacentElement('beforeend', header)	
 
-				deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
-			})
-			insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
-		});
+				deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
 
-		let openDeviceSelectionMenu = () => {
-			deviceSelection.style.opacity = '1'
-			deviceSelection.style.pointerEvents = 'auto'
-		}
+				let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
 
-		if (toggleButton == null){
-			let toggleButton = document.createElement('div')
-			toggleButton.id = 'deviceManagerOpen'
-			toggleButton.classList.add('brainsatplay-default-button')
-			toggleButton.style = `
-				position: absolute; 
-				bottom: 25px; 
-				right: 25px;
-				z-index: 100;
-			`
-			toggleButton.innerHTML = 'Open Device Manager'
-			document.body.insertAdjacentElement('afterbegin',toggleButton)
-			toggleButton.onclick = openDeviceSelectionMenu
-		}  else {
-			toggleButton.onclick = openDeviceSelectionMenu
-		}
+				let deviceIndicator = document.createElement('div')
+				deviceIndicator.classList.add('indicator')
+				deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
 
-		// Autoselect the Correct Device (if declared)
-		if (autoselect != null){
-			this.autoselectDevice(autoselect)
-		}
-	}
+				d.variants.forEach(v => {
+					let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
+					let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
+					let variantLabel = ((v != '') ? v : 'Connect')
+					let div = document.createElement('div')
+					div.id = `brainsatplay-${variantName}`
+					div.classList.add('brainsatplay-variantButton')
 
-		let main = document.getElementById(`${this.id}DeviceSelection`)
-		if (main == null){
-			let ui = new DOMFragment(
-				template,
-				parentNode,
-				undefined,
-				setup
-			)
-		} else {
+					// Add label to button
+					div.innerHTML = `<p>${variantLabel}</p>`
+
+					let setIndicator = (on=true) => {
+						if (on){
+							deviceIndicator.classList.add('on')
+						} else {
+							deviceIndicator.classList.remove('on')
+						}
+					}
+
+					let updatedOnConnect = (device) => {
+						onconnect()
+						div.querySelector('p').innerHTML = "Disconnect"
+						setIndicator(true)
+						div.onclick = () => {this.disconnect()}
+					}
+
+					let updatedOnDisconnect = (device) => {
+						ondisconnect()
+						setIndicator(false)
+						div.querySelector('p').innerHTML = variantLabel
+						div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+					}
+
+					div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+
+					deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
+				})
+				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
+			});
+
+			let openDeviceSelectionMenu = () => {
+				deviceSelection.style.opacity = '1'
+				deviceSelection.style.pointerEvents = 'auto'
+			}
+
+			if (toggleButton == null){
+				let toggleButton = document.createElement('div')
+				toggleButton.id = 'deviceManagerOpen'
+				toggleButton.classList.add('brainsatplay-default-button')
+				toggleButton.style = `
+					position: absolute; 
+					bottom: 25px; 
+					left: 25px;
+					z-index: 100;
+				`
+				toggleButton.innerHTML = 'Open Device Manager'
+				document.body.insertAdjacentElement('afterbegin',toggleButton)
+				toggleButton.onclick = openDeviceSelectionMenu
+			}  else {
+				toggleButton.onclick = openDeviceSelectionMenu
+			}
+
+			// Autoselect the Correct Device (if declared)
 			if (autoselect != null){
 				this.autoselectDevice(autoselect)
+			}
+		}
+
+			let main = document.getElementById(`${this.id}DeviceSelection`)
+			if (main == null){
+				let ui = new DOMFragment(
+					template,
+					parentNode,
+					undefined,
+					setup
+				)
+			} else {
+				if (autoselect != null){
+					this.autoselectDevice(autoselect)
+				}
 			}
 		}
 	}
@@ -606,7 +650,7 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname = 'data', props = {}, onData = (newData) => { }) {
+	streamAppData(propname = 'data', props = {}, appid=undefined, onData = (newData) => { }) {
 
 		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
@@ -614,8 +658,18 @@ export class Session {
 
 		this.state.data[id + "_flag"] = true;
 		
-		let sub = this.state.subscribe(id, () => {
+		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
+			if(appid) {
+				if(!this.state.data[appid]) this.state.data[appid] = {id:appid, userData:[{username:this.info.auth.username}]};
+				let found = this.state.data[appid].userData.find((o)=>{
+					if(o.username === this.info.auth.username) {
+						o[id] = newData; 
+						return true;
+					}
+				});
+				if(!found) this.state.data[appid].userData.push({username:this.info.auth.username, [id]:newData});
+			}
 		});
 
 		let newStreamFunc = () => {
@@ -714,9 +768,11 @@ export class Session {
 		return user
 	}
 
-	getLocalIP() {
+	 getLocalIP = async () => {
+		return new Promise(resolve => {
+
 		var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;  
-if (RTCPeerConnection)(function() {  
+if (RTCPeerConnection)(() => {  
     var rtc = new RTCPeerConnection({  
         iceServers: []  
     });  
@@ -725,12 +781,15 @@ if (RTCPeerConnection)(function() {
             reliable: false  
         });  
     };  
-    rtc.onicecandidate = function(evt) {  
-        if (evt.candidate) grepSDP("a=" + evt.candidate.candidate);  
+    rtc.onicecandidate = (evt) => {  
+		if (evt.candidate) {
+			let res = grepSDP("a=" + evt.candidate.candidate);  
+			resolve(res)
+		}
     };  
     rtc.createOffer(function(offerDesc) {  
-        grepSDP(offerDesc.sdp);  
-        rtc.setLocalDescription(offerDesc);  
+        let res = grepSDP(offerDesc.sdp);  
+		rtc.setLocalDescription(offerDesc);  
     }, function(e) {  
         console.warn("offer failed", e);  
     });  
@@ -743,28 +802,32 @@ if (RTCPeerConnection)(function() {
         var displayAddrs = Object.keys(addrs).filter(function(k) {  
             return addrs[k];  
 		});
-		console.log('Local IP Address:', displayAddrs.join(" or perhaps ") || "n/a")
+		return displayAddrs
     }  
   
     function grepSDP(sdp) {  
-        var hosts = [];  
+		var hosts = [];  
+		let urlArray
         sdp.split('\r\n').forEach(function(line) {  
             if (~line.indexOf("a=candidate")) {  
                 var parts = line.split(' '),  
                     addr = parts[4],  
                     type = parts[7];  
-                if (type === 'host') updateDisplay(addr);  
+                if (type === 'host') urlArray = updateDisplay(addr);  
             } else if (~line.indexOf("c=")) {  
                 var parts = line.split(' '),  
                     addr = parts[2];  
-                updateDisplay(addr);  
+					urlArray = updateDisplay(addr);  
             }  
-        });  
+		});  
+		
+		return urlArray
     }  
 })();  
 else {  
     console.log('not able to get your local IP address')
 }
+		})
 	}
 
 
@@ -776,7 +839,7 @@ else {
 		if (this.socket == null || this.socket.readyState !== 1) {
 			this.socket = this.setupWebSocket(dict).then(socket => {
 				this.socket = socket
-				this.info.auth.authenticated = true;
+				this.info.auth.connected = true;
 				if (this.socket !== null && this.socket.readyState === 1) {
 					if (beginStream === true) {
 						this.beginStream();
@@ -866,7 +929,11 @@ else {
 				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
 			}
 		}
-		else if (parsed.msg === 'sessionData') {
+		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
+
+			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.username === this.info.auth.username) return true;});
+			this.state.data[parsed.id] = parsed;
+			if(thisuser) this.state.data[parsed.id].userData.push(thisuser);
 
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
@@ -888,11 +955,9 @@ else {
 		else if (parsed.msg === 'getUsersResult') {
 			this.state.updateState(`commandResult`,parsed)
 		}
-		else if (parsed.msg === 'getSessionDataResult') {
-			this.state.updateState(`commandResult`,parsed)
-		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.updateState(`commandResult`,parsed)
+			this.state.data.sessionInfo = parsed;
+			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
 			this.state.updateState(`commandResult`,parsed)
@@ -981,6 +1046,7 @@ else {
 			}
 
 			socket.onclose = (msg) => {
+				this.info.auth.connected = false;
 				console.log('close');
 			}
 		})
@@ -1126,6 +1192,7 @@ else {
 							newResult.sessionInfo.propnames.forEach((prop) => {
 								streamParams.push(prop.split("_"));
 							});
+							this.state.data[newResult.sessionInfo.id] = newResult;
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 							// this.streamObj
 							onsuccess(newResult);
@@ -1158,6 +1225,7 @@ else {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(sessionid) > -1) {
 							this.state.removeState(prop)
+							delete this.info.subscriptions[this.info.subscriptions.indexOf(sessionid)];
 						}
 					}
 					onsuccess(newResult);
@@ -1591,9 +1659,11 @@ else {
 	createIntro = (applet, onsuccess= () => {}) => {
 
 		// Override App Settings with Configuration Settings
+		if (applet.info.intro == null) applet.info.intro = {}
+		else if (applet.info.intro == true) applet.info.intro = {title: true}
+
 		applet.settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
-				if (applet.info.intro == null) applet.info.intro = {}
 				if (cmd.title != null) applet.info.intro.title = cmd.title
 				if (cmd.login != null) applet.info.intro.login = cmd.login
 				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
@@ -1678,8 +1748,8 @@ else {
 				}
 			}
 			if (applet.info.intro.mode){
-				if (applet.info.intro.mode === 'single') solo.click()
-				if (applet.info.intro.mode === 'multi') multiplayer.click()
+				if (applet.info.intro.mode === 'single' || applet.info.intro.mode === 'solo') solo.click()
+				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') multiplayer.click()
 				modeScreen.style.display = 'none'
 			}
 		}
@@ -1796,7 +1866,7 @@ else {
 		}
 
 		// Login Screen
-		if (applet.info.intro?.mode != 'single'){
+		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
 			let onsocketopen = () => {
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
@@ -2044,10 +2114,11 @@ else {
 	}
 
 
-	getHostData(appname){
-		let state = this.state.data.commandResult
-		if (state.msg === 'sessionData' && state.appname === appname){
-			return {data: state.hostData, username: state.hostname}
+	getHostData(appid){
+		let state = this.state.data[appid];
+		if (state.msg === 'sessionData' && state.id === appid){
+			if(state.hostData) return {data: state.hostData, username: state.hostname}
+			return {data: state.userData.find((o)=>{if(o.username === state.hostname) return true;}), username: state.hostname}
 		}
 	}
 
@@ -2145,6 +2216,10 @@ else {
 		return arr
 	}
 
+	initFS = (oninit=()=>{console.log("BrowserFS ready!");this.dataManager.setupAutosaving();},onerror=()=>{}) => {
+		this.session.dataManager.initFS(oninit,onerror);
+	}
+
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -2220,8 +2295,8 @@ class deviceStream {
 		return true
 	}
 
-	configureRoutes = (stateManagerArray, parentNode=document.body) => {
-		this.info.events.addControls(stateManagerArray,parentNode)
+	configureRoutes = (parentNode=document.body) => {
+		this.info.events.addControls(parentNode)
     }
 
 	disconnect = () => {

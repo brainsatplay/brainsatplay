@@ -1,22 +1,15 @@
 ---
 title: Your First Applet
-hide_title: true
+hide_title: false
 ---
 
-![Your First Applet](../../static/img/02-your-first-applet/header.png)
+<!-- ![Your First Applet](../../static/img/02-your-first-applet/header.png) -->
 
-## Overview
----
+<!-- ## Overview
+--- -->
+Now that we're a bit further along, it's time to understand the architecture of a Brains@Play application.
 
-This tutorial will guide you through the creation and deployment of a web-based brain-computer interface (BCI) application using brainsatplay.js. Learn the basics of JavaScript and design your own multi-user neurofeedback application!
-
-## Clone our Starter Project
----
-
-Head over to our [Brains@Play Starter Project](https://github.com/brainsatplay/brainsatplay-starter) and clone this to your local development environment. 
-
-
-## Dig into Applet Architecture
+## Application Architecture
 ---
 Brains@Play applications are written as Javascript dictionaries contained in a `settings.js` file. This file contains the essential information to assemble your application, including **metadata** and **graphs**.
 
@@ -42,9 +35,8 @@ export const settings = {
   },
 
   // App Logic
-  graphs: [
+  graph:
     {
-    id: 'mygraph',
     nodes: [
       {id: 'signal', class: brainsatplay.plugins.Signal, loop: true}, // A default node from Brains@Play that grabs session data
 
@@ -62,46 +54,9 @@ export const settings = {
         target: 'ui' // Display to the user
       }
     ]
-  }],
+  },
 }
 
-```
-
-### index.js
-The `index.js` file assembles your applet from the provided `settings.js` file.
-
-```javascript 
-import {settings} from './applet/settings.js'
-
-// Load your settings.js file into a Brains@Play Application class
-let applet =  new brainsatplay.Application(settings)
-
-// Inject your Application into the DOM
-applet.init()
-
- // Configure a button to connect any Brains@Play-compatible device
-applet.session.connectDevice()
-```
-
-### index.html
-The `index.html` file simply declares `script` tags to import **brainatplay.js** into your project and inject your application into the DOM using `index.js`. 
-
-Since applets fill the space provided to them, we've defined some inline styling to make the `body` tag (default app location) to fill the viewport.
-
-```html 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Brains@Play Starter App" />
-    <title>Brains@Play Starter Project</title>
-    <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.10"></script>
-    <script src="./index.js" type="module"></script>
-  </head>
-  <body style="width: 100vw; height: 100vh; color: white; background: black;">
-</body>
-</html>
 ```
 
 ## Try It Out!

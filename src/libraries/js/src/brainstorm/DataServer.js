@@ -8,7 +8,7 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
 */
 
 const OSCManager = require('./OSCManager.js');
-
+const RobotManager = require('./RobotManager.js');
 
 class DataServer {
     /**
@@ -38,9 +38,10 @@ class DataServer {
             this.userData.set(username, {
                 username:username,
                 sessions:[],
+                robot: new RobotManager(),
                 sockets: {
                     ws: socket,
-                    osc: new OSCManager(socket)
+                    osc: new OSCManager(socket),
                 },
                 props: {},
                 updatedPropnames: [],
@@ -368,6 +369,15 @@ class DataServer {
         }else if( commands[0] === 'stopOSC') {
             u.sockets.osc.remove(commands[1], commands[2])
         }
+
+        // Robot
+        else if(commands[0] === 'moveMouse') {
+            u.robot.move(commands[1])
+        }  else if (commands[0] === 'clickMouse') {
+            u.robot.click()
+        } else if (commands[0] === 'typeKeys') {
+            u.robot.move(keys)
+        }
     }
 
 	//Received a message from a user socket, now parse it into system
@@ -378,11 +388,9 @@ class DataServer {
             let u = this.userData.get(data.username);
 
             for(const prop in data.userData) {
-                if (prop != 'hostData'){
-                    u.props[prop] = data.userData[prop];
-                    if(u.updatedPropnames.indexOf(prop) < 0)
-                        u.updatedPropnames.push(prop);
-                }
+                u.props[prop] = data.userData[prop];
+                if(u.updatedPropnames.indexOf(prop) < 0)
+                    u.updatedPropnames.push(prop);
             }
 
             let now = Date.now();
@@ -396,10 +404,6 @@ class DataServer {
             });
 
             this.appSubscriptions.forEach((o,i) => {
-
-                if (o.hostname === data.username){
-                    o.hostData = data.userData.hostData
-                }
 
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
@@ -468,6 +472,7 @@ class DataServer {
                     newUsers:[], //indicates users that just joined and have received no data yet
                     spectators:[], //usernames of spectators
                     propnames:propnames,
+                    hostname:'',
                     lastTransmit:Date.now()
                 });
             // } else {
@@ -506,11 +511,11 @@ class DataServer {
                     id:sub.id,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
+                    hostname:sub.hostname,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    spectators:[],
-                    host: sub.host
+                    spectators:[]
                 };
                 
                 let allUsernames = [...sub.usernames,...sub.spectators]
@@ -546,8 +551,7 @@ class DataServer {
 		if(g !== undefined && u !== undefined) {
 
             if (g.usernames.length === 0 && !spectating){
-                g.hostname = username
-                g.hostData = {}
+                g.hostname = username;
             }
 
             if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
@@ -759,8 +763,7 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    hostname: sub.hostname,
-                    hostData: sub.hostData
+                    hostname: sub.hostname
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users

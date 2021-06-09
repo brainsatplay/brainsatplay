@@ -14,9 +14,8 @@ export const settings = {
     // },
     
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
         {id: 'ui', class: UI, params: {}},
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
@@ -41,5 +40,5 @@ export const settings = {
           target: 'ui'
         }
       ]
-    }],
+    },
 }

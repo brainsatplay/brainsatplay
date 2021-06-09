@@ -144,6 +144,7 @@ button {
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
 
+
 #sidebar:hover {
     width: 75px;
 }
@@ -194,6 +195,7 @@ button {
     align-items: center;
     justify-content: flex-start;
 }
+
 #sidebar button:hover {
     background-color: rgb(35,35,35);
 }
@@ -305,7 +307,7 @@ button {
     transition: all 0.5s ease-in-out;
 }
 
-.logo-container:hover {
+.logo-container:hover{
     border: 1px solid white;
     /* border-radius: 5px; */
     background-color: rgb(20,20,20);
@@ -455,19 +457,14 @@ input:focus{
 @media (min-device-width: 1000px) {
 
     /* Sidebar Reveal */
-    #sidebar:hover button {
-        /* padding-left: 10%;
-        padding-right: 10%; */
+    #sidebar:hover {
+        width: clamp(75px, 200px, 40vw);
     }
-
     #sidebar:hover button .img-cont span{
         visibility: visible;
         opacity: 1;
     }
-
-    #sidebar:hover {
-        width: clamp(75px, 200px, 40vw);
-    }
+        
 }
 
 @media (min-device-width: 600px) {

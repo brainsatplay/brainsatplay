@@ -1,12 +1,12 @@
 ---
 title: Add Your Device
-hide_title: true
+hide_title: false
 ---
 
-![Add your Device](../../static/img/02-add-your-device/header.png)
+<!-- ![Add your Device](../../static/img/02-add-your-device/header.png) -->
 
-## Overview
----
+<!-- ## Overview
+--- -->
 
 This tutorial will teach you how to add support for your device to brainatplay.js. While we currently support hardware from a variety of popular neurotechnology companies (e.g. [OpenBCI](https://openbci.com/), [Muse](https://choosemuse.com/), [Neosensory](https://neosensory.com/), [FreeEEG](https://www.crowdsupply.com/neuroidss/freeeeg32), [HEGAlpha](https://www.hegalpha.com/)), we're very excited to join in on the future of web-based BCIs!
 

@@ -16,32 +16,22 @@ export const settings = {
     //   mode: 'single'
     // },
     // App Logic
-    graphs: [
+    graph:
       {
-      id: 'mygraph',
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, params: {}},
-        {id: 'blink', class: brainsatplay.plugins.algorithms.Blink, params: {}},
-        // {id: 'debug', class: brainsatplay.plugins.outputs.Debug, params: {}},
+        {id: 'blink_left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
+        {id: 'blink_right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
         {id: 'ui', class: UI, params: {}},
       ],
       edges: [
         {
-          source: 'signal', 
-          target: 'blink:left'
-        },
-        {
-          source: 'signal', 
-          target: 'blink:right'
-        },
-        {
-          source: 'blink:left', 
+          source: 'blink_left', 
           target: 'ui:left'
         }, 
         {
-          source: 'blink:right', 
+          source: 'blink_right', 
           target: 'ui:right'
         }
       ]
-    }],
+    },
 }

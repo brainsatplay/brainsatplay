@@ -1,3 +1,5 @@
+import {transformCSSForBCICursor} from '../../ui/cssForBCI'
+
 export class Cursor{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -8,7 +10,8 @@ export class Cursor{
         this.params = params
 
         this.paramOptions = {
-            speed: {default: 1, min: 0, max: 10, step: 0.01}
+            speed: {default: 1, min: 0, max: 10, step: 0.01},
+            robot: {default: false}
         }
 
         this.props = {
@@ -20,7 +23,9 @@ export class Cursor{
             cursorSize: {
                 width: 15,
                 height: 20
-            }
+            },
+            prevHovered: null,
+            globalStyles: []
         }
     }
 
@@ -40,39 +45,21 @@ export class Cursor{
         this.props.cursor.style.zIndex = 10000000;
         this.props.cursor.style.pointerEvents = 'none'
         this.props.cursor.style.position = 'absolute'
-             
         this.props.mutex = false;
 
-
-        document.body.style.cursor = 'none'
-
-        // document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock;
-        // document.body.requestPointerLock()
+        this.props.globalStyles.push(transformCSSForBCICursor())
+        let globalStyle = document.createElement('style');
+        globalStyle.innerHTML = `
+        * {
+            cursor: none
+        }
+        `;
+        document.head.appendChild(globalStyle);
+        this.props.globalStyles.push(globalStyle)
   
         window.addEventListener("mouseClick", this._mouseClick)
         window.addEventListener("mousemove", this._mouseMove);
   
-        /* The following function re-calculates px,py 
-           with respect to new position
-           Clicking on b1 moves the pointer to b2
-           Clicking on b2 moves the pointer to b1 */
-  
-        // b1.onclick = function() {
-        //     if (mutex) {
-        //         mutex = false;
-        //         px = b2.offsetLeft - x;
-        //         py = b2.offsetTop - y;
-        //     }
-        // }
-  
-        // b2.onclick = function() {
-        //     if (mutex) {
-        //         mutex = false;
-        //         px = b1.offsetLeft - x;
-        //         py = b1.offsetTop - y;
-        //     }
-        // }
-
         this.props.cursor.style.left = this.props.x + 'px'
         this.props.cursor.style.top = this.props.y + 'px'
         this.props.looping = true
@@ -80,13 +67,28 @@ export class Cursor{
         let animate = () => {
 
             if (this.props.looping){
-                if (this.props.moveRight) this.right()
-                if (this.props.moveLeft) this.left()
-                if (this.props.moveUp) this.up()
-                if (this.props.moveDown) this.down()
 
-                this.props.cursor.style.left = `${this.props.x}px`
-                this.props.cursor.style.top = `${this.props.y}px`
+                // Start Robot if Required
+                if (this.params.robot && !this.session.info.connected){
+                    this._startRobot()
+                }
+
+                // Grab Current Position of Illusory Cursor
+                let initialX = this.props.x
+                let initialY = this.props.y
+
+                // Move if Triggered
+                if (this.props.moveRight) this.session.atlas.graphs.runSafe(this,'right',[{data: true}])
+                if (this.props.moveLeft) this.session.atlas.graphs.runSafe(this,'left',[{data: true}])
+                if (this.props.moveUp) this.session.atlas.graphs.runSafe(this,'up',[{data: true}])
+                if (this.props.moveDown) this.session.atlas.graphs.runSafe(this,'down',[{data: true}])
+
+                // Trigger Cursor Events
+                if (initialX != this.props.x || initialY != this.props.y){
+                    this.props.cursor.style.left = `${this.props.x}px`
+                    this.props.cursor.style.top = `${this.props.y}px`
+                    this._mouseHover(!this.params.robot)
+                }
 
                 setTimeout(() => {animate()}, 1000/60)
             }
@@ -104,34 +106,34 @@ export class Cursor{
 
         window.removeEventListener("mouseClick", this._mouseClick)
         window.removeEventListener("mousemove", this._mouseMove);
+        this.props.globalStyles.forEach(style => {
+            document.head.removeChild(style);
+        })
     }
 
+  
     default = (userData) => {
         return userData
     }
 
     right = (userData) => {
         if (userData) this._getDecision(userData, 'moveRight')
-        let desiredPos = this.props.x + this.params.speed
-        if (desiredPos < (window.innerWidth - this.props.cursorSize.width)) this.props.x = desiredPos
+        if (this.props['moveRight']) this._moveMouse(this.params.speed,0)
     }
 
     left = (userData) => {
         if (userData) this._getDecision(userData, 'moveLeft')
-        let desiredPos = this.props.x - this.params.speed
-        if (desiredPos > 0) this.props.x = desiredPos
+        if (this.props['moveLeft']) this._moveMouse(-this.params.speed,0)
     }
 
     up = (userData) => {
         if (userData) this._getDecision(userData, 'moveUp')
-        let desiredPos = this.props.y - this.params.speed
-        if (desiredPos > 0) this.props.y = desiredPos
+        if (this.props['moveUp']) this._moveMouse(0,-this.params.speed)
     }
 
     down = (userData) => {
         if (userData) this._getDecision(userData, 'moveDown')
-        let desiredPos = this.props.y + this.params.speed
-        if (desiredPos < (window.innerHeight - this.props.cursorSize.height)) this.props.y = desiredPos
+        if (this.props['moveDown']) this._moveMouse(0,this.params.speed)
     }
 
     click = (userData) => {
@@ -140,20 +142,26 @@ export class Cursor{
     }
 
     _getDecision(userData, command){
-        console.log(userData)
         let choices = userData.map(u => Number(u.data))
         let mean = this.session.atlas.mean(choices)
-        if (command) this.props[command] = mean
+        if (command) this.props[command] = (mean >= 0.5)
+
         return (mean >= 0.5)
     }
 
     _mouseClick = () => {          
         // gets the object on image cursor position
-        var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
-        this.props.mutex = true;
-        tmp.click();
-        this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
-        this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
+        if (this.params.robot){
+            this.session.sendBrainstormCommand(['mouseClick'])
+        } else {
+            var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
+            if (tmp){
+                this.props.mutex = true;
+                tmp.click();
+                this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
+                this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
+            }
+        }
     }
 
 
@@ -166,5 +174,80 @@ export class Cursor{
             // sets the image cursor to new relative position
             this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
             this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
+
+            this._mouseHover(false)
+    }
+
+    _moveMouse(dx,dy){
+        if (this.params.robot){
+            this.session.sendBrainstormCommand(['moveMouse', {x: dx, y: dy}])
+        } else {
+            let desiredX = this.props.x + dx
+            let desiredY = this.props.y + dy
+            if (desiredX < (window.innerWidth - this.props.cursorSize.width) && desiredX > 0) {
+                this.props.x = desiredX
+            } 
+
+            if (desiredY < (window.innerHeight - this.props.cursorSize.height) && desiredY > 0) {
+                this.props.y = desiredY
+            } 
+        }
+    }
+
+
+    _mouseHover = (trigger=true) => {
+        let currentHovered = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
+
+        if (this.props.prevHovered != currentHovered){
+
+            // Trigger Mouse Out on Previous
+            if (this.props.prevHovered != null){
+
+                let prevHovered = this.props.prevHovered
+                let event = new MouseEvent('mouseout', {
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': true
+                    });
+                    prevHovered.dispatchEvent(event);
+                    
+                while (prevHovered) {
+                    prevHovered.classList.remove('hover')
+                    prevHovered = prevHovered.parentNode;
+                    if (prevHovered == null || prevHovered.tagName == 'BODY' || prevHovered.tagName == null) prevHovered = null
+                }
+            }
+
+            this.props.prevHovered = currentHovered
+
+            if (trigger){
+                //Trigger Mouse Over on Current
+                let event = new MouseEvent('mouseover', {
+                'view': window,
+                'bubbles': true,
+                'cancelable': true
+                });
+
+                currentHovered.dispatchEvent(event);
+
+                while (currentHovered) {
+                    currentHovered.classList.add('hover')
+                    currentHovered = currentHovered.parentNode;
+                    if (currentHovered.tagName == 'BODY' || currentHovered.tagName == null) currentHovered = null
+                }
+            }
+        }
+    }
+    
+    _startRobot(){
+        if (this.params.robot && !this.session.info.connected){
+            this.session.login(undefined, undefined, (res) => {
+                console.log('connected')
+            })
+        }
+    }
+
+    _moveRobot(){
+
     }
 }

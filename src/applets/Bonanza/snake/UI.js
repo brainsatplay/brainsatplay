@@ -137,7 +137,6 @@ const moveSnake = () => {
         let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
         canvas.width = squareLength
         canvas.height = squareLength
-        console.log('responding')
     }
 
     default = (userData) => {

@@ -2,6 +2,8 @@
 import { StateManager } from './ui/StateManager'
 import { Session } from './Session'
 import { Brainstorm } from './plugins/utilities/Brainstorm'
+import { Event } from './plugins/inputs/Event'
+
 import { GUI } from 'dat.gui'
 
 export class PluginManager{
@@ -94,7 +96,10 @@ export class PluginManager{
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
-                if (typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'){
+                if (
+                    node instanceof Event
+                    // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
+                    ){
                     let controlDict = {}
                     controlDict.format = typeof firstUserDefault.data
                     controlDict.label = this.getLabel(node,port) // Display Label
@@ -142,7 +147,7 @@ export class PluginManager{
         return {instance: node, controls: controlsToBind}
     }
 
-    add(id, name, graphs){
+    add(id, name, graph){
         let streams = new Set()
         let outputs = {}
         let subscriptions = {
@@ -155,39 +160,37 @@ export class PluginManager{
         let nodes = {}
         let edges = []
         let activePorts = {}
-        graphs.forEach(g => {
 
-            if (Array.isArray(g.edges)){
-                g.edges.forEach(e => {
-                    edges.push(e)
+        if (Array.isArray(graph.edges)){
+            graph.edges.forEach(e => {
+                edges.push(e)
 
-                    // Capture Active Ports
-                    for (let k in e){
-                        let [node,port] = e[k].split(':')
-                        if (activePorts[node] == null) activePorts[node] = new Set()
-                        if (port) activePorts[node].add(port)
-                    }
-                })
+                // Capture Active Ports
+                for (let k in e){
+                    let [node,port] = e[k].split(':')
+                    if (activePorts[node] == null) activePorts[node] = new Set()
+                    if (port) activePorts[node].add(port)
+                }
+            })
+        }
+
+        // Auto-Assign Default Port to Empty Set
+        Object.keys(activePorts).forEach(p => {
+            if (activePorts[p].size == 0){
+                activePorts[p].add('default')
             }
+        })
 
-            // Auto-Assign Default Port to Empty Set
-            Object.keys(activePorts).forEach(p => {
-                if (activePorts[p].size == 0){
-                    activePorts[p].add('default')
-                }
-            })
+        let instance,controls;
+        graph.nodes.forEach(nodeInfo => {
+            if (nodes[nodeInfo.id] == null){
+                nodes[nodeInfo.id] = nodeInfo;
 
-            let instance,controls;
-            g.nodes.forEach(nodeInfo => {
-                if (nodes[nodeInfo.id] == null){
-                    nodes[nodeInfo.id] = nodeInfo;
-
-                    ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
-                    
-                    nodes[nodeInfo.id].instance = instance;
-                    controlsToBind.options.push(...controls);
-                }
-            })
+                ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
+                
+                nodes[nodeInfo.id].instance = instance;
+                controlsToBind.options.push(...controls);
+            }
         })
 
         // Declare Applet Info
@@ -235,7 +238,7 @@ export class PluginManager{
     }
 
     // Input Must Be An Array
-    runSafe(input, node, port='default'){
+    runSafe(node, port='default',input=[{}]){
 
         let stateLabel = this.getLabel(node,port)
 
@@ -251,6 +254,7 @@ export class PluginManager{
             // Or Add Username
             else {
                 if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                if (!inputCopy[i].meta) inputCopy[i].meta = {}
             }
         }
 
@@ -259,10 +263,11 @@ export class PluginManager{
         if (inputCopy.length > 0){
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
-            else result = node['default'](inputCopy) 
+            else if (node.states[port] != null) result = node['default'](inputCopy) 
 
             if (result && result.length > 0){
                 let allEqual = true
+
                 result.forEach((o,i) => {
                     if (node.states[port].length > i){
                         let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
@@ -275,7 +280,7 @@ export class PluginManager{
                         allEqual = false
                     }
                 })
-
+                
                 if (!allEqual && node.stateUpdates){
                     let updateObj = {}
                     updateObj[stateLabel] = true
@@ -312,7 +317,9 @@ export class PluginManager{
                 this.registry.local[node.label].gui[node.label] = []
 
                 // Capitalize Display Name
-                let folderName = node.label[0].toUpperCase() + node.label.slice(1)
+                let splitName = node.label.split('_')
+                splitName = splitName.map(str => str[0].toUpperCase() + str.slice(1))
+                let folderName = splitName.join(' ')
                 this.gui.__folders[node.label].name = folderName
             }
             paramsMenu = this.gui.__folders[node.label]
@@ -439,7 +446,7 @@ export class PluginManager{
             this.addToGUI(nodeInfo)
         }
 
-        // Start Graphs
+        // Start Graph
         applet.edges.forEach((e,i) => {
 
                 let splitSource = e.source.split(':')
@@ -461,7 +468,7 @@ export class PluginManager{
 
                     if (trigger){
 
-                        if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
+                        // if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
                         let input = source.states[sourcePort]
                         if (targetLabel.includes('brainstorm_')){
 
@@ -472,7 +479,7 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
-                        return this.runSafe(input, target, targetPort)
+                        return this.runSafe(target, targetPort, input)
                     }
                 }
                 

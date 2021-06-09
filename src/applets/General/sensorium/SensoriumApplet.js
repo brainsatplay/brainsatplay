@@ -67,6 +67,12 @@ export class SensoriumApplet {
         //settings structure
         /*
         settings input: [{
+            "title": false, //true or false for intro title
+            "mode": "multi", //solo or multi auto select
+            "domain": "https://localhost:443", //Set server domain settings to find sessions
+            "login": false, // choose username, randomid if not specified
+            "session": true, // specify session name, true for autojoin
+            "spectating": false // select whether you are spectating or participating
             "shader":{
                 "name":"Galaxy"
                 OR
@@ -83,32 +89,36 @@ export class SensoriumApplet {
             //add more feedback and sound settings
         }];
         */
+
         if(this.settings.length === 0) this.settings = [{}];
 
-        //-------Required Multiplayer Properties------- 
-        this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = ['modifiers'] // Register your app data streams
-        //----------------------------------------------
 
-        //-------Other Multiplayer Properties------- 
-        this.stateIds = []
-        //----------------------------------------------
-
+        
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
 
+        //-------Required Multiplayer Properties------- 
+        this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
+        this.streams = ['modifiers','hostData'] // Register your app data streams
+        //----------------------------------------------
+
+        //-------Other Multiplayer Properties------- 
+        this.stateIds = []
+        this.mode = 'single';
+        this.roomId = true;
+        //----------------------------------------------
+
+
         // Plugins
         this.graphs = new PluginManager(this.session, {gui: false})
         this.graphs.add(this.props.id, this.info.name, 
-        [
             {
-                id: 'mygraph',
                 nodes: [
                     {id: 'neosensory', class: Buzz},
                 ],
-            }]
+            }
         )
 
         this.tutorialManager = null
@@ -260,6 +270,7 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
         this.isHost = false;
+        this.hostStreamId = null;
         this.hostSoundsUpdated = false;
 
         this.history = 5; 
@@ -304,7 +315,9 @@ void main(){
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
-                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;' id='${props.id}menuspan'>User Controls:</span><input style='display:none;' type='checkbox' id='${props.id}controls' checked>
+                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Sharable Link</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan2'>Share Modifiers:</span><input type='checkbox' id='${props.id}modifiers'>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -459,16 +472,28 @@ void main(){
                 showhide.style.opacity = 0.2;
             }
 
-            document.getElementById(this.props.id+'submitconfig').onclick = () => {
+            document.getElementById(props.id+'submitconfig').onclick = () => {
                 let config;
-                if(this.hostSoundsUpdated) {
-                    config = this.getCurrentConfiguration(true);
+                if(!this.hostSoundsUpdated) {
+                    config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
                     this.hostSoundsUpdated = true;
                 } else {
-                    config = this.getCurrentConfiguration(false);
+                    config = this.getCurrentConfiguration(false,document.getElementById(this.props.id+'modifiers').checked);
                 }
                 this.hostData.config = config;
             }
+
+            document.getElementById(props.id+'share').onclick = () => {
+                let address = this.generateSharableAddress();
+                navigator.clipboard.writeText(address).then(function() {
+                    console.log('Async: Copying to clipboard was successful!');
+                  }, function(err) {
+                    console.error('Async: Could not copy text: ', err);
+                });
+                document.getElementById(props.id+'share').innerHTML = "Copied to Clipboard!";
+                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Sharable Link"},1000);
+            }
+
         }
 
 
@@ -488,11 +513,6 @@ void main(){
         this.looping = true;
         
         this.ct = 0;
-
-
-
-    // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
 
 
     /**
@@ -580,37 +600,21 @@ void main(){
             if (this.three.renderer.domElement != null){
 
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
-                let hostData = this.session.getHostData(this.info.name);
-
-                if (hostData){
-                    console.log(hostData.data.config);
-                    if(this.session.info.auth.username === hostData.username && !this.isHost) {
-                        this.isHost = true;
-                        document.getElementById(this.props.id+'submitconfig').style.display = '';
-                        document.getElementById(this.props.id+'menuspan').style.display = '';
-                        document.getElementById(this.props.id+'controls').style.display = '';
-                    } else if (this.session.info.auth.username !== hostData.username && this.isHost) {
-                        this.isHost = false;
-                        document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                        document.getElementById(this.props.id+'menuspan').style.display = 'none';
-                        document.getElementById(this.props.id+'controls').style.display = 'none';
-                        
-                    }
-                }
-
+                //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
-                       if (data.modifiers){
+                       if(!data['modifiers']) data['modifiers'] = this.modifiers;
+                       if (data['modifiers']){
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
 
-                                if (data.modifiers[name] != null && data.modifiers[name].constructor === Uint8Array) {
-                                    data.modifiers[name] = Array.from(data.modifiers[name])
+                                if (data['modifiers'][name] != null && data['modifiers'][name].constructor === Uint8Array) {
+                                    data['modifiers'][name] = Array.from(data['modifiers'][name])
                                 }
-                                averageModifiers[name].push(data.modifiers[name])
+                                averageModifiers[name].push(data['modifiers'][name])
                             });
                         }
                     })
@@ -657,6 +661,51 @@ void main(){
         document.getElementById(this.props.id+'addeffect').click();
 
         //console.log(this.settings);
+
+        this.session.createIntro(this, (info) => {
+            this.tutorialManager.init();
+            
+            if(info){
+                this.mode = 'multi';
+                this.roomId = info.id;
+                // Multiplayer
+                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
+                this.stateIds.push(this.hostStreamId);
+           
+                if(!this.hostStreamId) {
+
+                    this.hostData = {};
+                    //console.log(this.session.state.data)
+                    
+                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
+                        //console.log(newResult)
+                        let user = newResult.userData.find((o)=>{
+                            if(o.username === newResult.hostname) {
+                                if(o.hostData) {
+                                    if(o.hostData.config) {
+                                        this.configure(o.hostData.config);
+                                    }   
+                                }
+                            }
+                        });
+                                
+                        if(newResult.hostname) {
+                            if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                                this.isHost = true;
+                                document.getElementById(this.props.id+'submitconfig').style.display = '';
+                            } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                                this.isHost = false;
+                                document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                                
+                            }
+                        }                  
+                    
+                    });
+                }
+            } else this.mode = 'single';
+            
+        });
 
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
 
@@ -763,37 +812,18 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
-        
-        // Auto-Join Configuration Settings
-        this.settings[0].title = false
-        this.settings[0].mode = 'multi'
-        this.settings[0].domain = 'https://localhost:443'
-        this.settings[0].login = false
-        this.settings[0].session = true
-        this.settings[0].spectating = false
-
-        this.session.createIntro(this, (info) => {
-            this.tutorialManager.init();
-
-            if (info && info.usernames.length === 0){
-                this.hostData = {};
-
-                this.stateIds.push(this.session.streamAppData('hostData', this.hostData));
-                
-                window.onkeypress = (e) => {
-                    this.hostData.key = e.code
-                }
-            }
-        });
 
         console.log("Configure with settings:",settings);
+        
+        let textdecoder = new TextDecoder();
+
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
                 
                 if(this.effects.length === i) {
                     document.getElementById(this.props.id+'addeffect').click();
                 }
-                if(cmd.controls == 'false') {
+                if(cmd.controls == false) {
                     document.getElementById(this.props.id+'showhide').onclick();
                     document.getElementById(this.props.id+'showhide').onmouseleave();
                 
@@ -813,25 +843,31 @@ void main(){
                         shaderselector.selectedIndex = shaderselector.options.length-1;
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
-                        this.liveEditor.input.value = cmd.shader.frag;
-                        this.setShaderFromText(this.liveEditor.input.value);
+                        let fragment;
+                        if(!cmd.shader.frag.includes('#define')) fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
+                        else fragment = cmd.shader.frag;
+                        //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
+                        this.liveEditor.input.value = fragment;
+                        this.liveEditor.input.oninput();
+                        this.setShaderFromText(fragment);
                     }
                 }
                 if(cmd.modifiers) {
                     Object.assign(this.modifiers,cmd.modifiers);
                 }
                 if(cmd.feedback) {
-
-                    Array.from(cmd.feedback.options).forEach((opt,j) => {
-                        if(opt.value === cmd.feedback || opt.text === cmd.feedback)
+                    Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
+                        if(opt.value === cmd.feedback || opt.text === cmd.feedback) {
                             this.effects[i].feedback.selectedIndex = j;
+                            this.effects[i].feedback.onchange();
+                        }
                     });
                 }
                 if(cmd.soundurl) { //{"name":"etc","url":""}
                     let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
                     let foundidx = 0;
-                    let found = Array.from(soundselect.options).forEach((opt,k) => {
-                        if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
+                    let found = Array.from(soundselect.options).find((opt,k) => {
+                        if(opt.innerHTML === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
                             foundidx = k; 
                             return true;
                         }
@@ -841,7 +877,7 @@ void main(){
                         soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
                         foundidx = soundselect.options.length-1;
                     }
-                    
+                    console.log(foundidx)
                     soundselect.selectedIndex = foundidx;
                     soundselect.onchange();
                 }
@@ -849,9 +885,9 @@ void main(){
                     if(!window.audio) window.audio = new SoundJS();
                     if(!window.audio.ctx) return false;
 
-                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
-                    cmd.soundbuffer.buffer.forEach((b,j) => {
-                        buf.copyToChannel(b,j+1,0);
+                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                    cmd.soundbuffer.buffers.forEach((b,j) => {
+                        buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
                     });
 
                     this.effects[i].input.style.display='none';
@@ -905,25 +941,29 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = (includeSounds=false) => {
+    getCurrentConfiguration = (includeSounds=false, includeModifiers=true) => {
         let settings = [];
-        console.log(this.effects)
+        let textencoder = new TextEncoder();
         this.effects.forEach((e,j) => {
             settings.push({
                 feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                if(e.sourceIdx) {
-                    if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
-                        settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
-                        settings[j].soundbuffer.forEach((channel,k) => {
-                            source.buffer.copyFromChannel(channel,k+1,0);
+                console.log(e);
+                if(e.sourceIdx !== false) {
+                    if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
+                        settings[j].soundbuffer = {};
+                        settings[j].soundbuffer.buffers = new Array(e.source.buffer.numberOfChannels).fill(new Float32Array(Math.floor(e.source.buffer.duration*e.source.buffer.sampleRate)));
+                        settings[j].soundbuffer.buffers.forEach((channel,k) => {
+                            console.log(e.source.buffer)
+                            e.source.buffer.copyFromChannel(channel,k,0);
+                            settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
-                        settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
-                        settings[j].soundbuffer.duration = source.buffer.duration;
+                        settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
+                        settings[j].soundbuffer.duration = e.source.buffer.duration;
                     } else {
                         settings[j].soundurl = {
-                            name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
+                            name:Array.from(document.getElementById(this.props.id+'soundselect'+e.uiIdx).options)[document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIndex].innerHTML,
                             url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
                         };
                     }
@@ -932,15 +972,46 @@ void main(){
         });
 
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
-        settings[0].controls = false;
+        settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
         if(shaderselector.value !== 'fromtext')
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
-        settings[0].modifiers = this.modifiers;
+        if(includeModifiers) settings[0].modifiers = this.modifiers;
+        console.log(settings)
+
+        // Auto-Join Configuration Settings
+        settings[0].title = false
+        settings[0].mode = this.mode;
+        if(this.mode === 'multi') {
+            settings[0].domain = this.session.info.auth.url.href;
+            settings[0].login = false;
+            settings[0].session = this.roomId;
+            settings[0].spectating = false;
+        }
 
         return settings;
+    }
+
+    generateSharableAddress = () => {
+        let config = this.getCurrentConfiguration('urls',document.getElementById(this.props.id+'modifiers').checked);
+        
+        if(config[0].shader.frag) {
+            let textencoder = new TextEncoder();
+            config[0].shader.frag = "[" +textencoder.encode(config[0].shader.frag).toString() + "]";
+            //console.log(config[0].shader.frag)
+        }
+
+        let address;
+        let adr = window.location.href.split('/');
+        if(adr.length === 2) address = adr[0];
+        else if (adr.length >= 3) address = adr.slice(0,3).join('/');
+
+        if(address.indexOf("#Sensorium") > -1) address = address.slice(0,address.indexOf("#Sensorium"));
+        address+=`#{"name":"Sensorium","settings":${JSON.stringify(config)}}`;
+        
+        return address;
     }
 
     addSoundInput = () => {
@@ -1064,7 +1135,8 @@ void main(){
                         window.audio = new SoundJS();
                         if (window.audio.ctx===null) {return;};
                     }
-                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+
+                    if(this.effects[this.effects.length-1].sourceIdx !== false) this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
                     let fx = this.effects[this.effects.length-1];
 
                     fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
@@ -1072,12 +1144,13 @@ void main(){
                             fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
                             //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
                             fx.playing = true;
-                            fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
                             this.hostSoundsUpdated = false;
                         }
                     });
+
+                    console.log(fx)
                    
                 }
             } else if (found != null){
@@ -1430,7 +1503,7 @@ void main(){
 
     setShaderFromText = (text) => {
 
-        let fragShader = text
+        let fragShader = text;
 
         // Dynamically Extract Uniforms
         let regex = new RegExp('uniform (.*) (.*);', 'g')
@@ -1608,14 +1681,14 @@ void main(){
         let node = this.graphs.getNode(this.props.id, 'buzz')
 
         if (modifiers.iAudio){
-            this.graphs.runSafe([{data: modifiers.iAudio, meta: {label: 'iAudio'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         } 
         else if (modifiers.iFFT){
-            this.graphs.runSafe([{data: modifiers.iFFT, meta: {label: 'iFFT'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            this.graphs.runSafe([{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}],node, 'leds')
+            this.graphs.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
         }
     }
 } 

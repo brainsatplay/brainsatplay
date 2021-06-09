@@ -170,8 +170,9 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
     }
  
     //Typical web BLE calls
-    connect = (serviceUUID = this.serviceUUID, rxUUID = this.rxUUID, txUUID = this.txUUID) => { //Must be run by button press or user-initiated call
-     navigator.bluetooth.requestDevice({   
+    connect = async (serviceUUID = this.serviceUUID, rxUUID = this.rxUUID, txUUID = this.txUUID) => { //Must be run by button press or user-initiated call
+        let err = false;
+     await navigator.bluetooth.requestDevice({   
     //    acceptAllDevices: true,
         filters: [{ services: [serviceUUID] }, { namePrefix: 'HEG' }],
        optionalServices: [serviceUUID] 
@@ -198,14 +199,14 @@ export class hegBLE { //This is formatted for the way the HEG sends/receives inf
        })
        .then(sleeper(1100)).then(characteristic=>{
            this.txchar = characteristic;
+           this.onConnectedCallback();
            return characteristic.startNotifications(); // Subscribe to stream
        })
        .then(sleeper(100)).then(characteristic => {
            characteristic.addEventListener('characteristicvaluechanged',
                                            this.onNotificationCallback) //Update page with each notification
        }).then(sleeper(100))
-       .then(this.onConnectedCallback())
-       .catch(err => {console.error(err); this.onErrorCallback(err);});
+       .catch(err => {console.error(err); this.onErrorCallback(err); err = true;});
        
        function sleeper(ms) {
            return function(x) {

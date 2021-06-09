@@ -102,7 +102,7 @@ export class musePlugin {
         if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
         else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
         
-        return time
+        return time;
     }
 
     connect = async () => {

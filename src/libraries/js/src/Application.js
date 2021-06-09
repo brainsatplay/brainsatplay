@@ -22,7 +22,7 @@ export class Application{
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
         };
 
-        this.session.registerApp(this.props.id, this.info.name, this.info.graphs)
+        this.session.registerApp(this.props.id, this.info.name, this.info.graph)
     }
 
 
@@ -37,6 +37,8 @@ export class Application{
             this.uiParams.setupHTML.forEach(f => {
                 f(this)
             })
+
+            this.session.connectDevice()
         }
 
         this.uiParams.HTMLtemplate = `<div id="${this.props.id}" style="height:100%; width:100%;">${this.uiParams.HTMLtemplate}</div>`

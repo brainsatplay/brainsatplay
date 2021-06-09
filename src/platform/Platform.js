@@ -1,6 +1,7 @@
 
 import * as brainsatplay from '../libraries/js/brainsatplay'
 // import * as brainsatplay from 'brainsatplay'
+import {settings} from '../applets/UI/mouse/settings.js'
 
 import {BCIAppManager} from './js/frontend/BCIManager'
 
@@ -55,40 +56,6 @@ if (!window.isMobile){
 }
 
 //
-// Check if Chrome (and display our warning message to users of other browsers)
-//
-
-let checkIfChrome = () => {
-	// https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome/13348618#13348618
-	let isChromium = window.chrome;
-	let winNav = window.navigator;
-	let vendorName = winNav.vendor;
-	let isOpera = typeof window.opr !== "undefined";
-	let isIEedge = winNav.userAgent.indexOf("Edge") > -1;
-	let isIOSChrome = winNav.userAgent.match("CriOS");
-
-	if (isIOSChrome) {
-		return true
-	} else if(
-	isChromium !== null &&
-	typeof isChromium !== "undefined" &&
-	vendorName === "Google Inc." &&
-	isOpera === false &&
-	isIEedge === false
-	) {
-		return true
-	} else { 
-		return false
-	}
-}
-
-window.isChrome = checkIfChrome()
-if (window.isChrome) console.log('On Chrome')
-else console.log('Not on Chrome')
-
-
-
-//
 // Configure the Platform
 //
 
@@ -97,7 +64,11 @@ let localHostURL = `${protocol}//${location.hostname}:443`
 let remoteHostURL = 'https://brainsatplay.azurewebsites.net' //'https://server.brainsatplay.com'
 let urlToConnect = (location.origin.includes('app.brainsatplay.com') ? remoteHostURL : localHostURL)
 
-let bcisession = new brainsatplay.Session('guest','', urlToConnect);
-bcisession.getLocalIP()
+let bcisession = new brainsatplay.Session('guest','', urlToConnect, false);
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
+
+// Add BCI Cursor by Default
+// let bciCursor = new brainsatplay.Application(settings, document.body, bcisession)
+// bciCursor.init()
+// bciCursor.AppletHTML.node.style.display = 'hidden'
