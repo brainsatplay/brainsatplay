@@ -843,7 +843,7 @@ void main(){
                         shaderselector.selectedIndex = shaderselector.options.length-1;
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
-                        this.liveEditor.input.value = cmd.shader.frag;
+                        this.liveEditor.input.value = decodeURIComponent(cmd.shader.frag);
                         this.setShaderFromText(this.liveEditor.input.value);
                     }
                 }
@@ -965,7 +965,7 @@ void main(){
         settings[0].shader = {};
         if(shaderselector.value !== 'fromtext')
             settings[0].shader.name = shaderselector.value;
-        else settings[0].shader.frag = this.liveEditor.input.value;
+        else settings[0].shader.frag = this.currentShader.fragmentShader;
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
         console.log(settings)
