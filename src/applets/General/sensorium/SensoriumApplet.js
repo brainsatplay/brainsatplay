@@ -101,8 +101,6 @@ export class SensoriumApplet {
         this.settings[0].spectating = false
 
         
-
-        
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
@@ -322,7 +320,9 @@ void main(){
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
-                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;' id='${props.id}menuspan'>User Controls:</span><input style='display:none;' type='checkbox' id='${props.id}controls' checked>
+                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Sharable Link</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan2'>Share Modifiers:</span><input type='checkbox' id='${props.id}modifiers'>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -477,16 +477,28 @@ void main(){
                 showhide.style.opacity = 0.2;
             }
 
-            document.getElementById(this.props.id+'submitconfig').onclick = () => {
+            document.getElementById(props.id+'submitconfig').onclick = () => {
                 let config;
                 if(this.hostSoundsUpdated) {
-                    config = this.getCurrentConfiguration(true);
+                    config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
                     this.hostSoundsUpdated = true;
                 } else {
-                    config = this.getCurrentConfiguration(false);
+                    config = this.getCurrentConfiguration(false,document.getElementById(this.props.id+'modifiers').checked);
                 }
                 this.hostData.config = config;
             }
+
+            document.getElementById(props.id+'share').onclick = () => {
+                let address = this.generateSharableAddress();
+                navigator.clipboard.writeText(address).then(function() {
+                    console.log('Async: Copying to clipboard was successful!');
+                  }, function(err) {
+                    console.error('Async: Could not copy text: ', err);
+                });
+                document.getElementById(props.id+'share').innerHTML = "Copied to Clipboard!";
+                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Sharable Link"},1000);
+            }
+
         }
 
 
@@ -686,13 +698,9 @@ void main(){
                             if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
                                 this.isHost = true;
                                 document.getElementById(this.props.id+'submitconfig').style.display = '';
-                                document.getElementById(this.props.id+'menuspan').style.display = '';
-                                document.getElementById(this.props.id+'controls').style.display = '';
                             } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
                                 this.isHost = false;
                                 document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                                document.getElementById(this.props.id+'menuspan').style.display = 'none';
-                                document.getElementById(this.props.id+'controls').style.display = 'none';
                                 
                             }
                         }                  
@@ -927,7 +935,7 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = (includeSounds=false) => {
+    getCurrentConfiguration = (includeSounds=false, includeModifiers=true) => {
         let settings = [];
         this.effects.forEach((e,j) => {
             settings.push({
@@ -959,17 +967,16 @@ void main(){
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
-        settings[0].modifiers = this.modifiers;
+        if(includeModifiers) settings[0].modifiers = this.modifiers;
         console.log(settings)
         return settings;
     }
 
     generateSharableAddress = () => {
-        let config = this.getCurrentConfiguration();
-        let address = ``;
-        if(this.settings.domain) address = this.settings.domain;
-        else address = `https://app.brainsatplay.com`
-        address+=`#{"name":"Sensorium","settings":${config}}`;
+        let config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
+        let address = window.location.href;
+        if(address.indexOf("#Sensorium") > -1) address = address.slice(0,address.indexOf("#Sensorium"));
+        address+=`#{"name":"Sensorium","settings":${JSON.stringify(config)}}`;
         
         return address;
     }
