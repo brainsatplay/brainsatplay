@@ -206,7 +206,7 @@ export class Session {
 		let stateId = "device" + (i)
 
 		newStream.onconnect = () => {
-			this.deviceStreams.push(newStream)
+			this.deviceStreams.push(newStream);
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			
 			this.info.nDevices++;
