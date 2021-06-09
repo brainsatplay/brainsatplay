@@ -40,10 +40,9 @@ To get familiar with HTML, let's create an `index.html` file with the following 
 </html>
 ```
 
-When you open this file, you'll see the following page:
+When you open this file (we recommend using the VSCode [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension), you'll see the following page:
 
 ![Simple Web Page](../../static/img/01-your-first-web-page/html.png)
-
 
 Congratulations, you've created your first Web page! Yet while we have text on the screen, it isn't very pretty. 
 
@@ -85,7 +84,6 @@ Now that we've added some style to our Web page, it looks something like this:
 
 ![Simple Style](../../static/img/01-your-first-web-page/css.png)
 
-
 Great! Now that our page is looking stylish, let's actually start programming a Brains@Play application. 
 
 ### JavaScript
@@ -100,7 +98,7 @@ At this time, we'll also create an `index.js` file and import this into our HTML
     <head>
         <title>Brains@Play Starter Project</title>
         <link rel='stylesheet' href='./style.css'>
-        <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.10"></script> <!-- Import the Brains@Play library from a content delivery network -->
+        <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.12"></script> <!-- Import the Brains@Play library from a content delivery network -->
         <script src="./index.js" type="module"></script> <!-- Import a local JavaScript file into our project -->
     </head>
 
@@ -109,23 +107,26 @@ At this time, we'll also create an `index.js` file and import this into our HTML
 
 As Brains@Play is modular, we've imported the `index.js` file as a **module**. This allows us to take advantage of the `import` and `export` statements and ensure that your code can be immediately contributed to our software library itself!
 
-Now let's open our `index.js` file and create a simple Brains@Play application.
+Now let's open our `index.js` file and embed an empty Brains@Play application into our document.
 
 ``` javascript title="index.js"
-// Create a dictionary with basic details about your app
-let settings = {
-
-  // App Details
-  name: "My First Applet", // Specify the name of your app
-  devices: ["EEG"], // Declare compatible device types
-  intro: true, // Add a default intro animation
-  graph: { // Declare the logic of your app
-      nodes: []
-      edges: []
-  }
-}
-
-let app =  new brainsatplay.Application(settings) // Compile your app based on the specified settings 
-app.init() // Initialize your app and add it to the HTML document
+let app =  new brainsatplay.Application() // Create an app
+app.init() // Initialize the app and add it to the HTML document
 ```
 
+By embedding an empty application into your document, not much has happened. A button has simply been placed into your document, which will open the **Brains@Play Device Manager** for users to connect their biosensing device. 
+
+![Simple Page](../../static/img/01-your-first-web-page/javascript.png)
+
+To do more than this, we'll have to dig into the architecture of a Brains@Play Application.
+
+:::note 
+
+If something isn't working, you can open the [Developer Console](https://balsamiq.com/support/faqs/browserconsole/) on your browser to debug any errors.
+
+:::
+
+## Conclusion
+Congratulations on creating your first web page incorporating the Brains@Play software library! 
+
+In the [next tutorial](./your-first-applet), you'll learn how to design a simple neurofeedback application using the `graph` field of the settings file.
