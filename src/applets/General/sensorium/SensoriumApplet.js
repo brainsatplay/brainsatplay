@@ -67,6 +67,12 @@ export class SensoriumApplet {
         //settings structure
         /*
         settings input: [{
+            "title": false, //true or false for intro layer
+            "mode": "multi", //solo or multi select
+            "domain": "https://localhost:443", //Set server domain settings to find sessions
+            "login": false, // ?
+            "session": true, // ?
+            "spectating": false // select whether you are spectating or playing
             "shader":{
                 "name":"Galaxy"
                 OR
@@ -83,7 +89,18 @@ export class SensoriumApplet {
             //add more feedback and sound settings
         }];
         */
+
         if(this.settings.length === 0) this.settings = [{}];
+
+        // Auto-Join Configuration Settings
+        this.settings[0].title = false
+        this.settings[0].mode = 'multi'
+        this.settings[0].domain = 'https://localhost:443'
+        this.settings[0].login = false
+        this.settings[0].session = true
+        this.settings[0].spectating = false
+
+        
 
         
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
@@ -638,6 +655,59 @@ void main(){
 
         //console.log(this.settings);
 
+        this.session.createIntro(this, (info) => {
+            this.tutorialManager.init();
+
+            if (info && info.usernames.length === 0){
+
+                if(!this.hostStreamId) {
+
+                    this.hostData = {};
+                    console.log(this.session.state.data)
+                    
+                    // Multiplayer
+                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
+                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
+                    this.stateIds.push(this.hostStreamId);
+                
+                    window.onkeypress = (e) => {
+                        this.hostData.key = e.code;
+                        console.log("Applet data: ",this.hostData)
+                        console.log("State data ",this.session.state.data[info.id])
+                    }
+                    
+                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
+                        console.log(newResult)
+                        let user = newResult.userData.find((o)=>{
+                            if(o.username === newResult.hostname) {
+                                if(o.hostData) {
+                                    if(o.hostData.config) {
+                                        this.configure(o.hostData.config);
+                                    }   
+                                }
+                            }
+                        });
+                            
+                        if(newResult.hostname) {
+                            if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                                this.isHost = true;
+                                document.getElementById(this.props.id+'submitconfig').style.display = '';
+                                document.getElementById(this.props.id+'menuspan').style.display = '';
+                                document.getElementById(this.props.id+'controls').style.display = '';
+                            } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                                this.isHost = false;
+                                document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                                document.getElementById(this.props.id+'menuspan').style.display = 'none';
+                                document.getElementById(this.props.id+'controls').style.display = 'none';
+                                
+                            }
+                        }                  
+                    
+                    });
+                }
+            }
+        });
+
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
 
     }
@@ -743,66 +813,6 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
-        
-        // Auto-Join Configuration Settings
-        this.settings[0].title = false
-        this.settings[0].mode = 'multi'
-        this.settings[0].domain = 'https://localhost:443'
-        this.settings[0].login = false
-        this.settings[0].session = true
-        this.settings[0].spectating = false
-
-        this.session.createIntro(this, (info) => {
-            this.tutorialManager.init();
-
-            if (info && info.usernames.length === 0){
-
-                if(!this.hostStreamId) {
-
-                    this.hostData = {};
-                    console.log(this.session.state.data)
-                    
-                    // Multiplayer
-                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
-                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
-                    this.stateIds.push(this.hostStreamId);
-                
-                    window.onkeypress = (e) => {
-                        this.hostData.key = e.code;
-                        console.log("Applet data: ",this.hostData)
-                        console.log("State data ",this.session.state.data[info.id])
-                    }
-                    
-                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                        console.log(newResult)
-                        if(newResult.id === info.id) {
-                            let user = newResult.userData.find((o)=>{
-                                if(o.username === newResult.hostname) {
-                                    if(o.config) {
-                                        this.configure(o.config);
-                                    }   
-                                }
-                            });
-                             
-                            if(newResult.hostname) {
-                                if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
-                                    this.isHost = true;
-                                    document.getElementById(this.props.id+'submitconfig').style.display = '';
-                                    document.getElementById(this.props.id+'menuspan').style.display = '';
-                                    document.getElementById(this.props.id+'controls').style.display = '';
-                                } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
-                                    this.isHost = false;
-                                    document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                                    document.getElementById(this.props.id+'menuspan').style.display = 'none';
-                                    document.getElementById(this.props.id+'controls').style.display = 'none';
-                                    
-                                }
-                            }                  
-                        }
-                    });
-                }
-            }
-        });
 
         console.log("Configure with settings:",settings);
         settings.forEach((cmd,i) => {
@@ -840,7 +850,7 @@ void main(){
                 }
                 if(cmd.feedback) {
 
-                    Array.from(cmd.feedback.options).forEach((opt,j) => {
+                    Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
                         if(opt.value === cmd.feedback || opt.text === cmd.feedback)
                             this.effects[i].feedback.selectedIndex = j;
                     });
