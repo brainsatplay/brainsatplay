@@ -474,7 +474,7 @@ void main(){
 
             document.getElementById(props.id+'submitconfig').onclick = () => {
                 let config;
-                if(this.hostSoundsUpdated) {
+                if(!this.hostSoundsUpdated) {
                     config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
                     this.hostSoundsUpdated = true;
                 } else {
