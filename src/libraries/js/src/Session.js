@@ -894,6 +894,8 @@ else {
 		}
 		else if (parsed.msg === 'sessionData') {
 
+			this.state.data[parsed.id] = parsed;
+
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
 				for (const prop in o) {
@@ -1154,6 +1156,7 @@ else {
 							newResult.sessionInfo.propnames.forEach((prop) => {
 								streamParams.push(prop.split("_"));
 							});
+							this.state.data[newResult.sessionInfo.id] = newResult;
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 							// this.streamObj
 							onsuccess(newResult);
@@ -2073,9 +2076,9 @@ else {
 	}
 
 
-	getHostData(appname){
-		let state = this.state.data.commandResult
-		if (state.msg === 'sessionData' && state.appname === appname){
+	getHostData(appid){
+		let state = this.state.data[appid];
+		if (state.msg === 'sessionData' && state.id === appid){
 			return {data: state.hostData, username: state.hostname}
 		}
 	}

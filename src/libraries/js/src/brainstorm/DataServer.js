@@ -388,11 +388,9 @@ class DataServer {
             let u = this.userData.get(data.username);
 
             for(const prop in data.userData) {
-                if (prop != 'hostData'){
-                    u.props[prop] = data.userData[prop];
-                    if(u.updatedPropnames.indexOf(prop) < 0)
-                        u.updatedPropnames.push(prop);
-                }
+                u.props[prop] = data.userData[prop];
+                if(u.updatedPropnames.indexOf(prop) < 0)
+                    u.updatedPropnames.push(prop);
             }
 
             let now = Date.now();
@@ -406,10 +404,6 @@ class DataServer {
             });
 
             this.appSubscriptions.forEach((o,i) => {
-
-                if (o.hostname === data.username){
-                    o.hostData = data.userData.hostData
-                }
 
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
@@ -516,6 +510,7 @@ class DataServer {
                     id:sub.id,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
+                    hostname:sub.hostname,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
@@ -556,8 +551,7 @@ class DataServer {
 		if(g !== undefined && u !== undefined) {
 
             if (g.usernames.length === 0 && !spectating){
-                g.hostname = username
-                g.hostData = {}
+                g.hostname = username;
             }
 
             if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
@@ -769,8 +763,7 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    hostname: sub.hostname,
-                    hostData: sub.hostData
+                    hostname: sub.hostname
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users

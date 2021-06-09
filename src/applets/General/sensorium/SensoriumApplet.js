@@ -85,19 +85,21 @@ export class SensoriumApplet {
         */
         if(this.settings.length === 0) this.settings = [{}];
 
+        
+        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
+            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            //Add whatever else
+        };
+
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = ['modifiers'] // Register your app data streams
+        this.streams = [this.props.id+'modifiers',this.props.id+'hostData'] // Register your app data streams
         //----------------------------------------------
 
         //-------Other Multiplayer Properties------- 
         this.stateIds = []
         //----------------------------------------------
 
-        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            //Add whatever else
-        };
 
         // Plugins
         this.graphs = new PluginManager(this.session, {gui: false})
@@ -493,7 +495,7 @@ void main(){
 
 
     // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers));
+    this.stateIds.push(this.session.streamAppData(this.props.id+'modifiers', this.modifiers));
 
 
     /**
@@ -589,15 +591,15 @@ void main(){
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
-                       if (data.modifiers){
+                       if (data[this.props.id+'modifiers']){
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
 
-                                if (data.modifiers[name] != null && data.modifiers[name].constructor === Uint8Array) {
-                                    data.modifiers[name] = Array.from(data.modifiers[name])
+                                if (data[this.props.id+'modifiers'][name] != null && data[this.props.id+'modifiers'][name].constructor === Uint8Array) {
+                                    data[this.props.id+'modifiers'][name] = Array.from(data[this.props.id+'modifiers'][name])
                                 }
-                                averageModifiers[name].push(data.modifiers[name])
+                                averageModifiers[name].push(data[this.props.id+'modifiers'][name])
                             });
                         }
                     })
@@ -765,23 +767,26 @@ void main(){
             if (info && info.usernames.length === 0){
                 this.hostData = {};
 
-                console.log(this.session.state.data)
                 if(!this.hostStreamId) {
 
+                    console.log(this.session.state.data)
                     this.hostStreamId = this.session.streamAppData(this.props.id+'hostData', this.hostData);
                     this.stateIds.push(this.hostStreamId);
                     
                     // window.onkeypress = (e) => {
                     //     this.hostData.key = e.code
                     // }
-                    this.hostStreamSub = this.session.state.subscribe('commandResult',(newResult)=>{
+                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
                         console.log(newResult)
                         if(newResult.id === info.id) {
-                            if(newResult.hostData && newResult.hostData.data) {
-                                if(newResult.hostData.data.config) {
-                                    this.configure(hostData.data.config);
+                            let user = newResult.userData.find((o)=>{
+                                if(o.username === newResult.hostname) {
+                                    if(o.config) {
+                                        this.configure(o.config);
+                                    }   
                                 }
-                            }    
+                            });
+                             
                             if(newResult.hostname) {
                                 if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
                                     this.isHost = true;
