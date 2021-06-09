@@ -27,6 +27,8 @@ export class EventRouter{
 
         // Default EEG Controls
 
+        if (!('states' in this.device)) this.device.states = {}
+
         // Blink 
         // TO DO: Check for Frontal Electrodes
         if (this.device.info.deviceType === 'eeg'){
