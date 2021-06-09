@@ -773,7 +773,8 @@ void main(){
                 
                     window.onkeypress = (e) => {
                         this.hostData.key = e.code;
-                        console.log(this.session.state.data.hostData)
+                        console.log("Applet data: ",this.hostData)
+                        console.log("State Data: ",this.session.state.data.hostData)
                     }
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
