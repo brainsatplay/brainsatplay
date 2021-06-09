@@ -945,6 +945,7 @@ void main(){
     */
     getCurrentConfiguration = (includeSounds=false, includeModifiers=true) => {
         let settings = [];
+        let textencoder = new TextEncoder();
         this.effects.forEach((e,j) => {
             settings.push({
                 feedback:e.feedback.value
@@ -954,7 +955,7 @@ void main(){
                     if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
                         settings[j].soundbuffer.buffers = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
                         settings[j].soundbuffer.buffers.forEach((channel,k) => {
-                            "["+source.buffer.copyFromChannel(channel,k+1,0).join(',')+"]";
+                            "["+textencoder.encode(source.buffer.copyFromChannel(channel,k+1,0).toString())+"]";
                         });
                         settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
                         settings[j].soundbuffer.duration = source.buffer.duration;
