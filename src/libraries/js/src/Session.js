@@ -1748,8 +1748,8 @@ else {
 				}
 			}
 			if (applet.info.intro.mode){
-				if (applet.info.intro.mode === 'single') solo.click()
-				if (applet.info.intro.mode === 'multi') multiplayer.click()
+				if (applet.info.intro.mode === 'single' || applet.info.intro.mode === 'solo') solo.click()
+				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') multiplayer.click()
 				modeScreen.style.display = 'none'
 			}
 		}

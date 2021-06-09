@@ -67,12 +67,12 @@ export class SensoriumApplet {
         //settings structure
         /*
         settings input: [{
-            "title": false, //true or false for intro layer
-            "mode": "multi", //solo or multi select
+            "title": false, //true or false for intro title
+            "mode": "multi", //solo or multi auto select
             "domain": "https://localhost:443", //Set server domain settings to find sessions
-            "login": false, // ?
-            "session": true, // ?
-            "spectating": false // select whether you are spectating or playing
+            "login": false, // choose username, randomid if not specified
+            "session": true, // specify session name, true for autojoin
+            "spectating": false // select whether you are spectating or participating
             "shader":{
                 "name":"Galaxy"
                 OR
@@ -92,13 +92,6 @@ export class SensoriumApplet {
 
         if(this.settings.length === 0) this.settings = [{}];
 
-        // Auto-Join Configuration Settings
-        this.settings[0].title = false
-        this.settings[0].mode = 'multi'
-        this.settings[0].domain = 'https://localhost:443'
-        this.settings[0].login = false
-        this.settings[0].session = true
-        this.settings[0].spectating = false
 
         
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
@@ -113,6 +106,8 @@ export class SensoriumApplet {
 
         //-------Other Multiplayer Properties------- 
         this.stateIds = []
+        this.mode = 'solo';
+        this.roomId = true;
         //----------------------------------------------
 
 
@@ -669,18 +664,19 @@ void main(){
 
         this.session.createIntro(this, (info) => {
             this.tutorialManager.init();
-
-            if (info && info.usernames.length === 0){
-
+            
+            if(info){
+                this.mode = 'multi';
+                this.roomId = info.id;
+                // Multiplayer
+                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
+                this.stateIds.push(this.hostStreamId);
+           
                 if(!this.hostStreamId) {
 
                     this.hostData = {};
                     //console.log(this.session.state.data)
-                    
-                    // Multiplayer
-                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
-                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
-                    this.stateIds.push(this.hostStreamId);
                     
                     this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
                         //console.log(newResult)
@@ -693,7 +689,7 @@ void main(){
                                 }
                             }
                         });
-                            
+                                
                         if(newResult.hostname) {
                             if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
                                 this.isHost = true;
@@ -707,7 +703,8 @@ void main(){
                     
                     });
                 }
-            }
+            } else this.mode = 'solo';
+            
         });
 
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
@@ -850,11 +847,9 @@ void main(){
                         if(!cmd.shader.frag.includes('#define')) fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
                         else fragment = cmd.shader.frag;
                         //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
-                        console.log(fragment);
                         this.liveEditor.input.value = fragment;
                         this.liveEditor.input.oninput();
                         this.setShaderFromText(fragment);
-                        console.log(fragment)
                     }
                 }
                 if(cmd.modifiers) {
@@ -980,6 +975,17 @@ void main(){
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
         console.log(settings)
+
+        // Auto-Join Configuration Settings
+        settings[0].title = false
+        settings[0].mode = this.mode;
+        if(this.mode === 'multi') {
+            settings[0].domain = this.session.info.auth.url.href;
+            settings[0].login = false;
+            settings[0].session = this.roomId;
+            settings[0].spectating = false;
+        }
+
         return settings;
     }
 
