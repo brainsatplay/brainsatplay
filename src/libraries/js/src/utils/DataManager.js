@@ -504,14 +504,14 @@ export class DataManager {
     }
 
     //Write CSV data in chunks to not overwhelm memory
-    writeToCSV = (path=this.state.data['sessionName']) => {
-        console.log(path)
+    writeToCSV = (filename=this.state.data['sessionName']) => {
+        console.log(filename)
         if (path != ''){
-            fs.stat('/data/' + path, (e, stats) => {
+            fs.stat('/data/' + filename, (e, stats) => {
                 if (e) throw e;
                 let filesize = stats.size;
                 console.log(filesize)
-                fs.open('/data/' + path, 'r', (e, fd) => {
+                fs.open('/data/' + filename, 'r', (e, fd) => {
                     if (e) throw e;
                     let i = 0;
                     let maxFileSize = this.state.data.fileSizeLimitMb * 1024 * 1024;
@@ -520,7 +520,7 @@ export class DataManager {
                         end = filesize;
                         fs.read(fd, end, 0, 'utf-8', (e, output, bytesRead) => {
                             if (e) throw e;
-                            if (bytesRead !== 0) CSV.saveCSV(output.toString(), path);
+                            if (bytesRead !== 0) CSV.saveCSV(output.toString(), filename);
                             fs.close(fd);
                         });
                     }
@@ -532,7 +532,7 @@ export class DataManager {
                                 fs.read(fd, end, i, 'utf-8', (e, output, bytesRead) => {
                                     if (e) throw e;
                                     if (bytesRead !== 0) {
-                                        CSV.saveCSV(output.toString(), path + "_" + chunk);
+                                        CSV.saveCSV(output.toString(), filename + "_" + chunk);
                                         i += maxFileSize;
                                         chunk++;
                                         writeChunkToFile();
@@ -547,7 +547,7 @@ export class DataManager {
                 });
             });
         } else {
-            console.error('Path name is not defined.')
+            console.error('File name is not defined.')
         }
     }
 
