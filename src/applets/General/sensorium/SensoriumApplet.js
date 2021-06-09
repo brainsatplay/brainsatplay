@@ -106,7 +106,7 @@ export class SensoriumApplet {
 
         //-------Other Multiplayer Properties------- 
         this.stateIds = []
-        this.mode = 'solo';
+        this.mode = 'single';
         this.roomId = true;
         //----------------------------------------------
 
@@ -703,7 +703,7 @@ void main(){
                     
                     });
                 }
-            } else this.mode = 'solo';
+            } else this.mode = 'single';
             
         });
 
@@ -856,17 +856,18 @@ void main(){
                     Object.assign(this.modifiers,cmd.modifiers);
                 }
                 if(cmd.feedback) {
-
                     Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
-                        if(opt.value === cmd.feedback || opt.text === cmd.feedback)
+                        if(opt.value === cmd.feedback || opt.text === cmd.feedback) {
                             this.effects[i].feedback.selectedIndex = j;
+                            this.effects[i].feedback.onchange();
+                        }
                     });
                 }
                 if(cmd.soundurl) { //{"name":"etc","url":""}
                     let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
                     let foundidx = 0;
-                    let found = Array.from(soundselect.options).forEach((opt,k) => {
-                        if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
+                    let found = Array.from(soundselect.options).find((opt,k) => {
+                        if(opt.innerHTML === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
                             foundidx = k; 
                             return true;
                         }
@@ -876,7 +877,7 @@ void main(){
                         soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
                         foundidx = soundselect.options.length-1;
                     }
-                    
+                    console.log(foundidx)
                     soundselect.selectedIndex = foundidx;
                     soundselect.onchange();
                 }
@@ -948,17 +949,21 @@ void main(){
                 feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                if(e.sourceIdx) {
-                    if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
-                        settings[j].soundbuffer.buffers = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
+                console.log(e);
+                if(e.sourceIdx !== false) {
+                    if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
+                        settings[j].soundbuffer = {};
+                        settings[j].soundbuffer.buffers = new Array(e.source.buffer.numberOfChannels).fill(new Float32Array(Math.floor(e.source.buffer.duration*e.source.buffer.sampleRate)));
                         settings[j].soundbuffer.buffers.forEach((channel,k) => {
-                            "["+textencoder.encode(source.buffer.copyFromChannel(channel,k+1,0).toString())+"]";
+                            console.log(e.source.buffer)
+                            e.source.buffer.copyFromChannel(channel,k,0);
+                            settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
-                        settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
-                        settings[j].soundbuffer.duration = source.buffer.duration;
+                        settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
+                        settings[j].soundbuffer.duration = e.source.buffer.duration;
                     } else {
                         settings[j].soundurl = {
-                            name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
+                            name:Array.from(document.getElementById(this.props.id+'soundselect'+e.uiIdx).options)[document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIndex].innerHTML,
                             url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
                         };
                     }
@@ -990,7 +995,7 @@ void main(){
     }
 
     generateSharableAddress = () => {
-        let config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
+        let config = this.getCurrentConfiguration('urls',document.getElementById(this.props.id+'modifiers').checked);
         
         if(config[0].shader.frag) {
             let textencoder = new TextEncoder();
@@ -1130,7 +1135,8 @@ void main(){
                         window.audio = new SoundJS();
                         if (window.audio.ctx===null) {return;};
                     }
-                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+
+                    if(this.effects[this.effects.length-1].sourceIdx !== false) this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
                     let fx = this.effects[this.effects.length-1];
 
                     fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
@@ -1138,12 +1144,13 @@ void main(){
                             fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
                             //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
                             fx.playing = true;
-                            fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
                             this.hostSoundsUpdated = false;
                         }
                     });
+
+                    console.log(fx)
                    
                 }
             } else if (found != null){

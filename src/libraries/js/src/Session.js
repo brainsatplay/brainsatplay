@@ -1866,7 +1866,7 @@ else {
 		}
 
 		// Login Screen
-		if (applet.info.intro?.mode != 'single'){
+		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
 			let onsocketopen = () => {
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
