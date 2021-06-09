@@ -929,7 +929,7 @@ else {
 				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
 			}
 		}
-		else if (parsed.msg === 'sessionData') {
+		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
 
 			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.username === this.info.auth.username) return true;});
 			this.state.data[parsed.id] = parsed;
@@ -953,9 +953,6 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getUsersResult') {
-			this.state.updateState(`commandResult`,parsed)
-		}
-		else if (parsed.msg === 'getSessionDataResult') {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
