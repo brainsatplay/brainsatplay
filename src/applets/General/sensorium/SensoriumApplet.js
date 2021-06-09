@@ -984,10 +984,14 @@ void main(){
         if(config[0].shader.frag) {
             let textencoder = new TextEncoder();
             config[0].shader.frag = "[" +textencoder.encode(config[0].shader.frag).toString() + "]";
-            console.log(config[0].shader.frag)
+            //console.log(config[0].shader.frag)
         }
 
-        let address = window.location.href;
+        let address;
+        let adr = window.location.href.split('/');
+        if(adr.length === 2) address = adr[0];
+        else if (adr.length >= 3) address = adr.slice(0,3).join('/');
+
         if(address.indexOf("#Sensorium") > -1) address = address.slice(0,address.indexOf("#Sensorium"));
         address+=`#{"name":"Sensorium","settings":${JSON.stringify(config)}}`;
         
