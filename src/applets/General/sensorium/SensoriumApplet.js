@@ -846,7 +846,9 @@ void main(){
                         shaderselector.selectedIndex = shaderselector.options.length-1;
                         let e = {target:shaderselector}
                         shaderselector.onchange(e);
-                        let fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
+                        let fragment;
+                        if(!cmd.shader.frag.includes('#define')) fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
+                        else fragment = cmd.shader.frag;
                         //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
                         console.log(fragment);
                         this.liveEditor.input.value = fragment;
