@@ -31,21 +31,20 @@ export class DataManager{
         this.session.atlas.makeNote(`${u.meta.label} ${u.data}`)
     }
 
-    get = (userData) => {
+    get = async (userData) => {
         let trigger = userData[0].data
         if (trigger) {
-            let data = this.session.dataManager.readFromDB()
-            console.log(data)
-            return data
+            this.session.dataManager.readFromDB(undefined, undefined,undefined, (data) => {
+                console.log(data)
+                return data
+            })
         }
     }
 
-    csv = (userData) => {
+    csv = async (userData) => {
         let trigger = userData[0].data
         if (trigger) {
-            let csv = this.session.dataManager.writeToCSV()
-            console.log(csv)
-            return csv
+            this.session.dataManager.writeToCSV()
         }
     }
 }

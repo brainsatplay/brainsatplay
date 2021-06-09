@@ -243,12 +243,7 @@ export class EventRouter{
                 return `
                 <br>
                 <div id='${this.id}routerControls' style="padding: 10px;">
-                    <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
-                        <h4>Event Router</h4>
-                        <button class="brainsatplay-default-button" style="flex-wrap: wrap;">
-                        <p style="font-size: 70%; margin-top: 0;">(e.g. when you switch games)</p>
-                        </button>
-                    </div>
+                    <h4>Event Router</h4>
                     <hr>
                     <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
                     </div>

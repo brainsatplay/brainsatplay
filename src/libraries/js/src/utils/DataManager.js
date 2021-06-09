@@ -375,7 +375,6 @@ export class DataManager {
 
     //Read a chunk of data from a saved dataset
     readFromDB = (filename=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
-        console.log(filename)
         if (filename != ''){
 
         fs.open('/data/' + filename, 'r', (e, fd) => {
