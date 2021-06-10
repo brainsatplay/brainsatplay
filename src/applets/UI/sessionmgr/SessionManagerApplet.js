@@ -407,22 +407,6 @@ export class SessionManagerApplet {
             onread(filesize);
         });
     }
-
-    //Read a chunk of data from a saved dataset
-    readFromDB = (filename='',begin=0,end=5120,onOpen=(data, filename)=>{console.log(data,filename);}) => {
-        fs.open('/data/'+filename,'r',(e,fd) => {
-            if(e) throw e;
-            fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
-                if (er) throw er;
-                if(bytesRead !== 0) {
-                    let data = output.toString();
-                    //Now parse the data back into the buffers.
-                    onOpen(data, filename);
-                }
-            }); 
-        });
-    }
-
     //Write CSV data in chunks to not overwhelm memory
     writeToCSV = (filename) => {
         fs.stat('/data/'+filename,(e,stats) => {
@@ -822,8 +806,8 @@ export class SessionManagerApplet {
 
             const getData = () => {
                 if(end > size) end = size;
-                this.readFromDB(filename,begin,end,(data,file)=>{
-                    let loaded = this.parseDBData(data,head,file,end===size);
+                this.session.dataManager.readFromDB(filename,begin,end,(data,file)=>{
+                    let loaded = this.session.dataManager.parseDBData(data,head,file,end===size);
                     if(!spsEstimate) {
                         let diff = 0;
                         loaded.data.times.slice(0,20).forEach((t,i) => {if(i>0) diff+=(t-loaded.data.times[i-1])});
@@ -1087,7 +1071,7 @@ export class SessionManagerApplet {
 
             const analyzeChunk = () => {
                 if(end > size) { end = size; }
-                this.readFromDB(filename,begin,end,(data,file)=>{
+                this.session.dataManager.readFromDB(filename,begin,end,(data,file)=>{
                     let loaded = this.parseDBData(data,head,file,end===size);
                     if(!spsEstimate) {
                         let diff = 0;

@@ -90,7 +90,7 @@ class Test{
 
     show = (userData) => {
         let show = userData[0].data
-        if (show) document.getElementById(`${this.props.id}`).style.display = 'flex'
+        if (show) this.props.container.style.display = 'flex'
         this.responsive()
         return [{data: true, meta: {label: `${this.label}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}]
     }

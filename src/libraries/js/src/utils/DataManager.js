@@ -196,7 +196,6 @@ export class DataManager {
         });
 
         this.state.data.loaded = {type:'eeg', header:header, data:channels};
-        console.log(this.state.data.loaded)
     }
 
     getEEGDataFromCSV = () => {
@@ -378,7 +377,6 @@ export class DataManager {
     //Read a chunk of data from a saved dataset
     readFromDB = (filename=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
         if (filename != ''){
-
         fs.open('/data/' + filename, 'r', (e, fd) => {
             if (e) throw e;
 
@@ -388,7 +386,7 @@ export class DataManager {
                         let data = output.toString();
                         //Now parse the data back into the buffers.
                         fs.close(fd);
-                        onread(data);
+                        onread(data,filename);
                     };
                 });
             });
@@ -407,6 +405,24 @@ export class DataManager {
                 onload(data);
             });
         });
+    }
+
+    parseDBData = (data,head,filename,hasend=true) => {
+        let lines = data.split('\n'); 
+        lines.shift(); 
+        if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
+
+        console.log(lines)
+        if(filename.indexOf('heg') >-1 ) {
+            this.parseHEGData(lines,head);
+            //this.session.dataManager.loaded
+        } else { //eeg data
+            this.parseEEGData(lines,head);
+        }
+
+        console.log(data,head,filename, hasend)
+        console.log(this.state.data.loaded)
+        return this.state.data.loaded;
     }
 
     getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {

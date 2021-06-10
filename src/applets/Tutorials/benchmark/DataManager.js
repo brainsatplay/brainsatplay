@@ -18,7 +18,11 @@ export class DataManager{
         this.props = {}
     }
 
-    init = () => {}
+    init = () => {
+        if (this.ports.latest.active){
+            this.session.graphs.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
+        }
+    }
 
     deinit = () => {}
 
@@ -31,7 +35,7 @@ export class DataManager{
         this.session.atlas.makeNote(`${u.meta.label} ${u.data}`)
     }
 
-    get = async (userData) => {
+    get = (userData) => {
         let trigger = userData[0].data
         if (trigger) {
             this.session.dataManager.readFromDB(undefined, undefined,undefined, (data) => {
@@ -41,10 +45,23 @@ export class DataManager{
         }
     }
 
-    csv = async (userData) => {
+    csv = (userData) => {
         let trigger = userData[0].data
         if (trigger) {
             this.session.dataManager.writeToCSV()
         }
+    }
+
+    latest = async () => {
+        this.session.dataManager.getFilenames(files => {
+            let filename = files[files.length -1]
+            this.session.dataManager.readFromDB(filename, undefined,undefined, (data,file) => {
+                let head
+                this.session.dataManager.getCSVHeader(filename, (header)=> { 
+                head = header.split(',');
+                let loaded = this.session.dataManager.parseDBData(data,head,file,true);
+            });
+            })
+        })
     }
 }

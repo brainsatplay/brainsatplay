@@ -1187,15 +1187,15 @@ export class DataAtlas {
 				line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 				//first get the raw/filtered
 				if(this.data.other.notes.length > 0) {
-					if(i > 0 && this.data.other.notes[noteidx].length >= noteidx ) {
-						while(this.data.other.notes[noteidx].time < datums[0].times[i]) {
+					if(i > 0) {
+						while(this.data.other.notes.length-1 > noteidx && this.data.other.notes[noteidx].time < datums[0].times[i]) {
 							noteidx++;
 						}
 					}
-					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
+					if(this.data.other.notes[noteidx] && this.data.other.notes[noteidx].time <= datums[0].times[i]) {
 						//if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
 						line.push(this.data.other.notes[noteidx].note); 
-						nodeidx++;
+						noteidx++;
 					} else {
 						line.push('');
 					}
