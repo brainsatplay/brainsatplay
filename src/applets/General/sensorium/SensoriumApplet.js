@@ -671,6 +671,7 @@ void main(){
                 this.mode = 'multi';
 
                 if(this.hostStreamSub) {
+                    this.stateIds.forEach(id => this.session.state.unsubscribeAll(id));
                     this.session.state.unsubscribeAll(this.roomId);
                 }
 
