@@ -84,7 +84,7 @@ export class DataManager {
 	}
 
     parseHEGData = (data=[], header=[]) => {
-        let t = [], red = [], ir = [], ratio = [], temp=[], ratiosma = [], ambient = [], bpm=[], hrv=[], brpm=[], brv=[], beatTimes=[], breathTimes=[], notes=[], noteTimes=[];
+        let t = [], red = [], ir = [], ratio = [], temp=[], ratiosma = [], ambient = [], bpm=[], hrv=[], brpm=[], brv=[], beatTimes=[], breathTimes=[], notes=[], noteTimes=[], noteIndices=[];
         let err = 0;
         let mse = 0;
 
@@ -96,7 +96,7 @@ export class DataManager {
                 return true;
             }
         });
-        data.forEach((r)=>{
+        data.forEach((r,i)=>{
             let row = r.split(',');
             t.push(parseFloat(row[1]));
             red.push(parseFloat(row[2]));
@@ -114,6 +114,7 @@ export class DataManager {
                 if(row[noteidx]) {
                     notes.push(row[noteidx]);
                     noteTimes.push(t[t.length-1]);
+                    noteIndices.push(i);
                 }
             }
 
@@ -125,7 +126,7 @@ export class DataManager {
         this.state.data.type = 'heg';
         this.state.data.loaded.header = header;
         this.state.data.loaded.data = { 
-            times:t, red:red, ir:ir, ratio:ratio, ratiosma:ratiosma, ambient:ambient, temp:temp, error:err, rmse:rmse, notes:notes, noteTimes:noteTimes, 
+            times:t, red:red, ir:ir, ratio:ratio, ratiosma:ratiosma, ambient:ambient, temp:temp, error:err, rmse:rmse, notes:notes, noteTimes:noteTimes, noteIndices:noteIndices,
             bpm:bpm, hrv:hrv, brpm:brpm, brv:brv, beatTimes:beatTimes, breathTimes:breathTimes
         };
     }
@@ -138,7 +139,7 @@ export class DataManager {
     }
 
     parseEEGData = (data, header) => {
-        let channels = {times:[], fftTimes:[], fftFreqs:[], notes:[], noteTimes:[]};
+        let channels = {times:[], fftTimes:[], fftFreqs:[], notes:[], noteTimes:[], noteIndices: []};
         let indices = [];
         let dtypes = [];
         let names = [];
@@ -173,7 +174,7 @@ export class DataManager {
             }
         });
 
-        data.forEach((r) => {
+        data.forEach((r,i) => {
             let row = r.split(',');
             let j = 0;
             let ffttime = false;
@@ -191,12 +192,12 @@ export class DataManager {
                 } else if (dtypes[j] === 'notes' && row[idx]) {
                     channels.notes.push(row[idx]);
                     channels.noteTimes.push(parseFloat(row[1]));
+                    channels.noteIndices.push(i)
                 }
             });
         });
 
         this.state.data.loaded = {type:'eeg', header:header, data:channels};
-        console.log(this.state.data.loaded)
     }
 
     getEEGDataFromCSV = () => {
@@ -378,7 +379,6 @@ export class DataManager {
     //Read a chunk of data from a saved dataset
     readFromDB = (filename=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
         if (filename != ''){
-
         fs.open('/data/' + filename, 'r', (e, fd) => {
             if (e) throw e;
 
@@ -387,8 +387,9 @@ export class DataManager {
                     if (bytesRead !== 0) {
                         let data = output.toString();
                         //Now parse the data back into the buffers.
-                        fs.close(fd);
-                        onread(data);
+                        fs.close(fd, () => {
+                            onread(data,filename);
+                        });
                     };
                 });
             });
@@ -409,6 +410,20 @@ export class DataManager {
         });
     }
 
+    parseDBData = (data,head,filename,hasend=true) => {
+        let lines = data.split('\n'); 
+        lines.shift(); 
+
+        if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
+        if(filename.indexOf('heg') >-1 ) {
+            this.parseHEGData(lines,head);
+            //this.session.dataManager.loaded
+        } else { //eeg data
+            this.parseEEGData(lines,head);
+        }
+        return this.state.data.loaded;
+    }
+
     getCSVHeader = (filename='',onOpen = (header, filename) => {console.log(header,filename);}) => {
         fs.open('/data/'+filename,'r',(e,fd) => {
             if(e) throw e;
@@ -419,7 +434,9 @@ export class DataManager {
                     let lines = data.split('\n');
                     let header = lines[0];
                     //Now parse the data back into the buffers.
-                    onOpen(header, filename);
+                    fs.close(fd,()=>{   
+                        onOpen(header, filename);
+                    });
                 };
             }); 
         });

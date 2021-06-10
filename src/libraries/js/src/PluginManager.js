@@ -238,7 +238,7 @@ export class PluginManager{
     }
 
     // Input Must Be An Array
-    runSafe(node, port='default',input=[{}]){
+    async runSafe(node, port='default',input=[{}]){
 
         let stateLabel = this.getLabel(node,port)
 
@@ -262,8 +262,8 @@ export class PluginManager{
 
         if (inputCopy.length > 0){
             let result
-            if (node[port] instanceof Function) result = node[port](inputCopy)
-            else if (node.states[port] != null) result = node['default'](inputCopy) 
+            if (node[port] instanceof Function) result = await node[port](inputCopy)
+            else if (node.states[port] != null) result = await node['default'](inputCopy) 
 
             if (result && result.length > 0){
                 let allEqual = true

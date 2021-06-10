@@ -568,7 +568,7 @@ select {
 /* Plugin GUI */ 
 #brainsatplay-plugin-gui {
     position:absolute; 
-    bottom: 25px; 
+    bottom: 20px; 
     right: 25px; 
     z-index: 100;
 }

@@ -1,8 +1,8 @@
 
 import {Train} from './Train'
-import {Scheduler} from './Scheduler.js'
-import {DataManager} from './DataManager.js'
-import {Test} from './Test.js'
+import {Scheduler} from './Scheduler'
+import {DataManager} from '../analyzer/DataManager'
+import {Test} from './Test'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
@@ -71,10 +71,10 @@ export const settings = {
         },
 
         // Trigger Data Events 
-        {
-          source: 'scheduler:done', 
-          target: 'data:get'
-        },
+        // {
+        //   source: 'scheduler:done', 
+        //   target: 'data:get'
+        // },
         {
           source: 'scheduler:done', 
           target: 'data:csv'
