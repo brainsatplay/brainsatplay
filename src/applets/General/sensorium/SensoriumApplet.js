@@ -888,8 +888,8 @@ void main(){
 
                     let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
                     cmd.soundbuffer.buffers.forEach((b,j) => {
-                        if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
-                        else buf.copyToChannel(b,j+1,0);
+                        if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+                        else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
                     });
 
                     this.effects[i].input.style.display='none';
