@@ -385,8 +385,9 @@ export class DataManager {
                     if (bytesRead !== 0) {
                         let data = output.toString();
                         //Now parse the data back into the buffers.
-                        fs.close(fd);
-                        onread(data,filename);
+                        fs.close(fd, () => {
+                            onread(data,filename);
+                        });
                     };
                 });
             });
@@ -435,7 +436,9 @@ export class DataManager {
                     let lines = data.split('\n');
                     let header = lines[0];
                     //Now parse the data back into the buffers.
-                    onOpen(header, filename);
+                    fs.close(fd,()=>{   
+                        onOpen(header, filename);
+                    });
                 };
             }); 
         });

@@ -58,9 +58,9 @@ export class DataManager{
             this.session.dataManager.readFromDB(filename, undefined,undefined, (data,file) => {
                 let head
                 this.session.dataManager.getCSVHeader(filename, (header)=> { 
-                head = header.split(',');
-                let loaded = this.session.dataManager.parseDBData(data,head,file,true);
-            });
+                    head = header.split(',');
+                    let loaded = this.session.dataManager.parseDBData(data,head,file,true);
+                });
             })
         })
     }
