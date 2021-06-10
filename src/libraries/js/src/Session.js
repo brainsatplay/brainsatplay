@@ -1660,7 +1660,7 @@ else {
 
 		// Override App Settings with Configuration Settings
 		if (applet.info.intro == null) applet.info.intro = {}
-		else if (applet.info.intro == true) applet.info.intro = {title: true}
+		else if (applet.info.intro != false) applet.info.intro = {title: true}
 
 		applet.settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
