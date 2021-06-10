@@ -667,19 +667,24 @@ void main(){
 
         this.session.createIntro(this, (info) => {
             this.tutorialManager.init();
-            
-            if(info && !this.hostStreamId){
+            if(info && this.roomId !== info.id){
                 this.mode = 'multi';
+
+                if(this.hostStreamSub) {
+                    this.session.state.unsubscribeAll(this.roomId);
+                }
+
                 this.roomId = info.id;
                 
-                this.hostData = {};
-                // Multiplayer
-                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
-                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
-                this.stateIds.push(this.hostStreamId);
-
+                if(!this.hostStreamId){
+                    this.hostData = {};
+                    // Multiplayer
+                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.roomId ));
+                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, this.roomId );
+                    this.stateIds.push(this.hostStreamId);
+                }
                 
-                this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
+                this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
                     //console.log(newResult)
                     let user = newResult.userData.find((o)=>{
                         if(o.username === newResult.hostname) {
