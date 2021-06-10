@@ -1162,7 +1162,7 @@ export class DataAtlas {
 
 	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
 		 
-		let header = ["TimeStamps","UnixTime"];
+		let header = ["TimeStamps","UnixTime","Notes"];
 		let data = [];
 		let mapidx = 0;
 		let noteidx = 0;
@@ -1186,6 +1186,20 @@ export class DataAtlas {
 				let line=[];
 				line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 				//first get the raw/filtered
+				if(this.data.other.notes.length > 0) {
+					if(i > 0 && this.data.other.notes[noteidx].length >= noteidx ) {
+						while(this.data.other.notes[noteidx].time < datums[0].times[i]) {
+							noteidx++;
+						}
+					}
+					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
+						//if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
+						line.push(this.data.other.notes[noteidx].note); 
+						nodeidx++;
+					} else {
+						line.push('');
+					}
+				} else { line.push(''); }
 				datums.forEach((row,j) => {
 					if(i === 0) { header.push(row.tag); }
 					if(row.filtered.length > i) {
@@ -1231,21 +1245,6 @@ export class DataAtlas {
 						mapidx++;	
 					}
 				}
-				if(this.data.other.notes.length > 0 && (ffts_appended || !getFFTs)) {
-					if(i === 0) {
-						header.push('Notes');
-					} else {
-						while(this.data.other.notes[noteidx].time < datums[0].times[i]) {
-							noteidx++;
-						}
-					}
-					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
-						if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
-						line.push(this.data.other.notes[noteidx].note); 
-						nodeidx++;
-					}
-				}
-
 
 				data.push(line.join(","));
 			}

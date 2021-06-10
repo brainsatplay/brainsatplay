@@ -156,7 +156,7 @@ export class DataManager {
                     channels[v[0]+"_fft"] = [];
                     names.push(v[0]+"_fft");
                 }
-            } else if (ffts === false && idx > 1) {
+            } else if (ffts === false && idx > 2) {
                 indices.push(idx); //push all headers till we get to the first fft header
                 channels[v[0]+"_signal"] = [];
                 names.push(v[0]+"_signal");
@@ -169,6 +169,7 @@ export class DataManager {
                 dtypes.push('notes');
                 names.push('notes');
                 indices.push(idx);
+                //console.log(idx)
             }
         });
 
@@ -189,12 +190,13 @@ export class DataManager {
                     channels.times.push(parseFloat(row[1]));
                 } else if (dtypes[j] === 'notes' && row[idx]) {
                     channels.notes.push(row[idx]);
-                    channels.noteTimes.push(row[1]);
+                    channels.noteTimes.push(parseFloat(row[1]));
                 }
             });
         });
 
         this.state.data.loaded = {type:'eeg', header:header, data:channels};
+        console.log(this.state.data.loaded)
     }
 
     getEEGDataFromCSV = () => {
