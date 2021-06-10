@@ -709,7 +709,7 @@ void main(){
                 
                 });
             
-            } else this.mode = 'single';
+            }
             
         });
 
