@@ -13,6 +13,7 @@ export class DataManager{
             log:{},
             get:{},
             csv:{},
+            latest:{}
         }
 
         this.props = {}
@@ -52,16 +53,21 @@ export class DataManager{
         }
     }
 
-    latest = async () => {
+    latest = () => {
+        return new Promise((resolve) => {
+
+        let loaded
         this.session.dataManager.getFilenames(files => {
             let filename = files[files.length -1]
-            this.session.dataManager.readFromDB(filename, undefined,undefined, (data,file) => {
-                let head
+            this.session.dataManager.getFileSize(filename,(size) => {
+            this.session.dataManager.readFromDB(filename, 0,size, (data,file) => {
                 this.session.dataManager.getCSVHeader(filename, (header)=> { 
-                head = header.split(',');
-                let loaded = this.session.dataManager.parseDBData(data,head,file,true);
+                loaded = this.session.dataManager.parseDBData(data,header.split(','),file,true);
+                resolve([{data: loaded, meta:{label: `${this.label}_loaded`}}])
             });
             })
+            })
         })
+    })
     }
 }
