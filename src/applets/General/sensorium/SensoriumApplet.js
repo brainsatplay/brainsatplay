@@ -668,44 +668,42 @@ void main(){
         this.session.createIntro(this, (info) => {
             this.tutorialManager.init();
             
-            if(info){
+            if(info && !this.hostStreamId){
                 this.mode = 'multi';
                 this.roomId = info.id;
                 // Multiplayer
                 this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
                 this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
                 this.stateIds.push(this.hostStreamId);
-           
-                if(!this.hostStreamId) {
 
-                    this.hostData = {};
-                    //console.log(this.session.state.data)
-                    
-                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                        //console.log(newResult)
-                        let user = newResult.userData.find((o)=>{
-                            if(o.username === newResult.hostname) {
-                                if(o.hostData) {
-                                    if(o.hostData.config) {
-                                        this.configure(o.hostData.config);
-                                    }   
-                                }
+                this.hostData = {};
+                //console.log(this.session.state.data)
+                
+                this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
+                    //console.log(newResult)
+                    let user = newResult.userData.find((o)=>{
+                        if(o.username === newResult.hostname) {
+                            if(o.hostData) {
+                                if(o.hostData.config) {
+                                    this.configure(o.hostData.config);
+                                }   
                             }
-                        });
-                                
-                        if(newResult.hostname) {
-                            if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
-                                this.isHost = true;
-                                document.getElementById(this.props.id+'submitconfig').style.display = '';
-                            } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
-                                this.isHost = false;
-                                document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                                
-                            }
-                        }                  
-                    
+                        }
                     });
-                }
+                            
+                    if(newResult.hostname) {
+                        if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                            this.isHost = true;
+                            document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                            this.isHost = false;
+                            document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                            
+                        }
+                    }                  
+                
+                });
+            
             } else this.mode = 'single';
             
         });
