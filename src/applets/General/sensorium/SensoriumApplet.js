@@ -680,7 +680,7 @@ void main(){
 
                 
                 this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                    console.log(newResult)
+                    //console.log(newResult)
                     let user = newResult.userData.find((o)=>{
                         if(o.username === newResult.hostname) {
                             if(o.hostData) {
