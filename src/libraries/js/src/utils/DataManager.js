@@ -269,7 +269,7 @@ export class DataManager {
                             this.listFiles();
                         }); //+"_c"+State.data.sessionChunks
                     } 
-                    this.deviceSub = this.session.subscribe(this.deviceName, this.session.atlas.data.eegShared.eegChannelTags[0].ch, undefined, (row) => {
+                    this.deviceSub = this.session.subscribe(this.deviceName, this.session.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
                         //console.log(row.count, this.state.data.eegSaveCounter);
                         if (this.state.data.autosaving) {
                             if (this.state.data.saveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
@@ -281,7 +281,7 @@ export class DataManager {
                     });
                     document.getElementById("saveBCISession").onclick = () => {
                         console.log(this.session.deviceStreams)
-                        let row = this.session.atlas.getEEGDataByChannel(this.session.atlas.data.eegShared.eegChannelTags[0].ch);
+                        let row = this.session.atlas.getEEGDataByChannel(this.session.atlas.data.eegshared.eegChannelTags[0].ch);
                         if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                         this.autoSaveEEGChunk(this.state.data.saveCounter, undefined, 'eeg' + "_" + this.deviceName);
                         this.state.data.eegSaveCounter = row.count;
