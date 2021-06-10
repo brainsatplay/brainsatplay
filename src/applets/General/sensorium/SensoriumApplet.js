@@ -673,7 +673,7 @@ void main(){
 
                 if(this.hostStreamId) {
                     this.stateIds.forEach(id => this.session.state.unsubscribeAll(id));
-                    this.session.state.unsubscribeAll(this.roomId);
+                    this.session.state.unsubscribe(this.roomId,this.hostStreamSub);
                 }
 
                 this.roomId = info.id;
