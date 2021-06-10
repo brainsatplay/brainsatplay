@@ -271,7 +271,8 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
         this.isHost = false;
-        this.hostStreamId = null;
+        this.hostStreamId = undefined;
+        this.hostStreamSub = undefined;
         this.hostSoundsUpdated = false;
 
         this.history = 5; 
@@ -670,7 +671,7 @@ void main(){
             if(info && this.roomId !== info.id){
                 this.mode = 'multi';
 
-                if(this.hostStreamSub) {
+                if(this.hostStreamId) {
                     this.stateIds.forEach(id => this.session.state.unsubscribeAll(id));
                     this.session.state.unsubscribeAll(this.roomId);
                 }
