@@ -602,7 +602,6 @@ void main(){
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
-
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
                 //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)

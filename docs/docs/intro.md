@@ -21,13 +21,15 @@ In the realm of brain-computer interfaces (BCIs), [BCI2000](https://github.com/c
 Here's why we think you should take web-based (particularly browser-based) biosensing seriously.
 
 ### 1. Everyone Has A Brain
-**Why not develop applications accessible to all of them?** Brains@Play creates neurotechnology with everyone by taking advantage of the universal interface of modern technology: the web browser. The Web is the only platform positioned to elevate all of society through widespread home use of neurofeedback and BCIs—both by healthy users *as well as* those with neurological disorders. Our device-agnostic data acquisition system standardizes data streams from a variety of devices so you don't have to worry about compatibility when developing applications.
+**Why not develop applications accessible to all of them?** Brains@Play creates neurotechnology with everyone by taking advantage of the universal interface of modern technology: the web browser. The Web is the only platform positioned to elevate all of society through widespread home use of neurofeedback and BCIs—both by healthy users *as well as* those with neurological disorders. 
+
+Our device-agnostic data acquisition system standardizes data streams from a variety of devices so you don't have to worry about compatibility when developing applications. In this way, the benefits of neurotechnology innovation on Brains@Play can be distributed to all.
 
 ### 2. Code for the Client
 **We want biosensing applications to seamlessly transfer from your Github repository to the browser!** Whether or not you're connected to the internet, you should always have the opportunity to receive real-time information about your brain. The development of a Javascript BCI library, affordable hardware, and experiences that truly captivate users will extend the benefits of biosensing technology to all.
 
 ### 3. Access to our Brains and Bodies Requires Access to Source Code
-Since Brains@Play is licensed under the GPLv3 license, **you must distribute your own source code under a GPLv3-compatible license if your software includes or modifies the Brains@Play codebase.** 
+Since Brains@Play is licensed under the GPLv3 license, **you must distribute your own source code under a GPLv3-compatible license if your software includes or modifies the Brains@Play codebase.** You can consider this **the only ground rule** for working with our software.
 
 A full list of licenses that qualify as free software licenses, and are compatible with the GNU GPL, can be found [here](https://www.gnu.org/licenses/license-list.en.html).
 
