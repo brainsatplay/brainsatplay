@@ -1168,6 +1168,7 @@ export class DataAtlas {
 		let noteidx = 0;
 		let datums = [];
 		let fft_ref_ch = null;
+		let ffts_appended = false;
 		this.data.eegshared.eegChannelTags.forEach((row,j) => {
 			if(fft_ref_ch === null && row.tag !== 'other' && row.analyze === true) fft_ref_ch = this.getEEGDataByChannel(row.ch)
 			datums.push(this.getEEGDataByChannel(row.ch));
@@ -1175,7 +1176,7 @@ export class DataAtlas {
 
 		if(datums.length > 0) {
 			if(to === 'end') { to = datums[0].count; }
-			if(datums[0].count < from) { from = this.atlas.rolloverLimit - 2000; }
+			if(datums[0].count < from && from > this.atlas.rolloverLimit-2000) { from = this.atlas.rolloverLimit - 2000; }
 			if(from!==0) { 
 				while (fft_ref_ch.fftTimes[mapidx] < datums[0].times[from]) {
 					mapidx++;
@@ -1206,6 +1207,7 @@ export class DataAtlas {
 								if(!found){ //don't add headers for rows not being analyzed
 									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
 									header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+									ffts_appended = true;
 								}
 							}
 							if(datums[0].times[i] === row.fftTimes[mapidx]) {
@@ -1229,7 +1231,7 @@ export class DataAtlas {
 						mapidx++;	
 					}
 				}
-				if(this.data.other.notes.length > 0) {
+				if(this.data.other.notes.length > 0 && (ffts_appended || !getFFTs)) {
 					if(i === 0) {
 						header.push('Notes');
 					} else {

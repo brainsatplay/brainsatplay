@@ -793,7 +793,7 @@ export class SessionManagerApplet {
                 `; 
         
             }
-            else if (filename.includes('eeg')) {
+            else if (filename.includes('eeg') || filename.includes('synthetic') || filename.includes('muse')) {
                   //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                   document.getElementById(this.props.id+'plotmenu').innerHTML = `
                   <select id='${this.props.id}plotselect'>

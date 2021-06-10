@@ -66,10 +66,10 @@ export class SoundJS { //Only one Audio context at a time!
     }
   
     //Add a sound file from the app assets or a website url
-    addSounds(urlList=[''], onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
+    addSounds(urlList=[''], onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}, canAddFile=false){
       if(typeof urlList === 'string') urlList = [urlList];
       var bufferLoader = new BufferLoader(this, urlList, this.finishedLoading, onReady, onBeginDecoding)
-      bufferLoader.load();
+      bufferLoader.load(canAddFile);
     }
 
     //Get a file off the user's computer and decode it into the sound system
@@ -358,7 +358,7 @@ export class BufferLoader { //Modified from HTML5 Rocks tutorial
 
   onBeginDecoding = () => {}
 
-  loadBuffer(url='',index){
+  loadBuffer(url='',index, canAddFile=false){
    // Load buffer asynchronously
    var request = new XMLHttpRequest();
    request.responseType = "arraybuffer";
@@ -401,7 +401,7 @@ export class BufferLoader { //Modified from HTML5 Rocks tutorial
    
      request.send();
    }
-   else{//Local Audio
+   else if(canAddFile){//Local Audio
      //read and decode the file into audio array buffer 
      var loader = this;
      var fr = new FileReader();
@@ -448,9 +448,9 @@ export class BufferLoader { //Modified from HTML5 Rocks tutorial
 
  }
 
- load(){
+ load(canAddFile = true){
    for (var i = 0; i < this.urlList.length; ++i)
-   this.loadBuffer(this.urlList[i], i);
+   this.loadBuffer(this.urlList[i], i, canAddFile);
  }
  
 }

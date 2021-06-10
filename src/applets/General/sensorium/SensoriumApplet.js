@@ -148,6 +148,7 @@ export class SensoriumApplet {
         this.hidden = false;
         this.editorhidden = true;
         this.quickrefhidden = true;
+        this.shaderEdited = false;
 
         // UI
         this.three = {}
@@ -270,7 +271,8 @@ export class SensoriumApplet {
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
         this.isHost = false;
-        this.hostStreamId = null;
+        this.hostStreamId = undefined;
+        this.hostStreamSub = undefined;
         this.hostSoundsUpdated = false;
 
         this.history = 5; 
@@ -315,7 +317,7 @@ void main(){
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
-                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Sharable Link</button>
+                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan2'>Share Modifiers:</span><input type='checkbox' id='${props.id}modifiers'>
                         </div>
@@ -351,6 +353,7 @@ void main(){
                     language: 'glsl', 
                     target: this.currentShader.fragmentShader,
                     onSave: () => {
+                        this.shaderEdited = true;
                         this.setShaderFromText(this.liveEditor.input.value);
                     }
             }, editorContainer)
@@ -424,6 +427,7 @@ void main(){
                         }
                     }
                     if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
+                    this.shaderEdited = false;
                     this.swapShader();
                     this.setEffectOptions();
                 } 
@@ -484,14 +488,14 @@ void main(){
             }
 
             document.getElementById(props.id+'share').onclick = () => {
-                let address = this.generateSharableAddress();
+                let address = this.generateShareableAddress();
                 navigator.clipboard.writeText(address).then(function() {
                     console.log('Async: Copying to clipboard was successful!');
                   }, function(err) {
                     console.error('Async: Could not copy text: ', err);
                 });
                 document.getElementById(props.id+'share').innerHTML = "Copied to Clipboard!";
-                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Sharable Link"},1000);
+                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Shareable Link"},1000);
             }
 
         }
@@ -598,7 +602,6 @@ void main(){
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
-
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
                 //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
@@ -664,45 +667,48 @@ void main(){
 
         this.session.createIntro(this, (info) => {
             this.tutorialManager.init();
-            
-            if(info){
+            if(info && this.roomId !== info.id){
                 this.mode = 'multi';
-                this.roomId = info.id;
-                // Multiplayer
-                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
-                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
-                this.stateIds.push(this.hostStreamId);
-           
-                if(!this.hostStreamId) {
 
-                    this.hostData = {};
-                    //console.log(this.session.state.data)
-                    
-                    this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                        //console.log(newResult)
-                        let user = newResult.userData.find((o)=>{
-                            if(o.username === newResult.hostname) {
-                                if(o.hostData) {
-                                    if(o.hostData.config) {
-                                        this.configure(o.hostData.config);
-                                    }   
-                                }
-                            }
-                        });
-                                
-                        if(newResult.hostname) {
-                            if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
-                                this.isHost = true;
-                                document.getElementById(this.props.id+'submitconfig').style.display = '';
-                            } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
-                                this.isHost = false;
-                                document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                                
-                            }
-                        }                  
-                    
-                    });
+                if(this.hostStreamId) {
+                    this.stateIds.forEach(id => this.session.state.unsubscribeAll(id));
+                    this.session.state.unsubscribe(this.roomId,this.hostStreamSub);
                 }
+
+                this.roomId = info.id;
+            
+                this.hostData = {};
+                // Multiplayer
+                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.roomId ));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, this.roomId );
+                this.stateIds.push(this.hostStreamId);
+                
+                
+                this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
+                    //console.log(newResult)
+                    let user = newResult.userData.find((o)=>{
+                        if(o.username === newResult.hostname) {
+                            if(o.hostData) {
+                                if(o.hostData.config) {
+                                    this.configure(o.hostData.config);
+                                }   
+                            }
+                        }
+                    });
+                            
+                    if(newResult.hostname) {
+                        if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                            this.isHost = true;
+                            document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                            this.isHost = false;
+                            document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                            
+                        }
+                    }                  
+                
+                });
+            
             } else this.mode = 'single';
             
         });
@@ -887,7 +893,8 @@ void main(){
 
                     let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
                     cmd.soundbuffer.buffers.forEach((b,j) => {
-                        buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
+                        if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+                        else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
                     });
 
                     this.effects[i].input.style.display='none';
@@ -941,7 +948,7 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = (includeSounds=false, includeModifiers=true) => {
+    getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();
         this.effects.forEach((e,j) => {
@@ -949,7 +956,7 @@ void main(){
                 feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                console.log(e);
+                //console.log(e);
                 if(e.sourceIdx !== false) {
                     if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
                         settings[j].soundbuffer = {};
@@ -957,7 +964,7 @@ void main(){
                         settings[j].soundbuffer.buffers.forEach((channel,k) => {
                             console.log(e.source.buffer)
                             e.source.buffer.copyFromChannel(channel,k,0);
-                            settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
+                            if(encodeSoundsAsText) settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
                         settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
                         settings[j].soundbuffer.duration = e.source.buffer.duration;
@@ -974,7 +981,7 @@ void main(){
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
-        if(shaderselector.value !== 'fromtext')
+        if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
@@ -994,7 +1001,7 @@ void main(){
         return settings;
     }
 
-    generateSharableAddress = () => {
+    generateShareableAddress = () => {
         let config = this.getCurrentConfiguration('urls',document.getElementById(this.props.id+'modifiers').checked);
         
         if(config[0].shader.frag) {
@@ -1027,6 +1034,7 @@ void main(){
                     <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</span>
                     <div id='${props.id}fileWrapper${idx}' style="">  
                         <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
+                        <span id='${props.id}customspan${idx}' style='display:none;'><input type='text' id='${props.id}customname${idx}' placeholder='File Name'></input><input type='text' id='${props.id}customurl${idx}' placeholder='File URL'></input><button id='${props.id}customsubmit${idx}'>Load</button></span>
                         <span id='${props.id}status${idx}'></span>
                     </div>
                     <span id='${props.id}fileinfo${idx}' style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;'>Loading...</span>
@@ -1107,14 +1115,32 @@ void main(){
             
         }
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`)
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`)
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`);
+
+        document.getElementById(this.props.id+'customsubmit'+newEffect.uiIdx).onclick = () => {
+            let name = document.getElementById(this.props.id+'customname'+newEffect.uiIdx).value;
+            let url = document.getElementById(this.props.id+'customurl'+newEffect.uiIdx).value;
+            if(name.length>0 && url.length>0) {
+                var option = document.createElement("option");
+                option.innerHTML = name;
+                option.value = url;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).options.length-1;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange();
+            }
+        }
 
         this.soundUrls.forEach((obj)=>{
-            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='${obj.url}'>${obj.name}</option>`)
+            var option = document.createElement("option");
+            option.innerHTML = obj.name;
+            option.value = obj.url;
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
         });
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Custom File</option>`)
+        
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='custom'>Add Audio URL</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Local File</option>`)
 
 
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
@@ -1127,6 +1153,12 @@ void main(){
                     return true;
                 }
             });
+
+            if (soundurl === 'custom') {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = '';
+            } else {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = 'none';   
+            }
 
             if (soundurl === 'micin'){
                 if(!found){
@@ -1153,17 +1185,18 @@ void main(){
                     console.log(fx)
                    
                 }
-            } else if (found != null){
+            }
+            else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
                 this.effects.splice(idx,1);
             } 
 
-            if (!['micin', 'none'].includes(soundurl)) {
+            if (!['micin', 'none', 'custom'].includes(soundurl)) {
+                console.log(soundurl)
                 if (soundurl === 'addfile') {
-
                     if(!window.audio) window.audio = new SoundJS();
                     if (window.audio.ctx===null) {return;};
-                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+                    //document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                     window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                         
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
@@ -1212,7 +1245,7 @@ void main(){
                         console.log("Decoding...");
                         newEffect.input.style.display='none';
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
-                    });
+                    }, false);
                 }
             }
 
