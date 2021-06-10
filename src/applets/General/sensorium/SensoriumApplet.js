@@ -317,7 +317,7 @@ void main(){
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
-                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Sharable Link</button>
+                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan2'>Share Modifiers:</span><input type='checkbox' id='${props.id}modifiers'>
                         </div>
@@ -488,14 +488,14 @@ void main(){
             }
 
             document.getElementById(props.id+'share').onclick = () => {
-                let address = this.generateSharableAddress();
+                let address = this.generateShareableAddress();
                 navigator.clipboard.writeText(address).then(function() {
                     console.log('Async: Copying to clipboard was successful!');
                   }, function(err) {
                     console.error('Async: Could not copy text: ', err);
                 });
                 document.getElementById(props.id+'share').innerHTML = "Copied to Clipboard!";
-                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Sharable Link"},1000);
+                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Shareable Link"},1000);
             }
 
         }
@@ -1002,7 +1002,7 @@ void main(){
         return settings;
     }
 
-    generateSharableAddress = () => {
+    generateShareableAddress = () => {
         let config = this.getCurrentConfiguration('urls',document.getElementById(this.props.id+'modifiers').checked);
         
         if(config[0].shader.frag) {
