@@ -4,14 +4,14 @@
 */
 
 
-class blueberry{
+export class blueberry{
     constructor(ondata=(data)=>{},onconnect=()=>{},ondisconnect=()=>{}){
         this.interface = new BlueberryWebBluetoothA();
-        // this.interface.onConnectedCallback = onconnect;
-        // this.interface.onDisconnectedCallback = ondisconnect;
-        this.interface.onStateChange = (data) => {
+        this.interface.onConnectedCallback = onconnect;
+        this.interface.onDisconnectedCallback = ondisconnect;
+        this.interface.onStateChange((data) => {
             ondata(data);
-        }
+        })
     }
 
     connect() { 
@@ -50,29 +50,28 @@ var _thisA;
 var stateA = {};
 var writeCharac;
 
-class BlueberryWebBluetoothA{
-  constructor(name){
+export class BlueberryWebBluetoothA{
+  constructor(){
     _thisA = this;
-    this.name = name;
+    this.name = 'blueberry';
     this.services = services;
     this.characteristics = characteristics;
     this.standardServer;
+    this.device = null
+    
   }
 
   connect(){
     return navigator.bluetooth.requestDevice({
-      filters: [
-        {name: this.name},
-        {
-          services: [services.fnirsService.uuid]
-        }
-      ]
+      filters: [{ services: [services.fnirsService.uuid] }, { namePrefix: 'blueberry' }],
     })
     .then(device => {
       console.log('Device discovered', device.name);
+      this.device = device
       return device.gatt.connect();
     })
     .then(server => {
+      this.device.addEventListener('gattserverdisconnected', this.onDisconnectedCallback);
       console.log('server device: '+ Object.keys(server.device));
 
       this.getServices([services.fnirsService], [characteristics.commandCharacteristic, characteristics.fnirsCharacteristic], server);
@@ -87,7 +86,7 @@ class BlueberryWebBluetoothA{
 
       //start up control command service
       if(service.uuid == services.fnirsService.uuid){
-        _thisA.getControlService(requestedServices, requestedCharacteristics, this.standardServer);
+        this.getControlService(requestedServices, requestedCharacteristics, this.standardServer);
       }
     })
   }
@@ -116,7 +115,7 @@ class BlueberryWebBluetoothA{
 
         if(fnirsService.length > 0){
           console.log('getting service: ', fnirsService[0].name);
-          _thisA.getfNIRSData(fnirsService[0], characteristics.fnirsCharacteristic, server);
+          this.getfNIRSData(fnirsService[0], characteristics.fnirsCharacteristic, server);
         }
       })
       .catch(error =>{
@@ -144,11 +143,8 @@ class BlueberryWebBluetoothA{
 
   }
 
-  handlefNIRSDataChanged(event){
+  handlefNIRSDataChanged = (event) => {
     //byteLength of fNIRSdata
-    let fNIRSData = event.target.value
-    console.log(fNIRSData);
-    
     let valueHemo1 = event.target.value.getInt32(2);    
     let valueHemo2 = event.target.value.getInt32(6);
     let valueHemo3 = event.target.value.getInt32(10);
@@ -161,13 +157,11 @@ class BlueberryWebBluetoothA{
       }
     }
 
-    //console.log(data);
-
     stateA = {
       fNIRS: data.fNIRS
     }
 
-    _thisA.onStateChangeCallback(stateA);
+    this.onStateChangeCallback(stateA);
   }
 
   little2big(i) {
@@ -175,6 +169,8 @@ class BlueberryWebBluetoothA{
   }
 
   onStateChangeCallback() {}
+  onConnectedCallback() {}
+  onDisconnectedCallback() {}
 
   getfNIRSData(service, characteristic, server){
     return server.getPrimaryService(service.uuid)
@@ -183,13 +179,14 @@ class BlueberryWebBluetoothA{
       return newService.getCharacteristic(characteristic.uuid)
     })
     .then(char => {
+      this.onConnectedCallback()
       char.startNotifications().then(res => {
-        char.addEventListener('characteristicvaluechanged', _thisA.handlefNIRSDataChanged);
+        char.addEventListener('characteristicvaluechanged', this.handlefNIRSDataChanged);
       })
     })
   }
 
   onStateChange(callback){
-    _thisA.onStateChangeCallback = callback;
+    this.onStateChangeCallback = callback;
   }
 }
