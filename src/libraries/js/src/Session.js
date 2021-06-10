@@ -682,7 +682,7 @@ export class Session {
 
 		this.addStreamFunc(id, newStreamFunc);
 
-		return id; //this.state.unsubscribeAll(id) when done
+		return id, sub; //this.state.unsubscribeAll(id) when done
 
 	}
 

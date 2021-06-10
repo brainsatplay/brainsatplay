@@ -675,14 +675,13 @@ void main(){
                 }
 
                 this.roomId = info.id;
+            
+                this.hostData = {};
+                // Multiplayer
+                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.roomId ));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, this.roomId );
+                this.stateIds.push(this.hostStreamId);
                 
-                if(!this.hostStreamId){
-                    this.hostData = {};
-                    // Multiplayer
-                    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.roomId ));
-                    this.hostStreamId = this.session.streamAppData('hostData', this.hostData, this.roomId );
-                    this.stateIds.push(this.hostStreamId);
-                }
                 
                 this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
                     //console.log(newResult)
