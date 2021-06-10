@@ -671,16 +671,16 @@ void main(){
             if(info && !this.hostStreamId){
                 this.mode = 'multi';
                 this.roomId = info.id;
+                
+                this.hostData = {};
                 // Multiplayer
                 this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, info.id));
                 this.hostStreamId = this.session.streamAppData('hostData', this.hostData, info.id);
                 this.stateIds.push(this.hostStreamId);
 
-                this.hostData = {};
-                //console.log(this.session.state.data)
                 
                 this.hostStreamSub = this.session.state.subscribe(info.id,(newResult)=>{
-                    //console.log(newResult)
+                    console.log(newResult)
                     let user = newResult.userData.find((o)=>{
                         if(o.username === newResult.hostname) {
                             if(o.hostData) {
@@ -950,7 +950,7 @@ void main(){
                 feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                console.log(e);
+                //console.log(e);
                 if(e.sourceIdx !== false) {
                     if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
                         settings[j].soundbuffer = {};
