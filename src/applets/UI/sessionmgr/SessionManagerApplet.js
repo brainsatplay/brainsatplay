@@ -1237,7 +1237,7 @@ export class SessionManagerApplet {
                     let val = value.split(';');
                     if(val.length > 1) {
                         fft=true;
-                    } else if (idx > 1 && fft === false) {
+                    } else if (idx > 2 && fft === false) {
                         newSeries.push({
                             label:val[0],
                             value: (u, v) => v == null ? "-" : v.toFixed(1),
