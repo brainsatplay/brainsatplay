@@ -888,7 +888,8 @@ void main(){
 
                     let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
                     cmd.soundbuffer.buffers.forEach((b,j) => {
-                        buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
+                        if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0);
+                        else buf.copyToChannel(b,j+1,0);
                     });
 
                     this.effects[i].input.style.display='none';
@@ -942,7 +943,7 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = (includeSounds=false, includeModifiers=true) => {
+    getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();
         this.effects.forEach((e,j) => {
@@ -958,7 +959,7 @@ void main(){
                         settings[j].soundbuffer.buffers.forEach((channel,k) => {
                             console.log(e.source.buffer)
                             e.source.buffer.copyFromChannel(channel,k,0);
-                            settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
+                            if(encodeSoundsAsText) settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
                         settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
                         settings[j].soundbuffer.duration = e.source.buffer.duration;
