@@ -21,6 +21,7 @@
   "dependencies": {
     "@neurosity/notion": "^5.2.0",
     "bci2k": "^2.3.3",
+    "browserfs": "^1.4.3",
     "dat.gui": "^0.7.7",
     "gaussian": "^1.2.0",
     "muse-js": "^3.2.0",
