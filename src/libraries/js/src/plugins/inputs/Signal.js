@@ -62,22 +62,15 @@ export class Signal{
     }
 
     default = () => {
-        let updateObj = {}
-        updateObj[this.label] = true // New data
-        this.stateUpdates.manager.setSequentialState(updateObj)
-        this.states['default'] = [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
-        return this.states['default']
+        // Add timestamp to force update an object passed by reference
+        return [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`, timestamp: Date.now()}}]
     }
 
     fft = () => {
         let data = this.session.atlas.getLatestFFTData()[0];
         if(data) data = channel.fft;
         else data= new Array(256).fill(0);
-        let updateObj = {}
-        updateObj[`${this.label}_fft`] = true // New data
-        this.stateUpdates.manager.setSequentialState(updateObj)
-        this.states['fft'] = [{data, meta: {label: `signal_${this.params.device}_fft`}}]
-        return this.states['fft']
+        return [{data, meta: {label: `signal_${this.params.device}_fft`, timestamp: Date.now()}}]
     }
 
 
@@ -87,7 +80,10 @@ export class Signal{
 
                 let callbacks = []
                 for (let port in this.ports){
-                    if (this.ports[port].active) callbacks.push(this[port])
+                    if (this.ports[port].active) callbacks.push(() => {
+
+                        this.session.graphs.runSafe(this,port, [{data:true, meta: {label: `signal_newData`}}])
+                    })
                 }
                 this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
                     callbacks.forEach(f => {

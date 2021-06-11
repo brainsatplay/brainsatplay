@@ -580,17 +580,58 @@ select {
     flex-wrap: wrap;
 }
 
+.brainsatplay-node-viewer{
+    overflow-y: scroll;
+    display: flex;
+    flex-wrap: wrap;
+    height: 50%;
+    background: rgb(10,10,10);
+    position: relative;
+    border: 1px solid white;
+    padding: 10px;
+}
+
+.brainsatplay-node{
+    position: absolute;
+}
+
 
 .brainsatplay-default-node-div{
     /* flex: 50%; */
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
 }
 
 .brainsatplay-default-node{
     padding: 10px; 
-    flex: 50%;
+    flex: calc(50% - 20px);
     flex-grow: 1;
+    background: rgb(10,10,10);
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.brainsatplay-option-node{
+    padding: 10px; 
+    flex: calc(50% - 20px);
+    flex-grow: 1;
+    background: rgb(15,15,15);
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.brainsatplay-display-node{
+    padding: 10px; 
+    flex: calc(50% - 20px);
+    flex-grow: 1;
+    color: black;
+    background: white;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.brainsatplay-default-node h3{
+    margin-bottom: 0px;
 }
