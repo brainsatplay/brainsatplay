@@ -828,7 +828,7 @@ void main(){
                 if(cmd.controls == false) {
                     document.getElementById(this.props.id+'showhide').onclick();
                     document.getElementById(this.props.id+'showhide').onmouseleave();
-                    document.getElementById(props.id+'exitSession').style.display = 'none';   
+                    document.getElementById(this.props.id+'exitSession').style.display = 'none';   
                 }
                 if(cmd.shader) {
                     let shaderselector = document.getElementById(this.props.id+'shaderSelector');
