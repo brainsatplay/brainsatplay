@@ -1498,7 +1498,7 @@ void main(){
                     if(!effectStruct.muted && window.audio && effectStruct.playing){
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
                         window.audio.analyserNode.getByteFrequencyData(array);
-                        this.modifiers.iAudio = array.slice(0,256);
+                        this.modifiers.iAudio = Array.from(array.slice(0,256));
                     } else {
                         this.modifiers.iAudio = new Array(256).fill(0);
                     }
