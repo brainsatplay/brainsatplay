@@ -825,7 +825,7 @@ void main(){
                 if(this.effects.length === i) {
                     document.getElementById(this.props.id+'addeffect').click();
                 }
-                if(cmd.controls == false) {
+                if(cmd.controls == false && this.hidden == false) {
                     document.getElementById(this.props.id+'showhide').onclick();
                     document.getElementById(this.props.id+'showhide').onmouseleave();
                     document.getElementById(this.props.id+'exitSession').style.display = 'none';   
