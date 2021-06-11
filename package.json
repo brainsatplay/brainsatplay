@@ -8,8 +8,8 @@
     "url": "git+https://github.com/moothyknight/eegpwa"
   },
   "scripts": {
-    "start": "node --max-old-space-size=8192 app.js",
-    "build": "node --max-old-space-size=8192 snowpack build",
+    "start": "node --max-old-space-size=4096 app.js",
+    "build": "--max-old-space-size=8192 snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
