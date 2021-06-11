@@ -7,8 +7,8 @@
 [context.docs]
   base = "docs"
   publish = "build/"
-  command = "npm run build"
+  command = "npm --max-old-space-size=4096 run build"
 
 [context.deployment]
   publish = "dist/"
-  command = "npm run build"
+  command = "npm --max-old-space-size=4096 run build"
