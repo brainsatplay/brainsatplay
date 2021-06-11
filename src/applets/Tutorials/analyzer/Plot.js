@@ -1,4 +1,6 @@
-import '../../../libraries/js/src/ui/plotly.min.js'
+// import '../../../libraries/js/src/ui/plotly.min.js'
+
+import 'https://cdn.plot.ly/plotly-2.0.0.min.js'
 
 class Plot{
 
