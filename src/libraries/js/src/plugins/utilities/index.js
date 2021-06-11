@@ -1,1 +1,2 @@
-export {Brainstorm} from './Brainstorm.js'
+import {Brainstorm} from './Brainstorm.js'
+export {Brainstorm}
