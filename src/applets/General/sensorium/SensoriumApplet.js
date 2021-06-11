@@ -688,7 +688,7 @@ void main(){
                     if(newResult.settings) {
                         if(!newResult.settings[0]?.settingsSet) {
                             this.configure(newResult.settings);
-                            newResult.settings[0]?.settingsSet = true;
+                            newResult.settings[0].settingsSet = true;
                         }
                     }
                             
