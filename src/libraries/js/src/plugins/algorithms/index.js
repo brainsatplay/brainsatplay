@@ -1,6 +1,7 @@
-export {Transform} from './Transform'
-export {Neurofeedback} from './Neurofeedback'
-export {DataQuality} from './DataQuality'
-export {Blink} from './Blink'
+import {Transform} from './Transform'
+import {Neurofeedback} from './Neurofeedback'
+import {DataQuality} from './DataQuality'
+import {Blink} from './Blink'
 
+export {Transform,Neurofeedback,DataQuality,Blink}
 

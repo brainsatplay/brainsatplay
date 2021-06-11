@@ -1,6 +1,7 @@
-export {Debug} from './Debug'
-export {Cursor} from './Cursor'
-export {Buzz} from './Buzz'
+import {Debug} from './Debug'
+import {Cursor} from './Cursor'
+import {Buzz} from './Buzz'
 
 
 
+export {Debug,Cursor,Buzz}

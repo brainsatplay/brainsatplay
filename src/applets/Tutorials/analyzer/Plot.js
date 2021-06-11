@@ -1,4 +1,6 @@
-import * as Plotly from 'plotly.js-dist'
+// import '../../../libraries/js/src/ui/plotly.min.js'
+
+import 'https://cdn.plot.ly/plotly-2.0.0.min.js'
 
 class Plot{
 
@@ -76,9 +78,6 @@ class Plot{
                 setTimeout(animate, 1000/2)
             }
             animate()
-
-            this.responsive()
-
         }
 
         return {HTMLtemplate, setupHTML}
@@ -90,26 +89,45 @@ class Plot{
     show = (userData) => {
         let show = userData[0].data
         if (show) this.props.container.style.display = 'flex'
-        this.responsive()
         return [{data: true, meta: {label: `${this.label}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}]
     }
 
     default = (userData) => {
 
-
         this.props.userData = userData
         let u = userData[0]
+
         let data = u.data.data
+
+        let query
+        if (u.meta.label.includes('fitbit')){
+            query = `-intraday`
+        } else {
+            query = `_signal`
+        }
         let states = Object.keys(data).filter(s => {
-            if (s.includes('signal')) return s
+            if (s.includes(query)) return s
         })
-        
+
+        if (u.meta.label.includes('fitbit')){
+            let newData = {times: [],notes: ['scheduler Dinner', 'scheduler ITI'], noteTimes: [60*18, 60*19], noteIndices: [null,null]}
+
+            states.forEach(s => {
+                let messyData = data[s][`activities-${s}`].dataset
+                newData[s] = []
+                messyData.forEach((o,i) => {
+                    newData.times.push(i)
+                    newData[s].push(o.value)
+                })
+            })
+
+            data = newData
+        }
 
         let traces = []
         let timestamps = data.times
         let tStart = timestamps[0]
         timestamps = timestamps.map(t => t - tStart)
-
 
         // Declare Points for Text
         // let trace2 = {
@@ -189,7 +207,7 @@ class Plot{
                     // xaxis: `x${i+1}`,
                     // yaxis: `y${i+1}`,
                     type: 'line',
-                    name: s.replace('_signal','')
+                    name: s.replace(query,'')
                 })
             })
 
