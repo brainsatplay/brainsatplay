@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node app.js",
-    "build": "snowpack --max-old-space-size=4096 build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
