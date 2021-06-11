@@ -27,18 +27,14 @@ export class BlueberryPlugin {
 
         let ondata = (data) => {
             data = data.fNIRS
-            let red = data.L3
-            let ir = this.atlas.mean([data.L2,data.L1])
+            let red = data.L1
+            let ir = this.atlas.mean([data.L2,data.L3])
             let ratio = red/ir
             let coord = this.atlas.data.heg[info.deviceNum];
             coord.count++;
             if(coord.count === 1) { coord.startTime = Date.now(); }
             coord.times.push(Date.now());
-
-            // coord.red.push(this.filters[0].apply(red));
-            // coord.ir.push(this.filters[1].apply(ir));
-            // coord.ratio.push(this.filters[2].apply(ratio));
-
+            
             coord.red.push(red);
             coord.ir.push(ir);
             coord.ratio.push(ratio);
