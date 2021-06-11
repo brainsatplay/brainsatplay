@@ -371,6 +371,7 @@ export class AppletManager {
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
 
+
             if (!appletManifest[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(appletManifest[appletName].folderUrl).then(appletSettings => {
 
@@ -483,7 +484,7 @@ export class AppletManager {
                     }
 
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
-                    let ui = this.session.addNodeEditor(appnode.classinstance, appletDiv)
+                    let ui = this.session.graphs.edit(appnode.classinstance, appletDiv)
 
                     if (ui){
                         ui.node.style.opacity = 0
