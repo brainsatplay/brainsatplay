@@ -8,17 +8,17 @@ hide_title: true
 ## Welcome to Brains@Play
 ---
 
-**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source library for incorporating biosignals into modern web applications.** We have developed [The Brains@Play Platform](https://app.brainsatplay.com) to host apps built by and for our community.
+**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an open-source library that allows you to leverage biosignals for data collection, feedback, and control in modern web applications.** Check out [The Brains@Play Platform](https://app.brainsatplay.com) to browse apps built by and for our community.
 
 
 ## Our Ethos
 ---
 
-**Future biosensing intrastructure must be publicly available on the Web.** Accessible for developers and end-users alike, the Web allows for the seamless translation of state-of-the-art algorithms and applications from the lab / clinic / studio to the real world. 
+**Future biosensing intrastructure must be available directly on the browser.** Accessible for developers and end-users alike, browser-based code allows for the seamless translation of state-of-the-art algorithms and applications from the lab / clinic / studio to the real world. 
 
 In the realm of brain-computer interfaces (BCIs), [BCI2000](https://github.com/cronelab/bci2000web) and [Timeflux](https://github.com/timeflux/timeflux_ui) have already joined the movement. 
 
-Here's why we think you should take web-based (particularly browser-based) biosensing seriously.
+Here's why we think you should take browser-based biosensing seriously.
 
 ### 1. Everyone Has A Brain
 **Why not develop applications accessible to all of them?** Brains@Play creates neurotechnology with everyone by taking advantage of the universal interface of modern technology: the web browser. The Web is the only platform positioned to elevate all of society through widespread home use of neurofeedback and BCIs—both by healthy users *as well as* those with neurological disorders. 
