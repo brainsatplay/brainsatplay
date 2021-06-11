@@ -686,9 +686,9 @@ void main(){
                 this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
                     //console.log(newResult)
                     if(newResult.settings) {
-                        if(!newResult.settings.settingsSet) {
+                        if(!newResult.settings[0]?.settingsSet) {
                             this.configure(newResult.settings);
-                            newResult.settings.settingsSet = true;
+                            newResult.settings[0]?.settingsSet = true;
                         }
                     }
                             
