@@ -44,7 +44,6 @@ import fluteshot1 from './sounds/wav/fluteshot1.wav'
 import fluteshot2 from './sounds/wav/fluteshot2.wav'
 import drumhit1 from './sounds/wav/drum_hit_1.wav'
 import drumkick1 from './sounds/wav/drum_kick_1.wav'
-import { select } from 'd3-selection';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 
 //Example Applet for integrating with the UI Manager
@@ -484,7 +483,7 @@ void main(){
                 } else {
                     config = this.getCurrentConfiguration(false,document.getElementById(this.props.id+'modifiers').checked);
                 }
-                this.hostData.config = config;
+                this.session.setSessionSettings(this.roomId,config);
             }
 
             document.getElementById(props.id+'share').onclick = () => {
@@ -686,15 +685,12 @@ void main(){
                 
                 this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
                     //console.log(newResult)
-                    let user = newResult.userData.find((o)=>{
-                        if(o.username === newResult.hostname) {
-                            if(o.hostData) {
-                                if(o.hostData.config) {
-                                    this.configure(o.hostData.config);
-                                }   
-                            }
+                    if(newResult.settings) {
+                        if(!newResult.settings.settingsSet) {
+                            this.configure(newResult.settings);
+                            newResult.settings.settingsSet = true;
                         }
-                    });
+                    }
                             
                     if(newResult.hostname) {
                         if(this.session.info.auth.username === newResult.hostname && !this.isHost) {

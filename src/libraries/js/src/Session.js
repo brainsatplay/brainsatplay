@@ -932,8 +932,10 @@ else {
 		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
 
 			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.username === this.info.auth.username) return true;});
+			let settings = this.state.data[parsed.id]?.settings;
 			this.state.data[parsed.id] = parsed;
 			if(thisuser) this.state.data[parsed.id].userData.push(thisuser);
+			if(settings) this.state.data[parsed.id].settings = settings;
 
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
@@ -956,7 +958,8 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.data.sessionInfo = parsed;
+			this.state.data.sessionInfo = parsed.sessionInfo;
+			if(this.state.data[parsed.id] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
 			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
@@ -969,6 +972,9 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userNotFound') {
+			this.state.updateState(`commandResult`,parsed)
+		}
+		else if (parsed.msg === 'userSubscriptionInfo') {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToSession') {
@@ -1192,7 +1198,6 @@ else {
 							newResult.sessionInfo.propnames.forEach((prop) => {
 								streamParams.push(prop.split("_"));
 							});
-							this.state.data[newResult.sessionInfo.id] = newResult;
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 							// this.streamObj
 							onsuccess(newResult);
@@ -1200,6 +1205,8 @@ else {
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
+							this.state.data[newResult.sessionInfo.id] = newResult.sessionInfo;
+							console.log(newResult);
 							this.info.subscriptions.push(sessionid)
 							onsuccess(newResult);
 						}
@@ -1214,6 +1221,18 @@ else {
 				}
 			});
 		}
+	}
+
+	setUserStreamSettings(id,settings) {
+		this.sendBrainstormCommand(['setUserStreamSettings',id,settings]);
+	}
+
+	setSessionSettings(id,settings) {
+		this.sendBrainstormCommand(['setSessionSettings',id,settings]);
+	}
+
+	setHostSessionSettings(id,settings) {
+		this.sendBrainstormCommand(['setHostSessionSettings',id,settings]);
 	}
 
 	unsubscribeFromSession(sessionid = '', onsuccess = (newResult) => { }) {
