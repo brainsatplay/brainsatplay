@@ -108,6 +108,7 @@ export class eeg32Plugin {
             },
             ()=>{
                 this.atlas.settings.analyzing = false;
+                this.atlas.settings.deviceConnected = false;
                 this.ondisconnect();
             }
         );
@@ -140,7 +141,7 @@ export class eeg32Plugin {
             this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,256);
             this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
             this.atlas.data.eeg = this.atlas.gen10_20Atlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);

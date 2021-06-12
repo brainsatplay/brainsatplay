@@ -321,7 +321,7 @@ export class AppletManager {
                             config = this.appletConfigs[i].settings;
                         }
 
-                        let clsInstance = this.createInstance(appletCls, appletInfo[1])
+                        let clsInstance = this.createInstance(appletCls, appletInfo[1], config)
 
                         this.applets[i] = {
                             appletIdx: i + 1,
@@ -370,6 +370,7 @@ export class AppletManager {
             
             let thisApplet = this.applets[appletIdx].classinstance
             let appletName = thisApplet.info.name
+
 
             if (!appletManifest[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(appletManifest[appletName].folderUrl).then(appletSettings => {
@@ -483,7 +484,7 @@ export class AppletManager {
                     }
 
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
-                    let ui = this.session.addNodeEditor(appnode.classinstance, appletDiv)
+                    let ui = this.session.graphs.edit(appnode.classinstance, appletDiv)
 
                     if (ui){
                         ui.node.style.opacity = 0
@@ -570,22 +571,22 @@ export class AppletManager {
                     }, false);
             
                     // Fullscreen Functionality
-                    appletDiv.addEventListener('dblclick', () => {
-                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                        if (!fullscreenElement) {
-                            if (appletDiv.requestFullscreen) {
-                                appletDiv.requestFullscreen()
-                            } else if (appletDiv.webkitRequestFullscreen) {
-                                appletDiv.webkitRequestFullscreen()
-                            }
-                        } else {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen()
-                            } else if (document.webkitExitFullscreen) {
-                                document.webkitExitFullscreen()
-                            }
-                        }
-                    });
+                    // appletDiv.addEventListener('dblclick', () => {
+                    //     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                    //     if (!fullscreenElement) {
+                    //         if (appletDiv.requestFullscreen) {
+                    //             appletDiv.requestFullscreen()
+                    //         } else if (appletDiv.webkitRequestFullscreen) {
+                    //             appletDiv.webkitRequestFullscreen()
+                    //         }
+                    //     } else {
+                    //         if (document.exitFullscreen) {
+                    //             document.exitFullscreen()
+                    //         } else if (document.webkitExitFullscreen) {
+                    //             document.webkitExitFullscreen()
+                    //         }
+                    //     }
+                    // });
 
 
                 })
@@ -611,11 +612,11 @@ export class AppletManager {
     }
 
 
-    createInstance = (appletCls, info=undefined) => {
+    createInstance = (appletCls, info={}, config=[]) => {
         if (appletCls === Application){
-            return new Application(info, "applets", this.session, [])
+            return new Application(info, "applets", this.session, config)
         } else {
-            return new appletCls("applets", this.session, [])
+            return new appletCls("applets", this.session, config)
         }
     }
 

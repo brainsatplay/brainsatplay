@@ -35,7 +35,6 @@ export class DataQuality{
     }
 
     default = (userData) => {
-        
         userData.forEach(u => {
             
             let dict = {}
@@ -62,7 +61,6 @@ export class DataQuality{
                         }
                     })
                 }
-
             } catch {
                 console.error('input not compatible')
                 arr.push(0)
@@ -71,7 +69,7 @@ export class DataQuality{
             // Output to User Data Object
             if (this.params.output === 'Mean') u.data = this.session.atlas.mean(arr)
             else u.data = dict
-            u.meta.label = this.params.metric
+            u.meta.label = `${this.label}_${this.params.metric}`
         })
 
         return userData

@@ -6,14 +6,56 @@ export class EventRouter{
     constructor(){
         this.device = null
         this.state = new StateManager()
-        this.routes = {}
-        this.managers = []
+        this.routes = {
+            registry: {},
+            reserve: {
+                apps: {},
+                pool: []
+            }
+        }
+        this.apps = {}
 
-        this.id = String(Math.floor(Math.random()*1000000))
+        this.props = {
+            id: String(Math.floor(Math.random()*1000000)),
+            deviceSub: null
+        }
     }
 
     init(device){
         this.device = device
+
+        // Default EEG Controls
+
+        if (!('states' in this.device)) this.device.states = {}
+
+        // Blink 
+        // TO DO: Check for Frontal Electrodes
+        if (this.device.info.deviceType === 'eeg'){
+            this.device.states['blink_left'] = {data: 0, meta: {id:'blink_left'}, timestamp: Date.now()}
+            this.device.states['blink_right'] = {data: 0, meta: {id:'blink_right'}, timestamp: Date.now()}
+            this.device.states['blink_both'] = {data: 0, meta: {id:'blink_both'}, timestamp: Date.now()}
+
+            let atlasTag = 'eeg'
+            let prop = this.device.atlas.data.eegshared.eegChannelTags[0].tag
+            let coord = this.device.atlas.getDeviceDataByTag('eeg', prop);
+            this.props.deviceSub = atlasTag + "_" + prop
+            this.state.addToState(this.props.deviceSub, coord, () => {
+                
+                // Only Calculate if Required
+                    let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
+                    let blinkLeft = Object.keys(this.routes.registry['blink_left'][1]).length !== 0
+                    let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
+
+                    if (blinkBoth || blinkLeft || blinkRight){
+                        let blinks = this.device.atlas.getBlink()
+                        if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
+                        if (blinkLeft) this.device.states['blink_left'].data = blinks[0]
+                        if (blinkRight) this.device.states['blink_right'].data = blinks[1]
+                    }
+            });
+        }
+
+
         if (this.device.states){
         Object.keys(this.device.states).forEach(key => {
                 let states = this.device.states[key]
@@ -29,7 +71,7 @@ export class EventRouter{
                         state.meta.label = labelArr.join(' ')
                         
                         this.state.addToState(state.meta.id, state)
-                        this.routes[state.meta.id] = [state, null]
+                        this.routes.registry[state.meta.id] = [state, {}]
 
                         // Route Switches in Atlas by Default
                         if (!(splitId[0] in this.device.atlas.data.states)) this.device.atlas.data.states[splitId[0]] = {}
@@ -39,7 +81,7 @@ export class EventRouter{
 
                         // Declare Callback and Subscribe
                         let deviceCallback = (o) => {
-                            this.update(o, this.routes[state.meta.id])
+                            this.update(o, this.routes.registry[state.meta.id])
                         }
 
                         this.state.subscribe(state.meta.id, deviceCallback)
@@ -50,27 +92,27 @@ export class EventRouter{
     }
 
     deinit = () => {
+        this.state.removeState(this.props.deviceSub)
         if (this.ui) this.ui.deleteNode()
     }
 
     // Route Events to Atlas
     update(o,targets=[]) {
         let newState = o.data
-
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
-
         targets.forEach(t => {
             if (t){
-                if ('data' in t) {
-                    t.data = newState
+                if (t.constructor == Object && 'manager' in t){
+                    t.target.state[t.target.port] = []
+                    t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
+                    let updateObj = {}
+                    updateObj[t.label] = true
+                    t.manager.setSequentialState(updateObj)
                 }
-                else if ('data' in t[0]){
+                else if (Array.isArray(t) && 'data' in t[0]){
                     t[0].data = newState
-                }
-                else if ('data' in t[0].data[0]) {
-                    t[0].data[0] = newState
                 }
             }
         })
@@ -81,69 +123,68 @@ export class EventRouter{
     // }
 
 
-    autoRoute = (stateManagerArray) => {
-        let validRoutes = this.getValidRoutes(stateManagerArray)
-        let eventsToBind = Object.keys(this.routes)
+    autoRoute = () => {
+        let eventsToBind = Object.keys(this.routes.registry)
 
         // Remove Invalid Events
-        eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes).find(str => str.split('_')[0] === id.split('_')[0]) != null))
+        eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes.registry).find(str => str.split('_')[0] === id.split('_')[0]) != null))
 
         // Preselect Events based on Keys
-        let removeEvents = []
-        validRoutes = validRoutes.map(r => {
-            let k1 = r.key
-            let pair = eventsToBind.find((k2,i) => {
-                let sk1 = k1.split('_')
-                sk1 = sk1.map(s => new RegExp(`${s}`,'i'))
-                let sk2 = k2.split('_')
-
-                let res1 = sk1.find(rexp => {
-                    let res2 = sk2.find(k => {
-                        if (rexp.test(k)){
-                            removeEvents.push(i)
-                            return true
-                        }
-                    })
-                    return res2
+        let mappedRoutes = this.routes.reserve.pool.map(r => {
+            let k1 = r.label
+            let desired = k1.split('_')
+            desired = desired.map(s => new RegExp(`${s}`,'i'))
+            
+            // Match Keys (first is first)
+            let pair
+            desired.find((regex,i) => {
+                let toRemove
+                pair = eventsToBind.find((k2,j) => {
+                    let current = k2.split('_')[i]
+                    if (regex.test(current)){
+                        toRemove = j
+                        return true
+                    }
                 })
-                return res1
+
+                // Remove Found Event
+                if (pair) {
+                    eventsToBind.splice(toRemove,1)
+                    return true
+                }
             })
+
             return {route: r, event: pair}
         })
 
-        for (let i = removeEvents.length; i > 0; i--){
-            eventsToBind.splice(i,1)
-        }
 
-        validRoutes.forEach(newRoute => {
+        mappedRoutes.forEach(newRoute => {
 
             let id
-
             // Grab Preselected Route if Necessary
-            if ('event' in newRoute){
+            if (newRoute.event != null){
                 id = newRoute.event
-                newRoute = newRoute.route
             } else if (eventsToBind.length > 0){
                 id = eventsToBind.shift()
             }
+            newRoute = newRoute.route
 
             // Select Route if Possible
             if (id){
 
-                let routes = this.routes[id]
-
+                let routes = this.routes.registry[id]
                 // Replace If Not Already Assigned
-                if (routes[1] == null){
-                    routes[1] = newRoute.manager.data[newRoute.key]
+                if (routes[1]==null || !("manager" in routes[1])){
+                    routes[1] = newRoute//newRoute.manager.data[newRoute.label]
                 } else {
-                    newRoute.key = routes[1].meta.label
+                    newRoute.label = routes[1].label
                 }
-                
+
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
                     for (var opt, j = 0; opt = opts[j]; j++) {
-                        if (opt.value == newRoute.key) {
+                        if (opt.value == newRoute.label) {
                             routeSelector.selectedIndex = j;
                         break;
                         }
@@ -153,97 +194,107 @@ export class EventRouter{
         })
     }
 
-    getValidRoutes = (stateManagerArray=this.managers) => {
-        let validRoutes = []
-
-        stateManagerArray.forEach(manager => {
-            let keys = Object.keys(manager.data)
-
-            let notArrayOrObject = (input) => {
-                try{
-                    return (input.constructor != Object && !Array.isArray(input))
-                } catch{return false}
-            }
-            keys = keys.filter(k => {
-                let state = manager.data[k]
-                // Guess if State is Binary or Continuous
-                if (notArrayOrObject(state?.data) || (Array.isArray(state) && notArrayOrObject(state[0]?.data)) || (Array.isArray(state?.data) && notArrayOrObject(state?.data[0].data))){
-                    return k
+    removeMatchingRoutes(sources){
+        for (let key in this.routes.registry){
+            let routes = this.routes.registry[key]
+            for (let i = routes.length - 1; i > -1; i--){
+                if ('manager' in routes[i]){
+                    sources.find(o => {
+                        if (routes[i].label === o.label) {
+                            routes[i] = {}
+                            return true
+                        }
+                    })
                 }
-            })
-            keys.forEach((key) => {
-                validRoutes.push({key,manager})
-            })
-        })
-
-        // console.log(validRoutes, this.availableControls)
-        
-        return validRoutes
-    }
-
-    addControls = (stateManagerArray=this.managers, parentNode=document.body) => {
-        
-        this.managers = stateManagerArray
-
-        let template = () => {
-            return `
-            <br>
-            <div id='${this.id}routerControls' style="padding: 10px;">
-                <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
-                    <h4>Control Panel</h4>
-                    <button class="brainsatplay-default-button" style="flex-wrap: wrap;">
-                    <p style="margin-bottom: 0;">Update Available Events<p>
-                    <p style="font-size: 70%; margin-top: 0;">(e.g. when you switch games)</p>
-                    </button>
-                </div>
-                <hr>
-                <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
-                </div>
-            </div>
-            `;
-        }
-
-        let setup = () => {
-            let updateButton = document.getElementById(`${this.id}routerControls`).querySelector('button')
-            updateButton.style.display = 'none'
-            updateButton.onclick = () => {
-                    this.updateRouteDisplay(stateManagerArray)
             }
-            this.updateRouteDisplay(stateManagerArray)
         }
 
-        this.ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
     }
 
-    registerControls(controls){
-        this.availableControls = controls
+    updateRouteReserve = (id, controls=false) => {
+
+        if (controls == false){
+            this.routes.reserve.apps[id].count--
+
+            if (this.routes.reserve.apps[id].count === 0) {
+                this.removeMatchingRoutes(this.routes.reserve.apps[id].sources)
+                delete this.routes.reserve.apps[id]
+            }
+        } else {
+            if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {count: 0, sources: []}
+            controls.options.forEach(c => {
+                c.manager = controls.manager
+                this.routes.reserve.apps[id].sources.push(c)
+            })
+            this.routes.reserve.apps[id].count++
+        }
+
+        this.routes.reserve.pool = []
+        for (let id in this.routes.reserve.apps){
+            let sources = this.routes.reserve.apps[id].sources
+            this.routes.reserve.pool.push(...sources)
+        }
     }
 
-    updateRouteDisplay(stateManagerArray=this.managers, autoroute=true){
+    addControls = (parentNode=document.body) => {
+        
+        if (Object.keys(this.device.states).length > 0){
+            let template = () => {
+                return `
+                <br>
+                <div id='${this.id}routerControls' style="padding: 10px;">
+                    <h4>Event Router</h4>
+                    <hr>
+                    <div class='brainsatplay-router-options' style="display: flex; flex-wrap: wrap;">
+                    </div>
+                </div>
+                `;
+            }
 
-            let routerOptions = document.getElementById(`${this.id}routerControls`).querySelector('.brainsatplay-router-options')
+            let setup = () => {
+                this.updateRouteDisplay()
+            }
+
+            this.ui = new DOMFragment(
+                template,
+                parentNode,
+                undefined,
+                setup
+            )
+        }
+    }
+
+    addApp(id,controls){
+        this.updateRouteReserve(id,controls)
+    }
+
+    removeApp(id){
+        this.updateRouteReserve(id)
+    }
+
+    updateRouteDisplay(autoroute=true){
+
+            let controls = document.getElementById(`${this.id}routerControls`)
+
+            if (controls){
+            let routerOptions = controls.querySelector('.brainsatplay-router-options')
             routerOptions.innerHTML = ''
             
-            let validRoutes = this.getValidRoutes(stateManagerArray)
-            let managerMap = {}
+            let infoMap = {}
             let selector = document.createElement('select')
             selector.insertAdjacentHTML('beforeend',`
             <option value="" disabled selected>Choose an event</option>
             <option value="none">None</option>
             `)
-            validRoutes.forEach(dict => {
-                managerMap[dict.key] = dict.manager
 
-                let splitId = dict.key.split('_')
+            this.routes.reserve.pool.forEach(dict => {
+                infoMap[dict.label] = dict
+
+                let splitId = dict.label.split('_')
                 splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
 
                 let upper = splitId.join(' ')
-                selector.insertAdjacentHTML('beforeend',`<option value="${dict.key}">${upper}</option>`)           
+                selector.insertAdjacentHTML('beforeend',`<option value="${dict.label}">${upper}</option>`)           
             })
 
             Object.keys(this.state.data).forEach(id => {
@@ -253,14 +304,14 @@ export class EventRouter{
 
                     thisSelector.onchange = (e) => {
                         try {
-                            let target = managerMap[thisSelector.value].data[thisSelector.value]
-
+                            let target = infoMap[thisSelector.value]
+                            if (target == null) target = {}
                             // Switch Route Target
-                            if (this.routes[id].length < 2) this.routes[id].push(target)
-                            else this.routes[id][1] = target
-
+                            if (this.routes.registry[id].length < 2) this.routes.registry[id].push(target)
+                            else this.routes.registry[id][1] = target
                         } catch (e) {}
                     }
+ 
 
                     if ('meta' in this.state.data[id] && 'data' in this.state.data[id]){
                         let div = document.createElement('div')
@@ -272,7 +323,8 @@ export class EventRouter{
             })
         
         if (autoroute){
-            this.autoRoute(stateManagerArray)
+            this.autoRoute()
         }
+    }
     }
 }

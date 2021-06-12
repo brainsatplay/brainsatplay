@@ -42,13 +42,11 @@ export class DataAtlas {
 		
 		this.graphs = new PluginManager({atlas: this}, {gui: false})
 		this.graphs.add(this.props.id, 'DataAtlas', 
-		[
 			{
-				id: 'mygraph',
 				nodes: [
 					{id: 'blink', class: Blink},
 				],
-			}]
+			}
 		)
 
 		this.state = new StateManager({
@@ -399,22 +397,29 @@ export class DataAtlas {
 
 	//Makes a note to be saved. Will automatically get the latest timestamp for attached devices if there is one, or just Date.now();
 	makeNote(text='event',timestamp=undefined) {
+		if(Array.isArray('text')) text = [...text.join('|')];
 		if(timestamp === undefined) {
 			if(this.settings.eeg) {
 				let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
 				timestamp = row.times[row.times.length-1]
-				this.data.other.notes.push({time:timestamp, note:text});
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				else this.data.other.notes.push({time:timestamp, note:text});
 			}
 			if(this.settings.heg) {
 				timestamp = this.data.heg[0].times[this.data.heg[0].times.length-1];
 				this.data.other.notes.push({time:timestamp, note:text});
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				else this.data.other.notes.push({time:timestamp, note:text});
 			}
 			else {
-				this.data.other.notes.push({time:Date.now(), note:text});
+				let timestamp = Date.now();
+				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				else this.data.other.notes.push({time:Date.now(), note:text});
 			}
 		}
 		else {
-			this.data.other.notes.push({time:timestamp, note:text});
+			if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+			else this.data.other.notes.push({time:timestamp, note:text});
 		}
 	}
 
@@ -751,8 +756,8 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graphs.getNode(this.props.id, 'blink')
 		this.graphs.updateParams(node, params)
-		let blink = this.graphs.runSafe([this.data],node)
-		return blink.data
+		let blink = this.graphs.runSafe(node,'default', [{data: this.data, meta: {}}])
+		return blink[0].data
 	}
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
@@ -1155,14 +1160,15 @@ export class DataAtlas {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
-	readyEEGDataForWriting = (from=0,to='end') => {
+	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
 		 
-		let header = ["TimeStamps","UnixTime"];
+		let header = ["TimeStamps","UnixTime","Notes"];
 		let data = [];
 		let mapidx = 0;
 		let noteidx = 0;
 		let datums = [];
 		let fft_ref_ch = null;
+		let ffts_appended = false;
 		this.data.eegshared.eegChannelTags.forEach((row,j) => {
 			if(fft_ref_ch === null && row.tag !== 'other' && row.analyze === true) fft_ref_ch = this.getEEGDataByChannel(row.ch)
 			datums.push(this.getEEGDataByChannel(row.ch));
@@ -1170,7 +1176,7 @@ export class DataAtlas {
 
 		if(datums.length > 0) {
 			if(to === 'end') { to = datums[0].count; }
-			if(datums[0].count < from) { from = this.atlas.rolloverLimit - 2000; }
+			if(datums[0].count < from && from > this.atlas.rolloverLimit-2000) { from = this.atlas.rolloverLimit - 2000; }
 			if(from!==0) { 
 				while (fft_ref_ch.fftTimes[mapidx] < datums[0].times[from]) {
 					mapidx++;
@@ -1180,6 +1186,20 @@ export class DataAtlas {
 				let line=[];
 				line.push(this.toISOLocal(new Date(datums[0].times[i])),datums[0].times[i]);
 				//first get the raw/filtered
+				if(this.data.other.notes.length > 0) {
+					if(i > 0) {
+						while(this.data.other.notes.length-1 > noteidx && this.data.other.notes[noteidx].time < datums[0].times[i]) {
+							noteidx++;
+						}
+					}
+					if(this.data.other.notes[noteidx] && this.data.other.notes[noteidx].time <= datums[0].times[i]) {
+						//if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
+						line.push(this.data.other.notes[noteidx].note); 
+						noteidx++;
+					} else {
+						line.push('');
+					}
+				} else { line.push(''); }
 				datums.forEach((row,j) => {
 					if(i === 0) { header.push(row.tag); }
 					if(row.filtered.length > i) {
@@ -1188,55 +1208,43 @@ export class DataAtlas {
 						line.push(row.raw[i].toFixed(0));
 					}
 				});
-				//then get the fft/coherence data
-				if(fft_ref_ch.fftCount >= mapidx && fft_ref_ch.fftTimes[mapidx] === datums[0].times[i]) {
-					datums.forEach((row,j) => {
-						if(mapidx === 0) {
-							let found = this.data.eegshared.eegChannelTags.find((o,k) => {
-								if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
-									return true;
+				if(getFFTs) {
+					//then get the fft/coherence data
+					if(fft_ref_ch.fftCount >= mapidx && fft_ref_ch.fftTimes[mapidx] === datums[0].times[i]) {
+						datums.forEach((row,j) => {
+							if(mapidx === 0) {
+								let found = this.data.eegshared.eegChannelTags.find((o,k) => {
+									if((row.tag === o.ch || row.tag === o.tag) && (o.analyze === false || o.tag === 'other')) {
+										return true;
+									}
+								});
+								if(!found){ //don't add headers for rows not being analyzed
+									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+									header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+									ffts_appended = true;
 								}
-							});
-							if(!found){ //don't add headers for rows not being analyzed
-								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
-								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
 							}
-						}
-						if(datums[0].times[i] === row.fftTimes[mapidx]) {
-							line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
-						}
-					});
-					if(this.settings.coherence) {
-						this.data.coherence.forEach((row,j) => {
-							if(mapidx===0) {
-								let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
-								header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
-							}
-							if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
-								try{
-									line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
-								}
-								catch(err) { console.log(err, mapidx, row); }
+							if(datums[0].times[i] === row.fftTimes[mapidx]) {
+								line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
 							}
 						});
-					}
-					mapidx++;	
-				}
-				if(this.data.other.notes.length > 0) {
-					if(i === 0) {
-						header.push('Notes');
-					} else {
-						while(this.data.other.notes[noteidx].time < datums[0].times[i]) {
-							noteidx++;
+						if(this.settings.coherence) {
+							this.data.coherence.forEach((row,j) => {
+								if(mapidx===0) {
+									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
+									header.push(row.tag+"; FFT Hz:",bpfreqs.join(","));
+								}
+								if(datums[0].fftTimes[mapidx] === row.fftTimes[mapidx]) {
+									try{
+										line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
+									}
+									catch(err) { console.log(err, mapidx, row); }
+								}
+							});
 						}
-					}
-					if(this.data.other.notes[noteidx].time <= datums[0].times[i]) {
-						if(line.length !== header.length) line = new Array(header.length-line.length-1).fill(''); //resize line to correct size if not long enough
-						line.push(this.data.other.notes[noteidx].note); 
-						nodeidx++;
+						mapidx++;	
 					}
 				}
-
 
 				data.push(line.join(","));
 			}

@@ -59,7 +59,7 @@ export class syntheticPlugin {
         } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
 			this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,256);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
             this.atlas.data.eeg = this.atlas.gen10_20Atlas(info.eegChannelTags); 
             
@@ -126,7 +126,7 @@ export class syntheticPlugin {
 
         // Simulated BCI2000 States
         document.removeEventListener('keydown',this.handleKeyDown)
-        document.removeEventListener('keyup',this.handleKeyDown)
+        document.removeEventListener('keyup',this.handleKeyUp)
 
         this.looping = false;
     }
@@ -239,8 +239,8 @@ export class syntheticPlugin {
         Object.keys(this.states).forEach(k => {
             let splitId = k.split('_')
             if (splitId[0] === 'key'){
-                if (this.matchKey(e.code, splitId[1]) && this.states[k].data != 1) {
-                    this.states[k].data = 1
+                if (this.matchKey(e.code, splitId[1]) && this.states[k].data != true) {
+                    this.states[k].data = true
                 }
             }
         })
@@ -250,7 +250,7 @@ export class syntheticPlugin {
         Object.keys(this.states).forEach(k => {
             let splitId = k.split('_')
             if (splitId[0] === 'key'){
-                if (this.matchKey(e.code, splitId[1])) this.states[k].data = 0
+                if (this.matchKey(e.code, splitId[1])) this.states[k].data = false
             }
         })
     }

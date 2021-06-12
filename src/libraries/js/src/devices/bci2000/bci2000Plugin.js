@@ -94,6 +94,7 @@ export class bci2000Plugin {
                         // The framework itself supports values from 0-1 for any particular state.
 
                         let value = this.device.states[k][0] // Exclusive (only first index)
+                        // if (Object.keys(this.states[k].length == 1) || value != 0){
                         if (this.states[k][value].data != true){
                         this.states[k].forEach((state,i) => { // Exclusive (resets states not chosen)
                             if (i === value) {
@@ -105,6 +106,7 @@ export class bci2000Plugin {
                                 }
                             }
                         })
+                    // }
                     }
                     }
                 })
@@ -186,7 +188,7 @@ export class bci2000Plugin {
 			this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,256);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);

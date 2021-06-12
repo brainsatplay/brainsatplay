@@ -192,7 +192,7 @@ export class ObjectListenerInstance {
         this.setListenerRef(propName);
 
         this.running = true;
-
+        this.funcs = 0;
 
         this.interval;
         if(interval < 10) {
@@ -215,19 +215,23 @@ export class ObjectListenerInstance {
 
     //Add extra onchange functions for execution
     addFunc = (onchange=null) => {
+        let sub = 0;
         if(onchange !== null){
-            this.onchangeFuncs.push(onchange);
+            this.onchangeFuncs.push({idx:this.funcs, onchange:onchange});
+            sub=this.funcs;
+            this.funcs++;
         }
-        return this.onchangeFuncs.length-1;
+        return sub;
     }
 
     //Remove extra onchange functions
     removeFuncs(idx = null) {
+        let i = 0;
         if(idx === null) {
             this.onchangeFuncs = [];
         }
-        else if(this.onchangeFuncs[idx] !== undefined) {
-            this.onchangeFuncs.splice(idx,1);
+        else if(this.onchangeFuncs.find((o,j)=>{if(o.idx===idx){ i=j; return true;}}) !== undefined) {
+            this.onchangeFuncs.splice(i,1);
         }
     }
 
@@ -235,8 +239,8 @@ export class ObjectListenerInstance {
     onchangeMulti = (newData) => {
         let onChangeCache = [...this.onchangeFuncs]
         onChangeCache.forEach((func,i) => {
-            if(this.debug === true) { console.log(func); }
-            func(newData);
+            if(this.debug === true) { console.log(func.onchange); }
+            func.onchange(newData);
         });
     }
 
@@ -473,7 +477,7 @@ if(JSON.stringifyFast === undefined) {
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
                             } //deal with arrays in nested objects (e.g. means, slices)
-                            else if (value[prop].constructor == Object) { //additional layer of recursion for 3 object-deep array checks
+                            else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
                                     if(Array.isArray(value[prop][p])) {
@@ -482,12 +486,16 @@ if(JSON.stringifyFast === undefined) {
                                         else obj[prop][p] = value[prop][p];
                                     }
                                     else { 
-                                        let con = value[prop][p].constructor.name;
-                                        if (con.includes("Set")) {
-                                            obj[prop][p] = Array.from(value[prop][p])
-                                        } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                            obj[prop][p] = "instanceof_"+con;
-                                        }  else {
+                                        if (value[prop][p] != null){
+                                            let con = value[prop][p].constructor.name;
+                                            if (con.includes("Set")) {
+                                                obj[prop][p] = Array.from(value[prop][p])
+                                            } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
+                                                obj[prop][p] = "instanceof_"+con; //3-deep nested objects are cut off
+                                            }  else {
+                                                obj[prop][p] = value[prop][p]; 
+                                            }
+                                        } else {
                                             obj[prop][p] = value[prop][p]; 
                                         }
                                     }
@@ -497,7 +505,7 @@ if(JSON.stringifyFast === undefined) {
                                 let con = value[prop].constructor.name;
                                 if (con.includes("Set")) {
                                     obj[prop] = Array.from(value[prop])
-                                } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
                                     obj[prop] = "instanceof_"+con;
                                 } else {
                                     obj[prop] = value[prop]; 
@@ -531,3 +539,68 @@ if(JSON.stringifyFast === undefined) {
         }
     })();
 }
+
+
+
+if(JSON.stringifyWithCircularRefs === undefined) {
+    //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
+    JSON.stringifyWithCircularRefs = (function() {
+        const refs = new Map();
+        const parents = [];
+        const path = ["this"];
+
+        function clear() {
+        refs.clear();
+        parents.length = 0;
+        path.length = 1;
+        }
+
+        function updateParents(key, value) {
+        var idx = parents.length - 1;
+        var prev = parents[idx];
+        if (prev[key] === value || idx === 0) {
+            path.push(key);
+            parents.push(value);
+        } else {
+            while (idx-- >= 0) {
+            prev = parents[idx];
+            if (prev[key] === value) {
+                idx += 2;
+                parents.length = idx;
+                path.length = idx;
+                --idx;
+                parents[idx] = value;
+                path[idx] = key;
+                break;
+            }
+            }
+        }
+        }
+
+        function checkCircular(key, value) {
+        if (value != null) {
+            if (typeof value === "object") {
+            if (key) { updateParents(key, value); }
+
+            let other = refs.get(value);
+            if (other) {
+                return '[Circular Reference]' + other;
+            } else {
+                refs.set(value, path.join('.'));
+            }
+            }
+        }
+        return value;
+        }
+
+        return function stringifyWithCircularRefs(obj, space) {
+        try {
+            parents.push(obj);
+            return JSON.stringify(obj, checkCircular, space);
+        } finally {
+            clear();
+        }
+        }
+    })();
+}
+

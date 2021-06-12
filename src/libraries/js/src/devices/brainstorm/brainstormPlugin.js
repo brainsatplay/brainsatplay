@@ -35,7 +35,7 @@ export class brainstormPlugin {
                 resolve(true)
             })
         }
-            if (!this.session.info.auth.authenticated){
+            if (!this.session.info.auth.connected){
                 this.session.promptLogin(document.body,()=>{},onAuth)
             } else {
                 onAuth()
@@ -103,7 +103,7 @@ export class brainstormPlugin {
          } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
              this.atlas = pipeToAtlas; //External atlas reference
              this.atlas.data.eegshared.sps = info.sps;
-             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+             this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128, 256);
              this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
              this.atlas.data.eeg = this.atlas.gen10_20Atlas(info.eegChannelTags); 
              

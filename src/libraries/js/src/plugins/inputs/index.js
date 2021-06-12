@@ -1,4 +1,5 @@
-export {Signal} from './Signal'
-export {Keyboard} from './Keyboard'
-export {Audio} from './Audio'
+import {Signal} from './Signal'
+import {Event} from './Event'
+import {Audio} from './Audio'
 
+export {Signal,Event,Audio}

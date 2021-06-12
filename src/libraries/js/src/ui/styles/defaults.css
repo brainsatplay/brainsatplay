@@ -31,6 +31,9 @@ a {
 a:hover{
     color: rgb(200, 200, 200)
 }
+a.hover{
+    color: rgb(200, 200, 200)
+}
 
 /* Selector */
 select {
@@ -43,100 +46,6 @@ select {
     /* margin: 0px 10px; */
     min-width: 100px;
 }
-
-
-/* Intro UI */
-.brainsatplay-default-menu {
-    color: white;
-}
-
-.brainsatplay-default-container {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    left: 0;
-    box-sizing: border-box;
-    text-align: left;
-    height: 100%;
-    width: 100%;
-    padding: 5%;
-    color: white;
-    background: black;
-    z-index: 1;
-    /* line-height: 3em; */
-    transition: opacity 1.5s;
-}
-
-.brainsatplay-default-container div {
-    width: 100%;
-}
-
-.brainsatplay-default-container h1 {
-    font-size: 10vw;
-    margin: 0px;
-    text-transform: uppercase;
-    width: 100%;
-}
-
-.brainsatplay-default-container p {
-    font-size: 0.8em;
-    width: 100%;
-}
-
-.brainsatplay-intro-loadingbar {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: #ffffff;
-    margin-top: 50px;
-    z-index: 2;
-    transform: scaleX(0);
-    transform-origin: top left;
-    transition: transform 1.5s;
-    will-change: transform;
-}
-
-.brainsatplay-intro-loadingbar.ended
-{
-    transform-origin: 100% 0;
-    transition: transform 1.5s ease-in-out;
-}
-
-
-
-.brainsatplay-default-button {
-    box-sizing: border-box; 
-    /* min-width: 50px; */
-    min-height: 50px;
-    flex-grow: 1;
-    width: 200px;
-    /* max-width: 48%; */
-    position: relative;
-    padding: 5px;
-    margin: 5px;
-    border-radius: 5px;
-    font-size: 80%;
-    background: black;
-    color: white;
-    border: 1px solid rgb(200, 200, 200);
-    text-align: left;
-    transition: 0.5s;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    pointer-events: 'auto'
-}
-
-.brainsatplay-default-button:hover {
-    background-color: rgb(35,35,35);
-}
-
-
 
 /* Device Selector */
 
@@ -211,6 +120,9 @@ select {
 }
 
 .brainsatplay-variantButton:hover {
+    background-color: rgb(35,35,35);
+}
+.brainsatplay-variantButton.hover {
     background-color: rgb(35,35,35);
 }
 
@@ -415,6 +327,9 @@ select {
 .brainsatplay-tutorial button:hover {
     background-color: rgb(35,35,35);
 }
+.brainsatplay-tutorial button.hover {
+    background-color: rgb(35,35,35);
+}
 
 .brainsatplay-tutorial .close {
     position: absolute;
@@ -556,29 +471,309 @@ select {
 /* Plugin GUI */ 
 #brainsatplay-plugin-gui {
     position:absolute; 
-    bottom: 0px; 
+    bottom: 20px; 
     right: 25px; 
     z-index: 100;
 }
 
 /* Node Editor */
-.brainsatplay-node-editor{
-    overflow-y: scroll;
-    display: flex;
-    flex-wrap: wrap;
+.brainsatplay-default-container.brainsatplay-node-editor{
+        z-index: 999;
+        opacity: 0; 
+        transition: opacity 1s;
+        pointer-events: none;
+        background: rgba(0,0,0,.7);
+        padding: 25px;
 }
 
 
+.brainsatplay-node-selector{
+    /* overflow-y: scroll; */
+    /* display: flex; */
+    /* flex-wrap: wrap; */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    z-index:10;
+}
+
+.brainsatplay-node-viewer{
+    height: 100%;
+    position: relative;
+}
+
+.brainsatplay-node{
+    position: absolute;
+}
+
+.brainsatplay-node-selector > input{
+    height: 50px;
+    width: 100%;
+    background: rgb(230, 230, 230);
+    padding: 5px 15px;
+    box-sizing: border-box;
+    border: 0px;
+}
+
+.brainsatplay-node-selector > .node-options{
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.brainsatplay-option-node{
+    width: 100%;
+    padding: 5px 15px;
+    box-sizing: border-box; 
+    background: rgb(15,15,15);
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.brainsatplay-option-node:hover{
+    background: rgb(35,35,35);
+}
+
 .brainsatplay-default-node-div{
-    /* flex: 50%; */
+    /* padding: 5px 0px; */
+    z-index: 10;
+    position: absolute;
+}
+
+.brainsatplay-display-node{
+    min-width: 100px;
+    position: absolute;
+    background: rgb(155, 155, 155);
+    cursor: move;
+    display: flex;
+    flex-wrap:wrap;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 10px;
+    z-index: initial;
+}
+
+.brainsatplay-display-node > .node-text {
+    position: absolute;
+    /* bottom: 50%; */
+    /* left: calc(100% + 15px); */
+    /* transform: translateY(50%); */
+    font-size: 75%;
+    text-align:center;
+    width:100%;
+    pointer-events: none;
+}
+
+.brainsatplay-display-node > .node-port-container {
+    display: flex;
+}
+
+.node-port-container > .node-port {
+    position: relative;
+    background: rgb(100, 100, 100);
+    width: 20px;
+    height: 20px;
+    transition: 0.5s;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.node-port-container > .node-port.active{
+    position: relative;
+    background: rgb(200, 200, 200);
+    width: 20px;
+    height: 20px;
+}
+
+.node-port-container > .node-port.active.updated{
+    background: rgb(255, 105, 97);
+}
+
+.node-port-container .node-port:hover .node-tooltip{
+    opacity: 1;
+}
+
+.node-port-container .node-tooltip {
+    opacity: 0;
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Input Port Behavior */
+.node-port-container.input-ports {
+    transform: translateY(-50%);
+    z-index: -1;
+}
+
+.node-port-container.input-ports .node-tooltip {
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%,-85%);
+}
+
+/* Output Port Behavior */
+.node-port-container.output-ports {
+    transform: translateY(50%);
+    z-index: -1;
+}
+
+.node-port-container.output-ports .node-tooltip {
+    bottom: 0%;
+    left: 50%;
+    transform: translate(-50%,85%);
+}
+
+.brainsatplay-default-node h3{
+    margin-bottom: 0px;
+}
+
+.brainsatplay-node-viewer > .edge{
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    background: transparent;
+    z-index: 10;
+    pointer-events: none;
+}
+  
+.brainsatplay-node-viewer > .edge svg{
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    background: transparent;
+    touch-action: none;
+    z-index: 10;
+    pointer-events: none;
+}
+
+  .brainsatplay-node-viewer > .edge path {
+    stroke-width: 3;
+    stroke: white;
+    stroke-linecap: round;
+    fill: none;
+    pointer-events: auto;
+  }
+  
+  .brainsatplay-node-viewer > .edge .control {
+    stroke-width: 3;
+    stroke: #c00;
+    fill: #fff;
+    pointer-events: auto;
+  }
+  
+  .brainsatplay-node-viewer > .edge .control:hover, #mysvg .control.drag
+  {
+    fill: #c00;
+    cursor: move;
+  }
+  
+  .brainsatplay-node-viewer > .edge line
+  {
+    stroke-width: 2;
+    stroke: #999;
+    /* stroke-linecap: round; */
+    stroke-dasharray: 5,5;
+  }  
+
+
+
+/* DEFAULT UI ELEMENTS */
+/* Intro UI */
+.brainsatplay-default-menu {
+    color: white;
+}
+
+.brainsatplay-default-container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    text-align: left;
+    height: 100%;
+    width: 100%;
+    padding: 5%;
+    color: white;
+    background: black;
+    z-index: 1;
+    /* line-height: 3em; */
+    transition: opacity 1.5s;
 }
 
-.brainsatplay-default-node{
-    padding: 10px; 
-    flex: 50%;
-    flex-grow: 1;
+.brainsatplay-default-container > div {
+    width: 100%;
 }
+
+.brainsatplay-default-container h1 {
+    font-size: 10vw;
+    margin: 0px;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.brainsatplay-default-container p {
+    font-size: 0.8em;
+    width: 100%;
+}
+
+.brainsatplay-intro-loadingbar {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #ffffff;
+    margin-top: 50px;
+    z-index: 2;
+    transform: scaleX(0);
+    transform-origin: top left;
+    transition: transform 1.5s;
+    will-change: transform;
+}
+
+.brainsatplay-intro-loadingbar.ended
+{
+    transform-origin: 100% 0;
+    transition: transform 1.5s ease-in-out;
+}
+
+
+
+.brainsatplay-default-button {
+    box-sizing: border-box; 
+    /* min-width: 50px; */
+    min-height: 50px;
+    flex-grow: 1;
+    width: 200px;
+    /* max-width: 48%; */
+    position: relative;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    font-size: 80%;
+    background: black;
+    color: white;
+    border: 1px solid rgb(200, 200, 200);
+    text-align: left;
+    transition: 0.5s;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: 'auto'
+}
+
+.brainsatplay-default-button:hover {
+    background-color: rgb(35,35,35);
+}
+.brainsatplay-default-button.hover {
+    background-color: rgb(35,35,35);
+}
+

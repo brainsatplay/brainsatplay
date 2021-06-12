@@ -1,10 +1,10 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager'
-import {CSV} from '../../../platform/js/general/csv'
-import {DataLoader} from '../../../platform/js/frontend/utils/DataLoader'
+import {CSV} from '../../../libraries/js/src/utils/csv'
 import * as settingsFile from './settings'
 import * as BrowserFS from 'browserfs'
+
 const fs = BrowserFS.BFSRequire('fs');
 const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 
@@ -34,12 +34,12 @@ export class SessionManagerApplet {
 
     constructor(
         parent=document.body,
-        bci=new Session(),
+        session=new Session(),
         settings=[]
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -50,8 +50,6 @@ export class SessionManagerApplet {
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
-
-        this.dataloader = new DataLoader(this.bci.atlas);
         
         this.state = new StateManager({dirr:[], filelist:[]},1000);
 
@@ -120,7 +118,7 @@ export class SessionManagerApplet {
         //Add whatever else you need to initialize
         let awaitsignin = () => {   
             if(this.looping){
-                if(window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+                if(window.gapi?.auth2.getAuthInstance().isSignedIn.get()){
                     console.log("Signed in, getting files...");
                     this.checkFolder();
                     this.listDriveFiles();
@@ -151,7 +149,7 @@ export class SessionManagerApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.looping = false;
-        this.dataloader.deinit();
+        this.session.dataManager.deinit();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
@@ -162,16 +160,27 @@ export class SessionManagerApplet {
             let lastseries = this.uplot.plot.series;
             this.uplot.deInit();
             let plotselect = document.getElementById(this.props.id+'plotselect').value;
-            let newSeries = this.makeSeries(plotselect,this.dataloader.state.data.loaded.header);
+            let newSeries = this.makeSeries(plotselect,this.session.dataManager.state.data.loaded.header);
             lastseries.forEach((ser,j)=> {
                 newSeries[j].show = ser.show;
             });
-            this.uplot.makeuPlot(
-                newSeries, 
-                this.uplot.uPlotData, 
-                this.AppletHTML.node.clientWidth, 
-                400
-            );
+            if(plotselect !== 'stackedeegraw') {
+                this.uplot.makeuPlot(
+                    newSeries, 
+                    this.uplot.uPlotData, 
+                    this.AppletHTML.node.clientWidth, 
+                    400
+                );
+            } else {
+                this.uplot.makeStackeduPlot(
+                    newSeries,
+                    this.uplot.uPlotData,
+                    undefined,
+                    undefined,
+                    this.AppletHTML.node.clientWidth,
+                    400
+                );
+            }
             if(plotselect === 'heg' || plotselect.includes('eegraw')) {
                 this.uplot.plot.axes[0].values = (u, vals, space) => vals.map(v => Math.floor((v- this.startTime)*.00001666667)+"m:"+((v- this.startTime)*.001 - 60*Math.floor((v- this.startTime)*.00001666667)).toFixed(0) + "s");}
             }
@@ -248,21 +257,21 @@ export class SessionManagerApplet {
     appendContent(message,id='content') {
         var pre = document.getElementById(this.props.id+id);
         pre.insertAdjacentHTML('beforeend',message);
-      }
+    }
 
     checkFolder(onResponse=(result)=>{}) {
         window.gapi.client.drive.files.list({
             q:"name='Brainsatplay_Data' and mimeType='application/vnd.google-apps.folder'",
         }).then((response) => {
             if(response.result.files.length === 0) {
-                this.createFolder();
+                this.createDriveFolder();
                 if(onResponse) onResponse(response.result);
             }
             else if(onResponse) onResponse(response.result);
         });
     }
 
-    createFolder(name='Brainsatplay_Data') {
+    createDriveFolder(name='Brainsatplay_Data') {
         let data = new Object();
         data.name = name;
         data.mimeType = "application/vnd.google-apps.folder";
@@ -398,22 +407,6 @@ export class SessionManagerApplet {
             onread(filesize);
         });
     }
-
-    //Read a chunk of data from a saved dataset
-    readFromDB = (filename='',begin=0,end=5120,onOpen=(data, filename)=>{console.log(data,filename);}) => {
-        fs.open('/data/'+filename,'r',(e,fd) => {
-            if(e) throw e;
-            fs.read(fd,end,begin,'utf-8',(er,output,bytesRead) => { 
-                if (er) throw er;
-                if(bytesRead !== 0) {
-                    let data = output.toString();
-                    //Now parse the data back into the buffers.
-                    onOpen(data, filename);
-                }
-            }); 
-        });
-    }
-
     //Write CSV data in chunks to not overwhelm memory
     writeToCSV = (filename) => {
         fs.stat('/data/'+filename,(e,stats) => {
@@ -500,12 +493,12 @@ export class SessionManagerApplet {
         lines.shift(); 
         if(hasend === false) lines.pop(); //pop first and last rows if they are likely incomplete
         if(filename.indexOf('heg') >-1 ) {
-            this.dataloader.parseHEGData(lines,head);
-            //this.dataloader.loaded
+            this.session.dataManager.parseHEGData(lines,head);
+            //this.session.dataManager.loaded
         } else { //eeg data
-            this.dataloader.parseEEGData(lines,head);
+            this.session.dataManager.parseEEGData(lines,head);
         }
-        return this.dataloader.state.data.loaded;
+        return this.session.dataManager.state.data.loaded;
     }
 
 
@@ -784,7 +777,7 @@ export class SessionManagerApplet {
                 `; 
         
             }
-            else if (filename.includes('eeg')) {
+            else if (filename.includes('eeg') || filename.includes('synthetic') || filename.includes('muse')) {
                   //loaded.data = {times,fftTimes,tag_signal,tag_fft,(etc),notes,noteTimes}
                   document.getElementById(this.props.id+'plotmenu').innerHTML = `
                   <select id='${this.props.id}plotselect'>
@@ -813,8 +806,8 @@ export class SessionManagerApplet {
 
             const getData = () => {
                 if(end > size) end = size;
-                this.readFromDB(filename,begin,end,(data,file)=>{
-                    let loaded = this.parseDBData(data,head,file,end===size);
+                this.session.dataManager.readFromDB(filename,begin,end,(data,file)=>{
+                    let loaded = this.session.dataManager.parseDBData(data,head,file,end===size);
                     if(!spsEstimate) {
                         let diff = 0;
                         loaded.data.times.slice(0,20).forEach((t,i) => {if(i>0) diff+=(t-loaded.data.times[i-1])});
@@ -1005,15 +998,18 @@ export class SessionManagerApplet {
                 else if (gmode.includes('eeg')) {
                     let newSeries = this.makeSeries(gmode,head);
                     newSeries[0].label = "t";
-                    let dummyarr = new Array(100).fill(1);
-                    newSeries.forEach((s)=>{
-                        this.uplot.uPlotData.push(dummyarr);
-                    });
-
+                    if(this.uplot.uPlotData.length === 0) {
+                        
+                        let dummyarr = new Array(100).fill(1);
+                        newSeries.forEach((s)=>{
+                            this.uplot.uPlotData.push(dummyarr);
+                        });
+                    }
+                    //console.log(newSeries,this.uplot.uPlotData)
                     if(!gmode.includes('stacked')) {
                         this.uplot.makeuPlot(
                             newSeries, 
-                            this.uplot.uPlotData, 
+                            this.uplot.uPlotData,
                             this.AppletHTML.node.clientWidth, 
                             400
                         );
@@ -1075,7 +1071,7 @@ export class SessionManagerApplet {
 
             const analyzeChunk = () => {
                 if(end > size) { end = size; }
-                this.readFromDB(filename,begin,end,(data,file)=>{
+                this.session.dataManager.readFromDB(filename,begin,end,(data,file)=>{
                     let loaded = this.parseDBData(data,head,file,end===size);
                     if(!spsEstimate) {
                         let diff = 0;
@@ -1225,7 +1221,7 @@ export class SessionManagerApplet {
                     let val = value.split(';');
                     if(val.length > 1) {
                         fft=true;
-                    } else if (idx > 1 && fft === false) {
+                    } else if (idx > 2 && fft === false) {
                         newSeries.push({
                             label:val[0],
                             value: (u, v) => v == null ? "-" : v.toFixed(1),

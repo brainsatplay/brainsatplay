@@ -27,7 +27,8 @@ export class Prototype8Plugin {
             {ch: 1,  tag: "FP2",  analyze:true},
             {ch: 2,  tag: "FZ",   analyze:true},
             {ch: 3,  tag: "C3",   analyze:true},
-            {ch: 5,  tag: "C4",   analyze:true},
+            {ch: 4,  tag: "C4",   analyze:true},
+            {ch: 5,  tag: "CZ",   analyze:true},
             {ch: 6,  tag: "O1",   analyze:true},
             {ch: 7,  tag: "O2",   analyze:true}
         ];
@@ -112,7 +113,7 @@ export class Prototype8Plugin {
             this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,256);
             this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
             this.atlas.data.eeg = this.atlas.gen10_20Atlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);

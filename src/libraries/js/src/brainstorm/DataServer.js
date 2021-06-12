@@ -8,7 +8,7 @@ Maybe buffer new data instead (up to a few hundred samples maybe) and instead of
 */
 
 const OSCManager = require('./OSCManager.js');
-
+const RobotManager = require('./RobotManager.js');
 
 class DataServer {
     /**
@@ -38,9 +38,10 @@ class DataServer {
             this.userData.set(username, {
                 username:username,
                 sessions:[],
+                robot: new RobotManager(),
                 sockets: {
                     ws: socket,
-                    osc: new OSCManager(socket)
+                    osc: new OSCManager(socket),
                 },
                 props: {},
                 updatedPropnames: [],
@@ -257,6 +258,14 @@ class DataServer {
                 }
             }
         }
+        else if (commands[0] === 'setUserStreamSettings') {
+            let sub = this.setUserStreamSettings(commands[0],commands[1]);
+            if(sub === undefined) {
+                u.sockets.ws.send(JSON.stringify({msg:'userNotFound',id:commands[1]}));
+            } else {
+                u.sockets.ws.send(JSON.stringify({msg:'userSubscriptionInfo',id:commands[1],sessionInfo:sub}));
+            }
+        }
         else if (commands[0] === 'createSession') {
             let i = this.createAppSubscription(commands[1],commands[2],commands[3]);
             u.sockets.ws.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.appSubscriptions[i]}));
@@ -288,6 +297,14 @@ class DataServer {
                 u.sockets.ws.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
             }
         }
+        else if (commands[0] === 'setSessionSettings') {
+            let sub = this.setAppSettings(commands[1],commands[2]);
+            if(sub === undefined) {
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+            } else {
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
+            }
+        }
         else if (commands[0] === 'createHostedSession') {
             let i = this.createHostSubscription(commands[1],commands[2],commands[3],commands[4],commands[5]);
             u.sockets.ws.send(JSON.stringify({msg:'sessionCreated',appname:commands[1],sessionInfo:this.hostSubscriptions[i]}));
@@ -317,6 +334,14 @@ class DataServer {
             }
             else {
                 u.sockets.ws.send(JSON.stringify({msg:'getSessionDataResult',id:commands[1],sessionData:sessionData}));
+            }
+        }
+        else if (commands[0] === 'setHostSessionSettings') {
+            let sub = this.setHostAppSettings(commands[0],commands[1]);
+            if(sub === undefined) {
+                u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));
+            } else {
+                u.sockets.ws.send(JSON.stringify({msg:'getSessionInfoResult',id:commands[1],sessionInfo:sub}));
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
@@ -368,6 +393,15 @@ class DataServer {
         }else if( commands[0] === 'stopOSC') {
             u.sockets.osc.remove(commands[1], commands[2])
         }
+
+        // Robot
+        else if(commands[0] === 'moveMouse') {
+            u.robot.move(commands[1])
+        }  else if (commands[0] === 'clickMouse') {
+            u.robot.click()
+        } else if (commands[0] === 'typeKeys') {
+            u.robot.move(keys)
+        }
     }
 
 	//Received a message from a user socket, now parse it into system
@@ -394,6 +428,7 @@ class DataServer {
             });
 
             this.appSubscriptions.forEach((o,i) => {
+
                 if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
                     o.updatedUsers.push(data.username);
                 }
@@ -433,6 +468,7 @@ class DataServer {
                     source:sourceUser,
                     id:sourceUser+"_"+Math.floor(Math.random()*10000000),
                     propnames:propnames,
+                    settings:[],
                     newData:false,
                     lastTransmit:0
                 });
@@ -449,6 +485,16 @@ class DataServer {
         }
 	}
 
+    setUserStreamSettings(id='',settings={}) {
+        let sub = this.userSubscriptions.find((o) => {
+            if(o.id === id) {
+                o.settings = settings;
+                return true;
+            }
+        });
+        return sub;
+    }
+
 	createAppSubscription(appname='',devices=[],propnames=[]) {
         // this.mongoClient.db("brainsatplay").collection('apps').find({ name: appname }).count().then(n => {
         //     if (n > 0){
@@ -461,6 +507,8 @@ class DataServer {
                     newUsers:[], //indicates users that just joined and have received no data yet
                     spectators:[], //usernames of spectators
                     propnames:propnames,
+                    hostname:'',
+                    settings:[],
                     lastTransmit:Date.now()
                 });
             // } else {
@@ -488,6 +536,16 @@ class DataServer {
         return g;
 	}
 
+    setAppSettings(id='',settings={}) {
+        let g = this.appSubscriptions.find((o,i) => {
+			if(o.id === id) {
+                o.settings = settings;
+				return true;
+			}
+		});
+        return g;
+    }
+
     getSessionData(id='') {
         let sessionData = undefined;
         let s = this.appSubscriptions.find((sub,i) => {
@@ -499,6 +557,7 @@ class DataServer {
                     id:sub.id,
                     propnames:sub.propnames,
                     usernames:sub.usernames,
+                    hostname:sub.hostname,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
@@ -536,6 +595,11 @@ class DataServer {
         let u = this.userData.get(username);
 
 		if(g !== undefined && u !== undefined) {
+
+            if (g.usernames.length === 0 && !spectating){
+                g.hostname = username;
+            }
+
             if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
                 if(spectating === true) g.spectators.push(username);
                 else {
@@ -546,8 +610,9 @@ class DataServer {
             }
 			
 			g.propnames.forEach((prop,j) => {
-				if(!(prop in u.props)) u.props[prop] = '';
-			});
+                if(!(prop in u.props)) u.props[prop] = '';
+            });
+            
             u.sessions.push(id);
             
 			//Now send to the user which props are expected from their client to the server on successful subscription
@@ -565,6 +630,7 @@ class DataServer {
             id:appname+"_"+Math.floor(Math.random()*10000000),
             hostname:hostname,
             hostprops:hostprops,
+            settings:[],
             usernames:[],
             updatedUsers:[], //users with new data available (clears when read from subcription)
             newUsers:[], //indicates users that just joined and have received no data yet
@@ -592,6 +658,16 @@ class DataServer {
 		});
         return g;
 	}
+
+    setHostAppSettings(id='',settings={}) {
+        let g = this.hostSubscriptions.find((o,i) => {
+			if(o.id === id) {
+                o.settings = settings;
+				return true;
+			}
+		});
+        return g;
+    }
 
     getHostSessionData(id='') {
         let sessionData = undefined;
@@ -744,6 +820,7 @@ class DataServer {
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
+                    hostname: sub.hostname
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users

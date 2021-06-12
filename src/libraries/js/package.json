@@ -1,12 +1,11 @@
 {
   "name": "brainsatplay",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "webpack": "webpack --mode production"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -22,6 +21,7 @@
   "dependencies": {
     "@neurosity/notion": "^5.2.0",
     "bci2k": "^2.3.3",
+    "browserfs": "^1.4.3",
     "dat.gui": "^0.7.7",
     "gaussian": "^1.2.0",
     "muse-js": "^3.2.0",

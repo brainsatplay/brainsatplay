@@ -34,13 +34,13 @@ export class Blink{
             //     options: ['Threshold']
             // }, 
             blinkDuration: {
-                default: 200,
+                default: 100,
                 options: null,
                 min: 0,
                 max: 2000,
                 step: 1
             }, blinkThreshold: {
-                default: 220,
+                default: 100,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -66,8 +66,8 @@ export class Blink{
 
     default = (userData) => {
 
-            let leftBlinks = this.session.atlas.graphs.runSafe(userData, this,'left')
-            let rightBlinks = this.session.atlas.graphs.runSafe(userData, this,'right')
+            let leftBlinks = this.session.atlas.graphs.runSafe(this,'left',userData)
+            let rightBlinks = this.session.atlas.graphs.runSafe(this,'right',userData)
             userData.forEach((u,i) => {
                 u.data = [leftBlinks[i].data, rightBlinks[i].data]
                 u.meta.label = 'blink'
@@ -95,7 +95,7 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
-        this._dataQuality = this.session.atlas.graphs.runSafe(user, this.dependencies['dataquality'],'default')[0].data // Grab results of dependencies (no mutation)
+        this._dataQuality = this.session.atlas.graphs.runSafe(this.dependencies['dataquality'],'default',[user])[0].data // Grab results of dependencies (no mutation)
         if (Date.now() - this.lastBlink > this.params.blinkDuration){
             tags.forEach(tag => {
                 let tryBlink = this._calculateBlinkFromTag(user,tag)

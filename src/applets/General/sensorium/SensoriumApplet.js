@@ -44,7 +44,6 @@ import fluteshot1 from './sounds/wav/fluteshot1.wav'
 import fluteshot2 from './sounds/wav/fluteshot2.wav'
 import drumhit1 from './sounds/wav/drum_hit_1.wav'
 import drumkick1 from './sounds/wav/drum_kick_1.wav'
-import { select } from 'd3-selection';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 
 //Example Applet for integrating with the UI Manager
@@ -55,7 +54,7 @@ export class SensoriumApplet {
         session=new Session(),
         settings=[]
     ) {
-    
+
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
@@ -67,6 +66,12 @@ export class SensoriumApplet {
         //settings structure
         /*
         settings input: [{
+            "title": false, //true or false for intro title
+            "mode": "multi", //solo or multi auto select
+            "domain": "https://localhost:443", //Set server domain settings to find sessions
+            "login": false, // choose username, randomid if not specified
+            "session": true, // specify session name, true for autojoin
+            "spectating": false // select whether you are spectating or participating
             "shader":{
                 "name":"Galaxy"
                 OR
@@ -84,30 +89,35 @@ export class SensoriumApplet {
         }];
         */
 
-        //-------Required Multiplayer Properties------- 
-        this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = ['modifiers'] // Register your app data streams
-        //----------------------------------------------
+        if(this.settings.length === 0) this.settings = [{}];
 
-        //-------Other Multiplayer Properties------- 
-        this.stateIds = []
-        //----------------------------------------------
 
+        
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
             //Add whatever else
         };
 
+        //-------Required Multiplayer Properties------- 
+        this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
+        this.streams = ['modifiers','hostData'] // Register your app data streams
+        //----------------------------------------------
+
+        //-------Other Multiplayer Properties------- 
+        this.stateIds = []
+        this.mode = 'single';
+        this.roomId = true;
+        //----------------------------------------------
+
+
         // Plugins
         this.graphs = new PluginManager(this.session, {gui: false})
         this.graphs.add(this.props.id, this.info.name, 
-        [
             {
-                id: 'mygraph',
                 nodes: [
                     {id: 'neosensory', class: Buzz},
                 ],
-            }]
+            }
         )
 
         this.tutorialManager = null
@@ -137,6 +147,7 @@ export class SensoriumApplet {
         this.hidden = false;
         this.editorhidden = true;
         this.quickrefhidden = true;
+        this.shaderEdited = false;
 
         // UI
         this.three = {}
@@ -258,6 +269,10 @@ export class SensoriumApplet {
 
         this.brainData = []   
         this.lastColorSwitch=Date.now() 
+        this.isHost = false;
+        this.hostStreamId = undefined;
+        this.hostStreamSub = undefined;
+        this.hostSoundsUpdated = false;
 
         this.history = 5; 
 
@@ -300,6 +315,10 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
+                            <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
+                            <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan2'>Share Modifiers:</span><input type='checkbox' id='${props.id}modifiers'>
                         </div>
                         <div id='${props.id}effectmenu'></div>
                     </div>
@@ -333,16 +352,13 @@ void main(){
                     language: 'glsl', 
                     target: this.currentShader.fragmentShader,
                     onSave: () => {
+                        this.shaderEdited = true;
                         this.setShaderFromText(this.liveEditor.input.value);
                     }
             }, editorContainer)
 
             this.tutorialManager = this.createTutorial()
             this.tutorialManager.updateParent(this.appletContainer)
-            
-            this.session.createIntro(this, () => {
-                this.tutorialManager.init();
-            });
 
 
             document.getElementById(this.props.id).onmousemove = (e) => {
@@ -410,6 +426,7 @@ void main(){
                         }
                     }
                     if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
+                    this.shaderEdited = false;
                     this.swapShader();
                     this.setEffectOptions();
                 } 
@@ -427,6 +444,9 @@ void main(){
                     menu.style.maxHeight = "0";
                     menu.style.padding = "0% 25px"
                     document.getElementById(props.id+"showhide").innerHTML = "Show Controls";
+                    if(document.getElementById(props.id+'exitSession') && this.mode === 'multi') {
+                        document.getElementById(props.id+'exitSession').style.display = 'none';   
+                    }
                     // document.getElementById(props.id+'addeffect').style.display = "none";
                     // document.getElementById(props.id+'effectmenu').style.display = "none";
                     // document.getElementById(props.id+'shaderSelector').style.display = "none";
@@ -442,6 +462,9 @@ void main(){
                     document.getElementById(props.id+'effectmenu').style.display = "";
                     document.getElementById(props.id+'shaderSelector').style.display = "";
                     this.appletContainer.querySelector('.guiContainer').style.display = "";
+                    if(document.getElementById(props.id+'exitSession') && this.mode === 'multi') {
+                        document.getElementById(props.id+'exitSession').style.display = '';   
+                    }
                 }
             }
 
@@ -451,6 +474,29 @@ void main(){
             showhide.onmouseleave = () => {
                 showhide.style.opacity = 0.2;
             }
+
+            document.getElementById(props.id+'submitconfig').onclick = () => {
+                let config;
+                if(!this.hostSoundsUpdated) {
+                    config = this.getCurrentConfiguration(true,document.getElementById(this.props.id+'modifiers').checked);
+                    this.hostSoundsUpdated = true;
+                } else {
+                    config = this.getCurrentConfiguration(false,document.getElementById(this.props.id+'modifiers').checked);
+                }
+                this.session.setSessionSettings(this.roomId,config);
+            }
+
+            document.getElementById(props.id+'share').onclick = () => {
+                let address = this.generateShareableAddress();
+                navigator.clipboard.writeText(address).then(function() {
+                    console.log('Async: Copying to clipboard was successful!');
+                  }, function(err) {
+                    console.error('Async: Could not copy text: ', err);
+                });
+                document.getElementById(props.id+'share').innerHTML = "Copied to Clipboard!";
+                setTimeout(()=>{document.getElementById(props.id+'share').innerHTML = "Get Shareable Link"},1000);
+            }
+
         }
 
 
@@ -470,13 +516,6 @@ void main(){
         this.looping = true;
         
         this.ct = 0;
-
-
-
-    // Multiplayer
-    this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, (newData) => {
-        //console.log('new data!')
-    }));
 
 
     /**
@@ -562,21 +601,22 @@ void main(){
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
-
                 let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
                 if (userData.length > 0){
                     let averageModifiers = {};
                     userData.forEach((data) => {
-                       if (data.modifiers){
+                       if(!data['modifiers']) data['modifiers'] = this.modifiers;
+                       if (data['modifiers']){
                             // Only average watched values
                             this.currentShader.uniforms.forEach(name => {
                                 if (averageModifiers[name] == null) averageModifiers[name] = []
 
-                                if (data.modifiers[name] != null && data.modifiers[name].constructor === Uint8Array) {
-                                    data.modifiers[name] = Array.from(data.modifiers[name])
+                                if (data['modifiers'][name] != null && data['modifiers'][name].constructor === Uint8Array) {
+                                    data['modifiers'][name] = Array.from(data['modifiers'][name])
                                 }
-                                averageModifiers[name].push(data.modifiers[name])
+                                averageModifiers[name].push(data['modifiers'][name])
                             });
                         }
                     })
@@ -622,7 +662,54 @@ void main(){
         
         document.getElementById(this.props.id+'addeffect').click();
 
-        if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
+        //console.log(this.settings);
+
+        this.session.createIntro(this, (info) => {
+            this.tutorialManager.init();
+            if(info && this.roomId !== info.id){
+                this.mode = 'multi';
+
+                if(this.hostStreamId) {
+                    this.stateIds.forEach(id => this.session.state.unsubscribeAll(id));
+                    this.session.state.unsubscribe(this.roomId,this.hostStreamSub);
+                }
+
+                this.roomId = info.id;
+            
+                this.hostData = {};
+                // Multiplayer
+                this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.roomId ));
+                this.hostStreamId = this.session.streamAppData('hostData', this.hostData, this.roomId );
+                this.stateIds.push(this.hostStreamId);
+                
+                
+                this.hostStreamSub = this.session.state.subscribe(this.roomId ,(newResult)=>{
+                    //console.log(newResult)
+                    if(newResult.settings[0]) {
+                        if(!newResult.settings[0].settingsSet) {
+                            this.configure(newResult.settings);
+                            newResult.settings[0].settingsSet = true;
+                        }
+                    }
+                            
+                    if(newResult.hostname) {
+                        if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                            this.isHost = true;
+                            document.getElementById(this.props.id+'submitconfig').style.display = '';
+                        } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                            this.isHost = false;
+                            document.getElementById(this.props.id+'submitconfig').style.display = 'none';
+                            
+                        }
+                    }                  
+                
+                });
+            
+            }
+            
+        });
+
+        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
 
     }
 
@@ -727,89 +814,102 @@ void main(){
     }];
     */
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+
         console.log("Configure with settings:",settings);
+        
+        let textdecoder = new TextDecoder();
+
         settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
                 
-                if(this.effects.length < i-1) {
+                if(this.effects.length === i) {
                     document.getElementById(this.props.id+'addeffect').click();
-                    if(cmd.controls !== undefined) {
-                       if(cmd.controls === false ) {
-                           document.getElementById(props.id+'showhide').click();
-                           document.getElementById(props.id+'showhide').onmouseleave();
-                        }
-                    }
-                    if(cmd.shader) {
-                        let shaderselector = document.getElementById(this.props.id+'shaderSelector');
-                        if(cmd.shader.name) {
-                            Array.from(shaderselector.options).forEach((opt,j) => {
-                                if(opt.value === cmd.shader.name) {
-                                    shaderselector.selectedIndex = j;
-                                    shaderselector.onchange();
-                                }
-                            });
-                        } else if (cmd.shader.frag) {
-                            shaderselector.selectedIndex = shaderselector.options.length-1;
-                            shaderselector.onchange();
-                            this.liveEditor.input.value = cmd.shader.frag;
-                            this.setShaderFromText(this.liveEditor.input.value);
-                        }
-                    }
-                    if(cmd.modifiers) {
-                        Object.assign(this.modifiers,cmd.modifiers);
-                    }
-                    if(cmd.feedback) {
-
-                        Array.from(cmd.feedback.options).forEach((opt,j) => {
-                            if(opt.value === cmd.feedback || opt.text === cmd.feedback)
-                                this.effects[i].feedback.selectedIndex = j;
-                        });
-                    }
-                    if(cmd.soundurl) { //{"name":"etc","url":""}
-                        let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
-                        let foundidx = 0;
-                        let found = Array.from(soundselect.options).forEach((opt,k) => {
-                            if(opt.name === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
-                                foundidx = k; 
-                                return true;
+                }
+                if(cmd.controls == false && this.hidden == false) {
+                    document.getElementById(this.props.id+'showhide').onclick();
+                    document.getElementById(this.props.id+'showhide').onmouseleave();
+                    document.getElementById(this.props.id+'exitSession').style.display = 'none';   
+                }
+                if(cmd.shader) {
+                    let shaderselector = document.getElementById(this.props.id+'shaderSelector');
+                    if(cmd.shader.name) {
+                        Array.from(shaderselector.options).forEach((opt,j) => {
+                            if(opt.value === cmd.shader.name) {
+                                shaderselector.selectedIndex = j;
+                                //console.log(shaderselector.value);
+                                let e = {target:shaderselector}
+                                shaderselector.onchange(e);
                             }
                         });
-                        if(!found) {
-                            this.soundUrls.push(cmd.soundurl); //{"name":"etc","url":""}
-                            soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
-                            foundidx = soundselect.options.length-1;
+                    } else if (cmd.shader.frag) {
+                        shaderselector.selectedIndex = shaderselector.options.length-1;
+                        let e = {target:shaderselector}
+                        shaderselector.onchange(e);
+                        let fragment;
+                        if(!cmd.shader.frag.includes('#define')) fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
+                        else fragment = cmd.shader.frag;
+                        //this.liveEditor.updateSettings({language: 'glsl', target: fragment });
+                        this.liveEditor.input.value = fragment;
+                        this.liveEditor.input.oninput();
+                        this.setShaderFromText(fragment);
+                    }
+                }
+                if(cmd.modifiers) {
+                    Object.assign(this.modifiers,cmd.modifiers);
+                }
+                if(cmd.feedback) {
+                    Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
+                        if(opt.value === cmd.feedback || opt.text === cmd.feedback) {
+                            this.effects[i].feedback.selectedIndex = j;
+                            this.effects[i].feedback.onchange();
                         }
-                        
-                        soundselect.selectedIndex = foundidx;
-                        soundselect.onchange();
+                    });
+                }
+                if(cmd.soundurl) { //{"name":"etc","url":""}
+                    let soundselect = document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx);
+                    let foundidx = 0;
+                    let found = Array.from(soundselect.options).find((opt,k) => {
+                        if(opt.innerHTML === cmd.soundurl.name || opt.value === cmd.soundurl.url) {
+                            foundidx = k; 
+                            return true;
+                        }
+                    });
+                    if(!found) {
+                        this.soundUrls.push(cmd.soundurl); //{"name":"etc","url":""}
+                        soundselect.insertAdjacentHTML('beforeend', `<option value='${cmd.soundurl.url}'>${cmd.soundurl.name}</option>`);
+                        foundidx = soundselect.options.length-1;
                     }
-                    else if (cmd.soundbuffer) { //load a sound buffer directly from audiosourcenode.buffer sent through the system. 
-                        if(!window.audio) window.audio = new SoundJS();
-                        if(!window.audio.ctx) return false;
+                    console.log(foundidx)
+                    soundselect.selectedIndex = foundidx;
+                    soundselect.onchange();
+                }
+                else if (cmd.soundbuffer) { //load a sound buffer directly from audiosourcenode.buffer sent through the system. 
+                    if(!window.audio) window.audio = new SoundJS();
+                    if(!window.audio.ctx) return false;
 
-                        let buf = window.audio.createBuffer(cmd.soundbuffer.buffer.length,cmd.soundbuffer.buffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
-                        cmd.soundbuffer.buffer.forEach((b,j) => {
-                            buf.copyToChannel(b,j+1,0);
-                        });
+                    let buf = window.audio.createBuffer(cmd.soundbuffer.buffers.length,cmd.soundbuffer.duration/cmd.soundbuffer.samplerate,cmd.soundbuffer.samplerate);
+                    cmd.soundbuffer.buffers.forEach((b,j) => {
+                        if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+                        else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
+                    });
 
-                        this.effects[i].input.style.display='none';
-                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
-                        window.audio.finishedLoading([buf]);
+                    this.effects[i].input.style.display='none';
+                    document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = '';
+                    window.audio.finishedLoading([buf]);
 
-                        document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = 'none';
-                        document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx).selectedIndex = 0;
-        
-                        if(!this.effects[i].controls) {
-                            document.getElementById(this.props.id+'effectWrapper'+this.effects[i].uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
-                            this.effects[i].controls = document.getElementById(this.props.id+'controlWrapper'+this.effects[i].uiIdx);
-                        } else {this.effects[i].controls.style.display=""}
-                        this.effects[i].source = window.audio.sourceList[sourceListIdx]; 
-                        this.effects[i].sourceIdx = sourceListIdx;
-                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "Loading..." 
-        
-                        this.loadSoundControls(this.effects[i]);
-                        document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "";
-                    }
+                    document.getElementById(this.props.id+'fileinfo'+this.effects[i].uiIdx).style.display = 'none';
+                    document.getElementById(this.props.id+'soundselect'+this.effects[i].uiIdx).selectedIndex = 0;
+    
+                    if(!this.effects[i].controls) {
+                        document.getElementById(this.props.id+'effectWrapper'+this.effects[i].uiIdx).querySelector('.sound').insertAdjacentHTML('beforeend',controls(newEffect.uiIdx));
+                        this.effects[i].controls = document.getElementById(this.props.id+'controlWrapper'+this.effects[i].uiIdx);
+                    } else {this.effects[i].controls.style.display=""}
+                    this.effects[i].source = window.audio.sourceList[sourceListIdx]; 
+                    this.effects[i].sourceIdx = sourceListIdx;
+                    document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "Loading..." 
+    
+                    this.loadSoundControls(this.effects[i]);
+                    document.getElementById(this.props.id+'status'+this.effects[i].uiIdx).innerHTML = "";
                 }
             }
         });
@@ -844,24 +944,29 @@ void main(){
         //add more feedback and sound settings
     }];
     */
-    getCurrentConfiguration = (includeSounds=false) => {
+    getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
+        let textencoder = new TextEncoder();
         this.effects.forEach((e,j) => {
             settings.push({
-                feedback:e.feedback
+                feedback:e.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                if(e.sourceIdx) {
-                    if(document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIdx === 0) {
-                        settings[j].soundbuffer = new Array(source.buffer.numberOfChannels).fill(new Float32Array);
-                        settings[j].soundbuffer.forEach((channel,k) => {
-                            source.buffer.copyFromChannel(channel,k+1,0);
+                //console.log(e);
+                if(e.sourceIdx !== false) {
+                    if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
+                        settings[j].soundbuffer = {};
+                        settings[j].soundbuffer.buffers = new Array(e.source.buffer.numberOfChannels).fill(new Float32Array(Math.floor(e.source.buffer.duration*e.source.buffer.sampleRate)));
+                        settings[j].soundbuffer.buffers.forEach((channel,k) => {
+                            console.log(e.source.buffer)
+                            e.source.buffer.copyFromChannel(channel,k,0);
+                            if(encodeSoundsAsText) settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
-                        settings[j].soundbuffer.samplerate = source.buffer.sampleRate;
-                        settings[j].soundbuffer.duration = source.buffer.duration;
+                        settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
+                        settings[j].soundbuffer.duration = e.source.buffer.duration;
                     } else {
                         settings[j].soundurl = {
-                            name:document.getElementById(this.props.id+'soundselect'+e.uiIdx).text,
+                            name:Array.from(document.getElementById(this.props.id+'soundselect'+e.uiIdx).options)[document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIndex].innerHTML,
                             url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
                         };
                     }
@@ -870,15 +975,46 @@ void main(){
         });
 
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
-        settings[0].controls = false;
+        settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
-        if(shaderselector.value !== 'fromtext')
+        if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
-        settings[0].modifiers = this.modifiers;
+        if(includeModifiers) settings[0].modifiers = this.modifiers;
+        console.log(settings)
+
+        // Auto-Join Configuration Settings
+        settings[0].title = false
+        settings[0].mode = this.mode;
+        if(this.mode === 'multi') {
+            settings[0].domain = this.session.info.auth.url.href;
+            settings[0].login = false;
+            settings[0].session = this.roomId;
+            settings[0].spectating = false;
+        }
 
         return settings;
+    }
+
+    generateShareableAddress = () => {
+        let config = this.getCurrentConfiguration('urls',document.getElementById(this.props.id+'modifiers').checked);
+        
+        if(config[0].shader.frag) {
+            let textencoder = new TextEncoder();
+            config[0].shader.frag = "[" +textencoder.encode(config[0].shader.frag).toString() + "]";
+            //console.log(config[0].shader.frag)
+        }
+
+        let address;
+        let adr = window.location.href.split('/');
+        if(adr.length === 2) address = adr[0];
+        else if (adr.length >= 3) address = adr.slice(0,3).join('/');
+
+        if(address.indexOf("#Sensorium") > -1) address = address.slice(0,address.indexOf("#Sensorium"));
+        address+=`#{"name":"Sensorium","settings":${JSON.stringify(config)}}`;
+        
+        return address;
     }
 
     addSoundInput = () => {
@@ -894,6 +1030,7 @@ void main(){
                     <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Sound</span>
                     <div id='${props.id}fileWrapper${idx}' style="">  
                         <select id='${props.id}soundselect${idx}'><option value='none' disabled>Choose an Audio Source</option></select> 
+                        <span id='${props.id}customspan${idx}' style='display:none;'><input type='text' id='${props.id}customname${idx}' placeholder='File Name'></input><input type='text' id='${props.id}customurl${idx}' placeholder='File URL'></input><button id='${props.id}customsubmit${idx}'>Load</button></span>
                         <span id='${props.id}status${idx}'></span>
                     </div>
                     <span id='${props.id}fileinfo${idx}' style='text-shadow: 0px 0px 2px black, 0 0 10px black; display:none;'>Loading...</span>
@@ -974,14 +1111,32 @@ void main(){
             
         }
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`)
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`)
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='none'>None</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='micin'>Mic In</option>`);
+
+        document.getElementById(this.props.id+'customsubmit'+newEffect.uiIdx).onclick = () => {
+            let name = document.getElementById(this.props.id+'customname'+newEffect.uiIdx).value;
+            let url = document.getElementById(this.props.id+'customurl'+newEffect.uiIdx).value;
+            if(name.length>0 && url.length>0) {
+                var option = document.createElement("option");
+                option.innerHTML = name;
+                option.value = url;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).selectedIndex = document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).options.length-1;
+                document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange();
+            }
+        }
 
         this.soundUrls.forEach((obj)=>{
-            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='${obj.url}'>${obj.name}</option>`)
+            var option = document.createElement("option");
+            option.innerHTML = obj.name;
+            option.value = obj.url;
+            document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).add(option);
         });
 
-        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Custom File</option>`)
+        
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='custom'>Add Audio URL</option>`);
+        document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).insertAdjacentHTML('beforeend', `<option value='addfile'>Add Local File</option>`)
 
 
         document.getElementById(this.props.id+'soundselect'+newEffect.uiIdx).onchange = () => {
@@ -995,6 +1150,12 @@ void main(){
                 }
             });
 
+            if (soundurl === 'custom') {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = '';
+            } else {
+                document.getElementById(this.props.id+'customspan'+newEffect.uiIdx).style.display = 'none';   
+            }
+
             if (soundurl === 'micin'){
                 if(!found){
                     //start mic
@@ -1002,7 +1163,8 @@ void main(){
                         window.audio = new SoundJS();
                         if (window.audio.ctx===null) {return;};
                     }
-                    this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
+
+                    if(this.effects[this.effects.length-1].sourceIdx !== false) this.effects.push(JSON.parse(JSON.stringify(this.effectStruct)));
                     let fx = this.effects[this.effects.length-1];
 
                     fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
@@ -1010,23 +1172,27 @@ void main(){
                             fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
                             //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
                             fx.playing = true;
-                            fx.feedbackOption = 'iAudio';
                             fx.id = 'Micin';
                             //fx.source.mediaStream.getTracks()[0].enabled = false;
+                            this.hostSoundsUpdated = false;
                         }
                     });
+
+                    console.log(fx)
+                   
                 }
-            } else if (found != null){
+            }
+            else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
                 this.effects.splice(idx,1);
             } 
 
-            if (!['micin', 'none'].includes(soundurl)) {
+            if (!['micin', 'none', 'custom'].includes(soundurl)) {
+                console.log(soundurl)
                 if (soundurl === 'addfile') {
-
                     if(!window.audio) window.audio = new SoundJS();
                     if (window.audio.ctx===null) {return;};
-                    document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
+                    //document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                     window.audio.decodeLocalAudioFile((sourceListIdx)=>{ 
                         
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = 'none';
@@ -1042,6 +1208,7 @@ void main(){
         
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
@@ -1068,12 +1235,13 @@ void main(){
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "Loading..." 
                         this.loadSoundControls(newEffect);
                         document.getElementById(this.props.id+'status'+newEffect.uiIdx).innerHTML = "";
+                        this.hostSoundsUpdated = false;
                     }, 
                     ()=> { 
                         console.log("Decoding...");
                         newEffect.input.style.display='none';
                         document.getElementById(this.props.id+'fileinfo'+newEffect.uiIdx).style.display = '';
-                    });
+                    }, false);
                 }
             }
 
@@ -1330,7 +1498,7 @@ void main(){
                     if(!effectStruct.muted && window.audio && effectStruct.playing){
                         var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
                         window.audio.analyserNode.getByteFrequencyData(array);
-                        this.modifiers.iAudio = array.slice(0,256);
+                        this.modifiers.iAudio = Array.from(array.slice(0,256));
                     } else {
                         this.modifiers.iAudio = new Array(256).fill(0);
                     }
@@ -1364,7 +1532,7 @@ void main(){
 
     setShaderFromText = (text) => {
 
-        let fragShader = text
+        let fragShader = text;
 
         // Dynamically Extract Uniforms
         let regex = new RegExp('uniform (.*) (.*);', 'g')
@@ -1542,14 +1710,14 @@ void main(){
         let node = this.graphs.getNode(this.props.id, 'buzz')
 
         if (modifiers.iAudio){
-            this.graphs.runSafe([{data: modifiers.iAudio, meta: {label: 'iAudio'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         } 
         else if (modifiers.iFFT){
-            this.graphs.runSafe([{data: modifiers.iFFT, meta: {label: 'iFFT'}}],node, 'motors')
+            this.graphs.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            this.graphs.runSafe([{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}],node, 'leds')
+            this.graphs.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
         }
     }
 } 

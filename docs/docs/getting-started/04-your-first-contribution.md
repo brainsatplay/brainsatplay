@@ -1,12 +1,12 @@
 ---
 title: Your First Contribution
-hide_title: true
+hide_title: false
 ---
 
-![Setup](../../static/img/01-setup/header.png)
+<!-- ![Setup](../../static/img/01-setup/header.png) -->
 
-## Overview
----
+<!-- ## Overview
+--- -->
 This tutorial will guide you through setting up a local version of The Brains@Play Platform.
 
 While you've created a simple applet for deployment on the Brains@Play Platform, this applet can also run as a standalone application using only the internal functions and built-in fragment rendering system of our Applet Template. Simply include [our NPM library](https://www.npmjs.com/package/brainsatplay) in your project!

@@ -56,9 +56,14 @@ import {PluginManager} from './PluginManager'
 // Event Router
 import { EventRouter } from './EventRouter'
 
+// Data Manager
+import { DataManager } from './utils/DataManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
+
+export let DataMgr = null;
 
 /**
  * ```javascript
@@ -86,11 +91,13 @@ export class Session {
 	constructor(
 		username = 'guest',
 		password = '',
-		urlToConnect = 'https://brainsatplay.azurewebsites.net'//'https://server.brainsatplay.com'
-	) {
+		urlToConnect = 'https://brainsatplay.azurewebsites.net',//'https://server.brainsatplay.com'
+		initFS = false
+		) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
+			sessionInfo: undefined,
 		});
 
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
@@ -101,7 +108,7 @@ export class Session {
 				url: new URL(urlToConnect),
 				username: username,
 				password: password,
-				authenticated: false
+				connected: false
 			},
 			apps: {},
 			subscriptions: [],
@@ -113,6 +120,10 @@ export class Session {
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
 		this.graphs = new PluginManager(this)
+		this.dataManager = new DataManager(this);
+		DataMgr = this.dataManager;
+
+		if(initFS) this.initFS();
 	}
 
 	/**
@@ -196,16 +207,19 @@ export class Session {
 		let stateId = "device" + (i)
 
 		newStream.onconnect = () => {
-			this.deviceStreams.push(newStream)
+			this.deviceStreams.push(newStream);
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
+			
 			this.info.nDevices++;
 			if (streamParams[0]) { 
 				this.beginStream(streamParams); 
 			}
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
+
 			onconnect(newStream);
 			this.onconnected();
+			
 		}
 
 		newStream.ondisconnect = () => {
@@ -229,7 +243,11 @@ export class Session {
 		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
-			newStream.configureRoutes([this.state, this.graphs.state], contentChild)
+			newStream.configureRoutes(contentChild)
+			for (let id in this.info.apps){
+				newStream.info.events.addApp(id, this.info.apps[id].controls)
+			}
+			newStream.info.events.updateRouteDisplay()
 		}
 
 		return newStream
@@ -266,6 +284,31 @@ export class Session {
 		} else { console.log("No devices connected"); }
 	}
 
+	// Check if Chrome
+	checkIfChrome = () => {
+		// https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome/13348618#13348618
+		let isChromium = window.chrome;
+		let winNav = window.navigator;
+		let vendorName = winNav.vendor;
+		let isOpera = typeof window.opr !== "undefined";
+		let isIEedge = winNav.userAgent.indexOf("Edge") > -1;
+		let isIOSChrome = winNav.userAgent.match("CriOS");
+	
+		if (isIOSChrome) {
+			return true
+		} else if(
+		isChromium !== null &&
+		typeof isChromium !== "undefined" &&
+		vendorName === "Google Inc." &&
+		isOpera === false &&
+		isIEedge === false
+		) {
+			return true
+		} else { 
+			return false
+		}
+	}
+
 	/**
      * @method module:brainsatplay.Session.connectDevice
      * @description Generate DOM fragment with a selector for available devices.
@@ -276,173 +319,179 @@ export class Session {
 	 */
 
 	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
-				
-		let template = () => {return `
-		<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
-			<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
-			<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-				<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
-				<hr>
-				<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+		
+		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+			let template = () => {return `
+			<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+				<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
+				<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+					<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
+					<hr>
+					<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
+				</div>
 			</div>
-		</div>
-		`}
+			`}
 
-		let setup = () => {
+			let setup = () => {
 
-		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-		let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
-		let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+			let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
+			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
 
-		const resizeDisplay = () => {
-			let main = deviceSelection.querySelector(`.main`)
-			deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
-			// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
-		}
-		resizeDisplay()
-
-		window.addEventListener('resize', resizeDisplay)
-
-		closeButton.onclick = () => {
-			deviceSelection.style.opacity = '0'
-			deviceSelection.style.pointerEvents = 'none'
-		}
-		
-		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
-
-		newDeviceList.sort(function(a, b) {
-			let translate = (d) => {
-				if (d.company == 'Brains@Play'){
-					return 0 // B@P
-				} else if (d.company == 'HEGAlpha'){
-					return 1 // HEG
-				} else if (d.company == 'Neuroidss'){
-					return 2 // FreEEG
-				} else if (d.company == 'OpenBCI'){
-					return 3 // OpenBCI
-				} else if (d.company == 'Neosensory'){
-					return 4 // Neosensory
-				} else if (d.company == 'InteraXon'){
-					return 5 // InteraXon
-				} else {
-					return 3 // other
-				}
+			const resizeDisplay = () => {
+				let main = deviceSelection.querySelector(`.main`)
+				deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
+				// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
 			}
-			let pos1 = translate(a)
-			let pos2 = translate(b)
-			return pos1 - pos2;
-		});
-		
-		newDeviceList.forEach((d, i) => {
-			if (d.variants == null) d.variants = ['']
+			resizeDisplay()
 
-			let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+			window.addEventListener('resize', resizeDisplay)
 
-			let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
-			if (!insertionDiv) {
-				insertionDiv = document.createElement('div')
-				insertionDiv.classList.add(`brainsatplay-companyCard`)
-				insertionDiv.setAttribute("name",cleanCompanyString)
-				insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
-				deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
+			closeButton.onclick = () => {
+				deviceSelection.style.opacity = '0'
+				deviceSelection.style.pointerEvents = 'none'
 			}
+			
+			// Apply User Filter
+			let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
-			let deviceDiv = document.createElement('div')
-			deviceDiv.id = `brainsatplay-device-${d.id}`
-			deviceDiv.classList.add('brainsatplay-deviceCard')
+			// Apply Browser Filter
+			if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
-			let header = document.createElement('h4')
-			header.id = `brainsatplay-header-${d.id}`
-			header.innerHTML = d.name
-			deviceDiv.insertAdjacentElement('beforeend', header)	
-
-			deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
-
-			let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
-
-			let deviceIndicator = document.createElement('div')
-			deviceIndicator.classList.add('indicator')
-			deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
-
-			d.variants.forEach(v => {
-				let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
-				let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
-				let variantLabel = ((v != '') ? v : 'Connect')
-				let div = document.createElement('div')
-				div.id = `brainsatplay-${variantName}`
-				div.classList.add('brainsatplay-variantButton')
-
-				// Add label to button
-				div.innerHTML = `<p>${variantLabel}</p>`
-
-				let setIndicator = (on=true) => {
-					if (on){
-						deviceIndicator.classList.add('on')
+			newDeviceList.sort(function(a, b) {
+				let translate = (d) => {
+					if (d.company == 'Brains@Play'){
+						return 0 // B@P
+					} else if (d.company == 'HEGAlpha'){
+						return 1 // HEG
+					} else if (d.company == 'Neuroidss'){
+						return 2 // FreEEG
+					} else if (d.company == 'OpenBCI'){
+						return 3 // OpenBCI
+					} else if (d.company == 'Neosensory'){
+						return 4 // Neosensory
+					} else if (d.company == 'InteraXon'){
+						return 5 // InteraXon
 					} else {
-						deviceIndicator.classList.remove('on')
+						return 3 // other
 					}
 				}
+				let pos1 = translate(a)
+				let pos2 = translate(b)
+				return pos1 - pos2;
+			});
+			
+			newDeviceList.forEach((d, i) => {
+				if (d.variants == null) d.variants = ['']
 
-				let updatedOnConnect = (device) => {
-					onconnect()
-					div.querySelector('p').innerHTML = "Disconnect"
-					setIndicator(true)
-					div.onclick = () => {this.disconnect()}
+				let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+
+				let insertionDiv = deviceGallery.querySelector(`[name="${cleanCompanyString}"]`)
+				if (!insertionDiv) {
+					insertionDiv = document.createElement('div')
+					insertionDiv.classList.add(`brainsatplay-companyCard`)
+					insertionDiv.setAttribute("name",cleanCompanyString)
+					insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
+					deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
 				}
 
-				let updatedOnDisconnect = (device) => {
-					ondisconnect()
-					setIndicator(false)
-					div.querySelector('p').innerHTML = variantLabel
-					div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
-				}
+				let deviceDiv = document.createElement('div')
+				deviceDiv.id = `brainsatplay-device-${d.id}`
+				deviceDiv.classList.add('brainsatplay-deviceCard')
 
-				div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+				let header = document.createElement('h4')
+				header.id = `brainsatplay-header-${d.id}`
+				header.innerHTML = d.name
+				deviceDiv.insertAdjacentElement('beforeend', header)	
 
-				deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
-			})
-			insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
-		});
+				deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
 
-		let openDeviceSelectionMenu = () => {
-			deviceSelection.style.opacity = '1'
-			deviceSelection.style.pointerEvents = 'auto'
-		}
+				let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
 
-		if (toggleButton == null){
-			let toggleButton = document.createElement('div')
-			toggleButton.id = 'deviceManagerOpen'
-			toggleButton.classList.add('brainsatplay-default-button')
-			toggleButton.style = `
-				position: absolute; 
-				bottom: 25px; 
-				right: 25px;
-				z-index: 100;
-			`
-			toggleButton.innerHTML = 'Open Device Manager'
-			document.body.insertAdjacentElement('afterbegin',toggleButton)
-			toggleButton.onclick = openDeviceSelectionMenu
-		}  else {
-			toggleButton.onclick = openDeviceSelectionMenu
-		}
+				let deviceIndicator = document.createElement('div')
+				deviceIndicator.classList.add('indicator')
+				deviceDiv.insertAdjacentElement('beforeend', deviceIndicator)
 
-		// Autoselect the Correct Device (if declared)
-		if (autoselect != null){
-			this.autoselectDevice(autoselect)
-		}
-	}
+				d.variants.forEach(v => {
+					let variantName = ((v != '') ? `${cleanDeviceString}_${v}` : cleanDeviceString)
+					let variantTag = ((v != '') ? `${d.id}_${v}` : d.id)
+					let variantLabel = ((v != '') ? v : 'Connect')
+					let div = document.createElement('div')
+					div.id = `brainsatplay-${variantName}`
+					div.classList.add('brainsatplay-variantButton')
 
-		let main = document.getElementById(`${this.id}DeviceSelection`)
-		if (main == null){
-			let ui = new DOMFragment(
-				template,
-				parentNode,
-				undefined,
-				setup
-			)
-		} else {
+					// Add label to button
+					div.innerHTML = `<p>${variantLabel}</p>`
+
+					let setIndicator = (on=true) => {
+						if (on){
+							deviceIndicator.classList.add('on')
+						} else {
+							deviceIndicator.classList.remove('on')
+						}
+					}
+
+					let updatedOnConnect = (device) => {
+						onconnect()
+						div.querySelector('p').innerHTML = "Disconnect"
+						setIndicator(true)
+						div.onclick = () => {this.disconnect()}
+					}
+
+					let updatedOnDisconnect = (device) => {
+						ondisconnect()
+						setIndicator(false)
+						div.querySelector('p').innerHTML = variantLabel
+						div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+					}
+
+					div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+
+					deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
+				})
+				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
+			});
+
+			let openDeviceSelectionMenu = () => {
+				deviceSelection.style.opacity = '1'
+				deviceSelection.style.pointerEvents = 'auto'
+			}
+
+			if (toggleButton == null){
+				let toggleButton = document.createElement('div')
+				toggleButton.id = 'deviceManagerOpen'
+				toggleButton.classList.add('brainsatplay-default-button')
+				toggleButton.style = `
+					position: absolute; 
+					bottom: 25px; 
+					left: 25px;
+					z-index: 100;
+				`
+				toggleButton.innerHTML = 'Open Device Manager'
+				document.body.insertAdjacentElement('afterbegin',toggleButton)
+				toggleButton.onclick = openDeviceSelectionMenu
+			}  else {
+				toggleButton.onclick = openDeviceSelectionMenu
+			}
+
+			// Autoselect the Correct Device (if declared)
 			if (autoselect != null){
 				this.autoselectDevice(autoselect)
+			}
+		}
+
+			let main = document.getElementById(`${this.id}DeviceSelection`)
+			if (main == null){
+				let ui = new DOMFragment(
+					template,
+					parentNode,
+					undefined,
+					setup
+				)
+			} else {
+				if (autoselect != null){
+					this.autoselectDevice(autoselect)
+				}
 			}
 		}
 	}
@@ -601,7 +650,7 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname = 'data', props = {}, onData = (newData) => { }) {
+	streamAppData(propname = 'data', props = {}, appid=undefined, onData = (newData) => { }) {
 
 		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
@@ -609,8 +658,18 @@ export class Session {
 
 		this.state.data[id + "_flag"] = true;
 		
-		let sub = this.state.subscribe(id, () => {
+		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
+			if(appid) {
+				if(!this.state.data[appid]) this.state.data[appid] = {id:appid, userData:[{username:this.info.auth.username}]};
+				let found = this.state.data[appid].userData.find((o)=>{
+					if(o.username === this.info.auth.username) {
+						o[id] = newData; 
+						return true;
+					}
+				});
+				if(!found) this.state.data[appid].userData.push({username:this.info.auth.username, [id]:newData});
+			}
 		});
 
 		let newStreamFunc = () => {
@@ -623,20 +682,23 @@ export class Session {
 
 		this.addStreamFunc(id, newStreamFunc);
 
-		return id; //this.state.unsubscribeAll(id) when done
+		return id, sub; //this.state.unsubscribeAll(id) when done
 
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id, responseIdx, manager = this.state) {
+	removeStreaming(id, responseIdx, manager = this.state, sequential=false) {
 		if (responseIdx == null){
-			manager.removeState(id)
-			manager.removeState(id+"_flag")
+			manager.removeState(id, sequential)
+			manager.removeState(id+"_flag", sequential)
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			manager.unsubscribe(id, responseIdx); //unsub state
+			if (sequential) {
+				manager.unsubscribeSequential(id, responseIdx); //unsub state
+			}
+			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 
 
@@ -706,9 +768,11 @@ export class Session {
 		return user
 	}
 
-	getLocalIP() {
+	 getLocalIP = async () => {
+		return new Promise(resolve => {
+
 		var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;  
-if (RTCPeerConnection)(function() {  
+if (RTCPeerConnection)(() => {  
     var rtc = new RTCPeerConnection({  
         iceServers: []  
     });  
@@ -717,12 +781,15 @@ if (RTCPeerConnection)(function() {
             reliable: false  
         });  
     };  
-    rtc.onicecandidate = function(evt) {  
-        if (evt.candidate) grepSDP("a=" + evt.candidate.candidate);  
+    rtc.onicecandidate = (evt) => {  
+		if (evt.candidate) {
+			let res = grepSDP("a=" + evt.candidate.candidate);  
+			resolve(res)
+		}
     };  
     rtc.createOffer(function(offerDesc) {  
-        grepSDP(offerDesc.sdp);  
-        rtc.setLocalDescription(offerDesc);  
+        let res = grepSDP(offerDesc.sdp);  
+		rtc.setLocalDescription(offerDesc);  
     }, function(e) {  
         console.warn("offer failed", e);  
     });  
@@ -735,28 +802,32 @@ if (RTCPeerConnection)(function() {
         var displayAddrs = Object.keys(addrs).filter(function(k) {  
             return addrs[k];  
 		});
-		console.log('Local IP Address:', displayAddrs.join(" or perhaps ") || "n/a")
+		return displayAddrs
     }  
   
     function grepSDP(sdp) {  
-        var hosts = [];  
+		var hosts = [];  
+		let urlArray
         sdp.split('\r\n').forEach(function(line) {  
             if (~line.indexOf("a=candidate")) {  
                 var parts = line.split(' '),  
                     addr = parts[4],  
                     type = parts[7];  
-                if (type === 'host') updateDisplay(addr);  
+                if (type === 'host') urlArray = updateDisplay(addr);  
             } else if (~line.indexOf("c=")) {  
                 var parts = line.split(' '),  
                     addr = parts[2];  
-                updateDisplay(addr);  
+					urlArray = updateDisplay(addr);  
             }  
-        });  
+		});  
+		
+		return urlArray
     }  
 })();  
 else {  
     console.log('not able to get your local IP address')
 }
+		})
 	}
 
 
@@ -768,7 +839,7 @@ else {
 		if (this.socket == null || this.socket.readyState !== 1) {
 			this.socket = this.setupWebSocket(dict).then(socket => {
 				this.socket = socket
-				this.info.auth.authenticated = true;
+				this.info.auth.connected = true;
 				if (this.socket !== null && this.socket.readyState === 1) {
 					if (beginStream === true) {
 						this.beginStream();
@@ -848,7 +919,6 @@ else {
 
 	processSocketMessage(received = '') {
 		let parsed = JSON.parse(received);
-
 		if (!parsed.msg) {
 			console.log(received);
 			return;
@@ -859,7 +929,13 @@ else {
 				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
 			}
 		}
-		else if (parsed.msg === 'sessionData') {
+		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
+
+			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.username === this.info.auth.username) return true;});
+			let settings = this.state.data[parsed.id]?.settings;
+			this.state.data[parsed.id] = parsed;
+			if(thisuser) this.state.data[parsed.id].userData.push(thisuser);
+			if(settings) this.state.data[parsed.id].settings = settings;
 
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
@@ -867,6 +943,7 @@ else {
 					if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
 				}
 			});
+
 
 			if (parsed.userLeft) {
 				for (const prop in this.state.data) {
@@ -880,11 +957,10 @@ else {
 		else if (parsed.msg === 'getUsersResult') {
 			this.state.updateState(`commandResult`,parsed)
 		}
-		else if (parsed.msg === 'getSessionDataResult') {
-			this.state.updateState(`commandResult`,parsed)
-		}
 		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.updateState(`commandResult`,parsed)
+			this.state.data.sessionInfo = parsed.sessionInfo;
+			if(this.state.data[parsed.id] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
+			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
 			this.state.updateState(`commandResult`,parsed)
@@ -896,6 +972,9 @@ else {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userNotFound') {
+			this.state.updateState(`commandResult`,parsed)
+		}
+		else if (parsed.msg === 'userSubscriptionInfo') {
 			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToSession') {
@@ -936,26 +1015,28 @@ else {
 
 	async setupWebSocket(auth = this.info.auth) {
 
-		let encodeForSubprotocol = (info) => {
-			return info.replace(' ', '%20')
-		}
+		return new Promise(resolve => {
 
-		let socket = null;
-		let subprotocol = [
-			'username&' + encodeForSubprotocol(auth.username),
-			'password&' + encodeForSubprotocol(auth.password),
-			'origin&' + encodeForSubprotocol('brainsatplay.js')
-		];
-		if (auth.url.protocol === 'http:') {
-			socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
-		} else if (auth.url.protocol === 'https:') {
-			socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
-		} else {
-			console.log('invalid protocol');
-			return;
-		}
+			let encodeForSubprotocol = (info) => {
+				return info.replace(' ', '%20')
+			}
 
-		let wsPromise = new Promise((resolve, reject) => {
+			let socket = null;
+			let subprotocol = [
+				'username&' + encodeForSubprotocol(auth.username),
+				'password&' + encodeForSubprotocol(auth.password),
+				'origin&' + encodeForSubprotocol('brainsatplay.js')
+			];
+
+			if (auth.url.protocol === 'http:') {
+				socket = new WebSocket(`ws://` + auth.url.host, subprotocol);
+			} else if (auth.url.protocol === 'https:') {
+				socket = new WebSocket(`wss://` + auth.url.host, subprotocol);
+			} else {
+				console.log('invalid protocol');
+				return;
+			}
+
 			socket.onerror = (e) => {
 				console.log('error', e);
 			};
@@ -971,10 +1052,10 @@ else {
 			}
 
 			socket.onclose = (msg) => {
+				this.info.auth.connected = false;
 				console.log('close');
 			}
 		})
-		return wsPromise
 	}
 
 	subscribeToUser(username = '', userProps = [], onsuccess = (newResult) => { }) { // if successful, props will be available in state under this.state.data['username_prop']
@@ -1102,12 +1183,12 @@ else {
 
 	//connect using the unique id of the subscription
 	subscribeToSession(sessionid, spectating = false, onsuccess = (newResult) => { }) {
-		console.log(this.info.auth.username)
 		if (this.socket !== null && this.socket.readyState === 1) {
+
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
+			
 			let sub = this.state.subscribe('commandResult', (newResult) => {
-
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
@@ -1124,6 +1205,8 @@ else {
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
+							this.state.data[newResult.sessionInfo.id] = newResult.sessionInfo;
+							console.log(newResult);
 							this.info.subscriptions.push(sessionid)
 							onsuccess(newResult);
 						}
@@ -1140,6 +1223,18 @@ else {
 		}
 	}
 
+	setUserStreamSettings(id,settings) {
+		this.sendBrainstormCommand(['setUserStreamSettings',id,settings]);
+	}
+
+	setSessionSettings(id,settings) {
+		this.sendBrainstormCommand(['setSessionSettings',id,settings]);
+	}
+
+	setHostSessionSettings(id,settings) {
+		this.sendBrainstormCommand(['setHostSessionSettings',id,settings]);
+	}
+
 	unsubscribeFromSession(sessionid = '', onsuccess = (newResult) => { }) {
 		//send unsubscribe command
 		if (this.socket !== null && this.socket.readyState === 1) {
@@ -1149,6 +1244,7 @@ else {
 					for (const prop in this.state.data) {
 						if (prop.indexOf(sessionid) > -1) {
 							this.state.removeState(prop)
+							delete this.info.subscriptions[this.info.subscriptions.indexOf(sessionid)];
 						}
 					}
 					onsuccess(newResult);
@@ -1167,7 +1263,7 @@ else {
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
 			if (d.info.events) {
-				d.info.events.registerControls(this.info.apps[appId].controls)
+				d.info.events.addApp(appId, this.info.apps[appId].controls)
 				d.info.events.updateRouteDisplay()
 			}
 		})
@@ -1181,109 +1277,22 @@ else {
 
 	removeApp(appId){
 		let info = this.graphs.stop(appId)
-
+		
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
-			if (d.info.events) d.info.events.updateRouteDisplay()
+			if (d.info.events) {
+				d.info.events.removeApp(appId)
+				d.info.events.updateRouteDisplay()
+			}
 		})
 
 		delete this.info.apps[appId]
+
 		return info
 	}
 
 
-	addNodeEditor(applet, parentNode = document.body, onsuccess = () => { }){
-
-		let ui
-		let plugins = this.graphs.applets[applet.props.id]
-
-		if (plugins){
-			let template = () => {
-				return `
-				<div id="${this.id}nodeEditorMask" class="brainsatplay-default-container" style="
-				z-index: 999;
-				opacity: 0; 
-				transition: opacity 1s;
-				">
-				<div id="${this.id}nodeEditor" class="brainsatplay-node-editor">
-				</div>
-				</div>
-				`}
-
-			let setup = () => {
-				let container = document.getElementById(`${this.id}nodeEditorMask`)
-				let editor = document.getElementById(`${this.id}nodeEditor`)
-
-				// Resize Editor
-				let closeUI = () => {
-					ui.node.style.opacity = '0'
-					window.removeEventListener('resize', resizeDisplay)
-					setTimeout(() => {ui.deleteNode()},t*1000)
-				}
-
-
-				const resizeDisplay = () => {
-					let padding = 50;
-					container.style.padding = `${padding}px`
-					editor.style.height = `${container.offsetHeight - 2 * padding}px`
-					editor.style.width = `${container.offsetWidth - 2 * padding}px`
-				}
-
-				// let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
-				// exitBrowser.onclick = closeUI
-
-				resizeDisplay()
-				window.addEventListener('resize', resizeDisplay)
-
-				// Populate Nodes
-				let nodeDiv = document.createElement('div')
-				nodeDiv.className = 'brainsatplay-default-node-div'
-
-				editor.insertAdjacentHTML('beforeend',`<h2>Nodes</h2>`)
-				for (let key in plugins.nodes){
-					let node = plugins.nodes[key].instance
-					let params = ``
-					for (let param in node.params){
-						params += `<p>${param}: ${node.params[param]}</p>`
-					}
-					nodeDiv.insertAdjacentHTML('beforeend',`
-					<div class="brainsatplay-default-node">
-						<h3>${node.label}</h3>
-						${params}
-					</div>
-					`)
-				}
-				editor.insertAdjacentElement('beforeend',nodeDiv)
-
-				// Populate Edges
-				let edgeDiv = document.createElement('div')
-				edgeDiv.className = 'brainsatplay-default-node-div'
-
-				editor.insertAdjacentHTML('beforeend',`<h2>Edges</h2>`)
-				for (let key in plugins.edges){
-					let edge = plugins.edges[key]
-					edgeDiv.insertAdjacentHTML('beforeend',`
-					<div class="brainsatplay-default-node">
-						<h3>${edge.source} — ${edge.target}</h3>
-					</div>`
-					)
-				}
-				editor.insertAdjacentElement('beforeend',edgeDiv)
-			}
-
-			ui = new DOMFragment(
-				template,
-				parentNode,
-				undefined,
-				setup
-			)
-		}
-
-		return ui
-	}
-
-
-	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {
+	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {		
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
@@ -1576,6 +1585,21 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 
+		// Override App Settings with Configuration Settings
+		if (applet.info.intro == null) applet.info.intro = {}
+		else if (applet.info.intro != false) applet.info.intro = {title: true}
+
+		applet.settings.forEach((cmd,i) => {
+            if(typeof cmd === 'object') {
+				if (cmd.title != null) applet.info.intro.title = cmd.title
+				if (cmd.login != null) applet.info.intro.login = cmd.login
+				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
+				if (cmd.mode != null) applet.info.intro.mode = cmd.mode
+				if (cmd.session != null) applet.info.intro.session = cmd.session
+				if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
+			}
+		})
+
 		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
@@ -1606,7 +1630,7 @@ else {
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
 			`)
 
 		// Setup HTML References
@@ -1639,11 +1663,22 @@ else {
 			multiplayer.style.pointerEvents = 'none'
 		}
 
+		// Auto-Toggle Title and Mode Selection
+		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
-		// Autoselect
 		if (applet.info.intro){
-			if (applet.info.intro.mode === 'single') solo.click()
-			if (applet.info.intro.mode === 'multi') multiplayer.click()
+			if (!showTitle){
+				const hero = document.getElementById(`${applet.props.id}appHero`)
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}
+			if (applet.info.intro.mode){
+				if (applet.info.intro.mode === 'single' || applet.info.intro.mode === 'solo') solo.click()
+				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') multiplayer.click()
+				modeScreen.style.display = 'none'
+			}
 		}
 		
 		// Create Session Brower
@@ -1659,18 +1694,55 @@ else {
 			}
 		}
 
-		let onjoined = () => {
+		let onjoined = (g) => {
 			sessionSelection.style.opacity = 0;
 			sessionSelection.style.pointerEvents = 'none'
-			onsuccess()
+			onsuccess(g)
 		}
 		let onleave = () => {
 			sessionSearch.click()
-			sessionSelection.style.opacity = 1;
+			sessionSelection.style.opacity = '1';
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
 		let sessionSearch = document.getElementById(`${baseBrowserId}search`)
+
+		
+		let connectToGame = (g, spectate) => {
+
+			this.subscribeToSession(g.id, spectate, (subresult) => {
+				onjoined(g);
+
+				let leaveSession = () => {
+					this.unsubscribeFromSession(g.id, () => {
+						onleave(g);
+					});
+				}
+
+				exitSession.addEventListener('click', leaveSession)
+			});
+		}
+
+
+		let autoJoinSession = (applet, autoId) => {
+			if (autoId != null){
+				let playing = applet.info.intro.spectating != true // Default to player
+				if (playing){
+					connectToGame(autoId, false)
+				} else {
+					connectToGame(autoId, true)
+				}
+
+				// Clear Auto-Join Parameters
+				applet.info.intro.session = false
+			}
+		}
+
+		let autoId = false
+
+		if (applet.info.intro && applet.info.intro.session){
+			sessionSelection.style.opacity = '0'
+		}
 
 		sessionSearch.onclick = () => {
 
@@ -1678,48 +1750,51 @@ else {
 			this.getSessions(applet.info.name, (result) => {
 
 				let gridhtml = '';
-				result.sessions.forEach((g, i) => {
-					if (g.usernames.length < 10) { // Limit connections to the same session server
-						gridhtml += `<div><h3>` + g.id + `</h3><p>Streamers: ` + g.usernames.length + `</p><div><button id='` + g.id + `connect' style="margin-top: 5px;" class="brainsatplay-default-button">Connect</button><input id='` + baseBrowserId + `spectate' type='checkbox' style="display: none"></div></div>`
-					} else {
-						result.sessions.splice(i, 1)
-					}
-				});
 
-				document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
-
-				let connecToGame = (g) => {
-					let spectate = true
-
-					if (this.atlas.settings.deviceConnected) { spectate = false; }
-
-					this.subscribeToSession(g.id, spectate, (subresult) => {
-
-						onjoined(g);
-
-
-						let leaveSession = () => {
-							this.unsubscribeFromSession(g.id, () => {
-								onleave(g);
-							});
-						}
-
-						exitSession.addEventListener('click', leaveSession)
-					});
+				if (applet.info.intro && applet.info.intro.session){
+					let sessionToJoin = applet.info.intro.session
+					if (sessionToJoin == true) autoId = result.sessions[0]
+					else if (sessionToJoin == null) autoId = result.sessions[0]
+					else autoId = result.sessions.find(g => g.id === sessionToJoin)
+				} else {
+					autoId = false
 				}
 
 
+				if (!autoId || autoId == null){
+					
+					result.sessions.forEach((g, i) => {
+						if (g.usernames.length < 10) { // Limit connections to the same session server
+							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
+							<div style="display: flex; padding-top: 5px;">
+								<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
+								<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
+							</div>
+							</div>`
+						} else {
+							result.sessions.splice(i, 1)
+						}
+					});
+
+					document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
+
+
 				result.sessions.forEach((g) => {
-					let connectButton = document.getElementById(`${g.id}connect`)
-					connectButton.addEventListener('click', () => { connecToGame(g) })
+					let playButton = document.getElementById(`${g.id}play`)
+					let spectateButton = document.getElementById(`${g.id}spectate`)
+					playButton.addEventListener('click', () => { connectToGame(g, false) })
+					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
 				});
+			} else {
+				console.log('auto joining again')
+				autoJoinSession(applet,autoId)
+			}
 			});
 		}
 
 		// Login Screen
-		if (applet.info.intro?.mode != 'single'){
+		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
 			let onsocketopen = () => {
-
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
@@ -1733,8 +1808,10 @@ else {
 
 								if (newResult.msg === 'sessionCreated') {
 									sessionSearch.click()
-									loginScreen.style.opacity = 0;
-									loginScreen.style.pointerEvents = 'none'
+									if (loginScreen){
+										loginScreen.style.opacity = 0;
+										loginScreen.style.pointerEvents = 'none'
+									}
 									this.state.unsubscribe('commandResult', sub2);
 								}
 							})
@@ -1742,8 +1819,10 @@ else {
 
 						} else if ('getSessionsResult') {
 							this.state.unsubscribe('commandResult', sub1);
-							loginScreen.style.opacity = 0;
-							loginScreen.style.pointerEvents = 'none'
+							if (loginScreen){
+								loginScreen.style.opacity = 0;
+								loginScreen.style.pointerEvents = 'none'
+							}
 						}
 					})
 				} else {
@@ -1751,18 +1830,24 @@ else {
 				}
 			}
 
-			this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
-				let loginPage = document.getElementById(`${this.id}login-page`)
-				loginPage.style.zIndex = 4
-			}, ()=> {onsocketopen()})
-		// }
+			// Auto-set username with Google Login
+			if (this.info.googleAuth != null) {
+				this.info.googleAuth.refreshCustomData().then(data => {
+					this.info.auth.username = data.username
+				})
+			}
 
-		// Auto-set username with Google Login
-		if (this.info.googleAuth != null) {
-			this.info.googleAuth.refreshCustomData().then(data => {
-				document.getElementsByName("username")[0].value = data.username
-			})
-		}
+			// Prompt Login or Skip
+			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+
+			if (applet.info.intro && applet.info.intro.login === false){
+				this.login(true, this.info.auth, onsocketopen)
+			} else {
+				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
+					let loginPage = document.getElementById(`${this.id}login-page`)
+					loginPage.style.zIndex = 4
+				}, onsocketopen)
+			}
 	}
 
 
@@ -1784,21 +1869,23 @@ else {
 		let loaded = 0
 		const loadInc = 5
 		const loadTime = 3000
-		setTimeout(() => {
-			loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
-			loadingBarElement.style.transform = `scaleX(1)`
-		}, 1000)
-		setTimeout(() => {
-			if (loadingBarElement) {
-				loadingBarElement.classList.add('ended')
-				loadingBarElement.style.transform = ''
-			}
-			const hero = document.getElementById(`${applet.props.id}appHero`)
-			if (hero) {
-				hero.style.opacity = 0;
-				hero.style.pointerEvents = 'none'
-			}
-		}, loadTime)
+
+		if (showTitle){
+			setTimeout(() => {
+				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
+				loadingBarElement.style.transform = `scaleX(1)`
+			}, 1000)
+			setTimeout(() => {
+				if (loadingBarElement) {
+					loadingBarElement.classList.add('ended')
+					loadingBarElement.style.transform = ''
+				}
+				if (hero) {
+					hero.style.opacity = 0;
+					hero.style.pointerEvents = 'none'
+				}
+			}, loadTime)
+		}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
@@ -1899,10 +1986,10 @@ else {
 
 	waitForOpenConnection = (socket) => {
 		return new Promise((resolve, reject) => {
-			const maxNumberOfAttempts = 10
-			const intervalTime = 200 //ms
+			const maxNumberOfAttempts = 10;
+			const intervalTime = 200; //ms
 
-			let currentAttempt = 0
+			let currentAttempt = 0;
 			const interval = setInterval(() => {
 				if (currentAttempt > maxNumberOfAttempts - 1) {
 					clearInterval(interval)
@@ -1954,6 +2041,13 @@ else {
 	}
 
 
+	getHostData(appid){
+		let state = this.state.data[appid];
+		if (state.msg === 'sessionData' && state.id === appid){
+			if(state.hostData) return {data: state.hostData, username: state.hostname}
+			return {data: state.userData.find((o)=>{if(o.username === state.hostname) return true;}), username: state.hostname}
+		}
+	}
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
@@ -2049,6 +2143,10 @@ else {
 		return arr
 	}
 
+	initFS = (oninit=()=>{console.log("BrowserFS ready!");this.dataManager.setupAutosaving();},onerror=()=>{}) => {
+		this.session.dataManager.initFS(oninit,onerror);
+	}
+
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -2124,8 +2222,8 @@ class deviceStream {
 		return true
 	}
 
-	configureRoutes = (stateManagerArray, parentNode=document.body) => {
-		this.info.events.addControls(stateManagerArray,parentNode)
+	configureRoutes = (parentNode=document.body) => {
+		this.info.events.addControls(parentNode)
     }
 
 	disconnect = () => {

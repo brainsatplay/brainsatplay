@@ -1,12 +1,12 @@
 ---
 title: Extend the Brainstorm
-hide_title: true
+hide_title: false
 ---
 
-![Extend the Brainstorm](../../static/img/03-extend-the-brainstorm/header.png)
+<!-- ![Extend the Brainstorm](../../static/img/03-extend-the-brainstorm/header.png) -->
 
-## Overview
----
+<!-- ## Overview
+--- -->
 
 While brainsatplay.js has abstracted most of the networking details for JavaScript, there's still many ways to send and receive data from the Brainstorm using other interfaces. We already support:
 - [**Python**](https://pypi.org/project/brainsatplay/0.1.0/) streaming, particularly with [**Brainflow**](https://brainflow.org/).

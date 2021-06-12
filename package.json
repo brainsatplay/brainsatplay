@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node app.js",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' snowpack build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8000' snowpack build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
@@ -58,7 +58,7 @@
     "muse-js": "^3.2.0",
     "neosensory": "0.0.5",
     "net": "^1.0.2",
-    "node-p5": "^1.0.3",
+    "node-p5": "^1.0.4",
     "normalize.css": "^8.0.1",
     "osc": "^2.4.1",
     "p5": "^1.3.1",
@@ -87,7 +87,7 @@
     "utf-8-validate": "^5.0.4",
     "web-worker": "^1.0.0",
     "webgazer": "^2.0.1",
-    "ws": "^7.4.4"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@babel/core": "^7.13.16",
@@ -110,5 +110,8 @@
     "worker-loader": "^3.0.8",
     "worker-plugin": "^5.0.1",
     "workerize-loader": "^1.3.0"
+  },
+  "optionalDependencies": {
+    "robotjs": "^0.6.0"
   }
 }

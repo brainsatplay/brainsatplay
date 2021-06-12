@@ -1,12 +1,12 @@
 ---
 title: Your First Brainstorm
-hide_title: true
+hide_title: false
 ---
 
-![Your First Brainstorm](../../static/img/03-your-first-brainstorm/header.png)
+<!-- ![Your First Brainstorm](../../static/img/03-your-first-brainstorm/header.png) -->
 
-## Overview
----
+<!-- ## Overview
+--- -->
 
 This tutorial will get you started building your first networked application with brainsatplay.js! 
 

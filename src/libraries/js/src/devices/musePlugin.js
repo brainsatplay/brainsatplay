@@ -68,7 +68,7 @@ export class musePlugin {
 			this.atlas = pipeToAtlas; //External atlas reference
             this.atlas.data.eegshared.eegChannelTags = info.eegChannelTags;
             this.atlas.data.eegshared.sps = info.sps;
-            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,info.sps*0.5);
+            this.atlas.data.eegshared.frequencies = this.atlas.bandpassWindow(0,128,256);
 			this.atlas.data.eegshared.bandFreqs = this.atlas.getBandFreqs(this.atlas.data.eegshared.frequencies);
 			this.atlas.data.eeg = this.atlas.genMuseAtlas(); 
             this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
@@ -102,7 +102,7 @@ export class musePlugin {
         if (direction === 'back') time = time.map((t,i) => {return t-(timeToSample*(time.length - i))}) // Back
         else time = time.map((t,i) => {return t+(timeToSample*i)}) // Forward
         
-        return time
+        return time;
     }
 
     connect = async () => {
