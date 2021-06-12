@@ -522,7 +522,7 @@ export class DataManager {
     }
 
     //Write CSV data in chunks to not overwhelm memory
-    writeToCSV = (filename=this.state.data['sessionName']) => {
+    writeToCSV = async (filename=this.state.data['sessionName']) => {
         if (filename != ''){
             fs.stat('/data/' + filename, (e, stats) => {
                 if (e) throw e;
@@ -542,7 +542,7 @@ export class DataManager {
                         });
                     }
                     else {
-                        const writeChunkToFile = () => {
+                        const writeChunkToFile = async () => {
                             if (i < filesize) {
                                 if (i + end > filesize) { end = filesize - i; }
                                 let chunk = 0;
