@@ -18,14 +18,7 @@ export class NodeEditor{
         if (this.plugins){
             let template = () => {
                 return `
-                <div id="${this.props.id}nodeEditorMask" class="brainsatplay-default-container" style="
-                z-index: 999;
-                opacity: 0; 
-                transition: opacity 1s;
-                pointer-events: none;
-                background: rgba(0,0,0,.7);
-                padding: 0px;
-                ">
+                <div id="${this.props.id}nodeEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
                     <div id="${this.props.id}nodeViewer" class="brainsatplay-node-viewer">
                     </div>
                 </div>

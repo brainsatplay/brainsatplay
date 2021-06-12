@@ -49,8 +49,7 @@ export class Node{
 
         nodeDiv.insertAdjacentElement('beforeend',element)
         this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
-        // dragUtils.dragElement(this.parentNode,nodeDiv)
-        dragUtils.dragElement(this.parentNode,element)
+        dragUtils.dragElement(this.parentNode,nodeDiv)
         return nodeDiv
     }
 }

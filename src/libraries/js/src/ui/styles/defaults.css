@@ -477,6 +477,16 @@ select {
 }
 
 /* Node Editor */
+.brainsatplay-default-container.brainsatplay-node-editor{
+        z-index: 999;
+        opacity: 0; 
+        transition: opacity 1s;
+        pointer-events: none;
+        background: rgba(0,0,0,.7);
+        padding: 25px;
+}
+
+
 .brainsatplay-node-selector{
     /* overflow-y: scroll; */
     /* display: flex; */
