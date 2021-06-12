@@ -1,8 +1,8 @@
 // Managers
-import { DOMFragment } from './ui/DOMFragment'
 import { StateManager } from './ui/StateManager'
-import { Session } from './Session'
+import {NodeEditor} from './utils/nodeEditor/NodeEditor'
 import  {plugins} from '../brainsatplay'
+import { Session } from './Session'
 
 import { GUI } from 'dat.gui'
 
@@ -676,120 +676,8 @@ export class PluginManager{
 
 // Create a Node Editor
 edit(applet, parentNode = document.body, onsuccess = () => { }){
-
-    let ui
-    let activePlugins = this.applets[applet.props.id]
-
-    if (activePlugins){
-        let template = () => {
-            return `
-            <div id="${this.id}nodeEditorMask" class="brainsatplay-default-container" style="
-            z-index: 999;
-            opacity: 0; 
-            transition: opacity 1s;
-            pointer-events: none;
-            ">
-                <div id="${this.id}nodeViewer" class="brainsatplay-node-viewer">
-                </div>
-                <div id="${this.id}nodeEditor" class="brainsatplay-node-editor">
-                </div>
-            </div>
-            `}
-
-        let setup = () => {
-            let container = document.getElementById(`${this.id}nodeEditorMask`)
-            let editor = document.getElementById(`${this.id}nodeEditor`)
-            let viewer = document.getElementById(`${this.id}nodeViewer`)
-
-            // Resize Editor
-            let closeUI = () => {
-                ui.node.style.opacity = '0'
-                window.removeEventListener('resize', resizeDisplay)
-                setTimeout(() => {ui.deleteNode()},t*1000)
-            }
-
-
-            const resizeDisplay = () => {
-                let padding = 50;
-                let marginBetweenNodeView = 50;
-                viewer.style.marginBottom = marginBetweenNodeView
-                container.style.padding = `${padding}px`
-                editor.style.height = `${container.offsetHeight - 2 * padding - viewer.offsetHeight - marginBetweenNodeView}px`
-                editor.style.width = `${container.offsetWidth - 2 * padding}px`
-            }
-
-            // let exitBrowser = browser.querySelector(`[id='${this.id}-exitBrowser']`)
-            // exitBrowser.onclick = closeUI
-
-            resizeDisplay()
-            window.addEventListener('resize', resizeDisplay)
-
-            // Populate Available Nodes
-            let nodeDiv = document.createElement('div')
-            nodeDiv.className = 'brainsatplay-default-node-div'
-
-            editor.insertAdjacentHTML('beforeend',`<h2>Available Plugins</h2>`)
-            for (let type in plugins){
-                let nodeType = plugins[type]
-                for (let key in nodeType){
-                    let node = this.instantiateNode({class: plugins[type][key]}).instance
-                    let params = ``
-                    for (let param in node.params){
-                        params += `<p>${param}: ${node.params[param]}</p>`
-                    }
-                    nodeDiv.insertAdjacentHTML('beforeend',`
-                    <div class="brainsatplay-option-node">
-                        <h3>${node.constructor.name}</h3>
-                        <p style="font-size: 60%;">${type}</p>
-                        ${params}
-                    </div>
-                    `)
-                }
-            }
-            editor.insertAdjacentElement('beforeend',nodeDiv)
-
-            // Populate Used Nodes and Edges
-
-            let nodeDivs = {}
-            for (let key in activePlugins.nodes){
-                let node = activePlugins.nodes[key].instance
-                let params = ``
-                for (let param in node.params){
-                    params += `<p>${param}: ${node.params[param]}</p>`
-                }
-                nodeDivs[node.label] = `
-                    <h3>${node.label}</h3>
-                    ${params}
-                `
-            }
-
-            for (let key in activePlugins.edges){
-                let edge = activePlugins.edges[key]
-
-                viewer.insertAdjacentHTML('beforeend',`
-                <div class="brainsatplay-display-node">
-                   ${nodeDivs[edge.source]}
-                </div>
-                <div class="brainsatplay-display-node">
-                   ${nodeDivs[edge.target]}
-                </div>
-                `
-                )
-            }
-
-
-
-        }
-
-        ui = new DOMFragment(
-            template,
-            parentNode,
-            undefined,
-            setup
-        )
-    }
-
-    return ui
+    this.editor = new NodeEditor(this, applet, parentNode, onsuccess)
+    return this.editor.element
 }
 
 }

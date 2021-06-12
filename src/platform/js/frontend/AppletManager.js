@@ -571,22 +571,22 @@ export class AppletManager {
                     }, false);
             
                     // Fullscreen Functionality
-                    appletDiv.addEventListener('dblclick', () => {
-                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                        if (!fullscreenElement) {
-                            if (appletDiv.requestFullscreen) {
-                                appletDiv.requestFullscreen()
-                            } else if (appletDiv.webkitRequestFullscreen) {
-                                appletDiv.webkitRequestFullscreen()
-                            }
-                        } else {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen()
-                            } else if (document.webkitExitFullscreen) {
-                                document.webkitExitFullscreen()
-                            }
-                        }
-                    });
+                    // appletDiv.addEventListener('dblclick', () => {
+                    //     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                    //     if (!fullscreenElement) {
+                    //         if (appletDiv.requestFullscreen) {
+                    //             appletDiv.requestFullscreen()
+                    //         } else if (appletDiv.webkitRequestFullscreen) {
+                    //             appletDiv.webkitRequestFullscreen()
+                    //         }
+                    //     } else {
+                    //         if (document.exitFullscreen) {
+                    //             document.exitFullscreen()
+                    //         } else if (document.webkitExitFullscreen) {
+                    //             document.webkitExitFullscreen()
+                    //         }
+                    //     }
+                    // });
 
 
                 })
