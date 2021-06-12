@@ -1,4 +1,4 @@
-export const dragElement = (container, dragItem) => {
+export const dragElement = (container, dragItem, onMove) => {
     var active = false;
     var currentX;
     var currentY;
@@ -57,6 +57,8 @@ export const dragElement = (container, dragItem) => {
         yOffset = currentY;
 
           setTranslate(xOffset, yOffset, dragItem);
+          console.log('moving')
+          onMove()
       }
     }
 

@@ -44,17 +44,35 @@ export class NodeEditor{
     }
 
 
-    animatePort(nodeId, port, type){
-        let nodes = this.graph.nodes
-        let node = nodes[nodeId]
+    animate(source,target){
 
-        if (node){
-            let portEl = node.element.querySelector(`.${type}-ports`).querySelector(`.port-${port}`)
+        this.animateNode(source,'source')
+        this.animateNode(target,'target')
+        this.animateEdge(source,target)
+    }
+
+    animateNode(node,type){
+        let instance = this.graph.nodes[node.label]
+        
+        if (instance){
+            let portEl = instance.element.querySelector(`.${type}-ports`).querySelector(`.port-${node.port}`)
             if (portEl) {
                 portEl.classList.add('updated')
                 setTimeout(()=>{portEl.classList.remove('updated')}, 500)
             }
         }
+    }
+
+    animateEdge(source,target){
+        let instance = this.graph.nodes[source.label]
+        instance.edges.forEach(e=>{
+            if(e.structure.source.split(':')[0] ===source.label){
+                if (e.structure.target.split(':')[0] === target.label){
+                    e.node.curve.classList.add('updated')
+                    setTimeout(()=>{e.node.curve.classList.remove('updated')}, 500)
+                }
+            }
+        })
     }
 
     addNode(nodeInfo){
