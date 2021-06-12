@@ -41,13 +41,14 @@ export class DataManager{
     }
 
     get = (userData) => {
-        let trigger = userData[0].data
-        if (trigger) {
-            this.session.dataManager.readFromDB(undefined, undefined,undefined, (data) => {
-                console.log(data)
-                return data
-            })
-        }
+        return new Promise((resolve) => {
+            let trigger = userData[0].data
+            if (trigger) {
+                this.session.dataManager.readFromDB(undefined, undefined,undefined, (data) => {
+                    resolve(data)
+                })
+            }
+        })
     }
 
     csv = (userData) => {

@@ -240,8 +240,6 @@ export class PluginManager{
     // Input Must Be An Array
     runSafe(node, port='default',input=[{}]){
 
-        let stateLabel = this.getLabel(node,port)
-
         // Shallow Copy State before Repackaging
         let inputCopy = []
 
@@ -265,31 +263,42 @@ export class PluginManager{
             if (node[port] instanceof Function) result = node[port](inputCopy)
             else if (node.states[port] != null) result = node['default'](inputCopy) 
 
-            if (result && result.length > 0){
-                let allEqual = true
-
-                result.forEach((o,i) => {
-                    if (node.states[port].length > i){
-                        let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
-                        if (!thisEqual){
-                            node.states[port][i] = o
-                            allEqual = false
-                        }
-                    } else {
-                        node.states[port].push(o)
-                        allEqual = false
-                    }
+            // Handle Promises
+            if (!!result && typeof result.then === 'function'){
+                result.then((r) =>{
+                    this.checkToPass(node,port,r)
                 })
-                
-                if (!allEqual && node.stateUpdates){
-                    let updateObj = {}
-                    updateObj[stateLabel] = true
-                    node.stateUpdates.manager.setState(updateObj)
-                }
+            } else {
+                this.checkToPass(node,port,result)
             }
         }
 
         return node.states[port]
+    }
+
+    checkToPass(node,port,result){
+        if (result && result.length > 0){
+            let allEqual = true
+
+            result.forEach((o,i) => {
+                if (node.states[port].length > i){
+                    let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
+                    if (!thisEqual){
+                        node.states[port][i] = o
+                        allEqual = false
+                    }
+                } else {
+                    node.states[port].push(o)
+                    allEqual = false
+                }
+            })
+            
+            if (!allEqual && node.stateUpdates){
+                let updateObj = {}
+                updateObj[this.getLabel(node,port)] = true
+                node.stateUpdates.manager.setState(updateObj)
+            }
+        }
     }
 
 
