@@ -259,6 +259,7 @@ export class PluginManager{
         // Only Continue the Chain with Updated Data
 
         if (inputCopy.length > 0){
+            
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
             else if (node.states[port] != null) result = node['default'](inputCopy) 
@@ -488,6 +489,11 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
+
+                        if (this.editor) this.editor.animatePort(source.label, sourcePort,'output') // send animation
+                        if (this.editor) this.editor.animatePort(target.label, targetPort,'input') // send animation
+
+
                         return this.runSafe(target, targetPort, input)
                     }
                 }

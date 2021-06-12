@@ -533,13 +533,16 @@ select {
 }
 
 .brainsatplay-display-node{
-    width: 100px;
-    height: 40px;
+    /* width: 100px; */
+    height: 60px;
     position: absolute;
     /* position: relative; */
     background: rgb(155, 155, 155);
     cursor: move;
     display: flex;
+    flex-wrap:wrap;
+    flex-direction: column;
+    justify-content: space-between;
     margin: 10px;
 }
 
@@ -547,37 +550,56 @@ select {
     position: absolute;
     bottom: 50%;
     font-size: 75%;
-    left: 75%;
-    transform: translate(100%, 50%);
+    left: calc(100% + 15px);
+    transform: translateY(50%);
     pointer-events: none;
 }
 
-.brainsatplay-display-node > .node-port {
+.brainsatplay-display-node > .node-port-container {
+    display: flex;
+}
+
+.node-port-container > .node-port {
     position: relative;
     background: rgb(100, 100, 100);
     width: 20px;
     height: 20px;
+    transition: 0.5s;
 }
 
-.brainsatplay-display-node > .node-port.active{
+.node-port-container > .node-port.active{
     position: relative;
     background: rgb(200, 200, 200);
     width: 20px;
     height: 20px;
 }
 
-.node-port:hover .node-tooltip{
+.node-port-container > .node-port.active.updated{
+    background: rgb(255, 105, 97);
+}
+
+.node-port-container .node-port:hover .node-tooltip{
     opacity: 1;
 }
 
-.node-port .node-tooltip {
+.node-port-container .node-tooltip {
     opacity: 0;
     position: absolute;
-    top: 0%;
-    left: 50%;
-    transform: translate(-50%,-75%);
     z-index: 10;
     pointer-events: none;
+}
+
+/* Input Port Behavior */
+.node-port-container.input-ports .node-tooltip {
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%,-85%);
+}
+/* Output Port Behavior */
+.node-port-container.output-ports .node-tooltip {
+    bottom: 0%;
+    left: 50%;
+    transform: translate(-50%,85%);
 }
 
 .brainsatplay-default-node h3{

@@ -34,7 +34,6 @@ export class NodeEditor{
                 let container = document.getElementById(`${this.props.id}nodeEditorMask`)
                 let viewer = document.getElementById(`${this.props.id}nodeViewer`)
                 
-                console.log(viewer)
                 this.createPluginSearch(container)
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, viewer)
@@ -46,6 +45,20 @@ export class NodeEditor{
                 undefined,
                 setup
             )
+        }
+    }
+
+
+    animatePort(nodeId, port, type){
+        let nodes = this.graph.nodes
+        let node = nodes[nodeId]
+
+        if (node){
+            let portEl = node.element.querySelector(`.${type}-ports`).querySelector(`.port-${port}`)
+            if (portEl) {
+                portEl.classList.add('updated')
+                setTimeout(()=>{portEl.classList.remove('updated')}, 500)
+            }
         }
     }
 
