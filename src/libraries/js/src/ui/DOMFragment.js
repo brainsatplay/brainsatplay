@@ -126,7 +126,7 @@ export class DOMFragment {
 
     renderNode(parentNode=this.parentNode){
         this.node = this.appendFragment(this.templateString,parentNode);
-        this.onRender();
+        this.onRender(this.renderSettings.props);
     }
 
     updateNode(parentNode=this.parentNode, node=this.node, props=this.props){
