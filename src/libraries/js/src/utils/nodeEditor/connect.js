@@ -4,17 +4,19 @@ export let createConnection = (container, el1,el2) => {
     let id=String(Math.floor(Math.random()*1000000))
     
     container.insertAdjacentHTML('beforeend',`
-    <svg xmlns="http://www.w3.org/2000/svg" id="${id}svg" class="edge" viewBox="0 0 500 500", preserveAspectRatio="xMidYMid meet">
-      <circle cx="100" cy="250" r="30" class="p1 control" />
-      <circle cx="400" cy="250" r="30" class="p2 control" />
+    <div class="edge">
+      <svg xmlns="http://www.w3.org/2000/svg" id="${id}svg" viewBox="0 0 500 500">
+        <circle cx="100" cy="250" r="30" class="p1 control" />
+        <circle cx="400" cy="250" r="30" class="p2 control" />
 
-      <circle cx="250" cy="100" r="20" class="c1 control" />
+        <circle cx="250" cy="100" r="20" class="c1 control" />
 
-      <line x1="100" y1="250" x2="250" y2="100" class="l1"/>
-      <line x1="400" y1="250" x2="250" y2="100" class="l2"/>
+        <line x1="100" y1="250" x2="250" y2="100" class="l1"/>
+        <line x1="400" y1="250" x2="250" y2="100" class="l2"/>
 
-      <path d="M100,250 Q250,100 400,250" class="curve"/>
-    </svg>
+        <path d="M100,250 Q250,100 400,250" class="curve"/>
+      </svg>
+    </div>
     `)
 
 
@@ -49,9 +51,7 @@ const target = event.target
 const type = event.type
 const svgP = svgPoint(svg, event.clientX, event.clientY);
 
-
   // start drag
-  console.log(target.classList.contains('control'))
   if (!drag && type === 'pointerdown' && target.classList.contains('control')) {
 
     drag = {
@@ -131,7 +131,7 @@ function drawCurve() {
     p2 = getControlPoint(node.p2),
     c1 = getControlPoint(node.c1);
 
-  // control line 1
+    // control line 1
   updateElement(
     node.l1,
     {

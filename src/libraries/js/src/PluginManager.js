@@ -148,53 +148,63 @@ export class PluginManager{
     }
 
     add(id, name, graph){
+
+        // Set Default Values for Graph
         let streams = new Set()
         let outputs = {}
         let subscriptions = {
             session: {},
             local: {}
         }
-
-        let controlsToBind = {options: [], manager: this.state}
-
+        let controls = {options: [], manager: this.state}
         let nodes = {}
         let edges = []
-        let activePorts = {}
 
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls}
+        
+        // Add Edges
         if (Array.isArray(graph.edges)){
             graph.edges.forEach(e => {
-                edges.push(e)
+                this.applets[id].edges.push(e)
 
                 // Capture Active Ports
                 for (let k in e){
                     let [node,port] = e[k].split(':')
-                    if (activePorts[node] == null) activePorts[node] = new Set()
-                    if (port) activePorts[node].add(port)
+                    let nodeInfo = graph.nodes.find(o=>{
+                        if (o.id === node){
+                            return o
+                        }
+                    })
+                    if (nodeInfo.activePorts == null) nodeInfo.activePorts = new Set()
+                    if (port) nodeInfo.activePorts.add(port)
                 }
             })
         }
 
-        // Auto-Assign Default Port to Empty Set
-        Object.keys(activePorts).forEach(p => {
-            if (activePorts[p].size == 0){
-                activePorts[p].add('default')
-            }
+        graph.nodes.forEach(nodeInfo => {
+            this.addNode(id,nodeInfo)
         })
+    }
+
+    addNode(appId,nodeInfo){
+
+        if (nodeInfo.id==null) nodeInfo.id = String(Math.floor(Math.random()*1000000))
+        if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
 
         let instance,controls;
-        graph.nodes.forEach(nodeInfo => {
-            if (nodes[nodeInfo.id] == null){
-                nodes[nodeInfo.id] = nodeInfo;
+        if (this.applets[appId].nodes[nodeInfo.id] == null){
+            this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
 
-                ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
-                
-                nodes[nodeInfo.id].instance = instance;
-                controlsToBind.options.push(...controls);
+            // Auto-Assign Default Port to Empty Set
+            if (nodeInfo.activePorts.size == 0){
+                nodeInfo.activePorts.add('default')
             }
-        })
+            ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
+            this.applets[appId].nodes[nodeInfo.id].instance = instance;
+            this.applets[appId].controls.options.push(...controls);
+        }
 
-        // Declare Applet Info
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls: controlsToBind}
+        if (this.editor) this.editor.addNode(this.applets[appId].nodes[nodeInfo.id])
     }
 
     getNode(id,name){
@@ -492,7 +502,6 @@ export class PluginManager{
 
                         if (this.editor) this.editor.animatePort(source.label, sourcePort,'output') // send animation
                         if (this.editor) this.editor.animatePort(target.label, targetPort,'input') // send animation
-
 
                         return this.runSafe(target, targetPort, input)
                     }

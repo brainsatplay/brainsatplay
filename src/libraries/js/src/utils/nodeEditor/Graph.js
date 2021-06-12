@@ -12,6 +12,8 @@ export class Graph{
         let length = Object.keys(graph.nodes).length
         for (let key in graph.nodes){  
             this.nodes[key] = this.createNode(graph.nodes[key]) 
+
+            // Default Positioning
             this.nodes[key].element.style.top = `${(i/length)*100}%`
             this.nodes[key].element.style.left = '40%'
             // this.nodes[key].element.style.transform =  `translate(-50%,50%)`

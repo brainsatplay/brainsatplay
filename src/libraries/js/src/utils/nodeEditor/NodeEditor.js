@@ -5,9 +5,11 @@ import  {plugins} from '../../../brainsatplay'
 export class NodeEditor{
     constructor(manager, applet, parentNode) {
         this.manager = manager
-        this.plugins = this.manager.applets[applet.props.id]
+        this.app = applet.props.id
+        this.plugins = this.manager.applets[this.app]
         this.parentNode = parentNode
         this.element = null
+        this.graph=null
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -62,7 +64,9 @@ export class NodeEditor{
         }
     }
 
-
+    addNode(nodeInfo){
+        this.graph.createNode(nodeInfo)
+    }
 
     createPluginSearch(container){
 
@@ -118,14 +122,30 @@ export class NodeEditor{
             let selectedType = options.getElementsByClassName(`nodetype-${type}`)[0]
 
             for (let key in nodeType){
-                let node = this.manager.instantiateNode({class: plugins[type][key]}).instance
+                let cls = plugins[type][key]
                 let element = document.createElement('div')
                 element.classList.add(`brainsatplay-default-node-div`)
-                let label = `${type}.${node.constructor.name}`
-                element.innerHTML = `
-                <div class="brainsatplay-option-node">
-                    <p>${label}</p>
-                </div>`
+                let label = `${type}.${cls.name}`
+
+                let labelDiv = document.createElement('div')
+                labelDiv.classList.add("brainsatplay-option-node")
+                labelDiv.innerHTML = `<p>${label}</p>`
+
+                labelDiv.onclick = () => {
+
+                    // Add Node to Manager
+                    this.manager.addNode(this.app, {class:cls})
+
+                    // Close Selector
+                    var event = new MouseEvent('dblclick', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': true
+                      });
+                      container.dispatchEvent(event);
+                }
+
+                element.insertAdjacentElement('beforeend',labelDiv)
                 selectedType.insertAdjacentElement('beforeend',element)
 
                 searchOptions.push({label, element})

@@ -492,17 +492,11 @@ select {
 
 .brainsatplay-node-viewer{
     height: 100%;
-    background: rgb(10,10,10);
     position: relative;
 }
 
 .brainsatplay-node{
     position: absolute;
-}
-
-
-.brainsatplay-default-node-div{
-    /* padding: 5px 0px; */
 }
 
 .brainsatplay-node-selector > input{
@@ -532,11 +526,15 @@ select {
     background: rgb(35,35,35);
 }
 
-.brainsatplay-display-node{
-    /* width: 100px; */
-    height: 60px;
+.brainsatplay-default-node-div{
+    /* padding: 5px 0px; */
+    z-index: 10;
     position: absolute;
-    /* position: relative; */
+}
+
+.brainsatplay-display-node{
+    min-width: 100px;
+    position: absolute;
     background: rgb(155, 155, 155);
     cursor: move;
     display: flex;
@@ -544,14 +542,17 @@ select {
     flex-direction: column;
     justify-content: space-between;
     margin: 10px;
+    z-index: initial;
 }
 
 .brainsatplay-display-node > .node-text {
     position: absolute;
-    bottom: 50%;
+    /* bottom: 50%; */
+    /* left: calc(100% + 15px); */
+    /* transform: translateY(50%); */
     font-size: 75%;
-    left: calc(100% + 15px);
-    transform: translateY(50%);
+    text-align:center;
+    width:100%;
     pointer-events: none;
 }
 
@@ -565,6 +566,8 @@ select {
     width: 20px;
     height: 20px;
     transition: 0.5s;
+    border-radius: 50%;
+    cursor: pointer;
 }
 
 .node-port-container > .node-port.active{
@@ -590,12 +593,23 @@ select {
 }
 
 /* Input Port Behavior */
+.node-port-container.input-ports {
+    transform: translateY(-50%);
+    z-index: -1;
+}
+
 .node-port-container.input-ports .node-tooltip {
     top: 0%;
     left: 50%;
     transform: translate(-50%,-85%);
 }
+
 /* Output Port Behavior */
+.node-port-container.output-ports {
+    transform: translateY(50%);
+    z-index: -1;
+}
+
 .node-port-container.output-ports .node-tooltip {
     bottom: 0%;
     left: 50%;
@@ -605,17 +619,27 @@ select {
 .brainsatplay-default-node h3{
     margin-bottom: 0px;
 }
-  
-.brainsatplay-node-viewer > .edge {
+
+.brainsatplay-node-viewer > .edge{
     display: block;
     height: 100%;
     width: 100%;
     position: absolute;
     background: transparent;
+    z-index: 10;
+    pointer-events: none;
+}
+  
+.brainsatplay-node-viewer > .edge svg{
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    background: transparent;
     touch-action: none;
     z-index: 10;
     pointer-events: none;
-  }
+}
 
   .brainsatplay-node-viewer > .edge path {
     stroke-width: 3;
@@ -642,7 +666,7 @@ select {
   {
     stroke-width: 2;
     stroke: #999;
-    stroke-linecap: round;
+    /* stroke-linecap: round; */
     stroke-dasharray: 5,5;
   }  
 

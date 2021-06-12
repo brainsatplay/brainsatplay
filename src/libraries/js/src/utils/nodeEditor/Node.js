@@ -10,6 +10,8 @@ export class Node{
 
     createElement (nodeInfo) {
         let node = nodeInfo.instance
+        let nodeDiv = document.createElement(`div`)
+        nodeDiv.classList.add("brainsatplay-default-node-div")
 
         let element = document.createElement(`div`)
         element.classList.add("brainsatplay-display-node")
@@ -45,8 +47,10 @@ export class Node{
         </div>
         `)   
 
-        this.parentNode.insertAdjacentElement('beforeend',element)
+        nodeDiv.insertAdjacentElement('beforeend',element)
+        this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
+        // dragUtils.dragElement(this.parentNode,nodeDiv)
         dragUtils.dragElement(this.parentNode,element)
-        return element
+        return nodeDiv
     }
 }
