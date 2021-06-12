@@ -45,7 +45,6 @@ class Train{
         labelDiv.innerHTML = userData[0].meta.state
         let barDiv = document.getElementById(`${this.props.id}-bar`)
         let statePercentage = userData[0].meta.stateTimeElapsed / userData[0].meta.stateDuration
-
         // Fill a Progress Bar
         let fillBar = barDiv.querySelector('div')
         if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'

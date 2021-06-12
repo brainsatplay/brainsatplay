@@ -238,9 +238,7 @@ export class PluginManager{
     }
 
     // Input Must Be An Array
-    async runSafe(node, port='default',input=[{}]){
-
-        let stateLabel = this.getLabel(node,port)
+    runSafe(node, port='default',input=[{}]){
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -261,35 +259,47 @@ export class PluginManager{
         // Only Continue the Chain with Updated Data
 
         if (inputCopy.length > 0){
+            
             let result
-            if (node[port] instanceof Function) result = await node[port](inputCopy)
-            else if (node.states[port] != null) result = await node['default'](inputCopy) 
+            if (node[port] instanceof Function) result = node[port](inputCopy)
+            else if (node.states[port] != null) result = node['default'](inputCopy) 
 
-            if (result && result.length > 0){
-                let allEqual = true
-
-                result.forEach((o,i) => {
-                    if (node.states[port].length > i){
-                        let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
-                        if (!thisEqual){
-                            node.states[port][i] = o
-                            allEqual = false
-                        }
-                    } else {
-                        node.states[port].push(o)
-                        allEqual = false
-                    }
+            // Handle Promises
+            if (!!result && typeof result.then === 'function'){
+                result.then((r) =>{
+                    this.checkToPass(node,port,r)
                 })
-                
-                if (!allEqual && node.stateUpdates){
-                    let updateObj = {}
-                    updateObj[stateLabel] = true
-                    node.stateUpdates.manager.setState(updateObj)
-                }
+            } else {
+                this.checkToPass(node,port,result)
             }
         }
 
         return node.states[port]
+    }
+
+    checkToPass(node,port,result){
+        if (result && result.length > 0){
+            let allEqual = true
+
+            result.forEach((o,i) => {
+                if (node.states[port].length > i){
+                    let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
+                    if (!thisEqual){
+                        node.states[port][i] = o
+                        allEqual = false
+                    }
+                } else {
+                    node.states[port].push(o)
+                    allEqual = false
+                }
+            })
+            
+            if (!allEqual && node.stateUpdates){
+                let updateObj = {}
+                updateObj[this.getLabel(node,port)] = true
+                node.stateUpdates.manager.setState(updateObj)
+            }
+        }
     }
 
 
@@ -479,6 +489,11 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
+
+                        if (this.editor) this.editor.animatePort(source.label, sourcePort,'output') // send animation
+                        if (this.editor) this.editor.animatePort(target.label, targetPort,'input') // send animation
+
+
                         return this.runSafe(target, targetPort, input)
                     }
                 }
