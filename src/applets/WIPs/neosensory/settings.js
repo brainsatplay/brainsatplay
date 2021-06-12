@@ -19,21 +19,17 @@ export const settings = {
       nodes: [
         {id: 'ui', class: UI, params: {}},
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event,params:{keycode:"Space"}},
+  ,     {id: 'up', class: brainsatplay.plugins.inputs.Event,params:{keycode:"ArrowUp"}},
       ],
       edges: [
         {
-          source: 'signal', 
-          target: 'neurofeedback'
-        },
-        {
-          source: 'neurofeedback', 
+          source: 'up', 
           target: 'buzz:leds'
         },
         {
-          source: 'signal:fft', 
-          target: 'buzz:motors'
+          source: 'spacebar', 
+          target: 'buzz:punch'
         },
         {
           source: 'buzz:status', 

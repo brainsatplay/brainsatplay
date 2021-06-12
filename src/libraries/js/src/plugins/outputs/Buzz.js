@@ -61,6 +61,17 @@ export class Buzz{
         return userData
     }
 
+    punch = (userData) => {
+        // [{data:true,meta:{label: `${this.label}_punch`}}]
+        let u = userData[0]
+        if (u.data == true){
+            let motorCommand = [255,255,255,255]
+            let motorOff = [0,0,0,0]
+            buzz.device.vibrateMotors([motorCommand, motorOff])
+        }
+
+    }
+
     motors = (userData) => {    
         
         if (this.device){
