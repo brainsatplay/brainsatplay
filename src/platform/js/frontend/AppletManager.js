@@ -484,18 +484,13 @@ export class AppletManager {
                     }
 
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
-                    let ui = this.session.graphs.edit(appnode.classinstance, appletDiv)
+                    let editor = this.session.graphs.edit(appnode.classinstance, appletDiv)
 
-                    if (ui){
-                        ui.node.style.opacity = 0
+                    if (editor.element){
+                        editor.element.node.style.opacity = 0
+                        editor.shown = false
                         nodeIcon.onclick = (e) => {
-                            if (ui.node.style.opacity != 0) {
-                                ui.node.style.opacity = 0
-                                ui.node.style.pointerEvents = 'none'
-                            } else {
-                                ui.node.style.opacity = 1
-                                ui.node.style.pointerEvents = 'auto'
-                            }
+                            editor.toggleDisplay()
                         }
                     } else {
                         nodeIcon.remove()

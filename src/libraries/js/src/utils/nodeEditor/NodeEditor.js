@@ -10,6 +10,7 @@ export class NodeEditor{
         this.parentNode = parentNode
         this.element = null
         this.graph=null
+        this.shown = false
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -43,12 +44,26 @@ export class NodeEditor{
         }
     }
 
+    toggleDisplay(){
+        // console.log('toggling')
+        if (this.element.node.style.opacity == 0){
+            this.element.node.style.opacity = 1
+            this.element.node.style.pointerEvents = 'auto'
+            this.shown = true
+        } else {
+            this.element.node.style.opacity = 0
+            this.element.node.style.pointerEvents = 'none'
+            this.shown = false
+        }
+    }
+
 
     animate(source,target){
-
-        this.animateNode(source,'source')
-        this.animateNode(target,'target')
-        this.animateEdge(source,target)
+        if (this.shown){
+            this.animateNode(source,'source')
+            this.animateNode(target,'target')
+            this.animateEdge(source,target)
+        }
     }
 
     animateNode(node,type){
@@ -134,15 +149,15 @@ export class NodeEditor{
 
             for (let key in nodeType){
                 let cls = plugins[type][key]
-                let element = document.createElement('div')
-                element.classList.add(`brainsatplay-default-node-div`)
+                // let element = document.createElement('div')
+                // element.classList.add(`brainsatplay-default-node-div`)
                 let label = `${type}.${cls.name}`
 
-                let labelDiv = document.createElement('div')
-                labelDiv.classList.add("brainsatplay-option-node")
-                labelDiv.innerHTML = `<p>${label}</p>`
+                let element = document.createElement('div')
+                element.classList.add("brainsatplay-option-node")
+                element.innerHTML = `<p>${label}</p>`
 
-                labelDiv.onclick = () => {
+                element.onclick = () => {
 
                     // Add Node to Manager
                     this.manager.addNode(this.app, {class:cls})
@@ -156,7 +171,7 @@ export class NodeEditor{
                       container.dispatchEvent(event);
                 }
 
-                element.insertAdjacentElement('beforeend',labelDiv)
+                // element.insertAdjacentElement('beforeend',labelDiv)
                 selectedType.insertAdjacentElement('beforeend',element)
 
                 searchOptions.push({label, element})

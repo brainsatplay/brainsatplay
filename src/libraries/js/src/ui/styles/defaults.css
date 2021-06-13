@@ -497,7 +497,7 @@ select {
     transform: translate(-50%, -50%);
     width: 400px;
     height: 400px;
-    z-index:10;
+    z-index:11;
 }
 
 .brainsatplay-node-viewer{
@@ -557,9 +557,9 @@ select {
 
 .brainsatplay-display-node > .node-text {
     position: absolute;
-    /* bottom: 50%; */
+    bottom: 50%;
     /* left: calc(100% + 15px); */
-    /* transform: translateY(50%); */
+    transform: translateY(50%);
     font-size: 75%;
     text-align:center;
     width:100%;
@@ -677,8 +677,8 @@ select {
   {
     fill: #c00;
     cursor: move;
-  } */
-  
+  }
+   */
   .brainsatplay-node-viewer > .edge line
   {
     /* stroke-width: 2;

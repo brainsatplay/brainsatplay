@@ -700,7 +700,7 @@ export class PluginManager{
 // Create a Node Editor
 edit(applet, parentNode = document.body, onsuccess = () => { }){
     this.editor = new NodeEditor(this, applet, parentNode, onsuccess)
-    return this.editor.element
+    return this.editor
 }
 
 }
