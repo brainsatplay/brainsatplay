@@ -124,13 +124,6 @@ export class SensoriumApplet {
 
         this.chosenGeometry = 'plane'
 
-        window.onkeypress = (e) => {
-            if (e.code === 'Space'){
-                this.updateGeometries('sphere')
-            }
-        }
-
-
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
         this.visuals = [];
@@ -323,6 +316,7 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}changeview' style="background: black; color: white; margin: 25px 10px;">Change View</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
                             <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
@@ -350,6 +344,10 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+
+            document.getElementById(props.id+'changeview').onclick = () => {
+                this.rotateGeometries();
+            }
 
             this.appletContainer = document.getElementById(props.id);
             this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
@@ -568,7 +566,7 @@ void main(){
     this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
     this.controls.enablePan = true
     this.controls.enableDamping = true
-    this.controls.enabled = false;
+    this.controls.enabled = true;
     this.controls.minPolarAngle = 2*Math.PI/6; // radians
     this.controls.maxPolarAngle = 4*Math.PI/6; // radians
     this.controls.minDistance = this.baseCameraPos.z; // radians
@@ -950,24 +948,48 @@ void main(){
     }];
     */
 
-    createGeometry(){
-        if (this.chosenGeometry === 'sphere'){
-            this.controls.enabled = true;
-            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50);
-        } else {
+    createGeometry(type=this.chosenGeometry){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
             return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+        } else if (type === 'halfsphere') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0.5, Math.PI-1).translate(0,0,-3);
         }
     }
 
-    updateGeometries(type){
-        this.chosenGeometry = type
+    rotateGeometries(){
+        if(this.chosenGeometry === 'plane') {
+            this.chosenGeometry = 'vrscreen';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'vrscreen') {
+            this.chosenGeometry = 'sphere';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'sphere') {
+            this.chosenGeometry = 'halfsphere';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'halfsphere') {
+            this.chosenGeometry = 'plane';
+            this.updateGeometries();
+        }
+    }
+
+    updateGeometries(type=this.chosenGeometry){
         this.three.planes.forEach(mesh => {
             mesh.geometry.dispose()
-            if (this.chosenGeometry === 'sphere'){
-                mesh.geometry = this.createGeometry()
+            if (type === 'sphere'){
+                mesh.geometry = this.createGeometry('sphere')
                 mesh.rotation.set(0,Math.PI,0)
-            } else {
-                mesh.geometry = this.createGeometry()
+            } else if (type === 'plane') {
+                mesh.geometry = this.createGeometry('plane')
+            } else if (type === 'halfsphere') {
+                mesh.geometry = this.createGeometry('halfsphere');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'vrscreen') {
+                mesh.geometry = this.createGeometry('vrscreen');
+                mesh.rotation.set(0,Math.PI,0)
             }
         })
     }
