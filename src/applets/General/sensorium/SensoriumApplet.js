@@ -1040,24 +1040,25 @@ void main(){
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
+        
+        settings[0].view = this.currentView;
         if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
-        console.log(settings)
+        
 
         // Auto-Join Configuration Settings
         settings[0].title = false
         settings[0].mode = this.mode;
-        settings[0].view = this.currentView;
         if(this.mode === 'multi') {
             settings[0].domain = this.session.info.auth.url.href;
             settings[0].login = false;
             settings[0].session = this.roomId;
             settings[0].spectating = false;
         }
-
+        console.log("Current settings: ",settings);
         return settings;
     }
 
