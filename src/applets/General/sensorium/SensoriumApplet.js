@@ -1669,9 +1669,10 @@ void main(){
         }
         else if (u === 'iResolution'){
             if(this.currentView === 'halfsphere' || this.currentView === 'circle')
-                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight);
-            else 
-                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight);
+                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight); //fixes aspect ratio on halfsphere and circle to be square
+            else if (this.currentView !== 'plane') 
+                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight); //fix for messed up aspect ratio on vrscreen and sphere
+            else return new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //leave plane aspect alone
         }
     }
 
