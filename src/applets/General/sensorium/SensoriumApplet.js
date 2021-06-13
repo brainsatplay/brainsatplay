@@ -1370,7 +1370,7 @@ void main(){
         if(this.looping){
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedbackOption;
-                if(this.session.atlas.data.heg.length>0) {
+                if(this.session.atlas.data.heg.length>0 && this.session.atlas.settings.deviceConnected) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
