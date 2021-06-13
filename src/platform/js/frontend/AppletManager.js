@@ -486,7 +486,7 @@ export class AppletManager {
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
                     let editor = this.session.graphs.edit(appnode.classinstance, appletDiv)
 
-                    if (editor.element){
+                    if (editor && editor.element){
                         editor.element.node.style.opacity = 0
                         editor.shown = false
                         nodeIcon.onclick = (e) => {

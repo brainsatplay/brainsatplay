@@ -1,10 +1,11 @@
 import * as dragUtils from './dragUtils'
-
+import {Edge} from './Edge'
 
 export class Node{
-    constructor(nodeInfo, parentNode=document.body) {     
+    constructor(nodeInfo, graph) {     
+        this.graph = graph
         this.nodeInfo = nodeInfo
-        this.parentNode = parentNode
+        this.parentNode = this.graph.parentNode ?? document.body
         this.element = this.createElement(this.nodeInfo)
         this.edges = []
     }
@@ -26,6 +27,7 @@ export class Node{
         let portDim = portElement.getBoundingClientRect()
         let svgP = o.svgPoint(o.svg, portDim.left + portDim.width/2, portDim.top + portDim.height/2)
 
+        
         // Update Edge Anchor
         o.updateElement(
             o.node[className],
@@ -36,20 +38,16 @@ export class Node{
         );
 
         // Grab Other Side of Edge
-
         let otherType = (type == 'source') ? 'target': 'source'
         let otherElement = o[`${otherType}Node`]
         let otherDim = otherElement.getBoundingClientRect()
         let svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width/2, otherDim.top + otherDim.height/2)
 
-        // Update Control Point
-        o.updateElement(
-            o.node['c1'],
-            {
-                cx: Math.max(svgP.x,svgO.x),
-                cy: Math.max(svgP.y,svgO.y)
-            }
-        );
+        // Update Control Points
+        let sP = (type == 'source') ? svgP : svgO
+        let tP = (type == 'source') ? svgO : svgP
+
+        o.updateControlPoints(sP, tP)
       
         o.drawCurve();
     }
@@ -79,16 +77,55 @@ export class Node{
 
             for (let port in node.ports){
 
-                html += `
-                <div class="node-port port-${port}">
+                let portElement = document.createElement('div')
+                portElement.classList.add(`node-port`)
+                portElement.classList.add(`port-${port}`)
+                portElement.setAttribute('data-node', this.nodeInfo.id)
+                portElement.setAttribute('data-port', port)
+
+                portElement.innerHTML = `
                     <div class="node-tooltip">
                         <p>${port}</p>
                     </div>
-                </div>
                 `
+                portContainer.insertAdjacentElement('beforeend',portElement)
+
+
+                let controlSVG = (e) => {
+                    // console.log('moving')
+                }
+
+                let checkNodeBelow = (e) => {
+
+                    if (e.target.classList.contains('node-port')){
+
+                        let belowStructure  = `${e.target.getAttribute('data-node')}:${e.target.getAttribute('data-port')}`
+                        let source = (s === 'source')? `${this.nodeInfo.id}:${port}` : belowStructure
+                        let target = (s === 'target')? `${this.nodeInfo.id}:${port}` : belowStructure
+
+                        let edgeStructure = {
+                            source,
+                            target
+                        }
+
+                        let edge = new Edge(edgeStructure, this.graph.nodes)
+                        edge.insert(this.parentNode)
+                    } else {
+                        // console.log('remove half-done svg')
+                    }
+                    window.removeEventListener('pointermove', controlSVG)
+                    window.removeEventListener('pointerup', checkNodeBelow)
+                }
+
+                // Listen for clicks to draw SVG edge
+                portElement.onpointerdown = (e) => {
+                    // Start drawing edge
+                    window.addEventListener('pointermove', controlSVG)
+                    window.addEventListener('pointerup', checkNodeBelow)
+                }
+
             }
 
-            portContainer.innerHTML = html
             element.insertAdjacentElement('beforeend',portContainer)
         })
 

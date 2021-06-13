@@ -382,7 +382,7 @@ export class PluginManager{
         applet.classInstances = {}
 
         // Track Controls 
-        applet.conrols = []
+        applet.controls = []
 
         // Track UI Setup Variables
         let uiArray = []
@@ -699,8 +699,10 @@ export class PluginManager{
 
 // Create a Node Editor
 edit(applet, parentNode = document.body, onsuccess = () => { }){
-    this.editor = new NodeEditor(this, applet, parentNode, onsuccess)
-    return this.editor
+    if (this.applets[applet.props.id]){
+        this.applets[applet.props.id].editor = new NodeEditor(this, applet, parentNode, onsuccess)
+        return this.applets[applet.props.id].editor
+    }
 }
 
 }

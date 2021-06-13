@@ -28,6 +28,6 @@ export class Graph{
     }
 
     createNode(nodeInfo) {
-        return new Node(nodeInfo,this.parentNode)
+        return new Node(nodeInfo,this)
     }
 }

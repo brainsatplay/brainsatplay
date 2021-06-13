@@ -32,8 +32,10 @@ export class NodeEditor{
                 let viewer = document.getElementById(`${this.props.id}nodeViewer`)
 
                 viewer.addEventListener('wheel', (e)=>{
-                    if (this.scale > 0.1) this.scale += 0.01*e.deltaY
-                    else this.scale = 0.1
+                    this.scale += 0.01*-e.deltaY
+                    if (this.scale < 0.3) this.scale = 0.3 // clamp
+                    if (this.scale > 1.5) this.scale = 1.5 // clamp
+
                     viewer.style['-moz-transform'] = `scale(${this.scale}, ${this.scale})`; /* Moz-browsers */
                     viewer.style['zoom'] = this.scale; /* Other non-webkit browsers */
                     viewer.style['zoom'] = `${this.scale*100}%` /* Webkit browsers */
@@ -44,6 +46,7 @@ export class NodeEditor{
                 })
                 
                 this.createPluginSearch(container)
+                
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, viewer)
             }
@@ -55,6 +58,10 @@ export class NodeEditor{
                 setup
             )
         }
+
+
+        window.addEventListener('resize', this.responsive)
+
     }
 
     toggleDisplay(){
@@ -104,6 +111,7 @@ export class NodeEditor{
     }
 
     addNode(nodeInfo){
+        console.log(nodeInfo)
         this.graph.createNode(nodeInfo)
     }
 
@@ -121,13 +129,7 @@ export class NodeEditor{
             }
         })
 
-        const resizeDisplay = () => {
-            editor.style.height = `${250}px`
-            editor.style.width = `${500}px`
-        }
-
-        resizeDisplay()
-        window.addEventListener('resize', resizeDisplay)
+        this.responsive()
 
         // Populate Available Nodes
         let nodeDiv = document.createElement('div')
@@ -194,5 +196,22 @@ export class NodeEditor{
         editor.insertAdjacentElement('beforeend',nodeDiv)
         editor.style.display='none'
         container.insertAdjacentElement('afterbegin',editor)
+    }
+
+
+
+    responsive = () => {
+        let editor = document.getElementById(`${this.props.id}nodeEditor`)
+
+        if (editor){
+            editor.style.height = `${250}px`
+            editor.style.width = `${500}px`
+        }
+
+        if(this.graph){
+            for (let key in this.graph.nodes){
+                this.graph.nodes[key].updateAllEdges()
+            }
+        }
     }
 }

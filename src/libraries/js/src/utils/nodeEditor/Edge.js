@@ -41,13 +41,13 @@ export class Edge{
     this.parentNode = parentNode
 
     let parent = this.parentNode.getBoundingClientRect()
-    let port1 = this.sourceNode.getBoundingClientRect()
-    let port2 = this.targetNode.getBoundingClientRect()
+    let sourcePort = this.sourceNode.getBoundingClientRect()
+    let targetPort = this.targetNode.getBoundingClientRect()
 
-    let p1x = this.props.svgSize *(((port1.left - parent.left)) / parent.width)
-    let p1y = this.props.svgSize *(((port1.top -  - parent.top)) / parent.height)
-    let p2x = this.props.svgSize *(((port2.left - parent.left)) / parent.width)
-    let p2y = this.props.svgSize *(((port2.top - parent.top)) / parent.height)
+    let p1x = this.props.svgSize *(((sourcePort.left - parent.left)) / parent.width)
+    let p1y = this.props.svgSize *(((sourcePort.top -  - parent.top)) / parent.height)
+    let p2x = this.props.svgSize *(((targetPort.left - parent.left)) / parent.width)
+    let p2y = this.props.svgSize *(((targetPort.top - parent.top)) / parent.height)
 
       let edgeDiv = document.createElement('div')
       edgeDiv.classList.add('edge')
@@ -57,7 +57,9 @@ export class Edge{
           <circle cx="${p1x}" cy="${p1y}" r="${this.props.radius}" class="p1 control" />
           <circle cx="${p2x}" cy="${p2y}" r="${this.props.radius}" class="p2 control" />
 
-          <circle cx="${p2x}" cy="${p1y}" r="${this.props.radius}" class="c1 control" />
+          <circle cx="${p1x}" cy="${p1y + 25}" r="${this.props.radius}" class="c1 control" />
+          <circle cx="${p2x}" cy="${p2y - 25}" r="${this.props.radius}" class="c2 control" />
+          <circle cx="${(p1x - p2x)/2}" cy="${(p1y - p2y)/2}" r="${this.props.radius}" class="c3 control" />
 
           <line x1="100" y1="250" x2="250" y2="100" class="l1"/>
           <line x1="400" y1="250" x2="250" y2="100" class="l2"/>
@@ -77,19 +79,19 @@ export class Edge{
       yMin: vb[1], yMax: vb[1] + vb[3] - 1
     }
 
-  'p1,p2,c1,l1,l2,curve'.split(',').map(s => {
+  'p1,p2,c1,c2,c3,l1,l2,curve'.split(',').map(s => {
     this.node[s] = this.svg.getElementsByClassName(s)[0];
   });
 
   // events
-  this.svg.addEventListener('pointerdown', this.dragHandler);
-  this.parentNode.addEventListener('pointermove', this.dragHandler);
-  this.parentNode.addEventListener('pointerup', this.dragHandler);
+  // this.svg.addEventListener('pointerdown', this.dragHandler);
+  // this.parentNode.addEventListener('pointermove', this.dragHandler);
+  // this.parentNode.addEventListener('pointerup', this.dragHandler);
 
   this.drawCurve();
   
-  this.source.updateEdge(this)
-  this.target.updateEdge(this)
+  this.source.updateAllEdges(this)
+  this.target.updateAllEdges(this)
   this.element = edgeDiv
 
   return this.element
@@ -176,6 +178,33 @@ getControlPoint = (circle) => {
 
 }
 
+updateControlPoints = (p1,p2) => {
+  
+  let curveMag = 0.5*Math.abs((p2.y - p1.y))
+  this.updateElement(
+    this.node['c1'],
+      {
+          cx: p1.x,
+          cy: p1.y + curveMag
+      }
+  );
+
+  this.updateElement(
+      this.node['c2'],
+      {
+          cx: p2.x,
+          cy: p2.y - curveMag
+      }
+  );
+
+  this.updateElement(
+  this.node['c3'],
+  {
+    cx: (p1.x + p2.x)/2,
+    cy: (p1.y + p2.y)/2,
+  })
+}
+
 
 // update curve
 drawCurve = () => {
@@ -183,32 +212,12 @@ drawCurve = () => {
   const
     p1 = this.getControlPoint(this.node.p1),
     p2 = this.getControlPoint(this.node.p2),
-    c1 = this.getControlPoint(this.node.c1);
-
-    // control line 1
-    this.updateElement(
-    this.node.l1,
-    {
-      x1: p1.x,
-      y1: p1.y,
-      x2: c1.x,
-      y2: c1.y
-    }
-  );
-
-  // control line 2
-  this.updateElement(
-    this.node.l2,
-    {
-      x1: p2.x,
-      y1: p2.y,
-      x2: c1.x,
-      y2: c1.y
-    }
-  );
+    c1 = this.getControlPoint(this.node.c1),
+    c2 = this.getControlPoint(this.node.c2),
+    c3 = this.getControlPoint(this.node.c3)
 
   // curve
-  const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${p2.x},${p2.y}` +
+  const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${c3.x},${c3.y} T${p2.x},${p2.y}` +
     (this.node.curve.classList.contains('fill') ? ' Z' : '');
 
     this.updateElement( this.node.curve, { d } );

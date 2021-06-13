@@ -483,7 +483,7 @@ select {
         transition: opacity 1s;
         pointer-events: none;
         background: rgba(0,0,0,.7);
-        padding: 25px;
+        padding: 0px;
 }
 
 
@@ -638,7 +638,7 @@ select {
     width: 100%;
     position: absolute;
     background: transparent;
-    z-index: 1;
+    /* z-index: 1; */
     pointer-events: none;
 }
   
@@ -649,7 +649,7 @@ select {
     position: relative;
     background: transparent;
     touch-action: none;
-    z-index: 1;
+    /* z-index: 1; */
     pointer-events: none;
 }
 
@@ -671,6 +671,8 @@ select {
     stroke: transparent;
     fill: transparent;
     pointer-events: auto;
+    /* fill: #c00;
+    cursor: move; */
   }
   
   /* .brainsatplay-node-viewer > .edge .control:hover, #mysvg .control.drag
