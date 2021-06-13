@@ -11,7 +11,7 @@ export class Node{
     }
 
     registerEdge(edge){
-        this.edges.push(edge)
+        this.edges.push(edge)   
     }
 
     updateEdge(edge){
@@ -95,7 +95,7 @@ export class Node{
                     // console.log('moving')
                 }
 
-                let checkNodeBelow = (e) => {
+                let drawEdgeToPort = (e) => {
 
                     if (e.target.classList.contains('node-port')){
 
@@ -114,14 +114,13 @@ export class Node{
                         // console.log('remove half-done svg')
                     }
                     window.removeEventListener('pointermove', controlSVG)
-                    window.removeEventListener('pointerup', checkNodeBelow)
+                    window.removeEventListener('pointerup', drawEdgeToPort)
                 }
 
                 // Listen for clicks to draw SVG edge
                 portElement.onpointerdown = (e) => {
-                    // Start drawing edge
                     window.addEventListener('pointermove', controlSVG)
-                    window.addEventListener('pointerup', checkNodeBelow)
+                    window.addEventListener('pointerup', drawEdgeToPort)
                 }
 
             }

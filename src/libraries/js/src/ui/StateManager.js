@@ -203,9 +203,12 @@ export class StateManager {
     unsubscribeSequential(key=undefined,idx=0) {
         if(key){
             if(this.pushCallbacks[key]) {
-                let i;
-                if(this.pushCallbacks[key].find((o,j)=>{if(o.idx === idx) i=j;  return true;})) {
-                    this.pushCallbacks[key].splice(i);
+                if(this.pushCallbacks[key].find((o,j)=>{
+                    if(o.idx === idx) {
+                        this.pushCallbacks[key].splice(j,1);
+                        return true;
+                    }
+                })) {
                 }
             }
         }

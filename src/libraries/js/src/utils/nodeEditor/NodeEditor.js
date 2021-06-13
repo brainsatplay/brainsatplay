@@ -46,7 +46,7 @@ export class NodeEditor{
                 })
                 
                 this.createPluginSearch(container)
-                
+
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, viewer)
             }
@@ -70,11 +70,50 @@ export class NodeEditor{
             this.element.node.style.opacity = 1
             this.element.node.style.pointerEvents = 'auto'
             this.shown = true
+            this.activate()
         } else {
             this.element.node.style.opacity = 0
             this.element.node.style.pointerEvents = 'none'
             this.shown = false
+            this.deactivate()
         }
+    }
+
+    deactivate(){
+
+    }
+
+    activate() {
+        for (let key in this.graph.nodes) {
+            let n = this.graph.nodes[key]
+            n.edges.forEach(e => {
+                e.node['curve'].onmouseover = () => {
+                    e.node['curve'].style.opacity = 0.3
+                }
+                
+                e.node['curve'].onmouseout = () => {
+                    e.node['curve'].style.opacity = 1
+                }
+            
+                e.node['curve'].onclick = () => {
+                    this.removeEdge(e)
+                }
+            })
+        }
+    }
+
+    removeEdge(e){
+        let types = ['source','target']
+        types.forEach(t => {
+            let deactivate = true
+            e[t].edges.forEach((o,i) => {
+                if (o[`${t}Node`].isSameNode(e[`${t}Node`]) && o !== e) deactivate = false
+                else if (o === e) e[t].edges.splice(i,1)
+            })
+            if (deactivate) e[`${t}Node`].classList.remove('active')
+        })
+        e.element.remove()
+        this.manager.removeEdge(this.app, e.structure)
     }
 
 
@@ -88,7 +127,6 @@ export class NodeEditor{
 
     animateNode(node,type){
         let instance = this.graph.nodes[node.label]
-        
         if (instance){
             let portEl = instance.element.querySelector(`.${type}-ports`).querySelector(`.port-${node.port}`)
             if (portEl) {
@@ -111,7 +149,6 @@ export class NodeEditor{
     }
 
     addNode(nodeInfo){
-        console.log(nodeInfo)
         this.graph.createNode(nodeInfo)
     }
 

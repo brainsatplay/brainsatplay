@@ -204,7 +204,7 @@ export class PluginManager{
             this.applets[appId].controls.options.push(...controls);
         }
 
-        if (this.editor) this.editor.addNode(this.applets[appId].nodes[nodeInfo.id])
+        if (this.applets[appId].editor) this.applets[appId].editor.addNode(this.applets[appId].nodes[nodeInfo.id])
     }
 
     getNode(id,name){
@@ -500,7 +500,7 @@ export class PluginManager{
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
 
-                        if (this.editor) this.editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+                        if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
 
                         return this.runSafe(target, targetPort, input)
                     }
@@ -532,18 +532,25 @@ export class PluginManager{
 
                     // If Already Streaming, Subscribe to Stream
                     if (found != null){
-                        if (this.session.state[label]) applet.subscriptions.local[label].push(this.session.state.subscribeSequential(label, defaultCallback))
-                        else applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                        if (this.session.state[label]) {
+                            let subId = this.session.state.subscribeSequential(label, defaultCallback)
+                            applet.subscriptions.local[label].push({id: subId, target: e.target})
+                         } else {
+                            let subId = this.state.subscribeSequential(label, defaultCallback)
+                            applet.subscriptions.local[label].push({id: subId, target: e.target})
+                         }
                     } 
 
                     // Otherwise Create Local Stream and Subscribe Locally
                     else {
                         this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                            let subId = this.state.subscribeSequential(label, defaultCallback)
+                            applet.subscriptions.local[label].push({id: subId, target: e.target})
                     }
 
                 } else {
-                    applet.subscriptions.local[label].push(this.state.subscribeSequential(label, defaultCallback))
+                    let subId = this.state.subscribeSequential(label, defaultCallback)
+                    applet.subscriptions.local[label].push({id: subId, target: e.target})
                 }
         })
 
@@ -600,25 +607,9 @@ export class PluginManager{
                         this.session.removeStreaming(p, null, this.state, true);
                     })
                 } else {
-
-                    // Remove Subscriptions
-                    openPorts.forEach(p => {
-                        let sessionSubs = applet.subscriptions.session[p]
-                        let localSubs = applet.subscriptions.local[p]
-
-                        if (sessionSubs != null){
-                            applet.subscriptions.session[p].forEach(id =>{
-                                this.session.removeStreaming(p, id);
-                            })
-                        }
-
-                        if (localSubs != null){
-                            localSubs.forEach(id => {
-                                this.session.removeStreaming(p, id, this.state, true);
-                            })
-                        }
+                    applet.edges.forEach(e => {
+                        removeEdge(appId,e)
                     })
-
                 }
             })
         })
@@ -629,6 +620,40 @@ export class PluginManager{
         }
 
         delete this.applets[appId]
+    }
+
+    removeEdge = (id, structure) => {
+
+        let applet = this.applets[id]
+
+        applet.edges.find((e,i) => {
+            if (e === structure){
+                this.applets[id].edges.splice(i,1)
+                return true
+            }
+        })
+
+        let stateKey = structure.source.replace(':', '_')
+
+        let sessionSubs = applet.subscriptions.session[stateKey]
+        let localSubs = applet.subscriptions.local[stateKey]
+
+        if (sessionSubs != null){
+            applet.subscriptions.session[stateKey].find(o =>{
+                if (o.target === structure.target) {
+                    this.session.removeStreaming(stateKey, o.id);
+                    return true
+                }
+            })
+        }
+        if (localSubs != null){
+            localSubs.find(o => {
+                if (o.target === structure.target) {
+                    this.session.removeStreaming(stateKey, o.id, this.state, true);
+                    return true
+                }
+            })
+        }
     }
 
     // Internal Methods
@@ -653,9 +678,11 @@ export class PluginManager{
         }
 
         if (found == null) {
-            applet.subscriptions.session[id].push(this.session.streamAppData(id, this.registry.local[id].registry[port].state, this.registry.local[id].registry[port].callback))
+            let subId = this.session.streamAppData(id, this.registry.local[id].registry[port].state, this.registry.local[id].registry[port].callback)
+            applet.subscriptions.session[id].push({id: subId, target: null})
         } else {
-            applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].registry[port].callback))
+            let subId = this.session.state.subscribe(this.registry.local[id].registry[port].callback)
+            applet.subscriptions.session[id].push({id: subId, target: null})
         }
 
         // Pass Callback to Send Existing Session Data
@@ -689,7 +716,9 @@ export class PluginManager{
             }
         }
 
-        applet.subscriptions.session[id].push(this.session.state.subscribe(id, this.registry.local[id].registry[port].callback))
+        let subId = this.session.state.subscribe(id, this.registry.local[id].registry[port].callback)
+        applet.subscriptions.session[id].push({id: subId, target: null})
+
         
         // Pass Callback to Send Existing Stream Data
         return () => {this.registry.local[id].registry[port].callback(this.session.state.data[id])}
