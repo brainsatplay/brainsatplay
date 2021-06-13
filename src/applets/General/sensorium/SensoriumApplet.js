@@ -1370,7 +1370,7 @@ void main(){
         if(this.looping){
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedbackOption;
-                if(this.session.atlas.data.heg.length>0 && this.session.atlas.settings.deviceConnected) {
+                if(this.session.atlas.data.heg.length>0 && this.session.atlas.settings.deviceConnected === true) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
@@ -1394,15 +1394,17 @@ void main(){
                         }
                     }
                         else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
-                        if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                        let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,hegscore),1), //
-                                window.audio.ctx.currentTime
-                            );
+                        if(this.session.atlas.data.heg[0].ratio.length > 0) {
+                            if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
+                                    Math.min(Math.max(0,hegscore),1), //
+                                    window.audio.ctx.currentTime
+                                );
+                            }
+                            this.modifiers.iHEG = hegscore; //starts at 0
                         }
-                        this.modifiers.iHEG = hegscore; //starts at 0
                     } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
