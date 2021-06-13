@@ -600,27 +600,29 @@ select {
     position: absolute;
     z-index: 10;
     pointer-events: none;
+    /* background:rgba(0, 0, 0, 0.5);
+    padding: 5px; */
 }
 
 /* Input Port Behavior */
-.node-port-container.input-ports {
-    transform: translateY(-50%);
+.node-port-container.target-ports {
+    transform: translateY(-40%);
     z-index: -1;
 }
 
-.node-port-container.input-ports .node-tooltip {
+.node-port-container.target-ports .node-tooltip {
     top: 0%;
     left: 50%;
     transform: translate(-50%,-85%);
 }
 
-/* Output Port Behavior */
-.node-port-container.output-ports {
-    transform: translateY(50%);
+/* Source Port Behavior */
+.node-port-container.source-ports {
+    transform: translateY(40%);
     z-index: -1;
 }
 
-.node-port-container.output-ports .node-tooltip {
+.node-port-container.source-ports .node-tooltip {
     bottom: 0%;
     left: 50%;
     transform: translate(-50%,85%);
@@ -636,7 +638,7 @@ select {
     width: 100%;
     position: absolute;
     background: transparent;
-    z-index: 10;
+    z-index: 1;
     pointer-events: none;
 }
   
@@ -647,7 +649,7 @@ select {
     position: relative;
     background: transparent;
     touch-action: none;
-    z-index: 10;
+    z-index: 1;
     pointer-events: none;
 }
 
@@ -657,27 +659,34 @@ select {
     stroke-linecap: round;
     fill: none;
     pointer-events: auto;
+    transition: stroke 0.5s;
   }
+
+  .brainsatplay-node-viewer > .edge path.updated {
+    stroke: rgb(255, 105, 97);
+}
   
   .brainsatplay-node-viewer > .edge .control {
     stroke-width: 3;
-    stroke: #c00;
-    fill: #fff;
+    stroke: transparent;
+    fill: transparent;
     pointer-events: auto;
   }
   
-  .brainsatplay-node-viewer > .edge .control:hover, #mysvg .control.drag
+  /* .brainsatplay-node-viewer > .edge .control:hover, #mysvg .control.drag
   {
     fill: #c00;
     cursor: move;
-  }
+  } */
   
   .brainsatplay-node-viewer > .edge line
   {
-    stroke-width: 2;
+    /* stroke-width: 2;
     stroke: #999;
-    /* stroke-linecap: round; */
-    stroke-dasharray: 5,5;
+    stroke-linecap: round;
+    stroke-dasharray: 5,5; */
+    stroke: transparent;
+    fill: transparent;
   }  
 
 

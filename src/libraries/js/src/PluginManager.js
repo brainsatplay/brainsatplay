@@ -500,8 +500,7 @@ export class PluginManager{
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
 
-                        if (this.editor) this.editor.animatePort(source.label, sourcePort,'output') // send animation
-                        if (this.editor) this.editor.animatePort(target.label, targetPort,'input') // send animation
+                        if (this.editor) this.editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
 
                         return this.runSafe(target, targetPort, input)
                     }

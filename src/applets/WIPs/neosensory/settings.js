@@ -19,26 +19,49 @@ export const settings = {
       nodes: [
         {id: 'ui', class: UI, params: {}},
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
-        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
+        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
+        {id: 'enter', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Enter'}},
       ],
       edges: [
+
+        // Light up LEDs with Up Arrow
         {
-          source: 'signal', 
-          target: 'neurofeedback'
-        },
-        {
-          source: 'neurofeedback', 
+          source: 'up', 
           target: 'buzz:leds'
         },
+        
+        // Punch your Wrist with Spacebar
         {
-          source: 'signal:fft', 
-          target: 'buzz:motors'
+          source: 'spacebar', 
+          target: 'buzz:punch'
         },
+
+        // Or Punch your Wrist with the Button
+        {
+          source: 'ui:button', 
+          target: 'buzz:punch'
+        },
+
+        // Show Device State on the UI
         {
           source: 'buzz:status', 
           target: 'ui'
-        }
+        },
+
+        // BRAIN STUFF
+        // {
+        //   source: 'signal', 
+        //   target: 'neurofeedback'
+        // },
+        // {
+        //   source: 'neurofeedback', 
+        //   target: 'buzz:leds'
+        // },
+        // {
+        //   source: 'signal:fft', 
+        //   target: 'buzz:motors'
+        // },
       ]
     },
 }

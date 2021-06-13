@@ -22,9 +22,16 @@ export class Buzz{
             }
         }
 
+        this.ports = {
+            default: {},
+            motors: {},
+            leds: {},
+            punch: {}
+        }
+
         let added = (k) => {
             this._subscribeToDevices(k,['buzz'])
-            this.status()
+            this.session.graphs.runSafe(this,'status',[{data:true}])
         }
 
         let removed = (k) => {
@@ -46,7 +53,7 @@ export class Buzz{
         this.props.device = this.session.getDevice('buzz')
         if (!this.props.device)  console.log('Must connect your Buzz first')
         else this.props.device = this.props.device.device
-        this.status()
+        this.session.graphs.runSafe(this,'status',[{data:true}])
     }
 
     deinit = () => {
@@ -61,12 +68,28 @@ export class Buzz{
         return userData
     }
 
+    punch = (userData) => {
+        let punchMe = false
+        // Check if Any Users Requested to Punch
+        userData.forEach(u => {
+            if (u.data == true && u.meta.user === this.session.info.auth.username){
+                punchMe = true
+            }
+        })
+        // If Yes, Punch Me 
+        if (punchMe){
+            let motorCommand = [255,255,255,255]
+            let motorsOff = [0,0,0,0]
+            if (this.device) this.device.vibrateMotors([motorCommand,motorsOff])
+        }
+    }
+
     motors = (userData) => {    
         
         if (this.device){
             // Vibrate Wrist Based on Frequencies (Single User)
             let motorCommand = this.device.mapFrequencies(userData[0].data)
-            buzz.device.vibrateMotors([motorCommand])
+            if (this.device) this.device.vibrateMotors([motorCommand])
         }
 
         return userData
