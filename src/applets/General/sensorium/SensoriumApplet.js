@@ -956,7 +956,7 @@ void main(){
         } else if (type === 'halfsphere') {
             return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
         } else if (type === 'vrscreen') {
-            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0.5, Math.PI-1).translate(0,0,-3);
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
         }
     }
 
