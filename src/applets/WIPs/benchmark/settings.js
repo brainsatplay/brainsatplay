@@ -36,10 +36,10 @@ export const settings = {
           source: 'signal', 
           target: 'My Algorithm'
         },
-        {
-          source: 'My Algorithm', 
-          target: 'Train UI'
-        },
+        // {
+        //   source: 'My Algorithm', 
+        //   target: 'Train UI'
+        // },
 
         // Schedule an Experiment 
         {

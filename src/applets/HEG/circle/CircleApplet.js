@@ -177,7 +177,7 @@ export class CircleApplet {
 
     updateLoop = () => {
         if(this.looping){
-            if(this.bci.atlas.settings.heg) {
+            if(this.bci.atlas.settings.heg && this.bci.atlas.settings.deviceConnected) {
                 let ct = this.bci.atlas.data.heg[0].count;
                 if(ct >= 2) {
                     let avg = 40; if(ct < avg) { avg = ct; }

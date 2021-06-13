@@ -225,7 +225,7 @@ export class HillClimberApplet {
       }
     
     updateLoop = () => {
-        if(this.bci.atlas.settings.heg) {
+        if(this.bci.atlas.settings.heg  && this.bci.atlas.settings.deviceConnected) {
           if(this.feedback === 'ratio') {
             let ct = this.bci.atlas.data.heg[0].count;
             let avg = 40; if(ct < avg) { avg = ct; }

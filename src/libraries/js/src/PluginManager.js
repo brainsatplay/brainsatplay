@@ -148,53 +148,63 @@ export class PluginManager{
     }
 
     add(id, name, graph){
+
+        // Set Default Values for Graph
         let streams = new Set()
         let outputs = {}
         let subscriptions = {
             session: {},
             local: {}
         }
-
-        let controlsToBind = {options: [], manager: this.state}
-
+        let controls = {options: [], manager: this.state}
         let nodes = {}
         let edges = []
-        let activePorts = {}
 
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls}
+        
+        // Add Edges
         if (Array.isArray(graph.edges)){
             graph.edges.forEach(e => {
-                edges.push(e)
+                this.applets[id].edges.push(e)
 
                 // Capture Active Ports
                 for (let k in e){
                     let [node,port] = e[k].split(':')
-                    if (activePorts[node] == null) activePorts[node] = new Set()
-                    if (port) activePorts[node].add(port)
+                    let nodeInfo = graph.nodes.find(o=>{
+                        if (o.id === node){
+                            return o
+                        }
+                    })
+                    if (nodeInfo.activePorts == null) nodeInfo.activePorts = new Set()
+                    if (port) nodeInfo.activePorts.add(port)
                 }
             })
         }
 
-        // Auto-Assign Default Port to Empty Set
-        Object.keys(activePorts).forEach(p => {
-            if (activePorts[p].size == 0){
-                activePorts[p].add('default')
-            }
+        graph.nodes.forEach(nodeInfo => {
+            this.addNode(id,nodeInfo)
         })
+    }
+
+    addNode(appId,nodeInfo){
+
+        if (nodeInfo.id==null) nodeInfo.id = String(Math.floor(Math.random()*1000000))
+        if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
 
         let instance,controls;
-        graph.nodes.forEach(nodeInfo => {
-            if (nodes[nodeInfo.id] == null){
-                nodes[nodeInfo.id] = nodeInfo;
+        if (this.applets[appId].nodes[nodeInfo.id] == null){
+            this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
 
-                ({instance, controls} = this.instantiateNode(nodeInfo,this.session, activePorts[nodeInfo.id]))
-                
-                nodes[nodeInfo.id].instance = instance;
-                controlsToBind.options.push(...controls);
+            // Auto-Assign Default Port to Empty Set
+            if (nodeInfo.activePorts.size == 0){
+                nodeInfo.activePorts.add('default')
             }
-        })
+            ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
+            this.applets[appId].nodes[nodeInfo.id].instance = instance;
+            this.applets[appId].controls.options.push(...controls);
+        }
 
-        // Declare Applet Info
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls: controlsToBind}
+        if (this.editor) this.editor.addNode(this.applets[appId].nodes[nodeInfo.id])
     }
 
     getNode(id,name){
@@ -238,9 +248,7 @@ export class PluginManager{
     }
 
     // Input Must Be An Array
-    async runSafe(node, port='default',input=[{}]){
-
-        let stateLabel = this.getLabel(node,port)
+    runSafe(node, port='default',input=[{}]){
 
         // Shallow Copy State before Repackaging
         let inputCopy = []
@@ -261,35 +269,47 @@ export class PluginManager{
         // Only Continue the Chain with Updated Data
 
         if (inputCopy.length > 0){
+            
             let result
-            if (node[port] instanceof Function) result = await node[port](inputCopy)
-            else if (node.states[port] != null) result = await node['default'](inputCopy) 
+            if (node[port] instanceof Function) result = node[port](inputCopy)
+            else if (node.states[port] != null) result = node['default'](inputCopy) 
 
-            if (result && result.length > 0){
-                let allEqual = true
-
-                result.forEach((o,i) => {
-                    if (node.states[port].length > i){
-                        let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
-                        if (!thisEqual){
-                            node.states[port][i] = o
-                            allEqual = false
-                        }
-                    } else {
-                        node.states[port].push(o)
-                        allEqual = false
-                    }
+            // Handle Promises
+            if (!!result && typeof result.then === 'function'){
+                result.then((r) =>{
+                    this.checkToPass(node,port,r)
                 })
-                
-                if (!allEqual && node.stateUpdates){
-                    let updateObj = {}
-                    updateObj[stateLabel] = true
-                    node.stateUpdates.manager.setState(updateObj)
-                }
+            } else {
+                this.checkToPass(node,port,result)
             }
         }
 
         return node.states[port]
+    }
+
+    checkToPass(node,port,result){
+        if (result && result.length > 0){
+            let allEqual = true
+
+            result.forEach((o,i) => {
+                if (node.states[port].length > i){
+                    let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
+                    if (!thisEqual){
+                        node.states[port][i] = o
+                        allEqual = false
+                    }
+                } else {
+                    node.states[port].push(o)
+                    allEqual = false
+                }
+            })
+            
+            if (!allEqual && node.stateUpdates){
+                let updateObj = {}
+                updateObj[this.getLabel(node,port)] = true
+                node.stateUpdates.manager.setState(updateObj)
+            }
+        }
     }
 
 
@@ -479,6 +499,9 @@ export class PluginManager{
                             if (!('source' in input[0].meta)) input[0].meta.route = label
                             if (!('app' in input[0].meta)) input[0].meta.app = applet.name
                         }
+
+                        if (this.editor) this.editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+
                         return this.runSafe(target, targetPort, input)
                     }
                 }
@@ -677,7 +700,7 @@ export class PluginManager{
 // Create a Node Editor
 edit(applet, parentNode = document.body, onsuccess = () => { }){
     this.editor = new NodeEditor(this, applet, parentNode, onsuccess)
-    return this.editor.element
+    return this.editor
 }
 
 }

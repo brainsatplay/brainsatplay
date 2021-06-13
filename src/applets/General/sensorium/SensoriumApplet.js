@@ -122,6 +122,7 @@ export class SensoriumApplet {
 
         this.tutorialManager = null
 
+        this.chosenGeometry = 'plane'
 
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
@@ -315,6 +316,7 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}changeview' style="background: black; color: white; margin: 25px 10px;">Change View</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
                             <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
@@ -342,6 +344,10 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+
+            document.getElementById(props.id+'changeview').onclick = () => {
+                this.rotateGeometries();
+            }
 
             this.appletContainer = document.getElementById(props.id);
             this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
@@ -558,44 +564,43 @@ void main(){
 
     // Controls
     this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
-    this.controls.enablePan = false
+    this.controls.enablePan = true
     this.controls.enableDamping = true
-    this.controls.enabled = false;
+    this.controls.enabled = true;
     this.controls.minPolarAngle = 2*Math.PI/6; // radians
     this.controls.maxPolarAngle = 4*Math.PI/6; // radians
     this.controls.minDistance = this.baseCameraPos.z; // radians
-    this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+    this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+    const geometry = this.createGeometry()
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}; //Required for ShaderToy shaders
     
-    shaderKeys.forEach((k,i) => {
+    let k = shaderKeys[0]
+    // shaderKeys.forEach((k,i) => {
+        let material = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
+            vertexShader: this.shaders[k].vertexShader,
+            fragmentShader: this.shaders[k].fragmentShader,
+            uniforms: {...this.defaultUniforms}// Default Uniforms 
+        });
 
-        if (i === 0){
-            let material = new THREE.ShaderMaterial({
-                transparent: true,
-                side: THREE.DoubleSide,
-                vertexShader: this.shaders[k].vertexShader,
-                fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: {...this.defaultUniforms}// Default Uniforms 
-            });
-
-            let radius = 0;//10
-            let plane = new THREE.Mesh(planeGeometry, material)
-            plane.name = k
-            let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
-            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
-            plane.rotation.set(0,-angle - Math.PI/2,0)
-            this.three.planes.push(plane)
-            this.three.scene.add(plane)
-        }
-    });
+        let radius = 0;//10
+        let plane = new THREE.Mesh(geometry, material)
+        plane.name = k
+        let angle = (2 * Math.PI * 1) - Math.PI/2
+        // let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+        plane.rotation.set(0,-angle - Math.PI/2,0)
+        this.three.planes.push(plane)
+        this.three.scene.add(plane)
+    // });
 
         // Animate
         this.startTime = Date.now();
@@ -657,7 +662,6 @@ void main(){
 
         setTimeout(() => {
             this.three.renderer.domElement.style.opacity = '1'
-            // this.controls.enabled = true;
         }, 100)
         
         document.getElementById(this.props.id+'addeffect').click();
@@ -778,7 +782,7 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+            let newGeometry = this.createGeometry()
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
@@ -787,7 +791,6 @@ void main(){
             
             this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
-        
     }
 
     //settings structure
@@ -944,6 +947,54 @@ void main(){
         //add more feedback and sound settings
     }];
     */
+
+    createGeometry(type=this.chosenGeometry){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
+            return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+        } else if (type === 'halfsphere') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0.5, Math.PI-1).translate(0,0,-3);
+        }
+    }
+
+    rotateGeometries(){
+        if(this.chosenGeometry === 'plane') {
+            this.chosenGeometry = 'vrscreen';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'vrscreen') {
+            this.chosenGeometry = 'sphere';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'sphere') {
+            this.chosenGeometry = 'halfsphere';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'halfsphere') {
+            this.chosenGeometry = 'plane';
+            this.updateGeometries();
+        }
+    }
+
+    updateGeometries(type=this.chosenGeometry){
+        this.three.planes.forEach(mesh => {
+            mesh.geometry.dispose()
+            if (type === 'sphere'){
+                mesh.geometry = this.createGeometry('sphere')
+                mesh.rotation.set(0,Math.PI,0)
+            } else if (type === 'plane') {
+                mesh.geometry = this.createGeometry('plane')
+            } else if (type === 'halfsphere') {
+                mesh.geometry = this.createGeometry('halfsphere');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'vrscreen') {
+                mesh.geometry = this.createGeometry('vrscreen');
+                mesh.rotation.set(0,Math.PI,0)
+            }
+        })
+    }
+
+
     getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();
@@ -1370,7 +1421,7 @@ void main(){
         if(this.looping){
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedbackOption;
-                if(this.session.atlas.data.heg.length>0) {
+                if(this.session.atlas.data.heg.length>0 && this.session.atlas.settings.deviceConnected === true) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
@@ -1394,15 +1445,17 @@ void main(){
                         }
                     }
                         else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
-                        if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                        let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,hegscore),1), //
-                                window.audio.ctx.currentTime
-                            );
+                        if(this.session.atlas.data.heg[0].ratio.length > 0) {
+                            if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
+                                    Math.min(Math.max(0,hegscore),1), //
+                                    window.audio.ctx.currentTime
+                                );
+                            }
+                            this.modifiers.iHEG = hegscore; //starts at 0
                         }
-                        this.modifiers.iHEG = hegscore; //starts at 0
                     } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             if(!effectStruct.muted && window.audio && effectStruct.playing){

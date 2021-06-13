@@ -131,7 +131,7 @@ export class StateManager {
         }
 
         updateObj.stateUpdateTimeStamp = Date.now();
-        this.pushRecord.pushed.push(JSON.parse(JSON.stringify(updateObj)));
+        this.pushRecord.pushed.push(JSON.parse(JSON.stringifyWithCircularRefs(updateObj)));
         
         if(appendArrs) {
             for(const prop in updateObj) { //3 object-deep array checks to buffer values instead of overwriting
@@ -326,7 +326,6 @@ if(JSON.stringifyFast === undefined) {
             }
         }
 
-        
         function checkValues(key, value) {
             let val;
             if (value != null) {
@@ -340,7 +339,7 @@ if(JSON.stringifyFast === undefined) {
                        // refs.set(val, path.join('.'));
                     }  
                     else if (c.includes("Set")) {
-                        val = Array.from(value);
+                        val = Array.from(value)
                     }  
                     else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
                         val = "instanceof_"+c;
@@ -348,7 +347,10 @@ if(JSON.stringifyFast === undefined) {
                     else if (c === 'Object') {
                         let obj = {};
                         for(const prop in value) {
-                            if(Array.isArray(value[prop])) { 
+                            if (value[prop] == null){
+                                obj[prop] = value[prop]; 
+                            }
+                            else if(Array.isArray(value[prop])) { 
                                 if(value[prop].length>20)
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
@@ -362,12 +364,16 @@ if(JSON.stringifyFast === undefined) {
                                         else obj[prop][p] = value[prop][p];
                                     }
                                     else { 
-                                        let con = value[prop][p].constructor.name;
-                                        if (con.includes("Set")) {
-                                            obj[prop][p] = Array.from(value[prop][p]);
-                                        } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
-                                            obj[prop][p] = "instanceof_"+con;
-                                        }  else {
+                                        if (value[prop][p] != null){
+                                            let con = value[prop][p].constructor.name;
+                                            if (con.includes("Set")) {
+                                                obj[prop][p] = Array.from(value[prop][p])
+                                            } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
+                                                obj[prop][p] = "instanceof_"+con; //3-deep nested objects are cut off
+                                            }  else {
+                                                obj[prop][p] = value[prop][p]; 
+                                            }
+                                        } else {
                                             obj[prop][p] = value[prop][p]; 
                                         }
                                     }
@@ -376,8 +382,8 @@ if(JSON.stringifyFast === undefined) {
                             else { 
                                 let con = value[prop].constructor.name;
                                 if (con.includes("Set")) {
-                                    obj[prop] = Array.from(value[prop]);
-                                } else if(con !== "Object" && con !== "Number" && con !== "String" && con !== "Boolean") {
+                                    obj[prop] = Array.from(value[prop])
+                                } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
                                     obj[prop] = "instanceof_"+con;
                                 } else {
                                     obj[prop] = value[prop]; 
@@ -401,11 +407,78 @@ if(JSON.stringifyFast === undefined) {
 
         return function stringifyFast(obj, space) {
             try {
-                parents.push(obj);
+                //parents.push(obj);
                 return JSON.stringify(obj, checkValues, space);
+            } catch(er) {
+                console.error(obj, er);
             } finally {
-                clear();
-            }
+                //clear();
+            } 
         }
     })();
 }
+
+
+
+if(JSON.stringifyWithCircularRefs === undefined) {
+    //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
+    JSON.stringifyWithCircularRefs = (function() {
+        const refs = new Map();
+        const parents = [];
+        const path = ["this"];
+
+        function clear() {
+        refs.clear();
+        parents.length = 0;
+        path.length = 1;
+        }
+
+        function updateParents(key, value) {
+        var idx = parents.length - 1;
+        var prev = parents[idx];
+        if (prev[key] === value || idx === 0) {
+            path.push(key);
+            parents.push(value);
+        } else {
+            while (idx-- >= 0) {
+            prev = parents[idx];
+            if (prev[key] === value) {
+                idx += 2;
+                parents.length = idx;
+                path.length = idx;
+                --idx;
+                parents[idx] = value;
+                path[idx] = key;
+                break;
+            }
+            }
+        }
+        }
+
+        function checkCircular(key, value) {
+        if (value != null) {
+            if (typeof value === "object") {
+            if (key) { updateParents(key, value); }
+
+            let other = refs.get(value);
+            if (other) {
+                return '[Circular Reference]' + other;
+            } else {
+                refs.set(value, path.join('.'));
+            }
+            }
+        }
+        return value;
+        }
+
+        return function stringifyWithCircularRefs(obj, space) {
+        try {
+            parents.push(obj);
+            return JSON.stringify(obj, checkCircular, space);
+        } finally {
+            clear();
+        }
+        }
+    })();
+}
+

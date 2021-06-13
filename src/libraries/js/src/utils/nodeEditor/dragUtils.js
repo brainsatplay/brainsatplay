@@ -1,4 +1,4 @@
-export const dragElement = (container, dragItem) => {
+export const dragElement = (container, dragItem, onMove) => {
     var active = false;
     var currentX;
     var currentY;
@@ -16,6 +16,7 @@ export const dragElement = (container, dragItem) => {
     container.addEventListener("mousemove", drag, false);
 
     function dragStart(e) {
+
       if (e.type === "touchstart") {
         initialX = e.touches[0].clientX - xOffset;
         initialY = e.touches[0].clientY - yOffset;
@@ -24,7 +25,8 @@ export const dragElement = (container, dragItem) => {
         initialY = e.clientY - yOffset;
       }
 
-      if (e.target === dragItem) {
+      // Account For Nested Control Objects
+      if (e.target === dragItem || e.target.parentNode === dragItem) {
         active = true;
       }
     }
@@ -55,6 +57,7 @@ export const dragElement = (container, dragItem) => {
         yOffset = currentY;
 
           setTranslate(xOffset, yOffset, dragItem);
+          onMove()
       }
     }
 

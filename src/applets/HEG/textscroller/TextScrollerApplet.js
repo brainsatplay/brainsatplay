@@ -149,7 +149,7 @@ export class TextScrollerApplet {
     }
 
     updateLoop = () => {
-        if(this.bci.atlas.settings.heg) {
+        if(this.bci.atlas.settings.heg && this.bci.atlas.settings.deviceConnected) {
             let ct = this.bci.atlas.data.heg[0].count;
             let avg = 40; if(ct < avg) { avg = ct; }
             let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
