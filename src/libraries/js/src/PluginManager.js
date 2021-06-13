@@ -468,93 +468,96 @@ export class PluginManager{
 
         // Start Graph
         applet.edges.forEach((e,i) => {
-
-                let splitSource = e.source.split(':')
-                let sourceName = splitSource[0]
-                let sourcePort = splitSource[1] ?? 'default'
-                let sourceInfo = applet.nodes[sourceName]
-                let source = sourceInfo.instance
-                let splitTarget = e.target.split(':')
-                let targetName = splitTarget[0]
-                let targetPort = splitTarget[1] ?? 'default'
-                let target = applet.nodes[targetName].instance
-
-                let label = this.getLabel(source,sourcePort)
-                let targetLabel = this.getLabel(target, targetPort)
-                applet.classInstances[sourceInfo.class.id][source.label].push(label)
-
-                // Pass Data from Source to Target
-                let defaultCallback = (trigger) => {
-
-                    if (trigger){
-
-                        // if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
-                        let input = source.states[sourcePort]
-                        if (targetLabel.includes('brainstorm_')){
-
-                            // Update Session State
-                            this.session.state.data[label] = input[0]
-
-                            // Add Default Metadata
-                            if (!('source' in input[0].meta)) input[0].meta.route = label
-                            if (!('app' in input[0].meta)) input[0].meta.app = applet.name
-                        }
-
-                        if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-
-                        return this.runSafe(target, targetPort, input)
-                    }
-                }
-                
-
-                // Initialize port with Default Output
-                this.state.data[label] = source.states[sourcePort]
-
-                // Log Output in Global State (for Brainstorm)
-                if (applet.nodes[targetName].instance instanceof plugins.utilities.Brainstorm) {
-                    // if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add stream function
-                    uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [defaultCallback])) // Add data to listen to
-
-                    // Add Default State to the Global State
-                    this.session.state.data[label] = this.state.data[label][0]
-
-                    // Add to Stream List
-                    applet.streams.add(label) // Keep track of streams to pass to the Brainstorm
-                } 
-
-                // // And  Listen for Local Changes
-                if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
-
-                if (sourceInfo.loop){
-
-                    // Check if Already Streaming
-                    let found = this.findStreamFunction(label)
-
-                    // If Already Streaming, Subscribe to Stream
-                    if (found != null){
-                        if (this.session.state[label]) {
-                            let subId = this.session.state.subscribeSequential(label, defaultCallback)
-                            applet.subscriptions.local[label].push({id: subId, target: e.target})
-                         } else {
-                            let subId = this.state.subscribeSequential(label, defaultCallback)
-                            applet.subscriptions.local[label].push({id: subId, target: e.target})
-                         }
-                    } 
-
-                    // Otherwise Create Local Stream and Subscribe Locally
-                    else {
-                        this.session.addStreamFunc(label, source[sourcePort], this.state, false)
-                            let subId = this.state.subscribeSequential(label, defaultCallback)
-                            applet.subscriptions.local[label].push({id: subId, target: e.target})
-                    }
-
-                } else {
-                    let subId = this.state.subscribeSequential(label, defaultCallback)
-                    applet.subscriptions.local[label].push({id: subId, target: e.target})
-                }
+            this.addEdge(appId, e)
         })
 
         return {uiParams: uiParams, streams:this.applets[appId].streams, controls: this.applets[appId].controls}
+    }
+
+    addEdge = (appId, e) => {
+        let applet = this.applets[appId]
+        let splitSource = e.source.split(':')
+        let sourceName = splitSource[0]
+        let sourcePort = splitSource[1] ?? 'default'
+        let sourceInfo = applet.nodes[sourceName]
+        let source = sourceInfo.instance
+        let splitTarget = e.target.split(':')
+        let targetName = splitTarget[0]
+        let targetPort = splitTarget[1] ?? 'default'
+        let target = applet.nodes[targetName].instance
+        let label = this.getLabel(source,sourcePort)
+        let targetLabel = this.getLabel(target, targetPort)
+        applet.classInstances[sourceInfo.class.id][source.label].push(label)
+
+        // Pass Data from Source to Target
+        let defaultCallback = (trigger) => {
+
+            if (trigger){
+
+                // if (label.includes('blink')) console.log(label, source.states[sourcePort][0].data)
+                let input = source.states[sourcePort]
+                if (targetLabel.includes('brainstorm_')){
+
+                    // Update Session State
+                    this.session.state.data[label] = input[0]
+
+                    // Add Default Metadata
+                    if (!('source' in input[0].meta)) input[0].meta.route = label
+                    if (!('app' in input[0].meta)) input[0].meta.app = applet.name
+                }
+
+                if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+
+                return this.runSafe(target, targetPort, input)
+            }
+        }
+        
+
+        // Initialize port with Default Output
+        this.state.data[label] = source.states[sourcePort]
+
+        // Log Output in Global State (for Brainstorm)
+        if (applet.nodes[targetName].instance instanceof plugins.utilities.Brainstorm) {
+            // if (sourceInfo.loop) uiParams.setupHTML.push(this._addStream(sourceInfo, appId, sourcePort, [brainstormCallback])) // Add stream function
+            uiParams.setupHTML.push(this._addData(sourceInfo, appId, sourcePort, [defaultCallback])) // Add data to listen to
+
+            // Add Default State to the Global State
+            this.session.state.data[label] = this.state.data[label][0]
+
+            // Add to Stream List
+            applet.streams.add(label) // Keep track of streams to pass to the Brainstorm
+        } 
+
+        // // And  Listen for Local Changes
+        if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
+
+        if (sourceInfo.loop){
+
+            // Check if Already Streaming
+            let found = this.findStreamFunction(label)
+
+            // If Already Streaming, Subscribe to Stream
+            if (found != null){
+                if (this.session.state[label]) {
+                    let subId = this.session.state.subscribeSequential(label, defaultCallback)
+                    applet.subscriptions.local[label].push({id: subId, target: e.target})
+                 } else {
+                    let subId = this.state.subscribeSequential(label, defaultCallback)
+                    applet.subscriptions.local[label].push({id: subId, target: e.target})
+                 }
+            } 
+
+            // Otherwise Create Local Stream and Subscribe Locally
+            else {
+                this.session.addStreamFunc(label, source[sourcePort], this.state, false)
+                    let subId = this.state.subscribeSequential(label, defaultCallback)
+                    applet.subscriptions.local[label].push({id: subId, target: e.target})
+            }
+
+        } else {
+            let subId = this.state.subscribeSequential(label, defaultCallback)
+            applet.subscriptions.local[label].push({id: subId, target: e.target})
+        }
     }
 
     findStreamFunction(prop) {

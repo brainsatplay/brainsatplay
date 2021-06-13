@@ -28,6 +28,7 @@ export class Graph{
     }
 
     createNode(nodeInfo) {
-        return new Node(nodeInfo,this)
+        let node = new Node(nodeInfo,this)
+        return node
     }
 }
