@@ -122,14 +122,7 @@ export class SensoriumApplet {
 
         this.tutorialManager = null
 
-        this.chosenGeometry = 'plane'
-
-        window.onkeypress = (e) => {
-            if (e.code === 'Space'){
-                this.updateGeometries('sphere')
-            }
-        }
-
+        this.currentView = 'plane'
 
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
@@ -323,6 +316,7 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}changeview' style="background: black; color: white; margin: 25px 10px;">Change View</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
                             <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
@@ -350,6 +344,10 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+
+            document.getElementById(props.id+'changeview').onclick = () => {
+                this.swapCurrentView();
+            }
 
             this.appletContainer = document.getElementById(props.id);
             this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
@@ -568,14 +566,14 @@ void main(){
     this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
     this.controls.enablePan = true
     this.controls.enableDamping = true
-    this.controls.enabled = false;
+    this.controls.enabled = true;
     this.controls.minPolarAngle = 2*Math.PI/6; // radians
     this.controls.maxPolarAngle = 4*Math.PI/6; // radians
     this.controls.minDistance = this.baseCameraPos.z; // radians
     this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const geometry = this.createGeometry()
+    const geometry = this.createViewGeometry()
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
@@ -784,7 +782,7 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = this.createGeometry()
+            let newGeometry = this.createViewGeometry()
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
@@ -861,6 +859,10 @@ void main(){
                 }
                 if(cmd.modifiers) {
                     Object.assign(this.modifiers,cmd.modifiers);
+                }
+                if(cmd.view) {
+                    this.currentView = cmd.view;
+                    this.updateCurrentView();
                 }
                 if(cmd.feedback) {
                     Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
@@ -950,24 +952,56 @@ void main(){
     }];
     */
 
-    createGeometry(){
-        if (this.chosenGeometry === 'sphere'){
-            this.controls.enabled = true;
-            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50);
-        } else {
+    createViewGeometry(type=this.currentView){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
             return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+        } else if (type === 'circle') {      
+            return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
+        } else if (type === 'halfsphere') {      
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
         }
     }
 
-    updateGeometries(type){
-        this.chosenGeometry = type
+    swapCurrentView(){
+        if(this.currentView === 'plane') {
+            this.currentView = 'vrscreen';
+            this.updateCurrentView();
+        } else if (this.currentView === 'vrscreen') {
+            this.currentView = 'sphere';
+            this.updateCurrentView();
+        } else if (this.currentView === 'sphere') {
+            this.currentView = 'halfsphere';
+            this.updateCurrentView();
+        } else if (this.currentView === 'halfsphere') {
+            this.currentView = 'circle';
+            this.updateCurrentView();
+        } else if (this.currentView === 'circle') {
+            this.currentView = 'plane';
+            this.updateCurrentView();
+        }
+    }
+
+    updateCurrentView(type=this.currentView){
         this.three.planes.forEach(mesh => {
             mesh.geometry.dispose()
-            if (this.chosenGeometry === 'sphere'){
-                mesh.geometry = this.createGeometry()
+            if (type === 'sphere'){
+                mesh.geometry = this.createViewGeometry('sphere')
                 mesh.rotation.set(0,Math.PI,0)
-            } else {
-                mesh.geometry = this.createGeometry()
+            } else if (type === 'plane') {
+                mesh.geometry = this.createViewGeometry('plane')
+            } else if (type === 'circle') {
+                mesh.geometry = this.createViewGeometry('circle');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'halfsphere') {
+                mesh.geometry = this.createViewGeometry('halfsphere');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'vrscreen') {
+                mesh.geometry = this.createViewGeometry('vrscreen');
+                mesh.rotation.set(0,Math.PI,0)
             }
         })
     }
@@ -1006,12 +1040,14 @@ void main(){
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
+        
+        settings[0].view = this.currentView;
         if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
-        console.log(settings)
+        
 
         // Auto-Join Configuration Settings
         settings[0].title = false
@@ -1022,7 +1058,7 @@ void main(){
             settings[0].session = this.roomId;
             settings[0].spectating = false;
         }
-
+        console.log("Current settings: ",settings);
         return settings;
     }
 
@@ -1632,7 +1668,11 @@ void main(){
             return  (Date.now() - this.startTime)/1000; // Seconds
         }
         else if (u === 'iResolution'){
-            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+            if(this.currentView === 'halfsphere' || this.currentView === 'circle')
+                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight); //fixes aspect ratio on halfsphere and circle to be square
+            else if (this.currentView !== 'plane') 
+                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight); //fix for messed up aspect ratio on vrscreen and sphere
+            else return new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //leave plane aspect alone
         }
     }
 
@@ -1660,8 +1700,6 @@ void main(){
                 material.uniforms[name].value = value;
             }
         }
-
-
         return material;
     }
     

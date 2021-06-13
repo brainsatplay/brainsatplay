@@ -317,6 +317,11 @@ export class LiveEditor {
                     <tr><td>uniform float iAlpha1Alpha2</td><td>0-10</td><td>Alpha1/Alpha2 Bandpower Ratio</td></tr>
                     <tr><td>uniform float iAlphaBeta</td><td>0-10</td><td>Alpha/Beta Bandpower Ratio</td></tr>
                     <tr><td>uniform float iThetaBeta</td><td>0-10</td><td>Theta/Beta Bandpower Ratio</td></tr>
+                    <tr><td colSpan=3>If pasting from ShaderToy and it only has the mainImage function but no main(), paste this at the bottom of the shader: <br>
+                      void main() {<br>
+                        mainImage(gl_FragColor, vUv*iResolution);<br>
+                      }
+                    </td></tr>
                 </table>
             </div>
             `)
