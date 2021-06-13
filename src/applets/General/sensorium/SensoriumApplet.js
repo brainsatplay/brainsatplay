@@ -1700,8 +1700,6 @@ void main(){
                 material.uniforms[name].value = value;
             }
         }
-
-
         return material;
     }
     
