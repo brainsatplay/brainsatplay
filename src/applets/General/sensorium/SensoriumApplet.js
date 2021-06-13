@@ -953,8 +953,12 @@ void main(){
             return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50).rotateY(-Math.PI*0.5);
         } else if (type === 'plane') {
             return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
-        } else if (type === 'halfsphere') {
-            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0, Math.PI).rotateY(0.5).translate(0,0,-3);
+        } else if (type === 'circle') {      
+            return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
+        } 
+        else if (type === 'halfsphere') {      
+            //return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
         } else if (type === 'vrscreen') {
             return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
         }
@@ -971,6 +975,9 @@ void main(){
         //     this.chosenGeometry = 'halfsphere';
         //     this.updateGeometries();
         // } else if (this.chosenGeometry === 'halfsphere') {
+            this.chosenGeometry = 'circle';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'circle') {
             this.chosenGeometry = 'plane';
             this.updateGeometries();
         }
@@ -984,6 +991,9 @@ void main(){
                 mesh.rotation.set(0,Math.PI,0)
             } else if (type === 'plane') {
                 mesh.geometry = this.createGeometry('plane')
+            } else if (type === 'circle') {
+                mesh.geometry = this.createGeometry('circle');
+                mesh.rotation.set(0,Math.PI,0)   
             } else if (type === 'halfsphere') {
                 mesh.geometry = this.createGeometry('halfsphere');
                 mesh.rotation.set(0,Math.PI,0)   
