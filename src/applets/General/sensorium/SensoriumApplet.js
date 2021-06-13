@@ -955,9 +955,8 @@ void main(){
             return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
         } else if (type === 'circle') {      
             return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
-        } 
+        }
         else if (type === 'halfsphere') {      
-            //return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
             return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
         } else if (type === 'vrscreen') {
             return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
@@ -972,9 +971,9 @@ void main(){
             this.chosenGeometry = 'sphere';
             this.updateGeometries();
         } else if (this.chosenGeometry === 'sphere') {
-        //     this.chosenGeometry = 'halfsphere';
-        //     this.updateGeometries();
-        // } else if (this.chosenGeometry === 'halfsphere') {
+            this.chosenGeometry = 'halfsphere';
+            this.updateGeometries();
+        } else if (this.chosenGeometry === 'halfsphere') {
             this.chosenGeometry = 'circle';
             this.updateGeometries();
         } else if (this.chosenGeometry === 'circle') {
@@ -1664,7 +1663,10 @@ void main(){
             return  (Date.now() - this.startTime)/1000; // Seconds
         }
         else if (u === 'iResolution'){
-            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+            if(this.chosenGeometry === 'halfsphere' || this.chosenGeometry === 'circle')
+                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight);
+            else 
+                return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
         }
     }
 
