@@ -1671,7 +1671,7 @@ void main(){
             if(this.currentView === 'halfsphere' || this.currentView === 'circle')
                 return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight);
             else 
-                return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight);
         }
     }
 
