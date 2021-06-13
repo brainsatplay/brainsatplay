@@ -11,6 +11,7 @@ export class NodeEditor{
         this.element = null
         this.graph=null
         this.shown = false
+        this.scale = 1
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -29,6 +30,18 @@ export class NodeEditor{
             let setup = () => {
                 let container = document.getElementById(`${this.props.id}nodeEditorMask`)
                 let viewer = document.getElementById(`${this.props.id}nodeViewer`)
+
+                viewer.addEventListener('wheel', (e)=>{
+                    if (this.scale > 0.1) this.scale += 0.01*e.deltaY
+                    else this.scale = 0.1
+                    viewer.style['-moz-transform'] = `scale(${this.scale}, ${this.scale})`; /* Moz-browsers */
+                    viewer.style['zoom'] = this.scale; /* Other non-webkit browsers */
+                    viewer.style['zoom'] = `${this.scale*100}%` /* Webkit browsers */
+
+                    for (let key in this.graph.nodes){
+                        this.graph.nodes[key].updateAllEdges()
+                    }
+                })
                 
                 this.createPluginSearch(container)
                 // Populate Used Nodes and Edges
