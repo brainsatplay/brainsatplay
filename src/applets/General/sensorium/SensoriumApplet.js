@@ -122,6 +122,14 @@ export class SensoriumApplet {
 
         this.tutorialManager = null
 
+        this.chosenGeometry = 'plane'
+
+        window.onkeypress = (e) => {
+            if (e.code === 'Space'){
+                this.updateGeometries('sphere')
+            }
+        }
+
 
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
@@ -558,44 +566,43 @@ void main(){
 
     // Controls
     this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
-    this.controls.enablePan = false
+    this.controls.enablePan = true
     this.controls.enableDamping = true
     this.controls.enabled = false;
     this.controls.minPolarAngle = 2*Math.PI/6; // radians
     this.controls.maxPolarAngle = 4*Math.PI/6; // radians
     this.controls.minDistance = this.baseCameraPos.z; // radians
-    this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+    this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+    const geometry = this.createGeometry()
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}; //Required for ShaderToy shaders
     
-    shaderKeys.forEach((k,i) => {
+    let k = shaderKeys[0]
+    // shaderKeys.forEach((k,i) => {
+        let material = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
+            vertexShader: this.shaders[k].vertexShader,
+            fragmentShader: this.shaders[k].fragmentShader,
+            uniforms: {...this.defaultUniforms}// Default Uniforms 
+        });
 
-        if (i === 0){
-            let material = new THREE.ShaderMaterial({
-                transparent: true,
-                side: THREE.DoubleSide,
-                vertexShader: this.shaders[k].vertexShader,
-                fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: {...this.defaultUniforms}// Default Uniforms 
-            });
-
-            let radius = 0;//10
-            let plane = new THREE.Mesh(planeGeometry, material)
-            plane.name = k
-            let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
-            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
-            plane.rotation.set(0,-angle - Math.PI/2,0)
-            this.three.planes.push(plane)
-            this.three.scene.add(plane)
-        }
-    });
+        let radius = 0;//10
+        let plane = new THREE.Mesh(geometry, material)
+        plane.name = k
+        let angle = (2 * Math.PI * 1) - Math.PI/2
+        // let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+        plane.rotation.set(0,-angle - Math.PI/2,0)
+        this.three.planes.push(plane)
+        this.three.scene.add(plane)
+    // });
 
         // Animate
         this.startTime = Date.now();
@@ -657,7 +664,6 @@ void main(){
 
         setTimeout(() => {
             this.three.renderer.domElement.style.opacity = '1'
-            // this.controls.enabled = true;
         }, 100)
         
         document.getElementById(this.props.id+'addeffect').click();
@@ -778,7 +784,7 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+            let newGeometry = this.createGeometry()
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
@@ -787,7 +793,6 @@ void main(){
             
             this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
-        
     }
 
     //settings structure
@@ -944,6 +949,30 @@ void main(){
         //add more feedback and sound settings
     }];
     */
+
+    createGeometry(){
+        if (this.chosenGeometry === 'sphere'){
+            this.controls.enabled = true;
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50);
+        } else {
+            return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+        }
+    }
+
+    updateGeometries(type){
+        this.chosenGeometry = type
+        this.three.planes.forEach(mesh => {
+            mesh.geometry.dispose()
+            if (this.chosenGeometry === 'sphere'){
+                mesh.geometry = this.createGeometry()
+                mesh.rotation.set(0,Math.PI,0)
+            } else {
+                mesh.geometry = this.createGeometry()
+            }
+        })
+    }
+
+
     getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();

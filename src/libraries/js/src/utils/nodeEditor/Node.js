@@ -19,26 +19,35 @@ export class Node{
         let type = (o.structure.source.split(':')[0].includes(this.nodeInfo.id)) ? 'source' : 'target'
         let className = (type === 'source') ? 'p1' : 'p2'
 
-        // Get Port Name
-        let splitEdge = o.structure[type].split(':') 
-        if (splitEdge.length < 2) splitEdge.push('default')
-
         // Grab Elements
         let portElement = o[`${type}Node`]
-        let svg = o.svg
+        portElement.classList.add('active') // Label Active Node
 
         let portDim = portElement.getBoundingClientRect()
-        let parentDim = this.parentNode.getBoundingClientRect()
         let svgP = o.svgPoint(o.svg, portDim.left + portDim.width/2, portDim.top + portDim.height/2)
-        // // Calculate New Position
-        let cx = svg.viewBox.baseVal.width *(((portDim.left - parentDim.left)) / parentDim.width)
-        let cy = svg.viewBox.baseVal.height *(((portDim.top - parentDim.top)) / parentDim.height)
 
+        // Update Edge Anchor
         o.updateElement(
             o.node[className],
             {
                 cx: svgP.x,
                 cy: svgP.y
+            }
+        );
+
+        // Grab Other Side of Edge
+
+        let otherType = (type == 'source') ? 'target': 'source'
+        let otherElement = o[`${otherType}Node`]
+        let otherDim = otherElement.getBoundingClientRect()
+        let svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width/2, otherDim.top + otherDim.height/2)
+
+        // Update Control Point
+        o.updateElement(
+            o.node['c1'],
+            {
+                cx: Math.max(svgP.x,svgO.x),
+                cy: Math.max(svgP.y,svgO.y)
             }
         );
       
@@ -69,10 +78,9 @@ export class Node{
             let html = ``
 
             for (let port in node.ports){
-                let active = (node.ports[port].active) ? 'active' : ''
 
                 html += `
-                <div class="node-port port-${port} ${active}">
+                <div class="node-port port-${port}">
                     <div class="node-tooltip">
                         <p>${port}</p>
                     </div>

@@ -54,7 +54,8 @@ export class DataManager{
     csv = (userData) => {
         let trigger = userData[0].data
         if (trigger) {
-            this.session.dataManager.writeToCSV()
+            // this.session.dataManager.writeToCSV()
+            this.session.dataManager.saveEEGdata()
         }
     }
 
