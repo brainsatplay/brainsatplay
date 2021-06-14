@@ -161,6 +161,9 @@ export class ObjectListener {
 
     remove(key=null){
         if(key === null) {
+            this.listeners.forEach((listener) => {
+                listener.stop();
+            });
             this.listeners.splice(0,this.listeners.length);
         }
         else {
@@ -326,7 +329,7 @@ export class ObjectListenerInstance {
     start() {
         this.running = true;
         if (typeof window === 'undefined') {
-            setTimeout(()=>{this.check();}, 16)
+            setTimeout(()=>{this.check();}, 16);
         } else {
             this.checker = requestAnimationFrame(this.check);
         }

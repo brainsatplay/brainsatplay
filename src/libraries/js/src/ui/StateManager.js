@@ -265,7 +265,8 @@ export class StateManager {
 
     //Remove any extra object listeners for a key. Entering "state" will break the state manager's primary response
     clearAllKeyResponses(key=null) {
-        if(this.listener.hasKey(key)) this.listener.remove(key);
+        if(key === null) this.listener.remove(null);
+        else if(this.listener.hasKey(key)) this.listener.remove(key);
     }
 
     //Get all of the onchange functions added via subscribe/addSecondaryKeyResponse

@@ -38,10 +38,12 @@ export class DOMFragment {
      * @param {callback} onRender Callback when element is rendered.
      * @param {callback} onchange Callback when element is changed.
      * @param {int} propUpdateInterval How often to update properties.
+     * @param {callback} ondelete Called just before the node is deleted (e.g. to clean up animations)
      */
-    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER") {
+    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER", ondelete=(props)=>{}) {
         this.onRender = onRender;
         this.onchange = onchange;
+        this.ondelete = ondelete;
         
         this.parentNode = parentNode;
         if(typeof parentNode === "string") {
@@ -98,9 +100,14 @@ export class DOMFragment {
         this.renderNode();
     }
 
+    //called after a change in props are detected if interval is not set to "NEVER"
     onchange = (props=this.renderSettings.props) => {}
 
+    //called after the html is rendered
     onRender = (props=this.renderSettings.props) => {}
+
+    //called BEFORE the node is removed
+    ondelete = (props=this.renderSettings.props) => {}
 
     //appendId is the element Id you want to append this fragment to
     appendFragment(HTMLtoAppend, parentNode) {
@@ -113,6 +120,7 @@ export class DOMFragment {
   
     //delete selected fragment. Will delete the most recent fragment if Ids are shared.
     deleteFragment(parentNode,nodeId) {
+        this.ondelete(); //called BEFORE the node is removed
         var node = document.getElementById(nodeId);
         parentNode.removeChild(node);
     }
@@ -120,6 +128,7 @@ export class DOMFragment {
     //Remove Element Parent By Element Id (for those pesky anonymous child fragment containers)
     removeParent(elementId) {
         // Removes an element from the document
+        this.ondelete();
         var element = document.getElementById(elementId);
         element.parentNode.parentNode.removeChild(element.parentNode);
     }
@@ -142,11 +151,13 @@ export class DOMFragment {
 
     deleteNode(node=this.node) {
         if(typeof node === "string"){
+            this.ondelete();
             thisNode = document.getElementById(node);
             thisNode.parentNode.removeChild(thisNode);
             this.node = null;
         }
         else if(typeof node === "object"){
+            this.ondelete();
             node.parentNode.removeChild(node);
             this.node = null;
         }
