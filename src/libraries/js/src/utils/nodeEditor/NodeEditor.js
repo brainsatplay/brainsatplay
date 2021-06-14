@@ -49,6 +49,7 @@ export class NodeEditor{
 
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, viewer)
+                this.addEdgeReactivity()
             }
     
             this.element = new DOMFragment(
@@ -64,41 +65,36 @@ export class NodeEditor{
 
     }
 
+    _onMouseOverEdge = (e) => {
+        e.node['curve'].style.opacity = 0.3
+    }
+
+    _onMouseOutEdge = (e) => {
+        e.node['curve'].style.opacity = 1
+    }
+    _onClickEdge = (e) => {
+        this.removeEdge(e)
+    }
+
+    addEdgeReactivity = () => {
+        for (let key in this.graph.edges) {
+            let e = this.graph.edges[key]
+            e.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge(e)})
+            e.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge(e)})
+            e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
+        }
+    }
+
     toggleDisplay(){
         // console.log('toggling')
         if (this.element.node.style.opacity == 0){
             this.element.node.style.opacity = 1
             this.element.node.style.pointerEvents = 'auto'
             this.shown = true
-            this.activate()
         } else {
             this.element.node.style.opacity = 0
             this.element.node.style.pointerEvents = 'none'
             this.shown = false
-            this.deactivate()
-        }
-    }
-
-    deactivate(){
-
-    }
-
-    activate() {
-        for (let key in this.graph.nodes) {
-            let n = this.graph.nodes[key]
-            n.edges.forEach(e => {
-                e.node['curve'].onmouseover = () => {
-                    e.node['curve'].style.opacity = 0.3
-                }
-                
-                e.node['curve'].onmouseout = () => {
-                    e.node['curve'].style.opacity = 1
-                }
-            
-                e.node['curve'].onclick = () => {
-                    this.removeEdge(e)
-                }
-            })
         }
     }
 
@@ -139,8 +135,12 @@ export class NodeEditor{
     animateEdge(source,target){
         let instance = this.graph.nodes[source.label]
         instance.edges.forEach(e=>{
-            if(e.structure.source.split(':')[0] ===source.label){
-                if (e.structure.target.split(':')[0] === target.label){
+            let splitSource = e.structure.source.split(':')
+            if (splitSource.length < 2 ) splitSource.push('default')
+            if(splitSource[1] === source.port){
+                let splitTarget = e.structure.target.split(':')
+                if (splitTarget.length < 2 ) splitTarget.push('default')
+                if (splitTarget[0] === target.label && splitTarget[1] == target.port){
                     e.node.curve.classList.add('updated')
                     setTimeout(()=>{e.node.curve.classList.remove('updated')}, 500)
                 }
@@ -250,5 +250,9 @@ export class NodeEditor{
                 this.graph.nodes[key].updateAllEdges()
             }
         }
+    }
+
+    deinit(){
+        this.element.node.remove()
     }
 }

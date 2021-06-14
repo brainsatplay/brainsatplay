@@ -570,6 +570,9 @@ export class PluginManager{
             this.applets[appId].nodes[key].instance.deinit()
         }
 
+        // Remove Editor
+        if (this.applets[appId].editor) this.applets[appId].editor.deinit()
+
         delete this.applets[appId]
     }
 
@@ -647,7 +650,7 @@ export class PluginManager{
                 applet.subscriptions.session[id].push({id: subId1, target: null})
 
                 // Subscribe to Changes in Session Data
-                let subId2 = this.session.state.subscribe(applet.sessionId, (sessionInfo) => {
+                let subId2 = this.session.state.subscribeSequential(applet.sessionId, (sessionInfo) => {
                     let data = [{data: true, meta: {source: id, session: applet.sessionId}}] // Trigger Brainstorm Update
                     _brainstormCallback(data)
                 })

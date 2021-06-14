@@ -662,14 +662,17 @@ export class Session {
 			this.state.data[id + "_flag"] = true;
 			if(sessionId) {
 				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:[{username:this.info.auth.username}]};
-				let found = this.state.data[sessionId].userData.find((o)=>{
-					if(o.username === this.info.auth.username) {
-						o[id] = newData; 
-						return true;
-					}
-				});
-				if(!found) this.state.data[sessionId].userData.push({username:this.info.auth.username, [id]:newData});
-
+				
+				console.log(this.state.data[sessionId])
+				if (this.state.data[sessionId].userData){
+					let found = this.state.data[sessionId].userData.find((o)=>{
+						if(o.username === this.info.auth.username) {
+							o[id] = newData; 
+							return true;
+						}
+					});
+					if(!found) this.state.data[sessionId].userData.push({username:this.info.auth.username, [id]:newData});
+				}
 			}
 		});
 
@@ -1583,7 +1586,11 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 
+		console.log(applet)
 		// Override App Settings with Configuration Settings
+		if (applet.info.intro == null){
+			onsuccess()
+		} else {
 		if (applet.info.intro.constructor != Object) applet.info.intro = {}
 		if (applet.info.intro != false) {
 			if (applet.info.intro.title == null) applet.info.intro.title = true
@@ -1886,6 +1893,7 @@ else {
 				}
 			}, loadTime)
 		}
+	}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {

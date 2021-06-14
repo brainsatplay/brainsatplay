@@ -542,8 +542,7 @@ select {
     position: absolute;
 }
 
-.brainsatplay-display-node{
-    min-width: 100px;
+.brainsatplay-default-node-div > .brainsatplay-display-node{
     position: absolute;
     background: rgb(155, 155, 155);
     cursor: move;
@@ -551,9 +550,9 @@ select {
     flex-wrap:wrap;
     flex-direction: column;
     justify-content: space-between;
-    margin: 10px;
-    padding: 10px;
     z-index: initial;
+    padding: 12px;
+    box-sizing: content-box;
 }
 
 .brainsatplay-display-node > .node-text {
@@ -564,6 +563,7 @@ select {
     font-size: 75%;
     text-align:left;
     width:100%;
+    user-select: none;
     pointer-events: none;
 }
 

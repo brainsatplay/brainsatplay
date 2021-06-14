@@ -71,7 +71,7 @@ export class Application{
     
         configure(settings=[{}]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
             
-            if (this.info.intro != null) this.session.createIntro(this, (sessionInfo) => {
+            this.session.createIntro(this, (sessionInfo) => {
                 // this.tutorialManager.init();
 
                 // Multiplayer Configuration
