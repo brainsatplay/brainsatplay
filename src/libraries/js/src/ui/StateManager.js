@@ -308,14 +308,17 @@ if(JSON.stringifyFast === undefined) {
             path.length = 1;
         }
 
-        function updateParents(key, value) { //for json.parse
+        function updateParents(key, value) {
             var idx = parents.length - 1;
-            var prev = parents[idx];
-            if (prev[key] === value || idx === 0) {
-                path.push(key);
-                parents.push(value);
-            } else {
-                while (idx-- >= 0) {
+            //console.log(idx, parents[idx])
+            if(parents[idx]){
+                var prev = parents[idx];
+                //console.log(value); 
+                if (prev[key] === value || idx === 0) {
+                    path.push(key);
+                    parents.push(value.pushed);
+                } else {
+                    while (idx-- >= 0) {
                     prev = parents[idx];
                     if (prev[key] === value) {
                         idx += 2;
@@ -325,6 +328,7 @@ if(JSON.stringifyFast === undefined) {
                         parents[idx] = value;
                         path[idx] = key;
                         break;
+                    }
                     }
                 }
             }
@@ -336,6 +340,14 @@ if(JSON.stringifyFast === undefined) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
                     let c = value.constructor.name;
+                    if (key && c === 'Object') {updateParents(key, value); }
+
+                    let other = refs.get(value);
+                    if (other) {
+                        return '[Circular Reference]' + other;
+                    } else {
+                        refs.set(value, path.join('.'));
+                    }
                     if(c === "Array") { //Cut arrays down to 100 samples for referencing
                         if(value.length > 20) {
                             val = value.slice(value.length-20);
@@ -411,12 +423,12 @@ if(JSON.stringifyFast === undefined) {
 
         return function stringifyFast(obj, space) {
             try {
-                //parents.push(obj);
+                parents.push(obj);
                 return JSON.stringify(obj, checkValues, space);
             } catch(er) {
                 console.error(obj, er);
             } finally {
-                //clear();
+                clear();
             } 
         }
     })();
