@@ -6,6 +6,12 @@ export class Brainstorm{
         this.label = label
         this.session = session
         this.params = params
+
+        this.ports = {
+            default: {},
+            send: {},
+            get: {}
+        }
     }
 
     init = () => {}
@@ -13,16 +19,22 @@ export class Brainstorm{
     deinit = () => {}
 
     default = (userData) => {
-        if (userData[0].meta.route){
-            let brainstorm = this.session.getBrainstormData(userData[0].meta.app,[userData[0].meta.route.replace('brainstorm_','')], 'app', 'plugin')
-            return brainstorm
-
-        } else {
-            // console.log('loose')
-        }
+        let returned = this.session.graphs.runSafe(this,'get',userData)
+        return returned
     }
 
-    initialize = () => {
+    send = (userData) => {
+        let label = userData[0].meta.source.replace('brainstorm_','')
+        this.session.state.data[label] = userData
+        return userData
+    }
 
+    get = (userData) => {
+        let label = userData[0].meta.source.replace('brainstorm_','')
+        let sessionId = userData[0].meta.session
+        if (sessionId && label){
+            let brainstorm = this.session.getBrainstormData(sessionId,[label], 'app', 'plugin')
+            return brainstorm
+        }
     }
 }

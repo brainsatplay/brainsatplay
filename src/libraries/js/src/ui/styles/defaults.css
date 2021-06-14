@@ -552,22 +552,32 @@ select {
     flex-direction: column;
     justify-content: space-between;
     margin: 10px;
+    padding: 10px;
     z-index: initial;
 }
 
 .brainsatplay-display-node > .node-text {
-    position: absolute;
-    bottom: 50%;
+    /* position: absolute; */
+    /* bottom: 50%; */
     /* left: calc(100% + 15px); */
-    transform: translateY(50%);
+    /* transform: translateY(50%); */
     font-size: 75%;
-    text-align:center;
+    text-align:left;
     width:100%;
     pointer-events: none;
 }
 
+.brainsatplay-display-node > .node-text h3{
+    margin: 0px;
+}
+
+.brainsatplay-display-node > .node-text p{
+    margin: 0px;
+}
+
 .brainsatplay-display-node > .node-port-container {
     display: flex;
+    position: absolute;
 }
 
 .node-port-container > .node-port {
@@ -607,6 +617,7 @@ select {
 /* Input Port Behavior */
 .node-port-container.target-ports {
     transform: translateY(-40%);
+    top: 0;
     z-index: -1;
 }
 
@@ -619,6 +630,7 @@ select {
 /* Source Port Behavior */
 .node-port-container.source-ports {
     transform: translateY(40%);
+    bottom: 0;
     z-index: -1;
 }
 

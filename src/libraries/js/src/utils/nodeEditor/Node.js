@@ -73,7 +73,6 @@ export class Node{
             let portContainer = document.createElement('div')
             portContainer.classList.add(`node-port-container`)
             portContainer.classList.add(`${s}-ports`)
-            let html = ``
 
             for (let port in node.ports){
 
@@ -131,6 +130,7 @@ export class Node{
         element.insertAdjacentHTML('beforeend', `
         <div class="node-text">
             <h3>${node.constructor.name}</h3>
+            <p>${node.label}<p>
         </div>
         `)   
 

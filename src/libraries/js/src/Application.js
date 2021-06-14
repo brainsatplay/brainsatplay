@@ -16,19 +16,20 @@ export class Application{
         this.info = info
         this.settings = settings;
         this.AppletHTML = null;
+
+        this.editor = null
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            sessionId: null
         };
-
-        this.session.registerApp(this.props.id, this.info.name, this.info.graph)
     }
 
 
     init() {
 
-        let info = this.session.startApp(this.props.id)
+        let info = this.session.registerApp(this.props.id, this.info.name, this.info.graph)
         this.streams = info.streams
         this.uiParams = info.uiParams
 
@@ -70,7 +71,19 @@ export class Application{
     
         configure(settings=[{}]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
             
-            if (this.info.intro != null) this.session.createIntro(this)
+            if (this.info.intro != null) this.session.createIntro(this, (sessionInfo) => {
+                // this.tutorialManager.init();
+
+                // Multiplayer Configuration
+                if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
+                    this.sessionId = sessionInfo.id;
+                    // this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.sessionId ));
+                    // this.stateIds.push(this.hostStreamId);
+                }
+
+                let appInfo = this.session.startApp(this.props.id, this.sessionId)
+                this.editor = this.session.graphs.edit(this, this.parentNode)
+            })
             
             settings.forEach((cmd,i) => {});
         }

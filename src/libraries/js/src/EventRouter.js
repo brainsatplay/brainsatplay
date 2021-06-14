@@ -212,7 +212,7 @@ export class EventRouter{
     }
 
     updateRouteReserve = (id, controls=false) => {
-
+        console.log(id, controls, this.routes.reserve.apps)
         if (controls == false){
             this.routes.reserve.apps[id].count--
 

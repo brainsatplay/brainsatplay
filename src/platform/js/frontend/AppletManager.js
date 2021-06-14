@@ -484,16 +484,11 @@ export class AppletManager {
                     }
 
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
-                    let editor = this.session.graphs.edit(appnode.classinstance, appletDiv)
 
-                    if (editor && editor.element){
-                        editor.element.node.style.opacity = 0
-                        editor.shown = false
-                        nodeIcon.onclick = (e) => {
-                            editor.toggleDisplay()
-                        }
-                    } else {
-                        nodeIcon.remove()
+                    nodeIcon.onclick = (e) => {
+                        let editor = this.session.graphs.applets[appnode.classinstance.props.id].editor
+                        if (editor) editor.toggleDisplay()
+                        else console.error('editor not available')
                     }
 
                     let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')

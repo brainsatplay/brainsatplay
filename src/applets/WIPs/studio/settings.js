@@ -1,7 +1,6 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {UI} from './UI.js'
-
 export const settings = {
     name: "Brains@Play Studio",
     devices: ["EEG"],
@@ -13,16 +12,51 @@ export const settings = {
       production: false
     },
 
+    intro: {
+      title: false,
+      mode: 'multi'
+    },
+
     // App Logic
     graph:
-      {
+    {
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, params: {}},
-        {id: 'debug', class: brainsatplay.plugins.outputs.Debug, params: {}},
+        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {key: 'Space'}},
+        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
+        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
+        {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
+        {id: 'ui', class: UI, params: {}},
       ],
-      edges: [{
-        source: 'signal',
-        target: 'debug'
-      }]
+
+      edges: [
+        {
+          source: 'signal', 
+          target: 'neurofeedback'
+        },
+        {
+          source: 'spacebar', 
+          target: 'brainstorm:spacebar'
+        },
+        // { 
+        //   source: 'neurofeedback', 
+        //   target: 'brainstorm:neurofeedback'
+        // },
+        {
+          source: 'brainstorm:spacebar', 
+          target: 'ui:color'
+        },
+        {
+          source: 'brainstorm:spacebar', 
+          target: 'ui:readout'
+        },
+        // {
+        //   source: 'spacebar', 
+        //   target: 'ui:color'
+        // },
+        // {
+        //   source: 'neurofeedback', 
+        //   target: 'ui:readout'
+        // }
+      ]
     },
 }
