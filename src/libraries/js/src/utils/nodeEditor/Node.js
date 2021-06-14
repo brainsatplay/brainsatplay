@@ -121,7 +121,6 @@ export class Node{
                     window.addEventListener('pointermove', controlSVG)
                     window.addEventListener('pointerup', drawEdgeToPort)
                 }
-
             }
 
             element.insertAdjacentElement('beforeend',portContainer)
@@ -137,6 +136,18 @@ export class Node{
         nodeDiv.insertAdjacentElement('beforeend',element)
         this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
         dragUtils.dragElement(this.parentNode,nodeDiv, () => {this.updateAllEdges()})
+
+
+        let portContainers = nodeDiv.getElementsByClassName(`node-port-container`)
+
+        let maxWidth = 0
+        for (let container of portContainers){
+            maxWidth = Math.max(maxWidth, container.offsetWidth)
+        }
+
+        if (element.querySelector('.node-text').offsetWidth < maxWidth) element.style.width = `${maxWidth}px`
+
+
         return nodeDiv
     }
 }

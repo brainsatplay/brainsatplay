@@ -36,16 +36,16 @@ export const settings = {
           source: 'spacebar', 
           target: 'brainstorm:spacebar'
         },
-        // { 
-        //   source: 'neurofeedback', 
-        //   target: 'brainstorm:neurofeedback'
-        // },
+        { 
+          source: 'neurofeedback', 
+          target: 'brainstorm:neurofeedback'
+        },
         {
           source: 'brainstorm:spacebar', 
           target: 'ui:color'
         },
         {
-          source: 'brainstorm:spacebar', 
+          source: 'brainstorm:neurofeedback', 
           target: 'ui:readout'
         },
         // {

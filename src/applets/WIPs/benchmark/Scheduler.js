@@ -28,7 +28,8 @@ export class Scheduler{
         this.props = {
             taskData: [],
             currentTrial: null,
-            iti: null
+            iti: null,
+            active: false
         }
     }
 
@@ -37,6 +38,7 @@ export class Scheduler{
         this.props.currentTrial = -1
         this.props.taskData = []
         this.props.iti = false
+        this.props.active = true
 
         if (this.params.trialProgression == null) this.params.trialProgression = []
 
@@ -56,7 +58,9 @@ export class Scheduler{
         }
     }
 
-    deinit = () => {}
+    deinit = () => {
+        this.props.active = false
+    }
 
     default = (userData) => {
         userData.forEach(u => {
@@ -138,7 +142,7 @@ export class Scheduler{
         }
 
         this.session.atlas.graphs.runSafe(this,'default', [state])
-        if (loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
+        if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
     _startNewTrial(){

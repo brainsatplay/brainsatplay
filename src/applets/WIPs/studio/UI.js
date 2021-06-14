@@ -27,7 +27,7 @@ class UI{
         // Simply define the HTML template
         let HTMLtemplate = () => {return `
             <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
-                <div>
+                <div style="width: 80%">
                     <h1 id="${this.props.id}-label"></h1>
                     <div id="${this.props.id}-readout"></div>
                 </div>

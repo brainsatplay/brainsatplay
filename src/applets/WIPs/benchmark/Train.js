@@ -50,6 +50,7 @@ class Train{
         if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'
         else fillBar.style.background = 'lime'
 
+        if (statePercentage > 1) statePercentage = 1
         fillBar.style.width = `${statePercentage*100}%`
 
         return userData
