@@ -26,7 +26,7 @@ function onchange(props) { //optional if you want to be able to auto-update the 
 function ondelete(props) { //called before the node is deleted, use to clean up animation loops and event listeners
 }
 
-function onresize(props) { //adds a resize listener to the window, this is automatically cleaned up when you delete the node.
+function onresize() { //adds a resize listener to the window, this is automatically cleaned up when you delete the node.
 }
 
 const fragment = new DOMFragment(
@@ -143,7 +143,7 @@ export class DOMFragment {
   
     //delete selected fragment. Will delete the most recent fragment if Ids are shared.
     deleteFragment(parentNode,nodeId) {
-        this.ondelete(); //called BEFORE the node is removed
+        this.ondelete(this.renderSettings.props); //called BEFORE the node is removed
         var node = document.getElementById(nodeId);
         parentNode.removeChild(node);
     }
@@ -154,7 +154,7 @@ export class DOMFragment {
         if(typeof this.onresize === 'function') {
             this.removeNodeResizing();
         }
-        this.ondelete();
+        this.ondelete(this.renderSettings.props);
         var element = document.getElementById(elementId);
         element.parentNode.parentNode.removeChild(element.parentNode);
     }
@@ -205,13 +205,13 @@ export class DOMFragment {
             this.removeNodeResizing();
         }
         if(typeof node === "string"){
-            this.ondelete();
+            this.ondelete(this.renderSettings.props);
             thisNode = document.getElementById(node);
             thisNode.parentNode.removeChild(thisNode);
             this.node = null;
         }
         else if(typeof node === "object"){
-            this.ondelete();
+            this.ondelete(this.renderSettings.props);
             node.parentNode.removeChild(node);
             this.node = null;
         }
