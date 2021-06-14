@@ -3,27 +3,45 @@ import {ObjectListener} from './ObjectListener'
 //By Joshua Brewster (MIT)
 
 /* 
-const htmlprops;
+const htmlprops = {
+  id:'template1'
+};
 
-function templateStringGen(props) {
+function templateStringGen(props) { //write your html in a template string
     return `
-    <div id=`+props.id+`>Clickme</div>
+    <div id=${props.id}>Clickme</div>
     `;
 }
 
-function onRender() {
-    document.getElementById(htmlprops.id).onclick = () => { document.getElementById(htmlprops.id).innerHTML = "Clicked!"; }
+function onRender(props) { //setup html
+    document.getElementById(props.id).onclick = () => { 
+      document.getElementById(props.id).innerHTML = "Clicked!"; 
+    }
 }
 
-function onChange() {
-  console.log('props changed!');
+function onchange(props) { //optional if you want to be able to auto-update the html with changes to the properties, not recommended if you only want to update single divs
+  console.log('props changed!', props);
 }
 
-const fragment = new DOMFragment(templateStringGen,document.body,htmlprops,onRender,onChange,"NEVER"); 
-//Renders a static DOM fragment to the given parent node. 
-// Change propUpdateInterval to "FRAMERATE" or any millisecond value and add an 
-// onchange function to have the html re-render when the props update and have an 
-// additional function fire.
+function ondelete(props) { //called before the node is deleted, use to clean up animation loops and event listeners
+}
+
+function onresize(props) { //adds a resize listener to the window, this is automatically cleaned up when you delete the node.
+}
+
+const fragment = new DOMFragment(
+                        templateStringGen,
+                        document.body,
+                        htmlprops,
+                        onRender,
+                        undefined, //onchange
+                        "NEVER", //"FRAMERATE" //1000
+                        ondelete,
+                        onresize
+                      ); 
+                      
+//... later ...
+fragment.deleteNode(); //deletes the rendered fragment if you are done with it.
 
 */
 
@@ -101,10 +119,6 @@ export class DOMFragment {
       
         this.renderNode();
 
-        if(typeof this.onresize === 'function') {
-            this.setNodeResizing();
-        }
-
     }
 
     //called after a change in props are detected if interval is not set to "NEVER"
@@ -148,6 +162,9 @@ export class DOMFragment {
     renderNode(parentNode=this.parentNode){
         this.node = this.appendFragment(this.templateString,parentNode);
         this.onRender(this.renderSettings.props);
+        if(typeof this.onresize === 'function') {
+            this.setNodeResizing();
+        }
     }
 
     setNodeResizing() {
