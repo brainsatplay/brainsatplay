@@ -36,36 +36,6 @@ export class PluginManager{
             document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
             this.gui.domElement.style.display = 'none'
         }
-
-    //     // Listen to Added/Removed States in Session (if provided)
-    //     if (session instanceof Session){
-
-    //         let added = (k) => {
-    //             // Attach Proper Stream Callback to New Brainstorm States
-    //             for (let s in this.registry.local){
-    //                 let label = this.registry.local[s].label
-    //                 if (this.registry.brainstorm[k] == null){
-    //                         if (k.includes(label) && k !== label){
-    //                             console.log(k,label)
-    //                         // Only Defaults on the Brainstorm for Now
-    //                         this.registry.brainstorm[k] = {count: 1, id: this.session.state.subscribeSequential(k, this.registry.local[s].registry['default'].callback), callback: this.registry.local[s].registry['default'].callback}
-    //                         this.registry.brainstorm[k].callback()
-    //                     }
-    //                 } 
-    //             }
-    //         }
-
-    //         let removed = (k) => {
-    //             if (this.registry.brainstorm[k] != null){
-    //                 this.session.state.unsubscribeSequential(k,this.registry.brainstorm[k].id)
-    //                 this.registry.brainstorm[k].callback()
-    //                 delete this.registry.brainstorm[k]
-    //             }
-    //         }
-
-    //         this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
-    //         this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
-    // }
     }
 
     instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
@@ -290,6 +260,9 @@ export class PluginManager{
     checkToPass(node,port,result){
         if (result && result.length > 0){
             let allEqual = true
+
+            node.states[port].splice(result.length-1) // Remove previous states that weren't returned
+
             result.forEach((o,i) => {
                 if (node.states[port].length > i){
                     let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
@@ -467,17 +440,10 @@ export class PluginManager{
         applet.sessionId = sessionId ?? appId
 
         // Listen for Updates on Multiplayer Edges
-        if (applet.sessionId != null){
-            applet.edges.forEach((e,i) => {
-                let splitSource = e.source.split(':')
-                let sourcePort = splitSource[1] ?? 'default'
-                let sourceInfo = applet.nodes[splitSource[0]]
-                let splitTarget = e.target.split(':')
-                if (applet.nodes[splitTarget[0]].instance instanceof plugins.utilities.Brainstorm) {
-                    this._subscribeToBrainstorm(sourceInfo, appId, sourcePort)
-                }
-            })
-        }
+        applet.edges.forEach((e,i) => {
+            this._subscribeToBrainstorm(e, appId)
+
+        })
 
         return applet
     }
@@ -493,12 +459,10 @@ export class PluginManager{
         let targetPort = splitTarget[1] ?? 'default'
         let target = applet.nodes[targetName].instance
         let label = this.getLabel(source,sourcePort)
-        let targetLabel = this.getLabel(target, targetPort)
         applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
         // Pass Data from Source to Target
         let _onTriggered = (trigger) => {
-            
             if (trigger){
                 let input = source.states[sourcePort]
                 input.forEach(u => {
@@ -513,32 +477,34 @@ export class PluginManager{
         // Initialize port with Default Output
         this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
-        if (applet.nodes[targetName].instance instanceof plugins.utilities.Brainstorm) { // Register as a Brainstorm State
-            applet.streams.add(label) // Keep track of streams to pass to the Brainstorm
+        // Register Brainstorm State
+        if (applet.nodes[targetName].instance instanceof plugins.utilities.Brainstorm) {
+            applet.streams.add(label) // Keep track of streams
             
-            // Trigger Updates to Brainstorm State
+            // Replace Default Update Command and Send Local Updates to the Brainstorm
             _onTriggered = (trigger) => {
-                let input = source.states[sourcePort]
-                input.forEach(u => {
-                    u.meta.source = sourceName
-                    u.meta.session = applet.sessionId
-                })
-                this.runSafe(applet.nodes[targetName].instance, 'send', input) // Send personal data
+                // Get Upstream Output
+                let output = source.states[sourcePort]
+                if (output.length > 0){
+                    output.forEach(u => {
+                        u.meta.source = sourceName
+                        u.meta.session = applet.sessionId
+                    })
+                    this.runSafe(applet.nodes[targetName].instance, 'send', output) // Refresh personal state data
+                }
             }
-        } 
-        if (applet.nodes[sourceName].instance instanceof plugins.utilities.Brainstorm){ // Listen for Brainstorm Updates
-            // NOTE: Limited to sending default output
-            this.registry.local[sourcePort].registry['default'].callbacks.push((userData) => {
-                this.runSafe(applet.nodes[sourceName].instance, sourcePort, [{data: true, meta: {source: sourcePort, session: applet.sessionId}}]) // Update port state
-                _onTriggered(userData) // Trigger updates down the chain
+
+            // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
+            this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
+                this.runSafe(applet.nodes[targetName].instance, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
+                _onTriggered(trigger) // Trigger Downstream Changes
             })
-        }
-        // else { //  Listen for Local Changes
-        
-            if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
-            let subId = this.state.subscribeSequential(label, _onTriggered)
-            applet.subscriptions.local[label].push({id: subId, target: e.target})
-        // }
+        } 
+
+        // And Listen for Local Changes
+        if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
+        let subId = this.state.subscribeSequential(label, _onTriggered)
+        applet.subscriptions.local[label].push({id: subId, target: e.target})
     }
 
     findStreamFunction(prop) {
@@ -642,35 +608,56 @@ export class PluginManager{
     }
 
     // Internal Methods
-    _subscribeToBrainstorm(nodeInfo, appletId, port){
-        let applet = this.applets[appletId]
-        let id = (port != 'default') ? `${ nodeInfo.instance.label}_${port}` :  nodeInfo.instance.label
+    _subscribeToBrainstorm(e, appId){
 
-        if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
-        
-        let found = this.findStreamFunction(id)
+        let applet = this.applets[appId]
+        let splitSource = e.source.split(':')
+        let sourceName = splitSource[0]
+        let sourcePort = splitSource[1] ?? 'default'
+        let sourceInfo = applet.nodes[splitSource[0]]
+        let source = sourceInfo.instance
+        let splitTarget = e.target.split(':')
+        let targetName = splitTarget[0]
+        let targetPort = splitTarget[1] ?? 'default'
+        let target = applet.nodes[targetName].instance
 
-        if (found == null) {
+        if (applet.nodes[splitTarget[0]].instance instanceof plugins.utilities.Brainstorm) {
 
-            let _brainstormCallback = (userData) => {
-                this.registry.local[id].registry[port].callbacks.forEach((f,i) => {
-                    if (f instanceof Function) f(userData)
+            let id = (sourcePort != 'default') ? `${ sourceInfo.instance.label}_${sourcePort}` :  sourceInfo.instance.label
+
+            if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
+            
+            let found = this.findStreamFunction(id)
+
+            if (found == null) {
+
+                let _brainstormCallback = (userData) => {
+                    this.registry.local[sourceName].registry[sourcePort].callbacks.forEach((f,i) => {
+                        if (f instanceof Function) f(userData)
+                    })
+                }
+
+                let _localCallback = (userData) => {
+                    if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+                    _brainstormCallback(userData)
+                }
+
+                // Create Brainstorm Stream
+                let subId1 = this.session.streamAppData(id, this.registry.local[sourceName].registry[sourcePort].state, applet.sessionId,_localCallback) //()=>{}) // Local changes are already listened to
+                applet.subscriptions.session[id].push({id: subId1, target: null})
+
+                // Subscribe to Changes in Session Data
+                let subId2 = this.session.state.subscribe(applet.sessionId, (sessionInfo) => {
+                    let data = [{data: true, meta: {source: id, session: applet.sessionId}}] // Trigger Brainstorm Update
+                    _brainstormCallback(data)
                 })
-            }
 
-            // Create Brainstorm Stream
-            let subId1 = this.session.streamAppData(id, this.registry.local[id].registry[port].state, applet.sessionId,_brainstormCallback) //()=>{}) // Local changes are already listened to
-            applet.subscriptions.session[id].push({id: subId1, target: null})
+                if (applet.subscriptions.session[applet.sessionId] == null) applet.subscriptions.session[applet.sessionId] = []
+                applet.subscriptions.session[applet.sessionId].push({id: subId2, target: null})
 
-            // Subscribe to Changes in Session Data
-            let subId2 = this.session.state.subscribe(applet.sessionId, (sessionInfo) => {
-                let data = [{data: true, meta: {source: id, session: applet.sessionId}}] // Trigger Brainstorm Update
-                _brainstormCallback(data)
-            })
-
-            if (applet.subscriptions.session[applet.sessionId] == null) applet.subscriptions.session[applet.sessionId] = []
-            applet.subscriptions.session[applet.sessionId].push({id: subId2, target: null})
-        } 
+                _localCallback() // Initialize with Your Data
+            } 
+        }
     }
 
     // Create a Node Editor
