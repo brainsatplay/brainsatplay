@@ -35,16 +35,18 @@ export class DOMFragment {
      * @description Create a DOM fragment.
      * @param {function} templateStringGen - Function to generate template string.
      * @param {HTMLElement} parentNode HTML DOM node to append fragment into.
-     * @param {callback} onRender Callback when element is rendered.
+     * @param {callback} onRender Callback when element is rendered. Use to setup html logic via js
      * @param {callback} onchange Callback when element is changed.
      * @param {int} propUpdateInterval How often to update properties.
      * @param {callback} ondelete Called just before the node is deleted (e.g. to clean up animations)
+     * @param {callback} onresize Called on window resize, leave undefined to not create resize events
      */
-    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER", ondelete=(props)=>{}) {
+    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER", ondelete=(props)=>{}, onresize=undefined) {
         this.onRender = onRender;
         this.onchange = onchange;
         this.ondelete = ondelete;
-        
+        this.onresize = onresize;
+
         this.parentNode = parentNode;
         if(typeof parentNode === "string") {
             this.parentNode = document.getElementById(parentNode);
@@ -98,6 +100,11 @@ export class DOMFragment {
         }
       
         this.renderNode();
+
+        if(typeof this.onresize === 'function') {
+            this.setNodeResizing();
+        }
+
     }
 
     //called after a change in props are detected if interval is not set to "NEVER"
@@ -108,6 +115,8 @@ export class DOMFragment {
 
     //called BEFORE the node is removed
     ondelete = (props=this.renderSettings.props) => {}
+
+    onresize = undefined  //define resizing function
 
     //appendId is the element Id you want to append this fragment to
     appendFragment(HTMLtoAppend, parentNode) {
@@ -128,6 +137,9 @@ export class DOMFragment {
     //Remove Element Parent By Element Id (for those pesky anonymous child fragment containers)
     removeParent(elementId) {
         // Removes an element from the document
+        if(typeof this.onresize === 'function') {
+            this.removeNodeResizing();
+        }
         this.ondelete();
         var element = document.getElementById(elementId);
         element.parentNode.parentNode.removeChild(element.parentNode);
@@ -136,6 +148,28 @@ export class DOMFragment {
     renderNode(parentNode=this.parentNode){
         this.node = this.appendFragment(this.templateString,parentNode);
         this.onRender(this.renderSettings.props);
+    }
+
+    setNodeResizing() {
+        if(typeof this.onresize === 'function') {
+            if(window.attachEvent) {
+                window.attachEvent('onresize', this.onresize);
+            }
+            else if(window.addEventListener) {
+                window.addEventListener('resize', this.onresize, true);
+            }
+        }
+    }
+
+    removeNodeResizing() {
+        if(typeof this.onresize === 'function') {
+            if(window.detachEvent) {
+                window.detachEvent('onresize', this.onresize);
+            }
+            else if(window.removeEventListener) {
+                window.removeEventListener('resize', this.onresize, true);
+            }
+        }
     }
 
     updateNode(parentNode=this.parentNode, node=this.node, props=this.props){
@@ -150,6 +184,9 @@ export class DOMFragment {
     }
 
     deleteNode(node=this.node) {
+        if(typeof this.onresize === 'function') {
+            this.removeNodeResizing();
+        }
         if(typeof node === "string"){
             this.ondelete();
             thisNode = document.getElementById(node);
