@@ -13,8 +13,7 @@ export const settings = {
     },
 
     intro: {
-      title: false,
-      mode: 'multi'
+      title:false
     },
 
     // App Logic

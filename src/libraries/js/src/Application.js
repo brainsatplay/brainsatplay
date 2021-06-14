@@ -77,8 +77,6 @@ export class Application{
                 // Multiplayer Configuration
                 if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
                     this.sessionId = sessionInfo.id;
-                    // this.stateIds.push(this.session.streamAppData('modifiers', this.modifiers, this.sessionId ));
-                    // this.stateIds.push(this.hostStreamId);
                 }
 
                 let appInfo = this.session.startApp(this.props.id, this.sessionId)
