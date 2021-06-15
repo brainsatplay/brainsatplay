@@ -73,6 +73,7 @@ export class DOMFragment {
             templateStringGen: templateStringGen,
             props: props
         }
+        this.props = this.renderSettings.props;
         this.templateString = ``;
         if(typeof templateStringGen === 'function') {
             this.templateString = templateStringGen(props);
