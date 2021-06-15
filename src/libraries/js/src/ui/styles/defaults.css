@@ -3,6 +3,10 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+:root {
+    --editor-tab-height: 35px;
+  }
+
 html {
     overflow: scroll;
     overflow-x: hidden;
@@ -478,38 +482,100 @@ select {
 
 /* Node Editor */
 .brainsatplay-default-container.brainsatplay-node-editor{
-        z-index: 999;
-        opacity: 0; 
-        transition: opacity 1s;
-        pointer-events: none;
-        background: rgba(0,0,0,.7);
-        padding: 25px;
+    z-index: 999;
+    opacity: 0; 
+    transition: opacity 1s;
+    pointer-events: none;
+    background: rgba(0,0,0,.7);
+    padding: 0px;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
-
-.brainsatplay-node-selector{
-    /* overflow-y: scroll; */
-    /* display: flex; */
-    /* flex-wrap: wrap; */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 400px;
-    height: 400px;
-    z-index:11;
+.brainsatplay-node-view{
+    height: calc(100% - var(--editor-tab-height));
 }
 
-.brainsatplay-node-viewer{
+.brainsatplay-node-editor-tabs{
+    width: 100%; 
+    /* height: 100px;  */
+}
+
+.brainsatplay-node-editor > div {
     height: 100%;
+    max-height: 100vh;
+    width: 100%;
     position: relative;
 }
+/* Style the tab */
+.brainsatplay-node-editor-tabs > .tab {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: flex;
+    width: 100%;
+    height: var(--editor-tab-height);
+    background: rgb(0,0,0);
+  }
+  
+  /* Style the buttons that are used to open the tab content */
+  .brainsatplay-node-editor-tabs > .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 70%;
+    padding: 10px 20px;
+    transition: 0.3s;
+    white-space:nowrap;
+    color: white;
+    height: var(--editor-tab-height);
+    border: 1px solid rgb(5,5,5);
+    background: rgb(10,10,10);
+    /* width: 200px; */
+    max-width: 100%;
+  }
+  
+  /* Change background color of buttons on hover */
+  .brainsatplay-node-editor-tabs > .tab button:hover {
+    background:  rgb(25,25,25);
+  }
+  
+  /* Create an active/current tablink class */
+  .brainsatplay-node-editor-tabs > .tab button.active {
+    background: rgb(25,25,25);
+  }
+  
+  /* Style the tab content */
+  .brainsatplay-node-editor-tabs > .tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+  }
 
-.brainsatplay-node{
-    position: absolute;
+  .brainsatplay-node-selector{
+    width: 100%;
+    height: 100%;
+    position:absolute;
+    transition: opacity 1s;
+    background: rgba(0,0,0,.7);
+    z-index:11;
+    display: flex;
+    top: 0;
+    left: 0;
+    justify-content: center;
+    align-items: center;
 }
 
-.brainsatplay-node-selector > input{
+
+.brainsatplay-node-selector-menu{
+    width: 75%;
+    height: 25%;
+}
+
+.brainsatplay-node-selector-menu > input{
     height: 50px;
     width: 100%;
     background: rgb(230, 230, 230);
@@ -518,7 +584,8 @@ select {
     border: 0px;
 }
 
-.brainsatplay-node-selector > .node-options{
+
+.brainsatplay-node-selector-menu > .node-options{
     overflow-y: scroll;
     height: 100%;
 }
@@ -536,14 +603,180 @@ select {
     background: rgb(35,35,35);
 }
 
+.brainsatplay-node-viewer{
+    height: 100%;
+    position: relative;
+    height: calc(100% - var(--editor-tab-height));
+    overflow: hidden;
+}
+
+.brainsatplay-node-code{
+    padding: 50px;
+    width: 100%;
+    height: 100%;
+    z-index: 12;
+    transition: opacity 0.5s;
+    background: rgba(0,0,0,.7);
+    height: calc(100% - var(--editor-tab-height));
+}
+
+
+.brainsatplay-node-sidebar{
+    height: 100vh;
+    position: relative;
+    min-width: 250px;
+    background: rgb(20,20,20);
+    font-size: 80%;
+    /* border-left: 1px solid  rgb(30,30,30); */
+    z-index: 10;
+    max-width: 250px;
+}
+
+.brainsatplay-node-sidebar > div {
+    width: 100%;
+}
+
+.brainsatplay-node-sidebar button {
+    flex: 45%;
+
+}
+
+.node-sidebar-header{
+    background: rgb(5,5,5);
+    padding: 10px 15px;
+    user-select: none;
+}
+
+.node-sidebar-section{
+    background: rgb(5,5,5);
+    padding: 0px 15px 10px 15px;
+    user-select: none;
+    font-size: 60%;
+    height: var(--editor-tab-height);
+    border-bottom: 1px solid rgb(50,50,50);
+
+    display: grid;
+    grid-template-columns: 1fr 30px;
+}
+
+.node-sidebar-section button{
+    min-width: 0px;
+    font-size: 200%;
+    height: 20px;
+    width: 20px;
+    min-height: 0;
+    padding: 0px;
+}
+
+.node-sidebar-section h3 {
+    margin: 0px;
+    margin-top: 15px;
+}
+
+.node-sidebar-header h4 {
+    margin: 0px;
+}
+
+.node-sidebar-content{
+    padding: 0px 15px;
+    display: grid;
+    max-height: 200px;
+    overflow: scroll;
+}
+
+.node-sidebar-content > div{
+    display: grid;
+    /* padding: 5px;  */
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid rgb(5,5,5);
+    border-bottom: 1px solid rgb(5,5,5);
+    width: 100%;
+    /* text-align: right; */
+}
+
+.node-sidebar-content > div > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    text-align: left;
+}
+
+.node-sidebar-content > div > div > input{
+    background: black;
+    color: white;
+    padding: 5px;
+    border: none;
+    font-size: 80%;
+    width: 100%;
+}
+
+
+.node-sidebar-content input[type="range"] {
+    margin-right: 25px;
+    -webkit-appearance: none;
+    position: relative;
+    overflow: hidden;
+    height: 30%;
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    margin: 0;
+    background: black;
+}
+
+.node-sidebar-content > div > div > output {
+    position: absolute; 
+    user-select: none; 
+    z-index: 1;
+    top: 50%;
+    left: 10px;
+    transform: translate(0%,-50%);
+    font-size: 80%;
+}
+
+.node-sidebar-content input[type="range"]::-webkit-slider-runnable-track {
+    background: linear-gradient(rgb(25, 25, 25), rgb(25, 25, 25));
+}
+
+ .node-sidebar-content input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 0; /* 1 */
+    height: 20px;
+    background: black;
+    box-shadow: -100vw 0 0 100vw dodgerblue;
+    opacity: 0.8;
+    transition: opacity 0.5s;
+}
+
+.node-sidebar-content input[type="range"]:hover::-webkit-slider-thumb{
+    opacity: 1;
+}
+
+.node-sidebar-content input[type="range"]::-moz-range-track {
+    background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+}
+
+
+.brainsatplay-node-sidebar > h3 {
+    margin: 5px 0px;
+}
+
+.brainsatplay-node-sidebar > p {
+    margin: 5px 0px;
+}
+
+.brainsatplay-node{
+    position: absolute;
+}
+
 .brainsatplay-default-node-div{
     /* padding: 5px 0px; */
     z-index: 10;
     position: absolute;
 }
 
-.brainsatplay-display-node{
-    min-width: 100px;
+.brainsatplay-default-node-div > .brainsatplay-display-node{
     position: absolute;
     background: rgb(155, 155, 155);
     cursor: move;
@@ -551,23 +784,39 @@ select {
     flex-wrap:wrap;
     flex-direction: column;
     justify-content: space-between;
-    margin: 10px;
     z-index: initial;
+    padding: 12px;
+    box-sizing: content-box;
+    transition: box-shadow 0.5s;
+}
+
+.brainsatplay-default-node-div > .brainsatplay-display-node.clicked {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 50px rgba(255, 255, 255, 0.45);
 }
 
 .brainsatplay-display-node > .node-text {
-    position: absolute;
-    bottom: 50%;
+    /* position: absolute; */
+    /* bottom: 50%; */
     /* left: calc(100% + 15px); */
-    transform: translateY(50%);
+    /* transform: translateY(50%); */
     font-size: 75%;
-    text-align:center;
+    text-align:left;
     width:100%;
+    user-select: none;
     pointer-events: none;
+}
+
+.brainsatplay-display-node > .node-text h3{
+    margin: 0px;
+}
+
+.brainsatplay-display-node > .node-text p{
+    margin: 0px;
 }
 
 .brainsatplay-display-node > .node-port-container {
     display: flex;
+    position: absolute;
 }
 
 .node-port-container > .node-port {
@@ -600,6 +849,7 @@ select {
     position: absolute;
     z-index: 10;
     pointer-events: none;
+    user-select: none;
     /* background:rgba(0, 0, 0, 0.5);
     padding: 5px; */
 }
@@ -607,6 +857,7 @@ select {
 /* Input Port Behavior */
 .node-port-container.target-ports {
     transform: translateY(-40%);
+    top: 0;
     z-index: -1;
 }
 
@@ -619,6 +870,7 @@ select {
 /* Source Port Behavior */
 .node-port-container.source-ports {
     transform: translateY(40%);
+    bottom: 0;
     z-index: -1;
 }
 
@@ -638,7 +890,7 @@ select {
     width: 100%;
     position: absolute;
     background: transparent;
-    z-index: 1;
+    /* z-index: 1; */
     pointer-events: none;
 }
   
@@ -649,7 +901,7 @@ select {
     position: relative;
     background: transparent;
     touch-action: none;
-    z-index: 1;
+    /* z-index: 1; */
     pointer-events: none;
 }
 
@@ -671,6 +923,8 @@ select {
     stroke: transparent;
     fill: transparent;
     pointer-events: auto;
+    /* fill: #c00;
+    cursor: move; */
   }
   
   /* .brainsatplay-node-viewer > .edge .control:hover, #mysvg .control.drag

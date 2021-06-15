@@ -29,7 +29,7 @@ export class Event{
 
     deinit = () => {
         document.removeEventListener('keydown',this.handleKeyDown)
-        document.removeEventListener('keyup',this.handleKeyDown)
+        document.removeEventListener('keyup',this.handleKeyUp)
     }
 
     handleKeyDown = (e) => {

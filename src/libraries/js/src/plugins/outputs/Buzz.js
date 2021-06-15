@@ -31,7 +31,7 @@ export class Buzz{
 
         let added = (k) => {
             this._subscribeToDevices(k,['buzz'])
-            this.session.graphs.runSafe(this,'status',[{data:true}])
+            this.session.graph.runSafe(this,'status',[{data:true}])
         }
 
         let removed = (k) => {
@@ -53,7 +53,7 @@ export class Buzz{
         this.props.device = this.session.getDevice('buzz')
         if (!this.props.device)  console.log('Must connect your Buzz first')
         else this.props.device = this.props.device.device
-        this.session.graphs.runSafe(this,'status',[{data:true}])
+        this.session.graph.runSafe(this,'status',[{data:true}])
     }
 
     deinit = () => {

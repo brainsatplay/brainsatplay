@@ -16,7 +16,7 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
-import {PluginManager} from '../../../libraries/js/src/PluginManager'
+import {GraphManager} from '../../../libraries/js/src/GraphManager'
 import {Buzz} from '../../../libraries/js/src/plugins/outputs/Buzz'
 
 //Import shader urls
@@ -100,7 +100,7 @@ export class SensoriumApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = ['modifiers','hostData'] // Register your app data streams
+        this.graph.streams = ['modifiers','hostData'] // Register your app data streams
         //----------------------------------------------
 
         //-------Other Multiplayer Properties------- 
@@ -111,8 +111,8 @@ export class SensoriumApplet {
 
 
         // Plugins
-        this.graphs = new PluginManager(this.session, {gui: false})
-        this.graphs.add(this.props.id, this.info.name, 
+        this.graph = new GraphManager(this.session, {gui: false})
+        this.graph.init(this.props.id, this.info.name, 
             {
                 nodes: [
                     {id: 'neosensory', class: Buzz},
@@ -606,7 +606,7 @@ void main(){
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
-                let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                let userData = this.session.getBrainstormData(this.info.name, this.graph.streams)
                 //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
                 if (userData.length > 0){
@@ -1776,17 +1776,17 @@ void main(){
 
 
     updateBuzz(modifiers) {
-        let node = this.graphs.getNode(this.props.id, 'buzz')
+        let node = this.graph.getNode(this.props.id, 'buzz')
 
         if (modifiers.iAudio){
-            this.graphs.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
+            this.graph.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         } 
         else if (modifiers.iFFT){
-            this.graphs.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
+            this.graph.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            this.graphs.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
+            this.graph.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
         }
     }
 } 

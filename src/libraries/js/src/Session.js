@@ -51,7 +51,7 @@ import { DataAtlas } from './DataAtlas'
 import { deviceList } from './devices/deviceList';
 
 // Plugins
-import {PluginManager} from './PluginManager'
+import {GraphManager} from './GraphManager'
 
 // Event Router
 import { EventRouter } from './EventRouter'
@@ -119,7 +119,7 @@ export class Session {
 		this.streamObj = new streamSession(this.info);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
-		this.graphs = new PluginManager(this)
+		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
 		DataMgr = this.dataManager;
 
@@ -650,7 +650,7 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname = 'data', props = {}, appid=undefined, onData = (newData) => { }) {
+	streamAppData(propname = 'data', props = {}, sessionId=undefined, onData = (newData) => { }) {
 
 		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
@@ -660,15 +660,17 @@ export class Session {
 		
 		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
-			if(appid) {
-				if(!this.state.data[appid]) this.state.data[appid] = {id:appid, userData:[{username:this.info.auth.username}]};
-				let found = this.state.data[appid].userData.find((o)=>{
-					if(o.username === this.info.auth.username) {
-						o[id] = newData; 
-						return true;
-					}
-				});
-				if(!found) this.state.data[appid].userData.push({username:this.info.auth.username, [id]:newData});
+			if(sessionId) {
+				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:[{username:this.info.auth.username}]};
+				if (this.state.data[sessionId].userData){
+					let found = this.state.data[sessionId].userData.find((o)=>{
+						if(o.username === this.info.auth.username) {
+							o[id] = newData; 
+							return true;
+						}
+					});
+					if(!found) this.state.data[sessionId].userData.push({username:this.info.auth.username, [id]:newData});
+				}
 			}
 		});
 
@@ -939,8 +941,10 @@ else {
 
 			parsed.userData.forEach((o, i) => {
 				let user = o.username
-				for (const prop in o) {
-					if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
+				if (user != this.info.auth.username){
+					for (const prop in o) {
+						if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
+					}
 				}
 			});
 
@@ -1183,13 +1187,12 @@ else {
 
 	//connect using the unique id of the subscription
 	subscribeToSession(sessionid, spectating = false, onsuccess = (newResult) => { }) {
-		if (this.socket !== null && this.socket.readyState === 1) {
-
+		if (this.socket !== null && this.socket.readyState === 1 && !this.info.subscriptions.includes(sessionid)) {
 			this.sendBrainstormCommand(['getSessionInfo', sessionid]);
 			//wait for response, check result, if session is found and correct props are available, then add the stream props locally necessary for session
-			
 			let sub = this.state.subscribe('commandResult', (newResult) => {
 				if (typeof newResult === 'object') {
+					this.state.unsubscribe('commandResult', sub);
 					if (newResult.msg === 'getSessionInfoResult' && newResult.sessionInfo.id === sessionid) {
 						let configured = true;
 						if (spectating === false) {
@@ -1200,19 +1203,14 @@ else {
 							});
 							configured = this.configureStreamForSession(newResult.sessionInfo.devices, streamParams); //Expected propnames like ['eegch','FP1','eegfft','FP2']
 							// this.streamObj
-							onsuccess(newResult);
 						}
 
 						if (configured === true) {
 							this.sendBrainstormCommand(['subscribeToSession', sessionid, spectating]);
 							this.state.data[newResult.sessionInfo.id] = newResult.sessionInfo;
-							console.log(newResult);
 							this.info.subscriptions.push(sessionid)
 							onsuccess(newResult);
 						}
-
-						//console.log('unsubscribe ' + sub)
-						this.state.unsubscribe('commandResult', sub);
 					}
 					else if (newResult.msg === 'sessionNotFound' & newResult.id === sessionid) {
 						this.state.unsubscribe('commandResult', sub);
@@ -1256,9 +1254,9 @@ else {
 
 
 	// App Management
-	startApp(appId){
-		let info = this.graphs.start(appId)
-		this.info.apps[appId] = {streams: info.streams, controls: info.controls}
+	startApp(appId,sessionId){
+		let info = this.graph.start(appId, sessionId)
+		this.info.apps[appId] = info
 
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
@@ -1272,11 +1270,11 @@ else {
 	}
 
 	registerApp(appId,appName,graphs){
-		return this.graphs.add(appId, appName, graphs)
+		return this.graph.init(appId, appName, graphs)
 	}
 
 	removeApp(appId){
-		let info = this.graphs.stop(appId)
+		let info = this.graph.remove(appId)
 		
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
@@ -1584,10 +1582,14 @@ else {
 
 
 	createIntro = (applet, onsuccess= () => {}) => {
-
 		// Override App Settings with Configuration Settings
-		if (applet.info.intro == null) applet.info.intro = {}
-		else if (applet.info.intro != false) applet.info.intro = {title: true}
+		if (applet.info.intro == null){
+			onsuccess()
+		} else {
+		if (applet.info.intro.constructor != Object) applet.info.intro = {}
+		if (applet.info.intro != false) {
+			if (applet.info.intro.title == null) applet.info.intro.title = true
+		}
 
 		applet.settings.forEach((cmd,i) => {
             if(typeof cmd === 'object') {
@@ -1859,7 +1861,7 @@ else {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
+			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
@@ -1886,6 +1888,7 @@ else {
 				}
 			}, loadTime)
 		}
+	}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
@@ -2096,29 +2099,37 @@ else {
 			let usedNames = []
 
 			returnedStates.forEach(str => {
+
 				const strArr = str.split('_')
-
-				if (!usedNames.includes(strArr[usernameInd])) {
-					usedNames.push(strArr[usernameInd])
-					arr.push({ username: strArr[usernameInd] })
-				}
-
-				arr.find(o => {
-					let prop = strArr.slice(propInd).join('_') // Other User Data
-					if (o.username === strArr[usernameInd]) {
-
-						// Plugin Format
-						if (format === 'plugin'){
-							o.data = this.state.data[str].data
-							o.meta = this.state.data[str].meta
-						} 
-						
-						// Default Format
-						else {
-							o[prop] = this.state.data[str]
-						}
+				const username = strArr[usernameInd]
+				if (username != this.info.auth.username){ // Ignore yourself in state
+					if (!usedNames.includes(username)) {
+						usedNames.push(username)
+						arr.push({ username })
 					}
-				})
+
+					arr.find(o => {
+						let prop = strArr.slice(propInd).join('_') // Other User Data
+						if (o.username === username) {
+
+							// Plugin Format
+							if (format === 'plugin'){
+								if (Array.isArray(this.state.data[str])){
+									o.data = this.state.data[str][0].data
+									o.meta = this.state.data[str][0].meta
+								} else {
+									let u = arr.splice(arr.length - 1,1)
+									console.error('Misformatted data for user ' + u.username)
+								}
+							} 
+							
+							// Default Format
+							else {
+								o[prop] = this.state.data[str]
+							}
+						}
+					})
+				}
 			})
 
 			let i = arr.length
@@ -2127,8 +2138,13 @@ else {
 
 				// Plugin Format
 				if (format === 'plugin'){
-					arr[i].data = this.state.data[prop].data
-					arr[i].meta = this.state.data[prop].meta
+					if (Array.isArray(this.state.data[prop])){
+						arr[i].data = this.state.data[prop][0].data
+						arr[i].meta = this.state.data[prop][0].meta
+					} else {
+						let u = arr.splice(arr.length - 1,1)
+						console.error('Misformatted data for user ' + u.username)
+					}
 				} 
 				
 				// Default Format
@@ -2502,6 +2518,7 @@ class streamSession {
 			userData: {}
 		}
 		if (this.info.streaming === true && this.socket.readyState === 1) {
+
 			this.deviceStreams.forEach((d) => {
 				if (this.info.nDevices < this.deviceStreams.length) {
 					if (!streamObj.userData.devices) streamObj.userData.devices = [];
@@ -2522,7 +2539,6 @@ class streamSession {
 			Object.assign(streamObj.userData, this.getDataForSocket(undefined, this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 
-			// console.log(this.info)
 			if (this.info.subscriptions.length > 0){ // Only stream if subscription is established
 				if (Object.keys(streamObj.userData).length > 0) {
 					this.socket.send(JSON.stringify(streamObj));

@@ -3,27 +3,45 @@ import {ObjectListener} from './ObjectListener'
 //By Joshua Brewster (MIT)
 
 /* 
-const htmlprops;
+const htmlprops = {
+  id:'template1'
+};
 
-function templateStringGen(props) {
+function templateStringGen(props) { //write your html in a template string
     return `
-    <div id=`+props.id+`>Clickme</div>
+    <div id=${props.id}>Clickme</div>
     `;
 }
 
-function onRender() {
-    document.getElementById(htmlprops.id).onclick = () => { document.getElementById(htmlprops.id).innerHTML = "Clicked!"; }
+function onRender(props) { //setup html
+    document.getElementById(props.id).onclick = () => { 
+      document.getElementById(props.id).innerHTML = "Clicked!"; 
+    }
 }
 
-function onChange() {
-  console.log('props changed!');
+function onchange(props) { //optional if you want to be able to auto-update the html with changes to the properties, not recommended if you only want to update single divs
+  console.log('props changed!', props);
 }
 
-const fragment = new DOMFragment(templateStringGen,document.body,htmlprops,onRender,onChange,"NEVER"); 
-//Renders a static DOM fragment to the given parent node. 
-// Change propUpdateInterval to "FRAMERATE" or any millisecond value and add an 
-// onchange function to have the html re-render when the props update and have an 
-// additional function fire.
+function ondelete(props) { //called before the node is deleted, use to clean up animation loops and event listeners
+}
+
+function onresize() { //adds a resize listener to the window, this is automatically cleaned up when you delete the node.
+}
+
+const fragment = new DOMFragment(
+                        templateStringGen,
+                        document.body,
+                        htmlprops,
+                        onRender,
+                        undefined, //onchange
+                        "NEVER", //"FRAMERATE" //1000
+                        ondelete,
+                        onresize
+                      ); 
+                      
+//... later ...
+fragment.deleteNode(); //deletes the rendered fragment if you are done with it.
 
 */
 
@@ -35,14 +53,18 @@ export class DOMFragment {
      * @description Create a DOM fragment.
      * @param {function} templateStringGen - Function to generate template string.
      * @param {HTMLElement} parentNode HTML DOM node to append fragment into.
-     * @param {callback} onRender Callback when element is rendered.
+     * @param {callback} onRender Callback when element is rendered. Use to setup html logic via js
      * @param {callback} onchange Callback when element is changed.
      * @param {int} propUpdateInterval How often to update properties.
+     * @param {callback} ondelete Called just before the node is deleted (e.g. to clean up animations)
+     * @param {callback} onresize Called on window resize, leave undefined to not create resize events
      */
-    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER") {
+    constructor(templateStringGen=this.templateStringGen, parentNode=document.body, props={}, onRender=(props)=>{}, onchange=(props)=>{}, propUpdateInterval="NEVER", ondelete=(props)=>{}, onresize=undefined) {
         this.onRender = onRender;
         this.onchange = onchange;
-        
+        this.ondelete = ondelete;
+        this.onresize = onresize;
+
         this.parentNode = parentNode;
         if(typeof parentNode === "string") {
             this.parentNode = document.getElementById(parentNode);
@@ -51,6 +73,7 @@ export class DOMFragment {
             templateStringGen: templateStringGen,
             props: props
         }
+        this.props = this.renderSettings.props;
         this.templateString = ``;
         if(typeof templateStringGen === 'function') {
             this.templateString = templateStringGen(props);
@@ -96,11 +119,19 @@ export class DOMFragment {
         }
       
         this.renderNode();
+
     }
 
+    //called after a change in props are detected if interval is not set to "NEVER"
     onchange = (props=this.renderSettings.props) => {}
 
+    //called after the html is rendered
     onRender = (props=this.renderSettings.props) => {}
+
+    //called BEFORE the node is removed
+    ondelete = (props=this.renderSettings.props) => {}
+
+    onresize = undefined  //define resizing function
 
     //appendId is the element Id you want to append this fragment to
     appendFragment(HTMLtoAppend, parentNode) {
@@ -113,6 +144,7 @@ export class DOMFragment {
   
     //delete selected fragment. Will delete the most recent fragment if Ids are shared.
     deleteFragment(parentNode,nodeId) {
+        this.ondelete(this.renderSettings.props); //called BEFORE the node is removed
         var node = document.getElementById(nodeId);
         parentNode.removeChild(node);
     }
@@ -120,6 +152,10 @@ export class DOMFragment {
     //Remove Element Parent By Element Id (for those pesky anonymous child fragment containers)
     removeParent(elementId) {
         // Removes an element from the document
+        if(typeof this.onresize === 'function') {
+            this.removeNodeResizing();
+        }
+        this.ondelete(this.renderSettings.props);
         var element = document.getElementById(elementId);
         element.parentNode.parentNode.removeChild(element.parentNode);
     }
@@ -127,6 +163,31 @@ export class DOMFragment {
     renderNode(parentNode=this.parentNode){
         this.node = this.appendFragment(this.templateString,parentNode);
         this.onRender(this.renderSettings.props);
+        if(typeof this.onresize === 'function') {
+            this.setNodeResizing();
+        }
+    }
+
+    setNodeResizing() {
+        if(typeof this.onresize === 'function') {
+            if(window.attachEvent) {
+                window.attachEvent('onresize', this.onresize);
+            }
+            else if(window.addEventListener) {
+                window.addEventListener('resize', this.onresize, true);
+            }
+        }
+    }
+
+    removeNodeResizing() {
+        if(typeof this.onresize === 'function') {
+            if(window.detachEvent) {
+                window.detachEvent('onresize', this.onresize);
+            }
+            else if(window.removeEventListener) {
+                window.removeEventListener('resize', this.onresize, true);
+            }
+        }
     }
 
     updateNode(parentNode=this.parentNode, node=this.node, props=this.props){
@@ -141,12 +202,17 @@ export class DOMFragment {
     }
 
     deleteNode(node=this.node) {
+        if(typeof this.onresize === 'function') {
+            this.removeNodeResizing();
+        }
         if(typeof node === "string"){
+            this.ondelete(this.renderSettings.props);
             thisNode = document.getElementById(node);
             thisNode.parentNode.removeChild(thisNode);
             this.node = null;
         }
         else if(typeof node === "object"){
+            this.ondelete(this.renderSettings.props);
             node.parentNode.removeChild(node);
             this.node = null;
         }
