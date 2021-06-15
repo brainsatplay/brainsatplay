@@ -1,6 +1,6 @@
 {
   "name": "brainsatplay",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",

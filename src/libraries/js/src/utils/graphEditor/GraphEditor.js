@@ -2,6 +2,7 @@ import {Graph} from './Graph'
 import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
 import  {plugins} from '../../../brainsatplay'
+import { ProjectCompiler } from '../ProjectCompiler'
 
 export class GraphEditor{
     constructor(manager, applet, parentNode) {
@@ -54,6 +55,9 @@ export class GraphEditor{
                                     </div>
                                 </div>
                             </div>
+                            <div class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding: 10px;">
+                                <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
+                            </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
                                 <button id="${this.props.id}add" class="brainsatplay-default-button">+</button>
@@ -87,6 +91,15 @@ export class GraphEditor{
                 document.getElementById(`${this.props.id}edit`).style.display = 'none'
                 document.getElementById(`${this.props.id}delete`).style.display = 'none'
 
+                let download = document.getElementById(`${this.props.id}download`)
+                download.onclick = () => {
+                    let compiler = new ProjectCompiler()
+                    // this.customPlugins.forEach(c => {
+                    //     compiler.addClass(c)
+                    // })
+                    compiler.add(this.app)
+                    compiler.download()
+                }
 
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
                 document.getElementById(`${this.props.id}name`).value = applet.info.name
@@ -334,17 +347,24 @@ export class GraphEditor{
                     input = document.createElement('input')
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
-                } else if (defaultType === 'number' && 'min' in plugin.paramOptions[key] && 'max' in plugin.paramOptions[key]){
-                    input = document.createElement('input')
-                    input.type = 'range'
-                    input.min = plugin.paramOptions[key].min
-                    input.max = plugin.paramOptions[key].max
-                    input.value = plugin.params[key]
-                    if (plugin.paramOptions[key].step) input.step = plugin.paramOptions[key].step
-                    let output = document.createElement('output')
-                    inputContainer.insertAdjacentElement('afterbegin',output)
-                    output.innerHTML = input.value
-                    input.addEventListener('input', (e) => {output.innerHTML = input.value}, false)
+                } else if (defaultType === 'number'){
+                    console.log(key)
+                    if ('min' in plugin.paramOptions[key] && 'max' in plugin.paramOptions[key]){
+                        input = document.createElement('input')
+                        input.type = 'range'
+                        input.min = plugin.paramOptions[key].min
+                        input.max = plugin.paramOptions[key].max
+                        input.value = plugin.params[key]
+                        if (plugin.paramOptions[key].step) input.step = plugin.paramOptions[key].step
+                        let output = document.createElement('output')
+                        inputContainer.insertAdjacentElement('afterbegin',output)
+                        output.innerHTML = input.value
+                        input.addEventListener('input', (e) => {output.innerHTML = input.value}, false)
+                    } else {
+                        input = document.createElement('input')
+                        input.type = 'number'
+                        input.value = plugin.params[key]
+                    }
                 } else {
                     input = document.createElement('input')
                     input.type = 'text'
