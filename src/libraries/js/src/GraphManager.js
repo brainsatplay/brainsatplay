@@ -30,6 +30,7 @@ export class GraphManager{
         this.state = new StateManager()
 
         // Create GUI
+        this.settings.gui = false
         if (this.settings.gui === true){
             this.gui = new GUI({ autoPlace: false });
             document.body.innerHTML += `<div id="brainsatplay-plugin-gui" class='guiContainer'></div>`
@@ -122,7 +123,7 @@ export class GraphManager{
         let nodeInfo = applet.nodes[label]
         this.removeMatchingEdges(appId, label)
         nodeInfo.instance.deinit()
-        nodeInfo.fragment.deleteNode()
+        if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
         delete this.applets[appId].nodes[label]
     }
 
@@ -322,20 +323,23 @@ export class GraphManager{
                 }
             })
             if (paramKeys.length > 0 && toShow){
-            if (!Object.keys(this.gui.__folders).includes(node.label)){
 
-                if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
+            if (this.gui){
+                if (!Object.keys(this.gui.__folders).includes(node.label)){
 
-                this.gui.addFolder(node.label);
-                this.registry.local[node.label].gui[node.label] = []
+                    if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
 
-                // Capitalize Display Name
-                let splitName = node.label.split('_')
-                splitName = splitName.map(str => str[0].toUpperCase() + str.slice(1))
-                let folderName = splitName.join(' ')
-                this.gui.__folders[node.label].name = folderName
+                    this.gui.addFolder(node.label);
+                    this.registry.local[node.label].gui[node.label] = []
+
+                    // Capitalize Display Name
+                    let splitName = node.label.split('_')
+                    splitName = splitName.map(str => str[0].toUpperCase() + str.slice(1))
+                    let folderName = splitName.join(' ')
+                    this.gui.__folders[node.label].name = folderName
+                }
+                paramsMenu = this.gui.__folders[node.label]
             }
-            paramsMenu = this.gui.__folders[node.label]
         }
 
         for (let param in node.paramOptions){
@@ -501,6 +505,9 @@ export class GraphManager{
      }
 
     remove(appId, classId=null, label=null){
+
+        console.log(appId,classId,label)
+
         let applet = this.applets[appId]
 
         if (applet) {
@@ -523,25 +530,29 @@ export class GraphManager{
                 if (this.registry.local[label].count == 0) {
 
                     // Remove GUI
-                    for (let fname in this.registry.local[label].gui){
-                        let folder = this.registry.local[label].gui[fname]
-                        folder.forEach(o => {
-                            o.remove()
-                        })
+                    if (this.gui){
+                        for (let fname in this.registry.local[label].gui){
+                            let folder = this.registry.local[label].gui[fname]
+                            folder.forEach(o => {
+                                o.remove()
+                            })
 
-                        let guiFolder = this.gui.__folders[fname]
-                        guiFolder.close();
-                        this.gui.__ul.removeChild(guiFolder.domElement.parentNode);
-                        delete this.gui.__folders[fname];
-                    }
+                            let guiFolder = this.gui.__folders[fname]
+                            guiFolder.close();
+                            this.gui.__ul.removeChild(guiFolder.domElement.parentNode);
+                            delete this.gui.__folders[fname];
+                        }
 
-                    // Hide GUI When Not Required
-                    if (Object.keys(this.gui.__folders).length === 0){
-                        if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
+                        // Hide GUI When Not Required
+                        if (Object.keys(this.gui.__folders).length === 0){
+                            if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
+                        }
                     }
 
                     // Remove All Edges
+                    delete applet.classInstances[classId][label]
                     delete this.registry.local[label]
+                    
                     openPorts.forEach(p => {
                         this.session.removeStreaming(p);
                         this.session.removeStreaming(p, null, this.state, true);

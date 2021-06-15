@@ -27,7 +27,7 @@ export class AlphaBattleApplet {
 
          //-------Required Multiplayer Properties------- 
         this.subtitle = 'A Simple Fighting Game'
-        this.streams = ['defense', 'keysPressed','position', 'fireballs', 'health']
+        this.graph.streams = ['defense', 'keysPressed','position', 'fireballs', 'health']
         //----------------------------------------------
 
 

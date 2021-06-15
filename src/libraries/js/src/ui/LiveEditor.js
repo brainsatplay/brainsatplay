@@ -41,6 +41,7 @@ export class LiveEditor {
                 this._updateSettings(settings)
         
                 this.init();
+                this.onOpen()
             } else {
                 console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
@@ -79,6 +80,7 @@ export class LiveEditor {
                         <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
+                        <button id='${this.props.id}close' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Close</button>
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
@@ -95,12 +97,17 @@ export class LiveEditor {
 
             this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
+            let close = document.getElementById(`${this.props.id}close`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
             /* 
             
                 Declare Events
 
             */
+
+           close.onclick = () => {
+               this.onClose()
+           }
 
             reset.onclick = () => {
                 if (this.props.language === 'javascript'){
@@ -222,16 +229,43 @@ export class LiveEditor {
             this.onSave = settings.onSave
         }
 
+        if (settings.onOpen){
+            this.onOpen = settings.onOpen
+        }
+
+        if (settings.onOpen){
+            this.onClose = settings.onClose
+        }
+
+
         // For JS Editor
         this.function = settings.function;
 
         // For All Editors
         this.target = settings.target; //e.g. this.session.atlas
         if (this.props.language === 'javascript'){
-            if (typeof this.target === 'object' && this.target !== null && this.function !== null){
+
+            // Handle Specific Functions (from target)
+            if (typeof this.target === 'object' && this.target != null && this.function != null){
                 this.head = this.getFunctionHead(this.target[this.function]);
                 this.body = this.getFunctionBody(this.target[this.function]);
                 this.copy = this.target[this.function].toString();
+            } 
+
+            // Handle Whole Classes
+            else if (this.function == null && this.target instanceof Object) {
+                this.head = this.target.constructor.name;
+                let properties = Object.getOwnPropertyNames( this.target )
+
+                this.body = ''
+                properties.forEach(k => {
+                    let prop = this.target[k]
+                    // if (prop instanceof Function)
+                    // console.log(prop, prop instanceof Object)
+                    // if (prop instanceof Object) prop = JSON.stringify(prop)
+                    this.body += `${k} = ${prop}\n\n`
+                })
+                this.copy = this.body
             } else {
                 console.warn('settings file is improperly configured...')
             }
@@ -265,6 +299,8 @@ export class LiveEditor {
     }
 
     onSave = () => {} // Can be set by user
+    onOpen = () => {}
+    onClose= () => {}
 
     //Get the text inside of a function (regular or arrow);
     getFunctionBody = (method) => {

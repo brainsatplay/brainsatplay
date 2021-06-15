@@ -81,6 +81,12 @@ export class Application{
 
                 let appInfo = this.session.startApp(this.props.id, this.sessionId)
                 this.editor = this.session.graph.edit(this, this.parentNode)
+
+                // Resize All Nodes
+                for (let k in this.graph.nodes) {
+                    if (this.graph.nodes[k].fragment && this.graph.nodes[k].fragment.onresize instanceof Function)
+                    this.graph.nodes[k].fragment.onresize()         
+                }
             })
             
             settings.forEach((cmd,i) => {});
@@ -96,16 +102,16 @@ export class Application{
 
             let ui = n.ui
             if (ui){
-            n.fragment = new DOMFragment( // Fast HTML rendering container object
-                ui.HTMLtemplate, //Define the html template string or function with properties
-                document.getElementById(`${this.props.id}`),    //Define where to append to (use the parentNode)
-                this.props,         //Reference to the HTML render properties (optional)
-                ui.setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-                undefined,          //Can have an onchange function fire when properties change
-                "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
-                undefined, // deinit
-                ui.responsive // responsive
-            )
+                n.fragment = new DOMFragment( // Fast HTML rendering container object
+                    ui.HTMLtemplate, //Define the html template string or function with properties
+                    document.getElementById(`${this.props.id}`),    //Define where to append to (use the parentNode)
+                    this.props,         //Reference to the HTML render properties (optional)
+                    ui.setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+                    undefined,          //Can have an onchange function fire when properties change
+                    "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+                    undefined, // deinit
+                    ui.responsive // responsive
+                )
             }
         }
 }
