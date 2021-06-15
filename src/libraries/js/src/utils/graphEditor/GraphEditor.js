@@ -2,11 +2,11 @@ import {Graph} from './Graph'
 import { DOMFragment } from '../../ui/DOMFragment'
 import  {plugins} from '../../../brainsatplay'
 
-export class NodeEditor{
+export class GraphEditor{
     constructor(manager, applet, parentNode) {
         this.manager = manager
-        this.app = applet.props.id
-        this.plugins = this.manager.applets[this.app]
+        this.app = applet
+        this.plugins = this.manager.applets[this.app.props.id]
         this.parentNode = parentNode
         this.element = null
         this.graph=null
@@ -20,10 +20,10 @@ export class NodeEditor{
         if (this.plugins){
             let template = () => {
                 return `
-                <div id="${this.props.id}nodeEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
+                <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
                     <div id="${this.props.id}nodeViewer" class="brainsatplay-node-viewer">
                     </div>
-                    <div id="${this.props.id}nodeEditor" class="brainsatplay-node-sidebar">
+                    <div id="${this.props.id}GraphEditor" class="brainsatplay-node-sidebar">
                         <div >
                             <div class='node-sidebar-header'>
                                 <h4>Project Info</h4>
@@ -63,7 +63,7 @@ export class NodeEditor{
             }
     
             let setup = () => {
-                let container = document.getElementById(`${this.props.id}nodeEditorMask`)
+                let container = document.getElementById(`${this.props.id}GraphEditorMask`)
                 let viewer = document.getElementById(`${this.props.id}nodeViewer`)
                 document.getElementById(`${this.props.id}name`).value = applet.info.name
                 document.getElementById(`${this.props.id}author`).value = applet.info.author
@@ -148,7 +148,7 @@ export class NodeEditor{
 
     removeEdge(e, ignoreManager=false){
         this.graph.removeEdge(e)
-        if (!ignoreManager) this.manager.removeEdge(this.app, e.structure)
+        if (!ignoreManager) this.manager.removeEdge(this.app.props.id, e.structure)
     }
 
 
@@ -201,12 +201,13 @@ export class NodeEditor{
     }
 
     addEdge(e){
-        this.manager.addEdge(this.app,e)
+        this.manager.addEdge(this.app.props.id,e)
         this.graph.addEdge(e)
     }
 
     addNode(cls){
-        let nodeInfo = this.manager.addNode(this.app, {class:cls})
+        let nodeInfo = this.manager.addNode(this.app.props.id, {class:cls})
+        this.app.insertInterface(nodeInfo)
         this.graph.addNode(nodeInfo)
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
@@ -257,12 +258,12 @@ export class NodeEditor{
     }
 
     removeNode = (nodeInfo) => {
-        this.manager.remove(this.app, nodeInfo.class.id, nodeInfo.instance.label)
+        this.manager.remove(this.app.props.id, nodeInfo.class.id, nodeInfo.instance.label)
         this.graph.removeNode(nodeInfo)
     }
  
 
-    createPluginSearch(container){
+    createPluginSearch = (container) => {
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
         selector.classList.add(`brainsatplay-node-selector`)
@@ -296,8 +297,17 @@ export class NodeEditor{
             })
         }
 
-        for (let type in plugins){
-            let nodeType = plugins[type]
+        let pluginRegistry = Object.assign({}, plugins)
+        pluginRegistry['custom'] = {}
+        for (let key in this.plugins.nodes) {
+            let o = this.plugins.nodes[key]
+            pluginRegistry['custom'][o.class.id] = o.class
+        }
+
+        let usedClasses = []
+
+        for (let type in pluginRegistry){
+            let nodeType = pluginRegistry[type]
 
             options.insertAdjacentHTML('beforeend',`
             <div class="nodetype-${type}">
@@ -307,33 +317,37 @@ export class NodeEditor{
             let selectedType = options.getElementsByClassName(`nodetype-${type}`)[0]
 
             for (let key in nodeType){
-                let cls = plugins[type][key]
-                // let element = document.createElement('div')
-                // element.classList.add(`brainsatplay-default-node-div`)
-                let label = `${type}.${cls.name}`
+                let cls = pluginRegistry[type][key]
 
-                let element = document.createElement('div')
-                element.classList.add("brainsatplay-option-node")
-                element.innerHTML = `<p>${label}</p>`
+                if (!usedClasses.includes(cls.id)){
+                    // let element = document.createElement('div')
+                    // element.classList.add(`brainsatplay-default-node-div`)
+                    let label = `${type}.${cls.name}`
 
-                element.onclick = () => {
+                    let element = document.createElement('div')
+                    element.classList.add("brainsatplay-option-node")
+                    element.innerHTML = `<p>${label}</p>`
 
-                    // Add Node to Manager
-                    this.addNode(cls)
+                    element.onclick = () => {
 
-                    // Close Selector
-                    var event = new MouseEvent('dblclick', {
-                        'view': window,
-                        'bubbles': true,
-                        'cancelable': true
-                    });
-                    container.dispatchEvent(event);
+                        // Add Node to Manager
+                        this.addNode(cls)
+
+                        // Close Selector
+                        var event = new MouseEvent('dblclick', {
+                            'view': window,
+                            'bubbles': true,
+                            'cancelable': true
+                        });
+                        container.dispatchEvent(event);
+                    }
+
+                    // element.insertAdjacentElement('beforeend',labelDiv)
+                    selectedType.insertAdjacentElement('beforeend',element)
+
+                    searchOptions.push({label, element})
+                    usedClasses.push(cls.id)
                 }
-
-                // element.insertAdjacentElement('beforeend',labelDiv)
-                selectedType.insertAdjacentElement('beforeend',element)
-
-                searchOptions.push({label, element})
             }
         }
 

@@ -1,12 +1,12 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-import {NodeEditor} from './utils/nodeEditor/NodeEditor'
+import {GraphEditor} from './utils/graphEditor/GraphEditor'
 import  {plugins} from '../brainsatplay'
 import { Session } from './Session'
 
 import { GUI } from 'dat.gui'
 
-export class PluginManager{
+export class GraphManager{
     constructor(session, settings = {gui: true}){
         this.session = session
 
@@ -122,6 +122,7 @@ export class PluginManager{
         let nodeInfo = applet.nodes[label]
         this.removeMatchingEdges(appId, label)
         nodeInfo.instance.deinit()
+        nodeInfo.fragment.deleteNode()
         delete this.applets[appId].nodes[label]
     }
 
@@ -130,6 +131,7 @@ export class PluginManager{
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = String(Math.floor(Math.random()*1000000))
         if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
+        
         let instance,controls;
         if (this.applets[appId].nodes[nodeInfo.id] == null){
             this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
@@ -173,11 +175,9 @@ export class PluginManager{
                     }
                 }
 
-                // Add UI Components
+                // Add UI Components to Registries
                 if (ui.HTMLtemplate instanceof Function) ui.HTMLtemplate = ui.HTMLtemplate()
-                applet.uiParams.HTMLtemplate += ui.HTMLtemplate
-                applet.uiParams.setupHTML.push(ui.setupHTML)
-                applet.uiParams.responsive.push(ui.responsive)
+                nodeInfo.ui = ui
             }
         
         // Add Node to Registry
@@ -193,6 +193,7 @@ export class PluginManager{
         applet.classInstances[nodeInfo.class.id][node.label] = []
         this.registry.local[node.label].count++
 
+        // Add Params to GUI
         this.addToGUI(nodeInfo)
 
         return nodeInfo
@@ -403,14 +404,7 @@ export class PluginManager{
         }
 
         let applet =  this.applets[id]
-
-        // Track UI Setup Variables
-        applet.uiParams = {
-            HTMLtemplate: '',
-            setupHTML: [],
-            responsive: [],
-        }
-
+        
         // Create Nodes
         graph.nodes.forEach((nodeInfo,i) => {
             this.addNode(id,nodeInfo)
@@ -509,7 +503,9 @@ export class PluginManager{
     remove(appId, classId=null, label=null){
         let applet = this.applets[appId]
 
-        let classInstances = (classId != null) ? [classId] : Object.keys(classInstances)
+        if (applet) {
+
+        let classInstances = (classId != null) ? [classId] : Object.keys(applet.classInstances)
 
         // Remove Listeners
         classInstances.forEach(classId => {
@@ -566,6 +562,7 @@ export class PluginManager{
             if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }
+    }
     }
 
     removeMatchingEdges(id, label){
@@ -675,7 +672,7 @@ export class PluginManager{
     // Create a Node Editor
     edit(applet, parentNode = document.body, onsuccess = () => { }){
         if (this.applets[applet.props.id]){
-            this.applets[applet.props.id].editor = new NodeEditor(this, applet, parentNode, onsuccess)
+            this.applets[applet.props.id].editor = new GraphEditor(this, applet, parentNode, onsuccess)
             return this.applets[applet.props.id].editor
         }
     }

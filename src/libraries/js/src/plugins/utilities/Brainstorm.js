@@ -19,7 +19,7 @@ export class Brainstorm{
     deinit = () => {}
 
     default = (userData) => {
-        let returned = this.session.graphs.runSafe(this,'get',userData)
+        let returned = this.session.graph.runSafe(this,'get',userData)
         return returned
     }
 

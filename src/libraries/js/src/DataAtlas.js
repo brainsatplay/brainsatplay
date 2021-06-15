@@ -4,7 +4,7 @@
 import { StateManager } from "./ui/StateManager";
 
 import { WorkerManager } from "./Workers"
-import { PluginManager } from "./PluginManager"
+import { GraphManager } from "./GraphManager"
 
 import { Blink } from "./plugins/algorithms/Blink"
 
@@ -40,8 +40,8 @@ export class DataAtlas {
 			id: String(Math.floor(Math.random()*1000000))
 		}
 		
-		this.graphs = new PluginManager({atlas: this}, {gui: false})
-		this.graphs.init(this.props.id, 'DataAtlas', 
+		this.graph = new GraphManager({atlas: this}, {gui: false})
+		this.graph.init(this.props.id, 'DataAtlas', 
 			{
 				nodes: [
 					{id: 'blink', class: Blink},
@@ -754,9 +754,9 @@ export class DataAtlas {
 
 	// Check whether the user is blinking
 	getBlink = (params = {}) => {
-		let node = this.graphs.getNode(this.props.id, 'blink')
-		this.graphs.updateParams(node, params)
-		let blink = this.graphs.runSafe(node,'default', [{data: this.data, meta: {}}])
+		let node = this.graph.getNode(this.props.id, 'blink')
+		this.graph.updateParams(node, params)
+		let blink = this.graph.runSafe(node,'default', [{data: this.data, meta: {}}])
 		return blink[0].data
 	}
 

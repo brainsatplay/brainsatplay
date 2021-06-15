@@ -36,7 +36,7 @@ class UI{
 
 
         let setupHTML = () => {
-            this.session.graphs.runSafe(this,'readout',[{data: false, meta: {label: 'User States'}}])
+            this.session.graph.runSafe(this,'readout',[{data: false, meta: {label: 'User States'}}])
         }
 
         return {HTMLtemplate, setupHTML}

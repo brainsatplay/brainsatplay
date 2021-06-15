@@ -22,17 +22,17 @@ export class DataManager{
 
     init = () => {
         if (this.ports.latest.active){
-            this.session.graphs.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
+            this.session.graph.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
         }
         if (this.ports.fitbit.active){
-            this.session.graphs.runSafe(this,'fitbit',[{data: true, meta: `${this.label}_init`}])
+            this.session.graph.runSafe(this,'fitbit',[{data: true, meta: `${this.label}_init`}])
         }
     }
 
     deinit = () => {}
 
     default = (userData) => {
-        this.session.atlas.graphs.runSafe(this,'log', userData)
+        this.session.atlas.graph.runSafe(this,'log', userData)
     }
 
     log = (userData) => {

@@ -72,7 +72,7 @@ class Plot{
             let animate = () => {
                 if (this.params.mode != prevState){
                     Plotly.purge(this.props.container)
-                    this.session.graphs.runSafe(this,'default',this.props.userData)
+                    this.session.graph.runSafe(this,'default',this.props.userData)
                     prevState = this.props.mode
                 }
                 setTimeout(animate, 1000/2)

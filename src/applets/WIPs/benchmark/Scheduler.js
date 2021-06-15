@@ -108,7 +108,7 @@ export class Scheduler{
 
     _taskUpdate = (loop=true, forceUpdate=false) => {
 
-        let state = this.session.atlas.graphs.deeperCopy(this.states['default'])[0]
+        let state = this.session.atlas.graph.deeperCopy(this.states['default'])[0]
 
         if (this.props.currentTrial > -1){
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
@@ -124,8 +124,8 @@ export class Scheduler{
                     state.meta.state = 'Done!'
                     state.meta.stateDuration = 1
                     state.meta.stateTimeElapsed = 1
-                    this.session.atlas.graphs.runSafe(this,'state',[state])
-                    this.session.atlas.graphs.runSafe(this,'done',[state])
+                    this.session.atlas.graph.runSafe(this,'state',[state])
+                    this.session.atlas.graph.runSafe(this,'done',[state])
                 }
             } 
 
@@ -134,14 +134,14 @@ export class Scheduler{
                 state.meta.state = 'ITI'
                 state.meta.stateDuration = this.params.interTrialInterval*1000
                 this.props.iti = true
-                this.session.atlas.graphs.runSafe(this,'state',[state])
+                this.session.atlas.graph.runSafe(this,'state',[state])
             }
         } else {
             state = this._startNewTrial()
             state.meta.trialCount = this.params.trialCount
         }
 
-        this.session.atlas.graphs.runSafe(this,'default', [state])
+        this.session.atlas.graph.runSafe(this,'default', [state])
         if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -149,11 +149,11 @@ export class Scheduler{
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
-        let state = this.session.atlas.graphs.deeperCopy(this.states['default'])[0]
+        let state = this.session.atlas.graph.deeperCopy(this.states['default'])[0]
         state.data = this.props.currentTrial
         state.meta.state = this.params.trialProgression[this.props.currentTrial]
         state.meta.stateDuration = this.params.duration*1000
-        this.session.atlas.graphs.runSafe(this,'state',[state])
+        this.session.atlas.graph.runSafe(this,'state',[state])
         return state
     }
 }

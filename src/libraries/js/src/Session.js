@@ -51,7 +51,7 @@ import { DataAtlas } from './DataAtlas'
 import { deviceList } from './devices/deviceList';
 
 // Plugins
-import {PluginManager} from './PluginManager'
+import {GraphManager} from './GraphManager'
 
 // Event Router
 import { EventRouter } from './EventRouter'
@@ -119,7 +119,7 @@ export class Session {
 		this.streamObj = new streamSession(this.info);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
-		this.graphs = new PluginManager(this)
+		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
 		DataMgr = this.dataManager;
 
@@ -1257,8 +1257,8 @@ else {
 
 	// App Management
 	startApp(appId,sessionId){
-		let info = this.graphs.start(appId, sessionId)
-		this.info.apps[appId] = {streams: info.streams, controls: info.controls}
+		let info = this.graph.start(appId, sessionId)
+		this.info.apps[appId] = info
 
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
@@ -1272,11 +1272,11 @@ else {
 	}
 
 	registerApp(appId,appName,graphs){
-		return this.graphs.init(appId, appName, graphs)
+		return this.graph.init(appId, appName, graphs)
 	}
 
 	removeApp(appId){
-		let info = this.graphs.remove(appId)
+		let info = this.graph.remove(appId)
 		
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {
@@ -1865,7 +1865,7 @@ else {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
+			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
