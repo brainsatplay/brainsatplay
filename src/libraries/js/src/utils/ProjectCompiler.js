@@ -1,4 +1,4 @@
-import JSZip from 'JSZip'
+import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import  {plugins} from '../../brainsatplay'
 
