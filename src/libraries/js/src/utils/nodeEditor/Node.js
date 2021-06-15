@@ -88,39 +88,6 @@ export class Node{
                     </div>
                 `
                 portContainer.insertAdjacentElement('beforeend',portElement)
-
-
-                let controlSVG = (e) => {
-                    // console.log('moving')
-                }
-
-                let drawEdgeToPort = (e) => {
-
-                    if (e.target.classList.contains('node-port')){
-
-                        let belowStructure  = `${e.target.getAttribute('data-node')}:${e.target.getAttribute('data-port')}`
-                        let source = (s === 'source')? `${this.nodeInfo.id}:${port}` : belowStructure
-                        let target = (s === 'target')? `${this.nodeInfo.id}:${port}` : belowStructure
-
-                        let edgeStructure = {
-                            source,
-                            target
-                        }
-
-                        let edge = new Edge(edgeStructure, this.graph.nodes)
-                        edge.insert(this.parentNode)
-                    } else {
-                        // console.log('remove half-done svg')
-                    }
-                    window.removeEventListener('pointermove', controlSVG)
-                    window.removeEventListener('pointerup', drawEdgeToPort)
-                }
-
-                // Listen for clicks to draw SVG edge
-                portElement.onpointerdown = (e) => {
-                    window.addEventListener('pointermove', controlSVG)
-                    window.addEventListener('pointerup', drawEdgeToPort)
-                }
             }
 
             element.insertAdjacentElement('beforeend',portContainer)

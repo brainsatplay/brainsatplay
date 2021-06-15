@@ -1272,12 +1272,11 @@ else {
 	}
 
 	registerApp(appId,appName,graphs){
-		this.graphs.add(appId, appName, graphs)
-		return this.graphs.init(appId)
+		return this.graphs.init(appId, appName, graphs)
 	}
 
 	removeApp(appId){
-		let info = this.graphs.stop(appId)
+		let info = this.graphs.remove(appId)
 		
 		// Update Routing UI
 		this.deviceStreams.forEach(d => {

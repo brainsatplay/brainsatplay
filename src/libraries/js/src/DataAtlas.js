@@ -41,7 +41,7 @@ export class DataAtlas {
 		}
 		
 		this.graphs = new PluginManager({atlas: this}, {gui: false})
-		this.graphs.add(this.props.id, 'DataAtlas', 
+		this.graphs.init(this.props.id, 'DataAtlas', 
 			{
 				nodes: [
 					{id: 'blink', class: Blink},

@@ -117,56 +117,22 @@ export class PluginManager{
         return {instance: node, controls: controlsToBind}
     }
 
-    add(id, name, graph){
-
-        // Set Default Values for Graph
-        let streams = new Set()
-        let outputs = {}
-        let subscriptions = {
-            session: {},
-            local: {}
-        }
-        let controls = {options: [], manager: this.state}
-        let nodes = {}
-        let edges = []
-        let classInstances = {}
-
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, classInstances}
-        
-        // Add Edges
-        if (Array.isArray(graph.edges)){
-            graph.edges.forEach(e => {
-                this.applets[id].edges.push(e)
-
-                // Capture Active Ports
-                for (let k in e){
-                    let [node,port] = e[k].split(':')
-                    let nodeInfo = graph.nodes.find(o=>{
-                        if (o.id === node){
-                            return o
-                        }
-                    })
-                    if (nodeInfo.activePorts == null) nodeInfo.activePorts = new Set()
-                    if (port) nodeInfo.activePorts.add(port)
-                }
-            })
-        }
-
-        graph.nodes.forEach(nodeInfo => {
-            this.addNode(id,nodeInfo)
-        })
+    removeNode(appId,label){
+        let applet = this.applets[appId]
+        let nodeInfo = applet.nodes[label]
+        this.removeMatchingEdges(appId, label)
+        nodeInfo.instance.deinit()
+        delete this.applets[appId].nodes[label]
     }
 
     addNode(appId,nodeInfo){
 
+        // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = String(Math.floor(Math.random()*1000000))
         if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
-
         let instance,controls;
         if (this.applets[appId].nodes[nodeInfo.id] == null){
             this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
-
-            // Auto-Assign Default Port to Empty Set
             if (nodeInfo.activePorts.size == 0){
                 nodeInfo.activePorts.add('default')
             }
@@ -175,7 +141,61 @@ export class PluginManager{
             this.applets[appId].controls.options.push(...controls);
         }
 
-        if (this.applets[appId].editor) this.applets[appId].editor.addNode(this.applets[appId].nodes[nodeInfo.id])
+        // Initialize the Node
+        let applet = this.applets[appId]
+        nodeInfo.instance.stateUpdates = {}
+        nodeInfo.instance.stateUpdates.manager = this.state
+        
+            let node = nodeInfo.instance
+            let ui = node.init(nodeInfo.params)
+            if (ui != null) {
+
+                // Grab Responsive Function
+                ui.responsive = node.responsive
+
+                // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
+                var cachedSetup = ui.setupHTML;
+                ui.setupHTML = (app) => {
+                    cachedSetup(app)
+                    let defaultInput = [{}]
+                    for (let port in node.ports){
+                        let defaults = node.ports[port].defaults
+                        if (defaults){
+                            if (defaults.input){
+                                defaultInput = defaults.input
+                                defaultInput.forEach(o => {
+                                    if (o.data == null)  o.data = null
+                                    if (o.meta == null)  o.meta = {}                           
+                                })
+                                node[port](defaultInput)
+                            }
+                        }
+                    }
+                }
+
+                // Add UI Components
+                if (ui.HTMLtemplate instanceof Function) ui.HTMLtemplate = ui.HTMLtemplate()
+                applet.uiParams.HTMLtemplate += ui.HTMLtemplate
+                applet.uiParams.setupHTML.push(ui.setupHTML)
+                applet.uiParams.responsive.push(ui.responsive)
+            }
+        
+        // Add Node to Registry
+        if (this.registry.local[node.label] == null){
+            this.registry.local[node.label] = {label: node.label, count: 0, registry: {}, gui: {}}
+            for (let port in node.states){
+                this.registry.local[node.label].registry[port] = {}
+                this.registry.local[node.label].registry[port].state = node.states[port]
+                this.registry.local[node.label].registry[port].callbacks = []
+            }
+        }
+        if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
+        applet.classInstances[nodeInfo.class.id][node.label] = []
+        this.registry.local[node.label].count++
+
+        this.addToGUI(nodeInfo)
+
+        return nodeInfo
     }
 
     getNode(id,name){
@@ -287,7 +307,7 @@ export class PluginManager{
 
     addToGUI(nodeInfo){
         // Add GUI Element for Newly Created Nodes
-
+        if (this.gui){
         let node = nodeInfo.instance
 
         let paramsMenu;
@@ -344,91 +364,61 @@ export class PluginManager{
             }
         }
     }
+}
     }
 
-    init(appId){
+    init(id, name, graph){
 
-        let applet =  this.applets[appId]
+        // Set Default Values for Graph
+        let streams = new Set()
+        let outputs = {}
+        let subscriptions = {
+            session: {},
+            local: {}
+        }
+        let controls = {options: [], manager: this.state}
+        let nodes = {}
+        let edges = []
+        let classInstances = {}
+
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, classInstances}
+        
+        // Add Edges
+        if (Array.isArray(graph.edges)){
+            graph.edges.forEach(e => {
+                this.applets[id].edges.push(e)
+
+                // Capture Active Ports
+                for (let k in e){
+                    let [node,port] = e[k].split(':')
+                    let nodeInfo = graph.nodes.find(o=>{
+                        if (o.id === node){
+                            return o
+                        }
+                    })
+                    if (nodeInfo.activePorts == null) nodeInfo.activePorts = new Set()
+                    if (port) nodeInfo.activePorts.add(port)
+                }
+            })
+        }
+
+        let applet =  this.applets[id]
 
         // Track UI Setup Variables
-        let uiArray = []
         applet.uiParams = {
             HTMLtemplate: '',
             setupHTML: [],
             responsive: [],
         }
 
-        let initializedNodes = []
-
-        // Get UI Components from Nodes
-        for (let id in applet.nodes){
-
-            let node = applet.nodes[id]
-            node.instance.stateUpdates = {}
-            node.instance.stateUpdates.manager = this.state
-            
-            if (!initializedNodes.includes(node.id)){
-                let ui = node.instance.init(node.params)
-                if (ui != null) {
-
-                    // Grab Responsive Function
-                    ui.responsive = node.instance.responsive
-
-                    // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
-                    var cachedSetup = ui.setupHTML;
-                    ui.setupHTML = (app) => {
-                        cachedSetup(app)
-                        let defaultInput = [{}]
-                        for (let port in node.instance.ports){
-                            let defaults = node.instance.ports[port].defaults
-                            if (defaults){
-                                if (defaults.input){
-                                    defaultInput = defaults.input
-                                    defaultInput.forEach(o => {
-                                        if (o.data == null)  o.data = null
-                                        if (o.meta == null)  o.meta = {}                           
-                                    })
-                                    node.instance[port](defaultInput)
-                                }
-                            }
-                        }
-                    }
-
-                    // Push to UI Array
-                    uiArray.push(ui)
-                }
-                initializedNodes.push(node.id)
-            }
-        }
-
-        uiArray.forEach((o) => {
-            if (o.HTMLtemplate instanceof Function) o.HTMLtemplate = o.HTMLtemplate()
-            applet.uiParams.HTMLtemplate += o.HTMLtemplate
-            applet.uiParams.setupHTML.push(o.setupHTML)
-            applet.uiParams.responsive.push(o.responsive)
+        // Create Nodes
+        graph.nodes.forEach((nodeInfo,i) => {
+            this.addNode(id,nodeInfo)
         })
-
-        // Create All Nodes
-        for (let id in applet.nodes){
-            let nodeInfo =  applet.nodes[id]
-            let node = nodeInfo.instance
-            if (this.registry.local[node.label] == null){
-                this.registry.local[node.label] = {label: node.label, count: 0, registry: {}, gui: {}}
-                for (let port in node.states){
-                    this.registry.local[node.label].registry[port] = {}
-                    this.registry.local[node.label].registry[port].state = node.states[port]
-                    this.registry.local[node.label].registry[port].callbacks = []
-                }
-            }
-            if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
-            applet.classInstances[nodeInfo.class.id][node.label] = []
-            this.registry.local[node.label].count++
-            this.addToGUI(nodeInfo)
-        }
 
         // Create Edges
         applet.edges.forEach((e,i) => {
-            this.addEdge(appId, e, false)
+            this.addEdge(id, e, false)
         })
 
         return applet
@@ -447,6 +437,7 @@ export class PluginManager{
 
         return applet
     }
+
     addEdge = (appId, e) => {
         let applet = this.applets[appId]
         let splitSource = e.source.split(':')
@@ -515,12 +506,15 @@ export class PluginManager{
         }))
      }
 
-    stop(appId){
+    remove(appId, classId=null, label=null){
         let applet = this.applets[appId]
 
+        let classInstances = (classId != null) ? [classId] : Object.keys(classInstances)
+
         // Remove Listeners
-        Object.keys(applet.classInstances).forEach(classId => {
-            let labels = Object.keys(applet.classInstances[classId])
+        classInstances.forEach(classId => {
+
+            let labels = (label != null) ? [label] : Object.keys(applet.classInstances[classId])
 
             // Increment the Registry for Each Separate Label (of a particular class)
            
@@ -550,30 +544,39 @@ export class PluginManager{
                         if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
                     }
 
-                    // Remove Streaming
+                    // Remove All Edges
                     delete this.registry.local[label]
                     openPorts.forEach(p => {
                         this.session.removeStreaming(p);
                         this.session.removeStreaming(p, null, this.state, true);
                     })
                     this.session.removeStreaming(applet.sessionId);
-                } else {
-                    applet.edges.forEach(e => {
-                        removeEdge(appId,e)
-                    })
+
+                    // Remove Entire Node + Edges
+                    this.removeNode(appId,label)
+                } 
+                else {
+                    this.removeMatchingEdges(appId,label)
                 }
             })
         })
 
-        // Deinit Plugins
-        for (let key in this.applets[appId].nodes){
-            this.applets[appId].nodes[key].instance.deinit()
+        // // Remove Editor
+        if (Object.keys(applet.nodes).length === 0 && applet.edges.length === 0){
+            if (this.applets[appId].editor) this.applets[appId].editor.deinit()
+            delete this.applets[appId]
         }
+    }
 
-        // Remove Editor
-        if (this.applets[appId].editor) this.applets[appId].editor.deinit()
+    removeMatchingEdges(id, label){
+        let applet = this.applets[id]
 
-        delete this.applets[appId]
+        for (let i = applet.edges.length - 1; i >=0; i--) {
+            let e = applet.edges[i] 
+            if ((e.source.split(':')[0] == label) || (e.target.split(':')[0] == label)){
+                this.removeEdge(id,e)
+            }
+        }
     }
 
     removeEdge = (id, structure) => {
@@ -608,6 +611,12 @@ export class PluginManager{
                 }
             })
         }
+
+        applet.edges.forEach((e,i) => {
+            if (e === structure){
+                applet.edges.splice(i,1)
+            }
+        })
     }
 
     // Internal Methods

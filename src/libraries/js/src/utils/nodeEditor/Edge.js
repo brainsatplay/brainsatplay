@@ -12,6 +12,8 @@ export class Edge{
     if (splitTarget.length < 2) splitTarget.push('default')
     this.source = nodes[splitSource[0]]
     this.target = nodes[splitTarget[0]]
+
+    console.log(this.source, nodes)
     this.sourceNode = this.source.element.querySelector(`.source-ports`).getElementsByClassName(`port-${splitSource[1]}`)[0]
     this.targetNode = this.target.element.querySelector(`.target-ports`).getElementsByClassName(`port-${splitTarget[1]}`)[0]
     

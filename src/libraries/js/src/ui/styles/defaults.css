@@ -478,12 +478,14 @@ select {
 
 /* Node Editor */
 .brainsatplay-default-container.brainsatplay-node-editor{
-        z-index: 999;
-        opacity: 0; 
-        transition: opacity 1s;
-        pointer-events: none;
-        background: rgba(0,0,0,.7);
-        padding: 0px;
+    z-index: 999;
+    opacity: 0; 
+    transition: opacity 1s;
+    pointer-events: none;
+    background: rgba(0,0,0,.7);
+    padding: 0px;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 
@@ -504,6 +506,69 @@ select {
     height: 100%;
     position: relative;
 }
+
+.brainsatplay-node-sidebar{
+    height: 100vh;
+    position: relative;
+    max-width: 250px;
+    background: rgb(20,20,20);
+    font-size: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.brainsatplay-node-sidebar > div {
+    width: 100%;
+}
+
+.brainsatplay-node-sidebar button {
+    flex-grow: 1;
+}
+
+.node-sidebar-header{
+    background: rgb(5,5,5);
+    padding: 1px 15px;
+    user-select: none;
+}
+
+.node-sidebar-content{
+    padding: 0px 15px;
+    display: grid;
+}
+
+.node-sidebar-content > div{
+    display: grid;
+    padding: 5px; 
+    grid-template-columns: 1fr 2fr;
+    border-top: 1px solid rgb(5,5,5);
+    border-bottom: 1px solid rgb(5,5,5);
+    width: 100%;
+}
+
+.node-sidebar-content > div > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-sidebar-content > div > div > input{
+    background: black;
+    color: white;
+    padding: 5px;
+    border: none;
+    font-size: 80%;
+    width: 100%;
+}
+
+.brainsatplay-node-sidebar > h3 {
+    margin: 5px 0px;
+}
+
+.brainsatplay-node-sidebar > p {
+    margin: 5px 0px;
+}
+
 
 .brainsatplay-node{
     position: absolute;
@@ -553,6 +618,11 @@ select {
     z-index: initial;
     padding: 12px;
     box-sizing: content-box;
+    transition: box-shadow 0.5s;
+}
+
+.brainsatplay-default-node-div > .brainsatplay-display-node.clicked {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 50px rgba(255, 255, 255, 0.6);
 }
 
 .brainsatplay-display-node > .node-text {
@@ -610,6 +680,7 @@ select {
     position: absolute;
     z-index: 10;
     pointer-events: none;
+    user-select: none;
     /* background:rgba(0, 0, 0, 0.5);
     padding: 5px; */
 }
