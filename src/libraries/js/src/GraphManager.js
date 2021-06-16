@@ -40,6 +40,8 @@ export class GraphManager{
     }
 
     instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
+
+        console.log(nodeInfo.class)
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
 

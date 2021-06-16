@@ -138,6 +138,7 @@ export class Edge{
     this[t].updateAllEdges(this)
   })
 
+  // Resolve if both source and target are selected
   if (Object.keys(this.structure).length === 2) resolve(true)
 
 })
