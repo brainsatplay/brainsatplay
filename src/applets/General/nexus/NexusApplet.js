@@ -43,7 +43,9 @@ export class NexusApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = 'Neurofeedback + Group Meditation'
-        this.graph.streams = ['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencescore','dynamicProps']
+        this.graph = { 
+            streams: ['eegfftbands_FP1_all','eegfftbands_FP2_all','eegfftbands_AF7_all','eegfftbands_AF8_all','frontalcoherencescore','dynamicProps']
+        }
         //----------------------------------------------
 
 
