@@ -282,20 +282,26 @@ export class GraphEditor{
 
 
     drawEdge = (p1,p2) => {
-        if (p2.classList.contains('node-port')){
-            let source = `${p1.getAttribute('data-node')}:${p1.getAttribute('data-port')}`
-            let target  = `${p2.getAttribute('data-node')}:${p2.getAttribute('data-port')}`
-            this.addEdge({source,target})
+        let dict = {}
+        let type = Array.from(p1.parentNode.classList).find((str) => {
+            if (str.includes('-ports')) return true
+        })
+        type = type.replace('-ports','')
+
+        dict[type] = `${p1.getAttribute('data-node')}:${p1.getAttribute('data-port')}`
+        
+        if (p2 && p2.classList.contains('node-port')){
+            let otherType = (type === 'source') ? 'target' : 'source'
+            dict[otherType] = `${p2.getAttribute('data-node')}:${p2.getAttribute('data-port')}`
+            this.addEdge(dict)
         } else {
-            // console.log('remove half-done svg')
+            this.addEdge(dict)
         }
-        // window.removeEventListener('pointermove', controlSVG)
-        window.removeEventListener('pointerup', this.drawEdge)
     }
 
-    addEdge(e){
-        this.manager.addEdge(this.app.props.id,e)
-        this.graph.addEdge(e)
+    addEdge = async (e) => {
+        await this.graph.addEdge(e)
+        this.manager.addEdge(this.app.props.id,e)    
     }
 
     addNode(cls){
@@ -348,7 +354,6 @@ export class GraphEditor{
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
                 } else if (defaultType === 'number'){
-                    console.log(key)
                     if ('min' in plugin.paramOptions[key] && 'max' in plugin.paramOptions[key]){
                         input = document.createElement('input')
                         input.type = 'range'
@@ -430,8 +435,11 @@ export class GraphEditor{
         for (let portElement of portElements){
             // Listen for clicks to draw SVG edge
             portElement.onpointerdown = (e) => {
-                // window.addEventListener('pointermove', controlSVG)
-                window.addEventListener('pointerup', (e) => {this.drawEdge(portElement, e.target)})
+                this.drawEdge(portElement)
+                // let drawEdgeCallback = (e) => {
+                //     window.removeEventListener('pointerup', drawEdgeCallback)
+                // }
+                // window.addEventListener('pointerup', drawEdgeCallback)
             }
         }
     }

@@ -46,20 +46,29 @@ export class Graph{
         let types = ['source','target']
         types.forEach(t => {
             let deactivate = true
-            e[t].edges.forEach((o,i) => {
-                if (o[`${t}Node`].isSameNode(e[`${t}Node`]) && o !== e) deactivate = false // Keep Active 
-                else if (o === e) e[t].edges.splice(i,1)
-            })
-            if (deactivate) e[`${t}Node`].classList.remove('active')
+            if (e[t]){
+                e[t].edges.forEach((o,i) => {
+                    if (o[`${t}Node`].isSameNode(e[`${t}Node`]) && o !== e) deactivate = false // Keep Active 
+                    else if (o === e) e[t].edges.splice(i,1)
+                })
+                if (deactivate) e[`${t}Node`].classList.remove('active')
+            }
         })
         e.element.remove()
     }
 
-    addEdge(e){
+    addEdge = async (e) => {
+        return new Promise(async (resolve, reject) => {
         let edge = new Edge(e, this.nodes)
-        edge.insert(this.parentNode)
-        this.edges.push(edge)
-        return edge
+        let res = await edge.insert(this.parentNode)
+        if (res === true){
+            this.edges.push(edge)
+            resolve()
+        } else {
+            this.removeEdge(edge)
+            reject(res)
+        }
+    })
     }
 
 
