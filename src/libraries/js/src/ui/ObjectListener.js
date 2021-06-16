@@ -162,7 +162,7 @@ export class ObjectListener {
     remove(key=null){
         if(key === null) {
             this.listeners.forEach((listener) => {
-                listener.stop();
+                if (listener.stop instanceof Function) listener.stop();
             });
             this.listeners.splice(0,this.listeners.length);
         }

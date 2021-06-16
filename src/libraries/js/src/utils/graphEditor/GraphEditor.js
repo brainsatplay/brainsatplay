@@ -37,26 +37,11 @@ export class GraphEditor{
                             <div class='node-sidebar-header'>
                                 <h4>Settings</h4>
                             </div>
-                            <div class='node-sidebar-content'>
-                                <div>
-                                    <div>
-                                        <p>Name</p>
-                                    </div>
-                                    <div>
-                                        <input type="text" id="${this.props.id}name"></input>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div>
-                                        <p>Author</p>
-                                    </div>
-                                    <div>
-                                        <input type="text" id="${this.props.id}author"></input>
-                                    </div>
-                                </div>
+                            <div id="${this.props.id}settings" class='node-sidebar-content'>
                             </div>
                             <div class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding: 10px;">
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
+                                <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
@@ -84,7 +69,7 @@ export class GraphEditor{
                 `
             }
     
-            let setup = () => {
+            let setup = async () => {
                 this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
@@ -94,16 +79,19 @@ export class GraphEditor{
                 let download = document.getElementById(`${this.props.id}download`)
                 download.onclick = () => {
                     let compiler = new ProjectCompiler()
-                    // this.customPlugins.forEach(c => {
-                    //     compiler.addClass(c)
-                    // })
                     compiler.add(this.app)
                     compiler.download()
                 }
 
+                let reload = document.getElementById(`${this.props.id}reload`)
+                reload.onclick = () => {
+                    applet.reload()
+                }
+
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
-                document.getElementById(`${this.props.id}name`).value = applet.info.name
-                document.getElementById(`${this.props.id}author`).value = applet.info.author
+
+                // Add Settings Editor
+                this.createSettingsEditor(applet.info)
 
                 // Scale View of Graph
                 this.viewer.addEventListener('wheel', (e)=>{
@@ -128,6 +116,7 @@ export class GraphEditor{
 
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, this.viewer)
+                await this.graph.initEdges()
 
                 // Add Click Events
                 for (let key in this.graph.nodes){
@@ -136,8 +125,10 @@ export class GraphEditor{
                     this.addNodeEvents(node)
                 }
 
-                // Interact with Edges
-                this.addEdgeReactivity()
+                // Add Edge Reactivity
+                this.graph.edges.forEach(e => {
+                    this.addEdgeReactivity(e)
+                })
             }
     
             this.element = new DOMFragment(
@@ -164,13 +155,10 @@ export class GraphEditor{
         this.removeEdge(e)
     }
 
-    addEdgeReactivity = () => {
-        for (let key in this.graph.edges) {
-            let e = this.graph.edges[key]
-            e.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge(e)})
-            e.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge(e)})
-            e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
-        }
+    addEdgeReactivity = (e) => {
+        e.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge(e)})
+        e.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge(e)})
+        e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
     }
 
     createViewTabs = () => {
@@ -213,6 +201,50 @@ export class GraphEditor{
         document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
         this.responsive()
         if (allTabs.length == 0) tab.click()
+    }
+
+    createSettingsEditor(settings){
+            let settingsContainer = document.getElementById(`${this.props.id}settings`)
+            // settingsContainer.innerHTML = ''
+            Object.keys(settings).forEach(key => {
+                let restrictedKeys = ['devices', 'categories', 'instructions', 'graph', 'intro', 'display']
+                if (restrictedKeys.includes(key)){
+
+                    switch(key){
+                        case 'intro':
+                            settings.intro = {
+                                title: false
+                            }
+                            return
+                        case 'display':
+                            settings.display = {
+                                production: false
+                            }
+                            return
+                        case 'devices':
+                            // Handle internally
+                            return
+                    }
+                    
+                } else {
+                    let containerDiv = document.createElement('div')
+                    containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+                    let inputContainer = document.createElement('div')
+                    inputContainer.style.position = 'relative'    
+                    let input = document.createElement('input')
+                    input.type = 'text'
+                    input.value = settings[key]
+
+                    // Change Live Params with Input Changes
+                    input.oninput = (e) => {
+                        settings[key] = input.value
+                    }
+                    // Add to Document
+                    inputContainer.insertAdjacentElement('beforeend',input)
+                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                    settingsContainer.insertAdjacentElement('beforeend', containerDiv)
+                }
+            })
     }
 
 
@@ -300,8 +332,9 @@ export class GraphEditor{
     }
 
     addEdge = async (e) => {
-        await this.graph.addEdge(e)
-        this.manager.addEdge(this.app.props.id,e)    
+        let edge = await this.graph.addEdge(e)
+        this.addEdgeReactivity(edge) 
+        this.manager.addEdge(this.app.props.id,edge.structure)   
     }
 
     addNode(cls){
@@ -571,6 +604,7 @@ export class GraphEditor{
     }
 
     deinit(){
-        this.element.node.remove()
+        this.element.node.style.opacity = '0'
+        setTimeout(() => {this.element.node.remove()}, 500)
     }
 }

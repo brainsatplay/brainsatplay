@@ -125,9 +125,9 @@ export class Edge{
 
     this.props.types.forEach(t => {
       if (this[`${t}Node`] == null) {
-        this.mouseAsTarget(t,(e) => {
-          if (e === true) resolve(true) 
-          else resolve(e)
+        this.mouseAsTarget(t,(res) => {
+          if (res === true) resolve(true) 
+          else resolve(res)
         })
       }
     })
@@ -137,6 +137,9 @@ export class Edge{
   Object.keys(this.structure).forEach(t => {
     this[t].updateAllEdges(this)
   })
+
+  if (Object.keys(this.structure).length === 2) resolve(true)
+
 })
 }
 

@@ -486,8 +486,7 @@ export class AppletManager {
                     let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
 
                     nodeIcon.onclick = (e) => {
-                        let editor = this.session.graph.applets[appnode.classinstance.props.id].editor
-                        if (editor) editor.toggleDisplay()
+                        if (thisApplet.editor) thisApplet.editor.toggleDisplay()
                         else console.error('editor not available')
                     }
 

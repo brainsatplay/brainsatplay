@@ -6,6 +6,7 @@ export class Graph{
     constructor(graph, parentNode) {
         this.nodes = {}
         this.edges = []
+        this.edgeStructures = []
         this.parentNode = parentNode
 
         let i = 0
@@ -28,8 +29,18 @@ export class Graph{
             i++
         }
 
-        graph.edges.forEach(e => {
-            this.addEdge(e)
+        graph.edges.forEach(async e => {
+            this.edgeStructures.push(e)
+        })
+    }
+
+    initEdges = () => {
+        return new Promise(resolve => {
+            this.edgeStructures.forEach(async (e,i) => {
+                console.log('adding edge')
+                await this.addEdge(e)
+                if (i === this.edgeStructures.length - 1) resolve(this.edges)
+            })
         })
     }
     
@@ -59,16 +70,16 @@ export class Graph{
 
     addEdge = async (e) => {
         return new Promise(async (resolve, reject) => {
-        let edge = new Edge(e, this.nodes)
-        let res = await edge.insert(this.parentNode)
-        if (res === true){
-            this.edges.push(edge)
-            resolve()
-        } else {
-            this.removeEdge(edge)
-            reject(res)
-        }
-    })
+            let edge = new Edge(e, this.nodes)
+            let res = await edge.insert(this.parentNode)
+            if (res === true){
+                this.edges.push(edge)
+                resolve(edge)
+            } else {
+                this.removeEdge(edge)
+                reject(res)
+            }
+        })
     }
 
 

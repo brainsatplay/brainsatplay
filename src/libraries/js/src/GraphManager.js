@@ -443,6 +443,7 @@ export class GraphManager{
         let sourcePort = splitSource[1] ?? 'default'
         let sourceInfo = applet.nodes[sourceName]
         let source = sourceInfo.instance
+        console.log(e)
         let splitTarget = e.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1] ?? 'default'
@@ -506,8 +507,6 @@ export class GraphManager{
 
     remove(appId, classId=null, label=null){
 
-        console.log(appId,classId,label)
-
         let applet = this.applets[appId]
 
         if (applet) {
@@ -570,7 +569,7 @@ export class GraphManager{
 
         // // Remove Editor
         if (Object.keys(applet.nodes).length === 0 && applet.edges.length === 0){
-            if (this.applets[appId].editor) this.applets[appId].editor.deinit()
+            // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }
     }
