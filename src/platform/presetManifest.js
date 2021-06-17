@@ -35,6 +35,17 @@ export let presetManifest = [
         lock: false
     },
     {
+        value: 'Studio',
+        name: "Brains@Play Studio",
+        applets: [
+            'Brains@Play Studio',
+        ],
+        description: "Create your own application for Brains@Play.",
+        type: "EEG",
+        image: placeholderImg,
+        lock: false
+    },
+    {
         value: 'HEGSensorium',
         name: "HEG Sensorium",
         applets: [

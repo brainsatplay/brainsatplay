@@ -202,7 +202,6 @@ export class DOMFragment {
     }
 
     deleteNode(node=this.node) {
-        console.error(this, node)
         if(typeof this.onresize === 'function') {
             this.removeNodeResizing();
         }

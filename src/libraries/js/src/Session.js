@@ -59,6 +59,10 @@ import { EventRouter } from './EventRouter'
 // Data Manager
 import { DataManager } from './utils/DataManager'
 
+// Project Manager
+import { Application } from './Application'
+import { ProjectManager } from './utils/ProjectManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
@@ -121,9 +125,12 @@ export class Session {
 
 		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
+
 		DataMgr = this.dataManager;
 
 		if(initFS) this.initFS();
+		
+		this.projects = new ProjectManager(this.dataManager)
 	}
 
 	/**
@@ -1254,6 +1261,11 @@ else {
 
 
 	// App Management
+	initApp(settings, parentNode=document.body, session=this, config=[]){
+		return new Application(settings,parentNode,session,config)
+	}
+
+
 	startApp(appId,sessionId){
 		let info = this.graph.start(appId, sessionId)
 		this.info.apps[appId] = info

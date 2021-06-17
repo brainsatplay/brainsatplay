@@ -26,9 +26,7 @@ export class Application{
         };
     }
 
-
     init() {
-
         let info = this.session.registerApp(this.props.id, this.info.name, this.info.graph)
         this.graph = info
 
@@ -37,7 +35,6 @@ export class Application{
                 let n = this.graph.nodes[key]
                 this.insertInterface(n)
             }
-
             this.session.connectDevice()
         }
 
@@ -95,8 +92,10 @@ export class Application{
             // _runInternalFunctions(this.uiParams.responsive)
         }
     
-        configure(settings=[{}]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        configure = (settings=[{}]) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
             
+            settings.forEach((cmd,i) => {});
+
             this.session.createIntro(this, (sessionInfo) => {
                 // this.tutorialManager.init();
 
@@ -106,7 +105,16 @@ export class Application{
                 }
 
                 this.session.startApp(this.props.id, this.sessionId)
-                this.editor = this.session.graph.edit(this, this.parentNode)
+
+                if (!('editor' in this.info)){
+                    this.info.editor = {}
+                    this.info.editor.parentNode = this.parentNode
+                    this.info.editor.show = false
+                }
+
+                this.editor = this.session.graph.edit(this, this.info.editor.parentNode)
+
+                if (this.info.editor.show !== false) this.editor.toggleDisplay()
 
                 // Resize All Nodes
                 for (let k in this.graph.nodes) {
@@ -114,8 +122,6 @@ export class Application{
                     this.graph.nodes[k].fragment.onresize()         
                 }
             })
-            
-            settings.forEach((cmd,i) => {});
         }
 
         _runInternalFunctions(arr){

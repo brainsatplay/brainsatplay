@@ -4,8 +4,6 @@ import { DOMFragment } from '../../ui/DOMFragment'
 import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
 
-import { ProjectCompiler } from '../ProjectCompiler'
-
 export class GraphEditor{
     constructor(manager, applet, parentNode) {
         this.manager = manager
@@ -24,6 +22,18 @@ export class GraphEditor{
         }
     
         if (this.plugins){
+
+            // Only One Editor (look three levels up)
+            let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
+            if (!existingEditor && this.parentNode.parentNode){
+                existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            }
+            if (!existingEditor && this.parentNode.parentNode.parentNode){
+                existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            }
+            if (existingEditor) existingEditor.remove()
+            
+
             let template = () => {
                 return `
                 <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
@@ -46,6 +56,7 @@ export class GraphEditor{
                             <div class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding: 10px;">
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
+                                <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
@@ -65,7 +76,6 @@ export class GraphEditor{
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
-                        
                                 </div>
                             </div>
                     </div>
@@ -75,6 +85,26 @@ export class GraphEditor{
     
             let setup = async () => {
                 this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
+
+                // Setup Presentation Based On Settings
+                if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
+                setTimeout(() => {
+                    let toggleClass = '.brainsatplay-default-editor-toggle'
+                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
+                    if (!toggle && this.app.AppletHTML.node.parentNode){
+                        this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
+                    }
+                    if (!toggle && this.parentNode.parentNode.parentNode){
+                        this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass) 
+                    }
+
+                    if (this.app.info.editor.toggle) toggle = this.app.info.editor.toggle
+                    if (toggle) toggle.addEventListener('click', () => {
+                        this.toggleDisplay()
+                    } )
+                    else console.warn('editor not available')
+                }, 500)
+
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
                 document.getElementById(`${this.props.id}edit`).style.display = 'none'
@@ -82,9 +112,12 @@ export class GraphEditor{
 
                 let download = document.getElementById(`${this.props.id}download`)
                 download.onclick = () => {
-                    let compiler = new ProjectCompiler()
-                    compiler.add(this.app)
-                    compiler.download()
+                    this.app.session.projects.download(this.app)
+                }
+
+                let save = document.getElementById(`${this.props.id}save`)
+                save.onclick = () => {
+                    this.app.session.projects.save(this.app)
                 }
 
                 let reload = document.getElementById(`${this.props.id}reload`)
@@ -137,7 +170,7 @@ export class GraphEditor{
     
             this.element = new DOMFragment(
                 template,
-                parentNode,
+                this.parentNode,
                 undefined,
                 setup
             )
@@ -179,10 +212,7 @@ export class GraphEditor{
     }
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
-
-        console.log(id)
         let tab = document.querySelector(`[data-target="${id}"]`);
-        console.log(tab)
         if (tab == null){
             tab = document.createElement('button')
             tab.classList.add('tablinks')
@@ -217,7 +247,7 @@ export class GraphEditor{
             let settingsContainer = document.getElementById(`${this.props.id}settings`)
             // settingsContainer.innerHTML = ''
             Object.keys(settings).forEach(key => {
-                let restrictedKeys = ['devices', 'categories', 'instructions', 'graph', 'intro', 'display']
+                let restrictedKeys = ['editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
                 if (restrictedKeys.includes(key)){
 
                     switch(key){
@@ -259,15 +289,16 @@ export class GraphEditor{
 
 
     toggleDisplay(){
-        // console.log('toggling')
-        if (this.element.node.style.opacity == 0){
-            this.element.node.style.opacity = 1
-            this.element.node.style.pointerEvents = 'auto'
-            this.shown = true
-        } else {
-            this.element.node.style.opacity = 0
-            this.element.node.style.pointerEvents = 'none'
-            this.shown = false
+        if (this.element){
+            if (this.element.node.style.opacity == 0){
+                this.element.node.style.opacity = 1
+                this.element.node.style.pointerEvents = 'auto'
+                this.shown = true
+            } else {
+                this.element.node.style.opacity = 0
+                this.element.node.style.pointerEvents = 'none'
+                this.shown = false
+            }
         }
     }
 
@@ -385,7 +416,6 @@ export class GraphEditor{
                 if (optionsType == 'object' && specifiedOptions != null){
                     let options = ``
                     plugin.paramOptions[key].options.forEach(option => {
-                        console.log(option)
                         let attr = ''
                         if (option === plugin.params[key]) attr = 'selected'
                         options += `<option value="${option}" ${attr}>${option}</option>`
@@ -458,23 +488,16 @@ export class GraphEditor{
             this.addNodeOption(res.id, 'custom', res.name, () => {
                 this.addNode(res)
             })
-
-            console.log(this)
             let nodes = this.app.info.graph.nodes
             for (let node in this.plugins.nodes){
-                console.log(node)
                 if (node.instance instanceof target){
                     let properties = Object.getOwnPropertyNames( node.instance )
                     properties.forEach(k => {
-                        console.log(k)
                         node.instance[k] = res.prototype[k]
                     })
                 }
             }
             nodes.push({id: res.name, class: res, params: {}})
-            console.log(this.app.info.graph.nodes)
-
-            console.log(target)
             target = res
         }
         settings.onClose = (res) => {
@@ -483,7 +506,7 @@ export class GraphEditor{
         }
         settings.target = target
         settings.className = name
-        new LiveEditor(settings,container)
+        new LiveEdiggler(settings,container)
         this.addTab(`${name}.js`, target.id, settings.onOpen)
     }
 
@@ -648,7 +671,9 @@ export class GraphEditor{
     }
 
     deinit(){
-        this.element.node.style.opacity = '0'
-        setTimeout(() => {this.element.node.remove()}, 500)
+        if (this.element){
+            this.element.node.style.opacity = '0'
+            setTimeout(() => {this.element.node.remove()}, 500)
+        }
     }
 }

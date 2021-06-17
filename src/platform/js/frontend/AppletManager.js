@@ -382,7 +382,7 @@ export class AppletManager {
                 <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <p><strong>i</strong></p>
                 </div>
-                <div class="brainsatplay-default-node-editor" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                <div class="brainsatplay-default-editor-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <img src="${nodeSVG}" 
                     style="box-sizing: border-box; 
                     filter: invert(1);
@@ -481,13 +481,6 @@ export class AppletManager {
                                 })
                             }
                         }
-                    }
-
-                    let nodeIcon = appletDiv.querySelector('.brainsatplay-default-node-editor')
-
-                    nodeIcon.onclick = (e) => {
-                        if (thisApplet.editor) thisApplet.editor.toggleDisplay()
-                        else console.error('editor not available')
                     }
 
                     let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')
@@ -602,10 +595,11 @@ export class AppletManager {
 
 
     createInstance = (appletCls, info={}, config=[]) => {
+        let parentNode = document.getElementById("applets")
         if (appletCls === Application){
-            return new Application(info, "applets", this.session, config)
+            return new Application(info, parentNode, this.session, config)
         } else {
-            return new appletCls("applets", this.session, config)
+            return new appletCls(parentNode, this.session, config)
         }
     }
 

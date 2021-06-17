@@ -40,8 +40,6 @@ export class GraphManager{
     }
 
     instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
-
-        console.log(nodeInfo.class)
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
 
@@ -445,7 +443,6 @@ export class GraphManager{
         let sourcePort = splitSource[1] ?? 'default'
         let sourceInfo = applet.nodes[sourceName]
         let source = sourceInfo.instance
-        console.log(e)
         let splitTarget = e.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1] ?? 'default'
