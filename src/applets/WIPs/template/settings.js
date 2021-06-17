@@ -10,7 +10,7 @@ export const settings = {
     instructions:"Coming soon...",
     display: {
       production: false,
-      // development: false
+      development: false
     },
 
     intro: {

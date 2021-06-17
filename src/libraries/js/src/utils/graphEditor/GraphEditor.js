@@ -247,7 +247,7 @@ export class GraphEditor{
             let settingsContainer = document.getElementById(`${this.props.id}settings`)
             // settingsContainer.innerHTML = ''
             Object.keys(settings).forEach(key => {
-                let restrictedKeys = ['editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
+                let restrictedKeys = ['image', 'editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
                 if (restrictedKeys.includes(key)){
 
                     switch(key){

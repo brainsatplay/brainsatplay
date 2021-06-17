@@ -10,7 +10,7 @@ export const settings = {
 
     display: {
       production: false,
-      deployment: false
+      development: false
     },
 
     // App Logic

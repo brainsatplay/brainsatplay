@@ -4,6 +4,7 @@ import placeholderImg from './assets/features/placeholder.png'
 import eegNFImage from './assets/features/eegNF.png'
 import HEGImage from './assets/features/hegbiofeedback.png'
 import hegsens from './assets/features/sensoriumheg.png'
+import studio from './assets/features/studio.png'
 
 export let presetManifest = [
     {
@@ -40,9 +41,9 @@ export let presetManifest = [
         applets: [
             'Brains@Play Studio',
         ],
-        description: "Create your own application for Brains@Play.",
-        type: "EEG",
-        image: placeholderImg,
+        description: "Create your own application with Brains@Play.",
+        type: "All",
+        image: studio,
         lock: false
     },
     {
