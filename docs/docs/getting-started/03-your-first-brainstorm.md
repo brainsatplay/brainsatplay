@@ -38,7 +38,9 @@ constructor(){
 
     //-------Required Multiplayer Properties------- 
     this.subtitle = 'A Simple Networked Game' // Specify a subtitle for the title screen
-    this.streams = ['coherence'] // Register your app data streams
+    this.graph = { 
+        streams: ['coherence'] // Register your app data streams
+    }
     //----------------------------------------------
     
     // ...
@@ -167,7 +169,9 @@ constructor(){
 
     // ...
 
-    this.streams = ['coherence','appEvents'] // Register your app data streams
+    this.graph = { 
+        streams: ['coherence','appEvents'] // Register your app data streams
+    }
     
     // ...
 

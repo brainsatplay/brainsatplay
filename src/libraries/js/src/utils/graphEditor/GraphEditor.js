@@ -2,7 +2,7 @@ import {Graph} from './Graph'
 import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
 import  {plugins} from '../../../brainsatplay'
-import { ProjectCompiler } from '../ProjectCompiler'
+import  {Plugin} from '../../plugins/Plugin'
 
 export class GraphEditor{
     constructor(manager, applet, parentNode) {
@@ -14,12 +14,21 @@ export class GraphEditor{
         this.graph=null
         this.shown = false
         this.scale = 1
+        this.searchOptions = []
+        this.classRegistry = {}
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
         }
     
         if (this.plugins){
+
+            // Only One Editor (look three levels up)
+            let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
+            if (!existingEditor && this.parentNode.parentNode) existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            if (!existingEditor && this.parentNode.parentNode.parentNode) existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            if (existingEditor) existingEditor.remove()
+
             let template = () => {
                 return `
                 <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
@@ -37,26 +46,12 @@ export class GraphEditor{
                             <div class='node-sidebar-header'>
                                 <h4>Settings</h4>
                             </div>
-                            <div class='node-sidebar-content'>
-                                <div>
-                                    <div>
-                                        <p>Name</p>
-                                    </div>
-                                    <div>
-                                        <input type="text" id="${this.props.id}name"></input>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div>
-                                        <p>Author</p>
-                                    </div>
-                                    <div>
-                                        <input type="text" id="${this.props.id}author"></input>
-                                    </div>
-                                </div>
+                            <div id="${this.props.id}settings" class='node-sidebar-content'>
                             </div>
                             <div class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding: 10px;">
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
+                                <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
+                                <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
@@ -76,7 +71,6 @@ export class GraphEditor{
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
-                        
                                 </div>
                             </div>
                     </div>
@@ -84,8 +78,24 @@ export class GraphEditor{
                 `
             }
     
-            let setup = () => {
+            let setup = async () => {
                 this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
+
+                // Setup Presentation Based On Settings
+                if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
+                setTimeout(() => {
+                    let toggleClass = '.brainsatplay-default-editor-toggle'
+                    
+                    // Search for Toggle
+                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
+                    if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
+                    if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
+                    if (this.app.info.editor.toggle) toggle = this.app.info.editor.toggle
+                    
+                    if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
+                    else console.warn('toggle not available')
+                }, 500)
+
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
                 document.getElementById(`${this.props.id}edit`).style.display = 'none'
@@ -93,17 +103,23 @@ export class GraphEditor{
 
                 let download = document.getElementById(`${this.props.id}download`)
                 download.onclick = () => {
-                    let compiler = new ProjectCompiler()
-                    // this.customPlugins.forEach(c => {
-                    //     compiler.addClass(c)
-                    // })
-                    compiler.add(this.app)
-                    compiler.download()
+                    this.app.session.projects.download(this.app)
+                }
+
+                let save = document.getElementById(`${this.props.id}save`)
+                save.onclick = () => {
+                    this.app.session.projects.save(this.app)
+                }
+
+                let reload = document.getElementById(`${this.props.id}reload`)
+                reload.onclick = () => {
+                    applet.reload()
                 }
 
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
-                document.getElementById(`${this.props.id}name`).value = applet.info.name
-                document.getElementById(`${this.props.id}author`).value = applet.info.author
+
+                // Add Settings Editor
+                this.createSettingsEditor(applet.info)
 
                 // Scale View of Graph
                 this.viewer.addEventListener('wheel', (e)=>{
@@ -128,6 +144,7 @@ export class GraphEditor{
 
                 // Populate Used Nodes and Edges
                 this.graph = new Graph(this.plugins, this.viewer)
+                await this.graph.initEdges()
 
                 // Add Click Events
                 for (let key in this.graph.nodes){
@@ -136,13 +153,15 @@ export class GraphEditor{
                     this.addNodeEvents(node)
                 }
 
-                // Interact with Edges
-                this.addEdgeReactivity()
+                // Add Edge Reactivity
+                this.graph.edges.forEach(e => {
+                    this.addEdgeReactivity(e)
+                })
             }
     
             this.element = new DOMFragment(
                 template,
-                parentNode,
+                this.parentNode,
                 undefined,
                 setup
             )
@@ -164,13 +183,10 @@ export class GraphEditor{
         this.removeEdge(e)
     }
 
-    addEdgeReactivity = () => {
-        for (let key in this.graph.edges) {
-            let e = this.graph.edges[key]
-            e.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge(e)})
-            e.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge(e)})
-            e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
-        }
+    addEdgeReactivity = (e) => {
+        e.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge(e)})
+        e.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge(e)})
+        e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
     }
 
     createViewTabs = () => {
@@ -187,45 +203,93 @@ export class GraphEditor{
     }
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
-        let tab = document.createElement('button')
-        tab.classList.add('tablinks')
-        tab.setAttribute('data-target', id)
-        tab.innerHTML = label
+        let tab = document.querySelector(`[data-target="${id}"]`);
+        if (tab == null){
+            tab = document.createElement('button')
+            tab.classList.add('tablinks')
+            tab.setAttribute('data-target', id)
+            tab.innerHTML = label
 
-        let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
-        tab.onclick = () => {
-            // Close Other Tabs
             let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
-            for (let otherTab of allTabs){
-                let tabId = otherTab.getAttribute('data-target')
-                let target = document.getElementById(tabId)
-                if(id != tabId) {
-                    if (target) target.style.display = 'none'
-                    otherTab.classList.remove('active')
-                } else {
-                    if (target) target.style.display = ''
-                    otherTab.classList.add('active')
-                    onOpen()
-                    this.responsive()
+            tab.onclick = () => {
+                // Close Other Tabs
+                let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
+                for (let otherTab of allTabs){
+                    let tabId = otherTab.getAttribute('data-target')
+                    let target = document.getElementById(tabId)
+                    if(id != tabId) {
+                        if (target) target.style.display = 'none'
+                        otherTab.classList.remove('active')
+                    } else {
+                        if (target) target.style.display = ''
+                        otherTab.classList.add('active')
+                        onOpen()
+                        this.responsive()
+                    }
                 }
             }
+            document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
+            this.responsive()
         }
-        document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
-        this.responsive()
-        if (allTabs.length == 0) tab.click()
+        tab.click()
+    }
+
+    createSettingsEditor(settings){
+            let settingsContainer = document.getElementById(`${this.props.id}settings`)
+            // settingsContainer.innerHTML = ''
+            Object.keys(settings).forEach(key => {
+                let restrictedKeys = ['image', 'editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
+                if (restrictedKeys.includes(key)){
+
+                    switch(key){
+                        case 'intro':
+                            settings.intro = {
+                                title: false
+                            }
+                            return
+                        case 'display':
+                            settings.display = {
+                                production: false
+                            }
+                            return
+                        case 'devices':
+                            // Handle internally
+                            return
+                    }
+                    
+                } else {
+                    let containerDiv = document.createElement('div')
+                    containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+                    let inputContainer = document.createElement('div')
+                    inputContainer.style.position = 'relative'    
+                    let input = document.createElement('input')
+                    input.type = 'text'
+                    input.value = settings[key]
+
+                    // Change Live Params with Input Changes
+                    input.oninput = (e) => {
+                        settings[key] = input.value
+                    }
+                    // Add to Document
+                    inputContainer.insertAdjacentElement('beforeend',input)
+                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                    settingsContainer.insertAdjacentElement('beforeend', containerDiv)
+                }
+            })
     }
 
 
     toggleDisplay(){
-        // console.log('toggling')
-        if (this.element.node.style.opacity == 0){
-            this.element.node.style.opacity = 1
-            this.element.node.style.pointerEvents = 'auto'
-            this.shown = true
-        } else {
-            this.element.node.style.opacity = 0
-            this.element.node.style.pointerEvents = 'none'
-            this.shown = false
+        if (this.element){
+            if (this.element.node.style.opacity == 0){
+                this.element.node.style.opacity = 1
+                this.element.node.style.pointerEvents = 'auto'
+                this.shown = true
+            } else {
+                this.element.node.style.opacity = 0
+                this.element.node.style.pointerEvents = 'none'
+                this.shown = false
+            }
         }
     }
 
@@ -282,20 +346,27 @@ export class GraphEditor{
 
 
     drawEdge = (p1,p2) => {
-        if (p2.classList.contains('node-port')){
-            let source = `${p1.getAttribute('data-node')}:${p1.getAttribute('data-port')}`
-            let target  = `${p2.getAttribute('data-node')}:${p2.getAttribute('data-port')}`
-            this.addEdge({source,target})
+        let dict = {}
+        let type = Array.from(p1.parentNode.classList).find((str) => {
+            if (str.includes('-ports')) return true
+        })
+        type = type.replace('-ports','')
+
+        dict[type] = `${p1.getAttribute('data-node')}:${p1.getAttribute('data-port')}`
+        
+        if (p2 && p2.classList.contains('node-port')){
+            let otherType = (type === 'source') ? 'target' : 'source'
+            dict[otherType] = `${p2.getAttribute('data-node')}:${p2.getAttribute('data-port')}`
+            this.addEdge(dict)
         } else {
-            // console.log('remove half-done svg')
+            this.addEdge(dict)
         }
-        // window.removeEventListener('pointermove', controlSVG)
-        window.removeEventListener('pointerup', this.drawEdge)
     }
 
-    addEdge(e){
-        this.manager.addEdge(this.app.props.id,e)
-        this.graph.addEdge(e)
+    addEdge = async (e) => {
+        let edge = await this.graph.addEdge(e)
+        this.addEdgeReactivity(edge) 
+        this.manager.addEdge(this.app.props.id,edge.structure)   
     }
 
     addNode(cls){
@@ -336,7 +407,6 @@ export class GraphEditor{
                 if (optionsType == 'object' && specifiedOptions != null){
                     let options = ``
                     plugin.paramOptions[key].options.forEach(option => {
-                        console.log(option)
                         let attr = ''
                         if (option === plugin.params[key]) attr = 'selected'
                         options += `<option value="${option}" ${attr}>${option}</option>`
@@ -348,7 +418,6 @@ export class GraphEditor{
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
                 } else if (defaultType === 'number'){
-                    console.log(key)
                     if ('min' in plugin.paramOptions[key] && 'max' in plugin.paramOptions[key]){
                         input = document.createElement('input')
                         input.type = 'range'
@@ -392,27 +461,44 @@ export class GraphEditor{
             }
 
             document.getElementById(`${this.props.id}edit`).onclick = (e) => {
-                let settings = {}
-                let container = this.createView(undefined, 'brainsatplay-node-code', '')
-                settings.language = 'javascript'
-                settings.onOpen = () => {
-                    container.style.pointerEvents = 'all'
-                    container.style.opacity = '1'
-                }
-                settings.onSave = () => {
-                    console.log('saving')
-                }
-                settings.onClose = () => {
-                    container.style.pointerEvents = 'none'
-                    container.style.opacity = '0'
-                    // code.deinit()
-                }
-                settings.target = node.nodeInfo.instance
-
-                let code = new LiveEditor(settings,container)
-                this.addTab(`${node.nodeInfo.instance.constructor.name}.js`, container.id, settings.onOpen)
+                this.createFile(node.nodeInfo.class)
             }
         }
+    }
+
+    createFile(target, name=target.name){
+        let settings = {}
+        let container = this.createView(undefined, 'brainsatplay-node-code', '')
+        settings.language = 'javascript'
+        settings.onOpen = (res) => {
+            container.style.pointerEvents = 'all'
+            container.style.opacity = '1'
+        }
+
+        settings.onSave = (res) => {
+            this.addNodeOption(res.id, 'custom', res.name, () => {
+                this.addNode(res)
+            })
+            let nodes = this.app.info.graph.nodes
+            for (let node in this.plugins.nodes){
+                if (node.instance instanceof target){
+                    let properties = Object.getOwnPropertyNames( node.instance )
+                    properties.forEach(k => {
+                        node.instance[k] = res.prototype[k]
+                    })
+                }
+            }
+            nodes.push({id: res.name, class: res, params: {}})
+            target = res
+        }
+        settings.onClose = (res) => {
+            container.style.pointerEvents = 'none'
+            container.style.opacity = '0'
+        }
+        settings.target = target
+        settings.className = name
+        new LiveEdiggler(settings,container)
+        this.addTab(`${name}.js`, target.id, settings.onOpen)
     }
 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
@@ -430,8 +516,7 @@ export class GraphEditor{
         for (let portElement of portElements){
             // Listen for clicks to draw SVG edge
             portElement.onpointerdown = (e) => {
-                // window.addEventListener('pointermove', controlSVG)
-                window.addEventListener('pointerup', (e) => {this.drawEdge(portElement, e.target)})
+                this.drawEdge(portElement)
             }
         }
     }
@@ -452,6 +537,7 @@ export class GraphEditor{
             if (selector.style.opacity == '1'){
                 selector.style.opacity='0'
                 selector.style.pointerEvents='none'
+                search.value = ''
             } else {
                 selector.style.opacity='1'
                 selector.style.pointerEvents='all'
@@ -459,21 +545,21 @@ export class GraphEditor{
         })
         let selectorMenu = document.createElement('div')
         selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
+        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Select a node"></input><div class="node-options"></div>`)
+        selector.insertAdjacentElement('beforeend',selectorMenu)
+        container.insertAdjacentElement('afterbegin',selector)
 
         // Populate Available Nodes
         let nodeDiv = document.createElement('div')
-        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Select a node"></input><div class="node-options"></div>`)
-        let options = selectorMenu.getElementsByClassName(`node-options`)[0]
         let search = selectorMenu.getElementsByTagName(`input`)[0]
 
 
         // Allow Search of Plugins
-        let searchOptions = []
         search.oninput = (e) => {
             let regexp = new RegExp(e.target.value, 'i')
-            searchOptions.forEach(o => {
+            this.searchOptions.forEach(o => {
                 let test = regexp.test(o.label)
-                if (test) {
+                if (test || o.label == 'Add New Plugin') {
                     o.element.style.display = ''
                 } else {
                     o.element.style.display = 'none'
@@ -481,61 +567,74 @@ export class GraphEditor{
             })
         }
 
-        let pluginRegistry = Object.assign({}, plugins)
-        pluginRegistry['custom'] = {}
-        for (let key in this.plugins.nodes) {
-            let o = this.plugins.nodes[key]
-            pluginRegistry['custom'][o.class.id] = o.class
-        }
-
+        this.classRegistry = Object.assign({}, plugins)
+        this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        for (let type in pluginRegistry){
-            let nodeType = pluginRegistry[type]
+        this.addNodeOption('newplugin', 'custom', 'Add New Plugin', () => {
+            this.createFile(Plugin, search.value)
+        })
 
-            options.insertAdjacentHTML('beforeend',`
-            <div class="nodetype-${type}">
-            </div>
-            `)
 
-            let selectedType = options.getElementsByClassName(`nodetype-${type}`)[0]
+        for (let type in this.classRegistry){
+            let nodeType = this.classRegistry[type]
 
             for (let key in nodeType){
-                let cls = pluginRegistry[type][key]
-
+                let cls = this.classRegistry[type][key]
                 if (!usedClasses.includes(cls.id)){
-                    // let element = document.createElement('div')
-                    // element.classList.add(`brainsatplay-default-node-div`)
-                    let label = `${type}.${cls.name}`
-
-                    let element = document.createElement('div')
-                    element.classList.add("brainsatplay-option-node")
-                    element.innerHTML = `<p>${label}</p>`
-
-                    element.onclick = () => {
-
-                        // Add Node to Manager
+                    let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
+                    this.addNodeOption(cls.id, type,label, () => {
                         this.addNode(cls)
-
-                        // Close Selector
-                        addButton.click()
-                    }
-
-                    // element.insertAdjacentElement('beforeend',labelDiv)
-                    selectedType.insertAdjacentElement('beforeend',element)
-
-                    searchOptions.push({label, element})
-                    usedClasses.push(cls.id)
+                    })
+                    usedClasses.push(cls)
                 }
             }
         }
+
+        for (let key in this.plugins.nodes){
+            let cls = this.plugins.nodes[key].class
+            if (!usedClasses.includes(cls)){
+                this.classRegistry['custom'][key] = cls
+                this.addNodeOption(cls.id, 'custom', cls.name, () => {
+                    this.addNode(cls)
+                })
+            }
+        }
+
         selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
-        selector.insertAdjacentElement('beforeend',selectorMenu)
         selector.style.opacity = '0'
         selector.style.pointerEvents = 'none'
-        selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
-        container.insertAdjacentElement('afterbegin',selector)
         this.responsive()
+    }
+
+    addNodeOption(id, type, label, onClick){
+
+        let options = document.querySelector('.brainsatplay-node-selector-menu').querySelector(`.node-options`)
+        let selectedType = options.querySelector(`.nodetype-${type}`)
+        if (selectedType == null) {
+            selectedType = document.createElement('div')
+            selectedType.classList.add(`nodetype-${type}`)
+            options.insertAdjacentElement('beforeend',selectedType)
+        }
+
+        let element = selectedType.querySelector(`.${label}`)
+        if (element == null){
+            element = document.createElement('div')
+            element.classList.add("brainsatplay-option-node")
+            element.classList.add(`${id}`)
+
+            // element.insertAdjacentElement('beforeend',labelDiv)
+            selectedType.insertAdjacentElement('beforeend',element)
+
+            this.searchOptions.push({label, element})
+        }
+
+        element.innerHTML = `<p>${label}</p>`
+
+        element.onclick = () => {
+            onClick()
+            document.getElementById(`${this.props.id}add`).click() // Close menu
+        }
     }
 
 
@@ -563,6 +662,9 @@ export class GraphEditor{
     }
 
     deinit(){
-        this.element.node.remove()
+        if (this.element){
+            this.element.node.style.opacity = '0'
+            setTimeout(() => {this.element.node.remove()}, 500)
+        }
     }
 }

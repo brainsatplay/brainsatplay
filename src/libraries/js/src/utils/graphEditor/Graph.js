@@ -6,6 +6,7 @@ export class Graph{
     constructor(graph, parentNode) {
         this.nodes = {}
         this.edges = []
+        this.edgeStructures = []
         this.parentNode = parentNode
 
         let i = 0
@@ -28,8 +29,18 @@ export class Graph{
             i++
         }
 
-        graph.edges.forEach(e => {
-            this.addEdge(e)
+        graph.edges.forEach(async e => {
+            this.edgeStructures.push(e)
+        })
+    }
+
+    initEdges = () => {
+        return new Promise(resolve => {
+            this.edgeStructures.forEach(async (e,i) => {
+                console.log('adding edge')
+                await this.addEdge(e)
+                if (i === this.edgeStructures.length - 1) resolve(this.edges)
+            })
         })
     }
     
@@ -46,20 +57,29 @@ export class Graph{
         let types = ['source','target']
         types.forEach(t => {
             let deactivate = true
-            e[t].edges.forEach((o,i) => {
-                if (o[`${t}Node`].isSameNode(e[`${t}Node`]) && o !== e) deactivate = false // Keep Active 
-                else if (o === e) e[t].edges.splice(i,1)
-            })
-            if (deactivate) e[`${t}Node`].classList.remove('active')
+            if (e[t]){
+                e[t].edges.forEach((o,i) => {
+                    if (o[`${t}Node`].isSameNode(e[`${t}Node`]) && o !== e) deactivate = false // Keep Active 
+                    else if (o === e) e[t].edges.splice(i,1)
+                })
+                if (deactivate) e[`${t}Node`].classList.remove('active')
+            }
         })
         e.element.remove()
     }
 
-    addEdge(e){
-        let edge = new Edge(e, this.nodes)
-        edge.insert(this.parentNode)
-        this.edges.push(edge)
-        return edge
+    addEdge = async (e) => {
+        return new Promise(async (resolve, reject) => {
+            let edge = new Edge(e, this.nodes)
+            let res = await edge.insert(this.parentNode)
+            if (res === true){
+                this.edges.push(edge)
+                resolve(edge)
+            } else {
+                this.removeEdge(edge)
+                reject(res)
+            }
+        })
     }
 
 

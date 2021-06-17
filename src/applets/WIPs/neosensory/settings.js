@@ -9,6 +9,9 @@ export const settings = {
     description: "Work with the Neosensory Buzz.",
     categories: ["tutorial"],
     instructions:"Coming soon...",
+    display: {
+      production: false
+    },
     // intro: {
     //   mode: 'single'
     // },

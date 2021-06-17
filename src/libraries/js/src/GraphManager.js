@@ -115,6 +115,8 @@ export class GraphManager{
         }
         node.dependencies = depDict
 
+        nodeInfo.controls = controlsToBind
+
         return {instance: node, controls: controlsToBind}
     }
 
@@ -122,6 +124,13 @@ export class GraphManager{
         let applet = this.applets[appId]
         let nodeInfo = applet.nodes[label]
         this.removeMatchingEdges(appId, label)
+
+        this.applets[appId].controls.options.delete(...nodeInfo.controls);
+        // Update Event Registry
+        if (this.session.updateApp){
+            this.session.updateApp(appId)
+        }
+        
         nodeInfo.instance.deinit()
         if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
         delete this.applets[appId].nodes[label]
@@ -141,7 +150,7 @@ export class GraphManager{
             }
             ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
             this.applets[appId].nodes[nodeInfo.id].instance = instance;
-            this.applets[appId].controls.options.push(...controls);
+            if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
         }
 
         // Initialize the Node
@@ -196,6 +205,11 @@ export class GraphManager{
 
         // Add Params to GUI
         this.addToGUI(nodeInfo)
+
+        // Update Event Registry
+        if (this.session.updateApp){
+            this.session.updateApp(appId)
+        }
 
         return nodeInfo
     }
@@ -381,7 +395,7 @@ export class GraphManager{
             session: {},
             local: {}
         }
-        let controls = {options: [], manager: this.state}
+        let controls = {options: new Set(), manager: this.state}
         let nodes = {}
         let edges = []
         let classInstances = {}
@@ -506,8 +520,6 @@ export class GraphManager{
 
     remove(appId, classId=null, label=null){
 
-        console.log(appId,classId,label)
-
         let applet = this.applets[appId]
 
         if (applet) {
@@ -570,7 +582,7 @@ export class GraphManager{
 
         // // Remove Editor
         if (Object.keys(applet.nodes).length === 0 && applet.edges.length === 0){
-            if (this.applets[appId].editor) this.applets[appId].editor.deinit()
+            // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }
     }

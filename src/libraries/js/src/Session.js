@@ -59,6 +59,10 @@ import { EventRouter } from './EventRouter'
 // Data Manager
 import { DataManager } from './utils/DataManager'
 
+// Project Manager
+import { Application } from './Application'
+import { ProjectManager } from './utils/ProjectManager'
+
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
 import * as Realm from "realm-web";
@@ -121,9 +125,12 @@ export class Session {
 
 		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
+
 		DataMgr = this.dataManager;
 
 		if(initFS) this.initFS();
+		
+		this.projects = new ProjectManager(this.dataManager)
 	}
 
 	/**
@@ -1254,19 +1261,28 @@ else {
 
 
 	// App Management
+	initApp(settings, parentNode=document.body, session=this, config=[]){
+		return new Application(settings,parentNode,session,config)
+	}
+
+
 	startApp(appId,sessionId){
 		let info = this.graph.start(appId, sessionId)
 		this.info.apps[appId] = info
 
 		// Update Routing UI
+		this.updateApp(appId)
+
+		return info
+	}
+
+	updateApp(appId){
 		this.deviceStreams.forEach(d => {
 			if (d.info.events) {
 				d.info.events.addApp(appId, this.info.apps[appId].controls)
 				d.info.events.updateRouteDisplay()
 			}
 		})
-
-		return info
 	}
 
 	registerApp(appId,appName,graphs){
@@ -1283,6 +1299,9 @@ else {
 				d.info.events.updateRouteDisplay()
 			}
 		})
+
+		this.info.apps[appId].editor.deinit()
+		
 
 		delete this.info.apps[appId]
 
@@ -1602,7 +1621,9 @@ else {
 			}
 		})
 
-		document.getElementById(`${applet.props.id}`).insertAdjacentHTML('beforeend', `
+
+		let template = `
+		<div id="${applet.props.id}IntroFragment">
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
@@ -1633,7 +1654,10 @@ else {
 				</div>
 			</div></div>
 			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
-			`)
+			</div>
+			`
+
+		let setup = () => {
 
 		// Setup HTML References
 		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
@@ -1845,7 +1869,7 @@ else {
 			if (applet.info.intro && applet.info.intro.login === false){
 				this.login(true, this.info.auth, onsocketopen)
 			} else {
-				this.promptLogin(document.getElementById(`${applet.props.id}`),() => {
+				this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
 					let loginPage = document.getElementById(`${this.id}login-page`)
 					loginPage.style.zIndex = 4
 				}, onsocketopen)
@@ -1888,6 +1912,15 @@ else {
 				}
 			}, loadTime)
 		}
+		}
+
+		applet.intro = new DOMFragment(
+			template,
+			document.getElementById(`${applet.props.id}`),
+			undefined,
+			setup
+		)
+		
 	}
 	}
 

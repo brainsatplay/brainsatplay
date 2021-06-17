@@ -161,13 +161,26 @@ export class LiveEditor {
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
                     try{ 
-                        let text = this.input.value;
-                        newFunc = eval(this.head+text.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
+                        newFunc = eval(this.head+this.input.value.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
                     } 
                     catch (er) {}
-                    if(newFunc)
+                    if(newFunc){
                         this.target[this.function] = newFunc;
                         this.onSave()
+                    } else if (this.function == null && this.target instanceof Object){
+                        try {
+                            newFunc = eval(`(${this.input.value})`)
+                        } catch (e) {
+                            console.log(e)
+                        }
+
+                        if (newFunc){
+                            this.target = newFunc
+                            this.head = this.target.name
+                            this.body = this.target.prototype.constructor
+                            this.onSave(this.target)
+                        }
+                    }
                 } 
                 
                 else if (this.props.language === 'html') {
@@ -254,17 +267,9 @@ export class LiveEditor {
 
             // Handle Whole Classes
             else if (this.function == null && this.target instanceof Object) {
-                this.head = this.target.constructor.name;
-                let properties = Object.getOwnPropertyNames( this.target )
-
-                this.body = ''
-                properties.forEach(k => {
-                    let prop = this.target[k]
-                    // if (prop instanceof Function)
-                    // console.log(prop, prop instanceof Object)
-                    // if (prop instanceof Object) prop = JSON.stringify(prop)
-                    this.body += `${k} = ${prop}\n\n`
-                })
+                this.target = this.target
+                this.head = settings.className ?? this.target.name;
+                this.body = this.target.prototype.constructor.toString().replace(/class (.+){/g, `class ${settings.className}{`)
                 this.copy = this.body
             } else {
                 console.warn('settings file is improperly configured...')

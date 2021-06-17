@@ -26,9 +26,7 @@ export class Application{
         };
     }
 
-
     init() {
-
         let info = this.session.registerApp(this.props.id, this.info.name, this.info.graph)
         this.graph = info
 
@@ -37,20 +35,24 @@ export class Application{
                 let n = this.graph.nodes[key]
                 this.insertInterface(n)
             }
-
             this.session.connectDevice()
         }
 
-        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-            `<div id="${this.props.id}" style="height:100%; width:100%; position: relative; display: flex;"></div>`,       //Define the html template string or function with properties
-            this.parentNode,    //Define where to append to (use the parentNode)
-            this.props,         //Reference to the HTML render properties (optional)
-            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-            undefined,          //Can have an onchange function fire when properties change
-            "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
-            this._deinit,
-            this.responsive
-        );  
+        if (!this.AppletHTML){
+            this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+                `<div id="${this.props.id}" style="height:100%; width:100%; position: relative; display: flex;"></div>`,       //Define the html template string or function with properties
+                this.parentNode,    //Define where to append to (use the parentNode)
+                this.props,         //Reference to the HTML render properties (optional)
+                setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+                undefined,          //Can have an onchange function fire when properties change
+                "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
+                this._deinit,
+                this.responsive
+            )
+        } else {
+            this.AppletHTML.setupHTML = setupHTML
+            this.AppletHTML.setupHTML()
+        }
 
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
     }
@@ -60,8 +62,29 @@ export class Application{
             this.session.removeApp(this.props.id)
         }
 
-        deinit = () => {
-            if (this.AppletHTML) this.AppletHTML.deleteNode();
+        deinit = (soft=false) => {
+            if (this.AppletHTML) {
+
+                // Soft Deinit
+                if (soft) {
+                    this._deinit()
+                    if (this.intro) this.intro.deleteNode()
+                }
+
+                // Hard Deinit
+                else {
+                    this.AppletHTML.deleteNode();
+                }
+            }
+        }
+
+        reload = () => {
+
+            // Soft Deinitialization
+            this.deinit(true)
+
+            // Reinitialize App
+            this.init()
         }
     
         //Responsive UI update, for resizing and responding to new connections detected by the UI manager
@@ -69,8 +92,10 @@ export class Application{
             // _runInternalFunctions(this.uiParams.responsive)
         }
     
-        configure(settings=[{}]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+        configure = (settings=[{}]) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
             
+            settings.forEach((cmd,i) => {});
+
             this.session.createIntro(this, (sessionInfo) => {
                 // this.tutorialManager.init();
 
@@ -79,8 +104,17 @@ export class Application{
                     this.sessionId = sessionInfo.id;
                 }
 
-                let appInfo = this.session.startApp(this.props.id, this.sessionId)
-                this.editor = this.session.graph.edit(this, this.parentNode)
+                this.session.startApp(this.props.id, this.sessionId)
+
+                if (!('editor' in this.info)){
+                    this.info.editor = {}
+                    this.info.editor.parentNode = this.parentNode
+                    this.info.editor.show = false
+                }
+
+                this.editor = this.session.graph.edit(this, this.info.editor.parentNode)
+
+                if (this.info.editor.show !== false) this.editor.toggleDisplay()
 
                 // Resize All Nodes
                 for (let k in this.graph.nodes) {
@@ -88,8 +122,6 @@ export class Application{
                     this.graph.nodes[k].fragment.onresize()         
                 }
             })
-            
-            settings.forEach((cmd,i) => {});
         }
 
         _runInternalFunctions(arr){

@@ -17,7 +17,11 @@ export class Node{
     updateEdge(edge){
         let o = this.edges.find(o => o === edge)
         // Derive Queries
-        let type = (o.structure.source.split(':')[0].includes(this.nodeInfo.id)) ? 'source' : 'target'
+
+        let types = Object.keys(o.structure)
+        let k1 = types.shift()
+        let type = (o.structure[k1].split(':')[0].includes(this.nodeInfo.id)) ? k1 : null
+        if (type == null) type = (k1 === 'source') ? 'target' : 'source'
         let className = (type === 'source') ? 'p1' : 'p2'
 
         // Grab Elements
@@ -26,7 +30,6 @@ export class Node{
 
         let portDim = portElement.getBoundingClientRect()
         let svgP = o.svgPoint(o.svg, portDim.left + portDim.width/2, portDim.top + portDim.height/2)
-
         
         // Update Edge Anchor
         o.updateElement(
@@ -40,15 +43,18 @@ export class Node{
         // Grab Other Side of Edge
         let otherType = (type == 'source') ? 'target': 'source'
         let otherElement = o[`${otherType}Node`]
-        let otherDim = otherElement.getBoundingClientRect()
-        let svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width/2, otherDim.top + otherDim.height/2)
-
+        let svgO
+        if (otherElement){
+            let otherDim = otherElement.getBoundingClientRect()
+            svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width/2, otherDim.top + otherDim.height/2)
+        } else {
+            svgO = svgP
+        }
         // Update Control Points
         let sP = (type == 'source') ? svgP : svgO
         let tP = (type == 'source') ? svgO : svgP
 
         o.updateControlPoints(sP, tP)
-      
         o.drawCurve();
     }
 

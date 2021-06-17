@@ -237,13 +237,29 @@ export class DataManager {
                 throw new Error(`Error creating BrowserFS`);
             }
             BrowserFS.initialize(rootForMfs); //fs now usable with imports after this
+
+            let p1 = new Promise(resolve => {
             fs.exists('/data', (exists) => {
+                if (exists) {
+                    console.log('exists!')
+                    resolve()
+                }
+                else {
+                    fs.mkdir('data', (errr) => {
+                        if (errr) throw err;
+                        resolve()
+                    });
+                }
+            });
+        })
+        let p2 = new Promise(resolve => {
+            fs.exists('/projects', (exists) => {
                 if (exists) {
                     console.log('exists!')
                     oninit();
                 }
                 else {
-                    fs.mkdir('data', (errr) => {
+                    fs.mkdir('projects', (errr) => {
                         if (errr) throw err;
                         oninit();
                     });
@@ -251,6 +267,12 @@ export class DataManager {
 
             });
         });
+
+        Promise.all([p1,p2]).then((values) => {
+            oninit();
+        })
+
+    })
     }
 
 
@@ -375,6 +397,48 @@ export class DataManager {
             console.error('Path name is not defined')
         }
     }
+
+    saveFileText(text, path){
+        return new Promise(resolve => {
+            fs.appendFile(path,text,(e)=>{
+                if(e) throw e;
+                resolve(text)
+            });
+        })
+    }
+
+    readFiles(path){
+        return new Promise(resolve => {
+            fs.readdir(path, function(e, output) {
+                resolve(output)
+            });
+        })
+    }
+
+    readFile(path){
+        return new Promise(resolve => {
+            fs.readFile(path, function(e, output) {
+                resolve(output)
+            });
+        })
+    }
+
+    readFileText(path){
+        fs.open(path, 'r', (e, fd) => {
+            if (e) throw e;
+            fs.read(fd, end, begin, 'utf-8', (er, output, bytesRead) => {
+                if (er) throw er;
+                if (bytesRead !== 0) {
+                    let data = output.toString();
+                    //Now parse the data back into the buffers.
+                    fs.close(fd, () => {
+                        onread(data,filename);
+                    });
+                };
+            });
+        });
+    }
+
 
     //Read a chunk of data from a saved dataset
     readFromDB = (filename=this.state.data['sessionName'], begin = 0, end = 5120, onread=(data)=>{}) => {
