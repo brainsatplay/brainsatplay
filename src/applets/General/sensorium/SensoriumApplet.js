@@ -113,11 +113,11 @@ export class SensoriumApplet {
 
 
         // Plugins
-        this.graph = new GraphManager(this.session, {gui: false})
+        this.graph = new GraphManager(this.session)
         this.graph.init(this.props.id, this.info.name, 
             {
                 nodes: [
-                    {id: 'neosensory', class: Buzz},
+                    {id: 'buzz', class: Buzz},
                 ],
             }
         )
