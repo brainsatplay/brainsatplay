@@ -1,5 +1,5 @@
 /node_modules/
-/dist/
+dist/
 /.cache/
 .vscode/settings.json
 .DS_Store

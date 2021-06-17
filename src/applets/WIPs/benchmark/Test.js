@@ -147,7 +147,7 @@ class Test{
 
         if (userData.length > 0){
             this._updateTargetPosition()
-            this.session.atlas.graphs.runSafe(this,'performance',userData)
+            this.session.atlas.graph.runSafe(this,'performance',userData)
         }
 
         return userData

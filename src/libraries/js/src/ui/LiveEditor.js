@@ -41,6 +41,7 @@ export class LiveEditor {
                 this._updateSettings(settings)
         
                 this.init();
+                this.onOpen()
             } else {
                 console.error(`${this.props.language} is an unsupported language. Please choose from the following options: ${this.props.supportedLanguages}`)
             }
@@ -79,6 +80,7 @@ export class LiveEditor {
                         <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
+                        <button id='${this.props.id}close' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Close</button>
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
@@ -95,12 +97,17 @@ export class LiveEditor {
 
             this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
+            let close = document.getElementById(`${this.props.id}close`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
             /* 
             
                 Declare Events
 
             */
+
+           close.onclick = () => {
+               this.onClose()
+           }
 
             reset.onclick = () => {
                 if (this.props.language === 'javascript'){
@@ -154,13 +161,26 @@ export class LiveEditor {
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
                     try{ 
-                        let text = this.input.value;
-                        newFunc = eval(this.head+text.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
+                        newFunc = eval(this.head+this.input.value.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
                     } 
                     catch (er) {}
-                    if(newFunc)
+                    if(newFunc){
                         this.target[this.function] = newFunc;
                         this.onSave()
+                    } else if (this.function == null && this.target instanceof Object){
+                        try {
+                            newFunc = eval(`(${this.input.value})`)
+                        } catch (e) {
+                            console.log(e)
+                        }
+
+                        if (newFunc){
+                            this.target = newFunc
+                            this.head = this.target.name
+                            this.body = this.target.prototype.constructor
+                            this.onSave(this.target)
+                        }
+                    }
                 } 
                 
                 else if (this.props.language === 'html') {
@@ -222,16 +242,35 @@ export class LiveEditor {
             this.onSave = settings.onSave
         }
 
+        if (settings.onOpen){
+            this.onOpen = settings.onOpen
+        }
+
+        if (settings.onOpen){
+            this.onClose = settings.onClose
+        }
+
+
         // For JS Editor
         this.function = settings.function;
 
         // For All Editors
         this.target = settings.target; //e.g. this.session.atlas
         if (this.props.language === 'javascript'){
-            if (typeof this.target === 'object' && this.target !== null && this.function !== null){
+
+            // Handle Specific Functions (from target)
+            if (typeof this.target === 'object' && this.target != null && this.function != null){
                 this.head = this.getFunctionHead(this.target[this.function]);
                 this.body = this.getFunctionBody(this.target[this.function]);
                 this.copy = this.target[this.function].toString();
+            } 
+
+            // Handle Whole Classes
+            else if (this.function == null && this.target instanceof Object) {
+                this.target = this.target
+                this.head = settings.className ?? this.target.name;
+                this.body = this.target.prototype.constructor.toString().replace(/class (.+){/g, `class ${settings.className}{`)
+                this.copy = this.body
             } else {
                 console.warn('settings file is improperly configured...')
             }
@@ -265,6 +304,8 @@ export class LiveEditor {
     }
 
     onSave = () => {} // Can be set by user
+    onOpen = () => {}
+    onClose= () => {}
 
     //Get the text inside of a function (regular or arrow);
     getFunctionBody = (method) => {
@@ -317,6 +358,11 @@ export class LiveEditor {
                     <tr><td>uniform float iAlpha1Alpha2</td><td>0-10</td><td>Alpha1/Alpha2 Bandpower Ratio</td></tr>
                     <tr><td>uniform float iAlphaBeta</td><td>0-10</td><td>Alpha/Beta Bandpower Ratio</td></tr>
                     <tr><td>uniform float iThetaBeta</td><td>0-10</td><td>Theta/Beta Bandpower Ratio</td></tr>
+                    <tr><td colSpan=3>If pasting from ShaderToy and it only has the mainImage function but no main(), paste this at the bottom of the shader: <br>
+                      void main() {<br>
+                        mainImage(gl_FragColor, vUv*iResolution);<br>
+                      }
+                    </td></tr>
                 </table>
             </div>
             `)

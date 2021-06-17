@@ -78,10 +78,10 @@ export class Cursor{
                 let initialY = this.props.y
 
                 // Move if Triggered
-                if (this.props.moveRight) this.session.atlas.graphs.runSafe(this,'right',[{data: true}])
-                if (this.props.moveLeft) this.session.atlas.graphs.runSafe(this,'left',[{data: true}])
-                if (this.props.moveUp) this.session.atlas.graphs.runSafe(this,'up',[{data: true}])
-                if (this.props.moveDown) this.session.atlas.graphs.runSafe(this,'down',[{data: true}])
+                if (this.props.moveRight) this.session.atlas.graph.runSafe(this,'right',[{data: true}])
+                if (this.props.moveLeft) this.session.atlas.graph.runSafe(this,'left',[{data: true}])
+                if (this.props.moveUp) this.session.atlas.graph.runSafe(this,'up',[{data: true}])
+                if (this.props.moveDown) this.session.atlas.graph.runSafe(this,'down',[{data: true}])
 
                 // Trigger Cursor Events
                 if (initialX != this.props.x || initialY != this.props.y){
@@ -157,7 +157,9 @@ export class Cursor{
             var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
             if (tmp){
                 this.props.mutex = true;
-                tmp.click();
+                let event = new MouseEvent('click');
+                tmp.dispatchEvent(event);
+
                 this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
                 this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
             }

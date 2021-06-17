@@ -9,5 +9,8 @@ export const settings = {
     "categories": ["train"],
     "module": "p5SandboxApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "display":{
+      "production": false
+   }
 }

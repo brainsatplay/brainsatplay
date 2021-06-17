@@ -1,7 +1,5 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
-import {UI} from './UI.js'
-
+import {Studio} from './Studio.js'
 export const settings = {
     name: "Brains@Play Studio",
     devices: ["EEG"],
@@ -9,20 +7,19 @@ export const settings = {
     description: "Design your own application.",
     categories: ["UI"],
     instructions:"Coming soon...",
+
     display: {
-      production: false
+      production: false,
+      development: false
     },
 
     // App Logic
     graph:
-      {
+    {
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal, params: {}},
-        {id: 'debug', class: brainsatplay.plugins.outputs.Debug, params: {}},
+        {id: 'studio', class: Studio, params: {}},
       ],
-      edges: [{
-        source: 'signal',
-        target: 'debug'
-      }]
+
+      edges: []
     },
 }

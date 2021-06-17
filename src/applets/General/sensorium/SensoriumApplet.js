@@ -16,7 +16,7 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
-import {PluginManager} from '../../../libraries/js/src/PluginManager'
+import {GraphManager} from '../../../libraries/js/src/GraphManager'
 import {Buzz} from '../../../libraries/js/src/plugins/outputs/Buzz'
 
 //Import shader urls
@@ -100,7 +100,9 @@ export class SensoriumApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.streams = ['modifiers','hostData'] // Register your app data streams
+        this.graph = { 
+            streams: ['modifiers','hostData'] // Register your app data streams
+        }
         //----------------------------------------------
 
         //-------Other Multiplayer Properties------- 
@@ -111,8 +113,8 @@ export class SensoriumApplet {
 
 
         // Plugins
-        this.graphs = new PluginManager(this.session, {gui: false})
-        this.graphs.add(this.props.id, this.info.name, 
+        this.graph = new GraphManager(this.session, {gui: false})
+        this.graph.init(this.props.id, this.info.name, 
             {
                 nodes: [
                     {id: 'neosensory', class: Buzz},
@@ -122,6 +124,7 @@ export class SensoriumApplet {
 
         this.tutorialManager = null
 
+        this.currentView = 'plane'
 
         // Audio
         this.effectStruct = { source:undefined, input:undefined, controls:undefined, feedback:undefined, feedbackOption:undefined, muted:false, lastGain:1, uiIdx:false, sourceIdx:false, playing:false, id:undefined, paused:false, playbackRate:1 };
@@ -315,6 +318,7 @@ void main(){
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
+                            <button id='${props.id}changeview' style="background: black; color: white; margin: 25px 10px;">Change View</button>
                             <button id='${props.id}submitconfig' style="background: black; color: white; margin: 25px 10px; display:none;">Set Game Config</button>
                             <button id='${props.id}share' style="background: black; color: white; margin: 25px 10px;">Get Shareable Link</button>
                             <span style='text-shadow: 0px 0px 2px black, 0 0 10px black;' id='${props.id}menuspan'>User Controls:</span><input type='checkbox' id='${props.id}controls' checked>
@@ -342,6 +346,10 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+
+            document.getElementById(props.id+'changeview').onclick = () => {
+                this.swapCurrentView();
+            }
 
             this.appletContainer = document.getElementById(props.id);
             this.currentShader = this.shaders[Object.keys(this.shaders)[0]];
@@ -558,50 +566,49 @@ void main(){
 
     // Controls
     this.controls = new OrbitControls(this.camera, this.three.renderer.domElement)
-    this.controls.enablePan = false
+    this.controls.enablePan = true
     this.controls.enableDamping = true
-    this.controls.enabled = false;
+    this.controls.enabled = true;
     this.controls.minPolarAngle = 2*Math.PI/6; // radians
     this.controls.maxPolarAngle = 4*Math.PI/6; // radians
     this.controls.minDistance = this.baseCameraPos.z; // radians
-    this.controls.maxDistance = this.baseCameraPos.z*10; // radians
+    this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const planeGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+    const geometry = this.createViewGeometry()
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}, //Required for ShaderToy shaders
+    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}; //Required for ShaderToy shaders
     
-    shaderKeys.forEach((k,i) => {
+    let k = shaderKeys[0]
+    // shaderKeys.forEach((k,i) => {
+        let material = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
+            vertexShader: this.shaders[k].vertexShader,
+            fragmentShader: this.shaders[k].fragmentShader,
+            uniforms: {...this.defaultUniforms}// Default Uniforms 
+        });
 
-        if (i === 0){
-            let material = new THREE.ShaderMaterial({
-                transparent: true,
-                side: THREE.DoubleSide,
-                vertexShader: this.shaders[k].vertexShader,
-                fragmentShader: this.shaders[k].fragmentShader,
-                uniforms: {...this.defaultUniforms}// Default Uniforms 
-            });
-
-            let radius = 0;//10
-            let plane = new THREE.Mesh(planeGeometry, material)
-            plane.name = k
-            let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
-            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
-            plane.rotation.set(0,-angle - Math.PI/2,0)
-            this.three.planes.push(plane)
-            this.three.scene.add(plane)
-        }
-    });
+        let radius = 0;//10
+        let plane = new THREE.Mesh(geometry, material)
+        plane.name = k
+        let angle = (2 * Math.PI * 1) - Math.PI/2
+        // let angle = (2 * Math.PI * i/numShaders) - Math.PI/2
+        plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)))
+        plane.rotation.set(0,-angle - Math.PI/2,0)
+        this.three.planes.push(plane)
+        this.three.scene.add(plane)
+    // });
 
         // Animate
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
-                let userData = this.session.getBrainstormData(this.info.name, this.streams)
+                let userData = this.session.getBrainstormData(this.info.name, this.graph.streams)
                 //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
                 if (userData.length > 0){
@@ -657,7 +664,6 @@ void main(){
 
         setTimeout(() => {
             this.three.renderer.domElement.style.opacity = '1'
-            // this.controls.enabled = true;
         }, 100)
         
         document.getElementById(this.props.id+'addeffect').click();
@@ -778,7 +784,7 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1)
+            let newGeometry = this.createViewGeometry()
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
@@ -787,7 +793,6 @@ void main(){
             
             this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
-        
     }
 
     //settings structure
@@ -856,6 +861,10 @@ void main(){
                 }
                 if(cmd.modifiers) {
                     Object.assign(this.modifiers,cmd.modifiers);
+                }
+                if(cmd.view) {
+                    this.currentView = cmd.view;
+                    this.updateCurrentView();
                 }
                 if(cmd.feedback) {
                     Array.from(this.effects[i].feedback.options).forEach((opt,j) => {
@@ -944,6 +953,62 @@ void main(){
         //add more feedback and sound settings
     }];
     */
+
+    createViewGeometry(type=this.currentView){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
+            return new THREE.PlaneGeometry(this.three.meshWidth, this.three.meshHeight, 1, 1);
+        } else if (type === 'circle') {      
+            return new THREE.CircleGeometry( Math.min(this.three.meshWidth, this.three.meshHeight), 32 );
+        } else if (type === 'halfsphere') {      
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(this.three.meshWidth, this.three.meshHeight), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
+        }
+    }
+
+    swapCurrentView(){
+        if(this.currentView === 'plane') {
+            this.currentView = 'vrscreen';
+            this.updateCurrentView();
+        } else if (this.currentView === 'vrscreen') {
+            this.currentView = 'sphere';
+            this.updateCurrentView();
+        } else if (this.currentView === 'sphere') {
+            this.currentView = 'halfsphere';
+            this.updateCurrentView();
+        } else if (this.currentView === 'halfsphere') {
+            this.currentView = 'circle';
+            this.updateCurrentView();
+        } else if (this.currentView === 'circle') {
+            this.currentView = 'plane';
+            this.updateCurrentView();
+        }
+    }
+
+    updateCurrentView(type=this.currentView){
+        this.three.planes.forEach(mesh => {
+            mesh.geometry.dispose()
+            if (type === 'sphere'){
+                mesh.geometry = this.createViewGeometry('sphere')
+                mesh.rotation.set(0,Math.PI,0)
+            } else if (type === 'plane') {
+                mesh.geometry = this.createViewGeometry('plane')
+            } else if (type === 'circle') {
+                mesh.geometry = this.createViewGeometry('circle');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'halfsphere') {
+                mesh.geometry = this.createViewGeometry('halfsphere');
+                mesh.rotation.set(0,Math.PI,0)   
+            } else if (type === 'vrscreen') {
+                mesh.geometry = this.createViewGeometry('vrscreen');
+                mesh.rotation.set(0,Math.PI,0)
+            }
+        })
+    }
+
+
     getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();
@@ -977,12 +1042,14 @@ void main(){
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
+        
+        settings[0].view = this.currentView;
         if(shaderselector.value !== 'fromtext' && !this.shaderEdited)
             settings[0].shader.name = shaderselector.value;
         else settings[0].shader.frag = this.liveEditor.input.value;
 
         if(includeModifiers) settings[0].modifiers = this.modifiers;
-        console.log(settings)
+        
 
         // Auto-Join Configuration Settings
         settings[0].title = false
@@ -993,7 +1060,7 @@ void main(){
             settings[0].session = this.roomId;
             settings[0].spectating = false;
         }
-
+        console.log("Current settings: ",settings);
         return settings;
     }
 
@@ -1370,7 +1437,7 @@ void main(){
         if(this.looping){
             this.effects.forEach((effectStruct) => {
                 let option = effectStruct.feedbackOption;
-                if(this.session.atlas.data.heg.length>0) {
+                if(this.session.atlas.data.heg.length>0 && this.session.atlas.settings.deviceConnected === true) {
                     if(option === 'iHB') { //Heart Beat causing tone to fall off
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             this.modifiers.iHB = 1/(0.001*(Date.now()-this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].t)) 
@@ -1394,15 +1461,17 @@ void main(){
                         }
                     }
                         else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
-                        if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
-                        let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
-                        if(!effectStruct.muted && window.audio && effectStruct.playing){
-                            window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
-                                Math.min(Math.max(0,hegscore),1), //
-                                window.audio.ctx.currentTime
-                            );
+                        if(this.session.atlas.data.heg[0].ratio.length > 0) {
+                            if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
+                            let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
+                            if(!effectStruct.muted && window.audio && effectStruct.playing){
+                                window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(
+                                    Math.min(Math.max(0,hegscore),1), //
+                                    window.audio.ctx.currentTime
+                                );
+                            }
+                            this.modifiers.iHEG = hegscore; //starts at 0
                         }
-                        this.modifiers.iHEG = hegscore; //starts at 0
                     } else if (option === 'iHRV') { //Maximize HRV, set the divider to set difficulty
                         if(this.session.atlas.data.heg[0].beat_detect.beats.length > 0) {
                             if(!effectStruct.muted && window.audio && effectStruct.playing){
@@ -1601,7 +1670,11 @@ void main(){
             return  (Date.now() - this.startTime)/1000; // Seconds
         }
         else if (u === 'iResolution'){
-            return  new THREE.Vector2(this.three.meshWidth, this.three.meshHeight);
+            if(this.currentView === 'halfsphere' || this.currentView === 'circle')
+                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight); //fixes aspect ratio on halfsphere and circle to be square
+            else if (this.currentView !== 'plane') 
+                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight); //fix for messed up aspect ratio on vrscreen and sphere
+            else return new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //leave plane aspect alone
         }
     }
 
@@ -1629,8 +1702,6 @@ void main(){
                 material.uniforms[name].value = value;
             }
         }
-
-
         return material;
     }
     
@@ -1707,17 +1778,17 @@ void main(){
 
 
     updateBuzz(modifiers) {
-        let node = this.graphs.getNode(this.props.id, 'buzz')
+        let node = this.graph.getNode(this.props.id, 'buzz')
 
         if (modifiers.iAudio){
-            this.graphs.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
+            this.graph.runSafe(node, 'motors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         } 
         else if (modifiers.iFFT){
-            this.graphs.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
+            this.graph.runSafe(node, 'motors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
-            this.graphs.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
+            this.graph.runSafe(node, 'leds',[{data: modifiers.iFrontalAlpha1Coherence, meta: {label: 'iFrontalAlpha1Coherence'}}])
         }
     }
 } 

@@ -143,7 +143,7 @@ export class PulseMonitorApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.heg) {
+            if(this.bci.atlas.settings.heg && this.bci.atlas.settings.deviceConnected) {
                 this.onUpdate();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop),16});
