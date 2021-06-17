@@ -24,7 +24,7 @@ export const settings = {
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
         {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
-        {id: 'enter', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Enter'}},
+        // {id: 'enter', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Enter'}},
       ],
       edges: [
 

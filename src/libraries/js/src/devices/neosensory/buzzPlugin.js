@@ -12,6 +12,7 @@ export class buzzPlugin {
         this.device = null;
         this.filters = [];
         this.ui = null;
+        this.info = {}
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -20,7 +21,7 @@ export class buzzPlugin {
 
 
     init = async (info,pipeToAtlas) => {
-        info.deviceType = 'other';
+        this.info.deviceType = 'other';
             this.device = new neosensory.Buzz(
                 (res) => {
                     if (res) {
@@ -32,7 +33,7 @@ export class buzzPlugin {
                 })
 
             this._onConnected = () => {
-                this.setupAtlas(info,pipeToAtlas);
+                this.setupAtlas(this.info,pipeToAtlas);
             }
     }
 
@@ -43,14 +44,14 @@ export class buzzPlugin {
                 location+":" + this.mode,
                 {},
                 config,false,true,
-                info.analysis
+                this.info.analysis
                 );
 
-            info.useAtlas = true;
+            this.info.useAtlas = true;
             
         } else if (typeof pipeToAtlas === 'object') {
             this.atlas = pipeToAtlas; //External atlas reference
-            info.useAtlas = true;
+            this.info.useAtlas = true;
         }
         this.atlas.settings.deviceConnected = true; 
     }

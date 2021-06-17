@@ -297,6 +297,7 @@ export class GraphManager{
         if (result && result.length > 0){
             let allEqual = true
 
+            console.log(node.states, port)
             node.states[port].splice(result.length-1) // Remove previous states that weren't returned
 
             result.forEach((o,i) => {
