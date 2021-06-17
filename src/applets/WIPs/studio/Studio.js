@@ -1,5 +1,7 @@
 import {settings} from '../template/settings.js'
-import { bufferToggle } from 'rxjs-compat/operator/bufferToggle'
+import {Application} from '../../../libraries/js/src/Application'
+import {appletManifest} from '../../../platform/appletManifest'
+import { getApplet, getAppletSettings } from "../../../platform/js/general/importUtils"
 
 class Studio{
 
@@ -85,38 +87,82 @@ class Studio{
             z-index: 10;
             background: black;
         `
-        let projects = document.createElement('div')
-        projects.id = `${this.props.id}-projectlist`
-        projects.style = `
-        `
-        let button = document.createElement('button')
-        button.id = `${this.props.id}-new`
-        button.innerHTML = 'Create New Project'
-        button.classList.add('brainsatplay-default-button')
-        button.onclick = () => {
-            this._createApp(this.template)
-        }
-        projects.insertAdjacentElement(`beforeend`, button)
-        projectMask.insertAdjacentElement(`beforeend`, projects)
-        this.props.container.insertAdjacentElement(`beforeend`, projectMask)
+        let container = document.createElement('div')
+        container.style.width = '80%'
+        projectMask.insertAdjacentElement('beforeend', container)
 
-        let projectSet = await this.session.projects.list()
-        projectSet.forEach(str => {
-            let div = document.createElement('div')
-            div.classList.add('brainsatplay-project-div')
 
-            let button = document.createElement('button')
-            button.id = `${this.props.id}${str}`
-            button.innerHTML = str
-            button.classList.add('brainsatplay-default-button')
-            button.onclick = async () => {
-                 let settings = await this.session.projects.load(button.id.replace(this.props.id,''))
-                 this._createApp(settings)
+        let galleries = {
+            personal: {
+                header: 'Your Projects',
+                projects: []
+            }, 
+            templates: {
+                header: 'Clone a Template',
+                projects: []
             }
-            div.insertAdjacentElement('beforeend', button)
+        }
 
-         projects.insertAdjacentElement('beforeend',div)
+        // Get Project Settings Files
+        let projectSet = await this.session.projects.list()
+        projectSet = Array.from(projectSet).map(async str => {
+            let settings =  await this.session.projects.load(str)
+            return {destination: 'personal', settings}
         })
+
+        // Get Template Files
+        let templateSet = []
+        for (let key in appletManifest){
+            let o = appletManifest[key]
+            let settings = await getAppletSettings(o.folderUrl)
+            if (settings.graph) templateSet.push({destination: 'templates', settings})
+        }
+
+        Promise.allSettled([...projectSet,...templateSet]).then(set => {
+
+            set.forEach(o => {
+                if (o.status === 'fulfilled'){
+                    galleries[o.value.destination].projects.push(o.value.settings)
+                }
+            })
+
+            Object.keys(galleries).forEach(k => {
+
+                let o = galleries[k]
+
+                // Create Top Header
+                let div = document.createElement('div')
+                div.innerHTML = `<h2>${o.header}</h2>`
+                div.style = `display: grid; grid-template-columns: repeat(2, 1fr);`
+                container.insertAdjacentElement('beforeend', div)
+                container.insertAdjacentHTML('beforeend', `<hr></hr>`)
+
+                // Create Project List
+                let projects = document.createElement('div')
+                projects.id = `${this.props.id}-projectlist`
+                projects.style = `display: flex; flex-wrap: wrap;`
+                projects.class="brainsatplay-project-gallery"
+                container.insertAdjacentElement(`beforeend`, projects)
+                this.props.container.insertAdjacentElement(`beforeend`, projectMask)
+
+                o.projects.forEach(settings => {
+                    let div = document.createElement('div')
+                    div.classList.add('brainsatplay-project-div')
+
+                    let button = document.createElement('button')
+                    button.innerHTML = settings.name
+                    button.style.maxWidth = 'auto'
+                    button.classList.add('brainsatplay-default-button')
+                    button.onclick = () => {
+                        this._createApp(settings)
+                    }
+                    div.insertAdjacentElement('beforeend', button)
+
+                projects.insertAdjacentElement('beforeend',div)
+                })
+            })
+        })
+
 
         return projectMask
     }

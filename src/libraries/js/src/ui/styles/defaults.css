@@ -943,6 +943,15 @@ select {
     fill: transparent;
   }  
 
+  /* Studio */
+  .brainsatplay-project-div {
+      flex: 33%;
+      padding: 5px;
+  }
+
+  .brainsatplay-project-div button{
+      width: 100%;
+  }
 
 
 /* DEFAULT UI ELEMENTS */

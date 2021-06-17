@@ -25,14 +25,9 @@ export class GraphEditor{
 
             // Only One Editor (look three levels up)
             let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
-            if (!existingEditor && this.parentNode.parentNode){
-                existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
-            }
-            if (!existingEditor && this.parentNode.parentNode.parentNode){
-                existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
-            }
+            if (!existingEditor && this.parentNode.parentNode) existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            if (!existingEditor && this.parentNode.parentNode.parentNode) existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
             if (existingEditor) existingEditor.remove()
-            
 
             let template = () => {
                 return `
@@ -90,19 +85,15 @@ export class GraphEditor{
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
                 setTimeout(() => {
                     let toggleClass = '.brainsatplay-default-editor-toggle'
+                    
+                    // Search for Toggle
                     let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-                    if (!toggle && this.app.AppletHTML.node.parentNode){
-                        this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
-                    }
-                    if (!toggle && this.parentNode.parentNode.parentNode){
-                        this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass) 
-                    }
-
+                    if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
+                    if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
                     if (this.app.info.editor.toggle) toggle = this.app.info.editor.toggle
-                    if (toggle) toggle.addEventListener('click', () => {
-                        this.toggleDisplay()
-                    } )
-                    else console.warn('editor not available')
+                    
+                    if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
+                    else console.warn('toggle not available')
                 }, 500)
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)

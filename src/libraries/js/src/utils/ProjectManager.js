@@ -142,7 +142,7 @@ app.init()`)
     }
 
     async load(name){
-        return new Promise(async resolve => {
+        return new Promise(async (resolve, reject) => {
             let info = await new Promise(async resolve => {
                 let projects = await this.database.readFiles(`/projects/`)
                 let files = projects.filter(s => s.includes(name))
@@ -199,10 +199,12 @@ app.init()`)
                 }
             } while (m);
 
-            let moduleText = "data:text/javascript;base64," + btoa(info.settings);
-            let module = await import(moduleText);
-            let settings = module.settings
-            resolve(settings)
+            try {
+                let moduleText = "data:text/javascript;base64," + btoa(info.settings);
+                let module = await import(moduleText);
+                let settings = module.settings
+                resolve(settings)
+            } catch(e) {console.log(e); reject()}
         })
     }
 }
