@@ -1277,12 +1277,14 @@ else {
 	}
 
 	updateApp(appId){
-		this.deviceStreams.forEach(d => {
-			if (d.info.events) {
-				d.info.events.addApp(appId, this.info.apps[appId].controls)
-				d.info.events.updateRouteDisplay()
-			}
-		})
+		if (this.info.apps[appId]){
+			this.deviceStreams.forEach(d => {
+				if (d.info.events) {
+					d.info.events.addApp(appId, this.info.apps[appId].controls)
+					d.info.events.updateRouteDisplay()
+				}
+			})
+		}
 	}
 
 	registerApp(appId,appName,graphs){
