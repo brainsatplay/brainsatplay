@@ -1271,14 +1271,18 @@ else {
 		this.info.apps[appId] = info
 
 		// Update Routing UI
+		this.updateApp(appId)
+
+		return info
+	}
+
+	updateApp(appId){
 		this.deviceStreams.forEach(d => {
 			if (d.info.events) {
 				d.info.events.addApp(appId, this.info.apps[appId].controls)
 				d.info.events.updateRouteDisplay()
 			}
 		})
-
-		return info
 	}
 
 	registerApp(appId,appName,graphs){

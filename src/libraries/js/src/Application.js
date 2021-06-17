@@ -68,7 +68,7 @@ export class Application{
                 // Soft Deinit
                 if (soft) {
                     this._deinit()
-                    this.intro.deleteNode()
+                    if (this.intro) this.intro.deleteNode()
                 }
 
                 // Hard Deinit

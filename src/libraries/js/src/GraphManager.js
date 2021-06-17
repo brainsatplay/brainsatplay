@@ -141,7 +141,7 @@ export class GraphManager{
             }
             ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
             this.applets[appId].nodes[nodeInfo.id].instance = instance;
-            this.applets[appId].controls.options.push(...controls);
+            if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
         }
 
         // Initialize the Node
@@ -196,6 +196,11 @@ export class GraphManager{
 
         // Add Params to GUI
         this.addToGUI(nodeInfo)
+
+        // Update Event Registry
+        if (this.session.updateApp){
+            this.session.updateApp(appId)
+        }
 
         return nodeInfo
     }
@@ -381,7 +386,7 @@ export class GraphManager{
             session: {},
             local: {}
         }
-        let controls = {options: [], manager: this.state}
+        let controls = {options: new Set(), manager: this.state}
         let nodes = {}
         let edges = []
         let classInstances = {}

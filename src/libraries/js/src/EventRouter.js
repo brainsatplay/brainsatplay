@@ -199,7 +199,7 @@ export class EventRouter{
             let routes = this.routes.registry[key]
             for (let i = routes.length - 1; i > -1; i--){
                 if ('manager' in routes[i]){
-                    sources.find(o => {
+                    Array.from(sources).find(o => {
                         if (routes[i].label === o.label) {
                             routes[i] = {}
                             return true
@@ -212,19 +212,17 @@ export class EventRouter{
     }
 
     updateRouteReserve = (id, controls=false) => {
-        console.log(id, controls, this.routes.reserve.apps)
         if (controls == false){
-            this.routes.reserve.apps[id].count--
-
-            if (this.routes.reserve.apps[id].count === 0) {
+            // this.routes.reserve.apps[id].count--
+            // if (this.routes.reserve.apps[id].count === 0) {
                 this.removeMatchingRoutes(this.routes.reserve.apps[id].sources)
                 delete this.routes.reserve.apps[id]
-            }
+            // }
         } else {
-            if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {count: 0, sources: []}
+            if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {count: 0, sources: new Set()}
             controls.options.forEach(c => {
                 c.manager = controls.manager
-                this.routes.reserve.apps[id].sources.push(c)
+                this.routes.reserve.apps[id].sources.add(c)
             })
             this.routes.reserve.apps[id].count++
         }
