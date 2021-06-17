@@ -157,7 +157,9 @@ export class Cursor{
             var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
             if (tmp){
                 this.props.mutex = true;
-                tmp.click();
+                let event = new MouseEvent('click');
+                tmp.dispatchEvent(event);
+
                 this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
                 this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
             }
