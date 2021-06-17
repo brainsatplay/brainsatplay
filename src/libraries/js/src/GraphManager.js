@@ -115,6 +115,8 @@ export class GraphManager{
         }
         node.dependencies = depDict
 
+        nodeInfo.controls = controlsToBind
+
         return {instance: node, controls: controlsToBind}
     }
 
@@ -122,6 +124,13 @@ export class GraphManager{
         let applet = this.applets[appId]
         let nodeInfo = applet.nodes[label]
         this.removeMatchingEdges(appId, label)
+
+        this.applets[appId].controls.options.delete(...nodeInfo.controls);
+        // Update Event Registry
+        if (this.session.updateApp){
+            this.session.updateApp(appId)
+        }
+        
         nodeInfo.instance.deinit()
         if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
         delete this.applets[appId].nodes[label]

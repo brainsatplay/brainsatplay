@@ -219,12 +219,18 @@ export class EventRouter{
                 delete this.routes.reserve.apps[id]
             // }
         } else {
-            if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {count: 0, sources: new Set()}
+            if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {
+                // count: 0, 
+                sources: new Set()}
+            let oldSources = this.routes.reserve.apps[id].sources
+            this.routes.reserve.apps[id].sources = new Set()
             controls.options.forEach(c => {
                 c.manager = controls.manager
                 this.routes.reserve.apps[id].sources.add(c)
+                oldSources.delete(c)
             })
-            this.routes.reserve.apps[id].count++
+            this.removeMatchingRoutes(oldSources)
+            // this.routes.reserve.apps[id].count++
         }
 
         this.routes.reserve.pool = []
