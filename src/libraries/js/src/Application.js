@@ -13,8 +13,8 @@ export class Application{
         //-------Keep these------- 
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
-        this.info = info
-        this.settings = settings;
+        this.info = this._copySettingsFile(info)
+        this.settings = settings
         this.AppletHTML = null;
         this.graph = null
         this.editor = null
@@ -40,7 +40,7 @@ export class Application{
 
         if (!this.AppletHTML){
             this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-                `<div id="${this.props.id}" style="height:100%; width:100%; position: relative; display: flex;"></div>`,       //Define the html template string or function with properties
+                `<div id="${this.props.id}" style="height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;"></div>`,       //Define the html template string or function with properties
                 this.parentNode,    //Define where to append to (use the parentNode)
                 this.props,         //Reference to the HTML render properties (optional)
                 setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
@@ -108,19 +108,15 @@ export class Application{
 
                 if (!('editor' in this.info)){
                     this.info.editor = {}
-                    this.info.editor.parentNode = this.parentNode
+                    this.info.editor.parentId = this.parentNode.id
                     this.info.editor.show = false
                 }
+                if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
 
-                this.editor = this.session.graph.edit(this, this.info.editor.parentNode)
+
+                this.editor = this.session.graph.edit(this, this.info.editor.parentId)
 
                 if (this.info.editor.show !== false) this.editor.toggleDisplay()
-
-                // Resize All Nodes
-                for (let k in this.graph.nodes) {
-                    if (this.graph.nodes[k].fragment && this.graph.nodes[k].fragment.onresize instanceof Function)
-                    this.graph.nodes[k].fragment.onresize()         
-                }
             })
         }
 
@@ -144,6 +140,35 @@ export class Application{
                     undefined, // deinit
                     ui.responsive // responsive
                 )
+
+                this._resizeAllFragments()
             }
+        }
+
+        _resizeAllFragments(){
+            let funcs = []
+
+            // Gather Resize Functions
+            for (let k in this.graph.nodes) {
+                if (this.graph.nodes[k].fragment && this.graph.nodes[k].fragment.onresize instanceof Function) funcs.push(this.graph.nodes[k].fragment.onresize)
+            }
+            // Repeat to Scale Everything Appropriately
+            funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
+        }
+
+        _copySettingsFile(info){
+            info = Object.assign({}, info)
+            let keys = ['nodes','edges']
+            info.graph = Object.assign({}, info.graph)
+            keys.forEach(k => {
+                info.graph[k] = [...info.graph[k]]
+                info.graph[k].forEach(o => {
+                    o = Object.assign({}, o)
+                    for (let key in o){
+                        if (o[key] === Object) o[key] = Object.assign({}, o[key])
+                    }
+                })
+            })
+            return info
         }
 }

@@ -486,7 +486,7 @@ select {
     opacity: 0; 
     transition: opacity 1s;
     pointer-events: none;
-    background: rgba(0,0,0,.7);
+    background: rgba(0,0,0,.3);
     padding: 0px;
     display: flex;
     flex-wrap: nowrap;
@@ -630,6 +630,7 @@ select {
     /* border-left: 1px solid  rgb(30,30,30); */
     z-index: 10;
     max-width: 250px;
+    overflow: scroll;
 }
 
 .brainsatplay-node-sidebar > div {

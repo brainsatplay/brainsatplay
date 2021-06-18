@@ -130,28 +130,32 @@ export class GraphManager{
         if (this.session.updateApp){
             this.session.updateApp(appId)
         }
-        
+
         nodeInfo.instance.deinit()
         if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
         delete this.applets[appId].nodes[label]
     }
 
+    _getRandomId(){
+        return String(Math.floor(Math.random()*1000000))
+    }
+
     addNode(appId,nodeInfo){
 
         // Add Basic Node Information to the Graph
-        if (nodeInfo.id==null) nodeInfo.id = String(Math.floor(Math.random()*1000000))
+        if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()
         if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
         
         let instance,controls;
-        if (this.applets[appId].nodes[nodeInfo.id] == null){
-            this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
-            if (nodeInfo.activePorts.size == 0){
-                nodeInfo.activePorts.add('default')
-            }
-            ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
-            this.applets[appId].nodes[nodeInfo.id].instance = instance;
-            if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
+        if (this.applets[appId].nodes[nodeInfo.id] != null) nodeInfo.id = nodeInfo.id + this._getRandomId()
+
+        this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
+        if (nodeInfo.activePorts.size == 0){
+            nodeInfo.activePorts.add('default')
         }
+        ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
+        this.applets[appId].nodes[nodeInfo.id].instance = instance;
+        if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
 
         // Initialize the Node
         let applet = this.applets[appId]
@@ -296,8 +300,6 @@ export class GraphManager{
     checkToPass(node,port,result){
         if (result && result.length > 0){
             let allEqual = true
-
-            console.log(node.states, port)
             node.states[port].splice(result.length-1) // Remove previous states that weren't returned
 
             result.forEach((o,i) => {
@@ -405,9 +407,9 @@ export class GraphManager{
         
         // Add Edges
         if (Array.isArray(graph.edges)){
+            // this.applets[id].edges = graph.edges // Pass by reference
             graph.edges.forEach(e => {
                 this.applets[id].edges.push(e)
-
                 // Capture Active Ports
                 for (let k in e){
                     let [node,port] = e[k].split(':')
@@ -420,6 +422,7 @@ export class GraphManager{
                     if (port) nodeInfo.activePorts.add(port)
                 }
             })
+
         }
 
         let applet =  this.applets[id]
@@ -453,6 +456,12 @@ export class GraphManager{
 
     addEdge = (appId, e) => {
         let applet = this.applets[appId]
+
+        let existingEdge = this.applets[appId].edges.find(edge => e === edge)
+        if (existingEdge == null){
+            this.applets[appId].edges.push(e)
+        }
+
         let splitSource = e.source.split(':')
         let sourceName = splitSource[0]
         let sourcePort = splitSource[1] ?? 'default'
@@ -604,13 +613,6 @@ export class GraphManager{
 
         let applet = this.applets[id]
 
-        applet.edges.find((e,i) => {
-            if (e === structure){
-                this.applets[id].edges.splice(i,1)
-                return true
-            }
-        })
-
         let stateKey = structure.source.replace(':', '_')
 
         let sessionSubs = applet.subscriptions.session[stateKey]
@@ -633,9 +635,10 @@ export class GraphManager{
             })
         }
 
-        applet.edges.forEach((e,i) => {
+        applet.edges.find((e,i) => {
             if (e === structure){
-                applet.edges.splice(i,1)
+                this.applets[id].edges.splice(i,1)
+                return true
             }
         })
     }

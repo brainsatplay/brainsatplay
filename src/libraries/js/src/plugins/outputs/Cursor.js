@@ -25,7 +25,8 @@ export class Cursor{
                 height: 20
             },
             prevHovered: null,
-            globalStyles: []
+            globalStyles: [],
+            transformCSS: transformCSSForBCICursor
         }
     }
 
@@ -47,7 +48,7 @@ export class Cursor{
         this.props.cursor.style.position = 'absolute'
         this.props.mutex = false;
 
-        this.props.globalStyles.push(transformCSSForBCICursor())
+        this.props.globalStyles.push(this.props.transformCSS())
         let globalStyle = document.createElement('style');
         globalStyle.innerHTML = `
         * {
@@ -198,6 +199,7 @@ export class Cursor{
 
 
     _mouseHover = (trigger=true) => {
+        try{
         let currentHovered = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
 
         if (this.props.prevHovered != currentHovered){
@@ -239,6 +241,7 @@ export class Cursor{
                 }
             }
         }
+    } catch{}
     }
     
     _startRobot(){

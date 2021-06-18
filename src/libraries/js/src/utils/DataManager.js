@@ -400,7 +400,7 @@ export class DataManager {
 
     saveFileText(text, path){
         return new Promise(resolve => {
-            fs.appendFile(path,text,(e)=>{
+            fs.writeFile(path,text,(e)=>{
                 if(e) throw e;
                 resolve(text)
             });

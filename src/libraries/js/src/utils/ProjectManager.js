@@ -94,6 +94,7 @@ app.init()`)
             delete n['instance']
             delete n['ui']
             delete n['fragment']
+            delete n['controls']
             n.class = `${classNames[i]}`
         })
         
@@ -162,47 +163,61 @@ app.init()`)
                     if (i == files.length-1) resolve(info)
                 })
             })
+
             let classes = {}
             info.classes.forEach(c => {
                 c = eval(`(${c.split('export')[0]})`)
                 classes[c.name] = c
             })
 
-            // Replace Class Imports
+            // Replace Class Imports with Random Ids (to avoid stringifying)
+            let classMap = {}
             var re = /import\s+{([^{}]+)}[^\n]+/g;
-            var m;
+            let m;
             do {
-                m = re.exec(info.settings);
+                m = re.exec(info.settings) ?? re.exec(info.settings)
                 if (m) {
-                    info.settings = info.settings.replace(m[0], `const ${m[1]} = ${classes[m[1]]}`)
+                    let id = String(Math.floor(Math.random()*1000000))
+                    classMap[id] = {
+                        name: m[1],
+                        class: classes[m[1]]
+                    }
+                    info.settings = info.settings.replace(m[0], ``)
+                    info.settings = info.settings.replace(`"class":${m[1]}`,`"class":${id}`)
                 }
             } while (m);
 
-            // Replace Brains@Play Imports
-            let prevDeclarations = []
-            var re = /brainsatplay.([^.,}]+).([^.,}]+).([^.,}]+)/g;
-            var m;
-            do {
-                m = re.exec(info.settings);
-                if (m) {
-                    let defaultClass = brainsatplay[m[1]]
-                    for (let i = 2; i < m.length; i ++){
-                        defaultClass = defaultClass[m[i]]
-                    }
-                    defaultClass = eval(`(${defaultClass})`)
-                    let variableName = m[m.length - 1]
-                    if (!prevDeclarations.includes(variableName)){
-                        info.settings = `const ${m[m.length - 1]} = ${defaultClass}\n${info.settings}`
-                        prevDeclarations.push(variableName)
-                    }
-                    info.settings = info.settings.replace(m[0], variableName)
-                }
-            } while (m);
+            m = re.exec(info.settings);
 
+            var re = /brainsatplay\.([^\.\,}]+)\.([^\.\,}]+)\.([^\.\,}]+)/g;
+            let m2;
+            do {
+                m2 = re.exec(info.settings);
+                if (m2) {
+                    let defaultClass = brainsatplay[m2[1]]
+                    for (let i = 2; i < m2.length; i ++){
+                        defaultClass = defaultClass[m2[i]]
+                    }
+
+                    let id = String(Math.floor(Math.random()*1000000))
+                    classMap[id] = {
+                        name: m2[m2.length - 1],
+                        class: defaultClass
+                    }
+                    info.settings = info.settings.replace(m2[0], id)
+                }
+            } while (m2);
+
+            let settings
             try {
                 let moduleText = "data:text/javascript;base64," + btoa(info.settings);
                 let module = await import(moduleText);
-                let settings = module.settings
+                settings = module.settings
+
+                // Replace Random IDs with Classes
+                settings.graph.nodes.forEach(n => {
+                    n.class = classMap[n.class].class
+                })
                 resolve(settings)
             } catch(e) {console.log(e); reject()}
         })

@@ -57,7 +57,7 @@ class Studio{
 
     _createApp(settings){
         settings.editor = {
-            parentNode: this.props.container,
+            parentId: this.props.container.id,
             show: true,
             style: `
             position: block;

@@ -37,7 +37,6 @@ export class Graph{
     initEdges = () => {
         return new Promise(resolve => {
             this.edgeStructures.forEach(async (e,i) => {
-                console.log('adding edge')
                 await this.addEdge(e)
                 if (i === this.edgeStructures.length - 1) resolve(this.edges)
             })

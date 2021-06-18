@@ -5,11 +5,11 @@ import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
 
 export class GraphEditor{
-    constructor(manager, applet, parentNode) {
+    constructor(manager, applet, parentId) {
         this.manager = manager
         this.app = applet
         this.plugins = this.manager.applets[this.app.props.id]
-        this.parentNode = parentNode
+        this.parentNode = document.getElementById(parentId)
         this.element = null
         this.graph=null
         this.shown = false
@@ -90,7 +90,9 @@ export class GraphEditor{
                     let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                     if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
                     if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
-                    if (this.app.info.editor.toggle) toggle = this.app.info.editor.toggle
+                    if (this.app.info.editor.toggleId) {
+                        toggle = document.getElementById(this.app.info.editor.toggleId)
+                    }
                     
                     if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
                     else console.warn('toggle not available')
@@ -204,6 +206,7 @@ export class GraphEditor{
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
         let tab = document.querySelector(`[data-target="${id}"]`);
+
         if (tab == null){
             tab = document.createElement('button')
             tab.classList.add('tablinks')
@@ -366,13 +369,16 @@ export class GraphEditor{
     addEdge = async (e) => {
         let edge = await this.graph.addEdge(e)
         this.addEdgeReactivity(edge) 
+        this.app.info.graph.edges.push(edge.structure) // Change actual settings file
         this.manager.addEdge(this.app.props.id,edge.structure)   
     }
 
     addNode(cls){
-        let nodeInfo = this.manager.addNode(this.app.props.id, {class:cls})
+        let nodeInfo = {id: cls.name, class: cls, params: {}}
+        nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
         this.app.insertInterface(nodeInfo)
         this.graph.addNode(nodeInfo)
+        this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
     }
@@ -466,7 +472,8 @@ export class GraphEditor{
         }
     }
 
-    createFile(target, name=target.name){
+    createFile(target, name){
+        if (name == null || name === '') name = `My${target.name}`
         let settings = {}
         let container = this.createView(undefined, 'brainsatplay-node-code', '')
         settings.language = 'javascript'
@@ -475,21 +482,21 @@ export class GraphEditor{
             container.style.opacity = '1'
         }
 
-        settings.onSave = (res) => {
-            this.addNodeOption(res.id, 'custom', res.name, () => {
-                this.addNode(res)
+        settings.onSave = (cls) => {
+            this.addNodeOption(cls.id, 'custom', cls.name, () => {
+                this.addNode(cls)
             })
-            let nodes = this.app.info.graph.nodes
+
             for (let node in this.plugins.nodes){
                 if (node.instance instanceof target){
                     let properties = Object.getOwnPropertyNames( node.instance )
                     properties.forEach(k => {
-                        node.instance[k] = res.prototype[k]
+                        node.instance[k] = cls.prototype[k]
                     })
                 }
             }
-            nodes.push({id: res.name, class: res, params: {}})
-            target = res
+            target = cls
+            this.addNode(cls)
         }
         settings.onClose = (res) => {
             container.style.pointerEvents = 'none'
@@ -497,8 +504,8 @@ export class GraphEditor{
         }
         settings.target = target
         settings.className = name
-        new LiveEdiggler(settings,container)
-        this.addTab(`${name}.js`, target.id, settings.onOpen)
+        let editor = new LiveEditor(settings,container)
+        this.addTab(`${name}.js`, container.id, settings.onOpen)
     }
 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
@@ -650,7 +657,6 @@ export class GraphEditor{
         let tabContainer = document.getElementById(`${this.props.id}ViewTabs`)
         if (tabContainer){
             let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth
-            tabContainer.style.width = `${mainWidth}px`
             this.mainPage.style.width = `${mainWidth}px`
         }
 
