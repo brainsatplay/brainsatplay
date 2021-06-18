@@ -263,7 +263,7 @@ export class SmoothieApplet {
             }
           }
         }
-        else if (atlas.settings.coherence === true && graphmode === "coherence") {
+        else if (atlas.settings.analysis.eegcoherence === true && graphmode === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             if(i < this.charts[0].series.length - 1){
               this.charts[0].series[i].append(Date.now(), Math.max(...row.slices.alpha1[row.slices.alpha1.length-1]));
@@ -292,7 +292,7 @@ export class SmoothieApplet {
             }
           });
         }
-        else if(atlas.settings.coherence === true && val === "coherence") {
+        else if(atlas.settings.analysis.eegcoherence === true && val === "coherence") {
           atlas.data.coherence.forEach((row,i) => {
             htmlToAppend += `<div style='display:table-row; color:`+this.charts[0].seriesColors[i]+`'>`+row.tag+`</div>`;
           });

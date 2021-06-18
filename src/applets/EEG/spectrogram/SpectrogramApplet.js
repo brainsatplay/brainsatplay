@@ -76,7 +76,7 @@ export class SpectrogramApplet {
                 if(document.getElementById(props.id+"mode").value === "FFT"){
                   addChannelOptions(props.id+"channel",a.data.eegshared.eegChannelTags);
                 }
-                else if(a.settings.coherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
+                else if(a.settings.analysis.eegcoherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
                   addCoherenceOptions(props.id+"channel",a.data.coherence);
                 }
             }
@@ -117,7 +117,7 @@ export class SpectrogramApplet {
             if(document.getElementById(this.props.id+"mode").value === "FFT"){
                 addChannelOptions(this.props.id+"channel",a.data.eegshared.eegChannelTags);
             }
-            else if(a.settings.coherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
+            else if(a.settings.analysis.eegcoherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
                 addCoherenceOptions(this.props.id+"channel",a.data.coherence);
             }
         }
@@ -169,7 +169,7 @@ export class SpectrogramApplet {
             }
           });
         }
-        else if(a.settings.coherence === true && graphmode === "Coherence"){
+        else if(a.settings.analysis.eegcoherence === true && graphmode === "Coherence"){
           a.data.coherence.find((o,i) => {
             if(o.tag === view){
               let coord = o;

@@ -1551,7 +1551,7 @@ void main(){
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaTheta*.5,1)), window.audio.ctx.currentTime);
                         }      
-                    } else if (this.session.atlas.settings.coherence === true && option === 'iFrontalAlpha1Coherence') {
+                    } else if (this.session.atlas.settings.analysis.eegcoherence === true && option === 'iFrontalAlpha1Coherence') {
                         this.modifiers.iFrontalAlpha1Coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1') // this.session.atlas.getLatestCoherenceData(0)[0].mean.alpha1;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(

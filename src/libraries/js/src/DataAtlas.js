@@ -49,10 +49,18 @@ export class DataAtlas {
 			}
 		)
 
+		let analysisDict = {
+			eegcoherence: false,
+			eegfft: false
+		}
+		analysis.forEach((k) => {
+			analysisDict[k] = true
+		})
+
 		this.state = new StateManager({
 			deviceConnected: false,
 			analyzing: false,
-			analysis: analysis, // ['eegfft']
+			analysis: analysisDict, // {eegfft: true}
 			heg:false,
 			eeg:false,
 			coherence:false,
@@ -128,10 +136,11 @@ export class DataAtlas {
 		}
 
         if(useCoherence === true) {
-			this.settings.coherence = true;
-            this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
-			//console.log(this.data.coherence);
-        }
+			this.settings.analysis.eegcoherence = true;
+		}
+
+		this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
+
 
 		if(this.data.eegshared.eegChannelTags) { //add structs for non-specified channels
 			this.data.eegshared.eegChannelTags.forEach((row,i) => {
@@ -154,13 +163,22 @@ export class DataAtlas {
 		this.workerIdx = 0;
 
 		if(useAnalyzer === true) {
-			this.addDefaultAnalyzerFuncs();
-
-			if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
-			//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
-			window.workers.workerResponses.push(this.workeronmessage);
-			//this.analyzer();
+			this.settings.fft = true
 		}
+		this.addDefaultAnalyzerFuncs();
+
+		// window.onkeydown = (e) => {
+		// 	if (e.code =='KeyC'){
+		// 		this.settings.analysis.eegcoherence = !this.settings.analysis.eegcoherence
+		// 	} else if (e.code == 'KeyF'){
+		// 		this.settings.analysis.eegfft = !this.settings.analysis.eegfft
+		// 	}
+		// }
+
+		if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
+		//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
+		window.workers.workerResponses.push(this.workeronmessage);
+		//this.analyzer();
     }
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){
@@ -610,7 +628,7 @@ export class DataAtlas {
 	//return coherence object for FP1 to FP2 (AF7 to AF8 on Muse)
 	getFrontalCoherenceData = () => {
 		let coherenceData = []
-		if(this.settings.coherence) {
+		if(this.settings.analysis.eegcoherence) {
 			let regex = new RegExp('([F]|[F][A-Za-z]|[A-Za-z][F])([0-9]|[0-9][0-9])','i')
 			let frontalTags = this.data.eegshared.eegChannelTags.filter(({tag}) => tag.match(regex))
 			frontalTags.forEach((o,i) => {
@@ -625,7 +643,7 @@ export class DataAtlas {
 	//C3_C4 coherence data (cranial nervs)
 	getCNCoherenceData = () => {
 		let coh_ref_ch = undefined;
-		if(this.settings.coherence) {
+		if(this.settings.analysis.eegcoherence) {
             coh_ref_ch = this.getCoherenceByTag('C3_C4');
             if(coh_ref_ch === undefined) { coh_ref_ch = this.getCoherenceByTag('C4_C3'); }
         }
@@ -1228,7 +1246,7 @@ export class DataAtlas {
 								line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
 							}
 						});
-						if(this.settings.coherence) {
+						if(this.settings.analysis.eegcoherence) {
 							this.data.coherence.forEach((row,j) => {
 								if(mapidx===0) {
 									let bpfreqs = [...this.data.eegshared.frequencies].map((x,k) => x = x.toFixed(3));
@@ -1352,11 +1370,10 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-
-						// console.log('posting to worker',window.workers)
-
-                        window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-                        this.workerWaiting = true;
+						if (this.settings.analysis.eegfft){
+							window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+							this.workerWaiting = true;
+						}
                     }
                 }
 			}
@@ -1366,12 +1383,11 @@ export class DataAtlas {
 				let buf = this.bufferEEGSignals(1);
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
-
-						// console.log('posting to worker',window.workers)
-
-                        window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-                        //postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
-                        this.workerWaiting = true;
+						if (this.settings.analysis.eegcoherence){
+							window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+							//postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+							this.workerWaiting = true;
+						}
                     }
                 }
 			}
@@ -1462,14 +1478,29 @@ export class DataAtlas {
 	}
 
 	analyzer = () => { //Make this stop when streaming stops
-		//fft,coherence,bcijs_bandpowers,bcijs_pca,heg_pulse
+		//eegfft,eegcoherence,bcijs_bandpowers,bcijs_pca,heg_pulse
 		if(this.settings.analyzing === true) {
-			this.settings.analysis.forEach((run,i) => {
-				this.analyzerOpts.forEach((opt,j) => {
-					if(opt === run) {					
-						this.analyzerFuncs[j]();
-					}
-				});
+
+			// Run Required Analysis Functions
+			let keys = Object.keys(this.settings.analysis)
+
+			// remove false keys
+
+			// remove eegfft if coherence is running
+			if (this.settings.analysis['eegfft'] == true && this.settings.analysis['eegcoherence'] == true) keys.find((k,i) => {
+				if (k === 'eegfft') keys.splice(i,1); return true;
+			})
+
+
+			keys.forEach((run,i) => {
+				if (this.settings.analysis[run] === true){
+					this.analyzerOpts.forEach((opt,j) => {
+						if(opt === run) {
+							console.log(run)
+							this.analyzerFuncs[j]();
+						}
+					});
+				}
 			});
 			if (typeof window === 'undefined') {
 				setTimeout(()=>{this.analyzer()}, 60)

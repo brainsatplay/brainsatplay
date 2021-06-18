@@ -89,7 +89,9 @@ export class BlueberryPlugin {
             this.atlas.settings.heg = true;
             this.info.useAtlas = true;
             if(this.info.analysis.length > 0 ) {
-                this.atlas.settings.analysis.push(...this.info.analysis);
+                info.analysis.forEach(k => {
+                    this.atlas.settings.analysis[k] = true
+                })
                 if(!this.atlas.settings.analyzing) { 
                     this.atlas.settings.analyzing = true;
                     this.atlas.analyzer();

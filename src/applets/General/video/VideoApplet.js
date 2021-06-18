@@ -382,7 +382,7 @@ export class VideoApplet {
               this.onData(score);
             }
           }
-          else if (this.bci.atlas.settings.coherence) {
+          else if (this.bci.atlas.settings.analysis.eegcoherence) {
               this.cohScore = this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')
               this.onData(this.cohScore);
           }

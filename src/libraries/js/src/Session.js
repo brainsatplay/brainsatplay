@@ -539,17 +539,10 @@ export class Session {
 
 	addAnalysisMode(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if (this.deviceStreams.length > 0) {
-			let found = this.atlas.settings.analysis.find((str, i) => {
-				if (name === str) {
-					return true;
-				}
-			});
-			if (found === undefined) {
-				this.atlas.settings.analysis.push(name);
-				if (this.atlas.settings.analyzing === false) {
-					this.atlas.settings.analyzing = true;
-					this.atlas.analyzer();
-				}
+			this.atlas.settings.analysis[name] = true
+			if (this.atlas.settings.analyzing === false) {
+				this.atlas.settings.analyzing = true;
+				this.atlas.analyzer();
 			}
 		} else { console.error("no devices connected") }
 	}
@@ -557,17 +550,21 @@ export class Session {
 	stopAnalysis(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if (this.deviceStreams.length > 0) {
 			if (name !== '' && typeof name === 'string') {
-				let found = this.atlas.settings.analysis.find((str, i) => {
-					if (name === str) {
-						this.atlas.settings.analysis.splice(i, 1);
-						return true;
-					}
-				});
+				this.atlas.settings.analysis[name] = false
 			} else {
 				this.atlas.settings.analyzing = false;
 			}
 		} else { console.error("no devices connected"); }
 	}
+
+	startAnalysis(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if (this.deviceStreams.length > 0) {
+			if (name !== '' && typeof name === 'string') this.atlas.settings.analysis[name] = true
+			if (!this.atlas.settings.analyzing) this.atlas.settings.analyzing = true
+		} else { console.error("no devices connected"); }
+	}
+
+	
 
 	//get data for a particular device	
 	getDeviceData = (deviceType = 'eeg', tag = 'all', deviceIdx = 0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
@@ -629,12 +626,7 @@ export class Session {
 
 	addAnalysisMode(mode = '', deviceName = this.state.data.device0.deviceName, n = 0) {
 		let device = this.getDevice(deviceName, n);
-		let found = device.info.analysis.find((s, i) => {
-			if (s === mode) {
-				return true;
-			}
-		});
-		if (!found) device.info.analysis.push(mode);
+		device.info.analysis[mode] = true
 		if (!device.atlas.settings.analyzing) {
 			device.atlas.settings.analyzing = true;
 			device.atlas.analyzer();

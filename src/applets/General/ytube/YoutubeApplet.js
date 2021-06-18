@@ -233,7 +233,7 @@ export class YoutubeApplet {
                     this.onData(score);
                     }
                 }
-                else if (this.bci.atlas.settings.coherence && this.coh_ref_ch !== undefined) {
+                else if (this.bci.atlas.settings.analysis.eegcoherence && this.coh_ref_ch !== undefined) {
                     let ct = this.coh_ref_ch.fftCount;
                     if(ct > 1) {
                     let avg = 20; if(ct < avg) { avg = ct; }

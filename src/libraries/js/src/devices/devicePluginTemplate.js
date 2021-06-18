@@ -45,7 +45,9 @@ export class devicePlugin {
         //     this.atlas.settings.heg = true;
         //     this.info.useAtlas = true;
         //     if(this.atlas.settings.analyzing === false && info.analysis.length > 0 ) {
-        //         this.atlas.settings.analysis.push(...info.analysis);
+        //         	info.analysis.forEach(k => {
+        //               this.atlas.settings.analysis[k] = true
+        //          })
         //         this.configureDefaultStreamTable();
         //         this.atlas.settings.analyzing = true;
         //         this.atlas.analyzer();
