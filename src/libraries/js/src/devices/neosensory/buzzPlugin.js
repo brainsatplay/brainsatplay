@@ -43,8 +43,7 @@ export class buzzPlugin {
             this.atlas = new DataAtlas(
                 location+":" + this.mode,
                 {},
-                config,false,true,
-                this.info.analysis
+                config
                 );
 
             this.info.useAtlas = true;

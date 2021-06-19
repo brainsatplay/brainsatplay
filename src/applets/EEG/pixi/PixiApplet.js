@@ -25,7 +25,7 @@ export class PixiApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -78,6 +78,8 @@ export class PixiApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id);   
         }
 
@@ -125,7 +127,7 @@ export class PixiApplet {
         this.app.ticker.add((delta) => {
 
             // Organize Brain Data 
-            this.setBrainData(this.bci.atlas.data.eeg)
+            this.setBrainData(this.session.atlas.data.eeg)
 
             // Change Color
             let c = this.getColor()
@@ -154,6 +156,7 @@ export class PixiApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
@@ -170,7 +173,7 @@ export class PixiApplet {
         this.aspect = this.app.renderer.view.width/this.app.renderer.view.height
         this.shaderQuad.shader.uniforms.aspect = this.aspect
         this.generateShaderElements()
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
     }
 
     generateShaderElements() {

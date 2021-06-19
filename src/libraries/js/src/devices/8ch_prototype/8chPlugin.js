@@ -105,8 +105,7 @@ export class Prototype8Plugin {
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
                 {eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
-                config,true,true,
-                info.analysis
+                config
             );
             info.useAtlas = true;
         } else if (typeof pipeToAtlas === 'object') {
@@ -124,7 +123,6 @@ export class Prototype8Plugin {
                 }
             });
 
-            this.atlas.settings.coherence = true;
             this.atlas.settings.eeg = true;
             info.useAtlas = true;
             if(info.analysis.length > 0 ) {

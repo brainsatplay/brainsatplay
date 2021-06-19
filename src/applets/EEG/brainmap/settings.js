@@ -6,5 +6,6 @@ export const settings = {
     "description": "Bandpower and coherence mapping.",
     "categories": ["visualize"],
     "module": "BrainMapApplet",
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegcoherence']
 }

@@ -346,6 +346,8 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
 
             document.getElementById(props.id+'changeview').onclick = () => {
                 this.swapCurrentView();
@@ -741,6 +743,8 @@ void main(){
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

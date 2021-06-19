@@ -39,9 +39,10 @@ export class GraphManager{
         }
     }
 
-    instantiateNode(nodeInfo,session=this.session, activePorts=new Set(['default'])){
+    instantiateNode(nodeInfo,session=this.session){
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
+        let toAnalyze = new Set()
 
         // Set Default Parameters
         for (let param in node.paramOptions){
@@ -80,44 +81,33 @@ export class GraphManager{
                     }
                     controlsToBind.push(controlDict)
                 }
+
+                if (node.ports[port].analysis) node.ports[port].analysis
+                 else node.ports[port].analysis = []
             }
         } else {
-            node.ports = {}
-        }
-
-        activePorts.forEach(p => {
-
-            // Add Ports Variable + Show If Active
-            if (node.ports[p] == null) {
-                node.ports[p] = {
-                    defaults: {
-                        output: [{}]
-                    },
-                    active: true
-                }
-            } else {
-                node.ports[p].active = true
+            node.ports = {
+                default:{active:{in:false,out:false}}
             }
-
-            // Catch Active Ports without Default State Assigned
-            if (node.states[p] == null) node.states[p] = [{}]
-        })
-        
+            node.states['default'] = [{}]
+        }
         
         // Instantiate Dependencies
         let depDict = {}
-        let instance;
+        let instance, analysis;
         if (node.dependencies){
             node.dependencies.forEach(d => {
-                ({instance} = this.instantiateNode(d))
+                ({instance, analysis} = this.instantiateNode(d))
                 depDict[d.id] = instance
+                if (analysis.size > 0) toAnalyze.add(...Array.from(analysis))
             })
         }
         node.dependencies = depDict
 
         nodeInfo.controls = controlsToBind
-
-        return {instance: node, controls: controlsToBind}
+        if (nodeInfo.analysis == null) nodeInfo.analysis = []
+        nodeInfo.analysis.push(...Array.from(toAnalyze))
+        return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
 
     removeNode(appId,label){
@@ -126,10 +116,10 @@ export class GraphManager{
         this.removeMatchingEdges(appId, label)
 
         this.applets[appId].controls.options.delete(...nodeInfo.controls);
+
         // Update Event Registry
-        if (this.session.updateApp){
-            this.session.updateApp(appId)
-        }
+        this.updateApp(appId)
+
 
         nodeInfo.instance.deinit()
         if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
@@ -143,18 +133,17 @@ export class GraphManager{
     addNode(appId,nodeInfo){
 
         // Add Basic Node Information to the Graph
-        if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()
-        if (nodeInfo.activePorts==null) nodeInfo.activePorts = new Set()
-        
-        let instance,controls;
+        if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
+        let instance,controls, analysis;
         if (this.applets[appId].nodes[nodeInfo.id] != null) nodeInfo.id = nodeInfo.id + this._getRandomId()
 
         this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
-        if (nodeInfo.activePorts.size == 0){
-            nodeInfo.activePorts.add('default')
-        }
-        ({instance, controls} = this.instantiateNode(nodeInfo,this.session, nodeInfo.activePorts))
+        
+        ({instance, controls, analysis} = this.instantiateNode(nodeInfo,this.session))
         this.applets[appId].nodes[nodeInfo.id].instance = instance;
+
+        // if (this.applets[appId].nodes[nodeInfo.id].analysis == null) this.applets[appId].nodes[nodeInfo.id].analysis = []
+        // this.applets[appId].nodes[nodeInfo.id].analysis.push(...analysis);
         if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
 
         // Initialize the Node
@@ -211,11 +200,15 @@ export class GraphManager{
         this.addToGUI(nodeInfo)
 
         // Update Event Registry
-        if (this.session.updateApp){
-            this.session.updateApp(appId)
-        }
+        this.updateApp(appId)
 
         return nodeInfo
+    }
+
+    updateApp(appId){
+        if (this.session.updateApps){
+            this.session.updateApps(appId)
+        }
     }
 
     getNode(id,name){
@@ -389,7 +382,9 @@ export class GraphManager{
 }
     }
 
-    init(id, name, graph){
+    init(id, settings){
+        let name = settings.name
+        let graph = settings.graph
 
         // Set Default Values for Graph
         let streams = new Set()
@@ -403,39 +398,30 @@ export class GraphManager{
         let edges = []
         let classInstances = {}
 
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, classInstances}
-        
-        // Add Edges
-        if (Array.isArray(graph.edges)){
-            // this.applets[id].edges = graph.edges // Pass by reference
-            graph.edges.forEach(e => {
-                this.applets[id].edges.push(e)
-                // Capture Active Ports
-                for (let k in e){
-                    let [node,port] = e[k].split(':')
-                    let nodeInfo = graph.nodes.find(o=>{
-                        if (o.id === node){
-                            return o
-                        }
-                    })
-                    if (nodeInfo.activePorts == null) nodeInfo.activePorts = new Set()
-                    if (port) nodeInfo.activePorts.add(port)
-                }
-            })
+        let analysis = {default: [], dynamic: []}
+        if (settings.analysis) analysis.default.push(...settings.analysis)
+            
 
-        }
-
+        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, classInstances, analysis}
+    
         let applet =  this.applets[id]
         
         // Create Nodes
-        graph.nodes.forEach((nodeInfo,i) => {
-            this.addNode(id,nodeInfo)
-        })
+        if (graph){
+            if (Array.isArray(graph.nodes)){
+                graph.nodes.forEach((nodeInfo,i) => {
+                    this.addNode(id,nodeInfo)
+                })
+            }
 
-        // Create Edges
-        applet.edges.forEach((e,i) => {
-            this.addEdge(id, e, false)
-        })
+            // Create Edges
+            if (Array.isArray(graph.edges)){
+                graph.edges.forEach((e,i) => {
+                    this.addEdge(id, e, false)
+                })
+            }
+        }
+
 
         return applet
     }
@@ -443,13 +429,15 @@ export class GraphManager{
     start(appId, sessionId){
 
         let applet =  this.applets[appId]
-        applet.sessionId = sessionId ?? appId
+        if (applet){
+            applet.sessionId = sessionId ?? appId
 
-        // Listen for Updates on Multiplayer Edges
-        applet.edges.forEach((e,i) => {
-            this._subscribeToBrainstorm(e, appId)
+            // Listen for Updates on Multiplayer Edges
+            applet.edges.forEach((e,i) => {
+                this._subscribeToBrainstorm(e, appId)
 
-        })
+            })
+        }
 
         return applet
     }
@@ -457,10 +445,14 @@ export class GraphManager{
     addEdge = (appId, e) => {
         let applet = this.applets[appId]
 
-        let existingEdge = this.applets[appId].edges.find(edge => e === edge)
-        if (existingEdge == null){
+        let existingEdge = this.applets[appId].edges.find(edge => {
+            if (e.source == edge.source && e.target == edge.target){
+                return true
+            }
+        })
+        
+        if (existingEdge == null){ // Do not duplicate edges
             this.applets[appId].edges.push(e)
-        }
 
         let splitSource = e.source.split(':')
         let sourceName = splitSource[0]
@@ -473,6 +465,19 @@ export class GraphManager{
         let target = applet.nodes[targetName].instance
         let label = this.getLabel(source,sourcePort)
         applet.classInstances[sourceInfo.class.id][source.label].push(label)
+
+        // Initialize Ports with Default Output
+        let types = ['source', 'target']
+        types.forEach(t => {
+            if (eval(t).states[eval(`${t}Port`)] == null) {
+                eval(t).states[eval(`${t}Port`)] = [{}]
+                let registryEntry = this.registry.local[eval(t).label].registry
+                if (registryEntry[eval(`${t}Port`)] == null){
+                    registryEntry[eval(`${t}Port`)] = {}
+                    registryEntry[eval(`${t}Port`)].state = eval(t).states[eval(`${t}Port`)]
+                }
+            }
+        })
 
         // Pass Data from Source to Target
         let _onTriggered = (trigger) => {
@@ -487,7 +492,6 @@ export class GraphManager{
             }
         }
         
-        // Initialize port with Default Output
         this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
         // Register Brainstorm State
@@ -518,6 +522,21 @@ export class GraphManager{
         if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
         let subId = this.state.subscribeSequential(label, _onTriggered)
         applet.subscriptions.local[label].push({id: subId, target: e.target})
+
+        if (target.ports[targetPort] == null) target.ports[targetPort] = {}
+        if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
+
+        let tP = target.ports[targetPort]
+        let sP = source.ports[sourcePort]
+        if (tP.active == null) tP.active = {in: false, out:false}
+        tP.active.in = true
+        if (sP.active == null) sP.active = {in: false, out:false}
+        sP.active.out = true
+        if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+        if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
+
+        this.updateApp(appId)
+    }
     }
 
     findStreamFunction(prop) {
@@ -609,9 +628,9 @@ export class GraphManager{
         }
     }
 
-    removeEdge = (id, structure) => {
+    removeEdge = (appId, structure) => {
 
-        let applet = this.applets[id]
+        let applet = this.applets[appId]
 
         let stateKey = structure.source.replace(':', '_')
 
@@ -637,10 +656,37 @@ export class GraphManager{
 
         applet.edges.find((e,i) => {
             if (e === structure){
-                this.applets[id].edges.splice(i,1)
+                this.applets[appId].edges.splice(i,1)
                 return true
             }
         })
+
+        // Remove Edge Analysis Flags
+        let splitSource = structure.source.split(':')
+        let sourceName = splitSource[0]
+        let sourcePort = splitSource[1] ?? 'default'
+        let sourceInfo = applet.nodes[sourceName]
+        let source = sourceInfo.instance
+        let splitTarget = structure.target.split(':')
+        let targetName = splitTarget[0]
+        let targetPort = splitTarget[1] ?? 'default'
+        let target = applet.nodes[targetName].instance
+        let tP = target.ports[targetPort]
+        let sP = source.ports[sourcePort]
+        tP.active.in = false
+        sP.active.out = false
+
+        let toRemove = []
+        let toCheck = []
+        if (Array.isArray(sP.analysis)) toCheck.push(...sP.analysis)
+        if (Array.isArray(tP.analysis)) toCheck.push(...tP.analysis)
+        this.applets[appId].analysis.dynamic.forEach((a,i) => {
+            if (toCheck.includes(a)) toRemove.push(i)
+        })
+        toRemove.reverse().forEach(i => {
+            this.applets[appId].analysis.dynamic.splice(i,1)
+        })
+        this.updateApp(appId)
     }
 
     // Internal Methods

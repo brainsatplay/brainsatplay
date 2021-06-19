@@ -15,7 +15,7 @@ export class BarChartApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
 		this.info = settingsFile.settings;
         this.settings = settings;
@@ -68,8 +68,10 @@ export class BarChartApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            addChannelOptions(props.id+'channel', this.bci.atlas.data.eegshared.eegChannelTags, true);
-            addChannelOptions(props.id+'channel2', this.bci.atlas.data.eegshared.eegChannelTags, true);
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
+            addChannelOptions(props.id+'channel', this.session.atlas.data.eegshared.eegChannelTags, true);
+            addChannelOptions(props.id+'channel2', this.session.atlas.data.eegshared.eegChannelTags, true);
             document.getElementById(props.id+'channel2').style.display = 'none';
             document.getElementById(props.id+'mode').onchange = () => {
                 let val = document.getElementById(props.id+'mode').value;
@@ -154,14 +156,16 @@ export class BarChartApplet {
         this.looping = false;
         this.chart.deInit();
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        if(this.bci.atlas.settings.eeg) {
-            addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
-            addChannelOptions(this.props.id+"channel2", this.bci.atlas.data.eegshared.eegChannelTags, true);
+        if(this.session.atlas.settings.eeg) {
+            addChannelOptions(this.props.id+"channel", this.session.atlas.data.eegshared.eegChannelTags, true);
+            addChannelOptions(this.props.id+"channel2", this.session.atlas.data.eegshared.eegChannelTags, true);
         }
         
         let graphmode = document.getElementById(this.props.id+'mode').value;
@@ -222,7 +226,7 @@ export class BarChartApplet {
     //doSomething(){}
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.eeg && this.bci.atlas.settings.analyzing) { 
+            if(this.session.atlas.settings.eeg && this.session.atlas.settings.analyzing) { 
                 this.updateChart();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
@@ -231,7 +235,7 @@ export class BarChartApplet {
 
     updateChart = () => {
         let ch1 = document.getElementById(this.props.id+'channel').value;
-        let dat = this.bci.atlas.getLatestFFTData(ch1)[0];
+        let dat = this.session.atlas.getLatestFFTData(ch1)[0];
         let graphmode = document.getElementById(this.props.id+'mode').value;
         let datamode = document.getElementById(this.props.id+'data').value;
         if(dat.fftCount > 0) {
@@ -241,17 +245,17 @@ export class BarChartApplet {
                 } else if (datamode === 'bands') {
                     this.chart.slices = dat.mean;
                 } else if (datamode === 'ratios') {
-                    let coord = this.bci.atlas.getEEGDataByChannel(ch1);
+                    let coord = this.session.atlas.getEEGDataByChannel(ch1);
                     if(coord) {
-                        let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
-                        let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
-                        let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
+                        let thetabeta = this.session.atlas.getThetaBetaRatio(coord);
+                        let alphabeta = this.session.atlas.getAlphaBetaRatio(coord);
+                        let alpha2_1 = this.session.atlas.getAlphaRatio(coord);
                         this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha1:alpha2_1 };
                     }
                 }
             } else if (graphmode === 'mirror') {
                 let ch2 = document.getElementById(this.props.id+'channel2').value;
-                let dat2 = this.bci.atlas.getLatestFFTData(ch2)[0];
+                let dat2 = this.session.atlas.getLatestFFTData(ch2)[0];
                 if(datamode === 'fft') {
                     this.chart.leftbars.slices = dat.slice;
                     this.chart.rightbars.slices = dat2.slice;
@@ -259,20 +263,20 @@ export class BarChartApplet {
                     this.chart.leftbars.slices = dat.mean;
                     this.chart.rightbars.slices = dat2.mean;
                 } else if (datamode === 'ratios') {
-                    let coord = this.bci.atlas.getEEGDataByChannel(ch1);
+                    let coord = this.session.atlas.getEEGDataByChannel(ch1);
                     if(coord) {
-                        let thetabeta = this.bci.atlas.getThetaBetaRatio(coord);
-                        let alphabeta = this.bci.atlas.getAlphaBetaRatio(coord);
-                        let alpha2_1 = this.bci.atlas.getAlphaRatio(coord);
-                        let alphatheta = this.bci.atlas.getAlphaThetaRatio(coord);
+                        let thetabeta = this.session.atlas.getThetaBetaRatio(coord);
+                        let alphabeta = this.session.atlas.getAlphaBetaRatio(coord);
+                        let alpha2_1 = this.session.atlas.getAlphaRatio(coord);
+                        let alphatheta = this.session.atlas.getAlphaThetaRatio(coord);
                         this.chart.leftbars.slices = { scp:thetabeta, theta:alphatheta, alpha2:alpha2_1, beta:alphabeta };
                     }
-                    let coord2 = this.bci.atlas.getEEGDataByChannel(ch2);
+                    let coord2 = this.session.atlas.getEEGDataByChannel(ch2);
                     if(coord2) {
-                        let thetabeta2 = this.bci.atlas.getThetaBetaRatio(coord2);
-                        let alphabeta2 = this.bci.atlas.getAlphaBetaRatio(coord2);
-                        let alpha2_12 = this.bci.atlas.getAlphaRatio(coord2);
-                        let alphatheta2 = this.bci.atlas.getAlphaThetaRatio(coord2);
+                        let thetabeta2 = this.session.atlas.getThetaBetaRatio(coord2);
+                        let alphabeta2 = this.session.atlas.getAlphaBetaRatio(coord2);
+                        let alpha2_12 = this.session.atlas.getAlphaRatio(coord2);
+                        let alphatheta2 = this.session.atlas.getAlphaThetaRatio(coord2);
                         this.chart.rightbars.slices = { scp:thetabeta2, theta:alphatheta2, alpha2:alpha2_12, beta:alphabeta2 };
                     }
                 }

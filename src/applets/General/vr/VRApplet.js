@@ -22,7 +22,7 @@ export class VRApplet {
         this.parentNode = parent;
 		this.settings = settings;
 		this.info = settingsFile.settings;
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
@@ -69,7 +69,7 @@ export class VRApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
 
             /**
              * VR Demo
@@ -331,7 +331,7 @@ export class VRApplet {
 		this.camera.aspect = this.appletContainer.offsetWidth / this.appletContainer.offsetHeight;
 		this.camera.updateProjectionMatrix();
 
-		this.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );        this.bci.atlas.makeFeedbackOptions(this)
+		this.renderer.setSize( this.appletContainer.offsetWidth, this.appletContainer.offsetHeight );        this.session.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

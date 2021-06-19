@@ -16,7 +16,7 @@ export class HillClimberApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -225,16 +225,16 @@ export class HillClimberApplet {
       }
     
     updateLoop = () => {
-        if(this.bci.atlas.settings.heg  && this.bci.atlas.settings.deviceConnected) {
+        if(this.session.atlas.settings.heg  && this.session.atlas.settings.deviceConnected) {
           if(this.feedback === 'ratio') {
-            let ct = this.bci.atlas.data.heg[0].count;
+            let ct = this.session.atlas.data.heg[0].count;
             let avg = 40; if(ct < avg) { avg = ct; }
-            let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-            let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+            let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
+            let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
             this.onData(score);
           }
           else if (this.feedback === 'hrv') {
-            let hr = this.bci.atlas.data.heg[0].beat_detect.beats;
+            let hr = this.session.atlas.data.heg[0].beat_detect.beats;
             if(hr.length > 4) {
               let reducer = (a,c) => {return {hrv:a.hrv+c.hrv}};
               let hrv = hr.slice(hr.length-5).reduce(reducer).hrv * 0.20;

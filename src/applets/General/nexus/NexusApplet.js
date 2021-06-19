@@ -83,6 +83,8 @@ export class NexusApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.createIntro(this)
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -499,6 +501,7 @@ this.three.getGeolocation = () => {
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

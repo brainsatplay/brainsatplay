@@ -154,8 +154,7 @@ export class notionPlugin {
              this.atlas = new DataAtlas(
                  location+":"+this.mode,
                  {eegshared:{eegChannelTags: info.eegChannelTags, sps:info.sps}},
-                 config,true,true,
-                 info.analysis
+                 config
                  );
              info.useAtlas = true;
          } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
@@ -166,7 +165,6 @@ export class notionPlugin {
              this.atlas.data.eeg = this.atlas.gen10_20Atlas(info.eegChannelTags); 
              
              this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
-             this.atlas.settings.coherence = true;
              this.atlas.settings.eeg = true;
              info.useAtlas = true;
              if(info.analysis.length > 0 ) {

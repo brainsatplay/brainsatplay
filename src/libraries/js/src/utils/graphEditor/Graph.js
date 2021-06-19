@@ -54,6 +54,8 @@ export class Graph{
 
     removeEdge(e){
         let types = ['source','target']
+
+        // Remove from Nodes
         types.forEach(t => {
             let deactivate = true
             if (e[t]){
@@ -64,19 +66,33 @@ export class Graph{
                 if (deactivate) e[`${t}Node`].classList.remove('active')
             }
         })
+
+        // Remove from UI
         e.element.remove()
+
+        // Remove from Graph
+        this.edges.find((edge,i) => {
+            if (edge == e) {
+                this.edges.splice(i,1)
+                return true
+            }
+        })
     }
 
     addEdge = async (e) => {
         return new Promise(async (resolve, reject) => {
             let edge = new Edge(e, this.nodes)
             let res = await edge.insert(this.parentNode)
-            if (res === true){
+            let found = this.edges.find(e => {
+                if (e.structure.source == edge.structure.source && e.structure.target == edge.structure.target) return true
+            })
+            if (res === true && found == null){
                 this.edges.push(edge)
                 resolve(edge)
             } else {
                 this.removeEdge(edge)
-                reject(res)
+                if (found == null) reject('edge already exists')
+                else reject(res)
             }
         })
     }

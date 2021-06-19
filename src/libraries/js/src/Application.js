@@ -27,7 +27,7 @@ export class Application{
     }
 
     init() {
-        let info = this.session.registerApp(this.props.id, this.info.name, this.info.graph)
+        let info = this.session.registerApp(this.props.id, this.info)
         this.graph = info
 
         let setupHTML = () => {

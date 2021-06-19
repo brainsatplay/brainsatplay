@@ -142,8 +142,7 @@ export class hegduinoPlugin {
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
                 {hegshared:{sps:this.info.sps}},
-                config,false,true,
-                this.info.analysis
+                config,
                 );
 
             this.info.deviceNum = this.atlas.data.heg.length-1;

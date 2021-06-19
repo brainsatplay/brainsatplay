@@ -18,7 +18,7 @@ export class BrainArtApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -47,7 +47,7 @@ export class BrainArtApplet {
         
                     p.draw = () => {
                         // this.sketch.background(0)
-                        this.ring.setBrainData(this.bci.atlas.data.eeg)
+                        this.ring.setBrainData(this.session.atlas.data.eeg)
                         this.ring.drawShape()
                     };
                 },
@@ -134,6 +134,8 @@ export class BrainArtApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id);   
         }
 
@@ -174,6 +176,8 @@ export class BrainArtApplet {
     deinit() {
         this.sketch.remove()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

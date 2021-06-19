@@ -18,7 +18,7 @@ export class SmoothieApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -81,7 +81,10 @@ export class SmoothieApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-          addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+          this.session.registerApp(this.props.id,this.info)
+          this.session.startApp(this.props.id)
+
+          addChannelOptions(this.props.id+"channel", this.session.atlas.data.eegshared.eegChannelTags, true);
           document.getElementById(props.id+"channelmenu").style.display = "none";
           
           document.getElementById(props.id+"mode").onchange = () => {
@@ -117,13 +120,13 @@ export class SmoothieApplet {
             } else if (val === "stackedraw") {
               this.charts[0].deInit();
               document.getElementById(props.id+'canvascontainer').innerHTML = '';
-              let height = 100/this.bci.atlas.data.eegshared.eegChannelTags.length;
-              this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
+              let height = 100/this.session.atlas.data.eegshared.eegChannelTags.length;
+              this.session.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 document.getElementById(props.id+'canvascontainer').innerHTML += `
                   <canvas id='`+props.id+`canvas`+i+`' style='z-index:3; width:100%; height:`+height+`%;'></canvas>
                 `;
               });
-              this.bci.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
+              this.session.atlas.data.eegshared.eegChannelTags.forEach((tag,i)=>{
                 this.charts[i] = new SmoothieChartMaker(1, document.getElementById(props.id+"canvas"+i));
                 let stroke = 'red'; let fill='rgba(255,0,0,0.2)';
                 if(i === 1) { stroke = 'orange';    fill = 'rgba(255,128,0,0.2)'; }
@@ -174,13 +177,14 @@ export class SmoothieApplet {
         this.charts.forEach(chart => chart.deInit());
         this.charts = null;
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-      if(this.bci.atlas.settings.eeg) {
-        addChannelOptions(this.props.id+"channel", this.bci.atlas.data.eegshared.eegChannelTags, true);
+      if(this.session.atlas.settings.eeg) {
+        addChannelOptions(this.props.id+"channel", this.session.atlas.data.eegshared.eegChannelTags, true);
         document.getElementById(this.props.id+"mode").onchange();
       }
       
@@ -207,15 +211,15 @@ export class SmoothieApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.eeg) {
-              if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
+            if(this.session.atlas.settings.eeg) {
+              if(this.session.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop)},16);
         }
     }
 
     onUpdate = () => {
-        let atlas = this.bci.atlas;
+        let atlas = this.session.atlas;
         let channelTags = atlas.data.eegshared.eegChannelTags;
         var graphmode = document.getElementById(this.props.id+"mode").value;
         if((graphmode === "alpha") || (graphmode === "bandpowers")) {
@@ -280,7 +284,7 @@ export class SmoothieApplet {
       }
   
       setLegend = () => {
-        let atlas = this.bci.atlas;
+        let atlas = this.session.atlas;
         let channelTags = atlas.data.eegshared.eegChannelTags;
         let val = document.getElementById(this.props.id+"mode").value;
         document.getElementById(this.props.id+"legend").innerHTML = "";

@@ -18,7 +18,7 @@ export class ConnectomeApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -51,6 +51,8 @@ export class ConnectomeApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id);   
         }
 
@@ -74,12 +76,12 @@ export class ConnectomeApplet {
             p.setup = () => {
                 p.createCanvas(containerElement.clientWidth, containerElement.clientHeight);
                 this.connectome = new Connectome(p)
-                this.connectome.setGraph(this.bci.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
+                this.connectome.setGraph(this.session.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
             };
 
             p.draw = () => {
                 p.background(0);
-                this.connectome.setConnectionStrength(this.bci.atlas.data.coherence)
+                this.connectome.setConnectionStrength(this.session.atlas.data.coherence)
                 this.connectome.draw()
             };
         };
@@ -90,6 +92,7 @@ export class ConnectomeApplet {
     deinit() {
         this.sketch.remove()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
@@ -97,7 +100,7 @@ export class ConnectomeApplet {
     responsive() {
         let containerElement = document.getElementById(this.props.id)
         this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
-        if (this.connectome != null) this.connectome.setGraph(this.bci.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
+        if (this.connectome != null) this.connectome.setGraph(this.session.atlas.data.eegshared.eegChannelTags.map(dict => dict.tag))
         //let canvas = document.getElementById(this.props.id+"canvas");
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;

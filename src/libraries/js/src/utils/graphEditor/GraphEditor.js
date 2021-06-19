@@ -367,7 +367,12 @@ export class GraphEditor{
     }
 
     addEdge = async (e) => {
+
+        if (e.source) e.source = e.source.replace(':default', '')
+        if (e.target) e.target = e.target.replace(':default', '')
         let edge = await this.graph.addEdge(e)
+        edge.structure.source = edge.structure.source.replace(':default', '')
+        edge.structure.target = edge.structure.target.replace(':default', '')
         this.addEdgeReactivity(edge) 
         this.app.info.graph.edges.push(edge.structure) // Change actual settings file
         this.manager.addEdge(this.app.props.id,edge.structure)   

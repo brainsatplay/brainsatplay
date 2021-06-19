@@ -242,6 +242,8 @@ export class AlphaBattleApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.createIntro(this)
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -346,6 +348,8 @@ export class AlphaBattleApplet {
         })
         this.sketch.remove()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         // window.cancelAnimationFrame(this.animation)
     }
 

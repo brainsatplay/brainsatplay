@@ -16,7 +16,7 @@ export class uPlotApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -89,12 +89,15 @@ export class uPlotApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+          this.session.registerApp(this.props.id,this.info)
+          this.session.startApp(this.props.id)
+
             document.getElementById(props.id+"bandview").style.display="none";
             document.getElementById(props.id+'xrangetd').style.display = "none";
             document.getElementById(props.id+'mode').value="Stacked";
             document.getElementById(props.id+'mode').onchange = () => {
               this.settings[0] = document.getElementById(props.id+'mode').value;
-              let atlas = this.bci.atlas;
+              let atlas = this.session.atlas;
               this.yrange = true;
               if(document.getElementById(props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(props.id+'mode').value === "Coherence"){
                 document.getElementById(props.id+'channeltd').style.display = '';
@@ -143,7 +146,7 @@ export class uPlotApplet {
               this.setuPlot();
             }
 
-            addChannelOptions(props.id+'channel',this.bci.atlas.data.eegshared.eegChannelTags,true,['All']);
+            addChannelOptions(props.id+'channel',this.session.atlas.data.eegshared.eegChannelTags,true,['All']);
 
             document.getElementById(props.id+'xrangeset').onclick = () => {
               let val = parseInt(document.getElementById(props.id+'xrange').value)
@@ -186,8 +189,8 @@ export class uPlotApplet {
         this.AppletHTML.appendStylesheet("./_dist_/platform/styles/css/uPlot.min.css");
 
         
-        if(this.bci.atlas.data.eegshared.frequencies.length === 0) {
-          this.bci.atlas.data.eegshared.frequencies = this.bci.atlas.bandpassWindow(0,this.bci.atlas.data.eegshared.sps);
+        if(this.session.atlas.data.eegshared.frequencies.length === 0) {
+          this.session.atlas.data.eegshared.frequencies = this.session.atlas.bandpassWindow(0,this.session.atlas.data.eegshared.sps);
         }
        
         this.setPlotDims();
@@ -206,11 +209,12 @@ export class uPlotApplet {
       
       this.AppletHTML.deleteNode();
       //Be sure to unsubscribe from state if using it and remove any extra event listeners
+      this.session.removeApp(this.props.id)
     }
 
     responsive() {
-      let atlas = this.bci.atlas;
-      if(this.bci.info.nDevices > 0) {
+      let atlas = this.session.atlas;
+      if(this.session.info.nDevices > 0) {
         if(atlas.settings.eeg) {
           if(document.getElementById(this.props.id+'mode').value === "CoherenceTimeSeries" || document.getElementById(this.props.id+'mode').value === "Coherence"){
             addCoherenceOptions(this.props.id+'channel',atlas.data.coherence,true,['All']);
@@ -270,9 +274,9 @@ export class uPlotApplet {
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd,i) => {
           if(i === 0) {
-            if(cmd === 'HEG' && !this.bci.atlas.settings.heg) {
-              this.bci.atlas.addHEGCoord(0);
-              this.bci.atlas.settings.heg = true;
+            if(cmd === 'HEG' && !this.session.atlas.settings.heg) {
+              this.session.atlas.addHEGCoord(0);
+              this.session.atlas.settings.heg = true;
             }
             if(typeof cmd === 'string') {
               let found = Array.from(document.getElementById(this.props.id+'mode').options).find(opt => opt.value === cmd);
@@ -329,7 +333,7 @@ export class uPlotApplet {
       var graphmode = document.getElementById(this.props.id+"mode").value;
       var view = document.getElementById(this.props.id+"channel").value;
       let ch = null; 
-      let atlas = this.bci.atlas;
+      let atlas = this.session.atlas;
       let ref_ch;
       //console.log(atlas);
       if (view !== 'All') {
@@ -494,7 +498,7 @@ export class uPlotApplet {
       let view = document.getElementById(this.props.id+"channel").value;
       let newSeries = [{}];
       let ch = null; 
-      let atlas = this.bci.atlas;
+      let atlas = this.session.atlas;
       let ref_ch;
       //console.log(atlas);
       

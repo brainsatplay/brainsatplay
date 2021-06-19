@@ -23,9 +23,6 @@ export class DataAtlas {
 		name="atlas",
 		initialData={eegshared:{eegChannelTags:[{ch: 0, tag: 'FP1', analyze:true},{ch: 1, tag: 'FP2', analyze:true}],sps:512}},
 		config='10_20', //'muse','big'
-		useCoherence=true,
-		useAnalyzer=false, //call atlas.analyzer()
-		analysis=['eegfft'] //'eegfft','eegcoherence','bcijs_bandpowers','heg_pulse'
 	) {
         this.name = name;
 		this.config = config; 
@@ -53,13 +50,14 @@ export class DataAtlas {
 			eegcoherence: false,
 			eegfft: false
 		}
-		analysis.forEach((k) => {
-			analysisDict[k] = true
-		})
+
+		// analysis.forEach((k) => {
+		// 	analysisDict[k] = true
+		// })
 
 		this.state = new StateManager({
 			deviceConnected: false,
-			analyzing: false,
+			// analyzing: false,
 			analysis: analysisDict, // {eegfft: true}
 			heg:false,
 			eeg:false,
@@ -135,10 +133,6 @@ export class DataAtlas {
 			this.addEyeTracker(this.data.eyetracker.length);
 		}
 
-        if(useCoherence === true) {
-			this.settings.analysis.eegcoherence = true;
-		}
-
 		this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
 
 
@@ -162,18 +156,7 @@ export class DataAtlas {
 		this.workerWaiting = false;
 		this.workerIdx = 0;
 
-		if(useAnalyzer === true) {
-			this.settings.fft = true
-		}
 		this.addDefaultAnalyzerFuncs();
-
-		// window.onkeydown = (e) => {
-		// 	if (e.code =='KeyC'){
-		// 		this.settings.analysis.eegcoherence = !this.settings.analysis.eegcoherence
-		// 	} else if (e.code == 'KeyF'){
-		// 		this.settings.analysis.eegfft = !this.settings.analysis.eegfft
-		// 	}
-		// }
 
 		if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 		//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
@@ -1157,7 +1140,9 @@ export class DataAtlas {
 				}
 			}
 		}
-		if(this.settings.analyzing === true) { this.workerPostTime = syncTime; }
+		// if(this.settings.analyzing === true) { 
+			this.workerPostTime = syncTime; 
+		// }
 		return buffer;
 	}
 	
@@ -1479,7 +1464,7 @@ export class DataAtlas {
 
 	analyzer = () => { //Make this stop when streaming stops
 		//eegfft,eegcoherence,bcijs_bandpowers,bcijs_pca,heg_pulse
-		if(this.settings.analyzing === true) {
+		// if(this.settings.analyzing === true) {
 
 			// Run Required Analysis Functions
 			let keys = Object.keys(this.settings.analysis)
@@ -1487,16 +1472,18 @@ export class DataAtlas {
 			// remove false keys
 
 			// remove eegfft if coherence is running
-			if (this.settings.analysis['eegfft'] == true && this.settings.analysis['eegcoherence'] == true) keys.find((k,i) => {
-				if (k === 'eegfft') keys.splice(i,1); return true;
+			if (this.settings.analysis['eegcoherence'] == true) keys.find((k,i) => {
+				if (k == 'eegfft') {
+					keys.splice(i,1); 
+					return true;
+				}
 			})
 
-
 			keys.forEach((run,i) => {
+				// console.log(run ,this.settings.analysis[run])
 				if (this.settings.analysis[run] === true){
 					this.analyzerOpts.forEach((opt,j) => {
 						if(opt === run) {
-							console.log(run)
 							this.analyzerFuncs[j]();
 						}
 					});
@@ -1507,7 +1494,7 @@ export class DataAtlas {
 			} else {
 				setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 			}
-		}	
+		// }	
 	}
 
 

@@ -22,5 +22,6 @@ export const settings = {
 
       </p>
     `,
-    "image":img
+    "image":img,
+    "analysis": ['eegcoherence']
 }

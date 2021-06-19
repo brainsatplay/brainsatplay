@@ -36,8 +36,7 @@ export class webgazerPlugin {
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
                 undefined,
-                config,true,true,
-                info.analysis
+                config,
                 );
 
             info.deviceNum = this.atlas.data.heg.length-1;

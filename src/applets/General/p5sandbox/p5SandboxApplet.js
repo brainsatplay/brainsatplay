@@ -16,7 +16,7 @@ export class p5SandboxApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -172,7 +172,7 @@ export class p5SandboxApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
         let containerElement = document.getElementById(this.props.id)
         this.sketch.resizeCanvas(containerElement.clientWidth, containerElement.clientHeight);
     }
