@@ -29,6 +29,7 @@ export const deviceList = [
     {'name': 'BCI2000', id:'bci2k', company:'BCI2000', analysis: ['eegcoherence'], variants:['Operator', 'Data'], cls: bci2000Plugin},
     {'name': '8 Channel Proto', id:'8chproto', company:'Brains@Play', analysis: ['eegcoherence'], cls: Prototype8Plugin, chromeOnly: true},
     {'name': 'Timeflux', id:'timefux', company:'Timeflux', analysis: ['eegcoherence'], cls: timefluxPlugin},
-    {'name': 'Blueberry', id:'blueberry', company:'Blueberry', analysis: [], cls: BlueberryPlugin},
+    {'name': 'Blueberry', id:'blueberry', company:'Blueberry', analysis: [], cls: BlueberryPlugin, chromeOnly: true},
+    {'name': 'WebGazer', id:'webgazer', company:'WebGazer', analysis: [], cls: webgazerPlugin},
 
 ]

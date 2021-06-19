@@ -3,8 +3,9 @@
 import { DOMFragment } from '../ui/DOMFragment';
 import {DataAtlas} from '../DataAtlas'
 import {BiquadChannelFilterer} from '../utils/BiquadFilters'
-//import webgazer from 'webgazer'
-let webgazer;
+// import webgazer from 'webgazer'
+// import './webgazer'
+// console.log(webgazer)
 
 export class webgazerPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -18,6 +19,44 @@ export class webgazerPlugin {
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
+
+        window.onkeypress = () => {
+            var prediction = this.device.getCurrentPrediction();
+            console.log(prediction)
+            if (prediction) {
+                var x = prediction.x;
+                var y = prediction.y;
+                console.log(x,y)
+            }
+        }
+
+
+    }
+
+    handleScriptLoad= async(onload)=> {    
+
+        // Set Webgazer Settings
+        this.startWebgazer(webgazer)
+        webgazer.showVideo(true)
+        webgazer.showFaceOverlay(true)
+        webgazer.showFaceFeedbackBox(true)
+        webgazer.showPredictionPoints(true)
+        webgazer.setRegression('weightedRidge')
+        this.checkWebGazerLoaded(onload)
+    }
+
+    checkWebGazerLoaded = (onload) => {
+        this.interval = setInterval(() => {
+            if(webgazer.isReady()) {
+                clearInterval(this.interval)
+                this.device = webgazer
+                onload()
+            }
+            else {
+                console.log('webgazer not loaded ____')
+            }
+            
+        },1000)
     }
 
     init = async (info,pipeToAtlas) => {
@@ -26,6 +65,7 @@ export class webgazerPlugin {
         this._onConnected = () => {
             this.setupAtlas(info,pipeToAtlas);
         }
+
         this.info = info;
     }
 
@@ -56,17 +96,15 @@ export class webgazerPlugin {
     _onConnected = () => {} //for internal use only on init
 
 
-    connect = () => {
-        
-        this._onConnected();
-        this.atlas.settings.deviceConnected = true;
-
+    startWebgazer(webgazer){
         webgazer.setGazeListener((data,elapsedTime) => {
+            console.log('eyes', data)
             if(data == null) {
                 return;
             }
             let x = data.x;
             let y = data.y;
+            console.log(x,y)
             if(this.info.useAtlas === true) {
                 let o = this.atlas.data.eyetracker[this.info.deviceNum];
                 if(o.times.length === 0) { o.startTime = Date.now(); }
@@ -82,15 +120,51 @@ export class webgazerPlugin {
                     o.smay.push(o.y.slice(0).reduce((a,b) => a+b)/o.y.length);
                 }
             }
-
         }).begin();
+    }
 
-        this.onconnect();
+
+    connect = async () => {
+        
+        return new Promise((resolve, reject) => {
+
+        this._onConnected(); // Create atlas
+
+        // Create a callback to throw when Webgazer has loaded
+        let onload = () => {
+            console.log('loaded')
+            this.atlas.settings.deviceConnected = true;
+            let video = document.getElementById('webgazerVideoContainer')
+            video.style.position = 'absolute';
+            video.style.top = '0';
+            video.style.left = 'auto';
+            video.style.right = '100px';
+            video.style.zIndex = '1000';
+            video.style.width = '200px';
+            video.style.height = '200px';
+
+
+            this.onconnect();
+            resolve(true)
+        }
+
+        // Import Webgazer as a script
+        const script = document.createElement("script");
+        script.src = "https://webgazer.cs.brown.edu/webgazer.js"
+        script.async = true;
+
+        console.log('luading webgazer')
+        script.onload = () => {
+            console.log('script loaded')
+            this.handleScriptLoad(onload);
+        }
+        document.body.appendChild(script);
+    })
     }
 
     disconnect = () => {
         if (this.ui) this.ui.deleteNode()
-        webgazer.end();
+        this.device.end();
         this.atlas.settings.deviceConnected = false;
         this.ondisconnect();
     }

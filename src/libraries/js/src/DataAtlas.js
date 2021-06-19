@@ -112,7 +112,6 @@ export class DataAtlas {
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
         }
 		else if (config === 'muse') {
-			
 			this.settings.eeg = true;
 			this.data.eeg = this.genMuseAtlas();
 		}
@@ -129,8 +128,9 @@ export class DataAtlas {
 			this.addEyeTracker(this.data.eyetracker.length);
 		}
 
-		this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
-
+		if (this.settings.eeg){
+			this.data.coherence = this.genCoherenceMap(this.data.eegshared.eegChannelTags);
+		}
 
 		if(this.data.eegshared.eegChannelTags) { //add structs for non-specified channels
 			this.data.eegshared.eegChannelTags.forEach((row,i) => {
