@@ -51,10 +51,6 @@ export class DataAtlas {
 			eegfft: false
 		}
 
-		// analysis.forEach((k) => {
-		// 	analysisDict[k] = true
-		// })
-
 		this.state = new StateManager({
 			deviceConnected: false,
 			// analyzing: false,
@@ -1480,7 +1476,6 @@ export class DataAtlas {
 			})
 
 			keys.forEach((run,i) => {
-				// console.log(run ,this.settings.analysis[run])
 				if (this.settings.analysis[run] === true){
 					this.analyzerOpts.forEach((opt,j) => {
 						if(opt === run) {

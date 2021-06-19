@@ -259,9 +259,6 @@ export class Session {
 
 		this.updateApps()
 
-		// NOTE: Remove when you want to specify which analyses to run dynamically
-		if (Object.keys(this.info.apps).length === 0) this.startAnalysis(['eegfft','eegcoherence'])
-
 		return newStream
 	}
 
@@ -1286,6 +1283,7 @@ else {
 			}
 		}
 
+		console.log(analysisSet)
 		this.startAnalysis(analysisSet)
 		for (let key in this.atlas.settings.analysis){
 			if (!analysisSet.has(key)){

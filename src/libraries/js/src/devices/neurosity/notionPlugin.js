@@ -167,15 +167,7 @@ export class notionPlugin {
              this.atlas.data.coherence = this.atlas.genCoherenceMap(info.eegChannelTags);
              this.atlas.settings.eeg = true;
              info.useAtlas = true;
-             if(info.analysis.length > 0 ) {
-                info.analysis.forEach(k => {
-                    this.atlas.settings.analysis[k] = true
-                })
-                 if(!this.atlas.settings.analyzing) { 
-                     this.atlas.settings.analyzing = true;
-                     this.atlas.analyzer();
-                 }
-             }
+
          }
  
   
