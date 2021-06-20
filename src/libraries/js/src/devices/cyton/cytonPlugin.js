@@ -135,16 +135,16 @@ export class cytonPlugin {
                 //this.filters[this.filters.length-1].notch60.pop();
                 //this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].notch60.push(
-                    makeNotchFilter(60,this.info.sps,3),
-                    makeNotchFilter(120,this.info.sps,3),
-                    makeNotchFilter(60,this.info.sps,3),
-                    makeNotchFilter(120,this.info.sps,3)
+                    makeNotchFilter(60,this.info.sps,2),
+                    makeNotchFilter(120,this.info.sps,2),
+                    makeNotchFilter(60,this.info.sps,2),
+                    makeNotchFilter(120,this.info.sps,2)
                     );
                 this.filters[this.filters.length-1].notch50.push(
-                    makeNotchFilter(50,this.info.sps,3),
-                    makeNotchFilter(100,this.info.sps,3),
-                    makeNotchFilter(50,this.info.sps,3),
-                    makeNotchFilter(100,this.info.sps,3)
+                    makeNotchFilter(50,this.info.sps,2),
+                    makeNotchFilter(100,this.info.sps,2),
+                    makeNotchFilter(50,this.info.sps,2),
+                    makeNotchFilter(100,this.info.sps,2)
                     );
                 this.filters[this.filters.length-1].useBp1 = true;
                 this.filters[this.filters.length-1].useScaling = true;
