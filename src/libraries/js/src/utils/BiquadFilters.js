@@ -208,10 +208,14 @@ export class BiquadChannelFilterer {
 
     this.notch50 = [
                 makeNotchFilter(50,sps,1),
+                makeNotchFilter(50,sps,1),
+                makeNotchFilter(100,sps,1),
                 makeNotchFilter(100,sps,1)
             ];
     this.notch60 = [
                 makeNotchFilter(60,sps,1),
+                makeNotchFilter(60,sps,1),
+                makeNotchFilter(120,sps,1),
                 makeNotchFilter(120,sps,1)
             ];
     this.lp1 = [
