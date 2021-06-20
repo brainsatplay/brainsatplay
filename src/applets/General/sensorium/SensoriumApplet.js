@@ -114,13 +114,16 @@ export class SensoriumApplet {
 
         // Plugins
         this.graph = new GraphManager(this.session)
-        this.graph.init(this.props.id, this.info.name, 
+        this.graph.init(this.props.id, 
             {
-                nodes: [
-                    {id: 'buzz', class: Buzz},
-                ],
+                name: this.info.name, 
+                graph: {
+                    nodes: [
+                        {id: 'buzz', class: Buzz},
+                    ],
+                }
             }
-        )
+            )
 
         this.tutorialManager = null
 

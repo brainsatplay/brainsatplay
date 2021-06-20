@@ -38,11 +38,14 @@ export class DataAtlas {
 		}
 		
 		this.graph = new GraphManager({atlas: this}, {gui: false})
-		this.graph.init(this.props.id, 'DataAtlas', 
+		this.graph.init(this.props.id, 
 			{
-				nodes: [
-					{id: 'blink', class: Blink},
-				],
+				name: 'DataAtlas', 
+				graph: {
+					nodes: [
+						{id: 'blink', class: Blink},
+					],
+				}
 			}
 		)
 

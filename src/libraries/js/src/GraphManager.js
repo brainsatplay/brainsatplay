@@ -211,6 +211,7 @@ export class GraphManager{
     }
 
     getNode(id,name){
+        console.log(id,name,this.applets[id].nodes)
         let node = this.applets[id].nodes.find(n => {
             if (n.id == name){
                 return true
@@ -342,6 +343,7 @@ export class GraphManager{
         this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
 
         // Create Nodes
+        console.log(graph)
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
