@@ -7,19 +7,40 @@ export function makeKrnl(gpu, f, opts = {
   setDynamicOutput: true,
   setDynamicArguments: true,
   setPipeline: true,
-  setImmutable: true
+  setImmutable: true,
+  setGraphical: false
 }) {
   const k = gpu.createKernel(f);
 
   if (opts.setDynamicOutput)    k.setDynamicOutput(true);
   if (opts.setDynamicArguments) k.setDynamicArguments(true);
-  if (opts.setPipeline)         k.setPipeline(true)
+  if (opts.setPipeline)         k.setPipeline(true);
   if (opts.setImmutable)        k.setImmutable(true);
+  if (opts.setGraphical)        k.setGraphical(true);
 
   //.setOutput([signal.length]) //Call before running the kernel
   //.setLoopMaxIterations(signal.length);
 
   return k;
+}
+
+export function makeRenderKrnl(appendToId, gpu, f, opts = {
+  setDynamicOutput: true,
+  setDynamicArguments: true,
+  setPipeline: true,
+  setImmutable: true,
+  setGraphical: true
+}) {
+
+  const k = makeKrnl(gpu,f,opts);
+
+  //k();
+
+  const canvas = k.canvas; 
+
+  document.getElementById(appendToId).appendChild(canvas);
+
+  return k; //run k() with the input arguments in an animation loop, get graphical output.
 }
 
 export class gpuUtils {
@@ -175,7 +196,6 @@ export class gpuUtils {
       {name:"listifft1D_windowed", krnl:this.listifft1D_windowed},
       {name:"bulkArrayMul", krnl:this.bulkArrayMul},
       {name:"multiConv2D", krnl:this.multiConv2D}
-
       );
     
     //----------------------------------- Easy gpu pipelining
