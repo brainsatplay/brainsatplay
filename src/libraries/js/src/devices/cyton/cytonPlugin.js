@@ -132,12 +132,16 @@ export class cytonPlugin {
                 else { 
                     this.filters.push(new BiquadChannelFilterer(row.ch,this.info.sps,false,this.device.uVperStep)); 
                 }
-                // this.filters[this.filters.length-1].notch60.pop();
-                // this.filters[this.filters.length-1].notch50.pop();
+                this.filters[this.filters.length-1].notch60.pop();
+                this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].notch60.push(
+                    makeNotchFilter(60,this.info.sps,1),
+                    makeNotchFilter(60,this.info.sps,1),
                     makeNotchFilter(60,this.info.sps,1)
                     );
                 this.filters[this.filters.length-1].notch50.push(
+                    makeNotchFilter(50,this.info.sps,1),
+                    makeNotchFilter(50,this.info.sps,1),
                     makeNotchFilter(50,this.info.sps,1)
                     );
                 this.filters[this.filters.length-1].useBp1 = true;
