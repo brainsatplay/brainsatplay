@@ -1477,7 +1477,6 @@ export class DataAtlas {
 					return true;
 				}
 			})
-
 			keys.forEach((run,i) => {
 				if (this.settings.analysis[run] === true){
 					this.analyzerOpts.forEach((opt,j) => {

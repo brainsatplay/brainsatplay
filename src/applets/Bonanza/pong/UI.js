@@ -140,7 +140,6 @@ class UI {
                     this.props.paddles.forEach(o => {
 
                         // Check X
-                        console.log(Math.abs(this.props.ball.x - o.x))
                         if (Math.abs(this.props.ball.x - o.x) < this.props.paddleOptions.width){
 
                             // Check Y
