@@ -41,7 +41,7 @@ export class cytonPlugin {
 
 
                         // Check Sampling Rate
-                        // let times = this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count)
+                        let times = this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count)
                         // let timeToSample = (times[times.length-1] - times[0])/times.length 
                         // console.log(1000/timeToSample)
 
