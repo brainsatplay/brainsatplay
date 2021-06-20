@@ -46,7 +46,6 @@ class UI{
     }
 
     _activateButtonPort = () => {
-            console.log(this)
             this.session.graph.runSafe(this,'button', [{data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.username}`}}])
     }
 
