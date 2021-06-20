@@ -42,8 +42,8 @@ export class UnityApplet {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-                <div id='${props.id}' style='height:80%; width:80%;'>
-			        <canvas id='${props.id}canvas' style='width:80%;height:80%;'>
+                <div id='${props.id}' style='height:100%; width:100%;'>
+			        <canvas id='${props.id}canvas' style='width:100%;height:100%;'>
 			        </canvas>
 			    </div>`;
         }
