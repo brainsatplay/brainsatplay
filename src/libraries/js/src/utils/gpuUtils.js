@@ -131,7 +131,7 @@ export class gpuUtils {
     
   }
 
-  makeCanvasKrnl(name, f, appendToId) {
+  addCanvasKernel(name, f, appendToId) {
     let found = this.canvaskernels.find((o)=> {
       if(o.name === name) {
         return true;
