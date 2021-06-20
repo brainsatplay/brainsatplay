@@ -136,9 +136,13 @@ export class cytonPlugin {
                 //this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].notch60.push(
                     makeNotchFilter(60,this.info.sps,3),
+                    makeNotchFilter(120,this.info.sps,3),
+                    makeNotchFilter(60,this.info.sps,3),
                     makeNotchFilter(120,this.info.sps,3)
                     );
                 this.filters[this.filters.length-1].notch50.push(
+                    makeNotchFilter(50,this.info.sps,3),
+                    makeNotchFilter(100,this.info.sps,3),
                     makeNotchFilter(50,this.info.sps,3),
                     makeNotchFilter(100,this.info.sps,3)
                     );
