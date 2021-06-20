@@ -18,14 +18,15 @@ import './styles/defaults.css'
 
 export class LiveEditor {
 
-        constructor(settings={language: 'javascript'},parentNode=document.body) {
+        constructor(settings={language: 'javascript', shortcuts:{}},parentNode=document.body) {
 
             // Internal Attributes
             this.ui
             this.props = {
                 id: Math.floor(Math.random()*10000000),
                 language: settings.language,
-                supportedLanguages: ['javascript', 'html', 'glsl']
+                supportedLanguages: ['javascript', 'html', 'glsl'],
+                shortcuts: settings.shortcuts
             }
             this.editorId = this.props.id+'editor';
             this.input = undefined;
@@ -80,7 +81,6 @@ export class LiveEditor {
                         <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
-                        <button id='${this.props.id}close' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Close</button>
                     </div>
                 </div>
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
@@ -97,7 +97,7 @@ export class LiveEditor {
 
             this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
-            let close = document.getElementById(`${this.props.id}close`)
+            // let close = document.getElementById(`${this.props.id}close`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
             /* 
             
@@ -105,9 +105,9 @@ export class LiveEditor {
 
             */
 
-           close.onclick = () => {
-               this.onClose()
-           }
+        //    close.onclick = () => {
+        //        this.onClose()
+        //    }
 
             reset.onclick = () => {
                 if (this.props.language === 'javascript'){
@@ -131,10 +131,13 @@ export class LiveEditor {
                 this._syncScroll(this.input)
             }
 
-            this.onKeyDown = (e) => {
-                if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
-                    e.preventDefault();
-                    submitElement.click()
+            console.log(this.props.shortcuts)
+            if (this.props.shortcuts == null || this.props.shortcuts.save != false){
+                this.onKeyDown = (e) => {
+                    if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                        e.preventDefault();
+                        this.save()
+                    }
                 }
             }
 
@@ -215,6 +218,11 @@ export class LiveEditor {
         )
     }
 
+    save(){
+        let submitElement = document.getElementById(`${this.props.id}submit`)
+        submitElement.click()
+    }
+
     deinit = () => {
         let editor = document.getElementById(`${this.props.id}liveEditor`);
         editor.parentNode.removeChild(editor);   
@@ -246,9 +254,9 @@ export class LiveEditor {
             this.onOpen = settings.onOpen
         }
 
-        if (settings.onOpen){
-            this.onClose = settings.onClose
-        }
+        // if (settings.onOpen){
+        //     this.onClose = settings.onClose
+        // }
 
 
         // For JS Editor

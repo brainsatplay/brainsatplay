@@ -99,8 +99,8 @@ export class Cursor{
     }
 
     deinit = () => {
-        var cursor = document.getElementById("brainsatplay-cursor"); 
-        if (cursor != null) cursor.remove()
+        console.log(this.props.cursor)
+        if (this.props.cursor != null) this.props.cursor.remove()
 
         document.body.style.cursor = 'default'
         this.props.looping = false

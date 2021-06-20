@@ -3,6 +3,7 @@ import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
 import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
+import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
     constructor(manager, applet, parentId) {
@@ -16,6 +17,11 @@ export class GraphEditor{
         this.scale = 1
         this.searchOptions = []
         this.classRegistry = {}
+
+        this.lastMouseEvent = {}
+        this.editing = false
+
+        this.files = {}
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -35,7 +41,9 @@ export class GraphEditor{
                     <div id="${this.props.id}MainPage">
                         <div id="${this.props.id}ViewTabs" class="brainsatplay-node-editor-tabs">
                         </div>
-                        <div id="${this.props.id}NodeViewer" class="brainsatplay-node-viewer">
+                        <div class="brainsatplay-node-viewer">
+                            <div id="${this.props.id}NodeViewer" class="brainsatplay-node-viewer grid">
+                            </div>
                         </div>
                     </div>
                     <div id="${this.props.id}GraphEditor" class="brainsatplay-node-sidebar">
@@ -108,11 +116,6 @@ export class GraphEditor{
                     this.app.session.projects.download(this.app)
                 }
 
-                let save = document.getElementById(`${this.props.id}save`)
-                save.onclick = () => {
-                    this.app.session.projects.save(this.app)
-                }
-
                 let reload = document.getElementById(`${this.props.id}reload`)
                 reload.onclick = () => {
                     applet.reload()
@@ -124,14 +127,52 @@ export class GraphEditor{
                 this.createSettingsEditor(applet.info)
 
                 // Scale View of Graph
-                this.viewer.addEventListener('wheel', (e)=>{
+
+                let relXParent, relYParent
+                // let relX, relY
+                let translation = {x: 0, y:0}
+                let mouseDown
+                this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
+                window.addEventListener('mouseup', e => { mouseDown = false} )
+
+                this.viewer.parentNode.addEventListener('mousemove', e => {
+                    if (this.editing === false){
+
+                        // Transform relative to Parent
+                        let rectParent = e.target.parentNode.getBoundingClientRect();
+                        let curXParent = (e.clientX - rectParent.left)/rectParent.width; //x position within the element.
+                        let curYParent = (e.clientY - rectParent.top)/rectParent.height;  //y position within the element.
+                    
+                        if (mouseDown){
+                            let tX = (curXParent-relXParent)*rectParent.width
+                            let tY = (curYParent-relYParent)*rectParent.height
+
+                            if (!isNaN(tX) && isFinite(tX)) translation.x += tX
+                            if (!isNaN(tY) && isFinite(tY)) translation.y += tY
+                            updateUI()
+                        } 
+                        // else {
+                        //     // Grab Target Coords for Scaling
+                        //     let rect = e.target.getBoundingClientRect();
+                        //     relX = (e.clientX - rect.left)/rect.width; //x position within the element.
+                        //     relY = (e.clientY - rect.top)/rect.height;  //y position within the element.
+                        // }
+                        relXParent = curXParent
+                        relYParent = curYParent
+                    }
+                })
+
+                let updateUI = () => {
+                    this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.scale*100}%)`
+                    // this.viewer.style['transformOrigin'] = `${relX*100}% ${relY*100}%`;
+                }
+
+                // Change scale
+                this.viewer.parentNode.addEventListener('wheel', (e)=>{
                     this.scale += 0.01*-e.deltaY
                     if (this.scale < 0.3) this.scale = 0.3 // clamp
                     if (this.scale > 1.5) this.scale = 1.5 // clamp
-
-                    this.viewer.style['-moz-transform'] = `scale(${this.scale}, ${this.scale})`; /* Moz-browsers */
-                    this.viewer.style['zoom'] = this.scale; /* Other non-webkit browsers */
-                    this.viewer.style['zoom'] = `${this.scale*100}%` /* Webkit browsers */
+                    updateUI()
 
                     for (let key in this.graph.nodes){
                         this.graph.nodes[key].updateAllEdges()
@@ -144,16 +185,36 @@ export class GraphEditor{
                 // Create Tabs
                 this.createViewTabs()
 
-                // Populate Used Nodes and Edges
-                this.graph = new Graph(this.plugins, this.viewer)
-                await this.graph.initEdges()
+                // Add Graph Tab and Save Functionality
+                this.addGraphTab()
 
-                // Add Click Events
-                for (let key in this.graph.nodes){
-                    let node = this.graph.nodes[key]
-                    this.addPortEvents(node)
-                    this.addNodeEvents(node)
-                }
+                // Populate Used Nodes and Edges
+                this.graph = new Graph(this.viewer)
+
+
+                // Setup Nodes
+                let i = 0
+                let length = Object.keys(this.plugins.nodes).length
+                this.plugins.nodes.forEach(n => {
+                    let node = this.addNode(n,true, true) 
+        
+                    // Default Positioning
+                    let iterator = Math.ceil(Math.sqrt(length))
+                    let row = Math.floor(i % iterator)
+                    let col = Math.floor(i/iterator)
+        
+                    let padding = 10
+                    let availableSpace = 100 - 2*padding
+                    let leftShift = 0.5 * availableSpace/(iterator+1)
+                    let downShift = 0.5 * availableSpace/(iterator+2)
+        
+                    node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                    node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                    i++
+                })
+
+                // Setup Edges
+                await this.graph.initEdges(this.plugins.edges)
 
                 // Add Edge Reactivity
                 this.graph.edges.forEach(e => {
@@ -191,6 +252,10 @@ export class GraphEditor{
         e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
     }
 
+    getMousePosition = () => {
+
+    }
+
     createViewTabs = () => {
 
         let parentNode = document.getElementById(`${this.props.id}ViewTabs`)
@@ -199,9 +264,31 @@ export class GraphEditor{
         let tabs = document.createElement('div')
         tabs.classList.add('tab')
         parentNode.insertAdjacentElement('afterbegin', tabs)
+    }
 
-        // Add Tabs
-        this.addTab('Graph Editor', this.viewer.id)
+    addGraphTab(){
+        this.files['Graph Editor'] = {}
+        this.files['Graph Editor'].container = this.viewer
+        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.id)
+        let save = document.getElementById(`${this.props.id}save`)
+        let onsave = () => {
+            this.app.saveGraph()
+            this.app.session.projects.save(this.app)
+        }
+        save.onclick = onsave
+        this.saveFileEvent('Graph Editor', onsave)
+    }
+
+    saveFileEvent = (filename, onsave) => {
+        this.files[filename].saveEvent = (e) => {
+            if (this.files[filename].container.offsetParent != null){
+                if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                    e.preventDefault();
+                    onsave()
+                }
+            }
+        }
+        window.addEventListener('keydown', this.files[filename].saveEvent)
     }
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
@@ -235,6 +322,7 @@ export class GraphEditor{
             this.responsive()
         }
         tab.click()
+        return tab
     }
 
     createSettingsEditor(settings){
@@ -370,22 +458,30 @@ export class GraphEditor{
 
         if (e.source) e.source = e.source.replace(':default', '')
         if (e.target) e.target = e.target.replace(':default', '')
+        this.editing = true
         let edge = await this.graph.addEdge(e)
         edge.structure.source = edge.structure.source.replace(':default', '')
         edge.structure.target = edge.structure.target.replace(':default', '')
         this.addEdgeReactivity(edge) 
         this.app.info.graph.edges.push(edge.structure) // Change actual settings file
         this.manager.addEdge(this.app.props.id,edge.structure)   
+        this.editing = false
+
     }
 
-    addNode(cls){
-        let nodeInfo = {id: cls.name, class: cls, params: {}}
-        nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
-        this.app.insertInterface(nodeInfo)
-        this.graph.addNode(nodeInfo)
+    addNode(nodeInfo, skipManager = false, skipInterface = false){
+        if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
+        if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
+        if (skipInterface == false) this.app.insertInterface(nodeInfo)
+
+        let node = this.graph.addNode(nodeInfo)
+        dragUtils.dragElement(this.graph.parentNode,node.element, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
+
         this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
+
+        return node
     }
 
     addNodeEvents(node){
@@ -478,39 +574,66 @@ export class GraphEditor{
     }
 
     createFile(target, name){
-        if (name == null || name === '') name = `My${target.name}`
-        let settings = {}
-        let container = this.createView(undefined, 'brainsatplay-node-code', '')
-        settings.language = 'javascript'
-        settings.onOpen = (res) => {
-            container.style.pointerEvents = 'all'
-            container.style.opacity = '1'
-        }
+        if (name == null || name === '') name = `${target.name}`
+        let filename = `${name}.js`
+        if (this.files[filename] == null){
+            this.files[filename] = {}
 
-        settings.onSave = (cls) => {
-            this.addNodeOption(cls.id, 'custom', cls.name, () => {
-                this.addNode(cls)
+            let settings = {}
+            let container = this.createView(undefined, 'brainsatplay-node-code', '')
+            settings.language = 'javascript'
+            settings.onOpen = (res) => {
+                container.style.pointerEvents = 'all'
+                container.style.opacity = '1'
+            }
+
+            settings.onSave = (cls) => {
+                let instanceInfo = this.manager.instantiateNode({id:cls.name,class: cls})
+                let instance = instanceInfo.instance
+                this.plugins.nodes.forEach(node => {
+                    if (node.class.id == target.id){
+                        Object.getOwnPropertyNames( instance ).forEach(k => {
+                            if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
+                                node.instance[k] = instance[k]
+                            }
+                        })
+                        node.class = cls
+                    }
+                })
+                cls.id = container.id // Assign a reliable id to the class
+                target = cls // Update target replacing all matching nodes
+            }
+
+            settings.onClose = (res) => {
+                container.style.pointerEvents = 'none'
+                container.style.opacity = '0'
+            }
+
+            settings.target = target
+            settings.className = name
+            settings.shortcuts = {
+                save: false
+            }
+            let editor = new LiveEditor(settings,container)
+            let tab = this.addTab(filename, container.id, settings.onOpen)
+            this.files[filename].container = container
+            this.files[filename].tab = tab
+            this.files[filename].editor = editor
+
+            let onsave = () => {
+                this.files[filename].editor.save()
+            }
+
+            this.saveFileEvent(filename, onsave)
+
+            // Add Option to Selector
+            this.addNodeOption(target.id, 'custom', target.name, () => {
+                this.addNode({class:target})
             })
 
-            for (let node in this.plugins.nodes){
-                if (node.instance instanceof target){
-                    let properties = Object.getOwnPropertyNames( node.instance )
-                    properties.forEach(k => {
-                        node.instance[k] = cls.prototype[k]
-                    })
-                }
-            }
-            target = cls
-            this.addNode(cls)
+        } else {
+            this.files[filename].tab.click()
         }
-        settings.onClose = (res) => {
-            container.style.pointerEvents = 'none'
-            container.style.opacity = '0'
-        }
-        settings.target = target
-        settings.className = name
-        let editor = new LiveEditor(settings,container)
-        this.addTab(`${name}.js`, container.id, settings.onOpen)
     }
 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
@@ -596,22 +719,23 @@ export class GraphEditor{
                 if (!usedClasses.includes(cls.id)){
                     let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
                     this.addNodeOption(cls.id, type,label, () => {
-                        this.addNode(cls)
+                        this.addNode({class:cls})
                     })
                     usedClasses.push(cls)
                 }
             }
         }
 
-        for (let key in this.plugins.nodes){
-            let cls = this.plugins.nodes[key].class
+        this.plugins.nodes.forEach(n => {
+            let cls = n.class
             if (!usedClasses.includes(cls)){
-                this.classRegistry['custom'][key] = cls
+                this.classRegistry['custom'][cls.name] = cls
                 this.addNodeOption(cls.id, 'custom', cls.name, () => {
-                    this.addNode(cls)
+                    this.addNode({class:cls})
                 })
+                usedClasses.push(cls)
             }
-        }
+        })
 
         selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
         selector.style.opacity = '0'

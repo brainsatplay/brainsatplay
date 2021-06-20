@@ -16,8 +16,8 @@ export class Application{
         this.info = this._copySettingsFile(info)
         this.settings = settings
         this.AppletHTML = null;
-        this.graph = null
         this.editor = null
+        this.graph = null
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
@@ -27,14 +27,12 @@ export class Application{
     }
 
     init() {
-        let info = this.session.registerApp(this.props.id, this.info)
-        this.graph = info
+        this.graph = this.session.registerApp(this.props.id, this.info)
 
         let setupHTML = () => {
-            for (let key in this.graph.nodes) {
-                let n = this.graph.nodes[key]
+            this.graph.nodes.forEach(n => {
                 this.insertInterface(n)
-            }
+            })
             this.session.connectDevice()
         }
 
@@ -62,13 +60,13 @@ export class Application{
             this.session.removeApp(this.props.id)
         }
 
-        deinit = (soft=false) => {
+        deinit = (soft=false) => {            
             if (this.AppletHTML) {
-
                 // Soft Deinit
                 if (soft) {
                     this._deinit()
                     if (this.intro) this.intro.deleteNode()
+                    this._removeAllFragments()
                 }
 
                 // Hard Deinit
@@ -78,9 +76,15 @@ export class Application{
             }
         }
 
+        saveGraph(){
+            let copiedSettings = this._copySettingsFile({graph: this.graph})
+            this.info.graph = copiedSettings.graph // Replace settings
+        }
+
         reload = () => {
 
             // Soft Deinitialization
+            this.saveGraph()
             this.deinit(true)
 
             // Reinitialize App
@@ -145,13 +149,17 @@ export class Application{
             }
         }
 
+        _removeAllFragments(){
+            this.graph.nodes.forEach(n => {if ( n.fragment) {n.fragment.deleteNode()}})
+        }
+
         _resizeAllFragments(){
             let funcs = []
 
             // Gather Resize Functions
-            for (let k in this.graph.nodes) {
-                if (this.graph.nodes[k].fragment && this.graph.nodes[k].fragment.onresize instanceof Function) funcs.push(this.graph.nodes[k].fragment.onresize)
-            }
+            this.graph.nodes.forEach(n => {
+                if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
+            })
             // Repeat to Scale Everything Appropriately
             funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
         }

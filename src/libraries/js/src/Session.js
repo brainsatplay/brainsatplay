@@ -553,7 +553,6 @@ export class Session {
 				}
 			}
 		})
-		if (this.deviceStreams.length > 0) console.error("no devices connected");
 	}
 
 	startAnalysis(arr = []) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
@@ -565,7 +564,6 @@ export class Session {
 			})
 		})
 
-		if (this.deviceStreams.length == 0) console.error("no devices connected");
 	}
 
 	
@@ -1263,13 +1261,10 @@ else {
 
 
 	startApp(appId,sessionId){
-		let info = this.graph.start(appId, sessionId)
-		this.info.apps[appId] = info
-
+		this.graph.start(appId, sessionId)
 		// Update Routing UI
 		this.updateApps(appId)
-
-		return info
+		return this.info.apps[appId]
 	}
 
 	updateApps(appId){
@@ -1283,7 +1278,6 @@ else {
 			}
 		}
 
-		console.log(analysisSet)
 		this.startAnalysis(analysisSet)
 		for (let key in this.atlas.settings.analysis){
 			if (!analysisSet.has(key)){
@@ -1305,26 +1299,27 @@ else {
 	}
 
 	registerApp(appId,settings){
-		return this.graph.init(appId, settings)
+		this.info.apps[appId] = this.graph.init(appId, settings)
+		return this.info.apps[appId]
 	}
 
 	removeApp(appId){
 		let info = this.graph.remove(appId)
-		this.info.apps[appId].analysis.default = []
-		this.updateApps(appId)
-		
-		// Update Routing UI
-		this.deviceStreams.forEach(d => {
-			if (d.info.events) {
-				d.info.events.removeApp(appId)
-				d.info.events.updateRouteDisplay()
-			}
-		})
+		if (this.info.apps[appId]) {
+			this.info.apps[appId].analysis.default = []
+			this.updateApps(appId)
+			
+			// Update Routing UI
+			this.deviceStreams.forEach(d => {
+				if (d.info.events) {
+					d.info.events.removeApp(appId)
+					d.info.events.updateRouteDisplay()
+				}
+			})
 
-		if (this.info.apps[appId].editor) this.info.apps[appId].editor.deinit()
-		
-
-		delete this.info.apps[appId]
+			if (this.info.apps[appId].editor) this.info.apps[appId].editor.deinit()
+			delete this.info.apps[appId]
+		}
 
 		return info
 	}

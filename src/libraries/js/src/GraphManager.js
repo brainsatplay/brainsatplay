@@ -4,10 +4,8 @@ import {GraphEditor} from './utils/graphEditor/GraphEditor'
 import  {plugins} from '../brainsatplay'
 import { Session } from './Session'
 
-import { GUI } from 'dat.gui'
-
 export class GraphManager{
-    constructor(session, settings = {gui: true}){
+    constructor(session, settings = {}){
         this.session = session
 
         // Two Modes
@@ -28,15 +26,6 @@ export class GraphManager{
 
         // Manage States Locally
         this.state = new StateManager()
-
-        // Create GUI
-        this.settings.gui = false
-        if (this.settings.gui === true){
-            this.gui = new GUI({ autoPlace: false });
-            document.body.innerHTML += `<div id="brainsatplay-plugin-gui" class='guiContainer'></div>`
-            document.body.querySelector('.guiContainer').appendChild(this.gui.domElement);
-            this.gui.domElement.style.display = 'none'
-        }
     }
 
     instantiateNode(nodeInfo,session=this.session){
@@ -112,18 +101,26 @@ export class GraphManager{
 
     removeNode(appId,label){
         let applet = this.applets[appId]
-        let nodeInfo = applet.nodes[label]
-        this.removeMatchingEdges(appId, label)
 
-        this.applets[appId].controls.options.delete(...nodeInfo.controls);
+        // NOTE: Not Removing
+        let toRemove = null
+        let nodeInfo = applet.nodes.find((n,i) => {
+            if (n.id == label){
+                toRemove = i
+                return true
+            }
+        })
+        if (toRemove != null) {
+            this.removeMatchingEdges(appId, label)
 
-        // Update Event Registry
-        this.updateApp(appId)
+            this.applets[appId].controls.options.delete(...nodeInfo.controls);
 
-
-        nodeInfo.instance.deinit()
-        if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
-        delete this.applets[appId].nodes[label]
+            // Update Event Registry
+            this.updateApp(appId)
+            nodeInfo.instance.deinit()
+            if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
+            applet.nodes.splice(toRemove,1)
+        }
     }
 
     _getRandomId(){
@@ -135,12 +132,18 @@ export class GraphManager{
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
         let instance,controls, analysis;
-        if (this.applets[appId].nodes[nodeInfo.id] != null) nodeInfo.id = nodeInfo.id + this._getRandomId()
 
-        this.applets[appId].nodes[nodeInfo.id] = nodeInfo;
+        let found = this.applets[appId].nodes.find(n => {
+            if (n.id == nodeInfo.id){
+                return true
+            }
+        })
+        if (found) nodeInfo.id = nodeInfo.id + this._getRandomId()
+
+        this.applets[appId].nodes.push(nodeInfo);
         
         ({instance, controls, analysis} = this.instantiateNode(nodeInfo,this.session))
-        this.applets[appId].nodes[nodeInfo.id].instance = instance;
+        nodeInfo.instance = instance;
 
         // if (this.applets[appId].nodes[nodeInfo.id].analysis == null) this.applets[appId].nodes[nodeInfo.id].analysis = []
         // this.applets[appId].nodes[nodeInfo.id].analysis.push(...analysis);
@@ -185,19 +188,15 @@ export class GraphManager{
         
         // Add Node to Registry
         if (this.registry.local[node.label] == null){
-            this.registry.local[node.label] = {label: node.label, count: 0, registry: {}, gui: {}}
+            this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
             for (let port in node.states){
                 this.registry.local[node.label].registry[port] = {}
                 this.registry.local[node.label].registry[port].state = node.states[port]
                 this.registry.local[node.label].registry[port].callbacks = []
             }
         }
-        if (applet.classInstances[nodeInfo.class.id] == null) applet.classInstances[nodeInfo.class.id] = {}
-        applet.classInstances[nodeInfo.class.id][node.label] = []
         this.registry.local[node.label].count++
 
-        // Add Params to GUI
-        this.addToGUI(nodeInfo)
 
         // Update Event Registry
         this.updateApp(appId)
@@ -212,7 +211,12 @@ export class GraphManager{
     }
 
     getNode(id,name){
-        return this.applets[id].nodes[name].instance
+        let node = this.applets[id].nodes.find(n => {
+            if (n.id == name){
+                return true
+            }
+        })
+        return node.instance
     }
 
     updateParams(node,params) {
@@ -316,72 +320,6 @@ export class GraphManager{
         }
     }
 
-
-    addToGUI(nodeInfo){
-        // Add GUI Element for Newly Created Nodes
-        if (this.gui){
-        let node = nodeInfo.instance
-
-        let paramsMenu;
-        
-        if (node.paramOptions){
-            let paramKeys = Object.keys(node.paramOptions)
-            let toShow = false
-            paramKeys.forEach(k => {
-                if (node.paramOptions[k].show !== false){
-                    toShow = true
-                }
-            })
-            if (paramKeys.length > 0 && toShow){
-
-            if (this.gui){
-                if (!Object.keys(this.gui.__folders).includes(node.label)){
-
-                    if (this.gui.domElement.style.display === 'none') this.gui.domElement.style.display = 'block'
-
-                    this.gui.addFolder(node.label);
-                    this.registry.local[node.label].gui[node.label] = []
-
-                    // Capitalize Display Name
-                    let splitName = node.label.split('_')
-                    splitName = splitName.map(str => str[0].toUpperCase() + str.slice(1))
-                    let folderName = splitName.join(' ')
-                    this.gui.__folders[node.label].name = folderName
-                }
-                paramsMenu = this.gui.__folders[node.label]
-            }
-        }
-
-        for (let param in node.paramOptions){
-            if(typeof node.paramOptions[param] === 'object' && node.params[param] != null && node.paramOptions[param].show !== false){
-                
-                // Numbers and Text
-                if (node.paramOptions[param].options == null){
-                    this.registry.local[node.label].gui[node.label].push(
-                        paramsMenu.add(
-                            node.params, 
-                            param, 
-                            node.paramOptions[param].min,
-                            node.paramOptions[param].max,
-                            node.paramOptions[param].step)
-                    );
-                } 
-                
-                // Selector
-                else if (node.paramOptions[param].options.length > 1) {
-                    this.registry.local[node.label].gui[node.label].push(
-                        paramsMenu.add(
-                            node.params, 
-                            param, 
-                            node.paramOptions[param].options)
-                    );
-                }
-            }
-        }
-    }
-}
-    }
-
     init(id, settings){
         let name = settings.name
         let graph = settings.graph
@@ -394,18 +332,15 @@ export class GraphManager{
             local: {}
         }
         let controls = {options: new Set(), manager: this.state}
-        let nodes = {}
+        let nodes = []
         let edges = []
-        let classInstances = {}
 
         let analysis = {default: [], dynamic: []}
         if (settings.analysis) analysis.default.push(...settings.analysis)
             
 
-        if (this.applets[id] == null) this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, classInstances, analysis}
-    
-        let applet =  this.applets[id]
-        
+        this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
+
         // Create Nodes
         if (graph){
             if (Array.isArray(graph.nodes)){
@@ -422,8 +357,7 @@ export class GraphManager{
             }
         }
 
-
-        return applet
+        return this.applets[id]
     }
 
     start(appId, sessionId){
@@ -457,14 +391,18 @@ export class GraphManager{
         let splitSource = e.source.split(':')
         let sourceName = splitSource[0]
         let sourcePort = splitSource[1] ?? 'default'
-        let sourceInfo = applet.nodes[sourceName]
+        let sourceInfo = applet.nodes.find(n => {
+            if (n.id == sourceName) return true
+        })
         let source = sourceInfo.instance
         let splitTarget = e.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1] ?? 'default'
-        let target = applet.nodes[targetName].instance
+        let targetInfo = applet.nodes.find(n => {
+            if (n.id == targetName) return true
+        })
+        let target = targetInfo.instance
         let label = this.getLabel(source,sourcePort)
-        applet.classInstances[sourceInfo.class.id][source.label].push(label)
 
         // Initialize Ports with Default Output
         let types = ['source', 'target']
@@ -484,6 +422,7 @@ export class GraphManager{
             if (trigger){
                 let input = source.states[sourcePort]
                 input.forEach(u => {
+                    if (!u.meta) u.meta = {}
                     u.meta.source = sourceName
                     u.meta.session = applet.sessionId
                 })
@@ -495,7 +434,7 @@ export class GraphManager{
         this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
         // Register Brainstorm State
-        if (applet.nodes[targetName].instance instanceof plugins.utilities.Brainstorm) {
+        if (target instanceof plugins.utilities.Brainstorm) {
             applet.streams.add(label) // Keep track of streams
             
             // Replace Default Update Command and Send Local Updates to the Brainstorm
@@ -507,13 +446,13 @@ export class GraphManager{
                         u.meta.source = sourceName
                         u.meta.session = applet.sessionId
                     })
-                    this.runSafe(applet.nodes[targetName].instance, 'send', output) // Refresh personal state data
+                    this.runSafe(target, 'send', output) // Refresh personal state data
                 }
             }
 
             // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
             this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
-                this.runSafe(applet.nodes[targetName].instance, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
+                this.runSafe(target, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
                 _onTriggered(trigger) // Trigger Downstream Changes
             })
         } 
@@ -552,65 +491,41 @@ export class GraphManager{
         let applet = this.applets[appId]
 
         if (applet) {
-
-        let classInstances = (classId != null) ? [classId] : Object.keys(applet.classInstances)
-
-        // Remove Listeners
-        classInstances.forEach(classId => {
-
-            let labels = (label != null) ? [label] : Object.keys(applet.classInstances[classId])
+        applet.nodes.forEach(n => {
+            if (classId == null || n.class.id === classId){
 
             // Increment the Registry for Each Separate Label (of a particular class)
            
-            labels.forEach(label => {
+            for (let port in n.instance.ports){
+                if (label === null || n.instance.label === label){
+                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in === true || n.instance.ports[port].active.out === true)){
 
-                let openPorts = applet.classInstances[classId][label]
+                this.registry.local[n.instance.label].count--
 
-                this.registry.local[label].count--
-
-                if (this.registry.local[label].count == 0) {
-
-                    // Remove GUI
-                    if (this.gui){
-                        for (let fname in this.registry.local[label].gui){
-                            let folder = this.registry.local[label].gui[fname]
-                            folder.forEach(o => {
-                                o.remove()
-                            })
-
-                            let guiFolder = this.gui.__folders[fname]
-                            guiFolder.close();
-                            this.gui.__ul.removeChild(guiFolder.domElement.parentNode);
-                            delete this.gui.__folders[fname];
-                        }
-
-                        // Hide GUI When Not Required
-                        if (Object.keys(this.gui.__folders).length === 0){
-                            if (this.gui.domElement.style.display !== 'none') this.gui.domElement.style.display = 'none'
-                        }
-                    }
-
+                if (this.registry.local[n.instance.label].count == 0) {
                     // Remove All Edges
-                    delete applet.classInstances[classId][label]
-                    delete this.registry.local[label]
-                    
-                    openPorts.forEach(p => {
-                        this.session.removeStreaming(p);
-                        this.session.removeStreaming(p, null, this.state, true);
-                    })
+                    delete this.registry.local[n.instance.label]
+
+                    this.session.removeStreaming(n.instance.label);
+                    this.session.removeStreaming(n.instance.label, null, this.state, true);
                     this.session.removeStreaming(applet.sessionId);
 
                     // Remove Entire Node + Edges
-                    this.removeNode(appId,label)
+                    this.removeNode(appId,n.instance.label)
                 } 
                 else {
-                    this.removeMatchingEdges(appId,label)
+                    this.removeMatchingEdges(appId,n.instance.label)
                 }
-            })
+            } else {
+                this.removeNode(appId,n.instance.label)
+            }
+        }
+    }
+            }
         })
 
         // // Remove Editor
-        if (Object.keys(applet.nodes).length === 0 && applet.edges.length === 0){
+        if (appId && classId==null && label==null){
             // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }
@@ -631,7 +546,6 @@ export class GraphManager{
     removeEdge = (appId, structure) => {
 
         let applet = this.applets[appId]
-
         let stateKey = structure.source.replace(':', '_')
 
         let sessionSubs = applet.subscriptions.session[stateKey]
@@ -665,12 +579,17 @@ export class GraphManager{
         let splitSource = structure.source.split(':')
         let sourceName = splitSource[0]
         let sourcePort = splitSource[1] ?? 'default'
-        let sourceInfo = applet.nodes[sourceName]
+        let sourceInfo = applet.nodes.find(n => {
+            if (n.id == sourceName) return true
+        })
         let source = sourceInfo.instance
         let splitTarget = structure.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1] ?? 'default'
-        let target = applet.nodes[targetName].instance
+        let targetInfo = applet.nodes.find(n => {
+            if (n.id == targetName) return true
+        })
+        let target = targetInfo.instance
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
         tP.active.in = false
@@ -696,14 +615,19 @@ export class GraphManager{
         let splitSource = e.source.split(':')
         let sourceName = splitSource[0]
         let sourcePort = splitSource[1] ?? 'default'
-        let sourceInfo = applet.nodes[splitSource[0]]
+        let sourceInfo = applet.nodes.find(n => {
+            if (n.id == sourceName) return true
+        })
         let source = sourceInfo.instance
         let splitTarget = e.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1] ?? 'default'
-        let target = applet.nodes[targetName].instance
+        let targetInfo = applet.nodes.find(n => {
+            if (n.id == targetName) return true
+        })
+        let target = targetInfo.instance
 
-        if (applet.nodes[splitTarget[0]].instance instanceof plugins.utilities.Brainstorm) {
+        if (target instanceof plugins.utilities.Brainstorm) {
 
             let id = (sourcePort != 'default') ? `${ sourceInfo.instance.label}_${sourcePort}` :  sourceInfo.instance.label
 

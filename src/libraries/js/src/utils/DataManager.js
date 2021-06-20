@@ -245,8 +245,8 @@ export class DataManager {
                     resolve()
                 }
                 else {
-                    fs.mkdir('data', (errr) => {
-                        if (errr) throw err;
+                    fs.mkdir('data', (err) => {
+                        if (err) throw err;
                         resolve()
                     });
                 }
@@ -259,8 +259,9 @@ export class DataManager {
                     oninit();
                 }
                 else {
-                    fs.mkdir('projects', (errr) => {
-                        if (errr) throw err;
+                    console.log('creating projects')
+                    fs.mkdir('projects', (err) => {
+                        if (err) throw err;
                         oninit();
                     });
                 }

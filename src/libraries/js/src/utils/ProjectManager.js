@@ -5,8 +5,7 @@ import * as brainsatplay from '../../brainsatplay'
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
     for (let name in brainsatplay.plugins[type]){
-        brainsatplay.plugins[type][name]
-        defaultPlugins.push({name: name, label: `brainsatplay.plugins.${type}.${name}`})
+        defaultPlugins.push({name: name, id: brainsatplay.plugins[type][name].id, label: `brainsatplay.plugins.${type}.${name}`})
     }
 }
 
@@ -74,18 +73,19 @@ app.init()`)
 
         let info = JSON.parse(JSON.stringifyFast(app.info))
         let imports = ``
-
         // Add imports
         let classNames = []
         let classes = []
         app.info.graph.nodes.forEach(n => {
-            let found = defaultPlugins.find(o => {if (o.name === n.class.name) return o})
-            if (!found) {
+            let found = defaultPlugins.find(o => {if (o.id === n.class.id) return o})
+            if (!found && !classNames.includes(n.class.name)) {
                 imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
                 classNames.push(n.class.name)
                 classes.push(n.class)
-            } else {
+            } else if (found){
                 classNames.push(found.label)
+            } else if (classNames.includes(n.class.name)){
+                classNames.push(n.class.name)
             }
         })
 
@@ -107,7 +107,7 @@ app.init()`)
         do {
             m = re.exec(info);
             if (m) {
-                info = info.replace(m[0], '"class":' + m[1])
+                info = info.replaceAll(m[0], '"class":' + m[1])
             }
         } while (m);
 
@@ -182,8 +182,8 @@ app.init()`)
                         name: m[1],
                         class: classes[m[1]]
                     }
-                    info.settings = info.settings.replace(m[0], ``)
-                    info.settings = info.settings.replace(`"class":${m[1]}`,`"class":${id}`)
+                    info.settings = info.settings.replaceAll(m[0], ``)
+                    info.settings = info.settings.replaceAll(`"class":${m[1]}`,`"class":${id}`)
                 }
             } while (m);
 
@@ -204,7 +204,7 @@ app.init()`)
                         name: m2[m2.length - 1],
                         class: defaultClass
                     }
-                    info.settings = info.settings.replace(m2[0], id)
+                    info.settings = info.settings.replaceAll(m2[0], id)
                 }
             } while (m2);
 

@@ -486,7 +486,7 @@ select {
     opacity: 0; 
     transition: opacity 1s;
     pointer-events: none;
-    background: rgba(0,0,0,.3);
+    background: rgba(0,0,0,.5);
     padding: 0px;
     display: flex;
     flex-wrap: nowrap;
@@ -608,6 +608,13 @@ select {
     position: relative;
     height: calc(100% - var(--editor-tab-height));
     overflow: hidden;
+}
+
+.grid {
+    background-image:
+      repeating-linear-gradient(rgba(200,200,200,.3) 0 1px, transparent 1px 100%),
+      repeating-linear-gradient(90deg, rgba(200,200,200,.3) 0 1px, transparent 1px 100%);
+    background-size: 5% 5%;
 }
 
 .brainsatplay-node-code{
@@ -838,7 +845,8 @@ select {
 }
 
 .node-port-container > .node-port.active.updated{
-    background: rgb(255, 105, 97);
+    /* background: rgb(255, 105, 97); */
+    background: rgb(129, 218, 250);
 }
 
 .node-port-container .node-port:hover .node-tooltip{
@@ -916,7 +924,8 @@ select {
   }
 
   .brainsatplay-node-viewer > .edge path.updated {
-    stroke: rgb(255, 105, 97);
+    /* stroke: rgb(255, 105, 97); */
+    stroke: rgb(129, 218, 250);
 }
   
   .brainsatplay-node-viewer > .edge .control {

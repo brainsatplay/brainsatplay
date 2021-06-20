@@ -12,9 +12,6 @@ import * as settingsFile from './settings'
 //Example Applet for integrating with the UI Manager
 export class AttractorsApplet {
 
-    
-    
-
     constructor(
         parent=document.body,
         bci=new Session(),
