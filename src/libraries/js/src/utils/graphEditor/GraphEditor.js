@@ -524,6 +524,9 @@ export class GraphEditor{
                     input = document.createElement('input')
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
+                    input.addEventListener('change', (e) => {
+                        plugin.params[key] = event.target.checked
+                    }, false)
                 } else if (defaultType === 'number'){
                     if ('min' in plugin.paramOptions[key] && 'max' in plugin.paramOptions[key]){
                         input = document.createElement('input')

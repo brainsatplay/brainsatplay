@@ -1637,6 +1637,7 @@ else {
 			}
 		})
 
+		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
 		let template = `
 		<div id="${applet.props.id}IntroFragment">
@@ -1690,7 +1691,7 @@ else {
 			onsuccess()
 			let loginPage = document.getElementById(`${this.id}login-page`)
 			if (loginPage != null) loginPage.remove()
-			modeScreen.style.pointerEvents = 'none'
+=			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			exitSession.style.display = 'none'
 		}
@@ -1703,24 +1704,6 @@ else {
 		} else {
 			multiplayer.style.opacity = 0.25
 			multiplayer.style.pointerEvents = 'none'
-		}
-
-		// Auto-Toggle Title and Mode Selection
-		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
-
-		if (applet.info.intro){
-			if (!showTitle){
-				const hero = document.getElementById(`${applet.props.id}appHero`)
-				if (hero) {
-					hero.style.opacity = 0;
-					hero.style.pointerEvents = 'none'
-				}
-			}
-			if (applet.info.intro.mode){
-				if (applet.info.intro.mode === 'single' || applet.info.intro.mode === 'solo') solo.click()
-				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') multiplayer.click()
-				modeScreen.style.display = 'none'
-			}
 		}
 		
 		// Create Session Brower
@@ -1879,17 +1862,24 @@ else {
 				})
 			}
 
-			// Prompt Login or Skip
-			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+		// Auto-Toggle Title and Mode Selection
+		if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') {
+			multiplayer.click()
+		}
 
-			if (applet.info.intro && applet.info.intro.login === false){
-				this.login(true, this.info.auth, onsocketopen)
-			} else {
-				this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
-					let loginPage = document.getElementById(`${this.id}login-page`)
-					loginPage.style.zIndex = 4
-				}, onsocketopen)
-			}
+		// Prompt Login or Skip
+		if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+
+		if (applet.info.intro.login === false){
+			this.login(true, this.info.auth, onsocketopen)
+		} else {
+			this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
+				let loginPage = document.getElementById(`${this.id}login-page`)
+				loginPage.style.zIndex = 4
+			}, onsocketopen)
+		}
+	} else {
+		solo.click()
 	}
 
 
@@ -1927,6 +1917,12 @@ else {
 					hero.style.pointerEvents = 'none'
 				}
 			}, loadTime)
+		} else {
+			const hero = document.getElementById(`${applet.props.id}appHero`)
+			if (hero) {
+				hero.style.opacity = 0;
+				hero.style.pointerEvents = 'none'
+			}
 		}
 		}
 

@@ -71,12 +71,12 @@ export class GraphManager{
                     controlsToBind.push(controlDict)
                 }
 
-                if (node.ports[port].analysis) node.ports[port].analysis
-                 else node.ports[port].analysis = []
+                if (node.ports[port].analysis == null) node.ports[port].analysis = []
+                if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
             }
         } else {
             node.ports = {
-                default:{active:{in:false,out:false}}
+                default:{active:{in:0,out:0}}
             }
             node.states['default'] = [{}]
         }
@@ -211,7 +211,6 @@ export class GraphManager{
     }
 
     getNode(id,name){
-        console.log(id,name,this.applets[id].nodes)
         let node = this.applets[id].nodes.find(n => {
             if (n.id == name){
                 return true
@@ -343,7 +342,6 @@ export class GraphManager{
         this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
 
         // Create Nodes
-        console.log(graph)
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
@@ -469,10 +467,8 @@ export class GraphManager{
 
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
-        if (tP.active == null) tP.active = {in: false, out:false}
-        tP.active.in = true
-        if (sP.active == null) sP.active = {in: false, out:false}
-        sP.active.out = true
+        tP.active.in++
+        sP.active.out++
         if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
         if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
@@ -500,7 +496,7 @@ export class GraphManager{
            
             for (let port in n.instance.ports){
                 if (label === null || n.instance.label === label){
-                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in === true || n.instance.ports[port].active.out === true)){
+                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in > 0 || n.instance.ports[port].active.out === true)){
 
                 this.registry.local[n.instance.label].count--
 
@@ -594,8 +590,8 @@ export class GraphManager{
         let target = targetInfo.instance
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
-        tP.active.in = false
-        sP.active.out = false
+        tP.active.in--
+        sP.active.out--
 
         let toRemove = []
         let toCheck = []

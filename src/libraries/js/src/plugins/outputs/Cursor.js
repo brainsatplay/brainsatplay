@@ -10,30 +10,35 @@ export class Cursor{
         this.params = params
 
         this.paramOptions = {
-            speed: {default: 1, min: 0, max: 10, step: 0.01},
             robot: {default: false}
         }
 
         this.props = {
-            moveRight: false,
-            moveLeft: false,
-            moveUp: false,
-            moveDown: false,
-            looping: false,
             cursorSize: {
                 width: 15,
                 height: 20
             },
             prevHovered: null,
             globalStyles: [],
-            transformCSS: transformCSSForBCICursor
+            transformCSS: transformCSSForBCICursor,
+            px: null,
+            py: null,
+            x: window.innerWidth/2,
+            y:window.innerHeight/2
+        }
+
+        this.ports = {
+            default: {},
+            click: {},
+            // x: {},
+            // y: {}
+            dx: {},
+            dy: {}
         }
     }
 
     init = () => {
 
-        this.props.x = window.innerWidth/2
-        this.props.y = window.innerHeight/2
         this.props.py = 0
         this.props.px = 0
         
@@ -73,25 +78,7 @@ export class Cursor{
                 if (this.params.robot && !this.session.info.connected){
                     this._startRobot()
                 }
-
-                // Grab Current Position of Illusory Cursor
-                let initialX = this.props.x
-                let initialY = this.props.y
-
-                // Move if Triggered
-                if (this.props.moveRight) this.session.atlas.graph.runSafe(this,'right',[{data: true}])
-                if (this.props.moveLeft) this.session.atlas.graph.runSafe(this,'left',[{data: true}])
-                if (this.props.moveUp) this.session.atlas.graph.runSafe(this,'up',[{data: true}])
-                if (this.props.moveDown) this.session.atlas.graph.runSafe(this,'down',[{data: true}])
-
-                // Trigger Cursor Events
-                if (initialX != this.props.x || initialY != this.props.y){
-                    this.props.cursor.style.left = `${this.props.x}px`
-                    this.props.cursor.style.top = `${this.props.y}px`
-                    this._mouseHover(!this.params.robot)
-                }
-
-                setTimeout(() => {animate()}, 1000/60)
+                setTimeout(() => {animate()}, 1000/10)
             }
         }
     
@@ -99,7 +86,6 @@ export class Cursor{
     }
 
     deinit = () => {
-        console.log(this.props.cursor)
         if (this.props.cursor != null) this.props.cursor.remove()
 
         document.body.style.cursor = 'default'
@@ -117,36 +103,39 @@ export class Cursor{
         return userData
     }
 
-    right = (userData) => {
-        if (userData) this._getDecision(userData, 'moveRight')
-        if (this.props['moveRight']) this._moveMouse(this.params.speed,0)
-    }
-
-    left = (userData) => {
-        if (userData) this._getDecision(userData, 'moveLeft')
-        if (this.props['moveLeft']) this._moveMouse(-this.params.speed,0)
-    }
-
-    up = (userData) => {
-        if (userData) this._getDecision(userData, 'moveUp')
-        if (this.props['moveUp']) this._moveMouse(0,-this.params.speed)
-    }
-
-    down = (userData) => {
-        if (userData) this._getDecision(userData, 'moveDown')
-        if (this.props['moveDown']) this._moveMouse(0,this.params.speed)
-    }
-
     click = (userData) => {
         let decision = this._getDecision(userData)
         if (decision) this._mouseClick()
+    }
+
+    // x = (userData) => {
+    //     let choices = userData.map(u => Number(u.data))
+    //     let meanPos = this.session.atlas.mean(choices)
+    //     this._moveMouse(meanPos,this.props.y)
+    // }
+
+    // y = (userData) => {
+    //     let choices = userData.map(u => Number(u.data))
+    //     let meanPos = this.session.atlas.mean(choices)
+    //     this._moveMouse(this.props.x,meanPos)
+    // }
+
+    dx = (userData) => {
+        let choices = userData.map(u => Number(u.data))
+        let meanDiff = this.session.atlas.mean(choices)
+        this._moveMouse(meanDiff,0)
+    }
+
+    dy = (userData) => {
+        let choices = userData.map(u => Number(u.data))
+        let meanDiff = this.session.atlas.mean(choices)
+        this._moveMouse(0,meanDiff)
     }
 
     _getDecision(userData, command){
         let choices = userData.map(u => Number(u.data))
         let mean = this.session.atlas.mean(choices)
         if (command) this.props[command] = (mean >= 0.5)
-
         return (mean >= 0.5)
     }
 
@@ -170,6 +159,7 @@ export class Cursor{
 
     _mouseMove = (e) => {
             // Gets the x,y position of the mouse cursor
+
             this.props.x = e.clientX;
             this.props.y = e.clientY;
             
@@ -182,19 +172,24 @@ export class Cursor{
     }
 
     _moveMouse(dx,dy){
+        // let dx = x - this.props.x
+        // let dy = y - this.props.y
         if (this.params.robot){
-            this.session.sendBrainstormCommand(['moveMouse', {x: dx, y: dy}])
-        } else {
+            console.log(dx,dy)
+            this.session.sendBrainstormCommand(['moveMouse', {x:dx, y:dy}])
+        } 
+        else {
             let desiredX = this.props.x + dx
             let desiredY = this.props.y + dy
-            if (desiredX < (window.innerWidth - this.props.cursorSize.width) && desiredX > 0) {
-                this.props.x = desiredX
-            } 
-
-            if (desiredY < (window.innerHeight - this.props.cursorSize.height) && desiredY > 0) {
-                this.props.y = desiredY
-            } 
+            // Bound within Window
+            if (desiredX < (window.innerWidth - this.props.cursorSize.width) && desiredX > 0) this.props.x = desiredX
+            if (desiredX < (window.innerHeight - this.props.cursorSize.height) && desiredX > 0) this.props.y = desiredY
         }
+
+        // Trigger Cursor Events
+        this.props.cursor.style.left = `${this.props.x}px`
+        this.props.cursor.style.top = `${this.props.y}px`
+        this._mouseHover(!this.params.robot)
     }
 
 
@@ -250,9 +245,5 @@ export class Cursor{
                 console.log('connected')
             })
         }
-    }
-
-    _moveRobot(){
-
     }
 }
