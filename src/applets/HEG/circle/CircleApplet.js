@@ -17,7 +17,7 @@ export class CircleApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -177,12 +177,12 @@ export class CircleApplet {
 
     updateLoop = () => {
         if(this.looping){
-            if(this.bci.atlas.settings.heg && this.bci.atlas.settings.deviceConnected) {
-                let ct = this.bci.atlas.data.heg[0].count;
+            if(this.session.atlas.settings.heg && this.session.atlas.settings.deviceConnected) {
+                let ct = this.session.atlas.data.heg[0].count;
                 if(ct >= 2) {
                     let avg = 40; if(ct < avg) { avg = ct; }
-                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.angleChange = score; this.score += score;
                     document.getElementById(this.props.id+'score').innerHTML = this.score.toFixed(3);
                     this.draw();

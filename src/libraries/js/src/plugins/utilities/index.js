@@ -1,2 +1,5 @@
 import {Brainstorm} from './Brainstorm.js'
-export {Brainstorm}
+import {Transform} from './Transform'
+import {Move} from './Move'
+
+export {Brainstorm,Transform,Move}

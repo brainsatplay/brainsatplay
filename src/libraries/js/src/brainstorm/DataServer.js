@@ -399,9 +399,13 @@ class DataServer {
             u.robot.move(commands[1])
         }  else if (commands[0] === 'clickMouse') {
             u.robot.click()
-        } else if (commands[0] === 'typeKeys') {
-            u.robot.move(keys)
+        } else if (commands[0] === 'setMouse') {
+            u.robot.set(commands[1])
         }
+        
+        // else if (commands[0] === 'typeKeys') {
+        //     u.robot.move(keys)
+        // }
     }
 
 	//Received a message from a user socket, now parse it into system

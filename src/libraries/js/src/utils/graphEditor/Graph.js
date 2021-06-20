@@ -3,43 +3,20 @@ import {Node} from './Node'
 import {Edge} from './Edge'
 
 export class Graph{
-    constructor(graph, parentNode) {
+    constructor(parentNode) {
         this.nodes = {}
         this.edges = []
         this.edgeStructures = []
         this.parentNode = parentNode
-
-        let i = 0
-        let length = Object.keys(graph.nodes).length
-        for (let key in graph.nodes){  
-            this.nodes[key] = this.addNode(graph.nodes[key]) 
-
-            // Default Positioning
-            let iterator = Math.ceil(Math.sqrt(length))
-            let row = Math.floor(i % iterator)
-            let col = Math.floor(i/iterator)
-
-            let padding = 10
-            let availableSpace = 100 - 2*padding
-            let leftShift = 0.5 * availableSpace/(iterator+1)
-            let downShift = 0.5 * availableSpace/(iterator+2)
-
-            this.nodes[key].element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-            this.nodes[key].element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
-            i++
-        }
-
-        graph.edges.forEach(async e => {
-            this.edgeStructures.push(e)
-        })
     }
 
-    initEdges = () => {
+    initEdges = (edges) => {
         return new Promise(resolve => {
-            this.edgeStructures.forEach(async (e,i) => {
-                console.log('adding edge')
+            edges.forEach(async (e,i) => {
                 await this.addEdge(e)
-                if (i === this.edgeStructures.length - 1) resolve(this.edges)
+                if (i === edges.length - 1) {
+                    resolve(this.edges)
+                }
             })
         })
     }
@@ -55,6 +32,8 @@ export class Graph{
 
     removeEdge(e){
         let types = ['source','target']
+
+        // Remove from Nodes
         types.forEach(t => {
             let deactivate = true
             if (e[t]){
@@ -65,19 +44,33 @@ export class Graph{
                 if (deactivate) e[`${t}Node`].classList.remove('active')
             }
         })
+
+        // Remove from UI
         e.element.remove()
+
+        // Remove from Graph
+        this.edges.find((edge,i) => {
+            if (edge == e) {
+                this.edges.splice(i,1)
+                return true
+            }
+        })
     }
 
     addEdge = async (e) => {
         return new Promise(async (resolve, reject) => {
             let edge = new Edge(e, this.nodes)
             let res = await edge.insert(this.parentNode)
-            if (res === true){
+            let found = this.edges.find(e => {
+                if (e.structure.source == edge.structure.source && e.structure.target == edge.structure.target) return true
+            })
+            if (res === true && found == null){
                 this.edges.push(edge)
                 resolve(edge)
             } else {
                 this.removeEdge(edge)
-                reject(res)
+                if (found == null) reject('edge already exists')
+                else reject(res)
             }
         })
     }

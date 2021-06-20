@@ -113,14 +113,17 @@ export class SensoriumApplet {
 
 
         // Plugins
-        this.graph = new GraphManager(this.session, {gui: false})
-        this.graph.init(this.props.id, this.info.name, 
+        this.graph = new GraphManager(this.session)
+        this.graph.init(this.props.id, 
             {
-                nodes: [
-                    {id: 'neosensory', class: Buzz},
-                ],
+                name: this.info.name, 
+                graph: {
+                    nodes: [
+                        {id: 'buzz', class: Buzz},
+                    ],
+                }
             }
-        )
+            )
 
         this.tutorialManager = null
 
@@ -346,6 +349,8 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
 
             document.getElementById(props.id+'changeview').onclick = () => {
                 this.swapCurrentView();
@@ -741,6 +746,8 @@ void main(){
         this.three.renderer.setAnimationLoop( null );
         this.clearThree()
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
@@ -1551,7 +1558,7 @@ void main(){
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(Math.max(0,Math.min(modifiers.iAlphaTheta*.5,1)), window.audio.ctx.currentTime);
                         }      
-                    } else if (this.session.atlas.settings.coherence === true && option === 'iFrontalAlpha1Coherence') {
+                    } else if (this.session.atlas.settings.analysis.eegcoherence === true && option === 'iFrontalAlpha1Coherence') {
                         this.modifiers.iFrontalAlpha1Coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1') // this.session.atlas.getLatestCoherenceData(0)[0].mean.alpha1;
                         if(!effectStruct.muted && window.audio  && effectStruct.playing){
                             window.audio.sourceGains[effectStruct.sourceIdx].gain.setValueAtTime(

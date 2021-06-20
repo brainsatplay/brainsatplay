@@ -85,6 +85,7 @@ class UI{
         if (Array.isArray(userData)){
             userData.forEach(u =>{
             for (let readout of coherenceReadouts){
+                // console.log(readout)
                 if (readout.id.replace(`${this.props.id}-`,'') === u.username){
                     readout.style = (u.data ? "color: red;" : "")
                 }

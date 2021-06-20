@@ -26,7 +26,7 @@ export class ThreeSunriseApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -72,6 +72,8 @@ export class ThreeSunriseApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
 
             this.scene = new THREE.Scene();
 
@@ -398,6 +400,8 @@ export class ThreeSunriseApplet {
 
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
+        this.session.removeApp(this.props.id)
+
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
@@ -429,12 +433,12 @@ export class ThreeSunriseApplet {
     render = () => {
 
         if(this.looping) {
-            if(this.bci.atlas.settings.heg) {
-                let ct = this.bci.atlas.data.heg[0].count;
+            if(this.session.atlas.settings.heg) {
+                let ct = this.session.atlas.data.heg[0].count;
                 if(ct >= 2) {
                     let avg = 40; if(ct < avg) { avg = ct; }
-                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.onData(score);
                     this.draw();
                 }

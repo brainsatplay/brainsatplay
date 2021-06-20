@@ -63,7 +63,8 @@ export class BlobApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -308,6 +309,7 @@ setTimeout(() => {
     deinit() {
         this.AppletHTML.deleteNode();
         this.renderer.setAnimationLoop( null );
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

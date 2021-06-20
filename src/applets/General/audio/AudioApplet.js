@@ -12,7 +12,7 @@ export class AudioApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -91,6 +91,8 @@ export class AudioApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
 
             this.c = document.getElementById(props.id+"canvas");
             this.ctx = this.c.getContext("2d");
@@ -114,7 +116,7 @@ export class AudioApplet {
                 else{
                     this.useVol = false;
                     this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                    if(window.audio !== undefined) {
+                    if(window.audio != undefined) {
                         window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
                     }
                     document.getElementById(props.id+"useVol").style.opacity = "0.3";
@@ -123,7 +125,7 @@ export class AudioApplet {
 
             document.getElementById(props.id+"volSlider").oninput = () => {
                 this.maxVol = document.getElementById(props.id+"volSlider").value * 0.01;
-                if(window.audio !== undefined) {
+                if(window.audio != undefined) {
                     window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
                 }
             }
@@ -182,6 +184,7 @@ export class AudioApplet {
         this.looping = false;
         this.stopAudio();
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
@@ -211,8 +214,8 @@ export class AudioApplet {
         if (this.animationId !== null) {
             cancelAnimationFrame(this.animationId);
         }
-        if(window.audio !== undefined){
-            if (window.audio.sourceList.length > 0) {
+        if(window.audio != undefined){
+            if (window.audio?.sourceList.length > 0 && this.sourceNode) {
                 this.sourceNode.stop(0);
             }
         }
@@ -220,7 +223,7 @@ export class AudioApplet {
 
     createVisualizer(buffer){
         window.audio.finishedLoading([buffer]);
-        this.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1]
+        this.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1];
         this.sourceNode.start(0);
         window.audio.gainNode.gain.setValueAtTime(this.maxVol, window.audio.ctx.currentTime);
         this.status = 1;
@@ -535,17 +538,17 @@ export class AudioApplet {
 
     draw = () => {
         if(this.looping === true) {
-            if(this.bci.atlas.settings.heg) {
-                let ct = this.bci.atlas.data.heg[0].count;
+            if(this.session.atlas.settings.heg) {
+                let ct = this.session.atlas.data.heg[0].count;
                 if(ct > 1) {
                     let avg = 40; if(ct < avg) { avg = ct; }
-                    let slice = this.bci.atlas.data.heg[0].ratio.slice(ct-avg);
-                    let score = this.bci.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
+                    let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
+                    let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.onData(score);
                 }
             }
-            else if (this.bci.atlas.settings.coherence) {
-                this.cohScore = this.bci.atlas.getCoherenceScore(this.bci.atlas.getFrontalCoherenceData(),'alpha1')
+            else if (this.session.atlas.settings.analysis.eegcoherence) {
+                this.cohScore = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1')
                 this.onData(this.cohScore);
             }
 

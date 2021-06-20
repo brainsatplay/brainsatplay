@@ -205,10 +205,9 @@ export function createUnityInstance(canvas, config, onProgress) {
     // TODO: Add mobile device identifier, e.g. SM-G960U
 
     canvas = document.createElement("canvas");
-    let gl, glVersion
+	let gl, glVersion;
     if (canvas) {
       gl = canvas.getContext("webgl2");
-      console.log(gl)
       glVersion = gl ? 2 : 0;
       if (!gl) {
         if (gl = canvas && canvas.getContext("webgl")) glVersion = 1;

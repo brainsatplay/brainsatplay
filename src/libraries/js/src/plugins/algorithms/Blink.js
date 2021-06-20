@@ -10,21 +10,9 @@ export class Blink{
         this.params = params
 
         this.ports = {
-            default: {
-                defaults: {
-                    output: [{data: [false, false], meta: {label: 'blink'}}]
-                }
-            },
-            left: {
-                defaults: {
-                    output: [{data: false, meta: {label: 'blink_left'}}] // Declares data types for binding
-                }
-            },
-            right: {
-                defaults: {
-                    output: [{data: false, meta: {label: 'blink_right'}}] // Declares data types for binding
-                }
-            }
+            default: {},
+            left: {},
+            right: {}
         }
 
         // Operator Configuration 

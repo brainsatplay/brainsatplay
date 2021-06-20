@@ -12,6 +12,10 @@ class RobotManager{
         return robot.getMousePos();
     }
 
+    set(command){
+        robot.moveMouse(command.x, command.y);
+    }
+
     click(){
         robot.mouseClick();
     }

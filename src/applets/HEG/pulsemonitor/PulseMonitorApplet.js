@@ -15,7 +15,7 @@ export class PulseMonitorApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -143,7 +143,7 @@ export class PulseMonitorApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.heg && this.bci.atlas.settings.deviceConnected) {
+            if(this.session.atlas.settings.heg && this.session.atlas.settings.deviceConnected) {
                 this.onUpdate();
             }
             setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop),16});
@@ -156,7 +156,7 @@ export class PulseMonitorApplet {
 	}
 
     onUpdate = () => {
-        let heg = this.bci.atlas.data.heg[0];
+        let heg = this.session.atlas.data.heg[0];
         if(heg) {
             let val = document.getElementById(this.props.id+"mode").value;
             let hr = heg.beat_detect.beats;

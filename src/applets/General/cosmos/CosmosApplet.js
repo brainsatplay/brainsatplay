@@ -26,7 +26,7 @@ export class CosmosApplet {
         this.parentNode = parent;
         this.settings = settings;
         this.info = settingsFile.settings;
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.AppletHTML = null;
         //------------------------
 
@@ -60,6 +60,8 @@ export class CosmosApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id);
         }
 
@@ -73,7 +75,7 @@ export class CosmosApplet {
         );  
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
-        this.bci.atlas.makeFeedbackOptions(this,document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
+        this.session.atlas.makeFeedbackOptions(this,document.getElementById(this.props.id).querySelector('.brainsatplay-neurofeedback-container'))
 
 
 
@@ -336,13 +338,14 @@ setTimeout(() => {
     deinit() {
         this.AppletHTML.deleteNode();
         this.renderer.setAnimationLoop( null );
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         this.resizeCosmos()
-        this.bci.atlas.makeFeedbackOptions(this)
+        this.session.atlas.makeFeedbackOptions(this)
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

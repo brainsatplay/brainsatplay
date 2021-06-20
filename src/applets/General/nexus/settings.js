@@ -9,5 +9,6 @@ export const settings = {
     "categories": ["train", 'brainstorm'],
     "module": "NexusApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegcoherence']
 }

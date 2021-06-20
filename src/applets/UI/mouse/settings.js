@@ -10,9 +10,6 @@ export const settings = {
     categories: ["UI"],
     // "image":  featureImg,
     instructions:"Coming soon...",
-    intro: {
-      mode: 'single'
-    },
     display: {
       production: false
     },
@@ -25,25 +22,46 @@ export const settings = {
         {id: 'left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
         {id: 'click', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
+        {id: 'move', class: brainsatplay.plugins.utilities.Move},
         {id: 'cursor', class: brainsatplay.plugins.outputs.Cursor, params: {}},
       ],
       edges: [
+
+        // Up
         {
           source: 'up', 
-          target: 'cursor:up'
+          target: 'move:up'
         },
+
+        // Down
         {
           source: 'down', 
-          target: 'cursor:down'
+          target: 'move:down'
         },
+
+        // Left
         {
           source: 'left', 
-          target: 'cursor:left'
+          target: 'move:left'
         },
+
+        // Right
         {
           source: 'right', 
-          target: 'cursor:right'
+          target: 'move:right'
         },
+
+        // X and Y
+        {
+          source: 'move:dx', 
+          target: 'cursor:dx'
+        },
+
+        {
+          source: 'move:dy', 
+          target: 'cursor:dy'
+        },
+
         {
           source: 'click', 
           target: 'cursor:click'

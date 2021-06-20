@@ -74,8 +74,7 @@ export class BlueberryPlugin {
             this.atlas = new DataAtlas(
                 location+":"+this.mode,
                 {hegshared:{sps:this.info.sps}},
-                config,false,true,
-                this.info.analysis
+                config,
                 );
 
                 this.info.deviceNum = this.atlas.data.heg.length-1;
@@ -88,13 +87,6 @@ export class BlueberryPlugin {
             this.atlas.addHEGCoord(this.atlas.data.heg.length); 
             this.atlas.settings.heg = true;
             this.info.useAtlas = true;
-            if(this.info.analysis.length > 0 ) {
-                this.atlas.settings.analysis.push(...this.info.analysis);
-                if(!this.atlas.settings.analyzing) { 
-                    this.atlas.settings.analyzing = true;
-                    this.atlas.analyzer();
-                }
-            }
         }
     }
 

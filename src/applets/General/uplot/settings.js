@@ -9,5 +9,6 @@ export const settings = {
     "categories": ["visualize"],
     "module": "uPlotApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegcoherence']
 }

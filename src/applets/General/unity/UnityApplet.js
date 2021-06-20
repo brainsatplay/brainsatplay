@@ -41,16 +41,19 @@ export class UnityApplet {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
-            return `<div id='${props.id}' style='height:100%; width:100%;'>
-			<canvas id='${props.id}canvas' style='width:100%;height:100%;'>
-			</canvas>
-			</div>`;
+            return `
+                <div id='${props.id}' style='height:100%; width:100%;'>
+			        <canvas id='${props.id}canvas' style='width:100%;height:100%;'>
+			        </canvas>
+			    </div>`;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
         }
+
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
             HTMLtemplate,       //Define the html template string or function with properties
@@ -63,17 +66,40 @@ export class UnityApplet {
 
         if(this.settings.length > 0) { this.configure(this.settings); } //You can give the app initialization settings if you want via an array.
 
-		let canvas = document.getElementById(this.props.id+"canvas");
+        let canvas = document.getElementById(this.props.id + "canvas");
+
+        let onError = () => { };
         
-        let onError = () => {}
-		
+        var gameInstance;
+
         //Add whatever else you need to initialize
-		webbuild.createUnityInstance(canvas, webconfig.config, ()=>{}).then(()=>{}).catch(onError);
+        webbuild.createUnityInstance(canvas, webconfig.config, () =>
+        { }).then((unityInstance) =>
+        {
+            gameInstance = unityInstance;
+            animate();
+        }).catch(onError);
+
+        let animate = () => {
+            // Get Frontal Alpha Coherence
+            let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(), 'alpha1');
+            gameInstance.SendMessage('System', 'UpdateData', coherence);
+
+            // Continue update
+            setTimeout(this.animation = window.requestAnimationFrame(animate), 1000 / 60); // Limit framerate to 60fps
+        }
     }
 
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
+        // Stop Animation
+        if (this.animation) {
+            window.cancelAnimationFrame(this.animation);
+            this.animation = undefined;
+        }
+
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
@@ -83,6 +109,7 @@ export class UnityApplet {
         //canvas.width = this.AppletHTML.node.clientWidth;
         //canvas.height = this.AppletHTML.node.clientHeight;
 
+        
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -94,8 +121,5 @@ export class UnityApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
-
-    //doSomething(){}
-    
-   
+    //
 } 

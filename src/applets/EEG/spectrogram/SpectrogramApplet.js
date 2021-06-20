@@ -18,7 +18,7 @@ export class SpectrogramApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -66,7 +66,10 @@ export class SpectrogramApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            let a = this.bci.atlas;
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
+
+            let a = this.session.atlas;
             addChannelOptions(props.id+'channel',a.data.eegshared.eegChannelTags);
             document.getElementById(props.id+'channel').onchange = () => {
               this.class.clear();
@@ -76,7 +79,7 @@ export class SpectrogramApplet {
                 if(document.getElementById(props.id+"mode").value === "FFT"){
                   addChannelOptions(props.id+"channel",a.data.eegshared.eegChannelTags);
                 }
-                else if(a.settings.coherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
+                else if(a.settings.analysis.eegcoherence === true && document.getElementById(props.id+"mode").value === "Coherence"){
                   addCoherenceOptions(props.id+"channel",a.data.coherence);
                 }
             }
@@ -107,17 +110,18 @@ export class SpectrogramApplet {
         this.class.deInit();
         this.class = null;
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let a = this.bci.atlas;
+        let a = this.session.atlas;
         if(a.settings.eeg) {
             if(document.getElementById(this.props.id+"mode").value === "FFT"){
                 addChannelOptions(this.props.id+"channel",a.data.eegshared.eegChannelTags);
             }
-            else if(a.settings.coherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
+            else if(a.settings.analysis.eegcoherence === true && document.getElementById(this.props.id+"mode").value === "Coherence"){
                 addCoherenceOptions(this.props.id+"channel",a.data.coherence);
             }
         }
@@ -143,16 +147,16 @@ export class SpectrogramApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.eeg){
-                //console.log(this.bci.atlas.getLatestFFTData()[0])
-                if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
+            if(this.session.atlas.settings.eeg){
+                //console.log(this.session.atlas.getLatestFFTData()[0])
+                if(this.session.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(() => {this.loop = requestAnimationFrame(this.updateLoop),16});
         }
     }
 
     onUpdate = () => {
-        let a = this.bci.atlas;
+        let a = this.session.atlas;
         var graphmode = document.getElementById(this.props.id+"mode").value;
         var view = document.getElementById(this.props.id+"channel").value
         var ch = parseInt(view);
@@ -169,7 +173,7 @@ export class SpectrogramApplet {
             }
           });
         }
-        else if(a.settings.coherence === true && graphmode === "Coherence"){
+        else if(a.settings.analysis.eegcoherence === true && graphmode === "Coherence"){
           a.data.coherence.find((o,i) => {
             if(o.tag === view){
               let coord = o;

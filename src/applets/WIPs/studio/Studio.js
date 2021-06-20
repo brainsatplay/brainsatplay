@@ -57,7 +57,7 @@ class Studio{
 
     _createApp(settings){
         settings.editor = {
-            parentNode: this.props.container,
+            parentId: this.props.container.id,
             show: true,
             style: `
             position: block;
@@ -67,7 +67,6 @@ class Studio{
         this.props.app = this.session.initApp(settings, this.props.container,this.session,['edit'])
         this.props.projects.style.opacity = '0'
         this.props.projects.style.pointerEvents = 'none'
-
         this.props.app.init()
     }
 

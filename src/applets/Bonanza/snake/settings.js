@@ -12,7 +12,7 @@ export const settings = {
     // "image":  featureImg,
     instructions:"Coming soon...",
     intro: {
-      mode: 'single'
+      // mode: 'single'
     },
     bonanza: {
       minTime: 60, // s

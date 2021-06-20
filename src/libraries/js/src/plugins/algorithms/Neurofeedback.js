@@ -33,6 +33,7 @@ export class Neurofeedback{
         // Defaults
         this.ports = {
             default: {
+                analysis: ['eegcoherence'],
                 defaults: {
                     output: [{data: 0, meta: {label: `neurofeedback`}}]
                 },

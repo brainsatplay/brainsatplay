@@ -1,5 +1,3 @@
-import * as dragUtils from './dragUtils'
-import {Edge} from './Edge'
 
 export class Node{
     constructor(nodeInfo, graph) {     
@@ -108,7 +106,6 @@ export class Node{
 
         nodeDiv.insertAdjacentElement('beforeend',element)
         this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
-        dragUtils.dragElement(this.parentNode,nodeDiv, () => {this.updateAllEdges()})
 
 
         let portContainers = nodeDiv.getElementsByClassName(`node-port-container`)

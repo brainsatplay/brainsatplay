@@ -8,5 +8,6 @@ export const settings = {
     "categories": ["visualize"],
     "module": "BandRingApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegfft']
 }

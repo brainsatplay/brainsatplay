@@ -24,11 +24,11 @@ class UI{
                 defaults: {
                     input: [{username: 'Username', value: 'Value', meta: {label: 'Waiting for Data'}}]
                 },
-                up: {},
-                down: {},
-                left: {},
-                right: {}
-            }
+            },
+            up: {},
+            down: {},
+            left: {},
+            right: {}
         }
     }
 

@@ -232,9 +232,6 @@ export class Session {
 		newStream.ondisconnect = () => {
 			ondisconnect(newStream);
 			this.ondisconnected();
-			if (newStream.info.analysis.length > 0 || this.deviceStreams.length === 1) {
-				newStream.device.atlas.settings.analyzing = false; //cancel analysis loop
-			}
 			this.deviceStreams.splice(i, 1);
 			this.state.removeState(stateId)
 
@@ -254,8 +251,13 @@ export class Session {
 			for (let id in this.info.apps){
 				newStream.info.events.addApp(id, this.info.apps[id].controls)
 			}
+			
 			newStream.info.events.updateRouteDisplay()
 		}
+
+		// Trigger Updates to Analysis Functions
+
+		this.updateApps()
 
 		return newStream
 	}
@@ -537,37 +539,34 @@ export class Session {
 		return found;
 	}
 
-	addAnalysisMode(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		if (this.deviceStreams.length > 0) {
-			let found = this.atlas.settings.analysis.find((str, i) => {
-				if (name === str) {
-					return true;
-				}
-			});
-			if (found === undefined) {
-				this.atlas.settings.analysis.push(name);
-				if (this.atlas.settings.analyzing === false) {
-					this.atlas.settings.analyzing = true;
-					this.atlas.analyzer();
+	stopAnalysis(arr=[]) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if (!Array.isArray(arr) && !(arr instanceof Set)) arr = [arr]
+		this.deviceStreams.forEach(stream => {
+			let atlas = stream.device.atlas
+			if (arr.length > 0){
+				arr.forEach(name => {
+					if (name !== '' && typeof name === 'string') atlas.settings.analysis[name] = false
+				})
+			} else {
+				for (let k in this.atlas.settings.analysis){
+					this.atlas.settings.analysis[k] = false
 				}
 			}
-		} else { console.error("no devices connected") }
+		})
 	}
 
-	stopAnalysis(name = '') { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
-		if (this.deviceStreams.length > 0) {
-			if (name !== '' && typeof name === 'string') {
-				let found = this.atlas.settings.analysis.find((str, i) => {
-					if (name === str) {
-						this.atlas.settings.analysis.splice(i, 1);
-						return true;
-					}
-				});
-			} else {
-				this.atlas.settings.analyzing = false;
-			}
-		} else { console.error("no devices connected"); }
+	startAnalysis(arr = []) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+		if (!Array.isArray(arr) && !(arr instanceof Set)) arr = [arr]
+		this.deviceStreams.forEach(stream => {
+			let atlas = stream.device.atlas
+			arr.forEach(name => {
+				if (name !== '' && typeof name === 'string') atlas.settings.analysis[name] = true
+			})
+		})
+
 	}
+
+	
 
 	//get data for a particular device	
 	getDeviceData = (deviceType = 'eeg', tag = 'all', deviceIdx = 0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
@@ -629,12 +628,7 @@ export class Session {
 
 	addAnalysisMode(mode = '', deviceName = this.state.data.device0.deviceName, n = 0) {
 		let device = this.getDevice(deviceName, n);
-		let found = device.info.analysis.find((s, i) => {
-			if (s === mode) {
-				return true;
-			}
-		});
-		if (!found) device.info.analysis.push(mode);
+		device.info.analysis[mode] = true
 		if (!device.atlas.settings.analyzing) {
 			device.atlas.settings.analyzing = true;
 			device.atlas.analyzer();
@@ -1267,43 +1261,67 @@ else {
 
 
 	startApp(appId,sessionId){
-		let info = this.graph.start(appId, sessionId)
-		this.info.apps[appId] = info
-
+		this.graph.start(appId, sessionId)
 		// Update Routing UI
-		this.updateApp(appId)
+		this.updateApps(appId)
+		return this.info.apps[appId]
+	}
 
-		return info
+	updateApps(appId){
+		let analysisSet = new Set()
+
+		// Update Per-App Routes
+		for(let id in this.info.apps) {
+			if (this.info.apps[id]){
+				console.log(analysisSet)
+				analysisSet.add(...[...this.info.apps[id].analysis.default,...this.info.apps[id].analysis.dynamic])
+				console.log(analysisSet)
+				if (appId == null || appId === id) this.updateApp(id)
+			}
+		}
+
+		this.startAnalysis(analysisSet)
+		for (let key in this.atlas.settings.analysis){
+			if (!analysisSet.has(key)){
+				this.atlas.settings.analysis[key] = false
+			}
+		}
+
 	}
 
 	updateApp(appId){
-		this.deviceStreams.forEach(d => {
-			if (d.info.events) {
-				d.info.events.addApp(appId, this.info.apps[appId].controls)
-				d.info.events.updateRouteDisplay()
-			}
-		})
+		if (this.info.apps[appId]){
+			this.deviceStreams.forEach(d => {
+				if (d.info.events) {
+					d.info.events.addApp(appId, this.info.apps[appId].controls)
+					d.info.events.updateRouteDisplay()
+				}
+			})
+		}
 	}
 
-	registerApp(appId,appName,graphs){
-		return this.graph.init(appId, appName, graphs)
+	registerApp(appId,settings){
+		this.info.apps[appId] = this.graph.init(appId, settings)
+		return this.info.apps[appId]
 	}
 
 	removeApp(appId){
 		let info = this.graph.remove(appId)
-		
-		// Update Routing UI
-		this.deviceStreams.forEach(d => {
-			if (d.info.events) {
-				d.info.events.removeApp(appId)
-				d.info.events.updateRouteDisplay()
-			}
-		})
+		if (this.info.apps[appId]) {
+			this.info.apps[appId].analysis.default = []
+			this.updateApps(appId)
+			
+			// Update Routing UI
+			this.deviceStreams.forEach(d => {
+				if (d.info.events) {
+					d.info.events.removeApp(appId)
+					d.info.events.updateRouteDisplay()
+				}
+			})
 
-		this.info.apps[appId].editor.deinit()
-		
-
-		delete this.info.apps[appId]
+			if (this.info.apps[appId].editor) this.info.apps[appId].editor.deinit()
+			delete this.info.apps[appId]
+		}
 
 		return info
 	}
@@ -1621,6 +1639,7 @@ else {
 			}
 		})
 
+		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
 		let template = `
 		<div id="${applet.props.id}IntroFragment">
@@ -1674,7 +1693,7 @@ else {
 			onsuccess()
 			let loginPage = document.getElementById(`${this.id}login-page`)
 			if (loginPage != null) loginPage.remove()
-			modeScreen.style.pointerEvents = 'none'
+=			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			exitSession.style.display = 'none'
 		}
@@ -1687,24 +1706,6 @@ else {
 		} else {
 			multiplayer.style.opacity = 0.25
 			multiplayer.style.pointerEvents = 'none'
-		}
-
-		// Auto-Toggle Title and Mode Selection
-		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
-
-		if (applet.info.intro){
-			if (!showTitle){
-				const hero = document.getElementById(`${applet.props.id}appHero`)
-				if (hero) {
-					hero.style.opacity = 0;
-					hero.style.pointerEvents = 'none'
-				}
-			}
-			if (applet.info.intro.mode){
-				if (applet.info.intro.mode === 'single' || applet.info.intro.mode === 'solo') solo.click()
-				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') multiplayer.click()
-				modeScreen.style.display = 'none'
-			}
 		}
 		
 		// Create Session Brower
@@ -1863,17 +1864,24 @@ else {
 				})
 			}
 
-			// Prompt Login or Skip
-			if (applet.info.intro && applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+		// Auto-Toggle Title and Mode Selection
+		if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') {
+			multiplayer.click()
+		}
 
-			if (applet.info.intro && applet.info.intro.login === false){
-				this.login(true, this.info.auth, onsocketopen)
-			} else {
-				this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
-					let loginPage = document.getElementById(`${this.id}login-page`)
-					loginPage.style.zIndex = 4
-				}, onsocketopen)
-			}
+		// Prompt Login or Skip
+		if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+
+		if (applet.info.intro.login === false){
+			this.login(true, this.info.auth, onsocketopen)
+		} else {
+			this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
+				let loginPage = document.getElementById(`${this.id}login-page`)
+				loginPage.style.zIndex = 4
+			}, onsocketopen)
+		}
+	} else {
+		solo.click()
 	}
 
 
@@ -1911,6 +1919,12 @@ else {
 					hero.style.pointerEvents = 'none'
 				}
 			}, loadTime)
+		} else {
+			const hero = document.getElementById(`${applet.props.id}appHero`)
+			if (hero) {
+				hero.style.opacity = 0;
+				hero.style.pointerEvents = 'none'
+			}
 		}
 		}
 

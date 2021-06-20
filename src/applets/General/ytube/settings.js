@@ -9,5 +9,6 @@ export const settings = {
     "categories": ["train"],
     "module": "YoutubeApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegcoherence']
 }

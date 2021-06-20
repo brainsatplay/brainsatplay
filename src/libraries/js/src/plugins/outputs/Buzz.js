@@ -10,28 +10,26 @@ export class Buzz{
         this.params = params
 
         this.props = {
-            device: null
-        }
-
-        this.props = {
             state: new StateManager(),
             deviceSubscriptions: {},
             toUnsubscribe: {
                 stateAdded: [],
                 stateRemoved: []
-            }
+            },
+            device: null
         }
 
         this.ports = {
             default: {},
             motors: {},
             leds: {},
-            punch: {}
+            punch: {},
+            status: {}
         }
 
         let added = (k) => {
             this._subscribeToDevices(k,['buzz'])
-            this.session.graph.runSafe(this,'status',[{data:true}])
+            this.session.graph.runSafe(this,'status',[{data:true, meta:{}}])
         }
 
         let removed = (k) => {
@@ -53,7 +51,7 @@ export class Buzz{
         this.props.device = this.session.getDevice('buzz')
         if (!this.props.device)  console.log('Must connect your Buzz first')
         else this.props.device = this.props.device.device
-        this.session.graph.runSafe(this,'status',[{data:true}])
+        this.session.graph.runSafe(this,'status',[{data:true, meta:{}}])
     }
 
     deinit = () => {
@@ -61,7 +59,7 @@ export class Buzz{
     }
 
     status() {
-        return (this.session.getDevice('buzz') != null)
+        return [{data: (this.session.getDevice('buzz') != null), meta:{}}]
     }
 
     default = (userData) => {
@@ -80,16 +78,15 @@ export class Buzz{
         if (punchMe){
             let motorCommand = [255,255,255,255]
             let motorsOff = [0,0,0,0]
-            if (this.device) this.device.vibrateMotors([motorCommand,motorsOff])
+            if (this.props.device) this.props.device.vibrateMotors([motorCommand,motorsOff])
         }
     }
 
     motors = (userData) => {    
-        
-        if (this.device){
+        if (this.props.device){
             // Vibrate Wrist Based on Frequencies (Single User)
-            let motorCommand = this.device.mapFrequencies(userData[0].data)
-            if (this.device) this.device.vibrateMotors([motorCommand])
+            let motorCommand = this.props.device.mapFrequencies(userData[0].data)
+            if (this.props.device) this.props.device.vibrateMotors([motorCommand])
         }
 
         return userData
@@ -97,7 +94,7 @@ export class Buzz{
 
     leds = (userData) => {
 
-        if (this.device){
+        if (this.props.device){
             // Fills the Lights (Multi User)
             let flattenedData = userData.map(u=> u.data)
             let mean = this.session.atlas.mean(flattenedData)
@@ -108,7 +105,7 @@ export class Buzz{
 
             let ledColors = [[0,255,0],[0,255,0],[0,255,0]]
             let ledIntensities = [i1,i2,i3]
-            this.device.setLEDs(ledColors, ledIntensities)
+            this.props.device.setLEDs(ledColors, ledIntensities)
         }
 
         return userData
@@ -119,7 +116,7 @@ export class Buzz{
         if (k.includes('device')){
             let deviceInfo = this.session.state.data[k]
             if (nameArray.includes(deviceInfo.deviceName)){
-            this.props.device = this.session.getDevice(deviceInfo.deviceName).device
+            this.props.device = this.session.getDevice(deviceInfo.deviceName).device.device
         }
         }
      }

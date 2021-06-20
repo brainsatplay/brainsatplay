@@ -18,7 +18,7 @@ export class BrainMapApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent;
         this.info = settingsFile.settings;
         this.settings = settings;
@@ -57,6 +57,8 @@ export class BrainMapApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id+'bandview').onchange = () => {
                 this.setBrainMap();
             };
@@ -78,12 +80,12 @@ export class BrainMapApplet {
         this.class.points = [];
 
         this.class.scale = this.AppletHTML.node.clientHeight*.5*0.01*.8;
-        this.bci.atlas.data.eeg.forEach((row,i) => {
+        this.session.atlas.data.eeg.forEach((row,i) => {
             this.class.points.push({x:row.position.x*this.class.scale+this.class.pointsCanvas.width*.5, y: this.class.pointsCanvas.height*.5-row.position.y*this.class.scale, size:90*this.class.scale, intensity:0.8});
         });
         
         this.class.updateHeatmap();
-        this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
+        this.class.updatePointsFromAtlas(this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags);
 
         this.looping = true;
         this.updateLoop();
@@ -96,12 +98,13 @@ export class BrainMapApplet {
         this.class.deInit();
         this.class = null;
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        //console.log(this.bci.atlas)
+        //console.log(this.session.atlas)
         var brainmapcanvas = document.getElementById(this.props.id+'canvas');
         var brainpointscanvas = document.getElementById(this.props.id+'points');
         brainmapcanvas.style.height = this.AppletHTML.node.style.height;
@@ -115,15 +118,15 @@ export class BrainMapApplet {
         
         this.class.scale = this.AppletHTML.node.clientHeight*.5*0.01*.8;
 
-        if(this.bci.atlas.settings.eeg === true){
+        if(this.session.atlas.settings.eeg === true){
             this.class.genHeatMap();
             this.class.points = [];
-            this.bci.atlas.data.eeg.forEach((row,i) => {
+            this.session.atlas.data.eeg.forEach((row,i) => {
                 this.class.points.push({x:row.position.x*this.class.scale+this.class.pointsCanvas.width*.5, y: this.class.pointsCanvas.height*.5-row.position.y*this.class.scale, size:90*this.class.scale, intensity:0.8});
             });
 
             this.class.updateHeatmap();
-            this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
+            this.class.updatePointsFromAtlas(this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags);
         }
     }
 
@@ -139,8 +142,8 @@ export class BrainMapApplet {
 
     updateLoop = () => {
         if(this.looping) {
-            if(this.bci.atlas.settings.eeg === true){
-                if(this.bci.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
+            if(this.session.atlas.settings.eeg === true){
+                if(this.session.atlas.getLatestFFTData()[0].fftCount > 0) this.onUpdate();
             }
             setTimeout(()=>{ this.loop = requestAnimationFrame(this.updateLoop); },16);
         }
@@ -148,27 +151,27 @@ export class BrainMapApplet {
 
     onUpdate = () => {
         var viewing = document.getElementById(this.props.id+"bandview").value;
-        let hscalar = 0.05; if(this.bci.deviceStreams[0] && this.bci.deviceStreams[0].info.useFilters === false) { hscalar = 10;}
-        this.class.updateHeatmapFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
+        let hscalar = 0.05; if(this.session.deviceStreams[0] && this.session.deviceStreams[0].info.useFilters === false) { hscalar = 10;}
+        this.class.updateHeatmapFromAtlas(this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
 
-        if(this.bci.atlas.settings.coherence) {
-            if(this.bci.atlas.data.coherence[0].fftCount > 0){
-                let cscalar = 0.1; if(this.bci.deviceStreams[0] && this.bci.deviceStreams[0].info.useFilters === false) { cscalar = 10; }
-                this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+        if(this.session.atlas.settings.analysis.eegcoherence) {
+            if(this.session.atlas.data.coherence[0].fftCount > 0){
+                let cscalar = 0.1; if(this.session.deviceStreams[0] && this.session.deviceStreams[0].info.useFilters === false) { cscalar = 10; }
+                this.class.updateConnectomeFromAtlas(this.session.atlas.data.coherence,this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
             }
         }
     }
 
     setBrainMap = () => {
         var viewing = document.getElementById(this.props.id+"bandview");
-        this.class.updatePointsFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags);
-        let hscalar = 0.1; if(this.bci.deviceStreams[0] && this.bci.deviceStreams[0].info.useFilters === false) { hscalar = 10;}
-        this.class.updateHeatmapFromAtlas(this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
+        this.class.updatePointsFromAtlas(this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags);
+        let hscalar = 0.1; if(this.session.deviceStreams[0] && this.session.deviceStreams[0].info.useFilters === false) { hscalar = 10;}
+        this.class.updateHeatmapFromAtlas(this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags, viewing, hscalar);
         
-        if(this.bci.atlas.settings.coherence) {
-            if(this.bci.atlas.data.coherence[0].fftCount > 0){
-                let cscalar = 0.1; if(this.bci.deviceStreams[0] && this.bci.deviceStreams[0].info.useFilters === false) { cscalar = 10;}
-                this.class.updateConnectomeFromAtlas(this.bci.atlas.data.coherence,this.bci.atlas.data.eeg,this.bci.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
+        if(this.session.atlas.settings.analysis.eegcoherence) {
+            if(this.session.atlas.data.coherence[0].fftCount > 0){
+                let cscalar = 0.1; if(this.session.deviceStreams[0] && this.session.deviceStreams[0].info.useFilters === false) { cscalar = 10;}
+                this.class.updateConnectomeFromAtlas(this.session.atlas.data.coherence,this.session.atlas.data.eeg,this.session.atlas.data.eegshared.eegChannelTags,viewing,true,cscalar);
             }
         }
     }

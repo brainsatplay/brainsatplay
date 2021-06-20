@@ -15,5 +15,6 @@ export const settings = {
      // Asset Pointers
     "module": "AlphaBattleApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegcoherence']
 }

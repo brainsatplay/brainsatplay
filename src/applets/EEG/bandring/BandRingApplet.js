@@ -17,7 +17,7 @@ export class BandRingApplet {
     ) {
     
         //-------Keep these------- 
-        this.bci = bci; //Reference to the Session to access data and subscribe
+        this.session = bci; //Reference to the Session to access data and subscribe
         this.parentNode = parent; 
 		this.info = settingsFile.settings;
         this.settings = settings;
@@ -50,6 +50,8 @@ export class BandRingApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
+            this.session.registerApp(this.props.id,this.info)
+            this.session.startApp(this.props.id)
             document.getElementById(props.id);   
         }
 
@@ -77,7 +79,7 @@ export class BandRingApplet {
 
             p.draw = () => {
                 p.background(0);
-                this.ring.setBrainData(this.bci.atlas.data.eeg)
+                this.ring.setBrainData(this.session.atlas.data.eeg)
                 this.ring.drawShape()
             };
 
@@ -93,6 +95,8 @@ export class BandRingApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.session.removeApp(this.props.id)
+
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

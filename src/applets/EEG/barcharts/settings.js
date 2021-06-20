@@ -8,5 +8,6 @@ export const settings = {
     "categories": ["visualize"],
     "module": "BarChartApplet",
     "image":  featureImg,
-		"instructions":"Coming soon..."
+		"instructions":"Coming soon...",
+    "analysis": ['eegfft']
 }
