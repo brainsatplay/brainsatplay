@@ -95,15 +95,17 @@ export class GraphEditor{
                     let toggleClass = '.brainsatplay-default-editor-toggle'
                     
                     // Search for Toggle
-                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-                    if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
-                    if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
-                    if (this.app.info.editor.toggleId) {
-                        toggle = document.getElementById(this.app.info.editor.toggleId)
+                    if (this.app.AppletHTML.node){
+                        let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
+                        if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
+                        if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
+                        if (this.app.info.editor.toggleId) {
+                            toggle = document.getElementById(this.app.info.editor.toggleId)
+                        }
+                        
+                        if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
+                        else console.warn('toggle not available')
                     }
-                    
-                    if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
-                    else console.warn('toggle not available')
                 }, 500)
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)

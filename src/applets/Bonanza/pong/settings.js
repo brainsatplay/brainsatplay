@@ -4,43 +4,42 @@ import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "Snake",
+    name: "Pong",
     devices: ["EEG"],
-    author: "Christopher Coogan + Garrett Flynn",
-    description: "Let's play Snake!",
-    categories: ["Play"],
+    author: "Garrett Flynn",
+    description: "Let's play Pong!",
+    categories: ["Train"],
     // "image":  featureImg,
     instructions:"Coming soon...",
     bonanza: {
       minTime: 60, // s
     },
+
     // App Logic
     graph:
       {
       nodes: [
         {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
         {id: 'down', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowDown'}},
-        {id: 'left', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowLeft'}},
-        {id: 'right', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
+        {id: 'move', class: brainsatplay.plugins.utilities.Move},
         {id: 'ui', class: UI, params: {}},
-        // {id: 'signal', class: brainsatplay.plugins.Signal, loop: true},
       ],
       edges: [
+
+        // Paddle Position
         {
           source: 'up', 
-          target: 'ui:up'
+          target: 'move:up'
         },
         {
           source: 'down', 
-          target: 'ui:down'
+          target: 'move:down'
         },
+
+        // Y Movement
         {
-          source: 'left', 
-          target: 'ui:left'
-        },
-        {
-          source: 'right', 
-          target: 'ui:right'
+          source: 'move:dy', 
+          target: 'ui:paddle'
         },
       ]
     },
