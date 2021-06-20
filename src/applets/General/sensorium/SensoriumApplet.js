@@ -1,6 +1,4 @@
-// Available Uniforms for shader effects:
-// iResolution: {value: new THREE.Vector2(400,400)}, // Resolution of the renderer 
-// iTime: {value: 0},                      // Time (in seconds)
+//TODO: WebXR, Generalize threejs scene composition
 
 
 import {Session} from '../../../libraries/js/src/Session'
