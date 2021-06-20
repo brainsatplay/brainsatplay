@@ -135,9 +135,9 @@ export class cytonPlugin {
                 // this.filters[this.filters.length-1].notch60.pop();
                 // this.filters[this.filters.length-1].notch50.pop();
                 this.filters[this.filters.length-1].notch60.push(
-                    makeNotchFilter(60,sps,1));
+                    this.filters[this.filters.length-1].makeNotchFilter(60,sps,1));
                 this.filters[this.filters.length-1].notch50.push(
-                    makeNotchFilter(50,sps,1)
+                    this.filters[this.filters.length-1].makeNotchFilter(50,sps,1)
                     );
                 this.filters[this.filters.length-1].useBp1 = true;
                 this.filters[this.filters.length-1].useScaling = true;
