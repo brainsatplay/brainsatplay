@@ -1273,7 +1273,9 @@ else {
 		// Update Per-App Routes
 		for(let id in this.info.apps) {
 			if (this.info.apps[id]){
+				console.log(analysisSet)
 				analysisSet.add(...[...this.info.apps[id].analysis.default,...this.info.apps[id].analysis.dynamic])
+				console.log(analysisSet)
 				if (appId == null || appId === id) this.updateApp(id)
 			}
 		}

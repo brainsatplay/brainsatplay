@@ -30,8 +30,6 @@ export class Cursor{
         this.ports = {
             default: {},
             click: {},
-            // x: {},
-            // y: {}
             dx: {},
             dy: {}
         }
@@ -108,18 +106,6 @@ export class Cursor{
         if (decision) this._mouseClick()
     }
 
-    // x = (userData) => {
-    //     let choices = userData.map(u => Number(u.data))
-    //     let meanPos = this.session.atlas.mean(choices)
-    //     this._moveMouse(meanPos,this.props.y)
-    // }
-
-    // y = (userData) => {
-    //     let choices = userData.map(u => Number(u.data))
-    //     let meanPos = this.session.atlas.mean(choices)
-    //     this._moveMouse(this.props.x,meanPos)
-    // }
-
     dx = (userData) => {
         let choices = userData.map(u => Number(u.data))
         let meanDiff = this.session.atlas.mean(choices)
@@ -172,10 +158,7 @@ export class Cursor{
     }
 
     _moveMouse(dx,dy){
-        // let dx = x - this.props.x
-        // let dy = y - this.props.y
         if (this.params.robot){
-            console.log(dx,dy)
             this.session.sendBrainstormCommand(['moveMouse', {x:dx, y:dy}])
         } 
         else {
