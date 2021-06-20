@@ -40,8 +40,8 @@ export class cytonPlugin {
                         else { coord = this.atlas.getEEGDataByChannel(o.ch); }
 
 
-                        // Check Sampling Rate
                         let times = this.device.data.ms.slice(this.device.data.count-newLinesInt,this.device.data.count)
+                        // Check Sampling Rate
                         // let timeToSample = (times[times.length-1] - times[0])/times.length 
                         // console.log(1000/timeToSample)
 
