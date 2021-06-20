@@ -559,9 +559,7 @@ export class Session {
 		this.deviceStreams.forEach(stream => {
 			let atlas = stream.device.atlas
 			arr.forEach(name => {
-				console.log(name)
 				if (name !== '' && typeof name === 'string') atlas.settings.analysis[name] = true
-				console.log(atlas.settings.analysis)
 			})
 		})
 
