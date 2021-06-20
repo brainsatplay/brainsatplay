@@ -296,7 +296,7 @@ export class DataManager {
                         }); //+"_c"+State.data.sessionChunks
                     } 
                     this.deviceSub = this.session.subscribe(this.deviceName, this.session.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
-                        console.log(row.count, this.state.data.eegSaveCounter);
+                        //console.log(row.count, this.state.data.eegSaveCounter);
                         if (this.state.data.autosaving) {
                             if (this.state.data.eegSaveCounter > row.count) { this.state.data.eegSaveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
                             if (row.count - this.state.data.eegSaveCounter >= this.state.data.saveChunkSize) {
