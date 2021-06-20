@@ -11,4 +11,4 @@
 
 [context.deployment]
   publish = "dist/"
-  command = "npm --max-old-space-size=8000 run build"
+  command = "npm run build"
