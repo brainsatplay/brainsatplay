@@ -215,7 +215,7 @@ export class AudioApplet {
             cancelAnimationFrame(this.animationId);
         }
         if(window.audio != undefined){
-            if (window.audio?.sourceList.length > 0 && this.sourceNode) {
+            if (window.audio?.sourceList?.length > 0 && this.sourceNode) {
                 this.sourceNode.stop(0);
             }
         }
