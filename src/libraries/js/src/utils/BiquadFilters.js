@@ -207,12 +207,12 @@ export class BiquadChannelFilterer {
     this.useDCB = true; this.useScaling = false;
 
     this.notch50 = [
-                makeNotchFilter(50,sps,1),
-                makeNotchFilter(100,sps,1)
+                makeNotchFilter(50,sps,2),
+                makeNotchFilter(100,sps,2)
             ];
     this.notch60 = [
-                makeNotchFilter(60,sps,1),
-                makeNotchFilter(120,sps,1)
+                makeNotchFilter(60,sps,2),
+                makeNotchFilter(120,sps,2)
             ];
     this.lp1 = [
                 new Biquad('lowpass', 50, sps),
