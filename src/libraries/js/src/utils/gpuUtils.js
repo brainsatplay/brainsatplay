@@ -48,6 +48,7 @@ export class gpuUtils {
   constructor(gpu = new GPU()) {
     this.gpu = gpu;
     this.kernels = []; // {name:"",f:foo(){}}
+    this.canvaskernels = [];
 
     this.kernel;
     this.PI = 3.141592653589793;
@@ -115,16 +116,32 @@ export class gpuUtils {
 
   //add kernels to run based on input data. Input/Output sizes are dynamically allocated, functions are saved on the gpu to improve runtimes
   addKernel(name="", krnl=function foo(){}) {
-    let found = this.customFunctions.find((o)=> {
+    let found = this.kernels.find((o)=> {
       if(o.name === name) {
         return true;
       }
     });
     if(!found) {
-      this.kernels.push({name:name, krnl:makeKrnl(krnl)});
+      this.kernels.push({name:name, krnl:makeKrnl(this.gpu,krnl)});
       return true;
     } else { 
       console.error('Custom kernel already exists'); 
+      return false;
+    }
+    
+  }
+
+  makeCanvasKrnl(name, f, appendToId) {
+    let found = this.canvaskernels.find((o)=> {
+      if(o.name === name) {
+        return true;
+      }
+    });
+    if(!found) {
+      this.kernels.push({name:name,krnl:makeCanvasKrnl(appendToId,this.gpu,f)});
+      return true;
+    } else { 
+      console.error('Kernel already exists'); 
       return false;
     }
     
