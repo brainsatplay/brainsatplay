@@ -1273,9 +1273,7 @@ else {
 		// Update Per-App Routes
 		for(let id in this.info.apps) {
 			if (this.info.apps[id]){
-				console.log(analysisSet)
 				analysisSet.add(...[...this.info.apps[id].analysis.default,...this.info.apps[id].analysis.dynamic])
-				console.log(analysisSet)
 				if (appId == null || appId === id) this.updateApp(id)
 			}
 		}
@@ -1693,7 +1691,7 @@ else {
 			onsuccess()
 			let loginPage = document.getElementById(`${this.id}login-page`)
 			if (loginPage != null) loginPage.remove()
-=			modeScreen.style.pointerEvents = 'none'
+			modeScreen.style.pointerEvents = 'none'
 			sessionSelection.style.display = 'none'
 			exitSession.style.display = 'none'
 		}

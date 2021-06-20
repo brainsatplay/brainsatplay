@@ -80,7 +80,6 @@ export class Signal{
 
     coherence = () => {
         let data = this.session.atlas.getLatestCoherenceData()[0];
-        console.log(data)
         if(data) data = channel.fft
         else data= new Array(256).fill(0);
         return [{data, meta: {label: `signal_${this.params.device}_coherence`, timestamp: Date.now()}}]
@@ -93,8 +92,7 @@ export class Signal{
 
                 let callbacks = []
                 for (let port in this.ports){
-                    if (this.ports[port].active) callbacks.push(() => {
-
+                    if (this.ports[port].active.out > 0) callbacks.push(() => {
                         this.session.graph.runSafe(this,port, [{data:true, meta: {label: `signal_newData`}}])
                     })
                 }

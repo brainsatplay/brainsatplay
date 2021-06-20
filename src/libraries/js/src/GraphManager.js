@@ -431,6 +431,7 @@ export class GraphManager{
             }
         }
         
+        console.log(sourceName, this.registry.local[sourceName].registry, sourcePort)
         this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
         // Register Brainstorm State
@@ -467,6 +468,9 @@ export class GraphManager{
 
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
+        if (tP.active == null) tP.active = {in: 0, out: 0}
+        if (sP.active == null) sP.active = {in: 0, out: 0}
+
         tP.active.in++
         sP.active.out++
         if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
@@ -495,35 +499,37 @@ export class GraphManager{
             // Increment the Registry for Each Separate Label (of a particular class)
            
             for (let port in n.instance.ports){
-                if (label === null || n.instance.label === label){
-                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in > 0 || n.instance.ports[port].active.out === true)){
+                if ((label === null || n.instance.label === label) && this.registry.local[n.instance.label] != null){
+                    this.registry.local[n.instance.label].count--
 
-                this.registry.local[n.instance.label].count--
+                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in > 0 || n.instance.ports[port].active.out > 0)){
 
-                if (this.registry.local[n.instance.label].count == 0) {
-                    // Remove All Edges
-                    delete this.registry.local[n.instance.label]
-
-                    this.session.removeStreaming(n.instance.label);
-                    this.session.removeStreaming(n.instance.label, null, this.state, true);
-                    this.session.removeStreaming(applet.sessionId);
-
-                    // Remove Entire Node + Edges
+                    // Catch Edge Removal Case
+                    if (this.registry.local[n.instance.label].count == 0) {
+                        delete this.registry.local[n.instance.label]
+                        this.session.removeStreaming(n.instance.label);
+                        this.session.removeStreaming(n.instance.label, null, this.state, true);
+                        this.session.removeStreaming(applet.sessionId);
+                        this.removeNode(appId,n.instance.label)
+                    } 
+                    else {
+                        this.removeMatchingEdges(appId,n.instance.label)
+                    }
+                } else {
+                    
+                    // Check Empty Node Removal Case
+                    if (this.registry.local[n.instance.label].count == 0) delete this.registry.local[n.instance.label]
                     this.removeNode(appId,n.instance.label)
-                } 
-                else {
-                    this.removeMatchingEdges(appId,n.instance.label)
                 }
-            } else {
-                this.removeNode(appId,n.instance.label)
             }
         }
-    }
             }
         })
 
         // // Remove Editor
+        console.log(this.registry.local)
         if (appId && classId==null && label==null){
+            console.log('deleting all',this.registry.local)
             // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }
