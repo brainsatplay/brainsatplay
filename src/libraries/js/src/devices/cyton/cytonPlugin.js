@@ -13,6 +13,7 @@ export class cytonPlugin {
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
+        this.info = null;
 
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
@@ -116,9 +117,11 @@ export class cytonPlugin {
                 'single'
             );
         }
+
+        this.info = info;
     }
 
-    setupAtlas = (pipeToAtlas=true,info) => {
+    setupAtlas = (pipeToAtlas=true,info=this.info) => {
         if(info.useFilters === true) {
             info.eegChannelTags.forEach((row,i) => {
                 if(row.tag !== 'other') {
