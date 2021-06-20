@@ -24,7 +24,7 @@ export function makeKrnl(gpu, f, opts = {
   return k;
 }
 
-export function makeRenderKrnl(appendToId, gpu, f, opts = {
+export function makeCanvasKrnl(appendToId, gpu, f, opts = {
   setDynamicOutput: true,
   setDynamicArguments: true,
   setPipeline: true,
