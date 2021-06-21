@@ -431,7 +431,6 @@ export class GraphManager{
             }
         }
         
-        console.log(sourceName, this.registry.local[sourceName].registry, sourcePort)
         this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
         // Register Brainstorm State
@@ -527,9 +526,7 @@ export class GraphManager{
         })
 
         // // Remove Editor
-        console.log(this.registry.local)
         if (appId && classId==null && label==null){
-            console.log('deleting all',this.registry.local)
             // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
             delete this.applets[appId]
         }

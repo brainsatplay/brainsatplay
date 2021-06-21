@@ -44,115 +44,46 @@ export class AppletBrowser {
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
             return `
-            <div id='${props.id}' style='
-            height:100%; width:100%;
-            overflow-y: scroll;
-            padding: 50px
-            ' 
-            >
+            <div id='${this.props.id}' class="brainsatplay-browser" >
             </div>
             `;
         }
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            document.getElementById(props.id);   
-        }
-
-        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-            HTMLtemplate,       //Define the html template string or function with properties
-            this.parentNode,    //Define where to append to (use the parentNode)
-            this.props,         //Reference to the HTML render properties (optional)
-            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-            undefined,          //Can have an onchange function fire when properties change
-            "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
-        );  
-
-        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
-
-        
-
-        // Style Configuration
-        let appletStyle;
-        let imgStyle = `width: 100%; aspect-ratio: 2 / 1; object-fit: cover;`;
-        let infoStyle = `padding: 0px 25px 10px 25px;`;
-        let appletHeaderStyle;
-        if (this.displayMode === 'tight'){
-            appletStyle = `
-            min-width: 100px;
-            width: 20%; 
-            cursor: pointer;
-            border-radius: 5px;
-            position: relative;  
-            font-size: 80%;
-            flex-grow: 1;
-            overflow: hidden;
-            background: rgb(15,15,15);
-            margin: 5px;
-            transition: 0.5s;
-            `
-
-        } else {
-        appletStyle = `
-            min-width: 100px;
-            width: 200px; 
-            cursor: pointer;
-            border-radius: 5px;
-            position: relative;  
-            font-size: 80%;
-            flex-grow: 1;
-            overflow: hidden;
-            background: rgb(15,15,15);
-            margin: 5px;
-            transition: 0.5s;
-            `
-        }
-
-        if (this.showPresets){
-            appletHeaderStyle = `display: grid; grid-template-columns: repeat(2,1fr); padding-top: 50px;`
-        } else {
-            appletHeaderStyle = `display: grid; grid-template-columns: repeat(2,1fr);`
-        }
-
-        // Mouse Over Behavior
-
-        let onMouseOver = `
-            this.style.boxShadow = '0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6)';
-            this.style.backgroundColor = 'rgb(35,35,35)';
-        `
-
-        let onMouseOut = `
-            this.style.boxShadow = 'none';
-            this.style.backgroundColor = 'rgb(15,15,15)';
-        `
+        let mainContainer = document.getElementById(this.props.id)
+        let presetSelections = []
+        let presetEl = document.createElement('div')
+        presetEl.classList.add('preset-container')
+        // let presetHeader = document.createElement('div')
+        // presetHeader.innerHTML = `
+        // <div id="${this.props.id}-appletheader" class="browser-header">
+        //     <h1>Featured</h1>
+        // </div>
+        // `
+        // mainContainer.insertAdjacentElement('beforeend', presetHeader)
+        mainContainer.insertAdjacentElement('beforeend', presetEl)
 
         // HTML Fragments
-        let presetSelections = []
-        let presetHTML = ''
+
         if (this.showPresets){
-            presetHTML = `
-            <div style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: stretch; 
-            justify-content: center;'>
-            `
 
             if (this.showPresets){
                 presetManifest.forEach(preset => {
-                        presetHTML += `
-                        <div id="${this.props.id}-${preset.value}" class='browser-card' style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
-                            <img src="${preset.image}" style="width: 100%; aspect-ratio: 2 / 1; object-fit: cover;">
-                            <div style="padding: 0px 25px 10px 25px;">
-                            <h2 style="margin-bottom: 5px;">${preset.name}</h2>
-                            <p style="font-size: 80%; margin: 15px 0px 20px 0px;">${preset.description}</p>
+                    presetEl.insertAdjacentHTML('beforeend',`
+                        <div id="${this.props.id}-${preset.value}" class='browser-card preset'>
+                            <div class="info">
+                            <div>
+                                <h2 style="margin-bottom: 5px;">${preset.name}</h2>
+                                <p style="font-size: 80%; margin: 15px 0px 20px 0px;">${preset.description}</p>
+                            </div>
                             <span style="position: absolute; bottom: 10px; right: 10px; font-size: 60%;margin-top: 5px;">Tags: ${preset.type}</span>
                             </div>
-                        </div>`
+                            <img src="${preset.image}">
+                        </div>`)
                         presetSelections.push(preset.value)
                 })
             }
-            presetHTML += `</div>`
         }
         let generalHTML = ``
         // let eegHTML = ``
@@ -207,9 +138,9 @@ export class AppletBrowser {
 
                     let img = settings.image ?? placeholderImage
                     let html = `
-                    <div id="${this.props.id}-${settings.name}" class='browser-card' categories="${settings.categories}" devices="${settings.devices}" style="${appletStyle};" onMouseOver="${onMouseOver}" onMouseOut="${onMouseOut}">
-                        <img src="${img}" style="${imgStyle}">
-                        <div style="${infoStyle}">
+                    <div id="${this.props.id}-${settings.name}" class='browser-card applet' categories="${settings.categories}" devices="${settings.devices}">
+                        <img src="${img}">
+                        <div class='info'>
                             <h2 style="margin-bottom: 5px;">${settings.name}</h2>
                             <p style="font-size: 80%; margin: 0px;">By ${author}</p>
                             <p style="font-size: 80%; margin: 15px 0px 20px 0px">${settings.description}</p>
@@ -223,9 +154,9 @@ export class AppletBrowser {
                 }
             })
 
-            document.getElementById(this.props.id).innerHTML += `
-            ${presetHTML}
-            <div id="${this.props.id}-appletheader" style="${appletHeaderStyle}">
+            mainContainer.insertAdjacentHTML('beforeend', 
+            `
+            <div id="${this.props.id}-appletheader" class="browser-header">
                 <h1>Applets</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
@@ -243,28 +174,22 @@ export class AppletBrowser {
                     </div>
                 </div>
             </div>
-            <hr>
-            <br>
-            <div id="${this.props.id}-appletsection" 
-            style='
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: stretch; 
-            justify-content: center;'>
+            <div id="${this.props.id}-appletsection" class="applet-container">
                 ${generalHTML}
             </div>
-            `
+            `)
 
             // Populate Category Selector
             function onlyUnique(value, index, self) {
-                return self.indexOf(value) === index;
+                return self.indexOf(value) == index;
               }
               
             // usage example:
+            categoryArray = categoryArray.map(c => c.charAt(0).toUpperCase() + c.slice(1))
             let uniqueCategories = categoryArray.filter(onlyUnique);
             let categorySelector = document.getElementById(`${this.props.id}-categories`)
             uniqueCategories.forEach(category => {
-                categorySelector.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`
+                categorySelector.innerHTML += `<option value="${category}">${category}</option>`
             })
             categorySelector.onchange = (e) => {
                 this.filterApplets()
@@ -304,6 +229,18 @@ export class AppletBrowser {
             //Add whatever else you need to initialize
             this.responsive()
         })
+        }
+
+        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+            HTMLtemplate,       //Define the html template string or function with properties
+            this.parentNode,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+        );  
+
+        if(this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -344,7 +281,7 @@ export class AppletBrowser {
         for (let div of divs){
             let votes = 0;
             attributes.forEach((a,i) => {
-                if (div.getAttribute(a).includes(values[i]) || values[i] ===  "all"){
+                if (div.getAttribute(a).toLowerCase().includes(values[i].toLowerCase()) || values[i].toLowerCase() ===  "all"){
                     votes++
                 }
             })

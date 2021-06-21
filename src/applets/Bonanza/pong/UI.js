@@ -16,16 +16,19 @@ class UI {
                 {username: 'me', x: 0, y: 0, score: 0},
                 {username: 'opponent', x: 0, y: 0, score: 0},
             ],
-            ball: {x: 0, y: 0, speed: 1, angle: 0, direction: 1, radius: 5},
+            ball: {x: 0, y: 0, angle: 0, direction: 1, radius: 5},
             paddleOptions: {
                 height: 75,
                 width: 5
             },
-            lastPaddleCollided: null
+            lastPaddleCollided: null,
+            canvas: null
         }
 
         this.paramOptions = {
-            difficulty: {default: 0.5, min: 0, max: 1, step: 0.01}
+            difficulty: {default: 0.5, min: 0, max: 1, step: 0.01},
+            paddlespeed: {default: 1, min: 0, max: 25, step: 0.01},
+            ballspeed: {default: 1, min: 0, max: 10, step: 0.01}
         }
 
         // Port Definition
@@ -58,10 +61,10 @@ class UI {
 
             const scoreboard =  document.getElementById(`${this.props.id}scoreboard`)
             const container = document.getElementById(`${this.props.id}`);
-            const canvas = document.getElementById(`${this.props.id}gameCanvas`);
-            const context = canvas.getContext("2d");
-            canvas.width = container.offsetWidth
-            canvas.height = container.offsetHeight
+            this.props.canvas = document.getElementById(`${this.props.id}gameCanvas`);
+            const context = this.props.canvas.getContext("2d");
+            this.props.canvas.width = container.offsetWidth
+            this.props.canvas.height = container.offsetHeight
 
             this.props.lastPaddleCollided = this.props.paddles.find(o => {
                 if (o.username === 'me'){
@@ -72,8 +75,8 @@ class UI {
             let margin = 25
             this.props.paddles.forEach((o,i) => {
                 if (i == 0) o.x = margin
-                else o.x = canvas.width - margin
-                o.y = canvas.height/2
+                else o.x = this.props.canvas.width - margin
+                o.y = this.props.canvas.height/2
             })
             
 
@@ -99,16 +102,16 @@ class UI {
                     if (score) score.innerHTML = o.score
                 })
 
-                this.props.ball.y = canvas.height/2
-                this.props.ball.x = canvas.width/2
+                this.props.ball.y = this.props.canvas.height/2
+                this.props.ball.x = this.props.canvas.width/2
                 this.props.ball.angle = 2*(Math.random() - 0.5)
             }
 
             const clearCanvas = () => {
                 context.fillStyle = 'black';
                 context.stokeStyle = 'white';
-                context.fillRect(0, 0, canvas.width, canvas.height)
-                context.strokeRect(0, 0, canvas.width, canvas.height)
+                context.fillRect(0, 0, this.props.canvas.width, this.props.canvas.height)
+                context.strokeRect(0, 0, this.props.canvas.width, this.props.canvas.height)
             }
 
             const main = () => {
@@ -117,26 +120,22 @@ class UI {
                     clearCanvas()
 
                     // Move Ball
-                    this.props.ball.x += this.props.ball.speed * this.props.ball.direction
+                    this.props.ball.x += this.params.ballspeed * this.props.ball.direction
                     this.props.ball.y += this.props.ball.angle
 
-
-                    if (this.props.ball.y <= this.props.ball.radius || this.props.ball.y >= (canvas.height - this.props.ball.radius)){
-                        this.props.ball.angle *= -1
-                    }
+                    // Check Bounce Off Walls
+                    if (this.props.ball.y <= this.props.ball.radius || this.props.ball.y >= (this.props.canvas.height - this.props.ball.radius)) this.props.ball.angle *= -1
 
                     drawBall(this.props.ball)
 
                     // Control Opponent AI
-                    let opponent = this.props.paddles.find(o => {
-                        if (o.username == 'opponent') return true
-                    })
+                    let opponent = this.props.paddles.find(o => {if (o.username == 'opponent') return true})
+                    this._movePaddle(opponent, this.params.difficulty * Math.sign(this.props.ball.y - opponent.y))
 
-                    opponent.y += this.params.difficulty * Math.sign(this.props.ball.y - opponent.y)
-
+                    // Draw All Paddles
                     this.props.paddles.forEach(drawPaddle);
 
-                    let collision
+                    // Check Collision
                     this.props.paddles.forEach(o => {
 
                         // Check X
@@ -147,21 +146,15 @@ class UI {
                                 this.props.ball.y <= o.y + this.props.paddleOptions.height/2 
                                 && this.props.ball.y >= o.y - this.props.paddleOptions.height/2 
                             ) {
-                                collision = true
+                                this.props.ball.direction *= -1
                                 this.props.lastPaddleCollided = o
                             }
                         }
                         
                     })
 
-
-                    // Check Collision
-                    if (collision){
-                        this.props.ball.direction *= -1
-                    }
-
                     // Check if Reset is Needed
-                    if (this.props.ball.x < 0 || this.props.ball.x > canvas.width){
+                    if (this.props.ball.x < 0 || this.props.ball.x > this.props.canvas.width){
                         this.props.ball.direction *= -1
                         if (this.props.lastPaddleCollided) this.props.lastPaddleCollided.score++
                         reset()
@@ -178,11 +171,16 @@ class UI {
         return { HTMLtemplate, setupHTML }
     }
 
+    _movePaddle = (paddle, dy) => {
+        let upper = paddle.y + this.props.paddleOptions.height/2 + dy
+        let lower = paddle.y - this.props.paddleOptions.height/2 + dy
+        if (upper < this.props.canvas.height &&  lower > 0) paddle.y += dy
+    }
+
     responsive = () => {
         const container = document.getElementById(`${this.props.id}`);
-        const canvas = document.getElementById(`${this.props.id}gameCanvas`);
-        canvas.width = container.offsetWidth
-        canvas.height = container.offsetHeight
+        this.props.canvas.width = container.offsetWidth
+        this.props.canvas.height = container.offsetHeight
     }
 
     default = (userData) => {
@@ -193,50 +191,16 @@ class UI {
         let choices = userData.map(u => Number(u.data))
         let mean = this.session.atlas.mean(choices)
 
-        let paddle = this.props.paddles.find(o => {
-            if (o.username == 'me') return true
-        })
+        let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})
 
         // Update Paddle Position
-        paddle.y += mean
+        this._movePaddle(paddle,mean*this.params.paddlespeed)
 
         // Replace User Data with Mean
         userData = [{data: mean, meta: {label: `${this.label}_paddle]`}}]
 
         return userData
     }
-
-    down = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true) {
-                this.props.dy = this.props.speed
-                this.props.dx = 0
-            }
-
-        })
-        return userData
-    }
-
-    left = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true) {
-                this.props.dx = -this.props.speed
-                this.props.dy = 0
-            }
-        })
-        return userData
-    }
-
-    right = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true) {
-                this.props.dx = this.props.speed
-                this.props.dy = 0
-            }
-        })
-        return userData
-    }
-
 
     deinit = () => {
 

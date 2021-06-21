@@ -9,7 +9,7 @@ export const settings = {
     devices: ["EEG"],
     author: "Brains@Play",
     description: "Anaylze your first Brains@Play data.",
-    categories: ["tutorial"],
+    categories: ["WIP"],
     instructions:"Coming soon...",
     display: {
       production: false

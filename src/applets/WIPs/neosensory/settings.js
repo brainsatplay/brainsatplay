@@ -7,7 +7,7 @@ export const settings = {
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Work with the Neosensory Buzz.",
-    categories: ["tutorial"],
+    categories: ["WIP"],
     instructions:"Coming soon...",
     display: {
       production: false
