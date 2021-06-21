@@ -422,16 +422,18 @@ export class GraphEditor{
             let splitSource = e.structure.source.split(':')
             if (splitSource.length < 2 ) splitSource.push('default')
             if(splitSource[1] === source.port){
-                let splitTarget = e.structure.target.split(':')
-                if (splitTarget.length < 2 ) splitTarget.push('default')
-                if (splitTarget[0] === target.label && splitTarget[1] == target.port){
-                    e.node.curve.classList.add('updated')
-                    e.node.curve.setAttribute('data-update', Date.now())
-                    setTimeout(()=>{
-                        if (e.node.curve.getAttribute('data-update') < Date.now() - 450){
-                            e.node.curve.classList.remove('updated')
-                        }
-                    }, 500)
+                if (e.structure.target){
+                    let splitTarget = e.structure.target.split(':')
+                    if (splitTarget.length < 2 ) splitTarget.push('default')
+                    if (splitTarget[0] === target.label && splitTarget[1] == target.port){
+                        e.node.curve.classList.add('updated')
+                        e.node.curve.setAttribute('data-update', Date.now())
+                        setTimeout(()=>{
+                            if (e.node.curve.getAttribute('data-update') < Date.now() - 450){
+                                e.node.curve.classList.remove('updated')
+                            }
+                        }, 500)
+                    }
                 }
             }
         })
@@ -540,7 +542,10 @@ export class GraphEditor{
                         let output = document.createElement('output')
                         inputContainer.insertAdjacentElement('afterbegin',output)
                         output.innerHTML = input.value
-                        input.addEventListener('input', (e) => {output.innerHTML = input.value}, false)
+                        input.addEventListener('input', (e) => {
+                            output.innerHTML = input.value
+                            plugin.params[key] = Number.parseFloat(input.value)
+                        }, false)
                     } else {
                         input = document.createElement('input')
                         input.type = 'number'
@@ -678,6 +683,7 @@ export class GraphEditor{
                 selector.style.opacity='0'
                 selector.style.pointerEvents='none'
                 search.value = ''
+                matchOptions(new RegExp('', 'i'))
             } else {
                 selector.style.opacity='1'
                 selector.style.pointerEvents='all'
@@ -693,18 +699,22 @@ export class GraphEditor{
         let nodeDiv = document.createElement('div')
         let search = selectorMenu.getElementsByTagName(`input`)[0]
 
-
-        // Allow Search of Plugins
-        search.oninput = (e) => {
-            let regexp = new RegExp(e.target.value, 'i')
+        let matchOptions = (regex) => {
             this.searchOptions.forEach(o => {
-                let test = regexp.test(o.label)
+                let test = regex.test(o.label)
                 if (test || o.label == 'Add New Plugin') {
                     o.element.style.display = ''
                 } else {
                     o.element.style.display = 'none'
                 }
             })
+        }
+
+
+        // Allow Search of Plugins
+        search.oninput = (e) => {
+            let regexp = new RegExp(e.target.value, 'i')
+            matchOptions(regexp)
         }
 
         this.classRegistry = Object.assign({}, plugins)

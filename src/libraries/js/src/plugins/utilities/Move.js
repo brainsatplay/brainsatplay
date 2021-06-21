@@ -16,8 +16,8 @@ export class Move{
             down: {},
             left: {},
             right: {},
-            x: {},
-            y: {},
+            // x: {},
+            // y: {},
             dx: {},
             dy: {}
         }
@@ -28,8 +28,8 @@ export class Move{
             up: false,
             down: false,
             looping: false,
-            x: window.innerWidth/2,
-            y: window.innerHeight/2,
+            x: 0,
+            y: 0,
             dx:0,
             dy: 0
         }
@@ -92,14 +92,14 @@ export class Move{
     _move(dx,dy){
         this.props.dx = dx
         this.props.dy = dy
-        let desiredX = this.props.x + dx
-        let desiredY = this.props.y + dy
-        this.props.x = desiredX
-        this.props.y = desiredY
+        // let desiredX = this.props.x + dx
+        // let desiredY = this.props.y + dy
+        // this.props.x = desiredX
+        // this.props.y = desiredY
         this.session.atlas.graph.runSafe(this,'dx',[{data: dx}])
         this.session.atlas.graph.runSafe(this,'dy',[{data: dy}])
-        this.session.atlas.graph.runSafe(this,'x',[{data: this.props.x}])
-        this.session.atlas.graph.runSafe(this,'y',[{data: this.props.y}])
+        // this.session.atlas.graph.runSafe(this,'x',[{data: this.props.x}])
+        // this.session.atlas.graph.runSafe(this,'y',[{data: this.props.y}])
     }
 
     responsive = () => {

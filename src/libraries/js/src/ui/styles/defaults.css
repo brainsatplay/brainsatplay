@@ -736,6 +736,7 @@ select {
 .node-sidebar-content > div > div > output {
     position: absolute; 
     user-select: none; 
+    pointer-events: none; 
     z-index: 1;
     top: 50%;
     left: 10px;

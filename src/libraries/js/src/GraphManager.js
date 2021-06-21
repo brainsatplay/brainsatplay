@@ -29,6 +29,7 @@ export class GraphManager{
     }
 
     instantiateNode(nodeInfo,session=this.session){
+
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
         let toAnalyze = new Set()
@@ -37,6 +38,9 @@ export class GraphManager{
         for (let param in node.paramOptions){
             if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
         }
+
+        // Set Params to Info Object
+        nodeInfo.params = node.params
 
         // Add Default States
         node.states = {}
@@ -99,10 +103,9 @@ export class GraphManager{
         return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
 
-    removeNode(appId,label){
+    removeNode(appId,label, resize=true){
         let applet = this.applets[appId]
 
-        // NOTE: Not Removing
         let toRemove = null
         let nodeInfo = applet.nodes.find((n,i) => {
             if (n.id == label){
@@ -120,7 +123,16 @@ export class GraphManager{
             nodeInfo.instance.deinit()
             if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
             applet.nodes.splice(toRemove,1)
+            if (resize) this._resizeAllNodeFragments(appId)
         }
+    }
+
+    _resizeAllNodeFragments = (appId) => {
+        let funcs = []
+        // Gather Resize Functions
+        this.applets[appId].nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
+        // Repeat to Scale Everything Appropriately
+        funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
     }
 
     _getRandomId(){
@@ -150,7 +162,6 @@ export class GraphManager{
         if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
 
         // Initialize the Node
-        let applet = this.applets[appId]
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
         
@@ -476,6 +487,9 @@ export class GraphManager{
         if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
         this.updateApp(appId)
+
+        // Send Last State to New Edge Target
+        setTimeout(() => {this.runSafe(target, targetPort, source.states[sourcePort])}, 500)
     }
     }
 
@@ -509,13 +523,13 @@ export class GraphManager{
                         this.session.removeStreaming(n.instance.label);
                         this.session.removeStreaming(n.instance.label, null, this.state, true);
                         this.session.removeStreaming(applet.sessionId);
-                        this.removeNode(appId,n.instance.label)
+                        this.removeNode(appId,n.instance.label, false)
                     } 
                     else {
                         this.removeMatchingEdges(appId,n.instance.label)
                     }
                 } else {
-                    
+
                     // Check Empty Node Removal Case
                     if (this.registry.local[n.instance.label].count == 0) delete this.registry.local[n.instance.label]
                     this.removeNode(appId,n.instance.label)

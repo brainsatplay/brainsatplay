@@ -78,6 +78,7 @@ export class Application{
 
         saveGraph(){
             let copiedSettings = this._copySettingsFile({graph: this.graph})
+            console.log(copiedSettings.graph)
             this.info.graph = copiedSettings.graph // Replace settings
         }
 
@@ -145,23 +146,12 @@ export class Application{
                     ui.responsive // responsive
                 )
 
-                this._resizeAllFragments()
+                this.session.graph._resizeAllNodeFragments(this.props.id)
             }
         }
 
         _removeAllFragments(){
             this.graph.nodes.forEach(n => {if ( n.fragment) {n.fragment.deleteNode()}})
-        }
-
-        _resizeAllFragments(){
-            let funcs = []
-
-            // Gather Resize Functions
-            this.graph.nodes.forEach(n => {
-                if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
-            })
-            // Repeat to Scale Everything Appropriately
-            funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
         }
 
         _copySettingsFile(info){
