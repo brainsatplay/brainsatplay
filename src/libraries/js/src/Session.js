@@ -226,7 +226,9 @@ export class Session {
 
 			onconnect(newStream);
 			this.onconnected();
-			
+			console.log(this.deviceStreams)
+			console.log(this.state.data)
+			console.log(this.atlas)
 		}
 
 		newStream.ondisconnect = () => {
@@ -237,6 +239,9 @@ export class Session {
 
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
 			this.info.nDevices--;
+			console.log(this.deviceStreams)
+			console.log(this.state.data)
+			console.log(this.atlas)
 		}
 
 		// Wait for Initialization before Connection
