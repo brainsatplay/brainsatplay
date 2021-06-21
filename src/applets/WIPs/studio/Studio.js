@@ -34,13 +34,13 @@ class Studio{
     init = () => {
         // Simply define the HTML template
         let HTMLtemplate = () => {return `
-            <div id='${this.props.id}' style='height:100%; width:100%;'>
+            <div id='brainsatplay-studio' style='height:100%; width:100%;'>
             </div>`
         }
 
 
         let setupHTML = async () => {
-           this.props.container = document.getElementById(this.props.id)
+           this.props.container = document.getElementById('brainsatplay-studio')
            this.props.projects = await this._insertBrowser()
         }
 
@@ -51,9 +51,7 @@ class Studio{
         return input
     }
 
-    deinit = () => {
-        if (this.props.app) this.props.app.deinit()
-    }
+    deinit = () => {}
 
     _createApp(settings){
         settings.editor = {
@@ -72,7 +70,7 @@ class Studio{
 
     async _insertBrowser(){
         let projectMask = document.createElement('div')
-        projectMask.id = `${this.props.id}-projects`
+        projectMask.classList.add(`projects`)
         projectMask.style = `
             position: absolute;
             top: 0;
@@ -144,7 +142,6 @@ class Studio{
                 projects.class="brainsatplay-project-gallery"
                 container.insertAdjacentElement(`beforeend`, projects)
                 this.props.container.insertAdjacentElement(`beforeend`, projectMask)
-                console.log(o.projects)
 
                 o.projects.forEach(settings => {
                     let div = document.createElement('div')

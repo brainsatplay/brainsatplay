@@ -12,12 +12,16 @@ export class Graph{
 
     initEdges = (edges) => {
         return new Promise(resolve => {
-            edges.forEach(async (e,i) => {
-                await this.addEdge(e)
-                if (i === edges.length - 1) {
-                    resolve(this.edges)
-                }
-            })
+            if (edges.length > 0){
+                edges.forEach(async (e,i) => {
+                    await this.addEdge(e)
+                    if (i === edges.length - 1) {
+                        resolve(this.edges)
+                    }
+                })
+            } else {
+                resolve(this.edges)
+            }
         })
     }
     

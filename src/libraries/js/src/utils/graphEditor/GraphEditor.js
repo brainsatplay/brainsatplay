@@ -6,7 +6,7 @@ import  {Plugin} from '../../plugins/Plugin'
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
-    constructor(manager, applet, parentId) {
+    constructor(manager, applet, parentId, onsuccess) {
         this.manager = manager
         this.app = applet
         this.plugins = this.manager.applets[this.app.props.id]
@@ -60,6 +60,7 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
+                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit Project</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
@@ -79,8 +80,8 @@ export class GraphEditor{
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
-                                </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 `
@@ -91,12 +92,13 @@ export class GraphEditor{
 
                 // Setup Presentation Based On Settings
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
+                
+
                 setTimeout(() => {
                     let toggleClass = '.brainsatplay-default-editor-toggle'
-                    
+                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                     // Search for Toggle
                     if (this.app.AppletHTML.node){
-                        let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                         if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
                         if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
                         if (this.app.info.editor.toggleId) {
@@ -122,6 +124,23 @@ export class GraphEditor{
                 reload.onclick = () => {
                     applet.reload()
                 }
+
+                let exit = document.getElementById(`${this.props.id}exit`)
+                exit.onclick = () => {
+                    console.log(this.app)
+
+                    // If Inside Studio, Bring Back UI
+                    if (document.getElementById('brainsatplay-studio')){
+                        this.app.deinit()
+                        let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                        projectWindow.style.opacity = 1
+                        projectWindow.style.pointerEvents = 'all'
+
+                    } else { // Otherwise just toggle the editor display
+                        this.toggleDisplay()
+                    }
+                }
+
 
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
 
@@ -198,7 +217,7 @@ export class GraphEditor{
                 let i = 0
                 let length = Object.keys(this.plugins.nodes).length
                 this.plugins.nodes.forEach(n => {
-                    let node = this.addNode(n,true, true) 
+                    let node = this.addNode(n,true, true, true) 
         
                     // Default Positioning
                     let iterator = Math.ceil(Math.sqrt(length))
@@ -222,6 +241,8 @@ export class GraphEditor{
                 this.graph.edges.forEach(e => {
                     this.addEdgeReactivity(e)
                 })
+
+                onsuccess(this)
             }
     
             this.element = new DOMFragment(
@@ -473,7 +494,7 @@ export class GraphEditor{
 
     }
 
-    addNode(nodeInfo, skipManager = false, skipInterface = false){
+    addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
@@ -484,6 +505,8 @@ export class GraphEditor{
         this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
+
+        if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
 
         return node
     }

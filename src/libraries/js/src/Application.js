@@ -78,7 +78,6 @@ export class Application{
 
         saveGraph(){
             let copiedSettings = this._copySettingsFile({graph: this.graph})
-            console.log(copiedSettings.graph)
             this.info.graph = copiedSettings.graph // Replace settings
         }
 
@@ -116,12 +115,13 @@ export class Application{
                     this.info.editor.parentId = this.parentNode.id
                     this.info.editor.show = false
                 }
+
                 if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
 
 
-                this.editor = this.session.graph.edit(this, this.info.editor.parentId)
-
-                if (this.info.editor.show !== false) this.editor.toggleDisplay()
+                this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
+                    if (this.info.editor.show !== false) editor.toggleDisplay()
+                })
             })
         }
 
