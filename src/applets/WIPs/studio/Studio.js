@@ -119,9 +119,10 @@ class Studio{
 
         Promise.allSettled([...projectSet,...templateSet]).then(set => {
 
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
             set.forEach(o => {
                 if (o.status === 'fulfilled'){
-                    galleries[o.value.destination].projects.push(o.value.settings)
+                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
                 }
             })
 
@@ -153,11 +154,29 @@ class Studio{
                     button.style.maxWidth = 'auto'
                     button.classList.add('brainsatplay-default-button')
                     button.onclick = () => {
+
+                        // Rename Blank Project
+                        if (settings.name === 'Blank Project' && k === 'templates'){settings.name = 'My Project'}
+
+                        // Rename Duplicate Projects
+                        let originalName = settings.name
+                        let i = 0
+                        let found = galleries.personal.projects.find(o => o.name === settings.name)
+                        while (found != null){
+                            i++
+                            settings.name = `${originalName} ${i}`
+                            found = galleries.personal.projects.find(o => o.name === settings.name)
+                        }
+
+                        // Create Application
                         this._createApp(settings)
                     }
                     div.insertAdjacentElement('beforeend', button)
+                    if (settings.name === 'Blank Project' && k === 'templates'){
+                        div.style.flex = '100%'
+                        projects.insertAdjacentElement('afterbegin',div)
+                    } else {projects.insertAdjacentElement('beforeend',div)}
 
-                projects.insertAdjacentElement('beforeend',div)
                 })
             })
         })

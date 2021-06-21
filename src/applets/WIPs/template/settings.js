@@ -2,10 +2,10 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {UI} from './UI.js'
 export const settings = {
-    name: "Template Project",
+    name: "Neurofeedback Template",
     devices: ["EEG"],
     author: "Garrett Flynn",
-    description: "A template project to begin your journey with Brains@Play.",
+    description: "Get started building a neurofeedback app!",
     categories: ["learn"],
     instructions:"Coming soon...",
     display: {
@@ -21,7 +21,6 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {key: 'Space'}},
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
@@ -33,30 +32,14 @@ export const settings = {
           source: 'signal', 
           target: 'neurofeedback'
         },
-        {
-          source: 'spacebar', 
-          target: 'brainstorm:spacebar'
-        },
         { 
           source: 'neurofeedback', 
           target: 'brainstorm:neurofeedback'
         },
         {
-          source: 'brainstorm:spacebar', 
-          target: 'ui:color'
-        },
-        {
           source: 'brainstorm:neurofeedback', 
           target: 'ui:readout'
         },
-        // {
-        //   source: 'spacebar', 
-        //   target: 'ui:color'
-        // },
-        // {
-        //   source: 'neurofeedback', 
-        //   target: 'ui:readout'
-        // }
       ]
     },
 }

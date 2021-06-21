@@ -529,7 +529,6 @@ export class GraphManager{
                         this.removeMatchingEdges(appId,n.instance.label)
                     }
                 } else {
-
                     // Check Empty Node Removal Case
                     if (this.registry.local[n.instance.label].count == 0) delete this.registry.local[n.instance.label]
                     this.removeNode(appId,n.instance.label)

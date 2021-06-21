@@ -513,6 +513,7 @@ export class GraphEditor{
                 let defaultType = typeof plugin.paramOptions[key].default
                 let specifiedOptions = plugin.paramOptions[key].options
                 let optionsType = typeof specifiedOptions
+
                 let input;
 
                 if (optionsType == 'object' && specifiedOptions != null){
@@ -553,7 +554,13 @@ export class GraphEditor{
                     }
                 } else {
                     input = document.createElement('input')
-                    input.type = 'text'
+                    // Check if Color String
+                    if (/^#[0-9A-F]{6}$/i.test(plugin.paramOptions[key].default)){
+                        console.log('color')
+                        input.type = 'color'
+                    } else {
+                        input.type = 'text'
+                    }
                     input.value = plugin.params[key]
                 }
 

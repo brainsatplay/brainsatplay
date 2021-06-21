@@ -11,9 +11,11 @@ export class Circle{
             radius: {default: 100, min: 0, max:1000, step: 0.01},
             x: {default: 0, min: 0, max:1000, step: 0.01},
             y: {default: 0, min: 0, max:1000, step: 0.01},
-            color: {default: 'white', options:['white','red']},
+            color: {default: '#ffffff'},
             minRadius: {default: 0, min: 0, max:1000, step: 0.01},
             scaleRadius: {default: 1, min: 0, max:1000, step: 0.01},
+            boundX: {default: true},
+            boundY: {default: true},
         }
 
         this.props = {
@@ -34,7 +36,9 @@ export class Circle{
 
     }
 
-    init = () => {}
+    init = (app) => {
+        console.log(app)
+    }
 
     deinit = () => {}
 
@@ -48,13 +52,19 @@ export class Circle{
     }
 
     dx = (userData) => {
-        this.params.x = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
+        if (desiredX > 0){
+            this.params.x = desiredX
+            this.session.graph.runSafe(this,'default',[{data:true}])
+        }
     }
 
     dy = (userData) => {
-        this.params.y = Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
+        if (desiredY > 0){
+            this.params.y = desiredY
+            this.session.graph.runSafe(this,'default',[{data:true}])
+        }
     }
 
     color = (userData) => {
