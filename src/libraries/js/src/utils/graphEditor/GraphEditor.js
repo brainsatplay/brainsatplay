@@ -38,7 +38,10 @@ export class GraphEditor{
             let template = () => {
                 return `
                 <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
-                    <div id="${this.props.id}MainPage">
+                    <div id="${this.props.id}MainPage" class="main">
+                        <div class="brainsatplay-node-editor-preview-wrapper">
+                            <div id="${this.props.id}preview" class="brainsatplay-node-editor-preview"></div>
+                        </div>
                         <div id="${this.props.id}ViewTabs" class="brainsatplay-node-editor-tabs">
                         </div>
                         <div class="brainsatplay-node-viewer">
@@ -89,6 +92,8 @@ export class GraphEditor{
     
             let setup = async () => {
                 this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
+                this.isStudio = document.getElementById('brainsatplay-studio') != null
+
 
                 // Setup Presentation Based On Settings
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
@@ -111,6 +116,7 @@ export class GraphEditor{
                 }, 500)
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
+                this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
                 this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
                 document.getElementById(`${this.props.id}edit`).style.display = 'none'
                 document.getElementById(`${this.props.id}delete`).style.display = 'none'
@@ -130,7 +136,7 @@ export class GraphEditor{
                     console.log(this.app)
 
                     // If Inside Studio, Bring Back UI
-                    if (document.getElementById('brainsatplay-studio')){
+                    if (this.isStudio){
                         this.app.deinit()
                         let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
                         projectWindow.style.opacity = 1
@@ -241,6 +247,13 @@ export class GraphEditor{
                 this.graph.edges.forEach(e => {
                     this.addEdgeReactivity(e)
                 })
+
+                // Move App Into Preview
+                if (this.isStudio) {
+                    this.preview.appendChild(this.app.AppletHTML.node)
+                    this.responsive()
+                }
+
 
                 onsuccess(this)
             }
@@ -832,6 +845,11 @@ export class GraphEditor{
         if (tabContainer){
             let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth
             this.mainPage.style.width = `${mainWidth}px`
+            if (this.preview.innerHTML != '') {
+                this.preview.style.height = `${window.innerHeight * this.mainPage.style.width/window.innerWidth}px`
+                this.preview.parentNode.style.height = '100%'
+            }
+            else this.preview.parentNode.style.height = 'auto'
         }
 
         if(this.graph){

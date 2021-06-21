@@ -36,7 +36,7 @@ class UI{
 
 
         let setupHTML = () => {
-            this.session.graph.runSafe(this,'readout',[{data: false, meta: {label: 'User States'}}])
+            this.session.graph.runSafe(this,'readout',[{data: false, meta: {label: 'Neurofeedback'}}])
         }
 
         return {HTMLtemplate, setupHTML}
@@ -50,7 +50,7 @@ class UI{
     readout = (userData) => {
 
         let labelDiv = document.getElementById(`${this.props.id}-label`)
-        labelDiv.innerHTML = 'User State'//userData[0].meta.label
+        labelDiv.innerHTML = userData[0].meta.label
         let outputDiv = document.getElementById(`${this.props.id}-readout`)
         let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
 

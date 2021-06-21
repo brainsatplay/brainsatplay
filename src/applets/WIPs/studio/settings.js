@@ -16,6 +16,10 @@ export const settings = {
       development: false
     },
 
+    editor: {
+      create: false
+    },
+
     // App Logic
     graph:
     {

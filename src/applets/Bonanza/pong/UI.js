@@ -179,8 +179,10 @@ class UI {
 
     responsive = () => {
         const container = document.getElementById(`${this.props.id}`);
-        this.props.canvas.width = container.offsetWidth
-        this.props.canvas.height = container.offsetHeight
+        if (container) {
+            this.props.canvas.width = container.offsetWidth
+            this.props.canvas.height = container.offsetHeight
+        }
     }
 
     default = (userData) => {

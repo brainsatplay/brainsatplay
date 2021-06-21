@@ -114,12 +114,13 @@ export class Application{
                     this.info.editor = {}
                     this.info.editor.parentId = this.parentNode.id
                     this.info.editor.show = false
+                    this.info.editor.create = true
                 }
 
                 if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
 
 
-                this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
+                if (this.info.editor.create != false) this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
                     if (this.info.editor.show !== false) editor.toggleDisplay()
                 })
             })
