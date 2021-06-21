@@ -144,6 +144,7 @@ class Studio{
                 projects.class="brainsatplay-project-gallery"
                 container.insertAdjacentElement(`beforeend`, projects)
                 this.props.container.insertAdjacentElement(`beforeend`, projectMask)
+                console.log(o.projects)
 
                 o.projects.forEach(settings => {
                     let div = document.createElement('div')
@@ -153,19 +154,23 @@ class Studio{
                     button.innerHTML = settings.name
                     button.style.maxWidth = 'auto'
                     button.classList.add('brainsatplay-default-button')
+
                     button.onclick = () => {
 
-                        // Rename Blank Project
-                        if (settings.name === 'Blank Project' && k === 'templates'){settings.name = 'My Project'}
-
-                        // Rename Duplicate Projects
-                        let originalName = settings.name
-                        let i = 0
-                        let found = galleries.personal.projects.find(o => o.name === settings.name)
-                        while (found != null){
-                            i++
-                            settings.name = `${originalName} ${i}`
-                            found = galleries.personal.projects.find(o => o.name === settings.name)
+                        // Rename Template Projects
+                        if (k === 'templates'){
+                            settings = Object.assign({}, settings)
+                            // Rename Blank Project
+                            if (settings.name === 'Blank Project') settings.name = 'My Project'
+                            // Rename Duplicate Projects
+                            // let originalName = settings.name
+                            // let i = 0
+                            // let found = galleries.personal.projects.find(o => o.name === settings.name)
+                            // while (found != null){
+                            //     i++
+                            //     settings.name = `${originalName} ${i}`
+                            //     found = galleries.personal.projects.find(o => o.name === settings.name)
+                            // }
                         }
 
                         // Create Application
