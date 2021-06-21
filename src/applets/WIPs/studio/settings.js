@@ -1,5 +1,7 @@
 
 import {Studio} from './Studio.js'
+import feature from './feature.png'
+
 export const settings = {
     name: "Brains@Play Studio",
     devices: ["EEG"],
@@ -7,6 +9,7 @@ export const settings = {
     description: "Design your own application.",
     categories: ["UI"],
     instructions:"Coming soon...",
+    image: feature,
 
     display: {
       production: false,

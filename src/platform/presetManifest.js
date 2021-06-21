@@ -4,8 +4,8 @@ import placeholderImg from './assets/features/placeholder.png'
 import eegNFImage from '../applets/General/blob/img/feature.png'
 import HEGImage from './assets/features/hegbiofeedback.png'
 import hegsens from '../applets/General/Sensorium/feature.png'
-import studio from './assets/features/studio.png'
-import OBB from './assets/features/1BB.jpg'
+import studio from '../applets/WIPs/studio/feature.png'
+import OBB from '../applets/UI/onebitbonanza/feature.jpg'
 
 export let presetManifest = [
     {
