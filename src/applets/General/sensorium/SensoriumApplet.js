@@ -5,6 +5,7 @@ import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { SoundJS } from '../../../platform/js/frontend/UX/Sound';
 import { LiveEditor } from '../../../libraries/js/src/ui/LiveEditor'
+import { eegmath } from '../../../libraries/js/src/utils/eegmath';
 
 import * as settingsFile from './settings'
 
@@ -1661,7 +1662,7 @@ void main(){
         if (u === 'iFFT'){
             let channel;
             // if(!ch) {
-                channel = this.session.atlas.getLatestFFTData()[0];
+                channel = eegmath.interpolateArray(this.session.atlas.getLatestFFTData()[0],256);
             // } else { channel = this.session.atlas.getLatestFFTData(ch); }
             if(channel) return  channel.fft;
             else return new Array(256).fill(0);
