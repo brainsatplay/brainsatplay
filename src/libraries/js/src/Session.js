@@ -179,7 +179,7 @@ export class Session {
 		}
 
 		if (this.deviceStreams.length > 0) {
-			if (device.indexOf('eeg') > -1 || device.indexOf('muse') > -1) {
+			if (device.indexOf('heg') > -1) {
 				let found = this.deviceStreams.find((o, i) => { //multiple EEGs get their own atlases just to uncomplicate things. Will need to generalize more later for other multi channel devices with shared preconfigurations if we want to try to connect multiple
 					if (o.deviceType === 'eeg') {
 						return true;
@@ -224,9 +224,9 @@ export class Session {
 
 			onconnect(newStream);
 			this.onconnected();
-			console.log(this.deviceStreams)
-			console.log(this.state.data)
-			console.log(this.atlas)
+			//console.log(this.deviceStreams)
+			//console.log(this.state.data)
+			//console.log(this.atlas)
 		}
 
 		newStream.ondisconnect = () => {
@@ -238,9 +238,9 @@ export class Session {
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
 			if (this.deviceStreams.length == 0) this.stopAnalysis()
 			this.info.nDevices--;
-			console.log(this.deviceStreams)
-			console.log(this.state.data)
-			console.log(this.atlas)
+			//console.log(this.deviceStreams)
+			//console.log(this.state.data)
+			//console.log(this.atlas)
 		}
 
 		// Wait for Initialization before Connection
