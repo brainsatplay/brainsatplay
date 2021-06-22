@@ -51,10 +51,6 @@ export class BCIAppManager {
         useFS = true         //launch with browserfs initialized
     ) {
 
-        this.state = new StateManager({
-            autosaving: true
-        });
-
         this.uiFragments = {
             controls: undefined,
         }; //store DOMFragments for the UI here
@@ -242,7 +238,7 @@ export class BCIAppManager {
                 // }
 
                 document.getElementById('autosavingfiles').onchange = () => {
-                    this.state.data.autosaving = document.getElementById('autosavingfiles').checked;
+                    this.session.dataManager.state.data.autosaving = document.getElementById('autosavingfiles').checked;
                 }
             },
             undefined,
@@ -563,9 +559,9 @@ export class BCIAppManager {
                 this.appletConfigs = settings.appletConfigs;
             }
             if (settings.autosaving || settings.autosaving === false) {
-                this.state.data.autosaving = settings.autosaving;
+                this.session.dataManager.state.data.autosaving = settings.autosaving;
                 let autosavecheck = document.getElementById('autosavingfiles');
-                if (autosavecheck) autosavecheck.checked = this.state.data.autosaving;
+                if (autosavecheck) autosavecheck.checked = this.session.dataManager.state.data.autosaving;
             }
             //console.log(this.appletConfigs)
         }
