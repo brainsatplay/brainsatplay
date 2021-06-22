@@ -13,13 +13,16 @@ class UI {
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             paddles: [
-                {username: 'me', x: 0, y: 0, score: 0},
-                {username: 'opponent', x: 0, y: 0, score: 0},
+                {username: 'me', x: 0, y: 0, score: 0, color: 'rgb(255, 255, 255)'},
+                {username: 'opponent', x: 0, y: 0, score: 0, color: 'rgb(255, 255, 255)'},
             ],
-            ball: {x: 0, y: 0, angle: 0, direction: 1, radius: 5},
+            ball: {x: 0, y: 0, angle: 0, direction: 1, radius: 8},
             paddleOptions: {
-                height: 75,
-                width: 5
+                height: 85,
+                width: 10
+            },
+            gameOptions: {
+                margin: 50,
             },
             lastPaddleCollided: null,
             canvas: null
@@ -27,8 +30,8 @@ class UI {
 
         this.paramOptions = {
             difficulty: {default: 0.5, min: 0, max: 1, step: 0.01},
-            paddlespeed: {default: 1, min: 0, max: 25, step: 0.01},
-            ballspeed: {default: 1, min: 0, max: 10, step: 0.01}
+            paddlespeed: {default: 5, min: 0, max: 25, step: 0.01},
+            ballspeed: {default: 5, min: 0, max: 10, step: 0.01}
         }
 
         // Port Definition
@@ -73,15 +76,27 @@ class UI {
             })
             
             let margin = 25
-            this.props.paddles.forEach((o,i) => {
-                if (i == 0) o.x = margin
-                else o.x = this.props.canvas.width - margin
+            this.props.paddles.forEach((o) => {
+                if (o.username === 'me') o.x = this.props.gameOptions.margin
+                else o.x = this.props.canvas.width - this.props.gameOptions.margin
                 o.y = this.props.canvas.height/2
             })
             
 
             const drawPaddle = (paddle) => {
-                context.fillStyle = 'white'
+                context.fillStyle = paddle.color
+
+                // Update Color
+                var regExp = /\(([^)]+)\)/;
+                var paddleRGB = regExp.exec(paddle.color)[1].split(',');
+                paddleRGB = paddleRGB.map(c => {
+                    c = Number.parseFloat(c)
+                    c += 2.5 * Math.sign(255 - c)
+                    return c
+                })
+                paddle.color = `rgb(${paddleRGB.join(',')})`
+
+
                 // context.strokeStyle = 'white'
                 let shiftedY = paddle.y - this.props.paddleOptions.height/2
                 context.fillRect(paddle.x, shiftedY, this.props.paddleOptions.width, this.props.paddleOptions.height)
@@ -104,7 +119,7 @@ class UI {
 
                 this.props.ball.y = this.props.canvas.height/2
                 this.props.ball.x = this.props.canvas.width/2
-                this.props.ball.angle = 2*(Math.random() - 0.5)
+                this.props.ball.angle = 2*Math.PI*(Math.random() - 0.5)
             }
 
             const clearCanvas = () => {
@@ -130,7 +145,7 @@ class UI {
 
                     // Control Opponent AI
                     let opponent = this.props.paddles.find(o => {if (o.username == 'opponent') return true})
-                    this._movePaddle(opponent, this.params.difficulty * Math.sign(this.props.ball.y - opponent.y))
+                    this._movePaddle(opponent, (this.params.difficulty) * this.params.ballspeed * Math.sign(this.props.ball.y - opponent.y))
 
                     // Draw All Paddles
                     this.props.paddles.forEach(drawPaddle);
@@ -139,15 +154,17 @@ class UI {
                     this.props.paddles.forEach(o => {
 
                         // Check X
-                        if (Math.abs(this.props.ball.x - o.x) < this.props.paddleOptions.width){
+                        let extra = 0
+                        if (o.username === 'me') extra = this.props.paddleOptions.width
+                        if (Math.abs(this.props.ball.x - o.x) <= this.props.paddleOptions.width + extra){
 
+                            let yDist = this.props.ball.y-o.y
                             // Check Y
-                            if (
-                                this.props.ball.y <= o.y + this.props.paddleOptions.height/2 
-                                && this.props.ball.y >= o.y - this.props.paddleOptions.height/2 
-                            ) {
+                            if (Math.abs(yDist) <= this.props.paddleOptions.height/2 ) {
                                 this.props.ball.direction *= -1
                                 this.props.lastPaddleCollided = o
+                                this.props.ball.angle = 2*Math.PI*yDist/(this.props.paddleOptions.height/2)
+                                o.color = `rgb(129, 218, 250)`
                             }
                         }
                         
@@ -180,8 +197,16 @@ class UI {
     responsive = () => {
         const container = document.getElementById(`${this.props.id}`);
         if (container) {
+
+            // Map to New Positions
+            this.props.paddles.forEach(o => {
+                if (o.username === 'opponent') o.x = this.props.canvas.width - this.props.paddleOptions.width - this.props.gameOptions.margin
+                o.y = container.offsetHeight*(o.y/this.props.canvas.height)
+            })
+
             this.props.canvas.width = container.offsetWidth
             this.props.canvas.height = container.offsetHeight
+
         }
     }
 

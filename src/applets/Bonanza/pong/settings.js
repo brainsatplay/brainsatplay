@@ -4,10 +4,10 @@ import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "Pong",
+    name: "MindPong",
     devices: ["EEG"],
     author: "Garrett Flynn",
-    description: "Let's play Pong!",
+    description: "Let's play Pong with our minds!",
     categories: ["Train"],
     // "image":  featureImg,
     instructions:"Coming soon...",
