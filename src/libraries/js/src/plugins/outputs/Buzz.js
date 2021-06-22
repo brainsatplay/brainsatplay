@@ -111,7 +111,7 @@ export class Buzz{
             let ledColors = [c1,c2,c3]
 
             console.log(ledColors)
-            let ledIntensities = [this.params.led1intensity,led2intensity,led3intensity]
+            let ledIntensities = [this.params.led1intensity,this.params.led2intensity,this.params.led3intensity]
 
             console.log(ledColors, ledIntensities)
 
