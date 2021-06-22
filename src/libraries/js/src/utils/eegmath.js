@@ -190,9 +190,9 @@ export class eegmath {
 	}
 
 	//Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
-	static interpolateArray(data, fitCount) {
+	static interpolateArray(data, fitCount, normalize=1) {
 
-		var norm = this.canvas.height/data.length;
+		var norm = normalize;
 
 		var linearInterpolate = function (before, after, atPoint) {
 			return (before + (after - before) * atPoint)*norm;

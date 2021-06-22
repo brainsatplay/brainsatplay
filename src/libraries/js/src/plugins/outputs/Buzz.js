@@ -10,16 +10,16 @@ export class Buzz{
         this.params = params
 
         this.paramOptions = {
-            motor1: {default: 0, min:0, max: 255, step: 1.0},
-            motor2: {default: 0, min:0, max: 255, step: 1.0},
-            motor3: {default: 0, min:0, max: 255, step: 1.0},
-            motor4: {default: 0, min:0, max: 255, step: 1.0},
+            motor1: {default: 255, min:0, max: 255, step: 1.0},
+            motor2: {default: 255, min:0, max: 255, step: 1.0},
+            motor3: {default: 255, min:0, max: 255, step: 1.0},
+            motor4: {default: 255, min:0, max: 255, step: 1.0},
             led1color: {default: `#00ff00`},
             led2color: {default: `#00ff00`},
             led3color: {default: `#00ff00`},
-            led1intensity: {default: 0, min:0, max: 50, step: 1.0},
-            led2intensity: {default: 0, min:0, max: 50, step: 1.0},
-            led3intensity: {default: 0, min:0, max: 50, step: 1.0},
+            led1intensity: {default: 0, min:0, max: 1, step: 0.01},
+            led2intensity: {default: 0, min:0, max: 1, step: 0.01},
+            led3intensity: {default: 0, min:0, max: 1, step: 0.01},
             position: {default: 0, min: 0, max: 1, step: 0.01}
         }
 
@@ -66,7 +66,7 @@ export class Buzz{
         // Check if Buzz Exists
         this.props.device = this.session.getDevice('buzz')
         if (!this.props.device)  console.log('Must connect your Buzz first')
-        else this.props.device = this.props.device.device
+        else this.props.device = this.props.device.device.device
         this.session.graph.runSafe(this,'status',[{data:true, meta:{}}])
     }
 
@@ -101,17 +101,21 @@ export class Buzz{
 
             let run = false
             // Check User Requests
-            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.username) run = true})
-            if (run){ // Run if you
+            userData.forEach(u => {if (u.data == true) run = true})
 
-            let c1 = this._hexToRgb(this.params.led1color)
-            let c2 = this._hexToRgb(this.params.led2color)
-            let c3 = this._hexToRgb(this.params.led3color)
+            let c1 = [0,0,0]
+            let c2 = [0,0,0]
+            let c3 = [0,0,0]
+            if (run){
+                c1 = this._hexToRgb(this.params.led1color)
+                c2 = this._hexToRgb(this.params.led2color)
+                c3 = this._hexToRgb(this.params.led3color)
+            }
             
             let ledColors = [c1,c2,c3]
-            let ledIntensities = [this.params.led1intensity,led2intensity,led3intensity]
+            let ledIntensities = [this.params.led1intensity,this.params.led2intensity,this.params.led3intensity]
+            ledIntensities = ledIntensities.map(i => Number.parseFloat(i))
             this.props.device.setLEDs(ledColors, ledIntensities)
-            }
         }
     }
 
@@ -133,7 +137,7 @@ export class Buzz{
         }
     }
 
-    fillLEDs = () => {
+    fillLEDs = (userData) => {
         if (this.props.device){
 
             let c1 = this._hexToRgb(this.params.led1color)
@@ -150,6 +154,7 @@ export class Buzz{
 
             let ledColors = [c1,c2,c3]
             let ledIntensities = [i1,i2,i3]
+            ledIntensities = ledIntensities.map(i => Number.parseFloat(i))
             this.props.device.setLEDs(ledColors, ledIntensities)
         }
     }
