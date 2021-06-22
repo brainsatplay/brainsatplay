@@ -353,6 +353,8 @@ export class GraphManager{
         this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
 
         // Create Nodes
+
+        let edgeSetupCallbacks = []
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
@@ -363,10 +365,12 @@ export class GraphManager{
             // Create Edges
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((e,i) => {
-                    this.addEdge(id, e, false)
+                    edgeSetupCallbacks.push(this.addEdge(id, e, false))
                 })
             }
         }
+
+        this.applets[id].setupCallbacks = edgeSetupCallbacks
 
         return this.applets[id]
     }
@@ -387,7 +391,7 @@ export class GraphManager{
         return applet
     }
 
-    addEdge = (appId, e) => {
+    addEdge = (appId, e, sendOutput=true) => {
         let applet = this.applets[appId]
 
         let existingEdge = this.applets[appId].edges.find(edge => {
@@ -399,98 +403,100 @@ export class GraphManager{
         if (existingEdge == null){ // Do not duplicate edges
             this.applets[appId].edges.push(e)
 
-        let splitSource = e.source.split(':')
-        let sourceName = splitSource[0]
-        let sourcePort = splitSource[1] ?? 'default'
-        let sourceInfo = applet.nodes.find(n => {
-            if (n.id == sourceName) return true
-        })
-        let source = sourceInfo.instance
-        let splitTarget = e.target.split(':')
-        let targetName = splitTarget[0]
-        let targetPort = splitTarget[1] ?? 'default'
-        let targetInfo = applet.nodes.find(n => {
-            if (n.id == targetName) return true
-        })
-        let target = targetInfo.instance
-        let label = this.getLabel(source,sourcePort)
+            let splitSource = e.source.split(':')
+            let sourceName = splitSource[0]
+            let sourcePort = splitSource[1] ?? 'default'
+            let sourceInfo = applet.nodes.find(n => {
+                if (n.id == sourceName) return true
+            })
+            let source = sourceInfo.instance
+            let splitTarget = e.target.split(':')
+            let targetName = splitTarget[0]
+            let targetPort = splitTarget[1] ?? 'default'
+            let targetInfo = applet.nodes.find(n => {
+                if (n.id == targetName) return true
+            })
+            let target = targetInfo.instance
+            let label = this.getLabel(source,sourcePort)
 
-        // Initialize Ports with Default Output
-        let types = ['source', 'target']
-        types.forEach(t => {
-            if (eval(t).states[eval(`${t}Port`)] == null) {
-                eval(t).states[eval(`${t}Port`)] = [{}]
-                let registryEntry = this.registry.local[eval(t).label].registry
-                if (registryEntry[eval(`${t}Port`)] == null){
-                    registryEntry[eval(`${t}Port`)] = {}
-                    registryEntry[eval(`${t}Port`)].state = eval(t).states[eval(`${t}Port`)]
+            // Initialize Ports with Default Output
+            let types = ['source', 'target']
+            types.forEach(t => {
+                if (eval(t).states[eval(`${t}Port`)] == null) {
+                    eval(t).states[eval(`${t}Port`)] = [{}]
+                    let registryEntry = this.registry.local[eval(t).label].registry
+                    if (registryEntry[eval(`${t}Port`)] == null){
+                        registryEntry[eval(`${t}Port`)] = {}
+                        registryEntry[eval(`${t}Port`)].state = eval(t).states[eval(`${t}Port`)]
+                    }
                 }
-            }
-        })
+            })
 
-        // Pass Data from Source to Target
-        let _onTriggered = (trigger) => {
-            if (trigger){
-                let input = source.states[sourcePort]
-                input.forEach(u => {
-                    if (!u.meta) u.meta = {}
-                    u.meta.source = sourceName
-                    u.meta.session = applet.sessionId
-                })
-                if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                return this.runSafe(target, targetPort, input)
-            }
-        }
-        
-        this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
-
-        // Register Brainstorm State
-        if (target instanceof plugins.utilities.Brainstorm) {
-            applet.streams.add(label) // Keep track of streams
-            
-            // Replace Default Update Command and Send Local Updates to the Brainstorm
-            _onTriggered = (trigger) => {
-                // Get Upstream Output
-                let output = source.states[sourcePort]
-                if (output.length > 0){
-                    output.forEach(u => {
+            // Pass Data from Source to Target
+            let _onTriggered = (trigger) => {
+                if (trigger){
+                    let input = source.states[sourcePort]
+                    input.forEach(u => {
+                        if (!u.meta) u.meta = {}
                         u.meta.source = sourceName
                         u.meta.session = applet.sessionId
                     })
-                    this.runSafe(target, 'send', output) // Refresh personal state data
+                    if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+                    return this.runSafe(target, targetPort, input)
                 }
             }
+            
+            this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
-            // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
-            this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
-                this.runSafe(target, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
-                _onTriggered(trigger) // Trigger Downstream Changes
-            })
-        } 
+            // Register Brainstorm State
+            if (target instanceof plugins.utilities.Brainstorm) {
+                applet.streams.add(label) // Keep track of streams
+                
+                // Replace Default Update Command and Send Local Updates to the Brainstorm
+                _onTriggered = (trigger) => {
+                    // Get Upstream Output
+                    let output = source.states[sourcePort]
+                    if (output.length > 0){
+                        output.forEach(u => {
+                            u.meta.source = sourceName
+                            u.meta.session = applet.sessionId
+                        })
+                        this.runSafe(target, 'send', output) // Refresh personal state data
+                    }
+                }
 
-        // And Listen for Local Changes
-        if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
-        let subId = this.state.subscribeSequential(label, _onTriggered)
-        applet.subscriptions.local[label].push({id: subId, target: e.target})
+                // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
+                this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
+                    this.runSafe(target, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
+                    _onTriggered(trigger) // Trigger Downstream Changes
+                })
+            } 
 
-        if (target.ports[targetPort] == null) target.ports[targetPort] = {}
-        if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
+            // And Listen for Local Changes
+            if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
+            let subId = this.state.subscribeSequential(label, _onTriggered)
+            applet.subscriptions.local[label].push({id: subId, target: e.target})
 
-        let tP = target.ports[targetPort]
-        let sP = source.ports[sourcePort]
-        if (tP.active == null) tP.active = {in: 0, out: 0}
-        if (sP.active == null) sP.active = {in: 0, out: 0}
+            if (target.ports[targetPort] == null) target.ports[targetPort] = {}
+            if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
 
-        tP.active.in++
-        sP.active.out++
-        if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
-        if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
+            let tP = target.ports[targetPort]
+            let sP = source.ports[sourcePort]
+            if (tP.active == null) tP.active = {in: 0, out: 0}
+            if (sP.active == null) sP.active = {in: 0, out: 0}
 
-        this.updateApp(appId)
+            tP.active.in++
+            sP.active.out++
+            if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+            if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
-        // Send Last State to New Edge Target
-        setTimeout(() => {this.runSafe(target, targetPort, source.states[sourcePort])}, 500)
-    }
+            this.updateApp(appId)
+
+            // Send Last State to New Edge Target
+            let sendFunction = () => {this.runSafe(target, targetPort, source.states[sourcePort])}
+            if (sendOutput) sendFunction()
+            else return sendFunction
+        }
     }
 
     findStreamFunction(prop) {

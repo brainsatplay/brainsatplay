@@ -406,18 +406,27 @@ export class GraphEditor{
                 this.shown = true
 
                 // Move App Into Preview
+                // if (this.isStudio){
                     this.appNode = this.app.AppletHTML.node
                     this.preview.appendChild(this.appNode)
+                    setTimeout(() => {
+
                     this.responsive()
                     this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                },100)
+                // }
             } else {
                 this.element.node.style.opacity = 0
                 this.element.node.style.pointerEvents = 'none'
                 this.shown = false
 
-                this.app.AppletHTML.parentNode.appendChild(this.appNode)
-                this.responsive()
-                this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                // if (this.isStudio){
+                    this.app.AppletHTML.parentNode.appendChild(this.appNode)
+                    setTimeout(() => {
+                        this.responsive()
+                        this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                    },100)
+                // }
             }
         }
     }
