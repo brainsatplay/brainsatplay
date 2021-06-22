@@ -22,7 +22,7 @@ export class Application{
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: null, //Keep random ID
-            sessionId: null
+            sessionId: null,
         };
     }
 
@@ -76,6 +76,7 @@ export class Application{
                 // Hard Deinit
                 else {
                     this.AppletHTML.deleteNode();
+                    this.AppletHTML = null
                 }
             }
         }
