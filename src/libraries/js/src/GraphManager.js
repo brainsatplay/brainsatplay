@@ -506,12 +506,15 @@ export class GraphManager{
         let applet = this.applets[appId]
 
         if (applet) {
-        applet.nodes.forEach(n => {
+
+        for (let i = applet.nodes.length-1; i >= 0; i--){
+            let n = applet.nodes[i]
             if (classId == null || n.class.id === classId){
 
             // Increment the Registry for Each Separate Label (of a particular class)
            
             for (let port in n.instance.ports){
+
                 if ((label === null || n.instance.label === label) && this.registry.local[n.instance.label] != null){
                     this.registry.local[n.instance.label].count--
 
@@ -529,20 +532,17 @@ export class GraphManager{
                         this.removeMatchingEdges(appId,n.instance.label)
                     }
                 } else {
-                    // Check Empty Node Removal Case
+                    // Check Node with No Edges Removal Case
                     if (this.registry.local[n.instance.label].count == 0) delete this.registry.local[n.instance.label]
                     this.removeNode(appId,n.instance.label)
                 }
             }
         }
             }
-        })
+        }
 
         // // Remove Editor
-        if (appId && classId==null && label==null){
-            // if (this.applets[appId].editor) this.applets[appId].editor.deinit()
-            delete this.applets[appId]
-        }
+        if (appId && classId==null && label==null) delete this.applets[appId]
     }
     }
 

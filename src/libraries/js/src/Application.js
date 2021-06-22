@@ -93,7 +93,7 @@ export class Application{
     
         //Responsive UI update, for resizing and responding to new connections detected by the UI manager
         responsive() {
-            // _runInternalFunctions(this.uiParams.responsive)
+            // this.AppletHTML.responsive()// _runInternalFunctions(this.uiParams.responsive)
         }
     
         configure = (settings=[{}]) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with

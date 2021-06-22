@@ -27,7 +27,10 @@ class Test{
 
         // Port Definition
         this.ports = {
-            default: {}
+            default: {},
+            show: {},
+            click: {},
+            performance: {}
         }
     }
 

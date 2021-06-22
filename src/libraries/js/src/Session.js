@@ -218,9 +218,7 @@ export class Session {
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			
 			this.info.nDevices++;
-			if (streamParams[0]) { 
-				this.beginStream(streamParams); 
-			}
+			if (streamParams[0]) this.beginStream(streamParams); 
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
 
@@ -238,10 +236,7 @@ export class Session {
 			this.state.removeState(stateId)
 
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
-
-			if (this.deviceStreams.length == 0){
-				this.stopAnalysis()
-			}
+			if (this.deviceStreams.length == 0) this.stopAnalysis()
 			this.info.nDevices--;
 			console.log(this.deviceStreams)
 			console.log(this.state.data)

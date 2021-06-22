@@ -541,15 +541,18 @@ export class AppletManager {
                         let dragging = document.querySelector('.dragging')
                         appletDiv.classList.remove('hovered')
                         let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                        let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
-                        let _temp = draggingApplet.appletIdx;
-                        draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
-                        lastSwappedApplet.appletIdx = _temp;
-                        this.showOptions()
+                        if (this.lastSwapped){
+                            let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
+                            let _temp = draggingApplet.appletIdx;
+                            draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
+                            lastSwappedApplet.appletIdx = _temp;
+                            this.showOptions()
+                        }
 
                         for (let hovered of document.querySelectorAll('.hovered')){
                             hovered.classList.remove('hovered')
                         }
+                        
                     }, false);
             
                     // Fullscreen Functionality
