@@ -2,7 +2,7 @@ import Worker from 'web-worker'
 
 
 let workerURL = './_dist_/libraries/js/src/utils/eeg.worker.js';
-let defaultWorkerThreads = 2;
+let defaultWorkerThreads = 0;
 
 let eegWorkers = [];
 
