@@ -1398,6 +1398,14 @@ export class DataAtlas {
 		}
 	}
 
+	runAnalyzerFunc = (run) => {
+		this.analyzerOpts.find((opt,j) => {
+			if(opt === run) {
+				this.analyzerFuncs[j]();
+				return true;
+			}
+		});
+	}
 
 	checkRollover(dataArr=null) { //'eeg','heg', etc
 		if(dataArr === null) {
