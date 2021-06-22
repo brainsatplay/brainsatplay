@@ -47,7 +47,7 @@ export class Circle{
     }
 
     radius = (userData) => {
-        this.params.radius = Number.parseFloat(userData[0].data)
+        this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
         this.session.graph.runSafe(this,'default',[{data:true}])
     }
 
