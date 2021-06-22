@@ -52,7 +52,7 @@ export class WorkerManager {
         }
     }
 
-    addWorker = (workerurl) => {
+    addWorker = (workerurl='./_dist_/libraries/js/src/utils/eeg.worker.js') => {
         console.log('add worker')
         try {
             this.workers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),

@@ -158,7 +158,7 @@ export class DataAtlas {
 		this.addDefaultAnalyzerFuncs();
 
 		if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
-		//this.workerIdx = addWorker(); // add a worker for this DataAtlas analyzer instance
+		this.workerIdx = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
 		window.workers.workerResponses.push(this.workeronmessage);
 		//this.analyzer();
     }

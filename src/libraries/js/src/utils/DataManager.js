@@ -296,7 +296,7 @@ export class DataManager {
                 }
                 if (mainDeviceType === 'eeg') {
                     let deviceName = thisDevice.info.deviceName;
-                    this.state.data['sessionName'+deviceName+deviceIdx];
+                    this.state.data['sessionName'+deviceName+deviceIdx] = '';
                     this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
                     this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
 
@@ -395,7 +395,7 @@ export class DataManager {
             oncreated();
         });
     }
-    
+
     autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg', getFFTs=true, onsaved=this.listFiles) => {
         if (this.state.data['sessionName'+deviceName] === '') { this.state.data['sessionName'+deviceName] = this.toISOLocal(new Date()) + "eeg_" + deviceName; }
         let from = startidx;
