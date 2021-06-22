@@ -44,7 +44,7 @@ export class GraphEditor{
                         </div>
                         <div id="${this.props.id}ViewTabs" class="brainsatplay-node-editor-tabs">
                         </div>
-                        <div class="brainsatplay-node-viewer">
+                        <div id="${this.props.id}NodeVieweContainer" class="brainsatplay-node-viewer">
                             <div id="${this.props.id}NodeViewer" class="brainsatplay-node-viewer grid">
                             </div>
                         </div>
@@ -133,8 +133,6 @@ export class GraphEditor{
 
                 let exit = document.getElementById(`${this.props.id}exit`)
                 exit.onclick = () => {
-                    console.log(this.app)
-
                     // If Inside Studio, Bring Back UI
                     if (this.isStudio){
                         this.app.deinit()
@@ -298,7 +296,7 @@ export class GraphEditor{
     addGraphTab(){
         this.files['Graph Editor'] = {}
         this.files['Graph Editor'].container = this.viewer
-        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.id)
+        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
             this.app.saveGraph()
@@ -343,10 +341,11 @@ export class GraphEditor{
                         if (target) target.style.display = ''
                         otherTab.classList.add('active')
                         onOpen()
-                        this.responsive()
                     }
                 }
+                this.responsive()
             }
+
             document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
         }
@@ -407,11 +406,8 @@ export class GraphEditor{
                 this.shown = true
 
                 // Move App Into Preview
-                // if (this.isStudio) {
                     this.appNode = this.app.AppletHTML.node
                     this.preview.appendChild(this.appNode)
-                    // setTimeout(() => {this.responsive()}, 1000)
-                    // }
                     this.responsive()
                     this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
             } else {
@@ -420,7 +416,6 @@ export class GraphEditor{
                 this.shown = false
 
                 this.app.AppletHTML.parentNode.appendChild(this.appNode)
-                // setTimeout(() => {this.responsive()}, 500)
                 this.responsive()
                 this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
             }
@@ -599,7 +594,6 @@ export class GraphEditor{
                     input = document.createElement('input')
                     // Check if Color String
                     if (/^#[0-9A-F]{6}$/i.test(plugin.paramOptions[key].default)){
-                        console.log('color')
                         input.type = 'color'
                     } else {
                         input.type = 'text'
