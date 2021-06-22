@@ -285,10 +285,12 @@ export class DataManager {
                 
                 let exists = false;
                 if(mainDeviceType === 'eeg') {
-                    if(this.deviceSubs.indexOf(mainDeviceType+"_"+thisDevice.atlas.data.eegshared.eegChannelTags[0].ch) > -1) {
+                    if(this.deviceSubs.indexOf(mainDeviceType+"_"+thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch) > -1) {
                         exists = true;
                     }
                 } else if (mainDeviceType === 'heg') {
+                    console.log(thisDevice,thisDevice.device)
+                    let hegindex = thisDevice.device.atlas.data.heg.length-1;
                     if(this.deviceSubs.indexOf(mainDeviceType+"_"+hegindex) > -1) {
                         exists = true;
                     }
@@ -318,15 +320,15 @@ export class DataManager {
                             }); //+"_c"+State.data.sessionChunks
                         } 
                         console.log(deviceName)
-                        this.session.subscribe(deviceIdx, thisDevice.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
+                        this.session.subscribe(deviceIdx, thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
                             if (this.state.data.autosaving) {
-                                if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
+                                if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.device.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
                                 if (row.count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
-                                    this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                                    this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx, undefined, undefined, thisDevice.device.atlas);
                                     this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
                                 }
                             }
-                        }); this.deviceSubs.push(mainDeviceType+"_"+thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
+                        }); this.deviceSubs.push(mainDeviceType+"_"+thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch);
                         let save = () => {
                             if(!this.session.deviceStreams.find((o)=>{
                                 if(o.randomId === randomId);
@@ -336,18 +338,18 @@ export class DataManager {
                                 return false;
                             }
                             //console.log(this.session.deviceStreams)
-                            let row = thisDevice.atlas.getEEGDataByChannel(thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
-                            if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                            this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                            let row = thisDevice.device.atlas.getEEGDataByChannel(thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch);
+                            if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.device.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                            this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx, undefined, undefined, thisDevice.device.atlas);
                             this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
                         }
                         document.getElementById("saveBCISession").addEventListener('click',save);
                         document.getElementById("newBCISession").addEventListener('click',newsession)
 
                     } else if (mainDeviceType === 'heg') {
-                        let hegindex = thisDevice.atlas.data.heg.length-1;
+                        let hegindex = thisDevice.device.atlas.data.heg.length-1;
                         let deviceName = thisDevice.info.deviceName;
-                        this.state.data['sessionName'+deviceName+deviceIdx];
+                        this.state.data['sessionName'+deviceName+deviceIdx] = "";
                         this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
                         this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
                         
@@ -362,9 +364,9 @@ export class DataManager {
                         this.session.subscribe(deviceIdx, hegindex, undefined, (row) => {
                             if (this.state.data.autosaving) {
                                 //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                                if (thisDevice.atlas.data.heg[hegindex].count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
-                                    this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                                    this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
+                                if (thisDevice.device.atlas.data.heg[hegindex].count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
+                                    this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx, undefined, thisDevice.device.atlas);
+                                    this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.device.atlas.data.heg[hegindex].count;
                                 }
                             }
                         }); this.deviceSubs.push(mainDeviceType+"_"+hegindex);
@@ -376,8 +378,8 @@ export class DataManager {
                                 document.getElementById("saveBCISession").removeEventListener('click',save);
                                 return false;
                             }
-                            this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                            this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
+                            this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx, undefined, thisDevice.device.atlas);
+                            this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.device.atlas.data.heg[hegindex].count;
                         }
                         document.getElementById("saveBCISession").addEventListener('click',save);
 
@@ -406,11 +408,11 @@ export class DataManager {
         });
     }
 
-    autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg', getFFTs=true, onsaved=this.listFiles) => {
+    autoSaveEEGChunk = (startidx = 0, to = 'end', deviceName = 'eeg', getFFTs=true, onsaved=this.listFiles, deviceAtlas) => {
         if (this.state.data['sessionName'+deviceName] === '') { this.state.data['sessionName'+deviceName] = this.toISOLocal(new Date()) + "eeg_" + deviceName; }
         let from = startidx;
         if (this.state.data['sessionChunks'+deviceName] > 0) { from = this.state.data['saveCounter'+deviceName]; }
-        let data = this.session.atlas.readyEEGDataForWriting(from, to, getFFTs);
+        let data = deviceAtlas.readyEEGDataForWriting(from, to, getFFTs);
         console.log("Saving chunk to /data/" + this.state.data['sessionName'+deviceName], this.state.data['sessionChunks'+deviceName]);
         if (this.state.data['sessionChunks'+deviceName] === 0) {
             fs.appendFile('/data/' + this.state.data['sessionName'+deviceName], data[0] + data[1], (e) => {
@@ -430,11 +432,11 @@ export class DataManager {
 
     }
 
-    autoSaveHEGChunk = (startidx = 0, to = 'end', deviceName = "heg", onsaved=this.listFiles) => {
+    autoSaveHEGChunk = (startidx = 0, to = 'end', deviceName = "heg", onsaved=this.listFiles, deviceAtlas) => {
         if (this.state.data['sessionName'+deviceName] === '') { this.state.data['sessionName'+deviceName] = this.toISOLocal(new Date()) + "heg_" + deviceName; }
         let from = startidx;
         if (this.state.data['sessionChunks'+deviceName] > 0) { from = this.state.data['saveCounter'+deviceName]; }
-        let data = this.session.atlas.readyHEGDataForWriting(from, to);
+        let data = deviceAtlas.readyHEGDataForWriting(from, to);
         console.log("Saving chunk to /data/" + this.state.data['sessionName'+deviceName], this.state.data['sessionChunks'+deviceName]);
         if (this.state.data['sessionChunks'+deviceName] === 0) {
             fs.appendFile('/data/' + this.state.data['sessionName'+deviceName], data[0] + data[1], (e) => {
