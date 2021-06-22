@@ -1398,6 +1398,7 @@ export class DataAtlas {
 		}
 	}
 
+	//Threadsafe way to call eegcoherence and stuff
 	runAnalyzerFunc = (run) => {
 		this.analyzerOpts.find((opt,j) => {
 			if(opt === run) {
