@@ -234,16 +234,9 @@ export class uPlotApplet {
           if (sel.options[i].value) opts.push(sel.options[i].value);
         }
         if(opts.indexOf("HEG") < 0) {
-          if(!atlas.settings.eeg) {
-            sel.innerHTML = `
+          sel.innerHTML += `
             <option value="HEG">HEG</option>
           `;
-          }
-          else {
-            sel.innerHTML += `
-              <option value="HEG">HEG</option>
-            `;
-          }
           sel.value="HEG";
           sel.onchange();
         }
