@@ -153,15 +153,19 @@ export class DataAtlas {
 		this.analyzerFuncs = [];
 		this.workerPostTime = 0;
 		this.workerWaiting = false;
-		this.workerIdx = 0;
+		this.workerId = 0;
 
 		this.addDefaultAnalyzerFuncs();
 
 		if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
-		this.workerIdx = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
+		this.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
 		window.workers.workerResponses.push(this.workeronmessage);
 		//this.analyzer();
     }
+
+	deinit = () => {
+
+	}
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){
         let bands = {scp:[],delta:[],theta:[],alpha1:[],alpha2:[],beta:[],lowgamma:[],highgamma:[]} 
@@ -1355,7 +1359,7 @@ export class DataAtlas {
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
 						if (this.settings.analysis.eegfft){
-							window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
+							window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
 							this.workerWaiting = true;
 						}
                     }
@@ -1368,8 +1372,8 @@ export class DataAtlas {
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
 						if (this.settings.analysis.eegcoherence){
-							window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerIdx);
-							//postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerIdx);
+							window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
+							//window.workers.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerId);
 							this.workerWaiting = true;
 						}
                     }

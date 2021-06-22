@@ -42,8 +42,8 @@ export class WorkerManager {
                         foo(msg);
                     });
                 };
-
-                this.workers.push(eegWorkers[i]);
+                let id = "worker_"+Math.floor(Math.random()*10000000000);
+                this.workers.push({worker:eegWorkers[i],id:id});
             }
             console.log("worker threads: ", this.workers.length)
         }
@@ -55,29 +55,28 @@ export class WorkerManager {
     addWorker = (workerurl='./_dist_/libraries/js/src/utils/eeg.worker.js') => {
         console.log('add worker')
         try {
-            this.workers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
-            {
-            name:'eegworker_'+this.workers.length, 
-            type: 'module',
-            }));
-            this.workers[i].onmessage = (e) => {
+            let id = "worker_"+Math.floor(Math.random()*10000000000);
+            let newWorker = new Worker(workerurl,//new URL(workerurl, import.meta.url),
+            {name:'eegworker_'+this.workers.length, type: 'module',});
+            this.workers.push({worker:newWorker, id:id});
+            newWorker.onmessage = (e) => {
                 var msg = e.data;
                 //console.log(msg)
                 //window.receivedMsg(msg);
                 this.workerResponses.forEach((foo,i) => {
-                foo(msg);
+                    foo(msg);
                 })
             };
             console.log("worker threads: ", this.workers.length)
-            return this.workers.length-1; //index
+            return id; //worker id
         } catch (err) {
             console.log(err);
         }
     }
 
-    postToWorker = (input,workeridx = null) => {
-        if(workeridx === null) {
-            this.workers[this.workerThreadrot].postMessage(input);
+    postToWorker = (input, id = null) => {
+        if(id === null) {
+            this.workers[this.workerThreadrot].worker.postMessage(input);
             if(this.workerThreads > 1){
                 this.workerThreadrot++;
                 if(this.workerThreadrot >= this.workerThreads){
@@ -86,7 +85,11 @@ export class WorkerManager {
             }
         }
         else{
-            this.workers[workeridx].postMessage(input);
+            this.workers.find((o)=>{
+                if(o.id === id) {
+                    o.worker.postMessage(input); 
+                    return true;}
+            })
         }
     }
 }
