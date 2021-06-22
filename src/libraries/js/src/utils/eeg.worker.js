@@ -12,7 +12,7 @@ addEventListener('message', e => {
   let output = "function not defined";
 
   let callbacks = [
-    {case:'addFunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
+    {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
 
       //Get the text inside of a function (regular or arrow);
       getFunctionBody = (methodString) => {
