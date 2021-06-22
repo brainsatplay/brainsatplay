@@ -41,7 +41,7 @@ class Studio{
 
         let setupHTML = async () => {
            this.props.container = document.getElementById('brainsatplay-studio')
-           this.props.projects = await this._insertBrowser()
+           this.props.projects = await this._createBrowser()
         }
 
         return {HTMLtemplate, setupHTML}
@@ -70,10 +70,10 @@ class Studio{
         this.props.app.init()
     }
 
-    async _insertBrowser(){
-        let projectMask = document.createElement('div')
-        projectMask.classList.add(`projects`)
-        projectMask.style = `
+    async _createBrowser(){
+        this.props.mask = document.createElement('div')
+        this.props.mask.classList.add(`projects`)
+        this.props.mask.style = `
             position: absolute;
             top: 0;
             left: 0;
@@ -86,6 +86,13 @@ class Studio{
             z-index: 10;
             background: black;
         `
+        
+        this._insertBrowserContent(this.props.mask)
+
+        return this.props.mask
+    }
+
+    _insertBrowserContent = async (projectMask) => {
         let container = document.createElement('div')
         container.style.width = '80%'
         projectMask.insertAdjacentElement('beforeend', container)
@@ -143,7 +150,7 @@ class Studio{
 
                 // Create Project List
                 let projects = document.createElement('div')
-                projects.id = `${this.props.id}-projectlist`
+                projects.id = `${this.props.id}-projectlist-${k}`
                 projects.style = `display: flex; flex-wrap: wrap;`
                 projects.class="brainsatplay-project-gallery"
                 container.insertAdjacentElement(`beforeend`, projects)
@@ -195,9 +202,6 @@ class Studio{
                 })
             })
         })
-
-
-        return projectMask
     }
 }
 

@@ -10,10 +10,10 @@ export class Buzz{
         this.params = params
 
         this.paramOptions = {
-            motor1: {default: 0, min:0, max: 255, step: 1.0},
-            motor2: {default: 0, min:0, max: 255, step: 1.0},
-            motor3: {default: 0, min:0, max: 255, step: 1.0},
-            motor4: {default: 0, min:0, max: 255, step: 1.0},
+            motor1: {default: 255, min:0, max: 255, step: 1.0},
+            motor2: {default: 255, min:0, max: 255, step: 1.0},
+            motor3: {default: 255, min:0, max: 255, step: 1.0},
+            motor4: {default: 255, min:0, max: 255, step: 1.0},
             led1color: {default: `#00ff00`},
             led2color: {default: `#00ff00`},
             led3color: {default: `#00ff00`},
