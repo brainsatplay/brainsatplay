@@ -9,6 +9,20 @@ export class Buzz{
         this.session = session
         this.params = params
 
+        this.paramOptions = {
+            motor1: {default: 0, min:0, max: 255, step: 1.0},
+            motor2: {default: 0, min:0, max: 255, step: 1.0},
+            motor3: {default: 0, min:0, max: 255, step: 1.0},
+            motor4: {default: 0, min:0, max: 255, step: 1.0},
+            led1color: {default: `#00ff00`},
+            led2color: {default: `#00ff00`},
+            led3color: {default: `#00ff00`},
+            led1intensity: {default: 0, min:0, max: 50, step: 1.0},
+            led2intensity: {default: 0, min:0, max: 50, step: 1.0},
+            led3intensity: {default: 0, min:0, max: 50, step: 1.0},
+            position: {default: 0, min: 0, max: 1, step: 0.01}
+        }
+
         this.props = {
             state: new StateManager(),
             deviceSubscriptions: {},
@@ -23,7 +37,9 @@ export class Buzz{
             default: {},
             motors: {},
             leds: {},
-            punch: {},
+            audioToMotors: {},
+            mapOnBand: {},
+            fillLEDs: {},
             status: {}
         }
 
@@ -66,35 +82,64 @@ export class Buzz{
         return userData
     }
 
-    punch = (userData) => {
-        let punchMe = false
-        // Check if Any Users Requested to Punch
-        userData.forEach(u => {
-            if (u.data == true && u.meta.user === this.session.info.auth.username){
-                punchMe = true
+    // Expects True/False
+    motors = (userData) => { 
+        if (this.props.device){   
+            let run = false
+            // Check User Requests
+            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.username) run = true})
+            if (run){ // Run if you
+                let motorCommand = [this.params.motor1,this.params.motor2,this.params.motor3,this.params.motor4]
+                this.props.device.vibrateMotors([motorCommand,[0,0,0,0]])
             }
-        })
-        // If Yes, Punch Me 
-        if (punchMe){
-            let motorCommand = [255,255,255,255]
-            let motorsOff = [0,0,0,0]
-            if (this.props.device) this.props.device.vibrateMotors([motorCommand,motorsOff])
         }
     }
 
-    motors = (userData) => {    
-        if (this.props.device){
-            // Vibrate Wrist Based on Frequencies (Single User)
-            let motorCommand = this.props.device.mapFrequencies(userData[0].data)
-            if (this.props.device) this.props.device.vibrateMotors([motorCommand])
-        }
-
-        return userData
-    }
-
+    // Expects True/False
     leds = (userData) => {
-
         if (this.props.device){
+
+            let run = false
+            // Check User Requests
+            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.username) run = true})
+            if (run){ // Run if you
+
+            let c1 = this._hexToRgb(this.params.led1color)
+            let c2 = this._hexToRgb(this.params.led2color)
+            let c3 = this._hexToRgb(this.params.led3color)
+            
+            let ledColors = [c1,c2,c3]
+            let ledIntensities = [this.params.led1intensity,led2intensity,led3intensity]
+            this.props.device.setLEDs(ledColors, ledIntensities)
+            }
+        }
+    }
+
+    // Expects an FFT
+    audioToMotors = (userData) => {
+        if (this.props.device)this.props.device.vibrateMotors([this.props.device.mapFrequencies(userData[0].data)])
+    }
+
+    // Expects a value between 0-1
+    mapOnBand = (userData) => {
+        if (this.props.device){
+            let u = userData[0]
+            if (u.data != false){
+                let position = (userData[0].data == true) ? this.params.position : userData[0].data
+                this.props.device.vibrateMotors([this.props.device.getIllusionActivations(position)])
+            } else {
+                this.props.device.vibrateMotors([0,0,0,0])
+            }
+        }
+    }
+
+    fillLEDs = () => {
+        if (this.props.device){
+
+            let c1 = this._hexToRgb(this.params.led1color)
+            let c2 = this._hexToRgb(this.params.led2color)
+            let c3 = this._hexToRgb(this.params.led3color)
+            
             // Fills the Lights (Multi User)
             let flattenedData = userData.map(u=> u.data)
             let mean = this.session.atlas.mean(flattenedData)
@@ -103,14 +148,11 @@ export class Buzz{
             let i2 = (i1 === 1 ? Math.min((mean-.33)/.33,1) : 0)
             let i3 = (i2 === 1 ? Math.min((mean-.66)/.33,1) : 0)
 
-            let ledColors = [[0,255,0],[0,255,0],[0,255,0]]
+            let ledColors = [c1,c2,c3]
             let ledIntensities = [i1,i2,i3]
             this.props.device.setLEDs(ledColors, ledIntensities)
         }
-
-        return userData
     }
-
     
     _subscribeToDevices(k, nameArray=[]) {
         if (k.includes('device')){
@@ -120,5 +162,10 @@ export class Buzz{
         }
         }
      }
+
+    _hexToRgb = (hex) => {
+        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [parseInt(result[1], 16),parseInt(result[2], 16),parseInt(result[3], 16)] : [0,0,0];
+    }
 
 }
