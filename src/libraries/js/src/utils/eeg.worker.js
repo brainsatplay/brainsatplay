@@ -107,7 +107,7 @@ addEventListener('message', e => {
 
   callbacks.find((o,i)=>{
     if(o.case === e.data.foo) {
-      output = e.data.callback(e.data.input);
+      output = o.callback(e.data.input);
       return true;
     }
   });

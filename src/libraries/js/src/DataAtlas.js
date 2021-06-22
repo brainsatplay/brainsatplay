@@ -1359,7 +1359,7 @@ export class DataAtlas {
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
 						if (this.settings.analysis.eegfft){
-							window.workers.postToWorker({foo:'multidftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
+							window.workers.postToWorker({foo:'multifftbandpass', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
 							this.workerWaiting = true;
 						}
                     }
