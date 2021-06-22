@@ -51,7 +51,9 @@ class Studio{
         return input
     }
 
-    deinit = () => {}
+    deinit = () => {
+        this.props.app.deinit()
+    }
 
     _createApp(settings){
         settings.editor = {
