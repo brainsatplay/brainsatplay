@@ -301,7 +301,6 @@ export class DataManager {
 
                     if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
                         this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "eeg_" + deviceName+deviceIdx;
-                        console.log(this.state.data['sessionName'+deviceName+deviceIdx],'sessionName'+deviceName+deviceIdx)
                         fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
                             if (e) throw e;
                             this.listFiles();
@@ -309,7 +308,6 @@ export class DataManager {
                     } 
                     console.log(deviceName)
                     this.session.subscribe(deviceIdx, thisDevice.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
-                        console.log(row.count, this.state.data['saveCounter'+deviceName+deviceIdx]);
                         if (this.state.data.autosaving) {
                             if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
                             if (row.count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
