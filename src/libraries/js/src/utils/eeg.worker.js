@@ -1,10 +1,8 @@
 import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 
-
-
-
 const gpu = new gpuUtils();
+
 addEventListener('message', e => {
   // define gpu instance
   //console.log("worker executing...")
