@@ -310,7 +310,7 @@ export class Buzz {
     * @param {float} maxIntensity Between 0-255
      */
     
-    getMotorIntensity(linearIntensity, minIntensity, maxIntensity){
+    getMotorIntensity(linearIntensity, minIntensity=this.minIntensity, maxIntensity=this.maxIntensity){
         if (linearIntensity <= 0) return minIntensity
         if (linearIntensity >= 1) return maxIntensity
         return Math.expm1(linearIntensity) / (Math.E - 1) * (maxIntensity - minIntensity) + minIntensity;

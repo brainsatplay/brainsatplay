@@ -24,7 +24,6 @@ export const settings = {
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
         {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
-        // {id: 'enter', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Enter'}},
       ],
       edges: [
 
@@ -34,16 +33,16 @@ export const settings = {
           target: 'buzz:leds'
         },
         
-        // Punch your Wrist with Spacebar
+        // Buzz with Spacebar
         {
           source: 'spacebar', 
-          target: 'buzz:punch'
+          target: 'buzz:motors'
         },
 
-        // Or Punch your Wrist with the Button
+        // Or Buzz with the Button
         {
           source: 'ui:button', 
-          target: 'buzz:punch'
+          target: 'buzz:motors'
         },
 
         // Show Device State on the UI
@@ -51,20 +50,6 @@ export const settings = {
           source: 'buzz:status', 
           target: 'ui'
         },
-
-        // BRAIN STUFF
-        // {
-        //   source: 'signal', 
-        //   target: 'neurofeedback'
-        // },
-        // {
-        //   source: 'neurofeedback', 
-        //   target: 'buzz:leds'
-        // },
-        // {
-        //   source: 'signal:fft', 
-        //   target: 'buzz:motors'
-        // },
       ]
     },
 }

@@ -6,9 +6,16 @@ export class Plugin{
         this.session = session
         this.params = params
 
+        this.paramOptions = {
+            number: {default: 10, min: 0, max: 100, step: 0.01}
+        }
+
         this.ports = {
             default: {}
         }
+
+        this.props = {}
+
     }
 
     init = () => {}
@@ -16,6 +23,6 @@ export class Plugin{
     deinit = () => {}
 
     default = (userData) => {
-        console.log(userData)
+        console.log(userData, this.params.number)
     }
 }

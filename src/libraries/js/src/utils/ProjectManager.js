@@ -69,6 +69,43 @@ app.init()`)
         });
     }
 
+
+    loadFromFile(){
+        return new Promise(async (resolve) => {
+            let fileArray = await new Promise(resolve => {
+                let input = document.createElement('input')
+                input.type = 'file'
+                input.accept=".zip"
+                input.click()
+
+                input.onchange = (e) => {
+                    let fileList = input.files;
+                    for (let file of fileList){
+                        this.helper.loadAsync(file)
+                        .then(async (zip) => {
+                            let fileArray = []
+                            let i = 0
+                            for (let filename in zip.files){
+                                let split = filename.split('app/')
+                                if (split.length === 2 && split[1] != ''){
+                                    zip.file(filename).async("string").then(text => {
+                                        fileArray.push({text, filename: filename.split('app/')[1]})
+                                        i++
+                                        if (i == Object.keys(zip.files).length) resolve(fileArray)
+                                    })
+                                } else {
+                                    i++
+                                }
+                            }
+                        })
+                    }
+                }
+            })
+            let settings = await this.load(fileArray)
+            resolve(settings)
+        })
+    }
+
     appToFile(app){
 
         let info = JSON.parse(JSON.stringifyFast(app.info))
@@ -90,14 +127,20 @@ app.init()`)
         })
 
         info.graph.nodes.forEach((n,i) => {
-            delete n['activePorts']
             delete n['instance']
             delete n['ui']
             delete n['fragment']
             delete n['controls']
+            delete n['analysis']
             n.class = `${classNames[i]}`
         })
-        
+
+        for (let key in info.graph){
+            if (key != 'nodes' && key != 'edges'){
+                delete info.graph[key]
+            }
+        }
+
         info = JSON.stringifyFast(info)
         
         // Replace Stringified Class Names with Actual References (provided by imports)
@@ -142,23 +185,35 @@ app.init()`)
         }))
     }
 
-    async load(name){
+    async getFilesFromDB(name){
         return new Promise(async (resolve, reject) => {
+            let projects = await this.database.readFiles(`/projects/`)
+            let files = projects.filter(s => s.includes(name))
+            let fileArray = []
+            files.forEach(async (s,i) => {
+                let file = await this.database.readFile(`/projects/${s}`)
+                let text = file.toString('utf-8')
+                fileArray.push({text, filename: s})
+                if (i == files.length-1) resolve(fileArray)
+            })
+        })
+    }
+
+    async load(files){
+        return new Promise(async (resolve, reject) => {
+            if (files.length > 0){
             let info = await new Promise(async resolve => {
-                let projects = await this.database.readFiles(`/projects/`)
-                let files = projects.filter(s => s.includes(name))
                 let info = {
                     settings: null,
                     classes: []
                 }
-                files.forEach(async (s,i) => {
-                    let file = await this.database.readFile(`/projects/${s}`)
-                    let text = file.toString('utf-8')
-                    if (s.includes('settings.js')) {
-                        info.settings = text
+
+                files.forEach(async (o,i) => {
+                    if (o.filename.includes('settings.js')) {
+                        info.settings = o.text
                     }
                     else {
-                        info.classes.push(text)
+                        info.classes.push(o.text)
                     }
                     if (i == files.length-1) resolve(info)
                 })
@@ -175,7 +230,7 @@ app.init()`)
             var re = /import\s+{([^{}]+)}[^\n]+/g;
             let m;
             do {
-                m = re.exec(info.settings) ?? re.exec(info.settings)
+                m = re.exec(info.settings)
                 if (m) {
                     let id = String(Math.floor(Math.random()*1000000))
                     classMap[id] = {
@@ -220,6 +275,7 @@ app.init()`)
                 })
                 resolve(settings)
             } catch(e) {console.log(e); reject()}
+        } else reject('file array is empty')
         })
     }
 }
