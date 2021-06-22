@@ -324,7 +324,7 @@ export class uPlotApplet {
 
     updateLoop = () => {
       if(this.looping === true) {
-        this.onUpdate();
+        if(this.session.atlas.settings.deviceConnected) this.onUpdate();
         setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop); },16);
       }
     }
