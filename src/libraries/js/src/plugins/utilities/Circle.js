@@ -31,7 +31,7 @@ export class Circle{
             radius: {},
             dx: {},
             dy: {},
-            color: {}
+            color: {},
         }
 
     }
@@ -45,7 +45,7 @@ export class Circle{
     default = () => {
         return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]
     }
-
+    
     radius = (userData) => {
         this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
         this.session.graph.runSafe(this,'default',[{data:true}])
