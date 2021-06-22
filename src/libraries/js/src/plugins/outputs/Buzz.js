@@ -10,17 +10,17 @@ export class Buzz{
         this.params = params
 
         this.paramOptions = {
-            motor1: {default: 0, min:0, max: 255, step: 1.0},
-            motor2: {default: 0, min:0, max: 255, step: 1.0},
-            motor3: {default: 0, min:0, max: 255, step: 1.0},
-            motor4: {default: 0, min:0, max: 255, step: 1.0},
+            motor1: {default: 255, min:0, max: 255, step: 1.0},
+            motor2: {default: 255, min:0, max: 255, step: 1.0},
+            motor3: {default: 255, min:0, max: 255, step: 1.0},
+            motor4: {default: 255, min:0, max: 255, step: 1.0},
             led1color: {default: `#00ff00`},
             led2color: {default: `#00ff00`},
             led3color: {default: `#00ff00`},
-            led1intensity: {default: 0, min:0, max: 50, step: 1.0},
-            led2intensity: {default: 0, min:0, max: 50, step: 1.0},
-            led3intensity: {default: 0, min:0, max: 50, step: 1.0},
-            position: {default: 0, min: 0, max: 1, step: 0.01}
+            led1intensity: {default: 50, min:0, max: 50, step: 1.0},
+            led2intensity: {default: 50, min:0, max: 50, step: 1.0},
+            led3intensity: {default: 50, min:0, max: 50, step: 1.0},
+            position: {default: 0.5, min: 0, max: 1, step: 0.01}
         }
 
         this.props = {
@@ -109,7 +109,12 @@ export class Buzz{
             let c3 = this._hexToRgb(this.params.led3color)
             
             let ledColors = [c1,c2,c3]
+
+            console.log(ledColors)
             let ledIntensities = [this.params.led1intensity,led2intensity,led3intensity]
+
+            console.log(ledColors, ledIntensities)
+
             this.props.device.setLEDs(ledColors, ledIntensities)
             }
         }
