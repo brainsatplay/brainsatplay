@@ -21,36 +21,40 @@ export class Application{
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            id: null, //Keep random ID
             sessionId: null
         };
     }
 
     init() {
+
+        // Grab Style of Previous Top-Level Wrapper
+        let defaultStyle = ``
+        if (this.props.id)defaultStyle = document.getElementById(this.props.id).style.cssText 
+        else defaultStyle = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
+
+        // Get New ID
+        this.props.id = String(Math.floor(Math.random()*1000000))
+
+        // Register App in Session
         this.graph = this.session.registerApp(this.props.id, this.info)
 
         let setupHTML = () => {
-            this.graph.nodes.forEach(n => {
-                this.insertInterface(n)
-            })
+            this.graph.nodes.forEach(n => {this.insertInterface(n)})
+            this.graph.setupCallbacks.forEach(f => f())
             this.session.connectDevice()
         }
 
-        if (!this.AppletHTML){
-            this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-                `<div id="${this.props.id}" style="height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;"></div>`,       //Define the html template string or function with properties
-                this.parentNode,    //Define where to append to (use the parentNode)
-                this.props,         //Reference to the HTML render properties (optional)
-                setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-                undefined,          //Can have an onchange function fire when properties change
-                "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
-                this._deinit,
-                this.responsive
-            )
-        } else {
-            this.AppletHTML.setupHTML = setupHTML
-            this.AppletHTML.setupHTML()
-        }
+        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+            `<div id="${this.props.id}" style="${defaultStyle}"></div>`,       //Define the html template string or function with properties
+            this.parentNode,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
+            this._deinit,
+            this.responsive
+        )
 
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
     }
