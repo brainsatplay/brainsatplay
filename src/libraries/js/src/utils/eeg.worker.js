@@ -1,6 +1,9 @@
 import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 
+
+
+
 const gpu = new gpuUtils();
 addEventListener('message', e => {
   // define gpu instance
@@ -9,9 +12,24 @@ addEventListener('message', e => {
   let output = "function not defined";
 
   let callbacks = [
-    {case:'addFunc',callback:(args)=>{
-      let newCallback = {case:args[0],callback:0};
+    {case:'addFunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
+
+      //Get the text inside of a function (regular or arrow);
+      getFunctionBody = (methodString) => {
+        return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+      }
+
+      getFunctionHead = (methodString) => {
+        return methodString.slice(0,methodString.indexOf('{') + 1);
+      }
+
+      let newFuncHead = getFunctionHead(args[1]);
+      let newFuncBody = getFunctionBody(args[1]);
+      let newFunc = eval(newFuncHead+newFuncBody+"}");
+
+      let newCallback = {case:args[0],callback:newFunc};
       callbacks.push(newCallback);
+
     }},
     {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
     {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},
