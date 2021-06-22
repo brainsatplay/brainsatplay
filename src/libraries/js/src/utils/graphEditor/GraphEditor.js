@@ -248,13 +248,6 @@ export class GraphEditor{
                     this.addEdgeReactivity(e)
                 })
 
-                // Move App Into Preview
-                if (this.isStudio) {
-                    this.preview.appendChild(this.app.AppletHTML.node)
-                    this.responsive()
-                }
-
-
                 onsuccess(this)
             }
     
@@ -412,10 +405,24 @@ export class GraphEditor{
                 this.element.node.style.opacity = 1
                 this.element.node.style.pointerEvents = 'auto'
                 this.shown = true
+
+                // Move App Into Preview
+                // if (this.isStudio) {
+                    this.appNode = this.app.AppletHTML.node
+                    this.preview.appendChild(this.appNode)
+                    // setTimeout(() => {this.responsive()}, 1000)
+                    // }
+                    this.responsive()
+                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
             } else {
                 this.element.node.style.opacity = 0
                 this.element.node.style.pointerEvents = 'none'
                 this.shown = false
+
+                this.app.AppletHTML.parentNode.appendChild(this.appNode)
+                // setTimeout(() => {this.responsive()}, 500)
+                this.responsive()
+                this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
             }
         }
     }
