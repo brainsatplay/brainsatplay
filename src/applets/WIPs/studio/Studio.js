@@ -97,7 +97,7 @@ class Studio{
                 projects: []
             }, 
             templates: {
-                header: 'Clone a Template',
+                header: 'Create a New Project',
                 projects: []
             }
         }
@@ -105,7 +105,8 @@ class Studio{
         // Get Project Settings Files
         let projectSet = await this.session.projects.list()
         projectSet = Array.from(projectSet).map(async str => {
-            let settings =  await this.session.projects.load(str)
+            let files = await this.session.projects.getFilesFromDB(str)
+            let settings =  await this.session.projects.load(files)
             return {destination: 'personal', settings}
         })
 
@@ -125,6 +126,9 @@ class Studio{
                     if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
                 }
             })
+
+            // Add Load from File Button
+            galleries.templates.projects.unshift({name: 'Load from File'})
 
             Object.keys(galleries).forEach(k => {
 
@@ -154,7 +158,7 @@ class Studio{
                     button.style.maxWidth = 'auto'
                     button.classList.add('brainsatplay-default-button')
 
-                    button.onclick = () => {
+                    button.onclick = async () => {
 
                         // Rename Template Projects
                         if (k === 'templates'){
@@ -173,11 +177,16 @@ class Studio{
                         }
 
                         // Create Application
-                        this._createApp(settings)
+                        if (settings.name === 'Load from File') {
+                            console.log('loading from file')
+                            settings = await this.session.projects.loadFromFile()
+                            console.log(settings)
+                            this._createApp(settings)
+                        } else this._createApp(settings)
                     }
                     div.insertAdjacentElement('beforeend', button)
-                    if (settings.name === 'Blank Project' && k === 'templates'){
-                        div.style.flex = '100%'
+                    if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
+                        div.style.flex = '43%'
                         projects.insertAdjacentElement('afterbegin',div)
                     } else {projects.insertAdjacentElement('beforeend',div)}
 
