@@ -58,6 +58,7 @@ export class DataAtlas {
 			deviceConnected: false,
 			// analyzing: false,
 			analysis: analysisDict, // {eegfft: true}
+			runAnalysisLoop:true,
 			heg:false,
 			eeg:false,
 			coherence:false,
@@ -164,7 +165,8 @@ export class DataAtlas {
     }
 
 	deinit = () => {
-
+		this.settings.runAnalysisLoop = false;
+		window.workers.terminate(this.workerId);
 	}
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){
@@ -1477,7 +1479,7 @@ export class DataAtlas {
 
 	analyzer = () => { //Make this stop when streaming stops
 		//eegfft,eegcoherence,bcijs_bandpowers,bcijs_pca,heg_pulse
-		// if(this.settings.analyzing === true) {
+		if(this.settings.runAnalysisLoop === true) {
 
 			// Run Required Analysis Functions
 			let keys = Object.keys(this.settings.analysis)
@@ -1505,7 +1507,7 @@ export class DataAtlas {
 			} else {
 				setTimeout(()=>{requestAnimationFrame(this.analyzer)},50);
 			}
-		// }	
+		}	
 	}
 
 

@@ -379,8 +379,8 @@ export class GraphManager{
 
         let applet =  this.applets[appId]
         if (applet){
-            applet.sessionId = sessionId ?? appId
-
+            if (sessionId != null) applet.sessionId = sessionId
+            else applet.sessionId = appId
             // Listen for Updates on Multiplayer Edges
             applet.edges.forEach((e,i) => {
                 this._subscribeToBrainstorm(e, appId)
@@ -401,18 +401,20 @@ export class GraphManager{
         })
         
         if (existingEdge == null){ // Do not duplicate edges
-            this.applets[appId].edges.push(e)
 
             let splitSource = e.source.split(':')
             let sourceName = splitSource[0]
-            let sourcePort = splitSource[1] ?? 'default'
+            let sourcePort = splitSource[1]
+            if (sourcePort == null) sourcePort = 'default'
+
             let sourceInfo = applet.nodes.find(n => {
                 if (n.id == sourceName) return true
             })
             let source = sourceInfo.instance
             let splitTarget = e.target.split(':')
             let targetName = splitTarget[0]
-            let targetPort = splitTarget[1] ?? 'default'
+            let targetPort = splitTarget[1]
+            if (targetPort == null) targetPort = 'default'
             let targetInfo = applet.nodes.find(n => {
                 if (n.id == targetName) return true
             })
@@ -490,6 +492,10 @@ export class GraphManager{
             if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
             if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
+            // Push Edge into Registry
+            this.applets[appId].edges.push(e)
+
+            // Update Applet
             this.updateApp(appId)
 
             // Send Last State to New Edge Target
@@ -598,14 +604,17 @@ export class GraphManager{
         // Remove Edge Analysis Flags
         let splitSource = structure.source.split(':')
         let sourceName = splitSource[0]
-        let sourcePort = splitSource[1] ?? 'default'
+        let sourcePort = splitSource[1]
+        if (sourcePort == null) sourcePort = 'default'
         let sourceInfo = applet.nodes.find(n => {
             if (n.id == sourceName) return true
         })
         let source = sourceInfo.instance
         let splitTarget = structure.target.split(':')
         let targetName = splitTarget[0]
-        let targetPort = splitTarget[1] ?? 'default'
+        let targetPort = splitTarget[1]
+        if (targetPort == null) targetPort = 'default'
+
         let targetInfo = applet.nodes.find(n => {
             if (n.id == targetName) return true
         })
@@ -634,14 +643,18 @@ export class GraphManager{
         let applet = this.applets[appId]
         let splitSource = e.source.split(':')
         let sourceName = splitSource[0]
-        let sourcePort = splitSource[1] ?? 'default'
+        let sourcePort = splitSource[1]
+        if (sourcePort == null) sourcePort = 'default'
+
         let sourceInfo = applet.nodes.find(n => {
             if (n.id == sourceName) return true
         })
         let source = sourceInfo.instance
         let splitTarget = e.target.split(':')
         let targetName = splitTarget[0]
-        let targetPort = splitTarget[1] ?? 'default'
+        let targetPort = splitTarget[1]
+        if (targetPort == null) targetPort = 'default'
+
         let targetInfo = applet.nodes.find(n => {
             if (n.id == targetName) return true
         })

@@ -92,4 +92,19 @@ export class WorkerManager {
             })
         }
     }
+
+    terminate(id) {
+        let idx;
+        let found = this.workers.find((o,i)=>{
+            if(o.id === id) {
+                idx=i;
+                o.worker.terminate();
+                return true;
+            }
+        });
+        if(found) {
+            this.workers.splice(idx,1);
+            return true;
+        } else return false;
+    }
 }
