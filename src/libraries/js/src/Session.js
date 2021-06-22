@@ -590,26 +590,34 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceType = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
+	subscribe = (deviceTypeNameOrIdx = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null;
-		if (deviceType.toLowerCase().indexOf('eeg') > -1 ){//|| deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
+		if (deviceTypeNameOrIdx.toLowerCase().indexOf('eeg') > -1 ){//|| deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
 			atlasDataProp = 'eeg';
 			if (atlasTag === 'shared') { atlasTag = 'eegshared'; }
 		}
-		else if (deviceType.toLowerCase().indexOf('heg') > -1) {
+		else if (deviceTypeNameOrIdx.toLowerCase().indexOf('heg') > -1) {
 			atlasDataProp = 'heg';
 			if (atlasTag === 'shared') { atlasTag = 'hegshared'; }
 		}
 
 		if (atlasDataProp !== null) {
-			let device = this.deviceStreams.find((o, i) => {
-				if (o.info.deviceType.indexOf(deviceType) > -1 && o.info.useAtlas === true) {
-					let coord = undefined;
-					if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null);
-					else if (atlasTag === null || atlasTag === 'all') { coord = o.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
-					else coord = o.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
+			let found = this.deviceStreams.find((o, i) => {
+				if(deviceTypeNameOrIdx === i) {
+					return true;
+				} else if (deviceTypeNameOrIdx === o.info.deviceName) {
+					return true;
+				} else if (o.info.deviceType.indexOf(deviceTypeNameOrIdx) > -1 && o.info.useAtlas === true) {
+					return true;
+				}
+			});
+			if(found) {
+				let coord = undefined;
+					if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = found.device.atlas.getDeviceDataByTag(atlasTag, null);
+					else if (atlasTag === null || atlasTag === 'all') { coord = found.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
+					else coord = found.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
 					if (coord !== undefined) {
 						if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
 							sub = stateManager.addToState(deviceType + '_' + atlasTag, coord, onData);
@@ -617,9 +625,7 @@ export class Session {
 							sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
 						}
 					}
-					return true;
-				}
-			});
+			}
 		}
 
 		return sub;
