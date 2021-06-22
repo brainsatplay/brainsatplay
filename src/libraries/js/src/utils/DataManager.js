@@ -235,7 +235,7 @@ export class DataManager {
             let p1 = new Promise(resolve => {
             fs.exists('/data', (exists) => {
                 if (exists) {
-                    console.log('exists!')
+                    console.log('/data exists!')
                     resolve()
                 }
                 else {
@@ -249,7 +249,7 @@ export class DataManager {
         let p2 = new Promise(resolve => {
             fs.exists('/projects', (exists) => {
                 if (exists) {
-                    console.log('exists!')
+                    console.log('/projects exists!')
                     oninit();
                 }
                 else {
