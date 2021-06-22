@@ -283,94 +283,106 @@ export class DataManager {
                 let randomId = thisDevice.info.randomId;
                 let mainDeviceType = thisDevice.info.deviceType;
                 
-                let newsession = () => {
-                    if(!this.session.deviceStreams.find((o)=>{
-                        if(o.randomId === randomId);
-                            return true;
-                    })) {
-                        document.getElementById("saveBCISession").removeEventListener('click',newsession);
-                        return false;
+                let exists = false;
+                if(mainDeviceType === 'eeg') {
+                    if(this.deviceSubs.indexOf(mainDeviceType+"_"+thisDevice.atlas.data.eegshared.eegChannelTags[0].ch) > -1) {
+                        exists = true;
                     }
-                    this.newSession(undefined,thisDevice,deviceIdx);
-                }
-                if (mainDeviceType === 'eeg') {
-                    let deviceName = thisDevice.info.deviceName;
-                    this.state.data['sessionName'+deviceName+deviceIdx] = '';
-                    this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
-                    this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
-
-                    if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
-                        this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "eeg_" + deviceName+deviceIdx;
-                        fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                            if (e) throw e;
-                            this.listFiles();
-                        }); //+"_c"+State.data.sessionChunks
-                    } 
-                    console.log(deviceName)
-                    this.session.subscribe(deviceIdx, thisDevice.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
-                        if (this.state.data.autosaving) {
-                            if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
-                            if (row.count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
-                                this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                                this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
-                            }
-                        }
-                    }); this.deviceSubs.push(mainDeviceType+"_"+thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
-                    let save = () => {
-                        if(!this.session.deviceStreams.find((o)=>{
-                            if(o.randomId === randomId);
-                                return true;
-                        })) {
-                            document.getElementById("saveBCISession").removeEventListener('click',save);
-                            return false;
-                        }
-                        //console.log(this.session.deviceStreams)
-                        let row = thisDevice.atlas.getEEGDataByChannel(thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
-                        if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                        this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                        this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
-                    }
-                    document.getElementById("saveBCISession").addEventListener('click',save);
-                    document.getElementById("newBCISession").addEventListener('click',newsession)
-
                 } else if (mainDeviceType === 'heg') {
-                    let hegindex = thisDevice.atlas.data.heg.length-1;
-                    let deviceName = thisDevice.info.deviceName;
-                    this.state.data['sessionName'+deviceName+deviceIdx];
-                    this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
-                    this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
-                    
-                    if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
-                        this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "heg_" + deviceName+deviceIdx;
-                        fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                            if (e) throw e;
-                            this.listFiles();
-                        }); //+"_c"+State.data.sessionChunks
-                        
-                    }   
-                    this.session.subscribe(deviceIdx, hegindex, undefined, (row) => {
-                        if (this.state.data.autosaving) {
-                            //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
-                            if (thisDevice.atlas.data.heg[hegindex].count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
-                                this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                                this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
-                            }
-                        }
-                    }); this.deviceSubs.push(mainDeviceType+"_"+hegindex);
-                    let save = () => {
+                    if(this.deviceSubs.indexOf(mainDeviceType+"_"+hegindex) > -1) {
+                        exists = true;
+                    }
+                }
+                if(!exists){
+                    let newsession = () => {
                         if(!this.session.deviceStreams.find((o)=>{
                             if(o.randomId === randomId);
                                 return true;
                         })) {
-                            document.getElementById("saveBCISession").removeEventListener('click',save);
+                            document.getElementById("saveBCISession").removeEventListener('click',newsession);
                             return false;
                         }
-                        this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
-                        this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
+                        this.newSession(undefined,thisDevice,deviceIdx);
                     }
-                    document.getElementById("saveBCISession").addEventListener('click',save);
+                    if (mainDeviceType === 'eeg') {
+                        let deviceName = thisDevice.info.deviceName;
+                        this.state.data['sessionName'+deviceName+deviceIdx] = '';
+                        this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
+                        this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
 
-                    document.getElementById("newBCISession").addEventListener('click',newsession);
+                        if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
+                            this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "eeg_" + deviceName+deviceIdx;
+                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                                if (e) throw e;
+                                this.listFiles();
+                            }); //+"_c"+State.data.sessionChunks
+                        } 
+                        console.log(deviceName)
+                        this.session.subscribe(deviceIdx, thisDevice.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
+                            if (this.state.data.autosaving) {
+                                if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
+                                if (row.count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
+                                    this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                                    this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
+                                }
+                            }
+                        }); this.deviceSubs.push(mainDeviceType+"_"+thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
+                        let save = () => {
+                            if(!this.session.deviceStreams.find((o)=>{
+                                if(o.randomId === randomId);
+                                    return true;
+                            })) {
+                                document.getElementById("saveBCISession").removeEventListener('click',save);
+                                return false;
+                            }
+                            //console.log(this.session.deviceStreams)
+                            let row = thisDevice.atlas.getEEGDataByChannel(thisDevice.atlas.data.eegshared.eegChannelTags[0].ch);
+                            if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                            this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                            this.state.data['saveCounter'+deviceName+deviceIdx] = row.count;
+                        }
+                        document.getElementById("saveBCISession").addEventListener('click',save);
+                        document.getElementById("newBCISession").addEventListener('click',newsession)
+
+                    } else if (mainDeviceType === 'heg') {
+                        let hegindex = thisDevice.atlas.data.heg.length-1;
+                        let deviceName = thisDevice.info.deviceName;
+                        this.state.data['sessionName'+deviceName+deviceIdx];
+                        this.state.data['saveCounter'+deviceName+deviceIdx] = 0;
+                        this.state.data['sessionChunks'+deviceName+deviceIdx] = 0;
+                        
+                        if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
+                            this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "heg_" + deviceName+deviceIdx;
+                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                                if (e) throw e;
+                                this.listFiles();
+                            }); //+"_c"+State.data.sessionChunks
+                            
+                        }   
+                        this.session.subscribe(deviceIdx, hegindex, undefined, (row) => {
+                            if (this.state.data.autosaving) {
+                                //if(this.state.data.saveCounter > row.count) { this.state.data.saveCounter = this.session.atlas.rolloverLimit - 2000; } //rollover occurred, adjust
+                                if (thisDevice.atlas.data.heg[hegindex].count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
+                                    this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                                    this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
+                                }
+                            }
+                        }); this.deviceSubs.push(mainDeviceType+"_"+hegindex);
+                        let save = () => {
+                            if(!this.session.deviceStreams.find((o)=>{
+                                if(o.randomId === randomId);
+                                    return true;
+                            })) {
+                                document.getElementById("saveBCISession").removeEventListener('click',save);
+                                return false;
+                            }
+                            this.autoSaveHEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx);
+                            this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.atlas.data.heg[hegindex].count;
+                        }
+                        document.getElementById("saveBCISession").addEventListener('click',save);
+
+                        document.getElementById("newBCISession").addEventListener('click',newsession);
+                    }
                 }
             }
         });
