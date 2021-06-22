@@ -682,9 +682,7 @@ export class BCIAppManager {
                     contents = data.toString();
                     this.init(contents);
                     listFiles();
-                    document.getElementById("saveBCISession").onclick = () => {
-                        saveSettings();
-                    }
+                    document.getElementById("saveBCISession").addEventListener('click',saveSettings);
                 }
 
                 this.session.dataManager.setupAutosaving();

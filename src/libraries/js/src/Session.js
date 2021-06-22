@@ -2245,10 +2245,12 @@ class deviceStream {
 			useFilters: useFilters,
 			useAtlas: false,
 			simulating: false,
+			randomId: 'deviceStream_'+Math.floor(Math.random()*1000000000)
 		};
 
 		this.device = null, //Device object, can be instance of our device plugin classes.
-		this.deviceConfigs = deviceList
+		this.atlas = null,
+		this.deviceConfigs = deviceList,
 		this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
@@ -2283,12 +2285,13 @@ class deviceStream {
 
 	connect = async () => {
 		await this.device.connect();
-		this.info.events.init(this.device)
-		return true
+		this.info.events.init(this.device);
+		this.atlas = this.device.atlas;
+		return true;
 	}
 
 	configureRoutes = (parentNode=document.body) => {
-		this.info.events.addControls(parentNode)
+		this.info.events.addControls(parentNode);
     }
 
 	disconnect = () => {
