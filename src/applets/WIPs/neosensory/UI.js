@@ -52,7 +52,6 @@ class UI{
     default = (userData) => {
         let container = document.getElementById(`${this.props.id}`)
         let button = document.getElementById(`${this.props.id}buzz`)
-        button.addEventListener('click', this._activateButtonPort)
 
         // Change Text Based on Status
         let statusDiv = document.getElementById(`${this.props.id}status`)

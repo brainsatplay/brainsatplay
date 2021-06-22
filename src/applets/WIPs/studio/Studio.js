@@ -160,6 +160,7 @@ class Studio{
 
                     button.onclick = async () => {
 
+                        if (this.props.projects.style.pointerEvents != 'none'){
                         // Rename Template Projects
                         if (k === 'templates'){
                             settings = Object.assign({}, settings)
@@ -183,6 +184,7 @@ class Studio{
                             console.log(settings)
                             this._createApp(settings)
                         } else this._createApp(settings)
+                    }
                     }
                     div.insertAdjacentElement('beforeend', button)
                     if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
