@@ -23,7 +23,7 @@ export const settings = {
         {id: 'ui', class: UI, params: {}},
         {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowRight'}},
+        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
       ],
       edges: [
 

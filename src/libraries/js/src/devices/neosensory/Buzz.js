@@ -252,8 +252,8 @@ export class Buzz {
      * @alias setLEDs
      * @description Control the color and intensity of the device's 3 LEDs. Requires users to [requestAuthorization()]{@link module:neosensory.Buzz.requestAuthorization} and [acceptTerms()]{@link module:neosensory.Buzz.acceptTerms}.
      * @param {array} colors Three nested arrays each containing the rgb values (0-255) for an LED.
-     * @param {array} intensities An array of length 3 containing the LED intensity (0-50).
-     * @example buzz.setLEDS([[255,0,0],[0,255,0],[0,0,255]],[50,50,50])
+     * @param {array} intensities An array of length 3 containing the LED intensity (0-1).
+     * @example buzz.setLEDS([[255,0,0],[0,255,0],[0,0,255]],[1,1,1])
      */
 
     setLEDs = (colors = [], intensities = []) => {
