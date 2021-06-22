@@ -23,7 +23,7 @@ export class Buffer{
     }
 
     init = () => {
-        this.props.buffer = Array.from({length: this.params.size}, e => NaN)
+        this.props.buffer = Array.from({length: this.params.size}, e => 0)
     }
 
     deinit = () => {

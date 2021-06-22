@@ -12,6 +12,7 @@ export class Line{
             // x: {default: 0, min: 0, max:1000, step: 0.01},
             y: {default: 0, min: 0, max:1000, step: 0.01},
             weight: {default: 1, min: 0, max:10, step: 1.0},
+            scale: {default: 1, min: 0, max:1000, step: 0.1},
         }
 
         this.props = {
@@ -49,10 +50,9 @@ export class Line{
         // var scale = 20;
         ctx.beginPath(); // Draw a new path
         let dx = width/(this.props.data.length - 1)
-        this.props.data.forEach((y,i) => ctx.lineTo(dx*i,-y + Number.parseFloat(this.params.y)))
+        this.props.data.forEach((y,i) => ctx.lineTo(dx*i,-Number.parseFloat(this.params.scale)*y + Number.parseFloat(this.params.y)))
         ctx.strokeStyle = this.params.color; // Pick a color
         ctx.lineWidth = Number.parseFloat(this.params.weight)
         ctx.stroke(); // Draw
-        ctx.closePath();
     }
 }

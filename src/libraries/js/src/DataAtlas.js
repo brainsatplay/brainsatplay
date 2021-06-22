@@ -1366,6 +1366,7 @@ export class DataAtlas {
                 }
 			}
 		}
+		
 		let coherenceFunc = () => {
 			if(this.workerWaiting === false){
 				let buf = this.bufferEEGSignals(1);
