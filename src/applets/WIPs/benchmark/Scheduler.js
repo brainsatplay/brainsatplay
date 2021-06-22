@@ -23,6 +23,9 @@ export class Scheduler{
                 }
             }, 
             state: {}, 
+            done: {},
+            update: {},
+            reset: {},
         }
 
         this.props = {

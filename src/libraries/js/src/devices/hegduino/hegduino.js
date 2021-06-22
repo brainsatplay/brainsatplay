@@ -764,7 +764,7 @@ export class webSerial {
         this.onConnectedCallback();
         this.connected = true;
         this.subscribed = true;
-        this.subscribe(port);
+        await this.subscribe(port);
     }
 
     onReceiveAsync(value) {
@@ -837,12 +837,13 @@ export class webSerial {
                         }
                     }
                      else {
-                        this.closePort();	
+                        await this.closePort();	
                     }
                 }
 			}
 			streamData();
-		}
+            return true;
+		} else return false;
 	}
 
 	async closePort(port=this.port) {
@@ -850,14 +851,16 @@ export class webSerial {
 		if(this.port){
 			this.subscribed = false;
 			setTimeout(async () => {
-				if (this.reader) {
-                    await this.reader.releaseLock();
-					this.reader = null;
-				}
-				await port.close();
-				//this.port = null;
-				this.connected = false;
-				this.onDisconnectedCallback();
+                try{
+                    if (this.reader) {
+                        await this.reader.releaseLock();
+                        this.reader = null;
+                    }
+                    await port.close();
+                    //this.port = null;
+                    this.connected = false;
+                    this.onDisconnectedCallback();
+                } catch (err) {console.error(err);}
 			}, 50);
 		}
 	}
@@ -873,7 +876,7 @@ export class webSerial {
         navigator.serial.addEventListener("disconnect",(e) => {
             this.closePort();
         })
-        this.onPortSelected(this.port);
+        await this.onPortSelected(this.port);
         
     }
 

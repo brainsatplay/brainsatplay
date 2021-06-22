@@ -34,13 +34,13 @@ class Studio{
     init = () => {
         // Simply define the HTML template
         let HTMLtemplate = () => {return `
-            <div id='${this.props.id}' style='height:100%; width:100%;'>
+            <div id='brainsatplay-studio' style='height:100%; width:100%;'>
             </div>`
         }
 
 
         let setupHTML = async () => {
-           this.props.container = document.getElementById(this.props.id)
+           this.props.container = document.getElementById('brainsatplay-studio')
            this.props.projects = await this._insertBrowser()
         }
 
@@ -52,7 +52,7 @@ class Studio{
     }
 
     deinit = () => {
-        if (this.props.app) this.props.app.deinit()
+        this.props.app.deinit()
     }
 
     _createApp(settings){
@@ -72,7 +72,7 @@ class Studio{
 
     async _insertBrowser(){
         let projectMask = document.createElement('div')
-        projectMask.id = `${this.props.id}-projects`
+        projectMask.classList.add(`projects`)
         projectMask.style = `
             position: absolute;
             top: 0;
@@ -119,9 +119,10 @@ class Studio{
 
         Promise.allSettled([...projectSet,...templateSet]).then(set => {
 
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
             set.forEach(o => {
                 if (o.status === 'fulfilled'){
-                    galleries[o.value.destination].projects.push(o.value.settings)
+                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
                 }
             })
 
@@ -152,12 +153,34 @@ class Studio{
                     button.innerHTML = settings.name
                     button.style.maxWidth = 'auto'
                     button.classList.add('brainsatplay-default-button')
+
                     button.onclick = () => {
+
+                        // Rename Template Projects
+                        if (k === 'templates'){
+                            settings = Object.assign({}, settings)
+                            // Rename Blank Project
+                            if (settings.name === 'Blank Project') settings.name = 'My Project'
+                            // Rename Duplicate Projects
+                            // let originalName = settings.name
+                            // let i = 0
+                            // let found = galleries.personal.projects.find(o => o.name === settings.name)
+                            // while (found != null){
+                            //     i++
+                            //     settings.name = `${originalName} ${i}`
+                            //     found = galleries.personal.projects.find(o => o.name === settings.name)
+                            // }
+                        }
+
+                        // Create Application
                         this._createApp(settings)
                     }
                     div.insertAdjacentElement('beforeend', button)
+                    if (settings.name === 'Blank Project' && k === 'templates'){
+                        div.style.flex = '100%'
+                        projects.insertAdjacentElement('afterbegin',div)
+                    } else {projects.insertAdjacentElement('beforeend',div)}
 
-                projects.insertAdjacentElement('beforeend',div)
                 })
             })
         })

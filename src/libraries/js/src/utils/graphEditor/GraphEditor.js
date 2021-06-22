@@ -6,7 +6,7 @@ import  {Plugin} from '../../plugins/Plugin'
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
-    constructor(manager, applet, parentId) {
+    constructor(manager, applet, parentId, onsuccess) {
         this.manager = manager
         this.app = applet
         this.plugins = this.manager.applets[this.app.props.id]
@@ -38,10 +38,13 @@ export class GraphEditor{
             let template = () => {
                 return `
                 <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
-                    <div id="${this.props.id}MainPage">
+                    <div id="${this.props.id}MainPage" class="main">
+                        <div class="brainsatplay-node-editor-preview-wrapper">
+                            <div id="${this.props.id}preview" class="brainsatplay-node-editor-preview"></div>
+                        </div>
                         <div id="${this.props.id}ViewTabs" class="brainsatplay-node-editor-tabs">
                         </div>
-                        <div class="brainsatplay-node-viewer">
+                        <div id="${this.props.id}NodeVieweContainer" class="brainsatplay-node-viewer">
                             <div id="${this.props.id}NodeViewer" class="brainsatplay-node-viewer grid">
                             </div>
                         </div>
@@ -60,6 +63,7 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
+                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit Project</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>0.2. Node Editor</h3>
@@ -79,8 +83,8 @@ export class GraphEditor{
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
-                                </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 `
@@ -88,15 +92,18 @@ export class GraphEditor{
     
             let setup = async () => {
                 this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
+                this.isStudio = document.getElementById('brainsatplay-studio') != null
+
 
                 // Setup Presentation Based On Settings
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
+                
+
                 setTimeout(() => {
                     let toggleClass = '.brainsatplay-default-editor-toggle'
-                    
+                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                     // Search for Toggle
                     if (this.app.AppletHTML.node){
-                        let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                         if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
                         if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
                         if (this.app.info.editor.toggleId) {
@@ -109,6 +116,7 @@ export class GraphEditor{
                 }, 500)
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
+                this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
                 this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
                 document.getElementById(`${this.props.id}edit`).style.display = 'none'
                 document.getElementById(`${this.props.id}delete`).style.display = 'none'
@@ -122,6 +130,21 @@ export class GraphEditor{
                 reload.onclick = () => {
                     applet.reload()
                 }
+
+                let exit = document.getElementById(`${this.props.id}exit`)
+                exit.onclick = () => {
+                    // If Inside Studio, Bring Back UI
+                    if (this.isStudio){
+                        this.app.deinit()
+                        let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                        projectWindow.style.opacity = 1
+                        projectWindow.style.pointerEvents = 'all'
+
+                    } else { // Otherwise just toggle the editor display
+                        this.toggleDisplay()
+                    }
+                }
+
 
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
 
@@ -198,7 +221,7 @@ export class GraphEditor{
                 let i = 0
                 let length = Object.keys(this.plugins.nodes).length
                 this.plugins.nodes.forEach(n => {
-                    let node = this.addNode(n,true, true) 
+                    let node = this.addNode(n,true, true, true) 
         
                     // Default Positioning
                     let iterator = Math.ceil(Math.sqrt(length))
@@ -222,6 +245,8 @@ export class GraphEditor{
                 this.graph.edges.forEach(e => {
                     this.addEdgeReactivity(e)
                 })
+
+                onsuccess(this)
             }
     
             this.element = new DOMFragment(
@@ -271,7 +296,7 @@ export class GraphEditor{
     addGraphTab(){
         this.files['Graph Editor'] = {}
         this.files['Graph Editor'].container = this.viewer
-        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.id)
+        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
             this.app.saveGraph()
@@ -316,10 +341,11 @@ export class GraphEditor{
                         if (target) target.style.display = ''
                         otherTab.classList.add('active')
                         onOpen()
-                        this.responsive()
                     }
                 }
+                this.responsive()
             }
+
             document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
         }
@@ -378,10 +404,29 @@ export class GraphEditor{
                 this.element.node.style.opacity = 1
                 this.element.node.style.pointerEvents = 'auto'
                 this.shown = true
+
+                // Move App Into Preview
+                // if (this.isStudio){
+                    this.appNode = this.app.AppletHTML.node
+                    this.preview.appendChild(this.appNode)
+                    setTimeout(() => {
+
+                    this.responsive()
+                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                },100)
+                // }
             } else {
                 this.element.node.style.opacity = 0
                 this.element.node.style.pointerEvents = 'none'
                 this.shown = false
+
+                // if (this.isStudio){
+                    this.app.AppletHTML.parentNode.appendChild(this.appNode)
+                    setTimeout(() => {
+                        this.responsive()
+                        this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                    },100)
+                // }
             }
         }
     }
@@ -422,16 +467,18 @@ export class GraphEditor{
             let splitSource = e.structure.source.split(':')
             if (splitSource.length < 2 ) splitSource.push('default')
             if(splitSource[1] === source.port){
-                let splitTarget = e.structure.target.split(':')
-                if (splitTarget.length < 2 ) splitTarget.push('default')
-                if (splitTarget[0] === target.label && splitTarget[1] == target.port){
-                    e.node.curve.classList.add('updated')
-                    e.node.curve.setAttribute('data-update', Date.now())
-                    setTimeout(()=>{
-                        if (e.node.curve.getAttribute('data-update') < Date.now() - 450){
-                            e.node.curve.classList.remove('updated')
-                        }
-                    }, 500)
+                if (e.structure.target){
+                    let splitTarget = e.structure.target.split(':')
+                    if (splitTarget.length < 2 ) splitTarget.push('default')
+                    if (splitTarget[0] === target.label && splitTarget[1] == target.port){
+                        e.node.curve.classList.add('updated')
+                        e.node.curve.setAttribute('data-update', Date.now())
+                        setTimeout(()=>{
+                            if (e.node.curve.getAttribute('data-update') < Date.now() - 450){
+                                e.node.curve.classList.remove('updated')
+                            }
+                        }, 500)
+                    }
                 }
             }
         })
@@ -471,7 +518,7 @@ export class GraphEditor{
 
     }
 
-    addNode(nodeInfo, skipManager = false, skipInterface = false){
+    addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
@@ -482,6 +529,8 @@ export class GraphEditor{
         this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
+
+        if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
 
         return node
     }
@@ -511,6 +560,7 @@ export class GraphEditor{
                 let defaultType = typeof plugin.paramOptions[key].default
                 let specifiedOptions = plugin.paramOptions[key].options
                 let optionsType = typeof specifiedOptions
+
                 let input;
 
                 if (optionsType == 'object' && specifiedOptions != null){
@@ -540,7 +590,10 @@ export class GraphEditor{
                         let output = document.createElement('output')
                         inputContainer.insertAdjacentElement('afterbegin',output)
                         output.innerHTML = input.value
-                        input.addEventListener('input', (e) => {output.innerHTML = input.value}, false)
+                        input.addEventListener('input', (e) => {
+                            output.innerHTML = input.value
+                            plugin.params[key] = Number.parseFloat(input.value)
+                        }, false)
                     } else {
                         input = document.createElement('input')
                         input.type = 'number'
@@ -548,7 +601,12 @@ export class GraphEditor{
                     }
                 } else {
                     input = document.createElement('input')
-                    input.type = 'text'
+                    // Check if Color String
+                    if (/^#[0-9A-F]{6}$/i.test(plugin.paramOptions[key].default)){
+                        input.type = 'color'
+                    } else {
+                        input.type = 'text'
+                    }
                     input.value = plugin.params[key]
                 }
 
@@ -678,6 +736,7 @@ export class GraphEditor{
                 selector.style.opacity='0'
                 selector.style.pointerEvents='none'
                 search.value = ''
+                matchOptions(new RegExp('', 'i'))
             } else {
                 selector.style.opacity='1'
                 selector.style.pointerEvents='all'
@@ -693,18 +752,22 @@ export class GraphEditor{
         let nodeDiv = document.createElement('div')
         let search = selectorMenu.getElementsByTagName(`input`)[0]
 
-
-        // Allow Search of Plugins
-        search.oninput = (e) => {
-            let regexp = new RegExp(e.target.value, 'i')
+        let matchOptions = (regex) => {
             this.searchOptions.forEach(o => {
-                let test = regexp.test(o.label)
+                let test = regex.test(o.label)
                 if (test || o.label == 'Add New Plugin') {
                     o.element.style.display = ''
                 } else {
                     o.element.style.display = 'none'
                 }
             })
+        }
+
+
+        // Allow Search of Plugins
+        search.oninput = (e) => {
+            let regexp = new RegExp(e.target.value, 'i')
+            matchOptions(regexp)
         }
 
         this.classRegistry = Object.assign({}, plugins)
@@ -792,6 +855,11 @@ export class GraphEditor{
         if (tabContainer){
             let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth
             this.mainPage.style.width = `${mainWidth}px`
+            if (this.preview.innerHTML != '') {
+                this.preview.style.height = `${window.innerHeight * this.mainPage.style.width/window.innerWidth}px`
+                this.preview.parentNode.style.height = '100%'
+            }
+            else this.preview.parentNode.style.height = 'auto'
         }
 
         if(this.graph){

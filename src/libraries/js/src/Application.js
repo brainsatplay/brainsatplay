@@ -21,36 +21,40 @@ export class Application{
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            id: null, //Keep random ID
             sessionId: null
         };
     }
 
     init() {
+
+        // Grab Style of Previous Top-Level Wrapper
+        let defaultStyle = ``
+        if (this.props.id)defaultStyle = document.getElementById(this.props.id).style.cssText 
+        else defaultStyle = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
+
+        // Get New ID
+        this.props.id = String(Math.floor(Math.random()*1000000))
+
+        // Register App in Session
         this.graph = this.session.registerApp(this.props.id, this.info)
 
         let setupHTML = () => {
-            this.graph.nodes.forEach(n => {
-                this.insertInterface(n)
-            })
+            this.graph.nodes.forEach(n => {this.insertInterface(n)})
+            this.graph.setupCallbacks.forEach(f => f())
             this.session.connectDevice()
         }
 
-        if (!this.AppletHTML){
-            this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-                `<div id="${this.props.id}" style="height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;"></div>`,       //Define the html template string or function with properties
-                this.parentNode,    //Define where to append to (use the parentNode)
-                this.props,         //Reference to the HTML render properties (optional)
-                setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-                undefined,          //Can have an onchange function fire when properties change
-                "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
-                this._deinit,
-                this.responsive
-            )
-        } else {
-            this.AppletHTML.setupHTML = setupHTML
-            this.AppletHTML.setupHTML()
-        }
+        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
+            `<div id="${this.props.id}" style="${defaultStyle}"></div>`,       //Define the html template string or function with properties
+            this.parentNode,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed,
+            this._deinit,
+            this.responsive
+        )
 
         this.configure(this.settings); //You can give the app initialization settings if you want via an array.
     }
@@ -93,7 +97,7 @@ export class Application{
     
         //Responsive UI update, for resizing and responding to new connections detected by the UI manager
         responsive() {
-            // _runInternalFunctions(this.uiParams.responsive)
+            // this.AppletHTML.responsive()// _runInternalFunctions(this.uiParams.responsive)
         }
     
         configure = (settings=[{}]) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -114,13 +118,15 @@ export class Application{
                     this.info.editor = {}
                     this.info.editor.parentId = this.parentNode.id
                     this.info.editor.show = false
+                    this.info.editor.create = true
                 }
+
                 if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
 
 
-                this.editor = this.session.graph.edit(this, this.info.editor.parentId)
-
-                if (this.info.editor.show !== false) this.editor.toggleDisplay()
+                if (this.info.editor.create != false) this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
+                    if (this.info.editor.show !== false) editor.toggleDisplay()
+                })
             })
         }
 
@@ -145,23 +151,12 @@ export class Application{
                     ui.responsive // responsive
                 )
 
-                this._resizeAllFragments()
+                this.session.graph._resizeAllNodeFragments(this.props.id)
             }
         }
 
         _removeAllFragments(){
             this.graph.nodes.forEach(n => {if ( n.fragment) {n.fragment.deleteNode()}})
-        }
-
-        _resizeAllFragments(){
-            let funcs = []
-
-            // Gather Resize Functions
-            this.graph.nodes.forEach(n => {
-                if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
-            })
-            // Repeat to Scale Everything Appropriately
-            funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
         }
 
         _copySettingsFile(info){

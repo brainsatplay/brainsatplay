@@ -3,18 +3,20 @@ import { addGpuFunctions, createGpuKernels as krnl } from './gpuUtils-functs';
 
 //By Joshua Brewster, Dovydas Stirpeika (MIT License)
 
-function makeKrnl(gpu, f, opts = {
+export function makeKrnl(gpu, f, opts = {
   setDynamicOutput: true,
   setDynamicArguments: true,
   setPipeline: true,
-  setImmutable: true
+  setImmutable: true,
+  setGraphical: false
 }) {
   const k = gpu.createKernel(f);
 
   if (opts.setDynamicOutput)    k.setDynamicOutput(true);
   if (opts.setDynamicArguments) k.setDynamicArguments(true);
-  if (opts.setPipeline)         k.setPipeline(true)
+  if (opts.setPipeline)         k.setPipeline(true);
   if (opts.setImmutable)        k.setImmutable(true);
+  if (opts.setGraphical)        k.setGraphical(true);
 
   //.setOutput([signal.length]) //Call before running the kernel
   //.setLoopMaxIterations(signal.length);
@@ -22,10 +24,31 @@ function makeKrnl(gpu, f, opts = {
   return k;
 }
 
+export function makeCanvasKrnl(appendToId, gpu, f, opts = {
+  setDynamicOutput: true,
+  setDynamicArguments: true,
+  setPipeline: true,
+  setImmutable: true,
+  setGraphical: true
+}) {
+
+  const k = makeKrnl(gpu,f,opts);
+
+  //k();
+
+  const canvas = k.canvas; 
+
+  document.getElementById(appendToId).appendChild(canvas);
+
+  return k; //run k() with the input arguments in an animation loop, get graphical output.
+}
+
 export class gpuUtils {
   
   constructor(gpu = new GPU()) {
     this.gpu = gpu;
+    this.kernels = []; // {name:"",f:foo(){}}
+    this.canvaskernels = [];
 
     this.kernel;
     this.PI = 3.141592653589793;
@@ -86,6 +109,68 @@ export class gpuUtils {
     };
   }
 
+  //adds math functions to use per-thread
+  addFunction(func = function f(){}) {
+    this.gpu.addFunction(func);
+  }
+
+  //add kernels to run based on input data. Input/Output sizes are dynamically allocated, functions are saved on the gpu to improve runtimes
+  addKernel(name="", krnl=function foo(){}) {
+    let found = this.kernels.find((o)=> {
+      if(o.name === name) {
+        return true;
+      }
+    });
+    if(!found) {
+      this.kernels.push({name:name, krnl:makeKrnl(this.gpu,krnl)});
+      return true;
+    } else { 
+      console.error('Custom kernel already exists'); 
+      return false;
+    }
+    
+  }
+
+  addCanvasKernel(name, f, appendToId) {
+    let found = this.canvaskernels.find((o)=> {
+      if(o.name === name) {
+        return true;
+      }
+    });
+    if(!found) {
+      this.kernels.push({name:name,krnl:makeCanvasKrnl(appendToId,this.gpu,f)});
+      return true;
+    } else { 
+      console.error('Kernel already exists'); 
+      return false;
+    }
+    
+  }
+
+  callKernel(name="",args=[]) {
+    let found = this.customFunctions.find((o)=> {
+      if(o.name === name) {
+        o.krnl(...args);
+        return true;
+      }
+    });
+    if(!found) {
+      console.error('Kernel not found');
+      return false;
+    } else return true;
+  }
+
+  hasKernel(name="") {
+    let found = this.customFunctions.find((o)=> {
+      if(o.name === name) {
+        return true;
+      }
+    });
+    if(!found) {
+      return false;
+    } else return true;
+  }
+
   addFunctions() { 
     addGpuFunctions.forEach(f => this.gpu.addFunction(f));
 
@@ -94,7 +179,7 @@ export class gpuUtils {
     this.dft = makeKrnl(this.gpu, krnl.dftKern);
     this.idft = makeKrnl(this.gpu, krnl.idftKern);
     this.dft_windowed = makeKrnl(this.gpu, krnl.dft_windowedKern);
-    this.idft_windoed = makeKrnl(this.gpu, krnl.idft_windowedKern);
+    this.idft_windowed = makeKrnl(this.gpu, krnl.idft_windowedKern);
     this.fft = makeKrnl(this.gpu, krnl.fftKern);
     this.ifft = makeKrnl(this.gpu, krnl.ifftKern);
     this.fft_windowed = makeKrnl(this.gpu, krnl.fft_windowedKern);
@@ -108,6 +193,27 @@ export class gpuUtils {
     this.listifft1D_windowed = makeKrnl(this.gpu, krnl.listifft1D_windowedKern);
     this.bulkArrayMul = makeKrnl(this.gpu, krnl.bulkArrayMulKern);
     this.multiConv2D = makeKrnl(this.gpu, krnl.multiImgConv2DKern);
+
+    this.kernels.push(
+      {name:"correlograms", krnl:this.correlograms},
+      {name:"correlogramsPC", krnl: this.correlogramsPC},
+      {name:"dft", krnl:this.dft},
+      {name:"idft", krnl:this.idft},
+      {name:"dft_windowed", krnl:this.idft_windowed},
+      {name:"fft", krnl:this.fft},
+      {name:"ifft", krnl:this.ifft},
+      {name:"fft_windowed", krnl:this.fft_windowed},
+      {name:"ifft_windowed", krnl:this.ifft_windowed},
+      {name:"listdft2D", krnl:this.listdft2D},
+      {name:"listdft1D", krnl:this.listdft1D},
+      {name:"listdft1D_windowed", krnl:this.listdft1D_windowed},
+      {name:"listfft1D", krnl:this.listfft1D},
+      {name:"listfft1D_windowed", krnl:this.listfft1D_windowed},
+      {name:"listidft1D_windowed", krnl:this.listidft1D_windowed},
+      {name:"listifft1D_windowed", krnl:this.listifft1D_windowed},
+      {name:"bulkArrayMul", krnl:this.bulkArrayMul},
+      {name:"multiConv2D", krnl:this.multiConv2D}
+      );
     
     //----------------------------------- Easy gpu pipelining
     //------------Combine Kernels-------- gpu.combineKernels(f1,f2,function(a,b,c) { f1(f2(a,b),c); });
@@ -133,14 +239,16 @@ export class gpuUtils {
     //TODO: automatic auto/cross correlation and ordering.
     //Input signals like this : [signal1,signal2,autocor1,autocor2,crosscor,...repeat for desired coherence calculations] or any order of that.
     this.gpuCoherence = (signals, sampleRate, freqStart, freqEnd, scalar) => { //Take FFTs of the signals, their autocorrelations, and cross correlation (5 FFTs per coherence), then multiply.
-      let xcors = this.correlograms(signals);
+      var xcors = this.correlograms(signals);
       var dfts = this.listfft1D_windowed(xcors, sampleRate, freqStart, freqEnd, scalar, new Array(Math.ceil(signals/sampleRate)).fill(0) );
       var products = this.bulkArrayMul(dfts, sampleRate, 5, 1);
       return products;
     }
 
-    //this.gpuCoherence = this.gpu.combineKernels(this.listdft1D_windowedKern, this.bulkArrayMulKern, function gpuCoherence(signals,sampleRate,freqStart,freqEnd,scalar) {
-    //  var dfts = this.listdft1D_windowed(signals, sampleRate, freqStart, freqEnd, scalar, new Array(Math.ceil(signals/sampleRate)).fill(0) );
+    //Need to get this working to be MUCH faster, the above method returns to the CPU each call, the below does not.
+    //this.gpuCoherence = this.gpu.combineKernels(this.listdft1D_windowedKern, this.bulkArrayMulKern, this.correlogramsKern, function gpuCoherence(signals,sampleRate,freqStart,freqEnd,scalar) {
+    //  var xcors = this.correlograms(signals);
+    //  var dfts = this.listdft1D_windowed(xcors, sampleRate, freqStart, freqEnd, scalar, new Array(Math.ceil(signals/sampleRate)).fill(0) );
     //  var products = this.bulkArrayMul(dfts, sampleRate, 5, 1);
     //  return products;
     //});

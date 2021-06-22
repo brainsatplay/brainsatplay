@@ -68,22 +68,23 @@ export class LiveEditor {
               }
 
             let targetName = (this.function == null) ? 'From Scratch' : this.function
-
-            let template = `
-            <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%; z-index: 100000;">
+            // let template = `
+            // <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%; z-index: 100000;">
             
-                <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
-                    <div style='width: 50%; padding: 10px;'>
-                        <h3 style="margin: 0;">Live Code Editor</h3>
-                        <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
-                    </div>
-                    <div style="display: flex;">
+            //     <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
+            //         <div style='width: 50%; padding: 10px;'>
+            //             <h3 style="margin: 0;">Live Code Editor</h3>
+            //             <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
+            //         </div>
+            //     </div>
+            let template = `
+            <div id='${this.props.id}liveEditor' class="brainsatplay-live-code-editor">
+                <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
+                    <div style="display: flex; position: absolute; top: 0; right: 0; z-index: 2;">
                         <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
                     </div>
-                </div>
-                <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
                     <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your ${language} code...'></textarea>
                     <pre class="brainsatplay-code-highlighting" aria-hidden="true">
                         <code class="language-${this.props.language} brainsatplay-code-highlighting-content"></code>
@@ -131,7 +132,6 @@ export class LiveEditor {
                 this._syncScroll(this.input)
             }
 
-            console.log(this.props.shortcuts)
             if (this.props.shortcuts == null || this.props.shortcuts.save != false){
                 this.onKeyDown = (e) => {
                     if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
@@ -234,7 +234,7 @@ export class LiveEditor {
         this.input = document.getElementById(`${this.props.id}editor`)
         let reset = document.getElementById(`${this.props.id}reset`)
 
-        if (this.head != null) head.innerHTML = this.head;
+        // if (this.head != null) head.innerHTML = this.head;
 
         if (this.body != null) {
             this.input.value = this.body
@@ -330,7 +330,7 @@ export class LiveEditor {
         document.getElementById(`${this.props.id}editorContainer`)
         .insertAdjacentHTML(
             'afterbegin',
-            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:10; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
+            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:1; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
                 <style>
                     table tr th {
                         border: 2px solid gold;

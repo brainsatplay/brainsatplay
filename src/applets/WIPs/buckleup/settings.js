@@ -9,7 +9,7 @@ export const settings = {
     devices: ["EEG"],
     author: "Brains@Play",
     description: "Fitbit Data to B@P.",
-    categories: ["tutorial"],
+    categories: ["WIP"],
     instructions:"Coming soon...",
     display: {
       production: false

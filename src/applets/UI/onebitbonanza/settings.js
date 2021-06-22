@@ -1,6 +1,7 @@
 
 import {UI} from './UI.js'
 // import * as brainsatplay from '../../../libraries/js/brainsatplay'
+import feature from './feature.jpg'
 
 export const settings = {
     name: "One Bit Bonanza",
@@ -13,6 +14,7 @@ export const settings = {
       development: false,
       production: false
     },
+    image: feature,
     
     // App Logic
     graph:

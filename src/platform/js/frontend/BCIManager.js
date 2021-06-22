@@ -51,10 +51,6 @@ export class BCIAppManager {
         useFS = true         //launch with browserfs initialized
     ) {
 
-        this.state = new StateManager({
-            autosaving: true
-        });
-
         this.uiFragments = {
             controls: undefined,
         }; //store DOMFragments for the UI here
@@ -242,7 +238,7 @@ export class BCIAppManager {
                 // }
 
                 document.getElementById('autosavingfiles').onchange = () => {
-                    this.state.data.autosaving = document.getElementById('autosavingfiles').checked;
+                    this.session.dataManager.state.data.autosaving = document.getElementById('autosavingfiles').checked;
                 }
             },
             undefined,
@@ -434,9 +430,9 @@ export class BCIAppManager {
 
         this.session.onconnected = () => {
             try {
-                let deviceStream = this.session.deviceStreams[this.session.info.nDevices - 1]
-                let device = deviceStream.device
-                let contentChild = document.getElementById(`brainsatplay-device-${device.mode.split('_')[0]}`)
+                let deviceStream = this.session.deviceStreams[this.session.info.nDevices - 1];
+                let device = deviceStream.device;
+                let contentChild = document.getElementById(`brainsatplay-device-${device.mode.split('_')[0]}`);
                 this.uiFragments.controls = device.addControls(contentChild);
             }
             catch (err) { console.error(err); }
@@ -563,9 +559,9 @@ export class BCIAppManager {
                 this.appletConfigs = settings.appletConfigs;
             }
             if (settings.autosaving || settings.autosaving === false) {
-                this.state.data.autosaving = settings.autosaving;
+                this.session.dataManager.state.data.autosaving = settings.autosaving;
                 let autosavecheck = document.getElementById('autosavingfiles');
-                if (autosavecheck) autosavecheck.checked = this.state.data.autosaving;
+                if (autosavecheck) autosavecheck.checked = this.session.dataManager.state.data.autosaving;
             }
             //console.log(this.appletConfigs)
         }
@@ -682,9 +678,7 @@ export class BCIAppManager {
                     contents = data.toString();
                     this.init(contents);
                     listFiles();
-                    document.getElementById("saveBCISession").onclick = () => {
-                        saveSettings();
-                    }
+                    document.getElementById("saveBCISession").addEventListener('click',saveSettings);
                 }
 
                 this.session.dataManager.setupAutosaving();

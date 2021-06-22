@@ -30,11 +30,13 @@ export class Brainstorm{
     }
 
     get = (userData) => {
-        let label = userData[0].meta.source.replace('brainstorm_','')
-        let sessionId = userData[0].meta.session
-        if (sessionId && label){
-            let brainstorm = this.session.getBrainstormData(sessionId,[label], 'app', 'plugin')
-            return brainstorm
+        if (userData[0].meta.source){
+            let label = userData[0].meta.source.replace('brainstorm_','')
+            let sessionId = userData[0].meta.session
+            if (sessionId && label){
+                let brainstorm = this.session.getBrainstormData(sessionId,[label], 'app', 'plugin')
+                return brainstorm
+            }
         }
     }
 }

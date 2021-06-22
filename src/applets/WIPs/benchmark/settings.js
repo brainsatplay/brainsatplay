@@ -10,7 +10,7 @@ export const settings = {
     devices: ["EEG"],
     author: "Brains@Play",
     description: "Benchmark your first Brains@Play plugin.",
-    categories: ["tutorial"],
+    categories: ["WIP"],
     instructions:"Coming soon...",
     display: {
       production: false

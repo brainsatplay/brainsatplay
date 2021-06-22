@@ -234,16 +234,9 @@ export class uPlotApplet {
           if (sel.options[i].value) opts.push(sel.options[i].value);
         }
         if(opts.indexOf("HEG") < 0) {
-          if(!atlas.settings.eeg) {
-            sel.innerHTML = `
+          sel.innerHTML += `
             <option value="HEG">HEG</option>
           `;
-          }
-          else {
-            sel.innerHTML += `
-              <option value="HEG">HEG</option>
-            `;
-          }
           sel.value="HEG";
           sel.onchange();
         }
@@ -324,7 +317,7 @@ export class uPlotApplet {
 
     updateLoop = () => {
       if(this.looping === true) {
-        this.onUpdate();
+        if(this.session.atlas.settings.deviceConnected) this.onUpdate();
         setTimeout(()=>{this.loop = requestAnimationFrame(this.updateLoop); },16);
       }
     }

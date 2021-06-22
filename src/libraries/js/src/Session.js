@@ -179,7 +179,7 @@ export class Session {
 		}
 
 		if (this.deviceStreams.length > 0) {
-			if (device.indexOf('eeg') > -1 || device.indexOf('muse') > -1) {
+			if (device.indexOf('heg') > -1) {
 				let found = this.deviceStreams.find((o, i) => { //multiple EEGs get their own atlases just to uncomplicate things. Will need to generalize more later for other multi channel devices with shared preconfigurations if we want to try to connect multiple
 					if (o.deviceType === 'eeg') {
 						return true;
@@ -218,15 +218,15 @@ export class Session {
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
 			
 			this.info.nDevices++;
-			if (streamParams[0]) { 
-				this.beginStream(streamParams); 
-			}
+			if (streamParams[0]) this.beginStream(streamParams); 
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
 
 			onconnect(newStream);
 			this.onconnected();
-			
+			//console.log(this.deviceStreams)
+			//console.log(this.state.data)
+			//console.log(this.atlas)
 		}
 
 		newStream.ondisconnect = () => {
@@ -236,7 +236,11 @@ export class Session {
 			this.state.removeState(stateId)
 
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
+			if (this.deviceStreams.length == 0) this.stopAnalysis()
 			this.info.nDevices--;
+			//console.log(this.deviceStreams)
+			//console.log(this.state.data)
+			//console.log(this.atlas)
 		}
 
 		// Wait for Initialization before Connection
@@ -548,10 +552,16 @@ export class Session {
 				})
 			} else {
 				for (let k in this.atlas.settings.analysis){
-					this.atlas.settings.analysis[k] = false
+					atlas.settings.analysis[k] = false
 				}
 			}
 		})
+
+		if (this.deviceStreams.length == 0 ){
+			for (let k in this.atlas.settings.analysis){
+				this.atlas.settings.analysis[k] = false
+			}
+		}
 	}
 
 	startAnalysis(arr = []) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
@@ -580,36 +590,36 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
-	subscribe = (deviceType = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
+	subscribe = (deviceTypeNameOrIdx = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
 		let sub = undefined;
 		let atlasTag = tag;
 		let atlasDataProp = null;
-		if (deviceType.toLowerCase().indexOf('eeg') > -1 ){//|| deviceName.toLowerCase().indexOf('synthetic') > -1 || deviceName.toLowerCase().indexOf('muse') > -1 || deviceName.toLowerCase().indexOf('notion') > -1) {//etc
-			atlasDataProp = 'eeg';
-			if (atlasTag === 'shared') { atlasTag = 'eegshared'; }
-		}
-		else if (deviceType.toLowerCase().indexOf('heg') > -1) {
-			atlasDataProp = 'heg';
-			if (atlasTag === 'shared') { atlasTag = 'hegshared'; }
-		}
 
-		if (atlasDataProp !== null) {
-			let device = this.deviceStreams.find((o, i) => {
-				if (o.info.deviceType.indexOf(deviceType) > -1 && o.info.useAtlas === true) {
-					let coord = undefined;
-					if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = o.device.atlas.getDeviceDataByTag(atlasTag, null);
-					else if (atlasTag === null || atlasTag === 'all') { coord = o.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
-					else coord = o.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
-					if (coord !== undefined) {
-						if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
-							sub = stateManager.addToState(deviceType + '_' + atlasTag, coord, onData);
-						} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
-							sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
-						}
+		let found = this.deviceStreams.find((o, i) => {
+			if(deviceTypeNameOrIdx === i) {
+				return true;
+			} else if (deviceTypeNameOrIdx === o.info.deviceName) {
+				return true;
+			} else if (o.info.deviceType.indexOf(deviceTypeNameOrIdx) > -1 && o.info.useAtlas === true) {
+				return true;
+			}
+		});
+		if(found) {
+			atlasDataProp = found.info.deviceType;
+			if (atlasTag === 'shared') { 
+				atlasTag = atlasDataProp+'shared';
+			}
+			let coord = undefined;
+				if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = found.device.atlas.getDeviceDataByTag(atlasTag, null);
+				else if (atlasTag === null || atlasTag === 'all') { coord = found.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
+				else coord = found.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
+				if (coord !== undefined) {
+					if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
+						sub = stateManager.addToState(found.info.deviceType + '_' + atlasTag, coord, onData);
+					} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
+						sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
 					}
-					return true;
 				}
-			});
 		}
 
 		return sub;
@@ -2240,10 +2250,12 @@ class deviceStream {
 			useFilters: useFilters,
 			useAtlas: false,
 			simulating: false,
+			randomId: 'deviceStream_'+Math.floor(Math.random()*1000000000)
 		};
 
 		this.device = null, //Device object, can be instance of our device plugin classes.
-		this.deviceConfigs = deviceList
+		this.atlas = null,
+		this.deviceConfigs = deviceList,
 		this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
@@ -2278,12 +2290,13 @@ class deviceStream {
 
 	connect = async () => {
 		await this.device.connect();
-		this.info.events.init(this.device)
-		return true
+		this.info.events.init(this.device);
+		this.atlas = this.device.atlas;
+		return true;
 	}
 
 	configureRoutes = (parentNode=document.body) => {
-		this.info.events.addControls(parentNode)
+		this.info.events.addControls(parentNode);
     }
 
 	disconnect = () => {

@@ -1,10 +1,11 @@
 
 
 import placeholderImg from './assets/features/placeholder.png'
-import eegNFImage from './assets/features/eegNF.png'
+import eegNFImage from '../applets/General/blob/img/feature.png'
 import HEGImage from './assets/features/hegbiofeedback.png'
-import hegsens from './assets/features/sensoriumheg.png'
-import studio from './assets/features/studio.png'
+import hegsens from '../applets/General/Sensorium/feature.png'
+import studio from '../applets/WIPs/studio/feature.png'
+import OBB from '../applets/UI/onebitbonanza/feature.jpg'
 
 export let presetManifest = [
     {
@@ -22,18 +23,27 @@ export let presetManifest = [
         lock: false
     },
     {
-        value: 'HEG',
-        name: "HEG Biofeedback",
+        value: 'HEGSensorium',
+        name: "HEG Sensorium",
         applets: [
-            'Circle',
-            'Boids',
-            'Audio',
-            'Pulse Monitor',
+            'Sensorium',
+            'Pulse Monitor'
         ],
-        description: "Brain blood flow training!",
+        description: "Immersive audio-visual feedback with HEG graphing.",
         type: "HEG",
-        image: HEGImage,
+        image: hegsens,
         lock: false
+    },
+    {
+        value: 'onebitbonanza',
+        name: "One Bit Bonanza",
+        applets: [
+            'One Bit Bonanza',
+        ],
+        description: "Experience a random low-bandwidth game every 10 seconds!",
+        type: "All",
+        image: OBB,
+        lock: true	
     },
     {
         value: 'Studio',
@@ -47,26 +57,17 @@ export let presetManifest = [
         lock: false
     },
     {
-        value: 'HEGSensorium',
-        name: "HEG Sensorium",
+        value: 'HEG',
+        name: "HEG Biofeedback",
         applets: [
-            'Sensorium',
-            'Pulse Monitor'
+            'Circle',
+            'Boids',
+            'Audio',
+            'Pulse Monitor',
         ],
-        description: "Sensorium with HEG graphing.",
+        description: "Brain blood flow training!",
         type: "HEG",
-        image: hegsens,
+        image: HEGImage,
         lock: false
     },
-    {
-        value: 'onebitbonanza',
-        name: "One Bit Bonanza",
-        applets: [
-            'One Bit Bonanza',
-        ],
-        description: "Experience a random low-bandwidth game every 10 seconds!",
-        type: "All",
-        image: placeholderImg,
-        lock: true	
-    }
 ]
