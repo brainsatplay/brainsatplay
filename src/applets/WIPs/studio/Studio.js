@@ -52,7 +52,7 @@ class Studio{
     }
 
     deinit = () => {
-        this.props.app.deinit()
+        if (this.props.app) this.props.app.deinit()
     }
 
     _createApp(settings){

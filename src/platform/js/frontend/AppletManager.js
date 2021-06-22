@@ -5,6 +5,7 @@ import { getApplet, getAppletSettings } from "../general/importUtils"
 import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
 import nodeSVG from '../../../libraries/js/src/ui/assets/network-wired-solid.svg'
+import expandSVG from '../../assets/expand-arrows-alt-solid.svg'
 
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 
@@ -403,6 +404,13 @@ export class AppletManager {
                     cursor: pointer;
                     padding: 7px;">
                 </div>
+                <div class="brainsatplay-default-fullscreen-icon"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
+                    <img src="${expandSVG}" 
+                    style="box-sizing: border-box; 
+                    filter: invert(1);
+                    cursor: pointer;
+                    padding: 7px;">
+                </div>
                 <div class="brainsatplay-default-help-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
                     <p><strong>?</strong></p>
                 </div>
@@ -446,6 +454,12 @@ export class AppletManager {
                     let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
                     let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
                     let dragIcon = appletDiv.querySelector('.brainsatplay-default-drag-icon')
+                    let fullscreenIcon = appletDiv.querySelector('.brainsatplay-default-fullscreen-icon')
+                    let editorIcon = appletDiv.querySelector('.brainsatplay-default-editor-toggle')
+
+
+                    if (!(appnode.classinstance instanceof Application)) editorIcon.style.display = 'none'
+
 
                     let instance = null;
                     appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
@@ -538,10 +552,9 @@ export class AppletManager {
             
                     appletDiv.addEventListener("drop", (event) => {
                         event.preventDefault();
-                        let dragging = document.querySelector('.dragging')
-                        appletDiv.classList.remove('hovered')
-                        let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
                         if (this.lastSwapped){
+                        let dragging = document.querySelector('.dragging')
+                        let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
                             let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
                             let _temp = draggingApplet.appletIdx;
                             draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
@@ -556,22 +569,22 @@ export class AppletManager {
                     }, false);
             
                     // Fullscreen Functionality
-                    // appletDiv.addEventListener('dblclick', () => {
-                    //     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                    //     if (!fullscreenElement) {
-                    //         if (appletDiv.requestFullscreen) {
-                    //             appletDiv.requestFullscreen()
-                    //         } else if (appletDiv.webkitRequestFullscreen) {
-                    //             appletDiv.webkitRequestFullscreen()
-                    //         }
-                    //     } else {
-                    //         if (document.exitFullscreen) {
-                    //             document.exitFullscreen()
-                    //         } else if (document.webkitExitFullscreen) {
-                    //             document.webkitExitFullscreen()
-                    //         }
-                    //     }
-                    // });
+                    fullscreenIcon.addEventListener('click', () => {
+                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                        if (!fullscreenElement) {
+                            if (appletDiv.requestFullscreen) {
+                                appletDiv.requestFullscreen()
+                            } else if (appletDiv.webkitRequestFullscreen) {
+                                appletDiv.webkitRequestFullscreen()
+                            }
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen()
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen()
+                            }
+                        }
+                    });
 
 
                 })
