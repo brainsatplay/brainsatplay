@@ -1,7 +1,7 @@
 import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 
-const gpu = new gpuUtils();
+export const gpu = new gpuUtils();
 
 export const onMessage = (event) => {
   // define gpu instance

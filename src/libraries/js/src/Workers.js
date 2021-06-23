@@ -1,6 +1,6 @@
 import Worker from 'web-worker'
 
-import {onMessage} from './utils/eeg.worker.js'
+import {gpu, onMessage} from './utils/eeg.worker.js'
 
 let workerURL = './_dist_/libraries/js/src/utils/eeg.worker.js';
 let defaultWorkerThreads = 0;
