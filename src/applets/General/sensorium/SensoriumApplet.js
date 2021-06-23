@@ -1255,7 +1255,7 @@ void main(){
             }
             else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
-                this.effects[idx].sourceIdx = false;
+                this.effects.splice(idx,1);
             } 
 
             if (!['micin', 'none', 'custom'].includes(soundurl)) {
@@ -1413,9 +1413,17 @@ void main(){
             document.getElementById(this.props.id+'pause'+newEffect.uiIdx).style.display = 'none';
             document.getElementById(this.props.id+'pause'+newEffect.uiIdx).innerHTML = "Pause";
 
-            newEffect.sourceIdx = false;
-            newEffect.source = undefined;
-            
+            let thisidx=0;
+            this.effects.forEach((effectStruct,j)=> {
+                if(!effectStruct.id) {
+                    if(effectStruct.sourceIdx === newEffect.sourceIdx) thisidx = j; 
+                    else if(effectStruct.sourceIdx > newEffect.sourceIdx) {
+                        effectStruct.sourceIdx--;
+                        this.loadSoundControls(effectStruct);
+                    }
+                }
+            });
+
 
         }
 
