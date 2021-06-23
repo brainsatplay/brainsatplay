@@ -3,7 +3,7 @@ import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
-addEventListener('message', e => {
+addEventListener('message', event => {
   // define gpu instance
   //console.log("worker executing...")
   console.time("worker");
@@ -121,10 +121,9 @@ addEventListener('message', e => {
     }}
   ];
 
-  console.log(e);
   callbacks.find((o,i)=>{
-    if(o.case === e.data.foo) {
-      output = o.callback(e.data.input);
+    if(o.case === event.data.foo) {
+      output = o.callback(event.data.input);
       return true;
     }
   });
@@ -132,5 +131,5 @@ addEventListener('message', e => {
   // output some results!
   console.timeEnd("worker");
   
-  postMessage({output: output, foo: e.data.foo, origin: e.data.origin});
+  postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
 });
