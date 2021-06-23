@@ -23,7 +23,7 @@ export const deviceList = [
     {'name': 'Muse S', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin, chromeOnly: true},
     {'name': 'Ganglion', id:'ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin, chromeOnly: true},
     {'name': 'Cyton', id:'cyton', company:'OpenBCI', analysis: ['eegcoherence'], variants: ['','Daisy'], cls: cytonPlugin, chromeOnly: true},
-    {'name': 'HEGduino', id:'hegduino', company:'HEGAlpha', analysis: [], variants: ['USB','Bluetooth'], cls: hegduinoPlugin, chromeOnly: true},
+    {'name': 'HEGduino', id:'hegduino', company:'Joshua Brewster', analysis: [], variants: ['USB','Bluetooth'], cls: hegduinoPlugin, chromeOnly: true},
     {'name': 'FreeEEG32', id:'freeeg32', company:'Neuroidss', analysis: ['eegcoherence'], variants: ['2','19'], cls: eeg32Plugin, chromeOnly: true},
     {'name': 'Buzz', id:'buzz', company:'Neosensory', analysis: [], cls: buzzPlugin, chromeOnly: true},
     {'name': 'BCI2000', id:'bci2k', company:'BCI2000', analysis: ['eegcoherence'], variants:['Operator', 'Data'], cls: bci2000Plugin},
