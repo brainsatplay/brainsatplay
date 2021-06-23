@@ -646,9 +646,9 @@ void main(){
                     }
 
                     let neosensoryBuzz = this.session.getDevice('buzz')
-                    if (neosensoryBuzz){
+                    // if (neosensoryBuzz){
                         this.updateBuzz(averageModifiers)
-                    }
+                    // }
 
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);
@@ -1783,10 +1783,11 @@ void main(){
     updateBuzz(modifiers) {
         let node = this.graph.getNode(this.props.id, 'buzz')
 
-        if (modifiers.iAudio){
-            this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
-        } else if (modifiers.iFFT){
+        if (modifiers.iFFT){
             this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
+        }
+        if (modifiers.iAudio & modifiers.iFFT.reduce((a,b) => a + b) == 0){
+            this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
