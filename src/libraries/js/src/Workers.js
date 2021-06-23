@@ -11,22 +11,22 @@ import { eegmath } from './utils/eegmath';
 const gpu = new gpuUtils();
 
 // // WEBPACK
-import worker from './utils/eeg.worker.js'
+// import worker from './utils/eeg.worker.js'
 
-for(var i = 0; i < defaultWorkerThreads; i++){
-    eegWorkers.push(new worker())
-}
+// for(var i = 0; i < defaultWorkerThreads; i++){
+//     eegWorkers.push(new worker())
+// }
 
 // SNOWPACK
  
-// for(var i = 0; i < defaultWorkerThreads; i++){
-//     eegWorkers.push(
-//         new Worker(
-//             workerURL,
-//             {name:'eegworker_'+i, type: 'module'}
-//         )
-//     )
-// }
+for(var i = 0; i < defaultWorkerThreads; i++){
+    eegWorkers.push(
+        new Worker(
+            workerURL,
+            {name:'eegworker_'+i, type: 'module'}
+        )
+    )
+}
 
 
 
