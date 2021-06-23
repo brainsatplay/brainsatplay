@@ -1355,7 +1355,7 @@ void main(){
 
     setEffectOptions() {
         this.effects.forEach((eff)=>{
-            if(!e.id) {
+            if(!eff.id) {
                 let sel = document.getElementById(this.props.id+'select'+eff.uiIdx);
                 for(let i = 0; i < sel.options.length; i++){
                     if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
