@@ -111,16 +111,17 @@ export class SensoriumApplet {
         // Plugins
         this.graph = new GraphManager(this.session)
         this.graph.init(this.props.id, 
-            {
-                name: this.info.name, 
-                graph: {
-                    nodes: [
-                        {id: 'buzz', class: Buzz},
-                    ],
-                }
+        {
+            name: this.info.name, 
+            graph: {
+                nodes: [
+                    {id: 'buzz', class: Buzz},
+                ],
             }
-            )
-            this.graph.streams = ['modifiers','hostData']
+        }
+        )
+        this.graph.streams = ['modifiers','hostData']
+        
         this.tutorialManager = null
 
         this.currentView = 'plane'

@@ -2340,7 +2340,7 @@ class streamSession {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (device, channel, nSamples = 'all') => {
 			let get = nSamples;
-			if (device.info.useAtlas === true) {
+			if (device?.info?.useAtlas === true) {
 				let coord = false;
 				if (typeof channel === 'number') {
 					coord = device.atlas.getEEGDataByChannel(channel);
@@ -2377,7 +2377,7 @@ class streamSession {
 
 		let getEEGFFTData = (device, channel, nArrays = 'all') => {
 			let get = nArrays;
-			if (device.info.useAtlas === true) {
+			if (device?.info?.useAtlas === true) {
 				let coord = false;
 				if (typeof channel === 'number') {
 					coord = device.atlas.getEEGFFTData(channel);
@@ -2403,9 +2403,7 @@ class streamSession {
 		}
 
 		let getEEGBandpowerMeans = (device, channel) => {
-			console.log(device)
-			if (device.info){
-				if (device.info.useAtlas === true) {
+				if (device?.info?.useAtlas === true) {
 					let coord = false;
 
 					coord = device.atlas.getLatestFFTData(channel)[0];
@@ -2416,14 +2414,11 @@ class streamSession {
 					else {
 						return undefined;
 					}
-				}
 			}
 		}
 
 		let getEEGCoherenceBandpowerMeans = (device, channel) => {
-			if (device.info){
-
-				if (device.info.useAtlas === true) {
+				if (device?.info?.useAtlas === true) {
 					let coord = false;
 
 					coord = device.atlas.getLatestCoherenceData(channel);
@@ -2435,12 +2430,10 @@ class streamSession {
 						return undefined;
 					}
 				}
-			}
 		}
 
 		let getEEGBandpowerSlices = (device, channel) => {
-			if (device.info){
-				if (device.info.useAtlas === true) {
+				if (device?.info?.useAtlas === true) {
 					let coord = false;
 
 					coord = device.atlas.getLatestFFTData(channel)[0];
@@ -2452,13 +2445,10 @@ class streamSession {
 						return undefined;
 					}
 				}
-			}
 		}
 
 		let getEEGCoherenceBandpowerSlices = (device, channel) => {
-			if (device.info){
-
-				if (device.info.useAtlas === true) {
+				if (device?.info?.useAtlas === true) {
 					let coord = false;
 
 					coord = device.atlas.getLatestCoherenceData(channel)[0];
@@ -2470,14 +2460,11 @@ class streamSession {
 						return undefined;
 					}
 				}
-			}
 		}
 
 		let getCoherenceData = (device, tag, nArrays = 'all') => {
 			let get = nArrays;
-			if (device.info){
-
-				if (device.info.useAtlas === true) {
+				if (device?.info?.useAtlas === true) {
 					let coord = device.atlas.getCoherenceByTag(tag);
 					if (coord !== undefined) {
 						if (get === 'all') {
@@ -2493,7 +2480,6 @@ class streamSession {
 					else {
 						return undefined;
 					}
-				}
 			}
 		}
 
