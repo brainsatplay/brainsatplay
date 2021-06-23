@@ -121,7 +121,7 @@ export class SensoriumApplet {
         }
         )
         this.graph.streams = ['modifiers','hostData']
-        
+
         this.tutorialManager = null
 
         this.currentView = 'plane'
@@ -637,7 +637,7 @@ void main(){
                             for (let i = 0; i < newArr.length; i++){
                                 let sampleAve = []
                                 averageModifiers[mod].forEach(a => {
-                                    sampleAve.push(a[i])
+                                    if (a != null) sampleAve.push(a[i])
                                 })
                                 newArr[i] = this.session.atlas.mean(sampleAve)
                             }

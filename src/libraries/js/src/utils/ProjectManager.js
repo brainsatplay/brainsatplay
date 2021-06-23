@@ -24,7 +24,7 @@ export class ProjectManager{
             <head>
                 <title>Brains@Play Starter Project</title>
                 <link rel='stylesheet' href='./style.css'>
-                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.15"></script>
+                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18"></script>
                 ${script}
             </head>
             <body></body>
