@@ -121,7 +121,7 @@ export class SensoriumApplet {
         }
         )
         this.graph.streams = ['modifiers','hostData']
-        
+
         this.tutorialManager = null
 
         this.currentView = 'plane'
@@ -637,7 +637,7 @@ void main(){
                             for (let i = 0; i < newArr.length; i++){
                                 let sampleAve = []
                                 averageModifiers[mod].forEach(a => {
-                                    sampleAve.push(a[i])
+                                    if (a != null) sampleAve.push(a[i])
                                 })
                                 newArr[i] = this.session.atlas.mean(sampleAve)
                             }
@@ -646,9 +646,9 @@ void main(){
                     }
 
                     let neosensoryBuzz = this.session.getDevice('buzz')
-                    if (neosensoryBuzz){
+                    // if (neosensoryBuzz){
                         this.updateBuzz(averageModifiers)
-                    }
+                    // }
 
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);
@@ -1657,12 +1657,12 @@ void main(){
 
     getData(u) {        
         if (u === 'iFFT'){
-            let channel;
-            // if(!ch) {
-                channel = eegmath.interpolateArray(this.session.atlas.getLatestFFTData()[0],256);
-            // } else { channel = this.session.atlas.getLatestFFTData(ch); }
-            if(channel) return  channel.fft;
-            else return new Array(256).fill(0);
+                let channel = this.session.atlas.getLatestFFTData()[0]
+                if (channel.fft){
+                    let fft = eegmath.interpolateArray(channel.fft,256);
+                    if(fft) return  fft;
+                    else return new Array(256).fill(0);
+                }else return new Array(256).fill(0);
         }
         else if (u === 'iHRV'){
             if (this.session.atlas.data.heg.length > 0) return  this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv; 
@@ -1783,10 +1783,11 @@ void main(){
     updateBuzz(modifiers) {
         let node = this.graph.getNode(this.props.id, 'buzz')
 
-        if (modifiers.iAudio){
-            this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
-        } else if (modifiers.iFFT){
+        if (modifiers.iFFT){
             this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iFFT, meta: {label: 'iFFT'}}])
+        }
+        if (modifiers.iAudio & modifiers.iFFT.reduce((a,b) => a + b) == 0){
+            this.graph.runSafe(node, 'audioToMotors',[{data: modifiers.iAudio, meta: {label: 'iAudio'}}])
         }
 
         if (modifiers.iFrontalAlpha1Coherence){
