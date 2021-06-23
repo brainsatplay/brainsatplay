@@ -1,13 +1,13 @@
 import Worker from 'web-worker'
 
-import {gpu, onMessage} from './utils/eeg.worker.js'
-
 let workerURL = './_dist_/libraries/js/src/utils/eeg.worker.js';
 let defaultWorkerThreads = 0;
 
 let eegWorkers = [];
 
 // // WEBPACK
+// import gpu from './utils/eeg.worker.js'
+// import onMessage from './utils/eeg.worker.js'
 // import worker from './utils/eeg.worker.js'
 
 // for(var i = 0; i < defaultWorkerThreads; i++){
@@ -15,6 +15,7 @@ let eegWorkers = [];
 // }
 
 // SNOWPACK
+import {gpu, onMessage} from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
     eegWorkers.push(
         new Worker(
@@ -22,6 +23,26 @@ for(var i = 0; i < defaultWorkerThreads; i++){
             {name:'eegworker_'+i, type: 'module'}
         )
     )
+}
+
+class dummyWorker {
+    constructor(workerResponses, workerOnMessage) {
+        this.workerResponses = workerResponses;
+        this.workerOnMessage = workerOnMessage;
+    }
+    onmessage(msg){
+        this.workerResponses.forEach((foo,i) => {
+            foo(msg);
+        });
+    }
+
+    workerOnMessage=(ev)=>{}
+
+    postMessage(input) {
+        let result = this.workerOnMessage({data:input}); 
+        this.onmessage(result);
+    }
+    terminate(){}
 }
 
 export class WorkerManager {
@@ -60,13 +81,13 @@ export class WorkerManager {
             let newWorker = new Worker(workerurl,//new URL(workerurl, import.meta.url),
             {name:'eegworker_'+this.workers.length, type: 'module',});
             this.workers.push({worker:newWorker, id:id});
-            newWorker.onmessage = (e) => {
-                var msg = e.data;
+            newWorker.onmessage = (ev) => {
+                var msg = ev.data;
                 //console.log(msg)
                 //window.receivedMsg(msg);
                 this.workerResponses.forEach((foo,i) => {
                     foo(msg);
-                })
+                });
             };
             console.log("worker threads: ", this.workers.length)
             return id; //worker id
@@ -78,12 +99,7 @@ export class WorkerManager {
 
     createDummyWorker = () => {
         let id = "worker_"+Math.floor(Math.random()*10000000000);
-        let dummyWorker = {
-            onmessage:onMessage,
-            postMessage:(input)=>{this.onmessage({data:input});},
-            terminate:()=>{}
-        };
-        this.workers.push({worker:dummyWorker, id:id});
+        this.workers.push({worker:new dummyWorker(this.workerResponses,onMessage), id:id});
     }
 
     postToWorker = (input, id = null) => {

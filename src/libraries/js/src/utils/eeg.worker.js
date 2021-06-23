@@ -130,15 +130,24 @@ export const onMessage = (event) => {
 
   // output some results!
   console.timeEnd("worker");
-  
-  postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
+
+  try {
+    if(window.document === undefined)
+    {
+      postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
+      return 0;
+    } else return {output: output, foo: event.data.foo, origin: event.data.origin};
+  } catch (err) {
+    postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
+    return 0;
+  }
 }
 
 try {
   if(window.document === undefined)
   {
     addEventListener('message', onMessage);
-  }
+  } 
 } catch (err) {
   addEventListener('message', onMessage);
 }
