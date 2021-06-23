@@ -55,8 +55,8 @@ export class WorkerManager {
 
     addWorker = (workerurl='./_dist_/libraries/js/src/utils/eeg.worker.js') => {
         console.log('add worker');
-        let id = "worker_"+Math.floor(Math.random()*10000000000);
         try {
+            let id = "worker_"+Math.floor(Math.random()*10000000000);
             let newWorker = new Worker(workerurl,//new URL(workerurl, import.meta.url),
             {name:'eegworker_'+this.workers.length, type: 'module',});
             this.workers.push({worker:newWorker, id:id});
@@ -77,6 +77,7 @@ export class WorkerManager {
     }
 
     createDummyWorker = () => {
+        let id = "worker_"+Math.floor(Math.random()*10000000000);
         let dummyWorker = {
             onmessage:onMessage,
             postMessage:(input)=>{this.onmessage({data:input});},
