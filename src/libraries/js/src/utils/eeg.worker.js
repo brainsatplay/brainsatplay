@@ -1,9 +1,9 @@
 import { gpuUtils } from './gpuUtils.js';
 import { eegmath } from './eegmath';
 
-export const gpu = new gpuUtils();
+const gpu = new gpuUtils();
 
-export const onMessage = (event) => {
+const onMessage = (event) => {
   // define gpu instance
   //console.log("worker executing...")
   console.time("worker");
