@@ -16,22 +16,24 @@ export class ProjectManager{
         this.folders = {
             app: this.helper.folder("app")
         }
-    }
 
-    addDefaultFiles(){
-        this.helper.file("index.html",`
+        this.createDefaultHTML = (script) => {
+        return `
         <!DOCTYPE html> 
         <html lang="en"> 
             <head>
                 <title>Brains@Play Starter Project</title>
                 <link rel='stylesheet' href='./style.css'>
-                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.13"></script>
-                <script src="./index.js" type="module"></script>
+                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.15"></script>
+                ${script}
             </head>
-            <body>
-            </body>
+            <body></body>
         </html>
-        `)
+        `}
+    }
+
+    addDefaultFiles(){
+        this.helper.file("index.html",this.createDefaultHTML(`<script src="./index.js" type="module"></script>`))
 
 
         this.helper.file("style.css",`body {
