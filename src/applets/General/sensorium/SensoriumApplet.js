@@ -371,12 +371,12 @@ void main(){
             this.tutorialManager.updateParent(this.appletContainer)
 
 
-            document.getElementById(this.props.id).onmousemove = (e) => {
-                this.mousexy[0] = e.offsetX;
-                this.mousexy[1] = e.offsetY;
+            document.getElementById(this.props.id).onmousemove = (ev) => {
+                this.mousexy[0] = ev.offsetX;
+                this.mousexy[1] = ev.offsetY;
             }
 
-            document.getElementById(this.props.id).onmousedown = (e) => {
+            document.getElementById(this.props.id).onmousedown = (ev) => {
                 this.mouseclicked = 1.0;
             }
 
@@ -410,14 +410,14 @@ void main(){
             this.swapShader();
             
             
-            selector.onchange = (e) => {
+            selector.onchange = (ev) => {
                 
                 if(this.previousSelect === 'fromtext')
                     this.shaderTemplate = this.liveEditor.input.value;
                 
-                this.previousSelect = e.target.value;
+                this.previousSelect = ev.target.value;
 
-                if (e.target.value === 'fromtext') {
+                if (ev.target.value === 'fromtext') {
                     console.log('from text')
                     // document.getElementById(props.id+'textshader').style.display = '';
                     this.startTime = Date.now(); //reset start time
@@ -428,14 +428,14 @@ void main(){
                     editorContainer.style.display = '';
                     this.editorhidden = false;
                 }
-                else if (e.target.value != 'Gallery'){
+                else if (ev.target.value != 'Gallery'){
                     for(const prop in this.shaders) {
-                        if(e.target.value === this.shaders[prop].name) {
+                        if(ev.target.value === this.shaders[prop].name) {
                             this.currentShader = this.shaders[prop];
                             break;
                         }
                     }
-                    if(e.target.value === 'Galaxy' || e.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
+                    if(ev.target.value === 'Galaxy' || ev.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
                     this.shaderEdited = false;
                     this.swapShader();
                     this.setEffectOptions();
@@ -846,14 +846,14 @@ void main(){
                             if(opt.value === cmd.shader.name) {
                                 shaderselector.selectedIndex = j;
                                 //console.log(shaderselector.value);
-                                let e = {target:shaderselector}
-                                shaderselector.onchange(e);
+                                let ev = {target:shaderselector}
+                                shaderselector.onchange(ev);
                             }
                         });
                     } else if (cmd.shader.frag) {
                         shaderselector.selectedIndex = shaderselector.options.length-1;
-                        let e = {target:shaderselector}
-                        shaderselector.onchange(e);
+                        let ev = {target:shaderselector}
+                        shaderselector.onchange(ev);
                         let fragment;
                         if(!cmd.shader.frag.includes('#define')) fragment =  textdecoder.decode(Uint8Array.from(JSON.parse(cmd.shader.frag)));
                         else fragment = cmd.shader.frag;
@@ -1016,33 +1016,33 @@ void main(){
     getCurrentConfiguration = (includeSounds=false, includeModifiers=true, encodeSoundsAsText=false) => {
         let settings = [];
         let textencoder = new TextEncoder();
-        this.effects.forEach((e,j) => {
+        this.effects.forEach((eff,j) => {
             settings.push({
-                feedback:e.feedback.value
+                feedback:eff.feedback.value
             });
             if(includeSounds){ //optional for speed. should only run once otherwise
-                //console.log(e);
-                if(e.sourceIdx !== false) {
-                    if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+e.uiIdx).value === 'none') {
+                //console.log(eff);
+                if(eff.sourceIdx !== false) {
+                    if(includeSounds !== 'urls' && document.getElementById(this.props.id+'soundselect'+eff.uiIdx).value === 'none') {
                         settings[j].soundbuffer = {};
-                        settings[j].soundbuffer.buffers = new Array(e.source.buffer.numberOfChannels).fill(new Float32Array(Math.floor(e.source.buffer.duration*e.source.buffer.sampleRate)));
+                        settings[j].soundbuffer.buffers = new Array(eff.source.buffer.numberOfChannels).fill(new Float32Array(Math.floor(eff.source.buffer.duration*eff.source.buffer.sampleRate)));
                         settings[j].soundbuffer.buffers.forEach((channel,k) => {
-                            console.log(e.source.buffer)
-                            e.source.buffer.copyFromChannel(channel,k,0);
+                            console.log(eff.source.buffer)
+                            eff.source.buffer.copyFromChannel(channel,k,0);
                             if(encodeSoundsAsText) settings[j].soundbuffer.buffers[k] = "["+textencoder.encode(channel.toString())+"]";
                         });
-                        settings[j].soundbuffer.samplerate = e.source.buffer.sampleRate;
-                        settings[j].soundbuffer.duration = e.source.buffer.duration;
+                        settings[j].soundbuffer.samplerate = eff.source.buffer.sampleRate;
+                        settings[j].soundbuffer.duration = eff.source.buffer.duration;
                     } else {
                         settings[j].soundurl = {
-                            name:Array.from(document.getElementById(this.props.id+'soundselect'+e.uiIdx).options)[document.getElementById(this.props.id+'soundselect'+e.uiIdx).selectedIndex].innerHTML,
-                            url:document.getElementById(this.props.id+'soundselect'+e.uiIdx).value
+                            name:Array.from(document.getElementById(this.props.id+'soundselect'+eff.uiIdx).options)[document.getElementById(this.props.id+'soundselect'+eff.uiIdx).selectedIndex].innerHTML,
+                            url:document.getElementById(this.props.id+'soundselect'+eff.uiIdx).value
                         };
                     }
                 }
             }
         });
-
+        
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
@@ -1255,7 +1255,6 @@ void main(){
             }
             else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
-                this.effects.splice(idx,1);
             } 
 
             if (!['micin', 'none', 'custom'].includes(soundurl)) {
@@ -1354,9 +1353,9 @@ void main(){
     }
 
     setEffectOptions() {
-        this.effects.forEach((e)=>{
-            if(!e.id) {
-                let sel = document.getElementById(this.props.id+'select'+e.uiIdx);
+        this.effects.forEach((eff)=>{
+            if(!eff.id) {
+                let sel = document.getElementById(this.props.id+'select'+eff.uiIdx);
                 for(let i = 0; i < sel.options.length; i++){
                     if(this.currentShader.uniforms.indexOf(sel.options[i].value)>-1){
                         sel.options[i].style.display='';
