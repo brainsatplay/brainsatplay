@@ -23,5 +23,8 @@ export const settings = {
       </p>
     `,
     "image":img,
-    "analysis": ['eegcoherence']
+    "analysis": ['eegcoherence'],
+    "intro": {
+      title: false
+    }
 }
