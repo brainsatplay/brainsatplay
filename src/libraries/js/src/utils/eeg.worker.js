@@ -121,6 +121,7 @@ addEventListener('message', e => {
     }}
   ];
 
+  console.log(e);
   callbacks.find((o,i)=>{
     if(o.case === e.data.foo) {
       output = o.callback(e.data.input);

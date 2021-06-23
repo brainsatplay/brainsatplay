@@ -1900,6 +1900,7 @@ else {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
+			console.log(applet.graph.streams)
 			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
@@ -2339,7 +2340,7 @@ class streamSession {
 		//Stream table default parameter callbacks to extract desired data from the data atlas
 		let getEEGChData = (device, channel, nSamples = 'all') => {
 			let get = nSamples;
-			if (device.info.useAtlas === true) {
+			if (device?.info?.useAtlas === true) {
 				let coord = false;
 				if (typeof channel === 'number') {
 					coord = device.atlas.getEEGDataByChannel(channel);
@@ -2376,7 +2377,7 @@ class streamSession {
 
 		let getEEGFFTData = (device, channel, nArrays = 'all') => {
 			let get = nArrays;
-			if (device.info.useAtlas === true) {
+			if (device?.info?.useAtlas === true) {
 				let coord = false;
 				if (typeof channel === 'number') {
 					coord = device.atlas.getEEGFFTData(channel);
@@ -2402,83 +2403,83 @@ class streamSession {
 		}
 
 		let getEEGBandpowerMeans = (device, channel) => {
-			if (device.info.useAtlas === true) {
-				let coord = false;
+				if (device?.info?.useAtlas === true) {
+					let coord = false;
 
-				coord = device.atlas.getLatestFFTData(channel)[0];
+					coord = device.atlas.getLatestFFTData(channel)[0];
 
-				if (coord !== undefined) {
-					return { time: coord.time, bandpowers: coord.mean };
-				}
-				else {
-					return undefined;
-				}
+					if (coord !== undefined) {
+						return { time: coord.time, bandpowers: coord.mean };
+					}
+					else {
+						return undefined;
+					}
 			}
 		}
 
 		let getEEGCoherenceBandpowerMeans = (device, channel) => {
-			if (device.info.useAtlas === true) {
-				let coord = false;
+				if (device?.info?.useAtlas === true) {
+					let coord = false;
 
-				coord = device.atlas.getLatestCoherenceData(channel);
+					coord = device.atlas.getLatestCoherenceData(channel);
 
-				if (coord !== undefined) {
-					return { time: coord.time, bandpowers: coord.mean };
+					if (coord !== undefined) {
+						return { time: coord.time, bandpowers: coord.mean };
+					}
+					else {
+						return undefined;
+					}
 				}
-				else {
-					return undefined;
-				}
-			}
 		}
 
 		let getEEGBandpowerSlices = (device, channel) => {
-			if (device.info.useAtlas === true) {
-				let coord = false;
+				if (device?.info?.useAtlas === true) {
+					let coord = false;
 
-				coord = device.atlas.getLatestFFTData(channel)[0];
+					coord = device.atlas.getLatestFFTData(channel)[0];
 
-				if (coord !== undefined) {
-					return { time: coord.time, bandpowers: coord.slice };
+					if (coord !== undefined) {
+						return { time: coord.time, bandpowers: coord.slice };
+					}
+					else {
+						return undefined;
+					}
 				}
-				else {
-					return undefined;
-				}
-			}
 		}
 
 		let getEEGCoherenceBandpowerSlices = (device, channel) => {
-			if (device.info.useAtlas === true) {
-				let coord = false;
+				if (device?.info?.useAtlas === true) {
+					let coord = false;
 
-				coord = device.atlas.getLatestCoherenceData(channel)[0];
+					coord = device.atlas.getLatestCoherenceData(channel)[0];
 
-				if (coord !== undefined) {
-					return { time: coord.time, bandpowers: coord.slice };
+					if (coord !== undefined) {
+						return { time: coord.time, bandpowers: coord.slice };
+					}
+					else {
+						return undefined;
+					}
 				}
-				else {
-					return undefined;
-				}
-			}
 		}
 
 		let getCoherenceData = (device, tag, nArrays = 'all') => {
 			let get = nArrays;
-			if (device.info.useAtlas === true) {
-				let coord = device.atlas.getCoherenceByTag(tag);
-				if (coord !== undefined) {
-					if (get === 'all') {
-						if (coord.fftCount === 0) return undefined;
-						get = coord.fftCount - coord.lastRead;
-						coord.lastRead = coord.fftCount;
-						if (get === 0) return undefined;
+				if (device?.info?.useAtlas === true) {
+					let coord = device.atlas.getCoherenceByTag(tag);
+					if (coord !== undefined) {
+						if (get === 'all') {
+							if (coord.fftCount === 0) return undefined;
+							get = coord.fftCount - coord.lastRead;
+							coord.lastRead = coord.fftCount;
+							if (get === 0) return undefined;
+						}
+						let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
+						let ffts = coord.ffts.slice(coord.ffts.length - get, coord.ffts.length);
+						return { times: cohTimes, ffts: ffts };
 					}
-					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
-					let ffts = coord.ffts.slice(coord.ffts.length - get, coord.ffts.length);
-					return { times: cohTimes, ffts: ffts };
-				}
-				else {
-					return undefined;
-				}
+					else {
+						return undefined;
+					}
 			}
 		}
 
