@@ -1042,7 +1042,7 @@ void main(){
                 }
             }
         });
-        if(settings)
+        
         let shaderselector = document.getElementById(this.props.id+'shaderSelector');
         settings[0].controls = document.getElementById(this.props.id+'controls').checked;
         settings[0].shader = {};
