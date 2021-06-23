@@ -1,5 +1,6 @@
 import Worker from 'web-worker'
 
+import {onMessage} from './utils/eeg.worker.js'
 
 let workerURL = './_dist_/libraries/js/src/utils/eeg.worker.js';
 let defaultWorkerThreads = 0;
@@ -53,9 +54,9 @@ export class WorkerManager {
     }
 
     addWorker = (workerurl='./_dist_/libraries/js/src/utils/eeg.worker.js') => {
-        console.log('add worker')
+        console.log('add worker');
+        let id = "worker_"+Math.floor(Math.random()*10000000000);
         try {
-            let id = "worker_"+Math.floor(Math.random()*10000000000);
             let newWorker = new Worker(workerurl,//new URL(workerurl, import.meta.url),
             {name:'eegworker_'+this.workers.length, type: 'module',});
             this.workers.push({worker:newWorker, id:id});
@@ -70,8 +71,18 @@ export class WorkerManager {
             console.log("worker threads: ", this.workers.length)
             return id; //worker id
         } catch (err) {
-            console.log(err);
+            console.log("Error, creating dummy worker (WARNING: Single Threaded). ERROR:", err);
+            this.createDummyWorker();
         }
+    }
+
+    createDummyWorker = () => {
+        let dummyWorker = {
+            onmessage:onMessage,
+            postMessage:(input)=>{this.onmessage({data:input});},
+            terminate:()=>{}
+        };
+        this.workers.push({worker:dummyWorker, id:id});
     }
 
     postToWorker = (input, id = null) => {

@@ -3,7 +3,7 @@ import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
-addEventListener('message', event => {
+export const onMessage = (event) => {
   // define gpu instance
   //console.log("worker executing...")
   console.time("worker");
@@ -132,4 +132,13 @@ addEventListener('message', event => {
   console.timeEnd("worker");
   
   postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
-});
+}
+
+try {
+  if(window.document === undefined)
+  {
+    addEventListener('message', onMessage);
+  }
+} catch (err) {
+  addEventListener('message', onMessage);
+}

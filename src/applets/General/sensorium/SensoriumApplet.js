@@ -1255,7 +1255,6 @@ void main(){
             }
             else if (found != null){
                 found.source.mediaStream.getTracks()[0].stop();
-                this.effects.splice(idx,1);
             } 
 
             if (!['micin', 'none', 'custom'].includes(soundurl)) {
