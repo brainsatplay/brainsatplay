@@ -99,9 +99,6 @@ export class SensoriumApplet {
 
         //-------Required Multiplayer Properties------- 
         this.subtitle = `Dynamic audiovisual feedback. Let's get weird!` // Specify a subtitle for the title screen
-        this.graph = { 
-            streams: ['modifiers','hostData'] // Register your app data streams
-        }
         //----------------------------------------------
 
         //-------Other Multiplayer Properties------- 
@@ -123,7 +120,7 @@ export class SensoriumApplet {
                 }
             }
             )
-
+            this.graph.streams = ['modifiers','hostData']
         this.tutorialManager = null
 
         this.currentView = 'plane'
