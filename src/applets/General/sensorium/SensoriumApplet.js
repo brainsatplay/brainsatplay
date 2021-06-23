@@ -1657,12 +1657,12 @@ void main(){
 
     getData(u) {        
         if (u === 'iFFT'){
-            let channel;
-            // if(!ch) {
-                channel = eegmath.interpolateArray(this.session.atlas.getLatestFFTData()[0],256);
-            // } else { channel = this.session.atlas.getLatestFFTData(ch); }
-            if(channel) return  channel.fft;
-            else return new Array(256).fill(0);
+                let channel = this.session.atlas.getLatestFFTData()[0]
+                if (channel.fft){
+                    let fft = eegmath.interpolateArray(channel.fft,256);
+                    if(fft) return  fft;
+                    else return new Array(256).fill(0);
+                }else return new Array(256).fill(0);
         }
         else if (u === 'iHRV'){
             if (this.session.atlas.data.heg.length > 0) return  this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv; 
