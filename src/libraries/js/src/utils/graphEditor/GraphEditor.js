@@ -322,37 +322,55 @@ export class GraphEditor{
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
         let tab = document.querySelector(`[data-target="${id}"]`);
-
         if (tab == null){
             tab = document.createElement('button')
             tab.classList.add('tablinks')
             tab.setAttribute('data-target', id)
             tab.innerHTML = label
 
-            let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
-            tab.onclick = () => {
-                // Close Other Tabs
-                let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
-                for (let otherTab of allTabs){
-                    let tabId = otherTab.getAttribute('data-target')
-                    let target = document.getElementById(tabId)
-                    if(id != tabId) {
-                        if (target) target.style.display = 'none'
-                        otherTab.classList.remove('active')
-                    } else {
-                        if (target) target.style.display = ''
-                        otherTab.classList.add('active')
-                        onOpen()
-                    }
+            if (label != 'Graph Editor'){
+                let closeIcon = document.createElement('div')
+                closeIcon.innerHTML = 'x'
+                closeIcon.classList.add('close')
+
+                closeIcon.onclick = () => {
+                    tab.style.display = 'none'
+                    let editorTab = document.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
+                    editorTab.click()
                 }
-                this.responsive()
+                tab.insertAdjacentElement('beforeend', closeIcon)
+            }
+
+            tab.onclick = () => {
+                if (tab.style.display !== 'none'){
+                    // Close Other Tabs
+                    let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
+                    for (let otherTab of allTabs){
+                        let tabId = otherTab.getAttribute('data-target')
+                        let target = document.getElementById(tabId)
+                        if(id != tabId) {
+                            if (target) target.style.display = 'none'
+                            otherTab.classList.remove('active')
+                        } else {
+                            if (target) target.style.display = ''
+                            otherTab.classList.add('active')
+                            onOpen()
+                        }
+                    }
+                    this.responsive()
+                }
             }
 
             document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
         }
-        tab.click()
+        this.clickTab(tab)
         return tab
+    }
+
+    clickTab = (tab) => {
+        if (tab.style.display === 'none') tab.style.display = ''
+        tab.click()
     }
 
     createSettingsEditor(settings){
@@ -697,7 +715,7 @@ export class GraphEditor{
             })
 
         } else {
-            this.files[filename].tab.click()
+            this.clickTab(this.files[filename].tab)
         }
     }
 

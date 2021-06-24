@@ -538,6 +538,27 @@ select {
     height: var(--editor-tab-height);
     background: rgb(0,0,0);
   }
+
+  .brainsatplay-node-editor-tabs > .tab > .tablinks {
+    position: relative;
+  }
+
+  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.3;
+    cursor: pointer;
+    padding: 15px;
+    transition: 0.3s;
+    font-size: 130%;
+  }
+
+  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close:hover {
+    opacity: 0.5;
+    /* transition: 0.1s; */
+  }
   
   /* Style the buttons that are used to open the tab content */
   .brainsatplay-node-editor-tabs > .tab button {
