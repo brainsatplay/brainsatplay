@@ -2,6 +2,8 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplay from '../../brainsatplay'
 
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18";
+
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
     for (let name in brainsatplay.plugins[type]){
@@ -24,7 +26,7 @@ export class ProjectManager{
             <head>
                 <title>Brains@Play Starter Project</title>
                 <link rel='stylesheet' href='./style.css'>
-                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18"></script>
+                <script src="${latest}"></script>
                 ${script}
             </head>
             <body></body>
@@ -92,7 +94,7 @@ app.init()`)
                             justify-content: center; 
                         }
                     </style>
-                    <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18"></script>
+                    <script src="${latest}"></script>
                     <script type="module">
                         ${combined}
                         let app =  new brainsatplay.Application(settings);
