@@ -68,7 +68,8 @@ app.init()`)
         let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
-            combined+=c.combined;
+            if(c.combined !== 'undefined' && c.combined !== undefined)
+                combined+=c.combined;
         })
         combined+=o.combined;
         this.folders.app.file(o.filename, o.data)
