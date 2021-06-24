@@ -72,7 +72,7 @@ app.init()`)
         })
         combined+=o.data;
         this.folders.app.file(o.filename, o.data)
-        this.helper.file("index_standalone.html",`
+        this.helper.file("BrainsatPlayApp.html",`
             <!DOCTYPE html> 
             <html lang="en"> 
                 <head>
