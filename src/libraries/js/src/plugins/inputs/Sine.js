@@ -15,7 +15,12 @@ export class Sine{
         }
 
         this.ports = {
-            default: {}
+            default: {
+                types: {
+                    in: null,
+                    out: 'number'
+                }
+            }
         }
 
         this.props = {

@@ -385,7 +385,7 @@ export class LiveEditor {
 
     // Live Editor UI Updates
     _updateDisplay = (text) => {
-        let result_element = document.body.querySelector(`.brainsatplay-code-highlighting-content`);
+        let result_element = this.parentNode.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
         result_element.innerHTML = replacedText;
         Prism.highlightElement(result_element);
@@ -393,7 +393,7 @@ export class LiveEditor {
 
     _syncScroll = (element) => {
         /* Scroll result to scroll coords of event - sync with textarea */
-        let result_element = document.querySelector(".brainsatplay-code-highlighting");
+        let result_element = this.parentNode.querySelector(".brainsatplay-code-highlighting");
         // Get and set x and y
         result_element.scrollTop = element.scrollTop;
 

@@ -80,18 +80,26 @@ export class Node{
 
             for (let port in node.ports){
 
-                let portElement = document.createElement('div')
-                portElement.classList.add(`node-port`)
-                portElement.classList.add(`port-${port}`)
-                portElement.setAttribute('data-node', this.nodeInfo.id)
-                portElement.setAttribute('data-port', port)
+                let inorout = (s == 'target') ? 'in' : 'out'
+                let nodeType
+                if (node.ports[port]?.types) nodeType = node.ports[port]?.types[inorout]
+ 
+                if (nodeType !== null){
+                    let portElement = document.createElement('div')
+                    portElement.classList.add(`node-port`)
+                    portElement.classList.add(`port-${port}`)
+                    portElement.classList.add(nodeType)
 
-                portElement.innerHTML = `
-                    <div class="node-tooltip">
-                        <p>${port}</p>
-                    </div>
-                `
-                portContainer.insertAdjacentElement('beforeend',portElement)
+                    portElement.setAttribute('data-node', this.nodeInfo.id)
+                    portElement.setAttribute('data-port', port)
+
+                    portElement.innerHTML = `
+                        <div class="node-tooltip">
+                            <p>${port}</p>
+                        </div>
+                    `
+                    portContainer.insertAdjacentElement('beforeend',portElement)
+                }
             }
 
             element.insertAdjacentElement('beforeend',portContainer)

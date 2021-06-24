@@ -16,7 +16,12 @@ export class Canvas{
         }
 
         this.ports = {
-            default: {},
+            default: {
+                types: {
+                    in: 'function',
+                    out: null
+                }
+            },
         }
     }
 
@@ -72,7 +77,6 @@ export class Canvas{
         userData.forEach(u => {
             this.props.drawFunctions[u.username + u.meta.label] = u.data
         })
-        return userData
     }
 
 

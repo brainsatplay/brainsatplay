@@ -28,10 +28,24 @@ export class Cursor{
         }
 
         this.ports = {
-            default: {},
-            click: {},
-            dx: {},
-            dy: {}
+            click: {
+                types: {
+                    in: 'boolean',
+                    out: null
+                }
+            },
+            dx: {
+                types: {
+                    in: 'number',
+                    out: null
+                }
+            },
+            dy: {
+                types: {
+                    in: 'number',
+                    out: null
+                }
+            }
         }
     }
 
@@ -94,11 +108,6 @@ export class Cursor{
         this.props.globalStyles.forEach(style => {
             document.head.removeChild(style);
         })
-    }
-
-  
-    default = (userData) => {
-        return userData
     }
 
     click = (userData) => {

@@ -38,7 +38,7 @@ export class Application{
 
         // Register App in Session
         this.graph = this.session.registerApp(this.props.id, this.info)
-        this.info.graph = this.graph
+        // this.info.graph = this.graph
         let setupHTML = () => {
             this.graph.nodes.forEach(n => {this.insertInterface(n)})
             this.graph.setupCallbacks.forEach(f => f())

@@ -13,7 +13,12 @@ export class Buffer{
         }
 
         this.ports = {
-            default: {}
+            default: {
+                types: {
+                    in: undefined,
+                    out: 'array',
+                }
+            }
         }
 
         this.props = {

@@ -74,13 +74,13 @@ export class GraphManager{
                     }
                     controlsToBind.push(controlDict)
                 }
-
                 if (node.ports[port].analysis == null) node.ports[port].analysis = []
                 if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
+                if (node.ports[port].types == null) node.ports[port].types = {in: undefined, out: undefined}
             }
         } else {
             node.ports = {
-                default:{active:{in:0,out:0}}
+                default:{active:{in:0,out:0}, types: {in:undefined, out: undefined}}
             }
             node.states['default'] = [{}]
         }
@@ -290,7 +290,7 @@ export class GraphManager{
             
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
-            else if (node.states[port] != null) result = node['default'](inputCopy) 
+            else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
 
             // Handle Promises
             if (!!result && typeof result.then === 'function'){
@@ -486,11 +486,16 @@ export class GraphManager{
             let sP = source.ports[sourcePort]
             if (tP.active == null) tP.active = {in: 0, out: 0}
             if (sP.active == null) sP.active = {in: 0, out: 0}
+            if (tP.types == null) tP.types = {in: undefined, out: undefined}
+            if (sP.types == null) sP.types = {in: undefined, out: undefined}
 
             tP.active.in++
             sP.active.out++
             if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
             if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
+
+
+
 
             // Push Edge into Registry
             this.applets[appId].edges.push(e)

@@ -68,12 +68,25 @@ export class Graph{
             let found = this.edges.find(e => {
                 if (e.structure.source == edge.structure.source && e.structure.target == edge.structure.target) return true
             })
-            if (res === true && found == null){
+
+            // Check Edge Compatibility
+            let compatible
+            let sourcePort = edge.structure.source.split(':')[1] ?? 'default'
+            let targetPort = edge.structure.target.split(':')[1] ?? 'default'
+            let sP = edge.source.nodeInfo.instance.ports[sourcePort]
+            let tP = edge.target.nodeInfo.instance.ports[targetPort]
+            let sourceType = sP.types['out']
+            let targetType = tP.types['in']
+            if (sourceType != targetType && !(targetType === undefined || sourceType === undefined)) compatible = false
+            else compatible = true
+            
+            if (res === true && found == null && compatible){
                 this.edges.push(edge)
                 resolve(edge)
             } else {
                 this.removeEdge(edge)
-                if (found == null) reject('edge already exists')
+                if (compatible == false) reject('ports are not of compatible types')
+                else if (found == null) reject('edge already exists')
                 else reject(res)
             }
         })

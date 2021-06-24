@@ -1465,7 +1465,7 @@ else {
 				// Auto-set username with Google Login
 				if (this.info.googleAuth != null) {
 					this.info.googleAuth.refreshCustomData().then(data => {
-						loginPage.querySelector("[name='username']")[0].value = data.username
+						loginPage.querySelector(`[name="username"]`).value = data.username
 						loginButton.click()
 					})
 				}
@@ -1900,7 +1900,6 @@ else {
 		let createSession = document.getElementById(`${applet.props.id}createSession`)
 
 		createSession.onclick = () => {
-			console.log(applet.graph.streams)
 			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
 
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })

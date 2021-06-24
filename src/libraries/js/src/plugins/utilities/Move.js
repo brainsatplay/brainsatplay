@@ -11,15 +11,44 @@ export class Move{
         }
 
         this.ports = {
-            default: {},
-            up: {},
-            down: {},
-            left: {},
-            right: {},
+            up: {
+                types: {
+                    in: 'boolean',
+                    out: 'number',
+                }
+            },
+            down: {
+                types: {
+                    in: 'boolean',
+                    out: 'number',
+                }
+            },
+            left: {
+                types: {
+                    in: 'boolean',
+                    out: 'number',
+                }
+            },
+            right: {
+                types: {
+                    in: 'boolean',
+                    out: 'number',
+                }
+            },
             // x: {},
             // y: {},
-            dx: {},
-            dy: {}
+            dx: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
+            dy: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
         }
 
         this.props = {
@@ -54,9 +83,7 @@ export class Move{
         this.props.looping = false
     }
 
-    default = (userData) => {
-        return userData
-    }
+    default = () => {}
 
     right = (userData) => {
         if (userData) this._getDecision(userData, 'right')
@@ -82,16 +109,31 @@ export class Move{
         return userData
     }
 
+    dx = (userData) => {
+        let mean = this._getMean(userData)
+
+        this.props.dx = mean
+        return userData
+    }
+
+    dy = (userData) => {
+        let mean = this._getMean(userData)
+        this.props.dy = mean
+        return userData
+    }
+
     _getDecision(userData, command){
-        let choices = userData.map(u => Number(u.data))
-        let mean = this.session.atlas.mean(choices)
+        let mean = this._getMean(userData)
         if (command) this.props[command] = (mean >= 0.5)
         return (mean >= 0.5)
     }
 
+    _getMean(userData){
+        let choices = userData.map(u => Number(u.data))
+        return this.session.atlas.mean(choices)
+    }
+
     _move(dx,dy){
-        this.props.dx = dx
-        this.props.dy = dy
         // let desiredX = this.props.x + dx
         // let desiredY = this.props.y + dy
         // this.props.x = desiredX

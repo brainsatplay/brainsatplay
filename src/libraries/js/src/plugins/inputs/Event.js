@@ -17,8 +17,12 @@ export class Event{
             default: {
                 defaults: {
                     output: [{data: false, meta: {label: `${this.params.keycode}`}}]
+                },
+                types: {
+                    in: null,
+                    out: 'boolean'
                 }
-            }
+            },
         }
     }
 

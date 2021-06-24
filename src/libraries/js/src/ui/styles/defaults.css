@@ -891,24 +891,26 @@ select {
 
 .node-port-container > .node-port {
     position: relative;
-    background: rgb(100, 100, 100);
+    background: rgb(200, 200, 200);
     width: 20px;
     height: 20px;
     transition: 0.5s;
     border-radius: 50%;
+    opacity: 40%;
     cursor: pointer;
 }
 
 .node-port-container > .node-port.active{
-    position: relative;
-    background: rgb(200, 200, 200);
-    width: 20px;
-    height: 20px;
+    opacity: 100%;
 }
 
 .node-port-container > .node-port.active.updated{
     /* background: rgb(255, 105, 97); */
     background: rgb(129, 218, 250);
+}
+
+.node-port-container .node-port:hover {
+    opacity: 1;
 }
 
 .node-port-container .node-port:hover .node-tooltip{
@@ -923,6 +925,32 @@ select {
     user-select: none;
     /* background:rgba(0, 0, 0, 0.5);
     padding: 5px; */
+}
+
+
+.node-port-container .node-port.DataAtlas {
+    background: rgb(209, 116, 255);
+}
+
+.node-port-container .node-port.string {
+    background: rgb(255, 145, 233);
+}
+
+.node-port-container .node-port.array {
+    background: rgb(133, 255, 133);
+}
+
+
+.node-port-container .node-port.object {
+    background: rgb(255, 203, 107);
+}
+
+.node-port-container .node-port.number {
+    background: rgb(255, 255, 108);
+}
+
+.node-port-container .node-port.boolean {
+    background: rgb(126, 184, 255);
 }
 
 /* Input Port Behavior */

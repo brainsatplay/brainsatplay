@@ -129,7 +129,7 @@ class Studio{
 
             let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
             set.forEach(o => {
-                if (o.status === 'fulfilled'){
+                if (o.status === 'fulfilled' && o.value.settings){
                     if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
                 }
             })
