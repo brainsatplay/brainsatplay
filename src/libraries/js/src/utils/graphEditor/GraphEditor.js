@@ -10,7 +10,7 @@ export class GraphEditor{
         this.manager = manager
         this.app = applet
         this.plugins = this.manager.applets[this.app.props.id]
-        this.parentNode = document.getElementById(parentId)
+        this.parentNode = document.getElementById(parentId) ?? document.body
         this.element = null
         this.graph=null
         this.shown = false
@@ -198,6 +198,8 @@ export class GraphEditor{
                     if (this.scale < 0.3) this.scale = 0.3 // clamp
                     if (this.scale > 1.5) this.scale = 1.5 // clamp
                     updateUI()
+
+                    console.log(this.graph.nodes)
 
                     for (let key in this.graph.nodes){
                         this.graph.nodes[key].updateAllEdges()
@@ -526,7 +528,7 @@ export class GraphEditor{
         let node = this.graph.addNode(nodeInfo)
         dragUtils.dragElement(this.graph.parentNode,node.element, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
 
-        this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
+        if (skipManager == false) this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
         this.addPortEvents(this.graph.nodes[nodeInfo.id])
 

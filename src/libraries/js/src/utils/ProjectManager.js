@@ -157,6 +157,7 @@ app.init()`)
     appToFile(app){
 
         let info = JSON.parse(JSON.stringifyFast(app.info))
+
         let imports = ``
         // Add imports
         let classNames = []
@@ -174,12 +175,14 @@ app.init()`)
             }
         })
 
+        console.log(info.graph.nodes)
         info.graph.nodes.forEach((n,i) => {
             delete n['instance']
             delete n['ui']
             delete n['fragment']
             delete n['controls']
             delete n['analysis']
+            console.log(n)
             n.class = `${classNames[i]}`
         })
 
@@ -188,6 +191,8 @@ app.init()`)
                 delete info.graph[key]
             }
         }
+
+        console.log(info.graph.nodes)
 
         info = JSON.stringifyFast(info)
         

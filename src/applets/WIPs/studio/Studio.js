@@ -186,9 +186,7 @@ class Studio{
 
                         // Create Application
                         if (settings.name === 'Load from File') {
-                            console.log('loading from file')
                             settings = await this.session.projects.loadFromFile()
-                            console.log(settings)
                             this._createApp(settings)
                         } else this._createApp(settings)
                     }
