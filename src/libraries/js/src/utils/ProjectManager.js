@@ -2,6 +2,8 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplay from '../../brainsatplay'
 
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18";
+
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
     for (let name in brainsatplay.plugins[type]){
@@ -24,7 +26,7 @@ export class ProjectManager{
             <head>
                 <title>Brains@Play Starter Project</title>
                 <link rel='stylesheet' href='./style.css'>
-                <script src="https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18"></script>
+                <script src="${latest}"></script>
                 ${script}
             </head>
             <body></body>
@@ -56,21 +58,65 @@ export class ProjectManager{
 let app =  new brainsatplay.Application(settings)
 app.init()`)
 
+        
+
     }
 
     download(app, filename='brainsatplay'){
         this.addDefaultFiles()
         let o = this.appToFile(app)
+        let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
+            combined+=c.combined;
         })
+        combined+=o.combined;
         this.folders.app.file(o.filename, o.data)
+        this.helper.file("BrainsatPlayApp.html",`
+            <!DOCTYPE html> 
+            <html lang="en"> 
+                <head>
+                    <title>Brains@Play Starter Project (Single Threaded)</title>
+                    <style>
+                        body {
+                            font-family: Montserrat, sans-serif;
+                            color: white;
+                            background: black;
+                            width: 100vw; 
+                            height: 100vh;
+                        }
+                                
+                        #application {
+                            width: 100%; 
+                            height: 100%;
+                            display: flex;
+                            align-items: center; 
+                            justify-content: center; 
+                        }
+                    </style>
+                    <script src="${latest}"></script>
+                    <script type="module">
+                        ${combined}
+                        let app =  new brainsatplay.Application(settings);
+                        app.init();
+                    </script>
+                </head>
+                <body></body>
+            </html>`)
         this.helper.generateAsync({type:"blob"})
         .then(function(content) {
             fileSaver.saveAs(content, `${filename}.zip`);
         });
     }
-
+    
+    classToFile(cls){
+        return {filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`}
+    }
+    
+    addClass(cls){
+        let info = this.classToFile(cls) 
+        return this.folders.app.file(info.filename,info.data)
+    }
 
     loadFromFile(){
         return new Promise(async (resolve) => {
@@ -111,6 +157,7 @@ app.init()`)
     appToFile(app){
 
         let info = JSON.parse(JSON.stringifyFast(app.info))
+
         let imports = ``
         // Add imports
         let classNames = []
@@ -128,12 +175,14 @@ app.init()`)
             }
         })
 
+        console.log(info.graph.nodes)
         info.graph.nodes.forEach((n,i) => {
             delete n['instance']
             delete n['ui']
             delete n['fragment']
             delete n['controls']
             delete n['analysis']
+            console.log(n)
             n.class = `${classNames[i]}`
         })
 
@@ -142,6 +191,8 @@ app.init()`)
                 delete info.graph[key]
             }
         }
+
+        console.log(info.graph.nodes)
 
         info = JSON.stringifyFast(info)
         
@@ -158,17 +209,13 @@ app.init()`)
 
         return{name: app.info.name, filename: 'settings.js', data: `${imports}
         
-        export const settings = ${info}`, classes}
+        export const settings = ${info};`, combined:`const settings = ${info};\n`, classes}
     }
 
     classToFile(cls){
-        return {filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`}
+        return {filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`, combined:cls.toString() +`\n`}
     }
 
-    addClass(cls){
-        let info = this.classToFile(cls) 
-        return this.folders.app.file(info.filename,info.data)
-    }
 
     async save(app){
         let settings = this.appToFile(app)
