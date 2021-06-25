@@ -40,8 +40,10 @@ export class Application{
         this.graph = this.session.registerApp(this.props.id, this.info)
         // this.info.graph = this.graph
         let setupHTML = () => {
-            this.graph.nodes.forEach(n => {this.insertInterface(n)})
-            this.graph.setupCallbacks.forEach(f => f())
+            this.graph.nodes.forEach(node => {this.insertInterface(node)})
+            this.graph.setupCallbacks.forEach(func => {
+                if (func instanceof Function) func()
+            })
 
 
 
