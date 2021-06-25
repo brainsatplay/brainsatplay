@@ -1,9 +1,9 @@
 export const settings = {
     name: "Blank Project",
-    devices: [""],
+    devices: ["EEG", "HEG"],
     author: "",
     description: "",
-    categories: [""],
+    categories: ["WIP"],
     instructions:"",
     display: {
       production: false,

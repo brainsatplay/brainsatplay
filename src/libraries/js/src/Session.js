@@ -330,9 +330,19 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = async () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = () => { }, ondisconnect = () => { }) {
 		
-		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+		if (typeof toggleButton === 'string'){
+			toggleButton = toggleButton.getElementById(toggleButton)
+		}
+
+		// Apply User Filter
+		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
+
+		// Apply Browser Filter
+		if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
+		
+
 			let template = () => {return `
 			<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
 				<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
@@ -364,12 +374,6 @@ export class Session {
 				deviceSelection.style.pointerEvents = 'none'
 			}
 			
-			// Apply User Filter
-			let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
-
-			// Apply Browser Filter
-			if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
-
 			newDeviceList.sort(function(a, b) {
 				let translate = (d) => {
 					if (d.company == 'Brains@Play'){
@@ -444,14 +448,22 @@ export class Session {
 					}
 
 					let updatedOnConnect = (device) => {
-						onconnect()
+						if (onconnect instanceof Function) onconnect(device)
+						for (let app in this.info.apps){
+							let connectFunc = this.info.apps[app].settings?.connect?.onconnect
+							if (connectFunc instanceof Function) connectFunc(device)
+						}
 						div.querySelector('p').innerHTML = "Disconnect"
 						setIndicator(true)
 						div.onclick = () => {this.disconnect()}
 					}
 
 					let updatedOnDisconnect = (device) => {
-						ondisconnect()
+						if (ondisconnect instanceof Function) ondisconnect(device)
+						for (let app in this.info.apps){
+							let connectFunc = this.info.apps[app].settings?.connect?.ondisconnect
+							if (connectFunc instanceof Function) connectFunc(device)
+						}
 						setIndicator(false)
 						div.querySelector('p').innerHTML = variantLabel
 						div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
@@ -463,11 +475,6 @@ export class Session {
 				})
 				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
 			});
-
-			let openDeviceSelectionMenu = () => {
-				deviceSelection.style.opacity = '1'
-				deviceSelection.style.pointerEvents = 'auto'
-			}
 
 			if (toggleButton == null){
 				let toggleButton = document.createElement('div')
@@ -481,9 +488,13 @@ export class Session {
 				`
 				toggleButton.innerHTML = 'Open Device Manager'
 				document.body.insertAdjacentElement('afterbegin',toggleButton)
-				toggleButton.onclick = openDeviceSelectionMenu
+				toggleButton.onclick = () => {
+					this.openDeviceSelectionMenu(deviceFilter)
+				}
 			}  else {
-				toggleButton.onclick = openDeviceSelectionMenu
+				toggleButton.onclick = () => {
+					this.openDeviceSelectionMenu(deviceFilter)
+				}
 			}
 
 			// Autoselect the Correct Device (if declared)
@@ -491,26 +502,65 @@ export class Session {
 				this.autoselectDevice(autoselect)
 			}
 		}
-
-			let main = document.getElementById(`${this.id}DeviceSelection`)
-			if (main == null){
-				let ui = new DOMFragment(
-					template,
-					parentNode,
-					undefined,
-					setup
-				)
-			} else {
-				if (autoselect != null){
-					this.autoselectDevice(autoselect)
+		
+		// Add UI and/or autoselect a device
+		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+			let ui = new DOMFragment(
+				template,
+				parentNode,
+				undefined,
+				setup
+			)
+		} else {
+			if (toggleButton) {
+				toggleButton.onclick = () => {
+					this.openDeviceSelectionMenu(deviceFilter)
 				}
 			}
+			
+			if (autoselect != null){
+				this.autoselectDevice(autoselect)
+			} 
+		}
+	}
+
+	openDeviceSelectionMenu = (filter) => {
+		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
+		if (deviceSelection){
+			deviceSelection.style.opacity = '1'
+			deviceSelection.style.pointerEvents = 'auto'
+
+			// Apply Filter to UI
+			let newDeviceList = (filter != null) ? deviceList.filter(d => filter.includes(d.name)) : deviceList
+			let companies = {}
+			deviceList.forEach(d => {
+				let deviceContainer = document.getElementById(`brainsatplay-device-${d.id}`)
+				if (deviceContainer){
+					let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
+					if (companies[cleanCompanyString] == null) companies[cleanCompanyString] = false
+					if (newDeviceList.includes(d)){
+						deviceContainer.style.display = ''
+						companies[cleanCompanyString] = true
+					} else {
+						deviceContainer.style.display = 'none'
+					}
+				}
+			})
+
+			for (let c in companies){
+				let div = document.body.querySelector(`[name="${c}"]`)
+				if (div){
+					if (companies[c]) div.style.display = ''
+					else div.style.display = 'none'
+				}
+			}
+
 		}
 	}
 
 	autoselectDevice = (autoselect) => {
 		let cleanDeviceString = autoselect.device.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
-		let variantName = ((autoselect.variant != '') ? `${cleanDeviceString}_${autoselect.variant}` : cleanDeviceString)
+		let variantName = ((autoselect.variant && autoselect.variant != '') ? `${cleanDeviceString}_${autoselect.variant}` : cleanDeviceString)
 		document.getElementById(`brainsatplay-${variantName}`).click()
 	}
 
@@ -1309,6 +1359,7 @@ else {
 
 	registerApp(appId,settings){
 		this.info.apps[appId] = this.graph.init(appId, settings)
+		this.info.apps[appId].settings = settings
 		return this.info.apps[appId]
 	}
 

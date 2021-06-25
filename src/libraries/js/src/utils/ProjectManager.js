@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplay from '../../brainsatplay'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.20";
 
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
@@ -68,12 +68,18 @@ app.init()`)
         let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
-            if(c.combined !== 'undefined' && c.combined !== undefined)
-                combined+=c.combined;
+
+            // // NOTE: Does not appropriately pull in the included classes
+            // if(c.combined !== 'undefined' && c.combined !== undefined)
+            //     combined+=c.combined;
+        })
+
+        app.graph.nodes.forEach(n => {
+            combined+=n.class.prototype.constructor.toString();
         })
         combined+=o.combined;
         this.folders.app.file(o.filename, o.data)
-        this.helper.file("BrainsatPlayApp.html",`
+        this.helper.file("compact.html",`
             <!DOCTYPE html> 
             <html lang="en"> 
                 <head>

@@ -20,7 +20,7 @@ export const deviceList = [
     {'name': 'Brainstorm', id:'brainstorm',company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
     {'name': 'Notion', id:'notion', company:'Neurosity', analysis: ['eegcoherence'], cls: notionPlugin},
     {'name': 'Muse 2', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:['', 'Aux'], cls: musePlugin, chromeOnly: true},
-    {'name': 'Muse S', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin, chromeOnly: true},
+    {'name': 'Muse S', id:'muses', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin, chromeOnly: true},
     {'name': 'Ganglion', id:'ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin, chromeOnly: true},
     {'name': 'Cyton', id:'cyton', company:'OpenBCI', analysis: ['eegcoherence'], variants: ['','Daisy'], cls: cytonPlugin, chromeOnly: true},
     {'name': 'HEGduino', id:'hegduino', company:'Joshua Brewster', analysis: [], variants: ['USB','Bluetooth'], cls: hegduinoPlugin, chromeOnly: true},

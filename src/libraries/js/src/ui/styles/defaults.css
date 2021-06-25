@@ -82,6 +82,7 @@ select {
     margin: 10px;
     border-radius: 5px;;
     position: relative;
+    align-items: flex-start;
 }
 .brainsatplay-companyCard .devices {
     width: 100%;

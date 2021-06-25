@@ -10,25 +10,10 @@ import { eegmath } from './utils/eegmath';
 
 const gpu = new gpuUtils();
 
-// // WEBPACK
-// import worker from './utils/eeg.worker.js'
-
-// for(var i = 0; i < defaultWorkerThreads; i++){
-//     eegWorkers.push(new worker())
-// }
-
-// SNOWPACK
- 
+import worker from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
-    eegWorkers.push(
-        new Worker(
-            workerURL,
-            {name:'eegworker_'+i, type: 'module'}
-        )
-    )
+    eegWorkers.push(new worker())
 }
-
-
 
 export class WorkerManager {
     constructor(){
