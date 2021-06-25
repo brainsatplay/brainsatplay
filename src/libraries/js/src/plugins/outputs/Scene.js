@@ -3,6 +3,7 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import WebXRPolyfill from 'webxr-polyfill';
 const polyfill = new WebXRPolyfill();
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
 export class Scene{
 
@@ -24,8 +25,15 @@ export class Scene{
             id: String(Math.floor(Math.random() * 1000000)),
             scene: null,
             container: null,
-            drawFunctions: {},
-            looping: false
+            controls: null,
+            looping: false,
+            velocity: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+            left: false,
+            right: false,
+            backward: false,
+            forward: false,
+            prevTime: performance.now()
         }
 
         this.ports = {
@@ -65,26 +73,38 @@ export class Scene{
             // this.props.renderer.shadowMap.enabled = true;
 
             // Controls
-            // this.props.controls = new OrbitControls(this.props.camera, this.props.renderer.domElement)
-            // this.props.controls.enablePan = true
-            // this.props.controls.enableDamping = true
-            // this.props.controls.enabled = true;
+            this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
+            this.props.scene.add(this.props.controls.getObject());
+            this.props.container.addEventListener( 'click', _ => {
+                // Ask the browser to lock the pointer
+                this.props.container.requestPointerLock = this.props.container.requestPointerLock ||
+                this.props.container.mozRequestPointerLock ||
+                this.props.container.webkitRequestPointerLock;
+                this.props.container.requestPointerLock();
+              }, false);
+
+            document.addEventListener('keydown', event => {this._onKeyDown(event)}, false);
+            document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
 
             // Support WebXR
-            window.navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-                this.props.renderer.xr.enabled = true;
+            navigator.xr.isSessionSupported('immersive-vr').then(async (isSupported) => {
                 this.props.VRButton = VRButton.createButton( this.props.renderer );
                 this.props.container.appendChild( this.props.VRButton );
 
-                this.props.controller = this.props.renderer.xr.getController( 0 );
-                this.props.controller.addEventListener( 'connected', ( event ) => {
-                    document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
-                } );
-                
-                this.props.controller.addEventListener( 'disconnected', () => {
-                    this.props.container.appendChild( this.props.VRButton );
-                    this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
-                } );
+                if (isSupported){
+                    this.props.renderer.xr.enabled = true;
+                    this.props.controller = this.props.renderer.xr.getController( 0 );
+                    this.props.controller.addEventListener( 'connected', ( event ) => {
+                        document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
+                    } );
+                    
+                    this.props.controller.addEventListener( 'disconnected', () => {
+                        this.props.container.appendChild( this.props.VRButton );
+                        this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+                    } );
+                }
+            }).catch(err => {
+                console.log("Immersive VR is not supported: " + err);
             })
 
             this.props.looping = true
@@ -111,6 +131,52 @@ export class Scene{
         })
     }
 
+    _onKeyDown = (e) => {
+        switch (e.code){
+            case 'ArrowUp':
+            case 'KeyW':
+                this.props.forward = true
+                break
+            case 'ArrowDown':
+            case 'KeyS':
+                this.props.backward = true
+                break
+            case 'ArrowLeft':
+            case 'KeyA':
+                this.props.left = true
+                break
+            case 'ArrowRight':
+            case 'KeyD':
+                this.props.right = true
+                break
+        }
+    }
+
+    _onKeyUp = (e) => {
+        switch (e.code){
+            case 'ArrowUp':
+            case 'KeyW':
+                this.props.forward = false
+                break
+            case 'ArrowDown':
+            case 'KeyS':
+                this.props.backward = false
+                break
+            case 'ArrowLeft':
+            case 'KeyA':
+                this.props.left = false
+                break
+            case 'ArrowRight':
+            case 'KeyD':
+                this.props.right = false
+                break
+        }
+    }
+
+    _setCamera = () => {
+        this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+    }
+
     _animate = () => {
 
         this.props.renderer.setAnimationLoop( this._render );
@@ -119,6 +185,24 @@ export class Scene{
 
     _render = () => {
         // this.props.controls.update()
+        const time = performance.now()
+        const delta = ( time - this.props.prevTime ) / 1000;
+
+        this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
+        this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
+
+        this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
+        this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
+        this.props.direction.normalize(); // this ensures consistent movements in all directions
+
+        if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
+        if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
+
+        this.props.controls.moveRight( - this.props.velocity.x * delta );
+        this.props.controls.moveForward( - this.props.velocity.z * delta );
+
         this.props.renderer.render( this.props.scene, this.props.camera );
+
+        this.props.prevTime = time;
     }
 }
