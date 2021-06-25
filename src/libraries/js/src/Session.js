@@ -330,7 +330,7 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autoselect = null, onconnect = () => { }, ondisconnect = () => { }) {
+	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autosimulate = false, onconnect = () => { }, ondisconnect = () => { }) {
 		
 		if (typeof toggleButton === 'string'){
 			toggleButton = toggleButton.getElementById(toggleButton)
@@ -498,8 +498,8 @@ export class Session {
 			}
 
 			// Autoselect the Correct Device (if declared)
-			if (autoselect != null){
-				this.autoselectDevice(autoselect)
+			if (autosimulate === true){
+				this.autosimulateDevice(autosimulate)
 			}
 		}
 		
@@ -518,8 +518,8 @@ export class Session {
 				}
 			}
 			
-			if (autoselect != null){
-				this.autoselectDevice(autoselect)
+			if (autosimulate === true){
+				this.autosimulateDevice(autosimulate)
 			} 
 		}
 	}
@@ -558,10 +558,11 @@ export class Session {
 		}
 	}
 
-	autoselectDevice = (autoselect) => {
-		let cleanDeviceString = autoselect.device.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
-		let variantName = ((autoselect.variant && autoselect.variant != '') ? `${cleanDeviceString}_${autoselect.variant}` : cleanDeviceString)
-		document.getElementById(`brainsatplay-${variantName}`).click()
+	autosimulateDevice = () => {
+		// let cleanDeviceString = autoselect.device.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
+		// let variantName = ((autoselect.variant && autoselect.variant != '') ? `${cleanDeviceString}_${autoselect.variant}` : cleanDeviceString)
+		// document.getElementById(`brainsatplay-${variantName}`).click()
+		document.getElementById(`brainsatplay-Synthetic`).click()
 	}
 
 	beginStream(streamParams = undefined) { //can push app stream parameters here

@@ -71,7 +71,7 @@ export class Scene{
             // this.props.controls.enabled = true;
 
             // Support WebXR
-            // window.navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+            window.navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
                 this.props.renderer.xr.enabled = true;
                 this.props.VRButton = VRButton.createButton( this.props.renderer );
                 this.props.container.appendChild( this.props.VRButton );
@@ -85,7 +85,7 @@ export class Scene{
                     this.props.container.appendChild( this.props.VRButton );
                     this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
                 } );
-            // })
+            })
 
             this.props.looping = true
             this._animate()
