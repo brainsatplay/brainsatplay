@@ -364,8 +364,8 @@ export class GraphManager{
 
             // Create Edges
             if (Array.isArray(graph.edges)){
-                graph.edges.forEach((e,i) => {
-                    edgeSetupCallbacks.push(this.addEdge(id, e, false))
+                graph.edges.forEach((edge,i) => {
+                    edgeSetupCallbacks.push(this.addEdge(id, edge, false))
                 })
             }
         }
@@ -382,8 +382,8 @@ export class GraphManager{
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
             // Listen for Updates on Multiplayer Edges
-            applet.edges.forEach((e,i) => {
-                this._subscribeToBrainstorm(e, appId)
+            applet.edges.forEach((edge,i) => {
+                this._subscribeToBrainstorm(edge, appId)
 
             })
         }
@@ -391,18 +391,18 @@ export class GraphManager{
         return applet
     }
 
-    addEdge = (appId, e, sendOutput=true) => {
+    addEdge = (appId, newEdge, sendOutput=true) => {
         let applet = this.applets[appId]
 
         let existingEdge = this.applets[appId].edges.find(edge => {
-            if (e.source == edge.source && e.target == edge.target){
+            if (newEdge.source == edge.source && newEdge.target == edge.target){
                 return true
             }
         })
         
         if (existingEdge == null){ // Do not duplicate edges
 
-            let splitSource = e.source.split(':')
+            let splitSource = newEdge.source.split(':')
             let sourceName = splitSource[0]
             let sourcePort = splitSource[1]
             if (sourcePort == null) sourcePort = 'default'
@@ -411,7 +411,7 @@ export class GraphManager{
                 if (n.id == sourceName) return true
             })
             let source = sourceInfo.instance
-            let splitTarget = e.target.split(':')
+            let splitTarget = newEdge.target.split(':')
             let targetName = splitTarget[0]
             let targetPort = splitTarget[1]
             if (targetPort == null) targetPort = 'default'
@@ -477,7 +477,7 @@ export class GraphManager{
             // And Listen for Local Changes
             if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
             let subId = this.state.subscribeSequential(label, _onTriggered)
-            applet.subscriptions.local[label].push({id: subId, target: e.target})
+            applet.subscriptions.local[label].push({id: subId, target: newEdge.target})
 
             if (target.ports[targetPort] == null) target.ports[targetPort] = {}
             if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
@@ -498,7 +498,7 @@ export class GraphManager{
 
 
             // Push Edge into Registry
-            this.applets[appId].edges.push(e)
+            this.applets[appId].edges.push(newEdge)
 
             // Update Applet
             this.updateApp(appId)
@@ -567,9 +567,9 @@ export class GraphManager{
         let applet = this.applets[id]
 
         for (let i = applet.edges.length - 1; i >=0; i--) {
-            let e = applet.edges[i] 
-            if ((e.source.split(':')[0] == label) || (e.target.split(':')[0] == label)){
-                this.removeEdge(id,e)
+            let edge = applet.edges[i] 
+            if ((edge.source.split(':')[0] == label) || (edge.target.split(':')[0] == label)){
+                this.removeEdge(id,edge)
             }
         }
     }
@@ -599,8 +599,8 @@ export class GraphManager{
             })
         }
 
-        applet.edges.find((e,i) => {
-            if (e === structure){
+        applet.edges.find((edge,i) => {
+            if (edge === structure){
                 this.applets[appId].edges.splice(i,1)
                 return true
             }
@@ -643,10 +643,10 @@ export class GraphManager{
     }
 
     // Internal Methods
-    _subscribeToBrainstorm(e, appId){
+    _subscribeToBrainstorm(edge, appId){
 
         let applet = this.applets[appId]
-        let splitSource = e.source.split(':')
+        let splitSource = edge.source.split(':')
         let sourceName = splitSource[0]
         let sourcePort = splitSource[1]
         if (sourcePort == null) sourcePort = 'default'
@@ -655,7 +655,7 @@ export class GraphManager{
             if (n.id == sourceName) return true
         })
         let source = sourceInfo.instance
-        let splitTarget = e.target.split(':')
+        let splitTarget = edge.target.split(':')
         let targetName = splitTarget[0]
         let targetPort = splitTarget[1]
         if (targetPort == null) targetPort = 'default'
