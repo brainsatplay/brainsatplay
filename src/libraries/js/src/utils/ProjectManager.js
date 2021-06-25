@@ -283,7 +283,7 @@ app.init()`)
             let m;
             do {
                 m = re.exec(info.settings)
-                m = re.exec(info.settings); // be extra sure (weird bug)
+                if (m == null) m = re.exec(info.settings); // be extra sure (weird bug)
                 if (m) {
                     let id = String(Math.floor(Math.random()*1000000))
                     classMap[id] = {
@@ -299,6 +299,7 @@ app.init()`)
             let m2;
             do {
                 m2 = re.exec(info.settings);
+                if (m2 == null) m2 = re.exec(info.settings) // be extra sure (weird bug)
                 if (m2) {
                     let defaultClass = brainsatplay[m2[1]]
                     for (let i = 2; i < m2.length; i ++){
