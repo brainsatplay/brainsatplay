@@ -18,13 +18,14 @@ module.exports = {
     '@snowpack/plugin-dotenv',
     'snowpack-plugin-glslify',
     ["@snowpack/plugin-optimize", {
-      minifyJS: true,
-      minifyCSS: true,
-      minifyHTML: true,
-      preloadModules: true,
-      preloadCSS: true,
-      target: 'es2015'
-    }],
+        minifyJS: false,
+        minifyCSS: true,
+        minifyHTML: true,
+        preloadModules: true,
+        preloadCSS: true,
+        target: 'es2015'
+      }
+    ],
   ],
   packageOptions: {
     polyfillNode: true
