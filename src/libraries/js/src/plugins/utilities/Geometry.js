@@ -81,7 +81,6 @@ export class Geometry{
                 break
         }
 
-        console.log(this.params.type, this.props.geometry)
         return [{data: this.props.geometry, meta: {label: this.label, params: this.params}}]
     }
 }

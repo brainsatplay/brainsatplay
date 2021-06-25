@@ -25,7 +25,9 @@ export class Mesh{
             material: null,
             mesh: null,
             state: new StateManager(),
-            lastRendered: Date.now()
+            lastRendered: Date.now(),
+            tStart: Date.now(),
+            looping: false
         }
 
         this.props.geometry = new THREE.SphereGeometry()
@@ -78,6 +80,7 @@ export class Mesh{
 
     init = () => {
 
+        this.props.looping = true
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
             if (Date.now() - this.props.lastRendered > 500){
@@ -86,6 +89,23 @@ export class Mesh{
             }
         })
         this.session.graph.runSafe(this,'add',[{data:true}])
+
+        let animate = () => {
+            if (this.props.looping){
+                let tElapsed = (Date.now() - this.props.tStart)/1000; 
+
+                // Set Defaults
+                if (this.props.mesh.material.uniforms){
+                    if (this.props.mesh.material.uniforms.iTime == null) this.props.mesh.material.uniforms.iTime = {value: tElapsed}
+                    if (this.props.mesh.material.uniforms.iResolution == null) this.props.mesh.material.uniforms.iResolution = {value: new THREE.Vector2(1, 1)}
+
+                    // Update Defaults
+                    this.props.mesh.material.uniforms.iTime.value = tElapsed
+                }
+                setTimeout(() => {animate()},1000/60)
+            }
+        }
+        animate()
 
     }
 
@@ -97,6 +117,7 @@ export class Mesh{
             }
             // this.props.scene.remove(this.props.mesh);
         }
+        this.props.looping = false
     }
 
     material = (userData) => {
@@ -124,6 +145,7 @@ export class Mesh{
         if (this.props.mesh == null) this.props.mesh = new THREE.Mesh( this.props.geometry, this.props.material );
         this.props.mesh.scale.set(this.params.scale, this.params.scale,this.params.scale)
         this.props.mesh.position.set(this.params.x, this.params.y, this.params.z)
+        if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1, 1);
 
         return [{data: this.props.mesh, meta: {label: this.label, params: this.params}}]
     }

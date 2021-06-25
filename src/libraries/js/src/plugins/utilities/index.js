@@ -8,5 +8,20 @@ import {Light} from './Light'
 import {Mesh} from './Mesh'
 import {Geometry} from './Geometry'
 import {Material} from './Material'
+import {VertexShader} from './VertexShader'
+import {FragmentShader} from './FragmentShader'
 
-export {Brainstorm,Transform,Move,Circle,Buffer,Line,Light, Mesh, Geometry, Material}
+export {
+    Brainstorm,
+    Transform,
+    Move,
+    Circle,
+    Buffer,
+    Line,
+    Light, 
+    Mesh, 
+    Geometry, 
+    Material,
+    VertexShader,
+    FragmentShader
+}

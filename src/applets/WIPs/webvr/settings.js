@@ -20,7 +20,9 @@ export const settings = {
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
         {id: 'material', class: brainsatplay.plugins.utilities.Material},
         {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
-        {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh},
+        {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader},
+        {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader},
+        {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:10}},
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
       edges: [
@@ -29,6 +31,14 @@ export const settings = {
         {
           source: 'geometry', 
           target: 'sphere:geometry'
+        },
+        {
+          source: 'vertex', 
+          target: 'material:vertex'
+        },
+        {
+          source: 'fragment', 
+          target: 'material:fragment'
         },
         {
           source: 'material', 

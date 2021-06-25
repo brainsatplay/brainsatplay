@@ -11,8 +11,12 @@ export class Material{
         this.params = params
 
         this.paramOptions = {
-            type: {default: 'MeshPhongMaterial', options: ['MeshPhongMaterial']},
+            type: {default: 'MeshPhongMaterial', options: [
+                'MeshPhongMaterial',
+                'ShaderMaterial'
+            ]},
             color: {default: '#ffffff'},
+            transparent: {default: false}
         }
 
         this.props = {
@@ -32,6 +36,18 @@ export class Material{
                 types: {
                     in: null,
                     out: 'Material',
+                }
+            },
+            fragment: {
+                types: {
+                    in: 'glsl',
+                    out: null
+                }
+            },
+            vertex: {
+                types: {
+                    in: 'glsl',
+                    out: null
                 }
             }
         }
@@ -59,13 +75,40 @@ export class Material{
 
     default = () => {
         // this.props.scene = scene
-        if (this.params.type === 'MeshPhongMaterial'){
-            this.props.material = new THREE.MeshPhongMaterial( {color: this.params.color, side: THREE.DoubleSide} );
-        } else {
-            this.props.material = new THREE.MeshPhongMaterial( {color: this.params.color, side: THREE.DoubleSide} );
+        switch(this.params.type){
+            case 'MeshPhongMaterial':
+                this.props.material = new THREE.MeshPhongMaterial( {color: this.params.color} );
+                break
+            case 'ShaderMaterial':
+                this.props.material = new THREE.ShaderMaterial({
+                    vertexShader: this.props.vertexShader,
+                    fragmentShader: this.props.fragmentShader,
+                    uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}
+                });
+                this.props.material.uniformsNeedUpdate = true
+                break
         }
 
+        this.props.material.side = THREE.DoubleSide
+        this.props.material.transparent = this.params.transparent
+        
+
         return [{data: this.props.material, meta: {label: this.label, params: this.params}}]
+    }
+
+    fragment = (userData) => {
+        this.params.type = 'ShaderMaterial'
+        this.props.fragmentShader = userData[0].data
+    }
+
+    vertex = (userData) => {
+        this.props.vertexShader = userData[0].data
+
+    }
+
+    _toggleShaderMaterial = () => {
+        if (this.props.vertexShader && this.props.fragmentShader) this.params.type = 'ShaderMaterial'
+        else this.params.type = 'MeshPhongMaterial'
     }
 
     _hexToRgb = (hex) => {
