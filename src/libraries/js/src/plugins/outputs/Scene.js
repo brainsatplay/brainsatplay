@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import WebXRPolyfill from 'webxr-polyfill';
+const polyfill = new WebXRPolyfill();
 
 export class Scene{
 
@@ -69,7 +71,7 @@ export class Scene{
             // this.props.controls.enabled = true;
 
             // Support WebXR
-            navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
+            // window.navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
                 this.props.renderer.xr.enabled = true;
                 this.props.VRButton = VRButton.createButton( this.props.renderer );
                 this.props.container.appendChild( this.props.VRButton );
@@ -83,7 +85,7 @@ export class Scene{
                     this.props.container.appendChild( this.props.VRButton );
                     this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
                 } );
-            })
+            // })
 
             this.props.looping = true
             this._animate()
