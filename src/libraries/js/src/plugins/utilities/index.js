@@ -4,5 +4,7 @@ import {Move} from './Move'
 import {Circle} from './Circle'
 import {Buffer} from './Buffer'
 import {Line} from './Line'
+import {Sphere} from './Sphere'
+import {Light} from './Light'
 
-export {Brainstorm,Transform,Move,Circle,Buffer,Line}
+export {Brainstorm,Transform,Move,Circle,Buffer,Line,Sphere,Light}

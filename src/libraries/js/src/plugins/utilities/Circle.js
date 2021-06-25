@@ -14,8 +14,6 @@ export class Circle{
             color: {default: '#ffffff'},
             minRadius: {default: 0, min: 0, max:1000, step: 0.01},
             scaleRadius: {default: 1, min: 0, max:1000, step: 0.01},
-            boundX: {default: true},
-            boundY: {default: true},
         }
 
         this.props = {
