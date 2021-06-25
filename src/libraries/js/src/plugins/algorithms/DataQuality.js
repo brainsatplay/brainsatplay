@@ -24,7 +24,15 @@ export class DataQuality{
                 default: 1000,
                 options: null
             }
-            
+        },
+
+        this.ports = {
+            default: {
+                types: {
+                    in: 'DataAtlas',
+                    out: 'object'                
+                }
+            }
         }
     }
 

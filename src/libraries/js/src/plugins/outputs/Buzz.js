@@ -34,13 +34,42 @@ export class Buzz{
         }
 
         this.ports = {
-            default: {},
-            motors: {},
-            leds: {},
-            audioToMotors: {},
-            mapOnBand: {},
-            fillLEDs: {},
-            status: {}
+            motors: {
+                types: {
+                    in: 'boolean',
+                    out: null
+                }
+            },
+            leds: {
+                types: {
+                    in: 'boolean',
+                    out: null
+                }
+            },
+            audioToMotors: {
+                types: {
+                    in: 'array',
+                    out: null
+                }
+            },
+            mapOnBand: {
+                types: {
+                    in: 'number',
+                    out: null
+                }
+            },
+            fillLEDs: {
+                types: {
+                    in: 'number',
+                    out: null
+                }
+            },
+            status: {
+                types: {
+                    in: undefined,
+                    out: 'boolean'
+                }
+            }
         }
 
         let added = (k) => {
@@ -76,10 +105,6 @@ export class Buzz{
 
     status() {
         return [{data: (this.session.getDevice('buzz') != null), meta:{}}]
-    }
-
-    default = (userData) => {
-        return userData
     }
 
     // Expects True/False

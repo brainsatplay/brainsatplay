@@ -646,9 +646,9 @@ void main(){
                     }
 
                     let neosensoryBuzz = this.session.getDevice('buzz')
-                    // if (neosensoryBuzz){
+                    if (neosensoryBuzz){
                         this.updateBuzz(averageModifiers)
-                    // }
+                    }
 
                     this.three.planes.forEach(p => {
                         this.updateMaterialUniforms(p.material,averageModifiers);

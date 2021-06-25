@@ -6,6 +6,15 @@ export class Debug{
         this.label = label
         this.session = session
         this.params = params
+
+        this.ports = {
+            default: {
+                types: {
+                    in: undefined,
+                    out: null
+                }
+            }
+        }
     }
 
     init = () => {}
@@ -13,9 +22,8 @@ export class Debug{
     deinit = () => {}
 
     default = (userData) => {
-        userData.forEach(u => {
-            console.log(u)
+        userData.forEach((u,i) => {
+            console.log(i,u)
         })
-        return userData
     }
 }

@@ -23,39 +23,61 @@ export class Circle{
         }
 
         this.ports = {
-            default: {
+            draw: {
                 defaults: {
                     output: [{data: this._circleFunction, meta: {label: this.label}}]
+                },
+                types: {
+                    in: null,
+                    out: 'function',
                 }
             },
-            radius: {},
-            dx: {},
-            dy: {},
-            color: {},
+            radius: {
+                types: {
+                    in: 'number',
+                    out: null,
+                }
+            },
+            dx: {
+                types: {
+                    in: 'number',
+                    out: null,
+                }
+            },
+            dy: {
+                types: {
+                    in: 'number',
+                    out: null,
+                }
+            },
+            color: {
+                types: {
+                    in: 'color',
+                    out: null,
+                }
+            },
         }
 
     }
 
-    init = (app) => {
-        console.log(app)
-    }
+    init = (app) => {}
 
     deinit = () => {}
 
-    default = () => {
+    draw = () => {
         return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]
     }
     
     radius = (userData) => {
         this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        // this.session.graph.runSafe(this,'default',[{data:true}])
     }
 
     dx = (userData) => {
         let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
         if (desiredX > 0){
             this.params.x = desiredX
-            this.session.graph.runSafe(this,'default',[{data:true}])
+            // this.session.graph.runSafe(this,'default',[{data:true}])
         }
     }
 
@@ -63,13 +85,13 @@ export class Circle{
         let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
         if (desiredY > 0){
             this.params.y = desiredY
-            this.session.graph.runSafe(this,'default',[{data:true}])
+            // this.session.graph.runSafe(this,'default',[{data:true}])
         }
     }
 
     color = (userData) => {
-        this.params.color = (userData[0].data) ? 'red' : 'white'
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        this.params.color = userData[0].data
+        // this.session.graph.runSafe(this,'default',[{data:true}])
     }
 
     _circleFunction = (ctx) => {

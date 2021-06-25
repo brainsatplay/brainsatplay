@@ -7,8 +7,13 @@ export class FFT{
         this.session = session
         this.params = params
 
-        this.port = {
-            default: {}
+        this.ports = {
+            default: {
+                types: {
+                    in: 'array',
+                    out: 'array'                
+                }
+            }
         }
 
         this.props = {

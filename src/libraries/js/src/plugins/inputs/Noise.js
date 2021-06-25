@@ -17,7 +17,12 @@ export class Noise{
         }
 
         this.ports = {
-            default: {}
+            default: {
+                types: {
+                    in: null,
+                    out: 'number'
+                }
+            }
         }
 
         this.props = {

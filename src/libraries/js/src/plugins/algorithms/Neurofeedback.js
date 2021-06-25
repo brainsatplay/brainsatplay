@@ -37,6 +37,10 @@ export class Neurofeedback{
                 defaults: {
                     output: [{data: 0, meta: {label: `neurofeedback`}}]
                 },
+                types: {
+                    in: 'DataAtlas',
+                    out: 'number'
+                }
             }, 
         } 
     }

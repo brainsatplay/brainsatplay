@@ -38,11 +38,20 @@ export class Application{
 
         // Register App in Session
         this.graph = this.session.registerApp(this.props.id, this.info)
-        this.info.graph = this.graph
+        // this.info.graph = this.graph
         let setupHTML = () => {
             this.graph.nodes.forEach(n => {this.insertInterface(n)})
             this.graph.setupCallbacks.forEach(f => f())
-            this.session.connectDevice()
+
+
+
+            // Create Device Connector (if required)
+            if (this.info.connect){
+                let parentNode = this.info.connect.parentNode
+                let toggleButton = this.info.connect.toggle
+                if (typeof toggleButton === 'string') toggleButton = this.parentNode.querySelector(`[id="${toggleButton}"]`)
+                this.session.connectDevice(parentNode, toggleButton,this.info.connect.filter,this.info.connect.autoconnect,this.info.connect.onconnect,this.info.connect.ondisconnect)
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

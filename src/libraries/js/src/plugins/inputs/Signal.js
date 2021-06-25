@@ -15,12 +15,18 @@ export class Signal{
         }
 
         this.ports = {
-            default: {}, 
+            default: {
+                types: {
+                    in: null,
+                    out: 'DataAtlas'
+                }
+            }, 
             fft: {
-                analysis: ['eegfft']
-            },
-            coherence: {
-                analysis: ['eegcoherence']
+                analysis: ['eegfft'],
+                types: {
+                    in: null,
+                    out: 'array'
+                }
             }
         }
 
@@ -77,14 +83,6 @@ export class Signal{
         else data= new Array(256).fill(0);
         return [{data, meta: {label: `signal_${this.params.device}_fft`, timestamp: Date.now()}}]
     }
-
-    coherence = () => {
-        let data = this.session.atlas.getLatestCoherenceData()[0];
-        if(data) data = channel.fft
-        else data= new Array(256).fill(0);
-        return [{data, meta: {label: `signal_${this.params.device}_coherence`, timestamp: Date.now()}}]
-    }
-
 
     _subscribeToDevices(arr) {
         arr.forEach(k => {

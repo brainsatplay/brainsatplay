@@ -24,6 +24,10 @@ export class Line{
             default: {
                 defaults: {
                     output: [{data: this._plotLines, meta: {label: this.label}}]
+                },
+                types: {
+                    in: null,
+                    out: 'function',
                 }
             },
             set: {}

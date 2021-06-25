@@ -151,3 +151,5 @@ try {
 } catch (err) {
   addEventListener('message', onMessage);
 }
+
+export default onMessage

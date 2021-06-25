@@ -10,9 +10,24 @@ export class Blink{
         this.params = params
 
         this.ports = {
-            default: {},
-            left: {},
-            right: {}
+            default: {
+                types: {
+                    in: 'DataAtlas',
+                    out: 'array'                
+                }
+            },
+            left: {
+                types: {
+                    in: 'DataAtlas',
+                    out: 'boolean'                
+                }
+            },
+            right: {
+                types: {
+                    in: 'DataAtlas',
+                    out: 'boolean'                
+                }
+            }
         }
 
         // Operator Configuration 

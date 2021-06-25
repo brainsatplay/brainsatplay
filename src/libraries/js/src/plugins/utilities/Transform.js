@@ -7,8 +7,46 @@ export class Transform{
         this.session = session
         this.params = params
         this.paramOptions = {
-            operator: {default: '', options: ['Add','Subtract', 'Multiply', 'Divide', 'Mean', 'Sum']},
             value: {default: 0, options: null},
+        }
+
+        this.ports = {
+            add: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
+            subtract: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
+            multiply: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
+            divide: {
+                types: {
+                    in: 'number',
+                    out: 'number',
+                }
+            },
+            mean: {
+                types: {
+                    in: 'array',
+                    out: 'number',
+                }
+            },
+            sum: {
+                types: {
+                    in: 'array',
+                    out: 'number',
+                }
+            }
         }
     }
 
@@ -16,33 +54,33 @@ export class Transform{
 
     deinit = () => {}
 
-    default = (userData) => {
+    add = (userData) => {
+        userData.forEach(u => {u.data = u.data.map(v => v += transformer)})
+        return userData
+    }
 
-        userData.forEach(u => {
-            let notArray = false
-            if (!Array.isArray(u.data)) {
-                u.data = [u.data]
-                notArray = true
-            }
+    subtract = (userData) => {
+        userData.forEach(u => {u.data = u.data.map(v => v -= transformer)})
+        return userData
+    }
 
-            let transformer = Number.parseFloat(this.params.value)
-            if (this.params.operator.toLowerCase() === 'add'){
-                u.data = u.data.map(v => v += transformer)
-            } else if (this.params.operator.toLowerCase() === 'subtract'){
-                u.data = u.data.map(v => v -= transformer)
-            } else if (this.params.operator.toLowerCase() === 'multiply'){
-                u.data = u.data.map(v => v *= transformer)
-            } else if (this.params.operator.toLowerCase() === 'divide'){
-                u.data = u.data.map(v => v /= transformer)
-            } else if (this.params.operator.toLowerCase() === 'mean'){
-                u.data = u.data.reduce((a,b) => a + b)/ u.data.length
-            } else if (this.params.operator.toLowerCase() === 'sum'){
-                u.data = u.data.reduce((a,b) => a + b)
-            }
+    multiply = (userData) => {
+        userData.forEach(u => {u.data = u.data.map(v => v *= transformer)})
+        return userData
+    }
 
-            if (notArray && Array.isArray(u.data)) u.data = u.data[0]
-        })
+    divide = (userData) => {
+        userData.forEach(u => {u.data = u.data.map(v => v /= transformer)})
+        return userData
+    }
 
+    mean = (userData) => {
+        userData.forEach(u.data = u.data.reduce((a,b) => a + b)/ u.data.length)
+        return userData
+    }
+
+    sum = (userData) => {
+        userData.forEach(u.data = u.data.reduce((a,b) => a + b))
         return userData
     }
 }

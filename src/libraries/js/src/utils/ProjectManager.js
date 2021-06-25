@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplay from '../../brainsatplay'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.18";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.20";
 
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
@@ -68,12 +68,18 @@ app.init()`)
         let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
-            if(c.combined !== 'undefined' && c.combined !== undefined)
-                combined+=c.combined;
+
+            // // NOTE: Does not appropriately pull in the included classes
+            // if(c.combined !== 'undefined' && c.combined !== undefined)
+            //     combined+=c.combined;
+        })
+
+        app.graph.nodes.forEach(n => {
+            combined+=n.class.prototype.constructor.toString();
         })
         combined+=o.combined;
         this.folders.app.file(o.filename, o.data)
-        this.helper.file("BrainsatPlayApp.html",`
+        this.helper.file("compact.html",`
             <!DOCTYPE html> 
             <html lang="en"> 
                 <head>
@@ -176,14 +182,12 @@ app.init()`)
             }
         })
 
-        console.log(info.graph.nodes)
         info.graph.nodes.forEach((n,i) => {
             delete n['instance']
             delete n['ui']
             delete n['fragment']
             delete n['controls']
             delete n['analysis']
-            console.log(n)
             n.class = `${classNames[i]}`
         })
 
@@ -192,8 +196,6 @@ app.init()`)
                 delete info.graph[key]
             }
         }
-
-        console.log(info.graph.nodes)
 
         info = JSON.stringifyFast(info)
         
@@ -281,18 +283,17 @@ app.init()`)
             let m;
             do {
                 m = re.exec(info.settings)
+                m = re.exec(info.settings); // be extra sure (weird bug)
                 if (m) {
                     let id = String(Math.floor(Math.random()*1000000))
                     classMap[id] = {
                         name: m[1],
                         class: classes[m[1]]
                     }
-                    info.settings = info.settings.replaceAll(m[0], ``)
+                    info.settings = info.settings.replace(m[0], ``)
                     info.settings = info.settings.replaceAll(`"class":${m[1]}`,`"class":${id}`)
                 }
             } while (m);
-
-            m = re.exec(info.settings);
 
             var re = /brainsatplay\.([^\.\,}]+)\.([^\.\,}]+)\.([^\.\,}]+)/g;
             let m2;
@@ -324,8 +325,10 @@ app.init()`)
                     n.class = classMap[n.class].class
                 })
                 resolve(settings)
-            } catch(e) {console.log(e); reject()}
-        } else reject('file array is empty')
+            } catch(e) {console.error(e); 
+                resolve(false)
+            }
+        } else {console.error('file array is empty'); resolve(false)}
         })
     }
 }

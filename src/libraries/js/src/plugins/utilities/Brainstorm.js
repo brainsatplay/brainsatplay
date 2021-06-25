@@ -8,8 +8,18 @@ export class Brainstorm{
         this.params = params
 
         this.ports = {
-            default: {},
-            send: {},
+            default: {
+                types: {
+                    in: undefined,
+                    out: undefined
+                }
+            },
+            send: {
+                types: {
+                    in: undefined,
+                    out: undefined
+                }
+            },
             get: {}
         }
     }
