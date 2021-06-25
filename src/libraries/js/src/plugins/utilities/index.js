@@ -4,10 +4,9 @@ import {Move} from './Move'
 import {Circle} from './Circle'
 import {Buffer} from './Buffer'
 import {Line} from './Line'
-import {Sphere} from './Sphere'
 import {Light} from './Light'
 import {Mesh} from './Mesh'
 import {Geometry} from './Geometry'
 import {Material} from './Material'
 
-export {Brainstorm,Transform,Move,Circle,Buffer,Line,Sphere,Light, Mesh, Geometry, Material}
+export {Brainstorm,Transform,Move,Circle,Buffer,Line,Light, Mesh, Geometry, Material}
