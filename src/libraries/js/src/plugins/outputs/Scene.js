@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 export class Scene{
 
@@ -14,6 +15,7 @@ export class Scene{
             camerax: {default: 0},
             cameray: {default: 1.6},
             cameraz: {default: 1.5},
+            orbitcontrols: {default: true},
         }
 
         this.props = {
@@ -47,7 +49,7 @@ export class Scene{
             this.props.container = document.getElementById(`${this.props.id}`);
             this.props.scene = new THREE.Scene();
 
-            this.props.camera = new THREE.PerspectiveCamera( 50, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 10 );
+            this.props.camera = new THREE.PerspectiveCamera( 50, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
             this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
 
             this.props.renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -59,6 +61,12 @@ export class Scene{
             this.props.renderer.setSize( this.props.container.offsetWidth, this.props.container.offsetHeight );
             this.props.container.appendChild( this.props.renderer.domElement );
             // this.props.renderer.shadowMap.enabled = true;
+
+            // Controls
+            // this.props.controls = new OrbitControls(this.props.camera, this.props.renderer.domElement)
+            // this.props.controls.enablePan = true
+            // this.props.controls.enableDamping = true
+            // this.props.controls.enabled = true;
 
             // Support WebXR
             navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
@@ -96,7 +104,8 @@ export class Scene{
 
     default = (userData) => {
         userData.forEach(u => {
-           u.data(this.props.scene) // Add to scene
+            if (!Array.isArray(u.data)) u.data = [u.data]
+            u.data.forEach(mesh => this.props.scene.add(mesh))
         })
     }
 
@@ -107,7 +116,7 @@ export class Scene{
     }
 
     _render = () => {
-        // const time = performance.now() * 0.0002;
+        // this.props.controls.update()
         this.props.renderer.render( this.props.scene, this.props.camera );
     }
 }

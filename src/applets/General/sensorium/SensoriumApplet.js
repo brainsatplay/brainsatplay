@@ -656,7 +656,6 @@ void main(){
 
                     this.controls.update()
                     this.three.renderer.render( this.three.scene, this.camera );
-                
                 }
             }
         };
