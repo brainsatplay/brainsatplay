@@ -25,6 +25,7 @@ export const settings = {
         {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader},
         {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:100}},
         {id: 'plane', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:200, rotatex: Math.PI/2}},
+        {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-2,scale:0.3}},
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
       edges: [
@@ -62,6 +63,11 @@ export const settings = {
         },
         {
           source: 'plane:add', 
+          target: 'scene:add'
+        },
+
+        {
+          source: 'plant:add', 
           target: 'scene:add'
         },
 
