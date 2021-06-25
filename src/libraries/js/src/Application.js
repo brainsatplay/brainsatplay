@@ -50,7 +50,7 @@ export class Application{
                 let parentNode = this.info.connect.parentNode
                 let toggleButton = this.info.connect.toggle
                 if (typeof toggleButton === 'string') toggleButton = this.parentNode.querySelector(`[id="${toggleButton}"]`)
-                this.session.connectDevice(parentNode, toggleButton,this.info.connect.filter,this.info.connect.autoconnect,this.info.connect.onconnect,this.info.connect.ondisconnect)
+                this.session.connectDevice(parentNode, toggleButton,this.info.connect.filter,this.info.connect.autosimulate,this.info.connect.onconnect,this.info.connect.ondisconnect)
             }
         }
 

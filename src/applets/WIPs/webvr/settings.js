@@ -1,5 +1,4 @@
 
-import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
@@ -21,8 +20,12 @@ export const settings = {
         {id: 'material', class: brainsatplay.plugins.utilities.Material},
         {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
         {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader},
+        {id: 'planegeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry'}},
+        {id: 'planemat', class: brainsatplay.plugins.utilities.Material, params:{color: '#50C878'}},
         {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader},
-        {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:10}},
+        {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:100}},
+        {id: 'plane', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:200, rotatex: Math.PI/2}},
+        {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-2,scale:0.3}},
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
       edges: [
@@ -46,6 +49,25 @@ export const settings = {
         },
         {
           source: 'sphere:add', 
+          target: 'scene:add'
+        },
+
+        // Add Ground
+        {
+          source: 'planegeo', 
+          target: 'plane:geometry'
+        },
+        {
+          source: 'planemat', 
+          target: 'plane:material'
+        },
+        {
+          source: 'plane:add', 
+          target: 'scene:add'
+        },
+
+        {
+          source: 'plant:add', 
           target: 'scene:add'
         },
 

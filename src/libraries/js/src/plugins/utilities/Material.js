@@ -11,8 +11,8 @@ export class Material{
         this.params = params
 
         this.paramOptions = {
-            type: {default: 'MeshPhongMaterial', options: [
-                'MeshPhongMaterial',
+            type: {default: 'MeshStandardMaterial', options: [
+                'MeshStandardMaterial',
                 'ShaderMaterial'
             ]},
             color: {default: '#ffffff'},
@@ -26,7 +26,7 @@ export class Material{
             lastRendered: Date.now()
         }
 
-        this.props.material = new THREE.MeshPhongMaterial()
+        this.props.material = new THREE.MeshStandardMaterial()
 
         this.ports = {
             default: {
@@ -76,8 +76,8 @@ export class Material{
     default = () => {
         // this.props.scene = scene
         switch(this.params.type){
-            case 'MeshPhongMaterial':
-                this.props.material = new THREE.MeshPhongMaterial( {color: this.params.color} );
+            case 'MeshStandardMaterial':
+                this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
                 break
             case 'ShaderMaterial':
                 this.props.material = new THREE.ShaderMaterial({
@@ -108,7 +108,7 @@ export class Material{
 
     _toggleShaderMaterial = () => {
         if (this.props.vertexShader && this.props.fragmentShader) this.params.type = 'ShaderMaterial'
-        else this.params.type = 'MeshPhongMaterial'
+        else this.params.type = 'MeshStandardMaterial'
     }
 
     _hexToRgb = (hex) => {

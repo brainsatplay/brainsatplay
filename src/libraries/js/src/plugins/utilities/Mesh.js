@@ -15,8 +15,9 @@ export class Mesh{
             x: {default: 0},
             y: {default: 1},
             z: {default: -2},
-            segments: {default: 32, min: 0, max:100, step: 1},
-            color: {default: '#ffffff'},
+            rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
         }
 
         this.props = {
@@ -146,6 +147,9 @@ export class Mesh{
         this.props.mesh.scale.set(this.params.scale, this.params.scale,this.params.scale)
         this.props.mesh.position.set(this.params.x, this.params.y, this.params.z)
         if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1, 1);
+        this.props.mesh.rotateX(this.params.rotatex)
+        this.props.mesh.rotateY(this.params.rotatey)
+        this.props.mesh.rotateZ(this.params.rotatez)
 
         return [{data: this.props.mesh, meta: {label: this.label, params: this.params}}]
     }
