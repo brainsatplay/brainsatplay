@@ -42,6 +42,7 @@ export class Application{
         let setupHTML = () => {
             this.graph.nodes.forEach(node => {this.insertInterface(node)})
             this.graph.setupCallbacks.forEach(func => {
+                console.log(func)
                 if (func instanceof Function) func()
             })
 
