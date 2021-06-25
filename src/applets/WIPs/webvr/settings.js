@@ -18,21 +18,31 @@ export const settings = {
       {
       nodes: [
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
-        {id: 'sphere', class: brainsatplay.plugins.utilities.Sphere},
+        {id: 'material', class: brainsatplay.plugins.utilities.Material},
+        {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
+        {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh},
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
       edges: [
 
         // Draw Sphere to Scene
         {
-          source: 'sphere:draw', 
-          target: 'scene:draw'
+          source: 'geometry', 
+          target: 'sphere:geometry'
+        },
+        {
+          source: 'material', 
+          target: 'sphere:material'
+        },
+        {
+          source: 'sphere:add', 
+          target: 'scene:add'
         },
 
         // Draw light to Scene
         {
-          source: 'light:draw', 
-          target: 'scene:draw'
+          source: 'light:add', 
+          target: 'scene:add'
         },
 
       ]

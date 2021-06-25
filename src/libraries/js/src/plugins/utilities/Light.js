@@ -22,17 +22,17 @@ export class Light{
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
-            geometry: null,
-            material: null,
             mesh: null,
             state: new StateManager(),
             lastRendered: Date.now()
         }
 
+        this.props.mesh = new THREE.DirectionalLight();
+
         this.ports = {
-            draw: {
+            add: {
                 defaults: {
-                    output: [{data: this._lightFunction, meta: {label: this.label}}]
+                    output: [{data:[this.props.mesh, this.props.mesh.target], meta: {label: this.label}}]
                 },
                 types: {
                     in: null,
@@ -72,7 +72,7 @@ export class Light{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
             if (Date.now() - this.props.lastRendered > 500){
-                this.session.graph.runSafe(this,'draw',[{data:true}])
+                this.session.graph.runSafe(this,'add',[{data:true}])
                 this.props.lastRendered = Date.now()
             }
         })
@@ -81,16 +81,21 @@ export class Light{
 
     deinit = () => {
         if (this.props.mesh){
-            if (this.props.mesh.type === 'Mesh') {
-                this.props.mesh.geometry.dispose();
-                this.props.mesh.material.dispose();
-            }
-            this.props.scene.remove(this.mesh);
+            // if (this.props.mesh.type === 'Mesh') {
+            //     this.props.mesh.geometry.dispose();
+            //     this.props.mesh.material.dispose();
+            // }
+            // this.props.scene.remove(this.mesh);
         }
     }
 
-    draw = () => {
-        return [{data: this._lightFunction, meta: {label: this.label, params: this.params}}]
+    add = () => {
+        if (this.props.mesh == null){
+            this.props.mesh = new THREE.DirectionalLight( this.params.color );
+            this.props.mesh.target.position.set( 0, 0, - 2 );
+        }
+        this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
+        return [{data: [this.props.mesh, this.props.mesh.target], meta: {label: this.label, params: this.params}}]
     }
     
     radius = (userData) => {
@@ -117,21 +122,5 @@ export class Light{
     color = (userData) => {
         this.params.color = userData[0].data
         // this.session.graph.runSafe(this,'default',[{data:true}])
-    }
-
-    _lightFunction = (scene) => {
-        this.deinit()
-
-        this.props.scene = scene
-        // this.props.mesh = new THREE.PointLight( this.params.color,this.params.intensity,this.params.distance,this.params.decay );
-        // this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
-        // this.props.mesh.name = `${this.props.id}light`
-        // this.props.scene.add( this.props.mesh );
-
-        this.props.mesh = new THREE.DirectionalLight( this.params.color );
-        this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
-        this.props.scene.add( this.props.mesh );
-        this.props.mesh.target.position.set( 0, 0, - 2 );
-        this.props.scene.add( this.props.mesh.target );
     }
 }

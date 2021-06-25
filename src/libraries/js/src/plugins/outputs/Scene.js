@@ -96,7 +96,9 @@ export class Scene{
 
     default = (userData) => {
         userData.forEach(u => {
-           u.data(this.props.scene) // Add to scene
+            if (!Array.isArray(u.data)) u.data = [u.data]
+            console.log(u)
+            u.data.forEach(mesh => this.props.scene.add(mesh))
         })
     }
 
