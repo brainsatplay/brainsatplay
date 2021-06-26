@@ -1,7 +1,7 @@
 //Microphone-based Breath Capture
 //Joshua Brewster - MIT License
 
-import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
+import {SoundJS} from '../../../../../platform/js/frontend/UX/Sound'
 
 /* How to use
 
