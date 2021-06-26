@@ -3,7 +3,7 @@
 //TODO: fix the SoundJS stuff to not output you mic audio and separate the analyzer from the main audio stream
 import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
 
-class BreathCapture {
+export class BreathCapture {
     constructor () {
         this.effects = [];
         this.fxStruct = {sourceIdx:undefined,source:undefined,playing:false,id:undefined};
@@ -39,6 +39,17 @@ class BreathCapture {
         this.inPeakTimes = []; //Timestamp of in-breath
         this.outPeakTimes = []; //Timestamp of out=breath
 
+        this.analyzing = false;
+    }
+
+    analyze=() => {
+        if(this.analyzing === false) {
+            this.analyzing = true;
+            this.loop();
+        }
+    }
+
+    stop=()=>{
         this.analyzing = false;
     }
 
@@ -374,7 +385,7 @@ class BreathCapture {
             }
         }
         
-
+        //FIX
         let foundidx = undefined;
         let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
         if(foundidx) {
