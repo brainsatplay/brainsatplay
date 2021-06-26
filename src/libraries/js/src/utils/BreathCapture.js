@@ -258,7 +258,7 @@ export class BreathCapture {
                 });
             }
             return pass;
-        }
+        } else return undefined;
     }
 
     isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
@@ -308,7 +308,7 @@ export class BreathCapture {
                 });
             }
             return pass;
-        }
+        } else return undefined;
     }
 
     //returns array of indices of detected peaks/valleys
