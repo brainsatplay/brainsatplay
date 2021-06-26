@@ -82,7 +82,11 @@ export class BreathCapture {
             fastTimes: this.fastPeakTimes,      //timestamps of the fast sma peaks
             fastRate: this.fastPeakDt,          //For fast breathing look for coherent breaths
             breathRate: this.breathingRate,     //look for coherent breaths
-            brv: this.breathingRateVariability  //Lower is better
+            brv: this.breathingRateVariability,  //Lower is better
+            audioFFT: this.audfft,
+            fastSmoothedVolume: this.audSumSmoothedSlow,
+            slowSmoothedVolume: this.audSumSmoothedSlow,
+            longSmoothedVolume: this.audSumSmoothedLong
         };
 
         this.analyzing = false;
