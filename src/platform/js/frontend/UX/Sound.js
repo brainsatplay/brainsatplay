@@ -1,5 +1,5 @@
 
-//By Joshua Brewster (MIT). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
+//By Joshua Brewster (MIT License). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
 
 //TODO:
 /*
