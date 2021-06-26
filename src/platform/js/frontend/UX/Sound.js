@@ -80,7 +80,8 @@ export class SoundJS { //Only one Audio context at a time!
           else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
       });
 
-      this.finishedLoading([buf]);
+      let newSourceIndices = this.finishedLoading([buf]);
+      return newSourceIndices[0];
     }
 
     //Get a file off the user's computer and decode it into the sound system
@@ -118,9 +119,11 @@ export class SoundJS { //Only one Audio context at a time!
     }
 
     finishedLoading = (bufferList) => {
+      let newBufferSourceIndices = [];
       bufferList.forEach((element) => {
         this.sourceList.push(this.ctx.createBufferSource()); 
         var idx = this.sourceList.length - 1;
+        newBufferSourceIndices.push(idx);
         let sauce = this.sourceList[idx];
         this.sourceGains.push(this.ctx.createGain()); //Allows control of individual sound file volumes
         let gainz = this.sourceGains[idx];
@@ -147,7 +150,7 @@ export class SoundJS { //Only one Audio context at a time!
         sauce.connect(gainz); //Attach to volume node
         gainz.connect(this.gainNode);
       });
-      
+      return newBufferSourceIndices;
     }
   
     playSound(bufferIndex, seconds=0, repeat=false, startTime=this.ctx.currentTime){ //Plays sounds loaded in buffer by index. Sound buffers are single use items.
