@@ -88,11 +88,10 @@ export const settings = {
         // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
-
         {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to MindMeld`}},
         {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
-        {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
+        {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
       ],
       edges: [
 

@@ -67,7 +67,7 @@ export class Scene{
             this.props.container = document.getElementById(`${this.props.id}`);
             this.props.scene = new THREE.Scene();
 
-            this.props.camera = new THREE.PerspectiveCamera( 50, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
+            this.props.camera = new THREE.PerspectiveCamera( 75, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
             this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
 
             this.props.renderer = new THREE.WebGLRenderer( { antialias: true } );
