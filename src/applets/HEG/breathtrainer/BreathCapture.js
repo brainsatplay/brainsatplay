@@ -401,25 +401,25 @@ export class BreathCapture {
             }
         }
         
-        //FIX
-        let foundidx = undefined;
-        let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
-        if(foundidx) {
-            let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.slice(this.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
-            this.inpeaks=inpeakindices;
-            let foundidx2 = undefined;
-            let found2 = this.outPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx2 = k; return true;}});
-            if(foundidx2){ 
-                let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.slice(this.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-                this.outpeaks=outpeakindices;
-            }
-        }
-        else { 
-            let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
-            let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-            this.inpeaks = inpeakindices;
-            this.outpeaks = outpeakindices
-        }
+        // //FIX
+        // let foundidx = undefined;
+        // let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
+        // if(foundidx) {
+        //     let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.slice(this.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+        //     this.inpeaks=inpeakindices;
+        //     let foundidx2 = undefined;
+        //     let found2 = this.outPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx2 = k; return true;}});
+        //     if(foundidx2){ 
+        //         let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.slice(this.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+        //         this.outpeaks=outpeakindices;
+        //     }
+        // }
+        // else { 
+        //     let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+        //     let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+        //     this.inpeaks = inpeakindices;
+        //     this.outpeaks = outpeakindices
+        // }
 
     }
 
