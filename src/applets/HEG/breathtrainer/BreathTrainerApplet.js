@@ -120,9 +120,9 @@ export class BreathTrainerApplet {
             //console.log("gen amplitudes");
             this.genBreathingAmplitudes(this.mode);
 
-            document.getElementById(props.id+'select').onchange = () => {
-                this.genBreathingAmplitudes(document.getElementById(props.id+'select').value);
-            }
+            // document.getElementById(props.id+'select').onchange = () => {
+            //     this.genBreathingAmplitudes(document.getElementById(props.id+'select').value);
+            // }
 
             document.getElementById(props.id+'startmic').onclick = () => {
                 this.connectMic();
