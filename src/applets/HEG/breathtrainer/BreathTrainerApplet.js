@@ -202,6 +202,11 @@ export class BreathTrainerApplet {
 
         this.effects.push(fx);
 
+        window.audio.gainNode.disconnect(window.audio.analyserNode);
+        window.audio.analyserNode.disconnect(window.audio.out);
+        window.audio.gainNode.connect(window.audio.out);
+        console.log(window.audio.analyserNode);
+
         return fx;
     }
 
@@ -217,6 +222,11 @@ export class BreathTrainerApplet {
             found.source.mediaStream.getTracks()[0].stop();
             this.effects.splice(idx,1);
         }
+
+        window.audio.gainNode.disconnect(window.audio.out);
+        window.audio.gainNode.connect(window.audio.analyserNode);
+        window.audio.analyserNode.connect(window.audio.out);
+
     }
 
     getAudioData() {

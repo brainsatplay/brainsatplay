@@ -37,6 +37,8 @@ export class BreathCapture {
         
         this.inPeakTimes = []; //Timestamp of in-breath
         this.outPeakTimes = []; //Timestamp of out=breath
+        this.breatingRate = [];
+        this.breathingRateVariability = [];
 
         this.analyzing = false;
     }
@@ -71,6 +73,10 @@ export class BreathCapture {
 
         this.effects.push(fx);
 
+        window.audio.gainNode.disconnect(window.audio.analyserNode);
+        window.audio.analyserNode.disconnect(window.audio.out);
+        window.audio.gainNode.connect(window.audio.out);
+        console.log(window.audio.analyserNode);
         return fx;
     }
 
@@ -86,6 +92,11 @@ export class BreathCapture {
             found.source.mediaStream.getTracks()[0].stop();
             this.effects.splice(idx,1);
         }
+
+        window.audio.gainNode.disconnect(window.audio.out);
+        window.audio.gainNode.connect(window.audio.analyserNode);
+        window.audio.analyserNode.connect(window.audio.out);
+
     }
 
     getAudioData() {
@@ -349,6 +360,13 @@ export class BreathCapture {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
+                            if(this.inPeakTimes.length>1 && this.outPeakTimes.length>1) {
+                                let rate = (this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2] + this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])*0.5;
+                                this.breatingRate.push(rate);
+                                if(this.breathingRate.length>1) {
+                                    this.breathingRateVariability.push(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2])
+                                }
+                            }
                         }
                     }
                 }
