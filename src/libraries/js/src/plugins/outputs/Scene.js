@@ -193,7 +193,7 @@ export class Scene{
             if (!Array.isArray(u.data)) u.data = [u.data]
             u.data.forEach(mesh => {
                 this.props.scene.add(mesh)
-                this.props.group.add( mesh ) // Add to group (by default)
+                if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
             })
         })
     }

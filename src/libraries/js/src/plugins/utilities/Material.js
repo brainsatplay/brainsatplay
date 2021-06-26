@@ -17,14 +17,17 @@ export class Material{
             ]},
             color: {default: '#ffffff'},
             transparent: {default: false},
-            wireframe: {default: false}
+            wireframe: {default: false},
+            depthWrite: {default: false},
+            alphaTest: {default: 0, min: 0, max: 1, step: 0.01},
         }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             material: null,
             state: new StateManager(),
-            lastRendered: Date.now()
+            lastRendered: Date.now(),
+            uniforms: {}
         }
 
         this.props.material = new THREE.MeshStandardMaterial()
@@ -75,7 +78,6 @@ export class Material{
     }
 
     default = () => {
-        // this.props.scene = scene
         switch(this.params.type){
             case 'MeshStandardMaterial':
                 this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
@@ -84,7 +86,7 @@ export class Material{
                 this.props.material = new THREE.ShaderMaterial({
                     vertexShader: this.props.vertexShader,
                     fragmentShader: this.props.fragmentShader,
-                    uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}
+                    uniforms: this.props.uniforms
                 });
                 break
         }
@@ -92,7 +94,8 @@ export class Material{
         this.props.material.side = THREE.DoubleSide
         this.props.material.transparent = this.params.transparent
         this.props.material.wireframe = this.params.wireframe
-
+        this.props.material.depthWrite = this.params.depthWrite
+        this.props.material.alphaTest = this.params.alphaTest
 
         return [{data: this.props.material, meta: {label: this.label, params: this.params}}]
     }
@@ -100,11 +103,13 @@ export class Material{
     fragment = (userData) => {
         this.params.type = 'ShaderMaterial'
         this.props.fragmentShader = userData[0].data
+        if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
     }
 
     vertex = (userData) => {
         this.props.vertexShader = userData[0].data
-
+        console.log0
+        if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
     }
 
     _toggleShaderMaterial = () => {
