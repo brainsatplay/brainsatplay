@@ -10,8 +10,7 @@ export class BreathCapture {
         
         this.audfft = [];
         this.audsum = 0;
-        this.audhist = [];
-        
+       
         this.peaksfast = [];
         this.valsfast = [];
         this.peaksslow = [];
@@ -24,7 +23,6 @@ export class BreathCapture {
         this.audSumSmoothedSlow = new Array(1024).fill(0);
         this.audSumSmoothedLong = new Array(1024).fill(0);
         this.audSpect = new Array(1024).fill(new Array(256).fill(0));
-        this.audHistSpect = new Array(1024).fill(new Array(8).fill(0));
         this.audTime = new Array(1024).fill(0);
 
         this.lastInPeak = 0;
@@ -316,10 +314,6 @@ export class BreathCapture {
         this.audSumSmoothedSlow.shift(); this.audSumSmoothedSlow.push(smoothedslow);
         let smoothed2 = this.mean(this.audSumGraph.slice(this.audSumGraph.length-120));
         this.audSumSmoothedLong.shift(); this.audSumSmoothedLong.push(smoothed2);
-
-        this.audhist = this.interpolateArray(this.audfft,12);
-        this.audHistSpect.shift(); this.audHistSpect.push(this.audhist);
-
         
         this.peaksfast = this.peakDetect(this.audSumSmoothedFast,'peak',10);
         this.valsfast = this.peakDetect(this.audSumSmoothedFast,'valley',10);
