@@ -113,7 +113,6 @@ export class BreathCapture {
                     fx.playing = true;
                     fx.id = 'Micin';
                     //fx.source.mediaStream.getTracks()[0].enabled = false;
-                    this.hostSoundsUpdated = false;
                 }
             });
 
