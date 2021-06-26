@@ -37,8 +37,8 @@ export class BreathCapture {
         
         this.inPeakTimes = []; //Timestamp of in-breath
         this.outPeakTimes = []; //Timestamp of out=breath
-        this.breatingRate = [];
-        this.breathingRateVariability = [];
+        this.breatingRate = []; //Avg difference between most recent breathing peaks
+        this.breathingRateVariability = []; //Difference between breathing rates
 
         this.analyzing = false;
     }
