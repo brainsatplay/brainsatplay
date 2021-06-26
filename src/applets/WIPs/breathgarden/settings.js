@@ -169,7 +169,7 @@ export const settings = {
           target: 'meshmat:fragment'
         },
         {
-          source: 'groundgeo',  // Reuse
+          source: 'groundgeo', // Reuse
           target: 'mesh:geometry'
         },
         {
