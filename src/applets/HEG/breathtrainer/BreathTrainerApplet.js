@@ -245,10 +245,6 @@ export class BreathTrainerApplet {
         return sum;
     }
 
-    meanAudioPitch(audioData) {
-        
-    }
-
     makeArr(startValue, stopValue, nSteps) {
         var arr = [];
         var step = (stopValue - startValue) / (nSteps - 1);
@@ -341,7 +337,7 @@ export class BreathTrainerApplet {
     peakDetect = (smoothedArray) => {
         let window = 49;
         let peaks = [];
-        console.log(smoothedArray.length-window)
+        //console.log(smoothedArray.length-window)
         for(let i = 0; i<smoothedArray.length-window; i++) {
             let isPeak = this.isExtrema(smoothedArray.slice(i,i+window),'peak');
             if(isPeak) {
@@ -385,16 +381,19 @@ export class BreathTrainerApplet {
         let smoothed2 = this.mean(this.audSumGraph.slice(this.audSumGraph.length-120));
         this.audSumSmoothed2.shift(); this.audSumSmoothed2.push(smoothed2);
 
-        let audhist = this.interpolateArray(aud,8);
+        let audhist = this.interpolateArray(aud,20);
         this.audHistSpect.shift(); this.audHistSpect.push(audhist);
 
         let audHist0 = new Array(this.audHistSpect.length).fill(0);
+        let audHist2 = new Array(this.audHistSpect.length).fill(0);
         let audHist4 = new Array(this.audHistSpect.length).fill(0);
         this.audHistSpect.forEach((arr,i)=>{
-            audHist0[i] = arr[7];
-            audHist4[i] = arr[4];
+            audHist0[i] = arr[4];
+            audHist2[i] = arr[12];
+            audHist4[i] = arr[18];
         });
         audHist0 = this.sma(audHist0,40);
+        audHist2 = this.sma(audHist2,40);
         audHist4 = this.sma(audHist4,40);
 
         let peaks1 = this.peakDetect(this.audSumSmoothed1);
@@ -478,7 +477,7 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------- Audio FFT Hist i=0 
         this.ctx.beginPath();
         this.ctx.moveTo(0,this.canvas.height-audHist0[0]);
-        this.ctx.strokeStyle = "cyan"; 
+        this.ctx.strokeStyle = "rgb(75,75,75)"; 
                 
         audHist0.forEach((amp,i)=>{
             if(i > 0) {
@@ -488,8 +487,19 @@ export class BreathTrainerApplet {
         this.ctx.stroke();
         //------------------------------------------------------------- Audio FFT Hist i=4
         this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height-audHist2[0]);
+        this.ctx.strokeStyle = "rgb(150,150,150)"; 
+                
+        audHist2.forEach((amp,i)=>{
+            if(i > 0) {
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/255));       
+            }
+        });
+        this.ctx.stroke();
+        //------------------------------------------------------------- Audio FFT Hist i=4
+        this.ctx.beginPath();
         this.ctx.moveTo(0,this.canvas.height-audHist4[0]);
-        this.ctx.strokeStyle = "teal"; 
+        this.ctx.strokeStyle = "rgb(255,255,255)"; 
                 
         audHist4.forEach((amp,i)=>{
             if(i > 0) {
