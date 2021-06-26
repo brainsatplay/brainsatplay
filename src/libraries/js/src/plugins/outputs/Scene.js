@@ -67,7 +67,7 @@ export class Scene{
             this.props.container = document.getElementById(`${this.props.id}`);
             this.props.scene = new THREE.Scene();
 
-            this.props.camera = new THREE.PerspectiveCamera( 50, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
+            this.props.camera = new THREE.PerspectiveCamera( 75, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
             this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
 
             this.props.renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -360,11 +360,13 @@ export class Scene{
         const time = performance.now()
         const delta = ( time - this.props.prevTime ) / 1000;
 
+        console.log(this.props.scene.children)
+
         // Update Raycaster Functionality
-        this._cleanIntersected();
-        this.props.controllers.forEach(c => {
-            this._intersectObjects( c );
-        })
+        // this._cleanIntersected();
+        // this.props.controllers.forEach(c => {
+        //     this._intersectObjects( c );
+        // })
 
         // Move View
         this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;

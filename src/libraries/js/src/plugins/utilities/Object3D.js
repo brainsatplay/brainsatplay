@@ -21,7 +21,6 @@ export class Object3D{
             rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
-            count: {default: 100, min: 0, max: 10000, step:1.0},
             interactable: {default: false},
         }
 
@@ -135,6 +134,8 @@ export class Object3D{
             this.props.mesh.material = this.props.material
             // this.session.graph.runSafe(this,'add',[{data:true}])
         }
+
+        console.log(this.props.mesh, this.props.material)
     }
 
     geometry = (userData) => {
@@ -145,6 +146,8 @@ export class Object3D{
             this.props.mesh.geometry = this.props.geometry
             // this.session.graph.runSafe(this,'add',[{data:true}])
         }
+
+        console.log(this.props.mesh, this.props.geometry)
     }
 
     add = () => {
@@ -200,12 +203,6 @@ export class Object3D{
     _createPoints = () => {
         if (this.props.material == null) this.props.material = new THREE.PointsMaterial()
         if (this.props.geometry == null) this.props.geometry = new THREE.BufferGeometry()
-        const position = new Float32Array(this.params.count*3)
-        position.forEach((e,i) => {position[i] = Math.random()})
-        const mass = new Float32Array(this.params.count)
-        mass.forEach((e,i) => {mass[i] = Math.random()})
-        this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
-        this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
         this.props.mesh = new THREE.Points( this.props.geometry, this.props.material )
     }
 }
