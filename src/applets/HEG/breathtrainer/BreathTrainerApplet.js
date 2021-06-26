@@ -34,6 +34,8 @@ export class BreathTrainerApplet {
         this.audSumGraph = new Array(1024).fill(0);
         this.audSumSmoothed1 = new Array(1024).fill(0);
         this.audSumSmoothed2 = new Array(1024).fill(0);
+        this.audSpect = new Array(1024).fill(new Array(256).fill(0));
+        this.audHistSpect = new Array(1024).fill(new Array(8).fill(0));
 
 
         this.mode = 'dvb'; //dvb, rlx, jmr, wmhf
@@ -349,66 +351,112 @@ export class BreathTrainerApplet {
         return peaks;
     }
 
+    //Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
+	interpolateArray(data, fitCount, normalize=1) {
+
+		var norm = normalize;
+
+		var linearInterpolate = function (before, after, atPoint) {
+			return (before + (after - before) * atPoint)*norm;
+		};
+
+		var newData = new Array();
+		var springFactor = new Number((data.length - 1) / (fitCount - 1));
+		newData[0] = data[0]; // for new allocation
+		for ( var i = 1; i < fitCount - 1; i++) {
+			var tmp = i * springFactor;
+			var before = new Number(Math.floor(tmp)).toFixed();
+			var after = new Number(Math.ceil(tmp)).toFixed();
+			var atPoint = tmp - before;
+			newData[i] = linearInterpolate(data[before], data[after], atPoint);
+		}
+		newData[fitCount - 1] = data[data.length - 1]; // for new allocation
+		return newData;
+	};
+
     drawAudio = () => {
-        let aud = this.getAudioData();
+        let aud = this.getAudioData().slice(6);
         let audsum = this.sumAudioData();
         this.audSumGraph.shift(); this.audSumGraph.push(audsum);
+        this.audSpect.shift(); this.audSpect.push(aud);
+
+        let audhist = this.interpolateArray(aud,8);
+        this.audHistSpect.shift(); this.audHistSpect.push(audhist);
+
         this.audSumSmoothed1.shift(); this.audSumSmoothed1.push(this.mean(this.audSumGraph.slice(this.audSumGraph.length-40)));
         this.audSumSmoothed2.shift(); this.audSumSmoothed2.push(this.mean(this.audSumGraph.slice(this.audSumGraph.length-120)));
 
         let peaks1 = this.peakDetect(this.audSumSmoothed1);
-        console.log(peaks1);
 
         let xaxis = this.makeArr(0,this.canvas.width,aud.length);
         let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
+        let xaxis3 = this.makeArr(0,this.canvas.width,audhist.length);
+
+        
+        /*
+            if(audhist[0])
+
+        */
+
 
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-
+        //---------------------------------------------------------- Audio FFT
         this.ctx.linewidth = 2;
         this.ctx.beginPath();
-        this.ctx.moveTo(0,this.canvas.height);
+        this.ctx.moveTo(0,this.canvas.height-aud[0]);
+        this.ctx.strokeStyle = 'royalblue';
         aud.forEach((amp,i)=>{
-            if(i > 0 && i < aud.length-1) {
-                this.ctx.strokeStyle = "rgb(" + (amp+aud[i-1]+aud[i+1])*.3333333 + ", " + (amp+aud[i-1]+aud[i+1])*.3333333 + ", " + 205 + ")";
-                this.ctx.lineTo(xaxis[i],this.canvas.height-amp*(this.canvas.height/aud.length));       
+            if(i > 0) {
+                this.ctx.lineTo(xaxis[i],this.canvas.height-amp*(this.canvas.height/255));       
             }
         });
         this.ctx.stroke();
+        //------------------------------------------------------------ Audio FFT Histogram
+        this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height-audhist[0]);
+        this.ctx.strokeStyle = 'turquoise';
+        audhist.forEach((amp,i)=>{
+            if(i > 0) {
+                this.ctx.lineTo(xaxis3[i],this.canvas.height-amp*(this.canvas.height/255));       
+            }
+        });
+        this.ctx.stroke();
+        //------------------------------------------------------------- Audio FFT Sum
 
         this.ctx.linewidth = 3;
         this.ctx.beginPath();
-        this.ctx.moveTo(0,this.canvas.height);
+        this.ctx.moveTo(0,this.canvas.height-this.audSumGraph[0]);
         this.ctx.strokeStyle = "red"; 
                 
         this.audSumGraph.forEach((amp,i)=>{
-            if(i > 0 && i < this.audSumGraph.length-1) {
+            if(i > 0) {
                 this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
             }
         });
         this.ctx.stroke();
-
+        //------------------------------------------------------------- Audio FFT Sum Smoothed
         this.ctx.beginPath();
-        this.ctx.moveTo(0,this.canvas.height);
+        this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothed1[0]);
         this.ctx.strokeStyle = "orange"; 
                 
         this.audSumSmoothed1.forEach((amp,i)=>{
-            if(i > 0 && i < this.audSumSmoothed1.length-1) {
+            if(i > 0) {
                 this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
             }
         });
         this.ctx.stroke();
-
+        //------------------------------------------------------------- Audio FFT Sum More Smoothed
         this.ctx.beginPath();
         this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothed2[0]);
         this.ctx.strokeStyle = "yellow"; 
                 
         this.audSumSmoothed2.forEach((amp,i)=>{
-            if(i > 0 && i < this.audSumSmoothed2.length-1) {
+            if(i > 0) {
                 this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
             }
         });
         this.ctx.stroke();
-
+        //-------------------------------------------------------------
 
         this.ctx.fillStyle = 'chartreuse';
         peaks1.forEach((pidx)=> {
@@ -417,6 +465,7 @@ export class BreathTrainerApplet {
             this.ctx.closePath();
             this.ctx.fill();
         });
+        //-------------------------------------------------------------
     }
     
     animate = () => {
