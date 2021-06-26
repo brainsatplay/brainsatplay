@@ -450,7 +450,7 @@ export class BreathTrainerApplet {
 
         let smoothedfast = this.mean(this.audSumGraph.slice(this.audSumGraph.length-5));
         this.audSumSmoothedFast.shift(); this.audSumSmoothedFast.push(smoothedfast);
-        let smoothedslow = this.mean(this.audSumGraph.slice(this.audSumGraph.length-30));
+        let smoothedslow = this.mean(this.audSumGraph.slice(this.audSumGraph.length-40));
         this.audSumSmoothedSlow.shift(); this.audSumSmoothedSlow.push(smoothedslow);
         let smoothed2 = this.mean(this.audSumGraph.slice(this.audSumGraph.length-120));
         this.audSumSmoothedLong.shift(); this.audSumSmoothedLong.push(smoothed2);
