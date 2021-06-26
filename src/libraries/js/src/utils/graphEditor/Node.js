@@ -84,7 +84,7 @@ export class Node{
                 let nodeType
                 if (node.ports[port]?.types) nodeType = node.ports[port]?.types[inorout]
  
-                if (nodeType !== null){
+                // if (nodeType !== null){
                     let portElement = document.createElement('div')
                     portElement.classList.add(`node-port`)
                     portElement.classList.add(`port-${port}`)
@@ -99,7 +99,7 @@ export class Node{
                         </div>
                     `
                     portContainer.insertAdjacentElement('beforeend',portElement)
-                }
+                // }
             }
 
             element.insertAdjacentElement('beforeend',portContainer)

@@ -6,6 +6,7 @@ import {Buffer} from './Buffer'
 import {Line} from './Line'
 import {Light} from './Light'
 import {Mesh} from './Mesh'
+import {HTMLMesh} from './HTMLMesh'
 import {Geometry} from './Geometry'
 import {Material} from './Material'
 import {VertexShader} from './VertexShader'
@@ -20,6 +21,7 @@ export {
     Line,
     Light, 
     Mesh, 
+    HTMLMesh,
     Geometry, 
     Material,
     VertexShader,

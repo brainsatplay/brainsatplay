@@ -155,7 +155,7 @@ export class Mesh{
         this.props.mesh.rotateY(this.params.rotatey)
         this.props.mesh.rotateZ(this.params.rotatez)
 
-        return [{data: this.props.mesh, meta: {label: this.label, params: this.params}}]
+        return [{data: this.props.mesh, meta: {label: this.label}}]
     }
 
     scale = (userData) => {

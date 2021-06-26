@@ -208,8 +208,6 @@ export class GraphEditor{
                     if (this.scale > 1.5) this.scale = 1.5 // clamp
                     updateUI()
 
-                    console.log(this.graph.nodes)
-
                     for (let key in this.graph.nodes){
                         this.graph.nodes[key].updateAllEdges()
                     }

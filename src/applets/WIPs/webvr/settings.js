@@ -22,11 +22,16 @@ export const settings = {
         {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader},
         {id: 'planegeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', segments: 100}},
         {id: 'planemat', class: brainsatplay.plugins.utilities.Material, params:{color: '#50C878', wireframe: false}},
+        {id: 'plane', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:200, rotatex: Math.PI/2}},
         {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader},
         {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:100}},
-        {id: 'plane', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:200, rotatex: Math.PI/2}},
         {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
+
+
+        // {id: 'canvas', class: brainsatplay.plugins.outputs.Canvas},
+        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:-0.75, y:1.5, z:-2,scale:2,rotatey: Math.PI / 4}},
+
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
       edges: [
@@ -76,6 +81,17 @@ export const settings = {
           source: 'plant:add', 
           target: 'scene:add'
         },
+
+        // HUD
+        // {
+        //   source: 'canvas:element', 
+        //   target: 'hud:element'
+        // },
+        // {
+        //   source: 'hud:add', 
+        //   target: 'scene:add'
+        // },
+        
 
         // Draw light to Scene
         {
