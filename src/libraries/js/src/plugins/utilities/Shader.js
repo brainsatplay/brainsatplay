@@ -59,6 +59,7 @@ export class Shader{
                 },
                 onUpdate: (userData) => {
                     this.params.uniforms[name].value = userData[0].data
+                    console.log(this.params.uniforms[name])
                     return [{data: this.ports[name].output.value, meta: {label: `${this.label}_${name}`}}]
                 }
             }

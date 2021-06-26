@@ -83,7 +83,6 @@ export class Graph{
                     if (t === 'float') return 'number'
                     if (t === 'int') return'number'
                 })
-                console.log(types, (types[0] != types[1] && !(types[0] === undefined || types[1] === undefined)))
 
                 return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
             }

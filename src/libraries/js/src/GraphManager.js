@@ -498,10 +498,6 @@ export class GraphManager{
             let sP = source.ports[sourcePort]
             if (tP.active == null) tP.active = {in: 0, out: 0}
             if (sP.active == null) sP.active = {in: 0, out: 0}
-            // if (tP.input == null) tP.input = {type: undefined}
-            // if (tP.output == null) tP.output = {type: undefined}
-            // if (sP.input == null) sP.input = {type: undefined}
-            // if (sP.output == null) sP.output = {type: undefined}
             if (tP.input == null) tP.input = {type: tP?.types?.in}
             if (tP.output == null) tP.output = {type: tP?.types?.out}
             if (sP.input == null) sP.input = {type: sP?.types?.in}

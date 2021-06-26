@@ -55,22 +55,37 @@ export class Transform{
     deinit = () => {}
 
     add = (userData) => {
-        userData.forEach(u => {u.data = u.data.map(v => v += transformer)})
+        userData.forEach(u => {
+            let wasArray = Array.isArray(u.data)
+            if (!wasArray) u.data = [u.data]
+            u.data = u.data.map(v => v += Number.parseFloat(this.params.value))
+            if (!wasArray) u.data = u.data[0]
+        })
         return userData
     }
 
     subtract = (userData) => {
-        userData.forEach(u => {u.data = u.data.map(v => v -= transformer)})
+        let wasArray = Array.isArray(u.data)
+            if (!wasArray) u.data = [u.data]
+            userData.forEach(u => {u.data = u.data.map(v => v -= Number.parseFloat(this.params.value))})
+            if (!wasArray) u.data = u.data[0]
         return userData
     }
 
     multiply = (userData) => {
-        userData.forEach(u => {u.data = u.data.map(v => v *= transformer)})
+        let wasArray = Array.isArray(u.data)
+        if (!wasArray) u.data = [u.data]
+        userData.forEach(u => {u.data = u.data.map(v => v *= Number.parseFloat(this.params.value))})
+        if (!wasArray) u.data = u.data[0]
+
         return userData
     }
 
     divide = (userData) => {
-        userData.forEach(u => {u.data = u.data.map(v => v /= transformer)})
+        let wasArray = Array.isArray(u.data)
+        if (!wasArray) u.data = [u.data]
+        userData.forEach(u => {u.data = u.data.map(v => v /= Number.parseFloat(this.params.value))})
+        if (!wasArray) u.data = u.data[0]
         return userData
     }
 
