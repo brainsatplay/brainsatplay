@@ -1,5 +1,6 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
+import featureImg from './feature.png'
 import fragmentShader from './shaders/galaxy.glsl'
 import vertexShader from './shaders/vertex.glsl'
 import desertGroundVertexShader from './shaders/desertGround/vertex.glsl'
@@ -67,6 +68,7 @@ export const settings = {
     description: "WebXR breathing trainer.",
     categories: ["WIP"],
     instructions:"Coming soon...",
+    image: featureImg,
     // intro: {
     //   mode: 'single'
     // },

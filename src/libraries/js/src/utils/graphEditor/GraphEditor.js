@@ -1,6 +1,7 @@
 import {Graph} from './Graph'
 import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
+import { StateManager } from '../../ui/StateManager'
 import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
 import * as dragUtils from './dragUtils'
@@ -17,6 +18,17 @@ export class GraphEditor{
         this.scale = 1
         this.searchOptions = []
         this.classRegistry = {}
+        this.state = new StateManager()
+
+        // // Check changes to params
+        // this.plugins.nodes.forEach(n => {
+        //     let plugin = n.instance
+        //     for (let key in plugin.params) {
+        //         this.state.addToState(`${plugin.label}${key}`, plugin.params[key], (state) => {
+        //             console.log('changed state', state)
+        //         })
+        //     }
+        // })
 
         this.lastMouseEvent = {}
         this.editing = false
@@ -574,6 +586,7 @@ export class GraphEditor{
             let selectedParams = document.getElementById(`${this.props.id}params`)
             selectedParams.innerHTML = ''
             let plugin = node.nodeInfo.instance
+
             for (let key in plugin.paramOptions){
 
                 // Properly Nest Divs

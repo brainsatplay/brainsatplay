@@ -37,7 +37,6 @@ export class FragmentShader{
                 }
             }
         }
-
     }
 
     init = () => {
@@ -52,14 +51,18 @@ export class FragmentShader{
 
     glsl = (userData) => {
         let u = userData[0]
-        this.params.glsl = u.data
-
-        // Get Uniforms
-        var re = /uniform\s+([^\s]+)\s+([^;]+);/g;
-        let result = [...this.params.glsl.matchAll(re)]
-        this.props.uniforms = []
-        result.forEach(a => {this.props.uniforms.push(a[2])})
+        this._setShaderProperties(u.data)
 
         this.session.graph.runSafe(this,'default',[{data:true}])
+    }
+
+    _setShaderProperties = (glsl) => {
+        this.params.glsl = glsl
+        
+        // Get Uniforms
+        var re = /uniform\s+([^\s]+)\s+([^;]+);/g;
+        let result = [...glsl.matchAll(re)]
+        this.props.uniforms = []
+        result.forEach(a => {this.props.uniforms.push(a[2])})
     }
 }
