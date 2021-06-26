@@ -14,7 +14,7 @@ Capture.calibrate();
 
 //Outputs captured in this object as arrays
 //More fine grained data are in the class
-this.output = {
+Capture.output = {
     inVolumes: this.inPeakVolumes,     //Float array
     outVolumes: this.outPeakVolumes,   //Float array
     inTimes: this.inPeakTimes,         //Unix stamp array
