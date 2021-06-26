@@ -10,25 +10,13 @@ export class VertexShader{
         this.session = session
         this.params = params
 
-        this.paramOptions = {}
+        this.paramOptions = {
+            glsl: {default:''}
+        }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
-            vertex: `
-varying vec2 vUv;
-
-void main()
-{
-
-    vUv = uv;
-
-    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-    vec4 viewPosition = viewMatrix * modelPosition;
-    vec4 projectedPosition = projectionMatrix * viewPosition;
-
-    gl_Position = projectedPosition;
-}`,
-}
+        }
 
         this.ports = {
             default: {
@@ -60,6 +48,6 @@ void main()
     deinit = () => {}
 
     default = () => {
-        return [{data: this.props.vertex, meta: {label: this.label, params: this.params}}]
+        return [{data: this.params.glsl, meta: {label: this.label, params: this.params}}]
     }
 }

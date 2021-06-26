@@ -1,5 +1,7 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
+import fragmentShader from './shaders/galaxy.glsl'
+import vertexShader from './shaders/vertex.glsl'
 
 export const settings = {
     name: "MindMeld",
@@ -19,11 +21,11 @@ export const settings = {
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
         {id: 'material', class: brainsatplay.plugins.utilities.Material},
         {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
-        {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader},
+        {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: vertexShader}},
         {id: 'planegeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', segments: 100}},
         {id: 'planemat', class: brainsatplay.plugins.utilities.Material, params:{color: '#50C878', wireframe: false}},
         {id: 'plane', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:200, rotatex: Math.PI/2}},
-        {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader},
+        {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: fragmentShader}},
         {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:100}},
         {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
