@@ -16,7 +16,8 @@ export class Material{
                 'ShaderMaterial'
             ]},
             color: {default: '#ffffff'},
-            transparent: {default: false}
+            transparent: {default: false},
+            wireframe: {default: false}
         }
 
         this.props = {
@@ -85,13 +86,13 @@ export class Material{
                     fragmentShader: this.props.fragmentShader,
                     uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}
                 });
-                this.props.material.uniformsNeedUpdate = true
                 break
         }
 
         this.props.material.side = THREE.DoubleSide
         this.props.material.transparent = this.params.transparent
-        
+        this.props.material.wireframe = this.params.wireframe
+
 
         return [{data: this.props.material, meta: {label: this.label, params: this.params}}]
     }

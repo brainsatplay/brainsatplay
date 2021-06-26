@@ -18,6 +18,7 @@ export class Mesh{
             rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            interactable: {default: false},
         }
 
         this.props = {
@@ -103,6 +104,9 @@ export class Mesh{
                     // Update Defaults
                     this.props.mesh.material.uniforms.iTime.value = tElapsed
                 }
+
+                this.props.mesh.interactable = this.params.interactable
+
                 setTimeout(() => {animate()},1000/60)
             }
         }
