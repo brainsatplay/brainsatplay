@@ -50,7 +50,7 @@ export class Canvas{
             this.props.context = this.props.canvas.getContext("2d");
 
             // Set Default Port Output
-            this.ports.element.defaults.output[0].data = this.props.canvas
+            this.ports.element.defaults.output[0].data = this.props.container
 
             // Set Looping
             this.props.looping = true
@@ -78,7 +78,7 @@ export class Canvas{
     }
 
     element = () => {
-        return [{data: this.props.canvas, meta: {label: `${this.label}_element`}}]
+        return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
     }
 
     deinit = () => {

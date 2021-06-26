@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-// import { HTMLMesh as html} from 'three/examples/jsm/interactive/HTMLMesh.js';
 
 export class HTMLMesh{
 
@@ -19,6 +18,7 @@ export class HTMLMesh{
             rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            isHUD: {default: false}
         }
 
         this.props = {
@@ -76,6 +76,8 @@ export class HTMLMesh{
                 this.props.lastRendered = Date.now()
             }
         })
+
+        this.props.looping = true 
     }
 
     deinit = () => {
@@ -90,8 +92,26 @@ export class HTMLMesh{
 
     element = (userData) => {
         let u = userData[0]
+
+
+
+        const animate = () => {
+            if (this.props.looping){
+                // this.props.mesh.material.map.update()
+                // this.props.mesh.isHUD = this.params.lock
+                // setTimeout(animate, 1000/10)
+            }
+        }
+
+        // u.data.style.visibility = 'hidden';
+        u.data.style.position = 'absolute'
+        u.data.style.pointerEvents = 'none'
+        u.data.style.userSelect = 'none'
+
         this.props.mesh = new ThreeHTMLMesh(u.data)
+        this.props.mesh.isHUD = this.params.isHUD
         this.session.graph.runSafe(this,'add',[{data:true}])
+        animate()
     }
 
     add = () => {
@@ -135,11 +155,12 @@ class ThreeHTMLMesh extends THREE.Mesh {
 
     constructor( dom ) {
 
-        const texture = new HTMLTexture( dom );
+        let texture = new HTMLTexture( dom );
         const geometry = new THREE.PlaneGeometry( texture.image.width * 0.001, texture.image.height * 0.001 );
         const material = new THREE.MeshBasicMaterial( {
             map: texture,
-            toneMapped: false
+            toneMapped: false,
+            transparent: true
         } );
         super( geometry, material );
 
@@ -179,10 +200,8 @@ class HTMLTexture extends THREE.CanvasTexture {
     }
 
     update() {
-
         this.image = html2canvas( this.dom );
         this.needsUpdate = true;
-
     }
 
 } //
@@ -314,10 +333,8 @@ function html2canvas( element ) {
             var backgroundColor = style.backgroundColor;
 
             if ( backgroundColor !== 'transparent' && backgroundColor !== 'rgba(0, 0, 0, 0)' ) {
-
                 context.fillStyle = backgroundColor;
                 context.fillRect( x, y, width, height );
-
             }
 
             drawBorder( style, 'borderTop', x, y, width, 0 );

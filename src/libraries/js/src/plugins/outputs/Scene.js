@@ -27,6 +27,7 @@ export class Scene{
             scene: null,
             container: null,
             controls: null,
+            pointerlock: false,
             looping: false,
             velocity: new THREE.Vector3(),
             direction: new THREE.Vector3(),
@@ -90,7 +91,27 @@ export class Scene{
                 this.props.container.requestPointerLock();
               }, false);
 
-            document.addEventListener('keydown', event => {this._onKeyDown(event)}, false);
+              let lockChangeAlert = () => {
+                if(document.pointerLockElement === this.props.container ||
+                    document.mozPointerLockElement === this.props.container) {
+                    this.props.pointerlock = true
+                } else {
+                    this.props.pointerlock = false
+                }
+              }
+
+              if ("onpointerlockchange" in document) {
+                document.addEventListener('pointerlockchange', lockChangeAlert, false);
+              } else if ("onmozpointerlockchange" in document) {
+                document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+              }
+              
+
+            document.addEventListener('mousemove', _ => {
+                if (this.props.pointerlock) this._moveHUD()
+            },false)
+
+            document.addEventListener('keydown', event => {if (this.props.pointerlock) this._onKeyDown(event)}, false);
             document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
 
             // Support WebXR
@@ -176,6 +197,22 @@ export class Scene{
             })
         })
     }
+
+    // Control Locked Elements
+    _moveHUD = (ev) => {
+        this.props.scene.traverse((el) => {
+            if (el.isHUD){
+                let defaultDistance = 2.0
+                let xComp = this.props.camera.position.x //- defaultDistance*Math.cos(this.props.camera.rotation.z)*Math.sin(this.props.camera.rotation.y)
+                let yComp = this.props.camera.position.y //- defaultDistance*Math.sin(this.props.camera.rotation.z)*Math.sin(this.props.camera.rotation.y)
+                let zComp = this.props.camera.position.z - defaultDistance//*Math.cos(this.props.camera.rotation.y)
+                el.position.set(xComp,yComp,zComp)
+                // el.setRotationFromEuler(this.props.camera.rotation)
+
+            }
+        })
+    }
+
 
     // Mouse Lock Controls
     _onKeyDown = (e) => {
@@ -342,6 +379,10 @@ export class Scene{
 
         this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
         this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+
+        if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
+            this._moveHUD()
+        }
 
         // Render
         this.props.renderer.render( this.props.scene, this.props.camera );
