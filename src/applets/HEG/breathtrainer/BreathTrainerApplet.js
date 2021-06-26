@@ -430,9 +430,6 @@ export class BreathTrainerApplet {
 
             let l = this.longPeakTimes.length;
             let s = this.slowPeakTimes.length;
-            let slow1 = peaksslow[peaksslow.length-1];
-            let slow2 = peaksslow[peaksslow.length-2];
-            let slow3 = peaksslow[peaksslow.length-3];
 
             if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
                 if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
@@ -452,7 +449,7 @@ export class BreathTrainerApplet {
             if(l > 1 && s > 2) {
                 if((this.longPeakTimes[l-2] <= this.slowPeakTimes[s-2] || this.longPeakTimes[l-2]-this.slowPeakTimes[s-2] < 200) && (this.longPeakTimes[l-1] >= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) {
                     if(this.longPeakTimes[l-2] < this.slowPeakTimes[s-3]){
-                        this.inPeakTimes.push(this.slowPeakTimes[s-3]);
+                        this.inPeakTimes.push(this.slowPeakTimes[s-2]);
                         this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                     } else {
                         this.inPeakTimes.push(this.slowPeakTimes[s-2]);
