@@ -245,7 +245,9 @@ export class Scene{
         if ( controller.userData.selected !== undefined ) {
 
             const object = controller.userData.selected;
-            if (object.material.emissive) object.material.emissive.b = 0;
+            if (object.interactable){
+                if (object.material.emissive) object.material.emissive.b = 0;
+            }
             this.props.group.attach( object );
 
             controller.userData.selected = undefined;
@@ -278,7 +280,11 @@ export class Scene{
             const intersection = intersections[ 0 ];
 
             const object = intersection.object;
-            if (object.material.emissive) object.material.emissive.r = 1;
+
+            console.log(object.interactable)
+            if (object.interactable){
+                if (object.material.emissive) object.material.emissive.r = 1;
+            }
             
             this.props.intersected.push( object );
 
