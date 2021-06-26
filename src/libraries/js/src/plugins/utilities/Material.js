@@ -29,8 +29,8 @@ export class Material{
             lastRendered: Date.now(),
             uniforms: {}
         }
-
-        this.props.material = new THREE.MeshStandardMaterial()
+        
+        this.props.material = new THREE.MeshStandardMaterial();
 
         this.ports = {
             default: {
@@ -55,7 +55,6 @@ export class Material{
                 }
             }
         }
-
     }
 
     init = () => {
@@ -67,8 +66,7 @@ export class Material{
                 this.session.graph.runSafe(this,'default',[{data:true}])
         })
         
-        this.session.graph.runSafe(this,'default',[{data:true}])
-
+        this._passShaderMaterial()
     }
 
     deinit = () => {
@@ -78,6 +76,7 @@ export class Material{
     }
 
     default = () => {
+
         switch(this.params.type){
             case 'MeshStandardMaterial':
                 this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
@@ -101,19 +100,22 @@ export class Material{
     }
 
     fragment = (userData) => {
-        this.params.type = 'ShaderMaterial'
+        this._passShaderMaterial()
         this.props.fragmentShader = userData[0].data
         if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
     }
 
     vertex = (userData) => {
         this.props.vertexShader = userData[0].data
-        console.log0
         if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
+        this._passShaderMaterial()
     }
 
-    _toggleShaderMaterial = () => {
-        if (this.props.vertexShader && this.props.fragmentShader) this.params.type = 'ShaderMaterial'
+    _passShaderMaterial = () => {
+        if (this.props.vertexShader && this.props.fragmentShader) {
+            this.params.type = 'ShaderMaterial'
+            this.session.graph.runSafe(this,'default',[{data:true}])
+        }
         else this.params.type = 'MeshStandardMaterial'
     }
 

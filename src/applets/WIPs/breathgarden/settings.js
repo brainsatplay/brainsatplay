@@ -38,16 +38,14 @@ let groundUniforms = {
   uRiverWidth: {value: riverWidth}
 }
 
-let invisisphereUniforms = {
-  iTime: {value: 0.0},
-}
+let invisisphereUniforms = {iTime: {value: 0}}
 
 /* 
  App Settings
 */
 
 export const settings = {
-    name: "MindMeld",
+    name: "Breath Garden",
     devices: ["EEG", "HEG"],
     author: "Jack of Hearts",
     description: "WebXR breathing trainer.",
@@ -64,38 +62,45 @@ export const settings = {
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
         // Ground
-        {id: 'planevertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
-        {id: 'planefragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
-        {id: 'planegeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', radius: 50, segments: 256}},
-        {id: 'planemat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: true, transparent:true}},
-        {id: 'plane', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0, z:0,scale:1, rotatex: Math.PI/2}},
+        {id: 'meshvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
+        {id: 'meshfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
+        {id: 'meshgeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', radius: 50, segments: 256}},
+        {id: 'meshmat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: true, transparent:true}},
+        {id: 'mesh', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0.1, z:0,scale:1, rotatex: Math.PI/2}},
         
-        // Ground
+        {id: 'groundvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
+        {id: 'groundfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
+        {id: 'groundgeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', radius: 50, segments: 256}},
+        {id: 'groundmat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: false, transparent:true, depthWrite: true}},
+        {id: 'ground', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0, z:0,scale:1, rotatex: Math.PI/2}},
+        
+
+        // River
         {id: 'riververtex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: invisisphereVertexShader, uniforms: invisisphereUniforms}},
         {id: 'riverfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
-        {id: 'rivergeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'BufferGeometry', radius: 50, segments: 256}},
-        {id: 'rivermat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: true, transparent:true, alphaTest: 0.5, depthWrite: false}},
-        {id: 'river', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Points', count: quantityPoints, x:riverOffset - riverWidth/2, y:-1, z:terrainFog,scalex:terrainFog*2, scalez: riverWidth, rotatey: Math.PI/2}},
+        {id: 'rivergeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'BufferGeometry', count: quantityPoints, radius: 50, segments: 256}},
+        {id: 'rivermat', class: brainsatplay.plugins.utilities.Material, params:{type: 'ShaderMaterial',wireframe: true, transparent:false, depthWrite: false}},
+        {id: 'river', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Points', x: riverOffset - riverWidth/2, y:-1, z:terrainFog,scalex:terrainFog*2, scalez: riverWidth, rotatey: Math.PI/2}},
 
         // Sphere
         // {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: vertexShader}},
         // {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: fragmentShader, uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}}},
         // {id: 'material', class: brainsatplay.plugins.utilities.Material},
         // {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
-        // {id: 'sphere', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:0,scale:100}},
+        // {id: 'sphere', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh',x:0, y:0, z:0,scale:100}},
         
         // Plant
         // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
-        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to MindMeld`}},
+        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to Breath Garden`}},
         {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
       ],
       edges: [
 
-        // Draw Sphere to Scene
+        // // Draw Sphere to Scene
         // {
         //   source: 'geometry', 
         //   target: 'sphere:geometry'
@@ -117,25 +122,47 @@ export const settings = {
         //   target: 'scene:add'
         // },
 
+        // Add Mesh
+        {
+          source: 'meshvertex', 
+          target: 'meshmat:vertex'
+        },
+        {
+          source: 'meshfragment', 
+          target: 'meshmat:fragment'
+        },
+        {
+          source: 'meshgeo', 
+          target: 'mesh:geometry'
+        },
+        {
+          source: 'meshmat', 
+          target: 'mesh:material'
+        },
+        {
+          source: 'mesh:add', 
+          target: 'scene:add'
+        },
+
         // Add Ground
         {
-          source: 'planevertex', 
-          target: 'planemat:vertex'
+          source: 'groundvertex', 
+          target: 'groundmat:vertex'
         },
         {
-          source: 'planefragment', 
-          target: 'planemat:fragment'
+          source: 'groundfragment', 
+          target: 'groundmat:fragment'
         },
         {
-          source: 'planegeo', 
-          target: 'plane:geometry'
+          source: 'groundgeo', 
+          target: 'ground:geometry'
         },
         {
-          source: 'planemat', 
-          target: 'plane:material'
+          source: 'groundmat', 
+          target: 'ground:material'
         },
         {
-          source: 'plane:add', 
+          source: 'ground:add', 
           target: 'scene:add'
         },
 

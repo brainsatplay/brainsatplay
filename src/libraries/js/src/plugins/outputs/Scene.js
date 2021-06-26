@@ -360,11 +360,13 @@ export class Scene{
         const time = performance.now()
         const delta = ( time - this.props.prevTime ) / 1000;
 
+        console.log(this.props.scene.children)
+
         // Update Raycaster Functionality
-        this._cleanIntersected();
-        this.props.controllers.forEach(c => {
-            this._intersectObjects( c );
-        })
+        // this._cleanIntersected();
+        // this.props.controllers.forEach(c => {
+        //     this._intersectObjects( c );
+        // })
 
         // Move View
         this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
