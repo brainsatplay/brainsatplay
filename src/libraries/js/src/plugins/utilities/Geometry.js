@@ -16,10 +16,12 @@ export class Geometry{
                 'PlaneGeometry', 
                 // 'TetrahedronGeometry', 
                 'TorusGeometry', 
-                'BoxGeometry'
+                'BoxGeometry',
+                'BufferGeometry'
             ]},
             radius: {default: 1},
             segments: {default: 32, min: 0, max:100, step: 1},
+            count: {default: 100, min: 0, max: 10000, step:1.0},
         }
 
         this.props = {
@@ -78,6 +80,15 @@ export class Geometry{
                 break
             case 'BoxGeometry':
                 this.props.geometry = new THREE.BoxGeometry(this.params.radius,this.params.radius,this.params.radius);
+                break
+            case 'BufferGeometry':
+                this.props.geometry = new THREE.BufferGeometry();
+                const position = new Float32Array(this.params.count*3)
+                position.forEach((e,i) => {position[i] = Math.random()})
+                const mass = new Float32Array(this.params.count)
+                mass.forEach((e,i) => {mass[i] = Math.random()})
+                this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
+                this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
                 break
         }
 

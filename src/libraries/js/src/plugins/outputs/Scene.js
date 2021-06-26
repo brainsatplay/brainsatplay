@@ -19,7 +19,7 @@ export class Scene{
             camerax: {default: 0},
             cameray: {default: 1.6},
             cameraz: {default: 1.5},
-            orbitcontrols: {default: true},
+            // orbitcontrols: {default: true},
         }
 
         this.props = {
@@ -27,6 +27,7 @@ export class Scene{
             scene: null,
             container: null,
             controls: null,
+            pointerlock: false,
             looping: false,
             velocity: new THREE.Vector3(),
             direction: new THREE.Vector3(),
@@ -40,7 +41,7 @@ export class Scene{
             controllers: [],
             grips: [],
             matrix: new THREE.Matrix4(),
-            group: new THREE.Group()
+            group: null
         }
 
         this.ports = {
@@ -66,7 +67,7 @@ export class Scene{
             this.props.container = document.getElementById(`${this.props.id}`);
             this.props.scene = new THREE.Scene();
 
-            this.props.camera = new THREE.PerspectiveCamera( 50, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
+            this.props.camera = new THREE.PerspectiveCamera( 75, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
             this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
 
             this.props.renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -81,6 +82,12 @@ export class Scene{
 
             // Controls
             this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
+
+            let minAngle = Math.PI/2 + 0.0001
+            this.props.camera.rotateX(-0.0001)
+            this.props.controls.minPolarAngle = minAngle
+
+
             this.props.scene.add(this.props.controls.getObject());
             this.props.container.addEventListener( 'click', _ => {
                 // Ask the browser to lock the pointer
@@ -90,16 +97,34 @@ export class Scene{
                 this.props.container.requestPointerLock();
               }, false);
 
-            document.addEventListener('keydown', event => {this._onKeyDown(event)}, false);
-            document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
+              let lockChangeAlert = () => {
+                if(document.pointerLockElement === this.props.container ||
+                    document.mozPointerLockElement === this.props.container) {
+                    this.props.pointerlock = true
+                } else {
+                    this.props.pointerlock = false
+                }
+              }
 
-            // Add Group
-            this.props.scene.add(this.props.group)
+              if ("onpointerlockchange" in document) {
+                document.addEventListener('pointerlockchange', lockChangeAlert, false);
+              } else if ("onmozpointerlockchange" in document) {
+                document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+              }
+              
+
+            document.addEventListener('mousemove', _ => {
+                if (this.props.pointerlock) this._moveHUD()
+            },false)
+
+            document.addEventListener('keydown', event => {if (this.props.pointerlock) this._onKeyDown(event)}, false);
+            document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
 
             // Support WebXR
             this.props.VRButton = VRButton.createButton( this.props.renderer );
             this.props.container.appendChild( this.props.VRButton );
-
+            this.props.VRButton.style.zIndex = 1;
+            
             this.props.renderer.xr.enabled = true;
 
             // Setup Controllers
@@ -147,6 +172,11 @@ export class Scene{
 
             this.props.raycaster = new THREE.Raycaster();
 
+            // Interactive Group
+            this.props.group = new InteractiveGroup( this.props.renderer, this.props.camera )
+            this.props.scene.add(this.props.group)
+
+
             this.props.looping = true
             this._animate()
         }
@@ -169,10 +199,26 @@ export class Scene{
             if (!Array.isArray(u.data)) u.data = [u.data]
             u.data.forEach(mesh => {
                 this.props.scene.add(mesh)
-                this.props.group.add( mesh ) // Add to group (by default)
+                if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
             })
         })
     }
+
+    // Control Locked Elements
+    _moveHUD = (ev) => {
+        this.props.scene.traverse((el) => {
+            if (el.isHUD){
+                let defaultDistance = 2.0
+                let xComp = this.props.camera.position.x //- defaultDistance*Math.cos(this.props.camera.rotation.z)*Math.sin(this.props.camera.rotation.y)
+                let yComp = this.props.camera.position.y //- defaultDistance*Math.sin(this.props.camera.rotation.z)*Math.sin(this.props.camera.rotation.y)
+                let zComp = this.props.camera.position.z - defaultDistance//*Math.cos(this.props.camera.rotation.y)
+                el.position.set(xComp,yComp,zComp)
+                // el.setRotationFromEuler(this.props.camera.rotation)
+
+            }
+        })
+    }
+
 
     // Mouse Lock Controls
     _onKeyDown = (e) => {
@@ -281,7 +327,6 @@ export class Scene{
 
             const object = intersection.object;
 
-            console.log(object.interactable)
             if (object.interactable){
                 if (object.material.emissive) object.material.emissive.r = 1;
             }
@@ -322,10 +367,10 @@ export class Scene{
         const delta = ( time - this.props.prevTime ) / 1000;
 
         // Update Raycaster Functionality
-        this._cleanIntersected();
-        this.props.controllers.forEach(c => {
-            this._intersectObjects( c );
-        })
+        // this._cleanIntersected();
+        // this.props.controllers.forEach(c => {
+        //     this._intersectObjects( c );
+        // })
 
         // Move View
         this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
@@ -338,12 +383,115 @@ export class Scene{
         if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
         if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
 
-        this.props.controls.moveRight( - this.props.velocity.x * delta );
-        this.props.controls.moveForward( - this.props.velocity.z * delta );
+        this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
+        this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+
+        if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
+            this._moveHUD()
+        }
 
         // Render
         this.props.renderer.render( this.props.scene, this.props.camera );
 
         this.props.prevTime = time;
     }
+}
+
+
+// Adapted from https://github.com/mrdoob/three.js/blob/d4aa9e00ea29808534a3e082f602c544e5f2419c/examples/js/interactive/InteractiveGroup.js
+const _pointer = new THREE.Vector2();
+
+const _event = {
+    type: '',
+    data: _pointer
+};
+
+class InteractiveGroup extends THREE.Group {
+
+    constructor( renderer, camera ) {
+
+        super();
+        const scope = this;
+        const raycaster = new THREE.Raycaster();
+        const tempMatrix = new THREE.Matrix4(); // Pointer Events
+
+        // const element = renderer.domElement;
+
+        // function onPointerEvent( event ) {
+
+        //     event.stopPropagation();
+        //     _pointer.x = event.clientX / element.clientWidth * 2 - 1;
+        //     _pointer.y = - ( event.clientY / element.clientHeight ) * 2 + 1;
+        //     raycaster.setFromCamera( _pointer, camera );
+        //     const intersects = raycaster.intersectObjects( scope.children );
+
+        //     if ( intersects.length > 0 ) {
+
+        //         const intersection = intersects[ 0 ];
+        //         const object = intersection.object;
+        //         if (object.interactable){
+        //             const uv = intersection.uv;
+        //             _event.type = event.type;
+
+        //             _event.data.set( uv.x, 1 - uv.y );
+
+        //             object.dispatchEvent( _event );
+        //         }
+        //     }
+
+        // }
+
+        // element.addEventListener( 'pointerdown', onPointerEvent );
+        // element.addEventListener( 'pointerup', onPointerEvent );
+        // element.addEventListener( 'pointermove', onPointerEvent );
+        // element.addEventListener( 'mousedown', onPointerEvent );
+        // element.addEventListener( 'mouseup', onPointerEvent );
+        // element.addEventListener( 'mousemove', onPointerEvent );
+        // element.addEventListener( 'click', onPointerEvent ); // WebXR Controller Events
+        // TODO: Dispatch pointerevents too
+
+        const events = {
+            'move': 'mousemove',
+            'select': 'click',
+            'selectstart': 'mousedown',
+            'selectend': 'mouseup'
+        };
+
+        function onXRControllerEvent( event ) {
+
+            const controller = event.target;
+            tempMatrix.identity().extractRotation( controller.matrixWorld );
+            raycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+            raycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4( tempMatrix );
+            const intersections = raycaster.intersectObjects( scope.children );
+
+            if ( intersections.length > 0 ) {
+
+                const intersection = intersections[ 0 ];
+                const object = intersection.object;
+                if (object.interactable){
+                    const uv = intersection.uv;
+                    _event.type = events[ event.type ];
+
+                    _event.data.set( uv.x, 1 - uv.y );
+
+                    object.dispatchEvent( _event );
+                }
+            }
+
+        }
+
+        const controller1 = renderer.xr.getController( 0 );
+        controller1.addEventListener( 'move', onXRControllerEvent );
+        controller1.addEventListener( 'select', onXRControllerEvent );
+        controller1.addEventListener( 'selectstart', onXRControllerEvent );
+        controller1.addEventListener( 'selectend', onXRControllerEvent );
+        const controller2 = renderer.xr.getController( 1 );
+        controller2.addEventListener( 'move', onXRControllerEvent );
+        controller2.addEventListener( 'select', onXRControllerEvent );
+        controller2.addEventListener( 'selectstart', onXRControllerEvent );
+        controller2.addEventListener( 'selectend', onXRControllerEvent );
+
+    }
+
 }

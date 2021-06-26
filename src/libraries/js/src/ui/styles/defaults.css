@@ -928,6 +928,9 @@ select {
     padding: 5px; */
 }
 
+.node-port-container .node-port.null {
+    visibility: hidden;
+}
 
 .node-port-container .node-port.DataAtlas {
     background: rgb(209, 116, 255);

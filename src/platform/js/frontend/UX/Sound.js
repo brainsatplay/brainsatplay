@@ -1,5 +1,5 @@
 
-//By Joshua Brewster (GPL). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
+//By Joshua Brewster (MIT License). Buffer Loader was in an audio tutorial I found on HTML5 Rocks. 
 
 //TODO:
 /*
@@ -72,6 +72,18 @@ export class SoundJS { //Only one Audio context at a time!
       bufferLoader.load(canAddFile);
     }
 
+    //Make a copy of selected sound buffer
+    copySound(soundbuffer) {
+      let buf = this.ctx.createBuffer(soundbuffer.buffers.length,soundbuffer.duration/soundbuffer.samplerate,soundbuffer.samplerate);
+      soundbuffer.buffers.forEach((b,j) => {
+          if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+          else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
+      });
+
+      let newSourceIndices = this.finishedLoading([buf]);
+      return newSourceIndices[0];
+    }
+
     //Get a file off the user's computer and decode it into the sound system
     decodeLocalAudioFile(onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
 
@@ -107,9 +119,11 @@ export class SoundJS { //Only one Audio context at a time!
     }
 
     finishedLoading = (bufferList) => {
+      let newBufferSourceIndices = [];
       bufferList.forEach((element) => {
         this.sourceList.push(this.ctx.createBufferSource()); 
         var idx = this.sourceList.length - 1;
+        newBufferSourceIndices.push(idx);
         let sauce = this.sourceList[idx];
         this.sourceGains.push(this.ctx.createGain()); //Allows control of individual sound file volumes
         let gainz = this.sourceGains[idx];
@@ -136,7 +150,7 @@ export class SoundJS { //Only one Audio context at a time!
         sauce.connect(gainz); //Attach to volume node
         gainz.connect(this.gainNode);
       });
-      
+      return newBufferSourceIndices;
     }
   
     playSound(bufferIndex, seconds=0, repeat=false, startTime=this.ctx.currentTime){ //Plays sounds loaded in buffer by index. Sound buffers are single use items.

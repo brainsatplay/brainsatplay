@@ -22,6 +22,15 @@ export class Canvas{
                     out: null
                 }
             },
+            element: {
+                defaults: {
+                    output: [{data: null, meta: {label: `${this.label}_element`}}]
+                },
+                types: {
+                    in: null,
+                    out: 'Element'
+                }
+            }
         }
     }
 
@@ -40,6 +49,10 @@ export class Canvas{
             this.props.canvas = this.props.container.querySelector(`canvas`);
             this.props.context = this.props.canvas.getContext("2d");
 
+            // Set Default Port Output
+            this.ports.element.defaults.output[0].data = this.props.container
+
+            // Set Looping
             this.props.looping = true
 
             const animate = () => {
@@ -62,6 +75,10 @@ export class Canvas{
         }
 
         return { HTMLtemplate, setupHTML}
+    }
+
+    element = () => {
+        return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
     }
 
     deinit = () => {
