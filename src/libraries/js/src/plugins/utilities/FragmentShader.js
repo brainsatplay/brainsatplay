@@ -11,21 +11,29 @@ export class FragmentShader{
         this.params = params
 
         this.paramOptions = {
-            glsl: {default:''}
+            glsl: {default:''},
+            uniforms: {default:{}}
         }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
+            uniforms: [],
         }
 
         this.ports = {
             default: {
                 defaults: {
-                    output: [{data: this.props.vertex, meta: {label: this.label}}]
+                    output: [{data: this.params.glsl, meta: {label: this.label}}]
                 },
                 types: {
                     in: null,
                     out: 'glsl',
+                }
+            },
+            glsl: {
+                types: {
+                    in: 'glsl',
+                    out: null,
                 }
             }
         }
@@ -33,21 +41,25 @@ export class FragmentShader{
     }
 
     init = () => {
-
-
-        // Subscribe to Changes in Parameters
-        // this.props.state.addToState('params', this.params, () => {
-        //         this.props.lastRendered = Date.now()
-        //         this.session.graph.runSafe(this,'default',[{data:true}])
-        // })
-        
-        this.session.graph.runSafe(this,'default',[{data:true}])
-
+        this.session.graph.runSafe(this,'glsl',[{data:this.params.glsl}])
     }
 
     deinit = () => {}
 
     default = () => {
-        return [{data: this.params.glsl, meta: {label: this.label, params: this.params}}]
+        return [{data: this.params.glsl, meta: {label: this.label, uniforms: this.params.uniforms}}]
+    }
+
+    glsl = (userData) => {
+        let u = userData[0]
+        this.params.glsl = u.data
+
+        // Get Uniforms
+        var re = /uniform\s+([^\s]+)\s+([^;]+);/g;
+        let result = [...this.params.glsl.matchAll(re)]
+        this.props.uniforms = []
+        result.forEach(a => {this.props.uniforms.push(a[2])})
+
+        this.session.graph.runSafe(this,'default',[{data:true}])
     }
 }

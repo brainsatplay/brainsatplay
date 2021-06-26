@@ -79,6 +79,9 @@ export class Geometry{
             case 'BoxGeometry':
                 this.props.geometry = new THREE.BoxGeometry(this.params.radius,this.params.radius,this.params.radius);
                 break
+            case 'BufferGeometry':
+                this.props.geometry = new THREE.BufferGeometry();
+                break
         }
 
         return [{data: this.props.geometry, meta: {label: this.label, params: this.params}}]

@@ -5,7 +5,7 @@ import {Circle} from './Circle'
 import {Buffer} from './Buffer'
 import {Line} from './Line'
 import {Light} from './Light'
-import {Mesh} from './Mesh'
+import {Object3D} from './Object3D'
 import {HTMLMesh} from './HTMLMesh'
 import {Geometry} from './Geometry'
 import {Material} from './Material'
@@ -20,7 +20,7 @@ export {
     Buffer,
     Line,
     Light, 
-    Mesh, 
+    Object3D, 
     HTMLMesh,
     Geometry, 
     Material,

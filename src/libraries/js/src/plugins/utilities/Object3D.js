@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
 
-export class Mesh{
+export class Object3D{
 
     static id = String(Math.floor(Math.random()*1000000))
     
@@ -11,13 +11,17 @@ export class Mesh{
         this.params = params
 
         this.paramOptions = {
-            scale: {default: 1},
+            type: {default: 'Mesh', options: ['Mesh', 'Points']},
+            scalex: {default: 1},
+            scaley: {default: 1},
+            scalez: {default: 1},
             x: {default: 0},
             y: {default: 1},
             z: {default: -2},
             rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            count: {default: 100, min: 0, max: 10000, step:1.0},
             interactable: {default: false},
         }
 
@@ -32,9 +36,7 @@ export class Mesh{
             looping: false
         }
 
-        this.props.geometry = new THREE.SphereGeometry()
-        this.props.material = new THREE.MeshPhongMaterial(),
-        this.props.mesh = new THREE.Mesh( this.props.geometry, this.props.material ),
+        this._setObject()
 
         this.ports = {
             add: {
@@ -146,9 +148,8 @@ export class Mesh{
     }
 
     add = () => {
-        // this.props.scene = scene
-        if (this.props.mesh == null) this.props.mesh = new THREE.Mesh( this.props.geometry, this.props.material );
-        this.props.mesh.scale.set(this.params.scale, this.params.scale,this.params.scale)
+        this._setObject()
+        this.props.mesh.scale.set(this.params.scalex, this.params.scaley,this.params.scalez)
         this.props.mesh.position.set(this.params.x, this.params.y, this.params.z)
         if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1, 1);
         this.props.mesh.rotateX(this.params.rotatex)
@@ -177,5 +178,34 @@ export class Mesh{
             this.params.y = desiredY
             this.session.graph.runSafe(this,'add',[{data:true}])
         }
+    }
+
+
+    // Macros
+    _setObject = () => {
+        if (this.params.type === 'Mesh'){
+            this._createMesh()
+        } else if (this.params.type === 'Points'){
+            this._createPoints()
+        }
+    }
+
+
+    _createMesh = () => {
+        if (this.props.material == null) this.props.material = new THREE.MeshPhongMaterial()
+        if (this.props.geometry == null) this.props.geometry = new THREE.SphereGeometry()
+        this.props.mesh = new THREE.Mesh( this.props.geometry, this.props.material )
+    }
+
+    _createPoints = () => {
+        if (this.props.material == null) this.props.material = new THREE.PointsMaterial()
+        if (this.props.geometry == null) this.props.geometry = new THREE.BufferGeometry()
+        const position = new Float32Array(this.params.count*3)
+        position.forEach((e,i) => {position[i] = Math.random()})
+        const mass = new Float32Array(this.params.count)
+        mass.forEach((e,i) => {mass[i] = Math.random()})
+        this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
+        this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
+        this.props.mesh = new THREE.Points( this.props.geometry, this.props.material )
     }
 }
