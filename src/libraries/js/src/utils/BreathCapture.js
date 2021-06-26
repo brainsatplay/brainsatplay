@@ -243,7 +243,7 @@ export class BreathCapture {
                         break;
                     }
                 } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
                 for(let i = 0; i < ref.length; i++) {
@@ -255,7 +255,7 @@ export class BreathCapture {
                         pass = false;
                         break;
                     }
-                });
+                }
             }
             return pass;
         } else return undefined;
@@ -293,7 +293,7 @@ export class BreathCapture {
                         break;
                     }
                 }
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
                 for(let i = 0; i < ref.length; i++) {
@@ -305,7 +305,7 @@ export class BreathCapture {
                         pass = false;
                         break;
                     }
-                });
+                }
             }
             return pass;
         } else return undefined;
