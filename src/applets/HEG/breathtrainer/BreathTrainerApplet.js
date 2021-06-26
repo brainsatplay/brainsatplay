@@ -46,7 +46,7 @@ export class BreathTrainerApplet {
         this.audSumSmoothedFast = new Array(1024).fill(0);
         this.audSumSmoothedSlow = new Array(1024).fill(0);
         this.audSumSmoothedLong = new Array(1024).fill(0);
-        this.audSpect = new Array(1024).fill(new Array(256).fill(0));
+        this.audSpect = new Array(1024).fill(new Array(512).fill(0));
         this.audHistSpect = new Array(1024).fill(new Array(8).fill(0));
         this.audTime = new Array(1024).fill(0);
 
