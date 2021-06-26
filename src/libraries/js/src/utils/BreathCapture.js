@@ -15,6 +15,8 @@ Capture.calibrate();
 //Outputs captured in this object as arrays
 //More fine grained data are in the class
 Capture.output = {
+            belowThreshold: false,              //Are the detected breathing peaks below the mean threshold (too quiet?) //bool
+            isHolding: false,                   //Is the user between an in and out breath?     //bool
             inVolumes: this.inPeakVolumes,      //summed fft volume of in-breath                //float array
             outVolumes: this.outPeakVolumes,    //summed fft volume of out-breath               //float array
             inTimes: this.inPeakTimes,          //timestamps of in-breaths                      //unix ms timestamp array
@@ -59,7 +61,6 @@ export class BreathCapture {
         this.longPeakTimes = [];
 
         this.peakThreshold = 0;
-        this.belowThreshold = false;
 
         this.inPeakVolumes = [];
         this.outPeakVolumes = [];
@@ -71,6 +72,8 @@ export class BreathCapture {
 
         //Simplified output reference.
         this.output = {
+            belowThreshold: false,              //Are the detected breathing peaks below the mean threshold (too quiet?)
+            isHolding: false,                   //Is the user between an in and out breath?
             inVolumes: this.inPeakVolumes,      //summed fft volume of in-breath
             outVolumes: this.outPeakVolumes,    //summed fft volume of out-breath
             inTimes: this.inPeakTimes,          //timestamps of in-breaths
@@ -373,6 +376,7 @@ export class BreathCapture {
         if(this.slowPeakTimes.length > 0) {
             this.inPeakTimes = [this.slowPeakTimes[this.slowPeakTimes.length-1]];
             this.outPeakTimes = [];
+            this.output.isHolding = true;
         }
     }
 
@@ -409,7 +413,7 @@ export class BreathCapture {
         
         //console.log(slowThreshold,this.peakThreshold);
         if((slowThreshold > this.peakThreshold) || (l1 < 2) || (this.inPeakTimes.length > 0)) { //volume check
-            
+            if(this.output.belowThreshold === true) this.output.belowThreshold = false;
             if(this.fastPeakTimes[this.fastPeakTimes.length-1] !== this.audTime[this.peaksfast[this.peaksfast.length-1]]) {
                 this.fastPeakTimes.push(this.audTime[this.peaksfast[this.peaksfast.length-1]]); // 2 peaks = 1 breath, can't tell in vs out w/ mic though
                 if(this.fastPeakTimes.length > 1) {
@@ -431,9 +435,11 @@ export class BreathCapture {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.outPeakVolumes.push(latestSlow);
                             this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.inPeakVolumes[this.inPeakVolumes.length-1]);
+                            this.output.isHolding = false;
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
+                            this.output.isHolding = true;
                         }
                     }
                 }
@@ -476,6 +482,8 @@ export class BreathCapture {
                     }
                 }
             }
+        } else if (slowThreshold < this.peakThreshold) {
+            if(!this.output.belowThreshold) this.output.belowThreshold = true;
         }
         
         // //FIX
