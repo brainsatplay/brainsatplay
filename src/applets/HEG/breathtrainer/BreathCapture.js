@@ -41,6 +41,16 @@ export class BreathCapture {
         this.breatingRate = []; //Avg difference between most recent breathing peaks
         this.breathingRateVariability = []; //Difference between breathing rates
 
+        //Simplified output reference.
+        this.output = {
+            inVolumes: this.inPeakVolumes,
+            outVolumes: this.outPeakVolumes,
+            inTimes: this.inPeakTimes,
+            outTimes: this.outPeakTimes,
+            breathRate: this.breathingRate,
+            brv: this.breathingRateVariability
+        };
+
         this.analyzing = false;
     }
 
@@ -365,8 +375,10 @@ export class BreathCapture {
                     if ((latestSlow > latestLong && (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
                         if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.outPeakVolumes.push(latestSlow);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.inPeakVolumes.push(latestSlow);
                         }
                     }
                 }
@@ -387,15 +399,21 @@ export class BreathCapture {
                         if(this.longPeakTimes[l-2] < this.slowPeakTimes[s-3]){
                             this.inPeakTimes.push(this.slowPeakTimes[s-2]);
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.inPeakVolumes.push(this.audSumSmoothedSlow[this.peaksslow[this.peaksslow.length-2]])
+                            this.outPeakVolumes.push(latestSlow);
                         } else {
                             this.inPeakTimes.push(this.slowPeakTimes[s-2]);
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.inPeakVolumes.push(this.audSumSmoothedSlow[this.peaksslow[this.peaksslow.length-2]])
+                            this.outPeakVolumes.push(latestSlow);
                         }
                     } else if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
                         if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.outPeakVolumes.push(latestSlow);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
+                            this.inPeakVolumes.push(latestSlow);
                         }
                     }
                 }
