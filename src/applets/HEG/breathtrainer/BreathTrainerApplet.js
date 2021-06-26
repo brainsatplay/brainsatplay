@@ -93,16 +93,21 @@ export class BreathTrainerApplet {
                     <button id='${props.id}startmic'>Start Mic</button>
                     <button id='${props.id}stopmic'>Stop Mic</button>
                     <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
-                    <select id='${props.id}select'>
+                   
+                </div>
+                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
+            </div>`;
+        }
+
+        /*
+                     <select id='${props.id}select'>
                         <option value='dvb' selected>Diaphragmatic</option>
                         <option value='rlx'>Relaxation</option>
                         <option value='jmr'>Jacobson's Muscular Relaxation</option>
                         <option value='wmhf'>Wim Hof Method</option>
                     </select>
-                </div>
-                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
-            </div>`;
-        }
+
+        */
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
