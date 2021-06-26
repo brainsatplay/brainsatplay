@@ -51,15 +51,18 @@ export class BreathCapture {
         this.lastOutPeak = 0;
         
         this.fastPeakTimes = [];
+        this.fastPeakDt = [];
         this.slowPeakTimes = [];
         this.longPeakTimes = [];
 
         this.peakThreshold = 0;
+        this.belowThreshold = false;
 
         this.inPeakVolumes = [];
         this.outPeakVolumes = [];
         this.inPeakTimes = []; //Timestamp of in-breath
         this.outPeakTimes = []; //Timestamp of out=breath
+        this.inToOutTimes = [];
         this.breatingRate = []; //Avg difference between most recent breathing peaks
         this.breathingRateVariability = []; //Difference between breathing rates
 
@@ -69,7 +72,9 @@ export class BreathCapture {
             outVolumes: this.outPeakVolumes,
             inTimes: this.inPeakTimes,
             outTimes: this.outPeakTimes,
+            inToOutTimes: this.inToOutTimes,
             fastTimes: this.fastPeakTimes,
+            fastRate: this.fastPeakDt,
             breathRate: this.breathingRate,
             brv: this.breathingRateVariability
         };
@@ -404,6 +409,9 @@ export class BreathCapture {
             
             if(this.fastPeakTimes[this.fastPeakTimes.length-1] !== this.audTime[this.peaksfast[this.peaksfast.length-1]]) {
                 this.fastPeakTimes.push(this.audTime[this.peaksfast[this.peaksfast.length-1]]); // 2 peaks = 1 breath, can't tell in vs out w/ mic though
+                if(this.fastPeakTimes.length > 1) {
+                    this.fastPeakDt = this.fastPeakTimes[this.fastPeakTimes.length-1] - this.fastPeakTimes[this.fastPeakTimes.length-2];
+                }
             }
             if(this.slowPeakTimes[this.slowPeakTimes.length-1] !== this.audTime[this.peaksslow[this.peaksslow.length-1]]) {
                 this.slowPeakTimes.push(this.audTime[this.peaksslow[this.peaksslow.length-1]]); //2-3 peaks between two long peaks = 1 breath. Calibrate accordingly
@@ -419,6 +427,7 @@ export class BreathCapture {
                         if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.outPeakVolumes.push(latestSlow);
+                            this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.inPeakVolumes[this.inPeakVolumes.length-1]);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
@@ -444,16 +453,19 @@ export class BreathCapture {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(this.audSumSmoothedSlow[this.peaksslow[this.peaksslow.length-2]])
                             this.outPeakVolumes.push(latestSlow);
+                            this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.slowPeakTimes[s-2]);
                         } else {
                             this.inPeakTimes.push(this.slowPeakTimes[s-2]);
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(this.audSumSmoothedSlow[this.peaksslow[this.peaksslow.length-2]])
                             this.outPeakVolumes.push(latestSlow);
+                            this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.slowPeakTimes[s-2]);
                         }
                     } else if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
                         if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.outPeakVolumes.push(latestSlow);
+                            this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.inPeakTimes[this.inPeakTimes.length-1]);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
