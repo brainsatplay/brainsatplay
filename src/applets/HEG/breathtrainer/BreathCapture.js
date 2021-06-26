@@ -37,6 +37,8 @@ export class BreathCapture {
         
         this.inPeakTimes = []; //Timestamp of in-breath
         this.outPeakTimes = []; //Timestamp of out=breath
+        this.breatingRate = []; //Avg difference between most recent breathing peaks
+        this.breathingRateVariability = []; //Difference between breathing rates
 
         this.analyzing = false;
     }
@@ -53,38 +55,50 @@ export class BreathCapture {
     }
 
     connectMic() {
-        if(!window.audio) window.audio = new SoundJS();
-        if (window.audio.ctx===null) {return;};
+        if(this.effects.length === 0) {
+            if(!window.audio) window.audio = new SoundJS();
+            if (window.audio.ctx===null) {return;};
 
-        let fx = JSON.parse(JSON.stringify(this.fxStruct));
+            let fx = JSON.parse(JSON.stringify(this.fxStruct));
 
-        fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
-            if(fx.sourceIdx !== undefined) {
-                fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
-                //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
-                fx.playing = true;
-                fx.id = 'Micin';
-                //fx.source.mediaStream.getTracks()[0].enabled = false;
-                this.hostSoundsUpdated = false;
-            }
-        });
+            fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+                if(fx.sourceIdx !== undefined) {
+                    fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                    //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                    fx.playing = true;
+                    fx.id = 'Micin';
+                    //fx.source.mediaStream.getTracks()[0].enabled = false;
+                    this.hostSoundsUpdated = false;
+                }
+            });
 
-        this.effects.push(fx);
+            this.effects.push(fx);
 
-        return fx;
+            window.audio.gainNode.disconnect(window.audio.analyserNode);
+            window.audio.analyserNode.disconnect(window.audio.out);
+            window.audio.gainNode.connect(window.audio.out);
+        
+            return fx;
+        }
     }
 
     stopMic() {
-        let idx;
-        let found = this.effects.find((o,i) => {
-            if(o.id === 'Micin') {
-                idx=i;
-                return true;
+        if(this.effects.length === 1) {
+            let idx;
+            let found = this.effects.find((o,i) => {
+                if(o.id === 'Micin') {
+                    idx=i;
+                    return true;
+                }
+            });
+            if(found) {
+                found.source.mediaStream.getTracks()[0].stop();
+                this.effects.splice(idx,1);
             }
-        });
-        if(found) {
-            found.source.mediaStream.getTracks()[0].stop();
-            this.effects.splice(idx,1);
+
+            window.audio.gainNode.disconnect(window.audio.out);
+            window.audio.gainNode.connect(window.audio.analyserNode);
+            window.audio.analyserNode.connect(window.audio.out);
         }
     }
 
@@ -349,6 +363,13 @@ export class BreathCapture {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
+                            if(this.inPeakTimes.length>1 && this.outPeakTimes.length>1) {
+                                let rate = (this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2] + this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])*0.5;
+                                this.breatingRate.push(rate);
+                                if(this.breathingRate.length>1) {
+                                    this.breathingRateVariability.push(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2])
+                                }
+                            }
                         }
                     }
                 }
@@ -380,25 +401,25 @@ export class BreathCapture {
             }
         }
         
-        //FIX
-        let foundidx = undefined;
-        let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
-        if(foundidx) {
-            let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.slice(this.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
-            this.inpeaks=inpeakindices;
-            let foundidx2 = undefined;
-            let found2 = this.outPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx2 = k; return true;}});
-            if(foundidx2){ 
-                let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.slice(this.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-                this.outpeaks=outpeakindices;
-            }
-        }
-        else { 
-            let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
-            let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-            this.inpeaks = inpeakindices;
-            this.outpeaks = outpeakindices
-        }
+        // //FIX
+        // let foundidx = undefined;
+        // let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
+        // if(foundidx) {
+        //     let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.slice(this.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+        //     this.inpeaks=inpeakindices;
+        //     let foundidx2 = undefined;
+        //     let found2 = this.outPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx2 = k; return true;}});
+        //     if(foundidx2){ 
+        //         let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.slice(this.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+        //         this.outpeaks=outpeakindices;
+        //     }
+        // }
+        // else { 
+        //     let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+        //     let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+        //     this.inpeaks = inpeakindices;
+        //     this.outpeaks = outpeakindices
+        // }
 
     }
 

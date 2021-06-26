@@ -93,16 +93,21 @@ export class BreathTrainerApplet {
                     <button id='${props.id}startmic'>Start Mic</button>
                     <button id='${props.id}stopmic'>Stop Mic</button>
                     <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
-                    <select id='${props.id}select'>
+                   
+                </div>
+                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
+            </div>`;
+        }
+
+        /*
+                     <select id='${props.id}select'>
                         <option value='dvb' selected>Diaphragmatic</option>
                         <option value='rlx'>Relaxation</option>
                         <option value='jmr'>Jacobson's Muscular Relaxation</option>
                         <option value='wmhf'>Wim Hof Method</option>
                     </select>
-                </div>
-                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
-            </div>`;
-        }
+
+        */
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
@@ -184,38 +189,50 @@ export class BreathTrainerApplet {
     //--------------------------------------------
 
     connectMic() {
-        if(!window.audio) window.audio = new SoundJS();
-        if (window.audio.ctx===null) {return;};
+        if(this.effects.length === 0) {
+            if(!window.audio) window.audio = new SoundJS();
+            if (window.audio.ctx===null) {return;};
 
-        let fx = JSON.parse(JSON.stringify(this.fxStruct));
+            let fx = JSON.parse(JSON.stringify(this.fxStruct));
 
-        fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
-            if(fx.sourceIdx !== undefined) {
-                fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
-                //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
-                fx.playing = true;
-                fx.id = 'Micin';
-                //fx.source.mediaStream.getTracks()[0].enabled = false;
-                this.hostSoundsUpdated = false;
-            }
-        });
+            fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+                if(fx.sourceIdx !== undefined) {
+                    fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                    //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                    fx.playing = true;
+                    fx.id = 'Micin';
+                    //fx.source.mediaStream.getTracks()[0].enabled = false;
+                    this.hostSoundsUpdated = false;
+                }
+            });
 
-        this.effects.push(fx);
+            this.effects.push(fx);
 
-        return fx;
+            window.audio.gainNode.disconnect(window.audio.analyserNode);
+            window.audio.analyserNode.disconnect(window.audio.out);
+            window.audio.gainNode.connect(window.audio.out);
+        
+            return fx;
+        }
     }
 
     stopMic() {
-        let idx;
-        let found = this.effects.find((o,i) => {
-            if(o.id === 'Micin') {
-                idx=i;
-                return true;
+        if(this.effects.length === 1) {
+            let idx;
+            let found = this.effects.find((o,i) => {
+                if(o.id === 'Micin') {
+                    idx=i;
+                    return true;
+                }
+            });
+            if(found) {
+                found.source.mediaStream.getTracks()[0].stop();
+                this.effects.splice(idx,1);
             }
-        });
-        if(found) {
-            found.source.mediaStream.getTracks()[0].stop();
-            this.effects.splice(idx,1);
+
+            window.audio.gainNode.disconnect(window.audio.out);
+            window.audio.gainNode.connect(window.audio.analyserNode);
+            window.audio.analyserNode.connect(window.audio.out);
         }
     }
 
