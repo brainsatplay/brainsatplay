@@ -507,7 +507,7 @@ export class BreathTrainerApplet {
             }
         }
         
-
+        //FIX
         let foundidx = undefined;
         let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
         if(foundidx) {
