@@ -10,6 +10,7 @@ Capture.analyze();
 Capture.connectMic();
 
 //Outputs captured in this object as arrays
+//More fine grained data are in the class
 this.output = {
     inVolumes: this.inPeakVolumes,     //Float array
     outVolumes: this.outPeakVolumes,   //Float array
