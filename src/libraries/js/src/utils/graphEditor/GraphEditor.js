@@ -99,21 +99,30 @@ export class GraphEditor{
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
                 
 
-                setTimeout(() => {
-                    let toggleClass = '.brainsatplay-default-editor-toggle'
-                    let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-                    // Search for Toggle
-                    if (this.app.AppletHTML.node){
-                        if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
-                        if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
-                        if (this.app.info.editor.toggleId) {
-                            toggle = document.getElementById(this.app.info.editor.toggleId)
-                        }
-                        
-                        if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
-                        else console.warn('toggle not available')
+                let toggleClass = '.brainsatplay-default-editor-toggle'
+                let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
+                // Search for Toggle
+                if (this.app.AppletHTML.node){
+                    let tries = 0
+                    let checkToggle = () => {
+                        if (tries < 10){
+
+                            // Grab
+                            if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
+                            if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
+                            if (this.app.info.editor.toggleId) toggle = document.getElementById(this.app.info.editor.toggleId)        
+                            
+                            // Try Clicking
+                            if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
+                            else {
+                                setTimeout(() => {checkToggle()},500)
+                                tries++
+                            }
+                        } else console.warn('toggle not available')
                     }
-                }, 500)
+
+                    checkToggle()
+                }
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
@@ -596,6 +605,7 @@ export class GraphEditor{
                     input = document.createElement('input')
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
+                    console.log(input.value)
                     input.addEventListener('change', (e) => {
                         plugin.params[key] = event.target.checked
                     }, false)

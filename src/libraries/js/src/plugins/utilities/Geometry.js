@@ -68,7 +68,7 @@ export class Geometry{
                 this.props.geometry = new THREE.SphereGeometry( this.params.radius, this.params.segments, this.params.segments );
                 break
             case 'PlaneGeometry':
-                this.props.geometry = new THREE.PlaneGeometry(this.params.radius,this.params.radius);
+                this.props.geometry = new THREE.PlaneGeometry(this.params.radius,this.params.radius,this.params.segments,this.params.segments);
                 break
             // case 'TetrahedronGeometry':
             //     this.props.geometry = new THREE.TetrahedronGeometry(this.params.radius,this.params.segments);

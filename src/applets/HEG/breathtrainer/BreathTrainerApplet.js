@@ -1,6 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
+import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
 
 
 //Example Applet for integrating with the UI Manager
@@ -27,6 +28,13 @@ export class BreathTrainerApplet {
 
         this.canvas;
         this.ctx;
+
+        this.effects = [];
+        this.fxStruct = {sourceIdx:undefined,source:undefined,playing:false,id:undefined};
+        this.audSumGraph = new Array(1024).fill(0);
+        this.audSumSmoothed1 = new Array(1024).fill(0);
+        this.audSumSmoothed2 = new Array(1024).fill(0);
+
 
         this.mode = 'dvb'; //dvb, rlx, jmr, wmhf
         this.animation = 'sine'; //sine, circle;
@@ -57,6 +65,8 @@ export class BreathTrainerApplet {
             return `
             <div id='${props.id}' style='height:100%; width:100%;'>
                 <div id='${props.id}menu'>
+                    <button id='${props.id}startmic'>Start Mic</button>
+                    <button id='${props.id}stopmic'>Stop Mic</button>
                     <select id='${props.id}select'>
                         <option value='dvb' selected>Diaphragmatic</option>
                         <option value='rlx'>Relaxation</option>
@@ -82,10 +92,18 @@ export class BreathTrainerApplet {
             document.getElementById(props.id+'select').onchange = () => {
                 this.genBreathingAmplitudes(document.getElementById(props.id+'select').value);
             }
+
+            document.getElementById(props.id+'startmic').onclick = () => {
+                this.connectMic();
+            }
+
+            document.getElementById(props.id+'stopmic').onclick = () => {
+                this.stopMic();
+            }
             
             //console.log("drawing...")
             this.animating = true;
-            this.draw();
+            this.animate();
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
@@ -115,8 +133,8 @@ export class BreathTrainerApplet {
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
         //let canvas = document.getElementById(this.props.id+"canvas");
-        this.canvas.width = this.AppletHTML.node.clientWidth*.5;
-        this.canvas.height = this.AppletHTML.node.clientHeight*.5;
+        this.canvas.width = this.AppletHTML.node.clientWidth;
+        this.canvas.height = this.AppletHTML.node.clientHeight;
         this.yscaling = this.canvas.height*0.2;
         this.xscaling = this.canvas.width*0.1;
     }
@@ -130,6 +148,308 @@ export class BreathTrainerApplet {
     //--------------------------------------------
     //--Add anything else for internal use below--
     //--------------------------------------------
+
+    connectMic() {
+        if(!window.audio) window.audio = new SoundJS();
+        if (window.audio.ctx===null) {return;};
+
+        let fx = JSON.parse(JSON.stringify(this.fxStruct));
+
+        fx.sourceIdx = window.audio.record(undefined,undefined,null,null,false,()=>{
+            if(fx.sourceIdx !== undefined) {
+                fx.source = window.audio.sourceList[window.audio.sourceList.length-1];
+                //window.audio.sourceGains[fx.sourceIdx].gain.value = 0;
+                fx.playing = true;
+                fx.id = 'Micin';
+                //fx.source.mediaStream.getTracks()[0].enabled = false;
+                this.hostSoundsUpdated = false;
+            }
+        });
+
+        this.effects.push(fx);
+
+        return fx;
+    }
+
+    stopMic() {
+        let idx;
+        let found = this.effects.find((o,i) => {
+            if(o.id === 'Micin') {
+                idx=i;
+                return true;
+            }
+        });
+        if(found) {
+            found.source.mediaStream.getTracks()[0].stop();
+            this.effects.splice(idx,1);
+        }
+    }
+
+    getAudioData() {
+        let audioDat = [];
+        if(window.audio){
+            var array = new Uint8Array(window.audio.analyserNode.frequencyBinCount);
+            window.audio.analyserNode.getByteFrequencyData(array);
+            audioDat = Array.from(array.slice(0,256));
+        } else {
+            audioDat = new Array(256).fill(0);
+        }
+
+        return audioDat;
+    }
+
+    sum(arr=[]){
+		if (arr.length > 0){
+			var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum;
+		} else {
+			return 0
+		}
+	}
+
+
+    mean(arr=[]){
+		if (arr.length > 0){
+			var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum / arr.length;
+		} else {
+			return 0
+		}
+	}
+
+    //Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
+    sma(arr, window) {
+		var smaArr = []; //console.log(arr);
+		for(var i = 0; i < arr.length; i++) {
+			if((i == 0)) {
+				smaArr.push(arr[0]);
+			}
+			else if(i < window) { //average partial window (prevents delays on screen)
+				var arrslice = arr.slice(0,i+1);
+				smaArr.push(arrslice.reduce((previous,current) => current += previous ) / (i+1));
+			}
+			else { //average windows
+				var arrslice = arr.slice(i-window,i);
+				smaArr.push(arrslice.reduce((previous,current) => current += previous) / window);
+			}
+		}
+		//console.log(temp);
+		return smaArr;
+	}
+
+    sumAudioData() {
+        let audioDat = this.getAudioData();
+        let sum = this.sum(audioDat);
+        return sum;
+    }
+
+    meanAudioPitch(audioData) {
+        
+    }
+
+    makeArr(startValue, stopValue, nSteps) {
+        var arr = [];
+        var step = (stopValue - startValue) / (nSteps - 1);
+        for (var i = 0; i < nSteps; i++) {
+          arr.push(startValue + (step * i));
+        }
+        return arr;
+    }
+
+    isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
+        let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
+                        pass = false;
+                    } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
+                        pass = false;
+                    } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
+    isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
+        let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
+        if(arr.length > 1) { 
+            let pass = true;
+            ref.forEach((val,i) => {
+                if(critical === 'peak') { //search first derivative
+                    if(i < ref.length*.5 && val <= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val > 0) {
+                        pass = false;
+                    }
+                } else if (critical === 'valley') { //search first derivative
+                    if(i < ref.length*.5 && val >= 0 ) {
+                        pass = false;
+                    } else if (i > ref.length*.5 && val < 0) {
+                        pass = false;
+                    }
+                } else { //look for tangents (best with 2nd derivative usually)
+                    if((i < ref.length*.5 && val >= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val < 0)) {
+                        pass = false;
+                    }
+                }
+            });
+            if(critical !== 'peak' && critical !== 'valley' && pass === false) {
+                pass = true;
+                ref.forEach((val,i) => { 
+                    if((i < ref.length*.5 && val <= 0 )) {
+                        pass = false;
+                    } else if ((i > ref.length*.5 && val > 0)) {
+                        pass = false;
+                    }
+                });
+            }
+            return pass;
+        }
+    }
+
+    peakDetect = (smoothedArray) => {
+        let window = 49;
+        let peaks = [];
+        console.log(smoothedArray.length-window)
+        for(let i = 0; i<smoothedArray.length-window; i++) {
+            let isPeak = this.isExtrema(smoothedArray.slice(i,i+window),'peak');
+            if(isPeak) {
+                peaks.push(i+25);
+            }
+        }
+        return peaks;
+    }
+
+    drawAudio = () => {
+        let aud = this.getAudioData();
+        let audsum = this.sumAudioData();
+        this.audSumGraph.shift(); this.audSumGraph.push(audsum);
+        this.audSumSmoothed1.shift(); this.audSumSmoothed1.push(this.mean(this.audSumGraph.slice(this.audSumGraph.length-40)));
+        this.audSumSmoothed2.shift(); this.audSumSmoothed2.push(this.mean(this.audSumGraph.slice(this.audSumGraph.length-120)));
+
+        let peaks1 = this.peakDetect(this.audSumSmoothed1);
+        console.log(peaks1);
+
+        let xaxis = this.makeArr(0,this.canvas.width,aud.length);
+        let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
+
+        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+
+        this.ctx.linewidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height);
+        aud.forEach((amp,i)=>{
+            if(i > 0 && i < aud.length-1) {
+                this.ctx.strokeStyle = "rgb(" + (amp+aud[i-1]+aud[i+1])*.3333333 + ", " + (amp+aud[i-1]+aud[i+1])*.3333333 + ", " + 205 + ")";
+                this.ctx.lineTo(xaxis[i],this.canvas.height-amp*(this.canvas.height/aud.length));       
+            }
+        });
+        this.ctx.stroke();
+
+        this.ctx.linewidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height);
+        this.ctx.strokeStyle = "red"; 
+                
+        this.audSumGraph.forEach((amp,i)=>{
+            if(i > 0 && i < this.audSumGraph.length-1) {
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+            }
+        });
+        this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height);
+        this.ctx.strokeStyle = "orange"; 
+                
+        this.audSumSmoothed1.forEach((amp,i)=>{
+            if(i > 0 && i < this.audSumSmoothed1.length-1) {
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+            }
+        });
+        this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothed2[0]);
+        this.ctx.strokeStyle = "yellow"; 
+                
+        this.audSumSmoothed2.forEach((amp,i)=>{
+            if(i > 0 && i < this.audSumSmoothed2.length-1) {
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+            }
+        });
+        this.ctx.stroke();
+
+
+        this.ctx.fillStyle = 'chartreuse';
+        peaks1.forEach((pidx)=> {
+            this.ctx.beginPath();
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothed1[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.closePath();
+            this.ctx.fill();
+        });
+    }
+    
+    animate = () => {
+
+        this.drawAudio();
+
+        if(this.animating)
+            setTimeout(()=>{requestAnimationFrame(this.animate)},15);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //Generate sinewave, you can add a noise frequency in too. Array length will be Math.ceil(fs*nSec)
 	genSineWave(freq=20,peakAmp=1,nSec=1,fs=512,freq2=0,peakAmp2=1,offsetx=0,offsetx2=0){
@@ -260,7 +580,7 @@ export class BreathTrainerApplet {
         return y;
     }
 
-    draw = () => {
+    drawLatest = () => {
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
        
@@ -292,67 +612,6 @@ export class BreathTrainerApplet {
             // context.putImageData(imageData, 0, 0);
             this.plotSine(context, i, 54 + i);
         }
-    }
-
-    animate = () => {
-
-        if(this.inc > this.amplitudes[0][this.amplitudes[0].length-1]) { this.startTime = Date.now(); }
-        this.inc = 0.001*(Date.now() - this.startTime)
-        //console.log(this.inc,this.x[this.x.length-1]);
-        //console.log(this.inc,this.x[Math.floor(this.x.length*0.5)])
-        if(this.animation === 'sine') {
-
-            // //console.log('mapping');
-            // let y=this.y.map((yn)=>{return this.yscaling*yn+this.canvas.height*0.5;});
-            // let x=this.x.map((xn)=>{return this.xscaling*xn-this.incscaled;});
-
-            // x.slice(this.xi0).find((xn,i)=>{
-            //     if(xn < this.incscaled) {
-            //         this.xi0 = i+this.xi0;
-            //     } 
-            //     if (this.xi0 > (Math.floor(x.length*0.5))+this.xDiff) {
-            //         this.xi0 = 0;
-            //         this.xi1 = this.xDiff;
-            //         return true;
-            //     }
-            //     if(xn > this.canvas.width+this.incscaled+this.xscaling) {
-            //         this.xi1 = i+this.xi0;
-            //         if(!this.xDiff) this.xDiff = this.xi1-this.xi0;
-            //         return true;
-            //     }
-            // });
-
-            // console.log(this.xi0,this.xi1,x[0],this.inc,this.incscaled)
-            // // if(this.xi0 > 0) {
-            //     let xspliced = x.splice(1,this.xi0-1);
-            //     x.push(...xspliced);
-            //     let yspliced = y.splice(1,this.xi0-1);
-            //     y.push(...yspliced);
-            // }
-            //console.log(x,y)
-
-            //console.log([x[0],y[0]],[x[xi1],y[xi1]])
-            //console.log("drawing");
-            //this.ctx.fillStyle = 'black';
-            this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-            
-            this.ctx.strokeStyle = 'royalblue';
-            this.ctx.lineWidth = this.yscaling*0.2;
-            this.ctx.beginPath();
-            this.ctx.moveTo(x[0],y[0]);
-            for(let i=1;i<this.xi1;i++){
-                this.ctx.lineTo(x[i]-this.incscaled,y[i])
-                this.ctx.stroke();
-            }
-            
-
-        } else if(this.animation === 'circle') {
-
-        }
-        
-        if(this.animating)
-            setTimeout(()=>{requestAnimationFrame(this.animate)},15);
-
     }
 
    
