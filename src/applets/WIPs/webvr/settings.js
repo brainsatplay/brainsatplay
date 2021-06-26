@@ -2,10 +2,10 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "WebXR Playground",
+    name: "MindMeld",
     devices: ["EEG", "HEG"],
     author: "Jack of Hearts",
-    description: "Tea",
+    description: "WebXR breathing trainer.",
     categories: ["WIP"],
     instructions:"Coming soon...",
     // intro: {
@@ -29,8 +29,8 @@ export const settings = {
         {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
 
-        // {id: 'canvas', class: brainsatplay.plugins.outputs.Canvas},
-        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:-0.75, y:1.5, z:-2,scale:2,rotatey: Math.PI / 4}},
+        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to MindMeld`}},
+        {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.5, z:0,scale:2}},
 
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],
@@ -83,14 +83,14 @@ export const settings = {
         },
 
         // HUD
-        // {
-        //   source: 'canvas:element', 
-        //   target: 'hud:element'
-        // },
-        // {
-        //   source: 'hud:add', 
-        //   target: 'scene:add'
-        // },
+        {
+          source: 'html:element', 
+          target: 'hud:element'
+        },
+        {
+          source: 'hud:add', 
+          target: 'scene:add'
+        },
         
 
         // Draw light to Scene
