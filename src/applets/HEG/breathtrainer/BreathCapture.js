@@ -11,6 +11,7 @@ export class BreathCapture {
         this.audfft = [];
         this.audsum = 0;
         this.audhist = [];
+        
         this.peaksfast = [];
         this.valsfast = [];
         this.peaksslow = [];
