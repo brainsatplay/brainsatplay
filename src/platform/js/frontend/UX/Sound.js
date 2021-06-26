@@ -72,6 +72,17 @@ export class SoundJS { //Only one Audio context at a time!
       bufferLoader.load(canAddFile);
     }
 
+    //Make a copy of selected sound buffer
+    copySound(soundbuffer) {
+      let buf = this.ctx.createBuffer(soundbuffer.buffers.length,soundbuffer.duration/soundbuffer.samplerate,soundbuffer.samplerate);
+      soundbuffer.buffers.forEach((b,j) => {
+          if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+          else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
+      });
+
+      this.finishedLoading([buf]);
+    }
+
     //Get a file off the user's computer and decode it into the sound system
     decodeLocalAudioFile(onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
 
