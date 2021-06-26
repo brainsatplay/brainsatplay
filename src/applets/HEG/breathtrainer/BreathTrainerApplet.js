@@ -423,7 +423,7 @@ export class BreathTrainerApplet {
         return threshold;
     }
 
-    drawAudio = () => {
+    calcBreathing = () => {
         this.audfft = this.getAudioData().slice(6);
         this.audsum = this.sumAudioData();
         this.audSumGraph.shift(); this.audSumGraph.push(this.audsum);
@@ -457,11 +457,8 @@ export class BreathTrainerApplet {
             this.peakThreshold = this.getPeakThreshold(this.audSumSmoothedLong,this.peakslong,this.peakThreshold);
             slowThreshold = this.getPeakThreshold(this.audSumSmoothedSlow, this.peaksslow, 0);
         }
-        let xaxis = this.makeArr(0,this.canvas.width,this.audfft.length);
-        let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
-        let xaxis3 = this.makeArr(0,this.canvas.width,this.audhist.length);
-
-        console.log(slowThreshold,this.peakThreshold);
+        
+        //console.log(slowThreshold,this.peakThreshold);
         if((slowThreshold > this.peakThreshold) || (l1 < 2) || (this.inPeakTimes.length > 0)) { //volume check
             
             if(this.fastPeakTimes[this.fastPeakTimes.length-1] !== this.audTime[this.peaksfast[this.peaksfast.length-1]]) {
@@ -529,6 +526,17 @@ export class BreathTrainerApplet {
             this.inpeaks = inpeakindices;
             this.outpeaks = outpeakindices
         }
+
+    }
+
+    drawAudio = () => {
+
+        this.calcBreathing();
+
+        let xaxis = this.makeArr(0,this.canvas.width,this.audfft.length);
+        let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
+        let xaxis3 = this.makeArr(0,this.canvas.width,this.audhist.length);
+
 
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
         //---------------------------------------------------------- Audio FFT
