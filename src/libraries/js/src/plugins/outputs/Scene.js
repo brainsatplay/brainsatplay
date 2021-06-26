@@ -3,6 +3,8 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import WebXRPolyfill from 'webxr-polyfill';
 const polyfill = new WebXRPolyfill();
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 
 export class Scene{
 
@@ -24,8 +26,21 @@ export class Scene{
             id: String(Math.floor(Math.random() * 1000000)),
             scene: null,
             container: null,
-            drawFunctions: {},
-            looping: false
+            controls: null,
+            looping: false,
+            velocity: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+            left: false,
+            right: false,
+            backward: false,
+            forward: false,
+            prevTime: performance.now(),
+            raycaster: null,
+            intersected: [],
+            controllers: [],
+            grips: [],
+            matrix: new THREE.Matrix4(),
+            group: new THREE.Group()
         }
 
         this.ports = {
@@ -65,27 +80,72 @@ export class Scene{
             // this.props.renderer.shadowMap.enabled = true;
 
             // Controls
-            // this.props.controls = new OrbitControls(this.props.camera, this.props.renderer.domElement)
-            // this.props.controls.enablePan = true
-            // this.props.controls.enableDamping = true
-            // this.props.controls.enabled = true;
+            this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
+            this.props.scene.add(this.props.controls.getObject());
+            this.props.container.addEventListener( 'click', _ => {
+                // Ask the browser to lock the pointer
+                this.props.container.requestPointerLock = this.props.container.requestPointerLock ||
+                this.props.container.mozRequestPointerLock ||
+                this.props.container.webkitRequestPointerLock;
+                this.props.container.requestPointerLock();
+              }, false);
+
+            document.addEventListener('keydown', event => {this._onKeyDown(event)}, false);
+            document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
+
+            // Add Group
+            this.props.scene.add(this.props.group)
 
             // Support WebXR
-            window.navigator.xr.isSessionSupported('immersive-vr').then((isSupported) => {
-                this.props.renderer.xr.enabled = true;
-                this.props.VRButton = VRButton.createButton( this.props.renderer );
-                this.props.container.appendChild( this.props.VRButton );
+            this.props.VRButton = VRButton.createButton( this.props.renderer );
+            this.props.container.appendChild( this.props.VRButton );
 
-                this.props.controller = this.props.renderer.xr.getController( 0 );
-                this.props.controller.addEventListener( 'connected', ( event ) => {
-                    document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
-                } );
-                
-                this.props.controller.addEventListener( 'disconnected', () => {
-                    this.props.container.appendChild( this.props.VRButton );
-                    this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
-                } );
+            this.props.renderer.xr.enabled = true;
+
+            // Setup Controllers
+            this.props.controllers.push(this.props.renderer.xr.getController( 0 ));
+            this.props.controllers[0].addEventListener( 'selectstart', this._onSelectStart );
+            this.props.controllers[0].addEventListener( 'selectend', this._onSelectEnd );
+            this.props.scene.add( this.props.controllers[0] );
+
+            this.props.controllers.push(this.props.renderer.xr.getController( 1 ));
+            this.props.controllers[1].addEventListener( 'selectstart', this._onSelectStart );
+            this.props.controllers[1].addEventListener( 'selectend', this._onSelectEnd );
+            this.props.scene.add( this.props.controllers[1] );
+
+            // Setup XR Viewport
+            this.props.controllers[0].addEventListener( 'connected', ( ) => {
+                document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
+            } );
+            
+            this.props.controllers[0].addEventListener( 'disconnected', () => {
+                this.props.container.appendChild( this.props.VRButton );
+                this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+                this.responsive()
+            } );
+
+            // Setup XR Controller
+            const controllerModelFactory = new XRControllerModelFactory();
+
+            this.props.grips.push(this.props.renderer.xr.getControllerGrip( 0 ))
+            this.props.grips[0].add( controllerModelFactory.createControllerModel( this.props.grips[0] ) );
+            this.props.scene.add( this.props.grips[0] );
+
+            this.props.grips.push(this.props.renderer.xr.getControllerGrip( 1 ))
+            this.props.grips[1].add( controllerModelFactory.createControllerModel( this.props.grips[1] ) );
+            this.props.scene.add( this.props.grips[1] );
+
+            const geometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, - 1 ) ] );
+
+            const line = new THREE.Line( geometry );
+            line.name = `${this.props.id}line`;
+            line.scale.z = 5;
+
+            this.props.controllers.forEach(c => {
+                c.add( line.clone() );
             })
+
+            this.props.raycaster = new THREE.Raycaster();
 
             this.props.looping = true
             this._animate()
@@ -107,18 +167,177 @@ export class Scene{
     default = (userData) => {
         userData.forEach(u => {
             if (!Array.isArray(u.data)) u.data = [u.data]
-            u.data.forEach(mesh => this.props.scene.add(mesh))
+            u.data.forEach(mesh => {
+                this.props.scene.add(mesh)
+                this.props.group.add( mesh ) // Add to group (by default)
+            })
         })
     }
 
-    _animate = () => {
+    // Mouse Lock Controls
+    _onKeyDown = (e) => {
+        switch (e.code){
+            case 'ArrowUp':
+            case 'KeyW':
+                this.props.forward = true
+                break
+            case 'ArrowDown':
+            case 'KeyS':
+                this.props.backward = true
+                break
+            case 'ArrowLeft':
+            case 'KeyA':
+                this.props.left = true
+                break
+            case 'ArrowRight':
+            case 'KeyD':
+                this.props.right = true
+                break
+        }
+    }
 
+    _onKeyUp = (e) => {
+        switch (e.code){
+            case 'ArrowUp':
+            case 'KeyW':
+                this.props.forward = false
+                break
+            case 'ArrowDown':
+            case 'KeyS':
+                this.props.backward = false
+                break
+            case 'ArrowLeft':
+            case 'KeyA':
+                this.props.left = false
+                break
+            case 'ArrowRight':
+            case 'KeyD':
+                this.props.right = false
+                break
+        }
+    }
+
+    // XR Controls
+    _onSelectStart = ( event ) => {
+
+        const controller = event.target;
+
+        const intersections = this._getIntersections( controller );
+
+        if ( intersections.length > 0 ) {
+
+            const intersection = intersections[ 0 ];
+
+            const object = intersection.object;
+            if (object.material.emissive) object.material.emissive.b = 1;
+            controller.attach( object );
+
+            controller.userData.selected = object;
+
+        }
+
+    }
+
+    _onSelectEnd = ( event ) => {
+
+        const controller = event.target;
+
+        if ( controller.userData.selected !== undefined ) {
+
+            const object = controller.userData.selected;
+            if (object.material.emissive) object.material.emissive.b = 0;
+            this.props.group.attach( object );
+
+            controller.userData.selected = undefined;
+
+        }
+    }
+
+    _getIntersections = ( controller ) => {
+
+        this.props.matrix.identity().extractRotation( controller.matrixWorld );
+
+        this.props.raycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+        this.props.raycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4( this.props.matrix );
+
+        return this.props.raycaster.intersectObjects( this.props.group.children );
+
+    }
+
+    _intersectObjects = ( controller ) => {
+
+        // Do not highlight when already selected
+
+        if ( controller.userData.selected !== undefined ) return;
+
+        const line = controller.getObjectByName( `${this.props.id}line` );
+        const intersections = this._getIntersections( controller );
+
+        if ( intersections.length > 0 ) {
+
+            const intersection = intersections[ 0 ];
+
+            const object = intersection.object;
+            if (object.material.emissive) object.material.emissive.r = 1;
+            
+            this.props.intersected.push( object );
+
+            line.scale.z = intersection.distance;
+
+        } else {
+
+            line.scale.z = 5;
+
+        }
+
+    }
+
+    _cleanIntersected = () => {
+
+        while ( this.props.intersected.length ) {
+            const object = this.props.intersected.pop();
+            if (object.material.emissive) object.material.emissive.r = 0;
+        }
+
+    }
+
+    // _setCamera = () => {
+    //     this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+    // }
+
+    // Animation and Render Loop
+    _animate = () => {
         this.props.renderer.setAnimationLoop( this._render );
 
     }
 
     _render = () => {
-        // this.props.controls.update()
+        const time = performance.now()
+        const delta = ( time - this.props.prevTime ) / 1000;
+
+        // Update Raycaster Functionality
+        this._cleanIntersected();
+        this.props.controllers.forEach(c => {
+            this._intersectObjects( c );
+        })
+
+        // Move View
+        this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
+        this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
+
+        this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
+        this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
+        this.props.direction.normalize(); // this ensures consistent movements in all directions
+
+        if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
+        if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
+
+        this.props.controls.moveRight( - this.props.velocity.x * delta );
+        this.props.controls.moveForward( - this.props.velocity.z * delta );
+
+        // Render
         this.props.renderer.render( this.props.scene, this.props.camera );
+
+        this.props.prevTime = time;
     }
 }
