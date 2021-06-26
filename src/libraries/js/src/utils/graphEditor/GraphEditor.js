@@ -18,13 +18,14 @@ export class GraphEditor{
         this.scale = 1
         this.searchOptions = []
         this.classRegistry = {}
-        this.state = new StateManager()
+        // this.state = new StateManager()
 
         // // Check changes to params
         // this.plugins.nodes.forEach(n => {
         //     let plugin = n.instance
-        //     for (let key in plugin.params) {
-        //         this.state.addToState(`${plugin.label}${key}`, plugin.params[key], (state) => {
+        //     for (let key in plugin.ports) {
+        //         console.log(plugin.ports[key])
+        //         this.state.addToState(`${plugin.label}_${key}`, plugin.ports[key], (state) => {
         //             console.log('changed state', state)
         //         })
         //     }
@@ -428,6 +429,7 @@ export class GraphEditor{
                     input.oninput = (e) => {
                         settings[key] = input.value
                     }
+
                     // Add to Document
                     inputContainer.insertAdjacentElement('beforeend',input)
                     containerDiv.insertAdjacentElement('beforeend',inputContainer)

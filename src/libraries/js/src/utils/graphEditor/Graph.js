@@ -70,15 +70,25 @@ export class Graph{
             })
 
             // Check Edge Compatibility
-            let compatible
             let sourcePort = edge.structure.source.split(':')[1] ?? 'default'
             let targetPort = edge.structure.target.split(':')[1] ?? 'default'
             let sP = edge.source.nodeInfo.instance.ports[sourcePort]
             let tP = edge.target.nodeInfo.instance.ports[targetPort]
-            let sourceType = sP.types['out']
-            let targetType = tP.types['in']
-            if (sourceType != targetType && !(targetType === undefined || sourceType === undefined)) compatible = false
-            else compatible = true
+            let sourceType = sP.output.type
+            let targetType = tP.input.type
+
+            let checkCompatibility = (types) => {
+
+                types = types.map(t => {
+                    if (t === 'float') return 'number'
+                    if (t === 'int') return'number'
+                })
+                console.log(types, (types[0] != types[1] && !(types[0] === undefined || types[1] === undefined)))
+
+                return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
+            }
+
+            let compatible = checkCompatibility([sourceType, targetType])
             
             if (res === true && found == null && compatible){
                 this.edges.push(edge)
