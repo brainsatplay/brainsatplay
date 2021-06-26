@@ -189,6 +189,32 @@ export class eegmath {
 		return smaArr;
 	}
 
+	static sum(arr=[]){
+		if (arr.length > 0){
+			var sum = arr.reduce((prev,curr)=> curr += prev);
+		return sum;
+		} else {
+			return 0;
+		}
+	}
+
+	static reduceArrByFactor(arr,factor=2) { //faster than interpolating
+        let x = arr.filter((element, index) => {
+            return index % factor === 0;
+        });
+        return x;
+    }
+
+	//Make an array of size n from a to b 
+    static makeArr(startValue, stopValue, nSteps) {
+        var arr = [];
+        var step = (stopValue - startValue) / (nSteps - 1);
+        for (var i = 0; i < nSteps; i++) {
+          arr.push(startValue + (step * i));
+        }
+        return arr;
+    }
+
 	//Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
 	static interpolateArray(data, fitCount, normalize=1) {
 
@@ -212,82 +238,130 @@ export class eegmath {
 		return newData;
 	};
 
-	static isExtrema(arr,critical='peak') { //Checks if the middle of the array is a local extrema. options: 'peak','valley','tangent'
+	static isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
                 } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
-                });
+                }
             }
             return pass;
-        }
+        } else return undefined;
     }
 
-    static isCriticalPoint(arr,critical='peak') { //Checks if the middle of the array is a critical point (used on derivatives). options: 'peak','valley','tangent'
+    static isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
         let ref = [...arr];
+		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < ref.length*.5 && val <= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val > 0) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < ref.length*.5 && val >= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val < 0) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < ref.length*.5 && val >= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val < 0)) {
                         pass = false;
+                        break;
                     }
                 }
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i < ref.length*.5 && val <= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val > 0)) {
                         pass = false;
+                        break;
                     }
-                });
+                }
             }
             return pass;
-        }
+        } else return undefined;
     }
 
+	//returns array of indices of detected peaks/valleys
+    static peakDetect = (smoothedArray,type='peak',window=49) => {
+        let mid = Math.floor(window*.5);
+        let peaks = [];
+        //console.log(smoothedArray.length-window)
+        for(let i = 0; i<smoothedArray.length-window; i++) {
+            let isPeak = this.isExtrema(smoothedArray.slice(i,i+window),type);
+            if(isPeak) {
+                peaks.push(i+mid-1);
+            }
+        }
+        return peaks;
+    }
+
+	//gets a mean threshold based on peaks in an array
+    static getPeakThreshold(arr,peakIndices, thresholdVar) {
+        let threshold;
+        let filtered = arr.filter((o,i)=>{if(peakIndices.indexOf(i)>-1) return true;});
+        if(thresholdVar === 0) {
+            threshold = this.mean(filtered); 
+        } else threshold = (thresholdVar+this.mean(filtered))*0.5;  
+        
+        return threshold;
+    }
+
+	
 }

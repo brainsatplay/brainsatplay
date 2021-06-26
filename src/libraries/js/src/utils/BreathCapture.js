@@ -14,7 +14,7 @@ Capture.calibrate();
 
 //Outputs captured in this object as arrays
 //More fine grained data are in the class
-this.output = {
+Capture.output = {
     inVolumes: this.inPeakVolumes,     //Float array
     outVolumes: this.outPeakVolumes,   //Float array
     inTimes: this.inPeakTimes,         //Unix stamp array
@@ -216,39 +216,49 @@ export class BreathCapture {
 		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
                 } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
-                });
+                }
             }
             return pass;
-        }
+        } else return undefined;
     }
 
     isCriticalPoint(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a critical point. options: 'peak','valley','tangent'. Even numbered arrays are popped
@@ -256,39 +266,49 @@ export class BreathCapture {
 		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < ref.length*.5 && val <= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val > 0) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < ref.length*.5 && val >= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val < 0) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < ref.length*.5 && val >= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val < 0)) {
                         pass = false;
+                        break;
                     }
                 }
-            });
+            }
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i < ref.length*.5 && val <= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val > 0)) {
                         pass = false;
+                        break;
                     }
-                });
+                }
             }
             return pass;
-        }
+        } else return undefined;
     }
 
     //returns array of indices of detected peaks/valleys
