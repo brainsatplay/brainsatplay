@@ -216,34 +216,44 @@ export class BreathCapture {
 		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] ) {
                         pass = false;
+                        break;
                     } else if (i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)]) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i > Math.floor(ref.length*.5) && val <= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
                 } //|| (i < ref.length*.5 && val <= 0 ) || (i > ref.length*.5 && val > 0)
             });
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i <  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)] )) {
                         pass = false;
+                        break;
                     } else if ((i >  Math.floor(ref.length*.5) && val >= ref[Math.floor(ref.length*.5)])) {
                         pass = false;
+                        break;
                     }
                 });
             }
@@ -256,34 +266,44 @@ export class BreathCapture {
 		if(ref.length%2 === 0) ref.pop();
         if(arr.length > 1) { 
             let pass = true;
-            ref.forEach((val,i) => {
+            for(let i = 0; i < ref.length; i++) {
+                let val = ref[i];
                 if(critical === 'peak') { //search first derivative
                     if(i < ref.length*.5 && val <= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val > 0) {
                         pass = false;
+                        break;
                     }
                 } else if (critical === 'valley') { //search first derivative
                     if(i < ref.length*.5 && val >= 0 ) {
                         pass = false;
+                        break;
                     } else if (i > ref.length*.5 && val < 0) {
                         pass = false;
+                        break;
                     }
                 } else { //look for tangents (best with 2nd derivative usually)
                     if((i < ref.length*.5 && val >= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val < 0)) {
                         pass = false;
+                        break;
                     }
                 }
             });
             if(critical !== 'peak' && critical !== 'valley' && pass === false) {
                 pass = true;
-                ref.forEach((val,i) => { 
+                for(let i = 0; i < ref.length; i++) {
+                    let val = ref[i];
                     if((i < ref.length*.5 && val <= 0 )) {
                         pass = false;
+                        break;
                     } else if ((i > ref.length*.5 && val > 0)) {
                         pass = false;
+                        break;
                     }
                 });
             }
