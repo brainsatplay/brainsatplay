@@ -9,6 +9,9 @@ let Capture = new BreathCapture();
 Capture.analyze();
 Capture.connectMic();
 
+//Manually calibrate to correct the capture. Do this ~1 sec after breathing in.
+Capture.calibrate();
+
 //Outputs captured in this object as arrays
 //More fine grained data are in the class
 this.output = {
