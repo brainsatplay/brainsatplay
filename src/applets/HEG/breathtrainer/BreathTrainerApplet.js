@@ -205,8 +205,7 @@ export class BreathTrainerApplet {
         window.audio.gainNode.disconnect(window.audio.analyserNode);
         window.audio.analyserNode.disconnect(window.audio.out);
         window.audio.gainNode.connect(window.audio.out);
-        console.log(window.audio.analyserNode);
-
+       
         return fx;
     }
 
