@@ -1,7 +1,25 @@
 //Microphone-based Breath Capture
 //Joshua Brewster - MIT License
-//TODO: fix the SoundJS stuff to not output you mic audio and separate the analyzer from the main audio stream
+
 import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
+
+/* How to use
+
+let Capture = new BreathCapture();
+Capture.analyze();
+Capture.connectMic();
+
+//Outputs captured in this object as arrays
+this.output = {
+    inVolumes: this.inPeakVolumes,     //Float array
+    outVolumes: this.outPeakVolumes,   //Float array
+    inTimes: this.inPeakTimes,         //Unix stamp array
+    outTimes: this.outPeakTimes,       //Unix stamp array
+    breathRate: this.breathingRate,    //ms array
+    brv: this.breathingRateVariability //ms array
+};
+
+*/
 
 export class BreathCapture {
     constructor () {
