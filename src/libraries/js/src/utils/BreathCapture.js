@@ -69,6 +69,7 @@ export class BreathCapture {
             outVolumes: this.outPeakVolumes,
             inTimes: this.inPeakTimes,
             outTimes: this.outPeakTimes,
+            fastTimes: this.fastPeakTimes,
             breathRate: this.breathingRate,
             brv: this.breathingRateVariability
         };
