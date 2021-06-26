@@ -25,7 +25,11 @@ Capture.output = {
     fastTimes: this.fastPeakTimes,      //timestamps of the fast sma peaks              //unix ms timestamp array
     fastRate: this.fastPeakDt,          //For fast breathing look for coherent breaths  //ms int array
     breathRate: this.breathingRate,     //look for coherent breaths                     //ms int array
-    brv: this.breathingRateVariability  //Lower is better                               //ms int array
+    brv: this.breathingRateVariability,  //Lower is better                               //ms int array
+    audioFFT: this.audfft,
+    fastSmoothedVolume: this.audSumSmoothedSlow,
+    slowSmoothedVolume: this.audSumSmoothedSlow,
+    longSmoothedVolume: this.audSumSmoothedLong
 };
 
 */
@@ -82,7 +86,11 @@ export class BreathCapture {
             fastTimes: this.fastPeakTimes,      //timestamps of the fast sma peaks
             fastRate: this.fastPeakDt,          //For fast breathing look for coherent breaths
             breathRate: this.breathingRate,     //look for coherent breaths
-            brv: this.breathingRateVariability  //Lower is better
+            brv: this.breathingRateVariability,  //Lower is better
+            audioFFT: this.audfft,
+            fastSmoothedVolume: this.audSumSmoothedSlow,
+            slowSmoothedVolume: this.audSumSmoothedSlow,
+            longSmoothedVolume: this.audSumSmoothedLong
         };
 
         this.analyzing = false;
