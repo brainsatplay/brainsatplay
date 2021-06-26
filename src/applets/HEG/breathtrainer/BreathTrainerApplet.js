@@ -31,6 +31,17 @@ export class BreathTrainerApplet {
 
         this.effects = [];
         this.fxStruct = {sourceIdx:undefined,source:undefined,playing:false,id:undefined};
+        
+        this.audfft = [];
+        this.audsum = 0;
+        this.audhist = [];
+        this.peaksfast = [];
+        this.valsfast = [];
+        this.peaksslow = [];
+        this.valsslow = [];
+        this.peakslong = [];
+        this.valslong = [];
+        
         this.audSumGraph = new Array(1024).fill(0);
         this.audSumSmoothedFast = new Array(1024).fill(0);
         this.audSumSmoothedSlow = new Array(1024).fill(0);
@@ -43,10 +54,12 @@ export class BreathTrainerApplet {
         this.lastOutPeak = 0;
         this.inPeakTimes = [];
         this.outPeakTimes = [];
-
+        
         this.fastPeakTimes = [];
         this.slowPeakTimes = [];
         this.longPeakTimes = [];
+
+        this.peakThreshold = 0;
 
         this.mode = 'dvb'; //dvb, rlx, jmr, wmhf
         this.animation = 'sine'; //sine, circle;
@@ -79,6 +92,7 @@ export class BreathTrainerApplet {
                 <div id='${props.id}menu'>
                     <button id='${props.id}startmic'>Start Mic</button>
                     <button id='${props.id}stopmic'>Stop Mic</button>
+                    <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
                     <select id='${props.id}select'>
                         <option value='dvb' selected>Diaphragmatic</option>
                         <option value='rlx'>Relaxation</option>
@@ -113,6 +127,14 @@ export class BreathTrainerApplet {
                 this.stopMic();
             }
             
+            document.getElementById(props.id+'calibrate').onclick = () => {
+                if(this.slowPeakTimes.length > 0) {
+                    this.inPeakTimes = [this.slowPeakTimes[this.slowPeakTimes.length-1]];
+                    this.outPeakTimes = [];
+                }
+                
+            }
+
             //console.log("drawing...")
             this.animating = true;
             this.animate();
@@ -256,12 +278,14 @@ export class BreathTrainerApplet {
 		return smaArr;
 	}
 
+    //Sum the FFT (gets envelope)
     sumAudioData() {
         let audioDat = this.getAudioData();
         let sum = this.sum(audioDat);
         return sum;
     }
 
+    //Make an array of size n from a to b 
     makeArr(startValue, stopValue, nSteps) {
         var arr = [];
         var step = (stopValue - startValue) / (nSteps - 1);
@@ -351,6 +375,7 @@ export class BreathTrainerApplet {
         }
     }
 
+    //returns array of indices of detected peaks/valleys
     peakDetect = (smoothedArray,type='peak',window=49) => {
         let mid = Math.floor(window*.5);
         let peaks = [];
@@ -387,11 +412,22 @@ export class BreathTrainerApplet {
 		return newData;
 	};
 
+    //sets a threshold to avoid false positives at low volume
+    getPeakThreshold(arr,peakIndices, thresholdVar) {
+        let threshold;
+        let filtered = arr.filter((o,i)=>{if(peakIndices.indexOf(i)>-1) return true;});
+        if(thresholdVar === 0) {
+            threshold = this.mean(filtered); 
+        } else threshold = (thresholdVar+this.mean(filtered))*0.5;  
+        
+        return threshold;
+    }
+
     drawAudio = () => {
-        let aud = this.getAudioData().slice(6);
-        let audsum = this.sumAudioData();
-        this.audSumGraph.shift(); this.audSumGraph.push(audsum);
-        this.audSpect.shift(); this.audSpect.push(aud);
+        this.audfft = this.getAudioData().slice(6);
+        this.audsum = this.sumAudioData();
+        this.audSumGraph.shift(); this.audSumGraph.push(this.audsum);
+        this.audSpect.shift(); this.audSpect.push(this.audfft);
 
         this.audTime.shift(); this.audTime.push(Date.now());
 
@@ -402,104 +438,106 @@ export class BreathTrainerApplet {
         let smoothed2 = this.mean(this.audSumGraph.slice(this.audSumGraph.length-120));
         this.audSumSmoothedLong.shift(); this.audSumSmoothedLong.push(smoothed2);
 
-        let audhist = this.interpolateArray(aud,12);
-        this.audHistSpect.shift(); this.audHistSpect.push(audhist);
+        this.audhist = this.interpolateArray(this.audfft,12);
+        this.audHistSpect.shift(); this.audHistSpect.push(this.audhist);
 
         
-        let peaksfast = this.peakDetect(this.audSumSmoothedFast,'peak',10);
-        let valsfast = this.peakDetect(this.audSumSmoothedFast,'valley',10);
+        this.peaksfast = this.peakDetect(this.audSumSmoothedFast,'peak',10);
+        this.valsfast = this.peakDetect(this.audSumSmoothedFast,'valley',10);
 
-        let peaksslow = this.peakDetect(this.audSumSmoothedSlow,'peak',25);
-        let valsslow = this.peakDetect(this.audSumSmoothedSlow,'valley',25);
+        this.peaksslow = this.peakDetect(this.audSumSmoothedSlow,'peak',25);
+        this.valsslow = this.peakDetect(this.audSumSmoothedSlow,'valley',25);
 
-        let peakslong = this.peakDetect(this.audSumSmoothedLong,'peak',100);
-        let valslong = this.peakDetect(this.audSumSmoothedLong,'valley',100);
+        this.peakslong = this.peakDetect(this.audSumSmoothedLong,'peak',100);
+        this.valslong = this.peakDetect(this.audSumSmoothedLong,'valley',100);
 
-        let xaxis = this.makeArr(0,this.canvas.width,aud.length);
+        let l1 = this.longPeakTimes.length;
+        let slowThreshold = 0;
+        if(l1 > 1) {
+            this.peakThreshold = this.getPeakThreshold(this.audSumSmoothedLong,this.peakslong,this.peakThreshold);
+            slowThreshold = this.getPeakThreshold(this.audSumSmoothedSlow, this.peaksslow, 0);
+        }
+        let xaxis = this.makeArr(0,this.canvas.width,this.audfft.length);
         let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
-        let xaxis3 = this.makeArr(0,this.canvas.width,audhist.length);
+        let xaxis3 = this.makeArr(0,this.canvas.width,this.audhist.length);
 
-        let inpeaks = [];
-        let outpeaks = [];
-
-        if(this.fastPeakTimes[this.fastPeakTimes.length-1] !== this.audTime[peaksfast[peaksfast.length-1]]) {
-            this.fastPeakTimes.push(this.audTime[peaksfast[peaksfast.length-1]]); // 2 peaks = 1 breath, can't tell in vs out w/ mic though
-        }
-        if(this.slowPeakTimes[this.slowPeakTimes.length-1] !== this.audTime[peaksslow[peaksslow.length-1]]) {
-            this.slowPeakTimes.push(this.audTime[peaksslow[peaksslow.length-1]]); //2-3 peaks between two long peaks = 1 breath. Calibrate accordingly
-
-            let l = this.longPeakTimes.length;
-            let s = this.slowPeakTimes.length;
-
-            if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
-                if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
-                    if(this.outPeakTimes[this.outPeakTimes.length-1] > this.longPeakTimes[l-1]) {
-                        this.outPeakTimes[this.outPeakTimes.length-1].pop(); 
-                    }
-                    this.outPeakTimes.push(this.slowPeakTimes[s-1]);
-                } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
-                    this.inPeakTimes.push(this.slowPeakTimes[s-1]);
-                }
+        console.log(slowThreshold,this.peakThreshold);
+        if((slowThreshold > this.peakThreshold) || (l1 < 2) || (this.inPeakTimes.length > 0)) { //volume check
+            
+            if(this.fastPeakTimes[this.fastPeakTimes.length-1] !== this.audTime[this.peaksfast[this.peaksfast.length-1]]) {
+                this.fastPeakTimes.push(this.audTime[this.peaksfast[this.peaksfast.length-1]]); // 2 peaks = 1 breath, can't tell in vs out w/ mic though
             }
-        }
-        if(this.longPeakTimes[this.longPeakTimes.length-1] !== this.audTime[peakslong[peakslong.length-1]]) {
-            this.longPeakTimes.push(this.audTime[peakslong[peakslong.length-1]]); //1 big peak per breath, some smaller peaks
-            let l = this.longPeakTimes.length;
-            let s = this.slowPeakTimes.length;
-            if(l > 1 && s > 2) {
-                if((this.longPeakTimes[l-2] <= this.slowPeakTimes[s-2] || this.longPeakTimes[l-2]-this.slowPeakTimes[s-2] < 200) && (this.longPeakTimes[l-1] >= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) {
-                    if(this.longPeakTimes[l-2] < this.slowPeakTimes[s-3]){
-                        this.inPeakTimes.push(this.slowPeakTimes[s-2]);
-                        this.outPeakTimes.push(this.slowPeakTimes[s-1]);
-                    } else {
-                        this.inPeakTimes.push(this.slowPeakTimes[s-2]);
-                        this.outPeakTimes.push(this.slowPeakTimes[s-1]);
-                    }
-                } else if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
-                    if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
-                        if(this.outPeakTimes[this.outPeakTimes.length-1] > this.longPeakTimes[l-1]) {
-                            this.outPeakTimes[this.outPeakTimes.length-1].pop(); 
+            if(this.slowPeakTimes[this.slowPeakTimes.length-1] !== this.audTime[this.peaksslow[this.peaksslow.length-1]]) {
+                this.slowPeakTimes.push(this.audTime[this.peaksslow[this.peaksslow.length-1]]); //2-3 peaks between two long peaks = 1 breath. Calibrate accordingly
+            
+                let l = this.longPeakTimes.length;
+                let s = this.slowPeakTimes.length;
+
+                if((l > 1 && s > 2) || this.inPeakTimes.length > 0) {
+                    if ((this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
+                        if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
+                            this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                        } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
+                            this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                         }
-                        this.outPeakTimes.push(this.slowPeakTimes[s-1]);
-                    } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
-                        this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                     }
-                } else {
-                    console.log('else');
+                }
+            }
+            if(this.longPeakTimes[this.longPeakTimes.length-1] !== this.audTime[this.peakslong[this.peakslong.length-1]]) {
+
+                this.longPeakTimes.push(this.audTime[this.peakslong[this.peakslong.length-1]]); //1 big peak per breath, some smaller peaks
+                let placeholder = this.inPeakTimes[this.inPeakTimes.length-1];
+                if(placeholder == undefined) placeholder = Date.now();
+                let l = this.longPeakTimes.length;
+                let s = this.slowPeakTimes.length;
+                if(l > 1 && s > 2 && ((this.inPeakTimes.length === 0 && this.outPeakTimes.length === 0) || Date.now() - placeholder > 20000)) { //only check again if 20 seconds elapse with no breaths captured to not cause overlaps and false positives
+                    if((this.longPeakTimes[l-2] <= this.slowPeakTimes[s-2] || this.longPeakTimes[l-2]-this.slowPeakTimes[s-2] < 200) && (this.longPeakTimes[l-1] >= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) {
+                        if(this.longPeakTimes[l-2] < this.slowPeakTimes[s-3]){
+                            this.inPeakTimes.push(this.slowPeakTimes[s-2]);
+                            this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                        } else {
+                            this.inPeakTimes.push(this.slowPeakTimes[s-2]);
+                            this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                        }
+                    } else if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
+                        if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
+                            this.outPeakTimes.push(this.slowPeakTimes[s-1]);
+                        } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
+                            this.inPeakTimes.push(this.slowPeakTimes[s-1]);
+                        }
+                    }
                 }
             }
         }
-
-        console.log(this.inPeakTimes, this.outPeakTimes)
+        
 
         let foundidx = undefined;
         let found = this.inPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx = k; return true;}});
         if(foundidx) {
             let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.slice(this.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
-            inpeaks=inpeakindices;
+            this.inpeaks=inpeakindices;
             let foundidx2 = undefined;
             let found2 = this.outPeakTimes.find((t,k)=>{if(t > this.audTime[0]) {foundidx2 = k; return true;}});
             if(foundidx2){ 
-                outpeaks = this.outPeakTimes.slice(this.inPeakTimes.length-foundidx2);
                 let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.slice(this.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-                outpeaks=outpeakindices;
+                this.outpeaks=outpeakindices;
             }
         }
         else { 
             let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
             let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
-            inpeaks = inpeakindices;
-            outpeaks = outpeakindices
+            this.inpeaks = inpeakindices;
+            this.outpeaks = outpeakindices
         }
 
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
         //---------------------------------------------------------- Audio FFT
         this.ctx.linewidth = 2;
         
-        this.ctx.moveTo(0,this.canvas.height-aud[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.audfft[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'royalblue';
-        aud.forEach((amp,i)=>{
+        this.audfft.forEach((amp,i)=>{
             if(i > 0) {
                 this.ctx.lineTo(xaxis[i],this.canvas.height-amp*(this.canvas.height/255));       
             }
@@ -508,9 +546,9 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------ Audio FFT Histogram
         
         this.ctx.beginPath();
-        this.ctx.moveTo(0,this.canvas.height-audhist[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.audhist[0]);
         this.ctx.strokeStyle = 'turquoise';
-        audhist.forEach((amp,i)=>{
+        this.audhist.forEach((amp,i)=>{
             if(i > 0) {
                 this.ctx.lineTo(xaxis3[i],this.canvas.height-amp*(this.canvas.height/255));       
             }
@@ -571,7 +609,7 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------- SMA 1 peaks
         
         this.ctx.fillStyle = 'chartreuse';
-        inpeaks.forEach((pidx)=> {
+        this.inpeaks.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
@@ -580,7 +618,7 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------- SMA 1 valleys
 
         this.ctx.fillStyle = 'green';
-        outpeaks.forEach((pidx)=> {
+        this.outpeaks.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
@@ -588,7 +626,7 @@ export class BreathTrainerApplet {
         });
         //------------------------------------------------------------- SMA 2 peaks
         this.ctx.fillStyle = 'pink';
-        peakslong.forEach((pidx)=> {
+        this.peakslong.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
@@ -597,7 +635,7 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------- SMA 2 valleys
 
         this.ctx.fillStyle = 'purple';
-        valslong.forEach((pidx)=> {
+        this.valslong.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
@@ -605,7 +643,7 @@ export class BreathTrainerApplet {
         });
         //------------------------------------------------------------- SMA fast peaks
         this.ctx.fillStyle = 'red';
-        peaksfast.forEach((pidx)=> {
+        this.peaksfast.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
@@ -614,7 +652,7 @@ export class BreathTrainerApplet {
         //------------------------------------------------------------- SMA fast valleys
 
         this.ctx.fillStyle = 'crimson';
-        valsfast.forEach((pidx)=> {
+        this.valsfast.forEach((pidx)=> {
             this.ctx.beginPath();
             this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
