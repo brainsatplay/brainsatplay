@@ -36,7 +36,10 @@ export class GraphManager{
 
         // Set Default Parameters
         for (let param in node.paramOptions){
-            if (node.params[param] == null) node.params[param] = node.paramOptions[param].default
+            if (node.params[param] == null) {
+                if (node.ports[param] == null) node.params[param] = node.paramOptions[param].default
+                else node.params[param] = node.ports[param].default
+            }
         }
 
         // Set Params to Info Object
@@ -56,7 +59,7 @@ export class GraphManager{
                         else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port] = [defaults.output]
                     } catch {
                         try {
-                            node.states[port] = [{data: node.ports[port].output.default, meta: node.ports[port].output.meta}]
+                            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
                         } catch {
                             if (defaults && defaults.output) {
                                 node.states[port] = defaults.output

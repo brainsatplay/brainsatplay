@@ -13,12 +13,10 @@ export class Shader{
 
         this.ports = {
             default: {
+                default: this.params.glsl ?? '', 
+                meta: {label: this.label, uniforms: this.params.uniforms},
                 input: {type: null},
-                output: {
-                    type: 'glsl', 
-                    default: this.params.glsl ?? '', 
-                    meta: {label: this.label, uniforms: this.params.uniforms}
-                },
+                output: {type: 'glsl'},
                 onUpdate: () => {
                     return [{data: this.params.glsl, meta: {label: this.label, uniforms: this.params.uniforms}}]
                 }
@@ -48,21 +46,24 @@ export class Shader{
         var re = /uniform\s+([^\s]+)\s+([^;]+);/g;
         let result = [...glsl.matchAll(re)]
         this.props.uniforms = []
+
         result.forEach(a => {
             let name = a[2]
             let type = a[1]
+
+            // Set Port
             this.ports[name] = {
                 input: {type},
-                output: {
-                    type, 
-                    default: this.params.uniforms[name], 
-                },
+                default: this.params.uniforms[name]?.value,
+                output: {type},
                 onUpdate: (userData) => {
                     this.params.uniforms[name].value = userData[0].data
-                    console.log(this.params.uniforms[name])
                     return [{data: this.ports[name].output.value, meta: {label: `${this.label}_${name}`}}]
                 }
             }
+
+            // Set Param
+            this.params[name] = this.params.uniforms[name]?.value
         })
     }
 }
