@@ -11,15 +11,31 @@ import * as THREE from 'three'
 /* 
  Samir Parameters
 */
-
-// Terrain Parameters
 const terrainFog = 10;
-// River parameters
 const riverOffset = 4.0
 const riverWidth = 4.0
 var quantityPoints = 3000
 
 let groundUniforms = {
+  iTime: {value: 0.0},
+  uBigWavesSpeed: { value: 0.5 },
+  uBigWavesElevation: { value: 0.12 },
+  uBigWavesFrequency: { value: new THREE.Vector2(2,2)},
+  uDepthColor: { value: new THREE.Color('#000000')},
+  uSurfaceColor: { value: new THREE.Color('#111111')},
+  uColorOffset: {value: 0.2},
+  uColorMultiplier: {value: 0.25},
+  uSmallWavesElevation: { value: 0.05 },
+  uSmallWavesFrequency: { value: 3 },
+  uSmallWavesSpeed: { value: 0.2 },
+  uSmallIterations: { value: 4 },
+  uFogRadius: {value: terrainFog},
+  uFogDropoff: {value: 10.0},
+  uRiverOffset: {value: riverOffset},
+  uRiverWidth: {value: riverWidth}
+}
+
+let meshUniforms = {
   iTime: {value: 0.0},
   uBigWavesSpeed: { value: 0.5 },
   uBigWavesElevation: { value: 0.12 },
@@ -62,9 +78,8 @@ export const settings = {
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
         // Ground
-        {id: 'meshvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
-        {id: 'meshfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
-        {id: 'meshgeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', radius: 50, segments: 256}},
+        {id: 'meshvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: meshUniforms}},
+        {id: 'meshfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: meshUniforms}},
         {id: 'meshmat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: true, transparent:true}},
         {id: 'mesh', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0.1, z:0,scale:1, rotatex: Math.PI/2}},
         
@@ -122,28 +137,6 @@ export const settings = {
         //   target: 'scene:add'
         // },
 
-        // Add Mesh
-        {
-          source: 'meshvertex', 
-          target: 'meshmat:vertex'
-        },
-        {
-          source: 'meshfragment', 
-          target: 'meshmat:fragment'
-        },
-        {
-          source: 'meshgeo', 
-          target: 'mesh:geometry'
-        },
-        {
-          source: 'meshmat', 
-          target: 'mesh:material'
-        },
-        {
-          source: 'mesh:add', 
-          target: 'scene:add'
-        },
-
         // Add Ground
         {
           source: 'groundvertex', 
@@ -163,6 +156,28 @@ export const settings = {
         },
         {
           source: 'ground:add', 
+          target: 'scene:add'
+        },
+
+        // Add Mesh
+        {
+          source: 'meshvertex', 
+          target: 'meshmat:vertex'
+        },
+        {
+          source: 'meshfragment', 
+          target: 'meshmat:fragment'
+        },
+        {
+          source: 'groundgeo', // Reuse
+          target: 'mesh:geometry'
+        },
+        {
+          source: 'meshmat', 
+          target: 'mesh:material'
+        },
+        {
+          source: 'mesh:add', 
           target: 'scene:add'
         },
 

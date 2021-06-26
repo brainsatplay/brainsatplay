@@ -134,8 +134,6 @@ export class Object3D{
             this.props.mesh.material = this.props.material
             // this.session.graph.runSafe(this,'add',[{data:true}])
         }
-
-        console.log(this.props.mesh, this.props.material)
     }
 
     geometry = (userData) => {
@@ -146,8 +144,6 @@ export class Object3D{
             this.props.mesh.geometry = this.props.geometry
             // this.session.graph.runSafe(this,'add',[{data:true}])
         }
-
-        console.log(this.props.mesh, this.props.geometry)
     }
 
     add = () => {
@@ -158,6 +154,8 @@ export class Object3D{
         this.props.mesh.rotateX(this.params.rotatex)
         this.props.mesh.rotateY(this.params.rotatey)
         this.props.mesh.rotateZ(this.params.rotatez)
+
+        this.props.mesh.name = `${this.label}`
 
         return [{data: this.props.mesh, meta: {label: this.label}}]
     }

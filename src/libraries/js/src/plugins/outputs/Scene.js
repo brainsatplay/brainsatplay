@@ -82,6 +82,12 @@ export class Scene{
 
             // Controls
             this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
+
+            let minAngle = Math.PI/2 + 0.0001
+            this.props.camera.rotateX(-0.0001)
+            this.props.controls.minPolarAngle = minAngle
+
+
             this.props.scene.add(this.props.controls.getObject());
             this.props.container.addEventListener( 'click', _ => {
                 // Ask the browser to lock the pointer
@@ -359,8 +365,6 @@ export class Scene{
     _render = () => {
         const time = performance.now()
         const delta = ( time - this.props.prevTime ) / 1000;
-
-        console.log(this.props.scene.children)
 
         // Update Raycaster Functionality
         // this._cleanIntersected();
