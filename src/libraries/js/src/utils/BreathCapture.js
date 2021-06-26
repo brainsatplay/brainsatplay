@@ -15,12 +15,15 @@ Capture.calibrate();
 //Outputs captured in this object as arrays
 //More fine grained data are in the class
 Capture.output = {
-    inVolumes: this.inPeakVolumes,     //Float array
-    outVolumes: this.outPeakVolumes,   //Float array
-    inTimes: this.inPeakTimes,         //Unix stamp array
-    outTimes: this.outPeakTimes,       //Unix stamp array
-    breathRate: this.breathingRate,    //ms array
-    brv: this.breathingRateVariability //ms array
+            inVolumes: this.inPeakVolumes,      //summed fft volume of in-breath                //float array
+            outVolumes: this.outPeakVolumes,    //summed fft volume of out-breath               //float array
+            inTimes: this.inPeakTimes,          //timestamps of in-breaths                      //unix ms timestamp array
+            outTimes: this.outPeakTimes,        //timestamps of out-breaths                     //unix ms timestamp array
+            inToOutTimes: this.inToOutTimes,    //timeframe between out- and in-breaths         //ms int array
+            fastTimes: this.fastPeakTimes,      //timestamps of the fast sma peaks              //unix ms timestamp array
+            fastRate: this.fastPeakDt,          //For fast breathing look for coherent breaths  //ms int array
+            breathRate: this.breathingRate,     //look for coherent breaths                     //ms int array
+            brv: this.breathingRateVariability  //Lower is better                               //ms int array
 };
 
 */
@@ -68,15 +71,15 @@ export class BreathCapture {
 
         //Simplified output reference.
         this.output = {
-            inVolumes: this.inPeakVolumes,
-            outVolumes: this.outPeakVolumes,
-            inTimes: this.inPeakTimes,
-            outTimes: this.outPeakTimes,
-            inToOutTimes: this.inToOutTimes,
-            fastTimes: this.fastPeakTimes,
-            fastRate: this.fastPeakDt,
-            breathRate: this.breathingRate,
-            brv: this.breathingRateVariability
+            inVolumes: this.inPeakVolumes,      //summed fft volume of in-breath
+            outVolumes: this.outPeakVolumes,    //summed fft volume of out-breath
+            inTimes: this.inPeakTimes,          //timestamps of in-breaths
+            outTimes: this.outPeakTimes,        //timestamps of out-breaths
+            inToOutTimes: this.inToOutTimes,    //timeframe between out- and in-breaths
+            fastTimes: this.fastPeakTimes,      //timestamps of the fast sma peaks
+            fastRate: this.fastPeakDt,          //For fast breathing look for coherent breaths
+            breathRate: this.breathingRate,     //look for coherent breaths
+            brv: this.breathingRateVariability  //Lower is better
         };
 
         this.analyzing = false;
