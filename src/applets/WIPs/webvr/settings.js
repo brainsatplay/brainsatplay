@@ -30,7 +30,7 @@ export const settings = {
 
 
         {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to MindMeld`}},
-        {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.5, z:0,scale:2}},
+        {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene},
       ],

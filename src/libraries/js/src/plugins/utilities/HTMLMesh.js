@@ -1,7 +1,5 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-// import { HTMLMesh as html} from 'three/examples/jsm/interactive/HTMLMesh.js';
-import{GUI} from 'dat.gui'
 
 export class HTMLMesh{
 
@@ -20,6 +18,7 @@ export class HTMLMesh{
             rotatex: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatey: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            isHUD: {default: false}
         }
 
         this.props = {
@@ -77,6 +76,8 @@ export class HTMLMesh{
                 this.props.lastRendered = Date.now()
             }
         })
+
+        this.props.looping = true 
     }
 
     deinit = () => {
@@ -96,8 +97,9 @@ export class HTMLMesh{
 
         const animate = () => {
             if (this.props.looping){
-                this.props.mesh.material.map.update()
-                setTimeout(animate, 1000/10)
+                // this.props.mesh.material.map.update()
+                // this.props.mesh.isHUD = this.params.lock
+                // setTimeout(animate, 1000/10)
             }
         }
 
@@ -107,6 +109,7 @@ export class HTMLMesh{
         u.data.style.userSelect = 'none'
 
         this.props.mesh = new ThreeHTMLMesh(u.data)
+        this.props.mesh.isHUD = this.params.isHUD
         this.session.graph.runSafe(this,'add',[{data:true}])
         animate()
     }
