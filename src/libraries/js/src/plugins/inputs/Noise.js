@@ -13,7 +13,7 @@ export class Noise{
             type: {default: 'random', options: ['random', 'perlin', 'simplex']},
             intensity: {default: 1},
             interval: {default: 1000/60},
-            delta: {default: 1}
+            delta: {default: .01}
         }
 
         this.ports = {

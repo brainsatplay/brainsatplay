@@ -9,8 +9,8 @@ export class Sine{
         this.params = params
 
         this.paramOptions = {
-            amplitude: {default: 200, min: 0, max: 1000, step: 0.1},
-            frequency: {default: 20, mim: 0, max: 250, step: 0.1},
+            amplitude: {default: 1, min: 0, max: 1000, step: 0.1},
+            frequency: {default: 1, mim: 0, max: 250, step: 0.1},
             rate: {default: 250, min: 0, max: 1000, step: .1}
         }
 

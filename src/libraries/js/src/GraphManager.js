@@ -50,14 +50,20 @@ export class GraphManager{
                 node.states[port] = [{}]
                 let defaults = node.ports[port].defaults
 
-                if (defaults && defaults.output) {
+                // if (defaults && defaults.output) {
                     try {
                         if (Array.isArray(defaults.output)) node.states[port] = defaults.output
                         else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port] = [defaults.output]
                     } catch {
-                        node.states[port] = defaults.output
+                        try {
+                            node.states[port] = [{data: node.ports[port].output.default, meta: node.ports[port].output.meta}]
+                        } catch {
+                            if (defaults && defaults.output) {
+                                node.states[port] = defaults.output
+                            }
+                        }
                     }
-                }
+                // }
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
@@ -76,11 +82,16 @@ export class GraphManager{
                 }
                 if (node.ports[port].analysis == null) node.ports[port].analysis = []
                 if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
-                if (node.ports[port].types == null) node.ports[port].types = {in: undefined, out: undefined}
+                if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
+                if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
             }
         } else {
             node.ports = {
-                default:{active:{in:0,out:0}, types: {in:undefined, out: undefined}}
+                default:{
+                    active:{in:0,out:0}, 
+                    input: {type:node.ports[port]?.types.in}, 
+                    output: {type:node.ports[port]?.types?.out}
+                }
             }
             node.states['default'] = [{}]
         }
@@ -290,6 +301,7 @@ export class GraphManager{
             
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
+            else if (node.ports[port].onUpdate instanceof Function) node.ports[port].onUpdate(inputCopy) // New ports = params style
             else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
 
             // Handle Promises
@@ -486,8 +498,10 @@ export class GraphManager{
             let sP = source.ports[sourcePort]
             if (tP.active == null) tP.active = {in: 0, out: 0}
             if (sP.active == null) sP.active = {in: 0, out: 0}
-            if (tP.types == null) tP.types = {in: undefined, out: undefined}
-            if (sP.types == null) sP.types = {in: undefined, out: undefined}
+            if (tP.input == null) tP.input = {type: tP?.types?.in}
+            if (tP.output == null) tP.output = {type: tP?.types?.out}
+            if (sP.input == null) sP.input = {type: sP?.types?.in}
+            if (sP.output == null) sP.output = {type: sP?.types?.out}
 
             tP.active.in++
             sP.active.out++

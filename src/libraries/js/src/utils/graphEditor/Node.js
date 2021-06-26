@@ -80,9 +80,10 @@ export class Node{
 
             for (let port in node.ports){
 
-                let inorout = (s == 'target') ? 'in' : 'out'
+                let inorout = (s == 'target') ? 'input' : 'output'
                 let nodeType
-                if (node.ports[port]?.types) nodeType = node.ports[port]?.types[inorout]
+
+                nodeType = node.ports[port][inorout].type
  
                 // if (nodeType !== null){
                     let portElement = document.createElement('div')

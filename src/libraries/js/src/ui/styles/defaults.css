@@ -953,6 +953,14 @@ select {
     background: rgb(255, 255, 108);
 }
 
+.node-port-container .node-port.float {
+    background: rgb(255, 255, 108);
+}
+
+.node-port-container .node-port.int {
+    background: rgb(255, 255, 108);
+}
+
 .node-port-container .node-port.boolean {
     background: rgb(126, 184, 255);
 }
