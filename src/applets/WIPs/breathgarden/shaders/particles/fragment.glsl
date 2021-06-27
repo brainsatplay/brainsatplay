@@ -101,8 +101,10 @@ void main(){
     float r = fbm(p + t2 + s);
     // so this is where is ressembles the canonical quilez technique
     color += fbm(q + r);
-    color.r -= .9;
-    color.b -= .9;
-    color.g += uVerdant;
+
+    // Bias towards canary yellow
+    color.r = 1.0*clamp(uVerdant,0.0,1.0);
+    color.g = 1.0*clamp(uVerdant,0.0,1.0);
+    color.b = 0.6*clamp(uVerdant,0.0,1.0);
     gl_FragColor = vec4(color, clamp(uVerdant* vMass *  2.1 * vDepth,.05,.9) );
 }

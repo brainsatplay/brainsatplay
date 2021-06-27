@@ -89,8 +89,9 @@ export const settings = {
         // Utilities
         {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
         {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
-        {id: 'breathClamp', class: brainsatplay.plugins.utilities.Transform},
-        
+        {id: 'transformer', class: brainsatplay.plugins.utilities.Transform},
+        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 5, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Breathe Out','Breathe In','Breathe Out','Breathe In','Breathe Out','Breathe In','Breathe Out']}},
+
         {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
 
         // Light
@@ -135,15 +136,25 @@ export const settings = {
         // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
-        // {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{
-        //   html: `
-        //   <div style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-        //     <div>
-        //       <h2>Welcome to Breath Garden</h2>
-        //     </div>
-        //   </div>
-        //   `}
-        // },
+        {id: 'sine', class: brainsatplay.plugins.inputs.Event},//, params: {center: 0.5, scale: 0.5, frequency: 0.1}},
+        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{
+          html: `
+          <div style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
+            <div>
+              <h2 id="text">Welcome to Breath Garden</h2>
+            </div>
+          </div>
+          `,
+          style: `
+          position: absolute;
+          pointer-events: none;
+          user-select: none;
+          width: 100%; 
+          height: 100%;
+          transition: 0.5s;
+          `
+        }
+        },
         // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 1, cameray: 2.0}},
@@ -171,24 +182,24 @@ export const settings = {
         },
         // {
         //   source: 'breath:isHolding', 
-        //   target: 'breathClamp:not'
+        //   target: 'transformer:not'
         // },
 
         // {
-        //   source: 'breathClamp:not', 
-        //   target: 'breathClamp:toFloat'
+        //   source: 'transformer:not', 
+        //   target: 'transformer:toFloat'
         // },
 
         // {
-        //   source: 'breathClamp:toFloat', 
-        //   target: 'breathClamp:value'
+        //   source: 'transformer:toFloat', 
+        //   target: 'transformer:value'
         // },
         // {
         //   source: 'lastBreath', 
-        //   target: 'breathClamp:multiply'
+        //   target: 'transformer:multiply'
         // },
         // {
-        //   source: 'breathClamp:multiply', 
+        //   source: 'transformer:multiply', 
         //   target: 'riververtex:uSpeedModifier'
         // },
         {
@@ -319,6 +330,16 @@ export const settings = {
         //   target: 'scene:add'
         // },
 
+        // UI
+        // {
+        //   source: 'sine', 
+        //   target: 'transformer:toFloat'
+        // },
+        // {
+        //   source: 'transformer:toFloat', 
+        //   target: 'html:opacity'
+        // },
+
         // HUD
         // {
         //   source: 'html:element', 
@@ -328,6 +349,11 @@ export const settings = {
         //   source: 'hud:add', 
         //   target: 'scene:add'
         // },
+
+        {
+          source: 'scheduler:state', 
+          target: 'html:text'
+        },
         
 
         // Draw light to Scene

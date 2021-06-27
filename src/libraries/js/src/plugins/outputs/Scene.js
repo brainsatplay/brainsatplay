@@ -46,7 +46,8 @@ export class Scene{
             controllers: [],
             grips: [],
             matrix: new THREE.Matrix4(),
-            group: new InteractiveGroup( renderer, camera )
+            group: new THREE.Group( )
+            // group: new InteractiveGroup( renderer, camera )
         }
 
         this.ports = {

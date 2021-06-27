@@ -16,31 +16,53 @@ export class HTML{
         }
 
         this.ports = {
-            default: {
-                types: {
-                    in: 'function',
-                    out: null
-                }
-            },
             element: {
-                defaults: {
-                    output: [{data: null, meta: {label: `${this.label}_element`}}]
+                input: {type: null},
+                output: {type: 'Element'},
+                onUpdate: () => {
+                    return [{data: this.props.container}]
                 },
-                types: {
-                    in: null,
-                    out: 'Element'
+            },
+             style: {
+                 input: {type:'string'},
+                 output: {type: null},
+                 onUpdate: (userData) => {
+                     this.params.style = userData[0].data
+                 }
+             },
+             opacity: {
+                input: {type:'number'},
+                output: {type: null},
+                onUpdate:(userData) => {
+                    let val = userData[0].data
+                    this.props.container.style.opacity = val
                 }
-            }
+             }
         }
     }
 
     init = () => {
 
+        // Create ID Ports
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+        this.props.container.style = this.params.style
+        this.props.container.insertAdjacentHTML(`beforeend`,this.params.html)
+        var descendants = this.props.container.querySelectorAll("*");
+        for (let node of descendants){
+            if (node.id){
+                this.ports[node.id] = {
+                    input: {type: 'string'},
+                    output: {type: null},
+                    onUpdate: (userData) => {
+                        node.innerHTML = userData[0].data
+                    }
+                }
+            }
+        }
+
         let HTMLtemplate = () => {
-            return `
-            <div id='${this.props.id}' style='width: 100%; height: 100%;'>
-                ${this.params.html}
-            </div>`
+            return this.props.container
         }
 
         let setupHTML = (app) => {
@@ -48,24 +70,14 @@ export class HTML{
             this.props.container = document.getElementById(`${this.props.id}`);
 
             // Set Default Port Output
-            this.ports.element.defaults.output[0].data = this.props.container
+            this.ports.element.default = this.props.container
         }
 
         return { HTMLtemplate, setupHTML}
-    }
-
-    element = () => {
-        return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
     }
 
     deinit = () => {
     }
 
     responsive = () => {}
-
-    default = (userData) => {
-        // userData.forEach(u => {
-        //     this.props.drawFunctions[u.username + u.meta.label] = u.data
-        // })
-    }
 }
