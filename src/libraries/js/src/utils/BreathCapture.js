@@ -192,10 +192,11 @@ export class BreathCapture {
 
             this.effects.push(fx);
 
-            window.audio.gainNode.disconnect(window.audio.analyserNode);
-            window.audio.analyserNode.disconnect(window.audio.out);
-            window.audio.gainNode.connect(window.audio.out);
-        
+            try {
+                window.audio.gainNode.disconnect(window.audio.analyserNode);
+                window.audio.analyserNode.disconnect(window.audio.out);
+                window.audio.gainNode.connect(window.audio.out);
+            } catch (er) {}
             return fx;
         }
     }
@@ -214,9 +215,11 @@ export class BreathCapture {
                 this.effects.splice(idx,1);
             }
 
-            window.audio.gainNode.disconnect(window.audio.out);
-            window.audio.gainNode.connect(window.audio.analyserNode);
-            window.audio.analyserNode.connect(window.audio.out);
+            try{ 
+                window.audio.gainNode.disconnect(window.audio.out);
+                window.audio.gainNode.connect(window.audio.analyserNode);
+                window.audio.analyserNode.connect(window.audio.out);
+            } catch(er) {}
         }
     }
 

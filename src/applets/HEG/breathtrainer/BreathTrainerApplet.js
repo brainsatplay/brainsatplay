@@ -451,6 +451,65 @@ export class BreathTrainerApplet {
             this.ctx.closePath();
             this.ctx.fill();
         });
+
+        if(this.session.atlas.data.heg[0]) {
+            let heg = this.session.atlas.data.heg[0];
+            if(heg.count > 0 ) {
+                let ratio = [];
+                let tidx = undefined;
+                let found = heg.times.find((t,k) => {
+                    if(t <= this.Capture.audTime[0]) {
+                        tidx=k;
+                        return true;
+                    }
+                });
+                if(!found) {
+                    //find first non-zero audtime, translate ratio x relatively
+                    let tfound = this.Capture.audTime.find((t,ti) => {
+                        if(t !== 0) {
+                            tidx = ti;
+                            return true;
+                        }
+                    });
+                    
+                }
+                this.ctx.beginPath();
+
+                let logScale = Math.ceil(Math.log10(Math.max(...ratio)+1));
+
+                let xoffset;
+
+                if(found) {
+                    this.ctx.moveTo(0,ratio[0]);
+                } else if(!found) {
+                    let leftmostTime = this.Capture.audTime[tidx];
+                    let nearestAudidx = 0;
+                    this.Capture.audTime.find((t, jk) => {
+                        if(t < heg.times[0]) {
+                            nearestAudidx = jk;
+                        }
+                    });
+                    xoffset = jk/1024 * width;
+                }
+
+                ratio.forEach((r,k) => {
+                    if(k>0) {
+                        if(found)
+                            this.ctx.lineTo((k/ratio.length)*width,(r/(10*logScale))*height);
+                        else {
+                            this.ctx.lineTo((k/ratio.length)*width+xoffset,(r/(10*logScale))*height);
+                        }
+                    } else {
+                        if(!found) {
+                            this.ctx.moveTo(xoffset,(r/(10*logScale))*height);
+                        }
+                    }
+                });
+
+                this.ctx.stroke();
+            }
+        }
+
     }
     
     animate = () => {
