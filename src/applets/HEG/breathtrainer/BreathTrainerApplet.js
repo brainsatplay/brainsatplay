@@ -208,7 +208,7 @@ export class BreathTrainerApplet {
 
         this.timeScaled += audInterval+(width/1024 - this.fps);
         this.time += this.fps;
-        console.log(this.time);
+        //console.log(this.time);
 
         let timeaccum = 0;
         for(let i = 0; i<this.currentFrequencyMap.length; i++) {
