@@ -266,23 +266,18 @@ export class BreathTrainerApplet {
         //this.offscreenctx.canvas.clearRect(0,0,width,height);
 		tempCanvasContext.drawImage(this.canvas2, 0, 0, width, height);
 
-        this.ctx2.clearRect(0,0,this.canvas2.width,this.canvas2.height);
+        this.ctx2.clearRect(0,0,width,height);
 
-        let stepSize = 1;
         let x = width-1;
-        let amplitude = 0;
-        amplitude = (height/2 + amp * Math.sin((x+this.timeScaled+width)/(width*freq)));
-        this.lastAmplitude = amplitude;
+        let amplitude = (height/2 + amp * Math.sin((x+this.timeScaled+width)/(width*freq)));
         this.ctx2.fillStyle = 'limegreen';
         this.ctx2.fillRect(width - 1, amplitude, 1, 1);
 
         this.ctx2.translate(-1, 0);
-			// draw prev canvas before translation
+        // draw prev canvas before translation
         this.ctx2.drawImage(tempCanvas, 0, 0, width, height);
         // reset transformation matrix
         this.ctx2.setTransform(1, 0, 0, 1, 0, 0);
-    
-
 
         //FIX
         let foundidx = undefined;
