@@ -130,8 +130,6 @@ export class BreathTrainerApplet {
 
             document.getElementById(props.id+'select').onchange = (event) => {
                 let t = event.target.value;
-                this.time = 0;
-                this.timeScaled = 0;
                 let found = this.frequencyMaps.find((o)=> {
                     if(o.type === t)
                         return true;
