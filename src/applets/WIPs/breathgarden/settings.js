@@ -78,7 +78,7 @@ export const settings = {
       {
       nodes: [
 
-        {id: 'breath', class: brainsatplay.plugins.algorithms.Breath},
+        {id: 'breath', class: brainsatplay.plugins.inputs.Breath},
 
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
