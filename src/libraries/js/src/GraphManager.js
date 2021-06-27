@@ -304,7 +304,7 @@ export class GraphManager{
             
             let result
             if (node[port] instanceof Function) result = node[port](inputCopy)
-            else if (node.ports[port].onUpdate instanceof Function) node.ports[port].onUpdate(inputCopy) // New ports = params style
+            else if (node.ports[port].onUpdate instanceof Function) result = node.ports[port].onUpdate(inputCopy) // New ports = params style
             else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
 
             // Handle Promises
