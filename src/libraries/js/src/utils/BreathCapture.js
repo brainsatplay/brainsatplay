@@ -459,7 +459,7 @@ export class BreathCapture {
                             if(this.inPeakTimes.length > 1 && this.outPeakTimes.length > 1) {
                                 this.breathingRate.push(0.5*((this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2])+(this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])))
                                 if(this.breathingRate.length > 1) {
-                                    this.breathingRateVariability.push(Math.abs(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2]))
+                                    this.breathingRateVariability.push(Math.abs(this.breathingRate[this.breathingRate.length-1]-this.breathingRate[this.breathingRate.length-2]))
                                 } 
                             }
                             this.output.isHolding = false;
@@ -494,7 +494,7 @@ export class BreathCapture {
                             if(this.inPeakTimes.length > 1 && this.outPeakTimes.length > 1) {
                                 this.breathingRate.push(0.5*((this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2])+(this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])))
                                 if(this.breathingRate.length > 1) {
-                                    this.breathingRateVariability.push(Math.abs(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2]))
+                                    this.breathingRateVariability.push(Math.abs(this.breathingRate[this.breathingRate.length-1]-this.breathingRate[this.breathingRate.length-2]))
                                 } 
                             }
                             this.onBreath();
@@ -507,7 +507,7 @@ export class BreathCapture {
                             if(this.inPeakTimes.length > 1 && this.outPeakTimes.length > 1) {
                                 this.breathingRate.push(0.5*((this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2])+(this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])))
                                 if(this.breathingRate.length > 1) {
-                                    this.breathingRateVariability.push(Math.abs(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2]))
+                                    this.breathingRateVariability.push(Math.abs(this.breathingRate[this.breathingRate.length-1]-this.breathingRate[this.breathingRate.length-2]))
                                 } 
                             }
                             this.onBreath();
@@ -520,7 +520,7 @@ export class BreathCapture {
                             if(this.inPeakTimes.length > 1 && this.outPeakTimes.length > 1) {
                                 this.breathingRate.push(0.5*((this.inPeakTimes[this.inPeakTimes.length-1]-this.inPeakTimes[this.inPeakTimes.length-2])+(this.outPeakTimes[this.outPeakTimes.length-1]-this.outPeakTimes[this.outPeakTimes.length-2])))
                                 if(this.breathingRate.length > 1) {
-                                    this.breathingRateVariability.push(Math.abs(this.breatingRate[this.breatingRate.length-1]-this.breatingRate[this.breatingRate.length-2]))
+                                    this.breathingRateVariability.push(Math.abs(this.breathingRate[this.breathingRate.length-1]-this.breathingRate[this.breathingRate.length-2]))
                                 } 
                             }
                             this.onBreath();
