@@ -156,20 +156,30 @@ export const settings = {
           source: 'breath:slowSmoothedVolume', 
           target: 'lastBreath'
         },
-        {
-          source: 'breath:isHolding', 
-          target: 'debug'
-        },
-        {
-          source: 'breath:isHolding', 
-          target: 'breathClamp:value'
-        },
+        // {
+        //   source: 'breath:isHolding', 
+        //   target: 'breathClamp:not'
+        // },
+
+        // {
+        //   source: 'breathClamp:not', 
+        //   target: 'breathClamp:toFloat'
+        // },
+
+        // {
+        //   source: 'breathClamp:toFloat', 
+        //   target: 'breathClamp:value'
+        // },
+        // {
+        //   source: 'lastBreath', 
+        //   target: 'breathClamp:multiply'
+        // },
+        // {
+        //   source: 'breathClamp:multiply', 
+        //   target: 'riververtex:uSpeedModifier'
+        // },
         {
           source: 'lastBreath', 
-          target: 'breathClamp:multiply'
-        },
-        {
-          source: 'breathClamp:multiply', 
           target: 'riververtex:uSpeedModifier'
         },
 

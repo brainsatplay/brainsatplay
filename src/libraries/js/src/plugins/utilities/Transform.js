@@ -16,6 +16,31 @@ export class Transform{
                     this.params.value = userData[0].data
                 }
             },
+
+            not: {
+                default: 0,
+                input: {type: 'boolean'},
+                output: {type: 'boolean'},
+                onUpdate: (userData) => {
+                    userData.forEach(u => {
+                        u.data = !u.data
+                    })
+                    return userData
+                }
+            },
+
+            toFloat: {
+                default: 0,
+                input: {type: undefined},
+                output: {type: 'number'},
+                onUpdate: (userData) => {
+                    userData.forEach(u => {
+                        u.data = this._parseProperFormat(u.data)
+                    })
+                    return userData
+                }
+            },
+
             add: {
                 types: {
                     in: 'number',
@@ -63,7 +88,7 @@ export class Transform{
         userData.forEach(u => {
             let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
-            u.data = u.data.map(v => v += Number.parseFloat(this.params.value))
+            u.data = u.data.map(v => v += this._parseProperFormat(this.params.value))
             if (!wasArray) u.data = u.data[0]
         })
         return userData
@@ -73,7 +98,7 @@ export class Transform{
         userData.forEach(u => {
         let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
-            userData.forEach(u => {u.data = u.data.map(v => v -= Number.parseFloat(this.params.value))})
+            userData.forEach(u => {u.data = u.data.map(v => v -= this._parseProperFormat(this.params.value))})
             if (!wasArray) u.data = u.data[0]
         })
         return userData
@@ -83,7 +108,7 @@ export class Transform{
         userData.forEach(u => {
         let wasArray = Array.isArray(u.data)
         if (!wasArray) u.data = [u.data]
-        userData.forEach(u => {u.data = u.data.map(v => v *= Number.parseFloat(this.params.value))})
+        userData.forEach(u => {u.data = u.data.map(v => v *= this._parseProperFormat(this.params.value))})
         if (!wasArray) u.data = u.data[0]
         })
         return userData
@@ -93,7 +118,7 @@ export class Transform{
         userData.forEach(u => {
             let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
-            userData.forEach(u => {u.data = u.data.map(v => v /= Number.parseFloat(this.params.value))})
+            userData.forEach(u => {u.data = u.data.map(v => v /= this._parseProperFormat(this.params.value))})
             if (!wasArray) u.data = u.data[0]
         })
         return userData
@@ -107,5 +132,11 @@ export class Transform{
     sum = (userData) => {
         userData.forEach(u.data = u.data.reduce((a,b) => a + b))
         return userData
+    }
+
+    _parseProperFormat = (val) => {
+        if (typeof val === 'boolean') val = val ? 1 : 0;
+        else val = Number.parseFloat(val)
+        return val
     }
 }
