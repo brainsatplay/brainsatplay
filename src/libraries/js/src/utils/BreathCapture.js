@@ -434,7 +434,7 @@ export class BreathCapture {
 	};
 
     //sets a threshold to avoid false positives at low volume
-    getPeakThreshold(arr,peakIndices, thresholdVar) {
+    getPeakThreshold(arr,peakIndices, thresholdVar=0) {
         let threshold;
         let filtered = arr.filter((o,i)=>{if(peakIndices.indexOf(i)>-1) return true;});
         if(thresholdVar === 0) {
