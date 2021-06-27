@@ -2,6 +2,7 @@
 attribute float mass;
 
 uniform float iTime;
+uniform float uSpeedModifier;
 varying float vMass;
 uniform sampler2D uImage;
 
@@ -13,9 +14,9 @@ float random (in vec2 st) {
     43758.5453123);
 }
 
-float speed = 0.2;
-
 void main() {
+    float speed = clamp(0.03 + uSpeedModifier, 0.0, 2.0);
+
     // position.x += iTime;
     vMass = mass;
     vec3 modifiedPosition = position;

@@ -100,15 +100,19 @@ export class Material{
     }
 
     fragment = (userData) => {
-        this._passShaderMaterial()
         this.props.fragmentShader = userData[0].data
-        if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
+        this._updateUniforms(userData[0].meta.uniforms)
+        this._passShaderMaterial()
     }
 
     vertex = (userData) => {
         this.props.vertexShader = userData[0].data
-        if (userData[0].meta.uniforms) this.props.uniforms = Object.assign(this.props.uniforms, userData[0].meta.uniforms)
+        this._updateUniforms(userData[0].meta.uniforms)
         this._passShaderMaterial()
+    }
+
+    _updateUniforms = (uniforms) => {
+        if (uniforms) this.props.uniforms = Object.assign(this.props.uniforms, uniforms)
     }
 
     _passShaderMaterial = () => {

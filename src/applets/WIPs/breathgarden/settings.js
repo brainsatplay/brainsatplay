@@ -20,7 +20,7 @@ var quantityPoints = 3000
 let groundUniforms = {
   iTime: {value: 0.0},
   uBigWavesSpeed: { value: 0.5 },
-  uBigWavesElevation: { value: 0.12 },
+  uBigWavesElevation: { value: 0.22 },
   uBigWavesFrequency: { value: new THREE.Vector2(2,2)},
   uDepthColor: { value: new THREE.Color('#000000')},
   uSurfaceColor: { value: new THREE.Color('#111111')},
@@ -55,7 +55,7 @@ let meshUniforms = {
   uRiverWidth: {value: riverWidth}
 }
 
-let invisisphereUniforms = {iTime: {value: 0}}
+let invisisphereUniforms = {iTime: {value: 0}, uSpeedModifier: {value: 0}}
 
 /* 
  App Settings
@@ -77,31 +77,44 @@ export const settings = {
     graph:
       {
       nodes: [
+
+        // Biofeedback
+        {id: 'breath', class: brainsatplay.plugins.inputs.Breath},
+        {id: 'heg', class: brainsatplay.plugins.inputs.HEG},
+
+        // Utilities
+        {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
+        {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
+        {id: 'breathClamp', class: brainsatplay.plugins.utilities.Transform},
+        
+        {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
+
+        // Light
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
         // Ground
-        {id: 'meshvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: meshUniforms}},
-        {id: 'meshfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: meshUniforms}},
+        {id: 'meshvertex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: desertGroundVertexShader, uniforms: meshUniforms}},
+        {id: 'meshfragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: desertGroundFragmentShader, uniforms: meshUniforms}},
         {id: 'meshmat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: true, transparent:true}},
         {id: 'mesh', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0.1, z:0,scale:1, rotatex: Math.PI/2}},
         
-        {id: 'groundvertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
-        {id: 'groundfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
+        {id: 'groundvertex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
+        {id: 'groundfragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
         {id: 'groundgeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'PlaneGeometry', radius: 50, segments: 256}},
         {id: 'groundmat', class: brainsatplay.plugins.utilities.Material, params:{wireframe: false, transparent:true, depthWrite: true}},
         {id: 'ground', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh', x:0, y:0, z:0,scale:1, rotatex: Math.PI/2}},
         
 
         // River
-        {id: 'riververtex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: invisisphereVertexShader, uniforms: invisisphereUniforms}},
-        {id: 'riverfragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
+        {id: 'riververtex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: invisisphereVertexShader, uniforms: invisisphereUniforms}},
+        {id: 'riverfragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
         {id: 'rivergeo', class: brainsatplay.plugins.utilities.Geometry, params:{type: 'BufferGeometry', count: quantityPoints, radius: 50, segments: 256}},
         {id: 'rivermat', class: brainsatplay.plugins.utilities.Material, params:{type: 'ShaderMaterial',wireframe: true, transparent:false, depthWrite: false}},
         {id: 'river', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Points', x: riverOffset - riverWidth/2, y:-1, z:terrainFog,scalex:terrainFog*2, scalez: riverWidth, rotatey: Math.PI/2}},
 
         // Sphere
-        // {id: 'vertex', class: brainsatplay.plugins.utilities.VertexShader, params: {glsl: vertexShader}},
-        // {id: 'fragment', class: brainsatplay.plugins.utilities.FragmentShader, params: {glsl: fragmentShader, uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}}},
+        // {id: 'vertex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: vertexShader}},
+        // {id: 'fragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: fragmentShader, uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}}},
         // {id: 'material', class: brainsatplay.plugins.utilities.Material},
         // {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
         // {id: 'sphere', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh',x:0, y:0, z:0,scale:100}},
@@ -110,12 +123,65 @@ export const settings = {
         // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
-        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to Breath Garden`}},
-        {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
+        // {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{
+        //   html: `
+        //   <div style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
+        //     <div>
+        //       <h2>Welcome to Breath Garden</h2>
+        //       <div>
+        //         <button>Press Me</button
+        //       </div>
+        //     </div>
+        //   </div>
+        //   `}
+        // },
+        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
-        {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
+        {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 1, cameray: 2.0}},
       ],
       edges: [
+
+        // HEG Input
+        {
+          source: 'heg:ratio', 
+          target: 'lastHEG'
+        },
+        {
+          source: 'lastHEG', 
+          target: 'riververtex:uSpeedModifier'
+        },
+
+        // Microphone Input
+        {
+          source: 'breath:slowSmoothedVolume', 
+          target: 'lastBreath'
+        },
+        // {
+        //   source: 'breath:isHolding', 
+        //   target: 'breathClamp:not'
+        // },
+
+        // {
+        //   source: 'breathClamp:not', 
+        //   target: 'breathClamp:toFloat'
+        // },
+
+        // {
+        //   source: 'breathClamp:toFloat', 
+        //   target: 'breathClamp:value'
+        // },
+        // {
+        //   source: 'lastBreath', 
+        //   target: 'breathClamp:multiply'
+        // },
+        // {
+        //   source: 'breathClamp:multiply', 
+        //   target: 'riververtex:uSpeedModifier'
+        // },
+        {
+          source: 'lastBreath', 
+          target: 'riververtex:uSpeedModifier'
+        },
 
         // // Draw Sphere to Scene
         // {
@@ -216,10 +282,10 @@ export const settings = {
         // },
 
         // HUD
-        {
-          source: 'html:element', 
-          target: 'hud:element'
-        },
+        // {
+        //   source: 'html:element', 
+        //   target: 'hud:element'
+        // },
         // {
         //   source: 'hud:add', 
         //   target: 'scene:add'

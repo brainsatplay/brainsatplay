@@ -22,11 +22,16 @@ export class Scene{
             // orbitcontrols: {default: true},
         }
 
+        let camera = new THREE.PerspectiveCamera()
+        let renderer = new THREE.WebGLRenderer( { antialias: true } )
+
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
-            scene: null,
+            scene: new THREE.Scene(),
+            renderer: renderer,
             container: null,
             controls: null,
+            camera,
             pointerlock: false,
             looping: false,
             velocity: new THREE.Vector3(),
@@ -41,7 +46,7 @@ export class Scene{
             controllers: [],
             grips: [],
             matrix: new THREE.Matrix4(),
-            group: null
+            group: new InteractiveGroup( renderer, camera )
         }
 
         this.ports = {
@@ -65,12 +70,11 @@ export class Scene{
         let setupHTML = (app) => {
 
             this.props.container = document.getElementById(`${this.props.id}`);
-            this.props.scene = new THREE.Scene();
-
-            this.props.camera = new THREE.PerspectiveCamera( 75, this.props.container.offsetWidth / this.props.container.offsetHeight, 0.1, 1000 );
+            this.props.camera.fov = 75
+            this.props.camera.aspect = this.props.container.offsetWidth / this.props.container.offsetHeight
+            this.props.camera.near = 0.1
+            this.props.camera.far = 1000
             this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
-
-            this.props.renderer = new THREE.WebGLRenderer( { antialias: true } );
             // this.props.renderer.domElement.style.width = '100%'
             // this.props.renderer.domElement.style.height = '100%'
             this.props.renderer.domElement.id = `${this.props.id}canvas`
@@ -173,7 +177,6 @@ export class Scene{
             this.props.raycaster = new THREE.Raycaster();
 
             // Interactive Group
-            this.props.group = new InteractiveGroup( this.props.renderer, this.props.camera )
             this.props.scene.add(this.props.group)
 
 
@@ -214,7 +217,6 @@ export class Scene{
                 let zComp = this.props.camera.position.z - defaultDistance//*Math.cos(this.props.camera.rotation.y)
                 el.position.set(xComp,yComp,zComp)
                 // el.setRotationFromEuler(this.props.camera.rotation)
-
             }
         })
     }

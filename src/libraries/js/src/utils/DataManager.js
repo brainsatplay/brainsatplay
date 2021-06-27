@@ -289,7 +289,6 @@ export class DataManager {
                         exists = true;
                     }
                 } else if (mainDeviceType === 'heg') {
-                    console.log(thisDevice,thisDevice.device)
                     let hegindex = thisDevice.device.atlas.data.heg.length-1;
                     if(this.deviceSubs.indexOf(mainDeviceType+"_"+hegindex) > -1) {
                         exists = true;

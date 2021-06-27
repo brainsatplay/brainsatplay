@@ -17,18 +17,20 @@ export class Canvas{
 
         this.ports = {
             default: {
-                types: {
-                    in: 'function',
-                    out: null
+                input: {type: 'function'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    console.log(userData)
+                    userData.forEach(u => {
+                        this.props.drawFunctions[u.username + u.meta.label] = u.data
+                    })
                 }
             },
             element: {
-                defaults: {
-                    output: [{data: null, meta: {label: `${this.label}_element`}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Element'
+                input: {type: null},
+                output: {type: 'Element'},
+                onUpdate: () => {
+                    return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
                 }
             }
         }
@@ -50,7 +52,7 @@ export class Canvas{
             this.props.context = this.props.canvas.getContext("2d");
 
             // Set Default Port Output
-            this.ports.element.defaults.output[0].data = this.props.container
+            this.ports.element.default = this.props.container
 
             // Set Looping
             this.props.looping = true
@@ -77,10 +79,6 @@ export class Canvas{
         return { HTMLtemplate, setupHTML}
     }
 
-    element = () => {
-        return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
-    }
-
     deinit = () => {
         this.props.looping = false
     }
@@ -89,13 +87,6 @@ export class Canvas{
         this.props.canvas.width = this.props.container.offsetWidth
         this.props.canvas.height = this.props.container.offsetHeight
     }
-
-    default = (userData) => {
-        userData.forEach(u => {
-            this.props.drawFunctions[u.username + u.meta.label] = u.data
-        })
-    }
-
 
     _clearCanvas = () => {
         this.props.context.fillStyle = 'black';
