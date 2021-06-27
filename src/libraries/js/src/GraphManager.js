@@ -37,10 +37,16 @@ export class GraphManager{
         // Set Default Parameters
         for (let param in node.paramOptions){
             if (node.params[param] == null) {
-                if (node.ports[param] == null) node.params[param] = node.paramOptions[param].default
-                else node.params[param] = node.ports[param].default
+                node.params[param] = node.paramOptions[param].default
             }
         }
+
+        for (let port in node.ports){
+            if (node.params[port] == null) node.params[port] = node.ports[port].default
+        }
+
+
+
 
         // Set Params to Info Object
         nodeInfo.params = node.params
@@ -59,7 +65,7 @@ export class GraphManager{
                         else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port] = [defaults.output]
                     } catch {
                         try {
-                            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
+                            if (node.ports[port].default) node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
                         } catch {
                             if (defaults && defaults.output) {
                                 node.states[port] = defaults.output
@@ -85,8 +91,17 @@ export class GraphManager{
                 }
                 if (node.ports[port].analysis == null) node.ports[port].analysis = []
                 if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
+                
                 if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
                 if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
+
+                let coerceType = (t) => {
+                    if (t === 'float') return 'number'
+                    else if (t === 'int') return'number'
+                    else return t
+                }
+                node.ports[port].input.type = coerceType(node.ports[port].input?.type)
+                node.ports[port].output.type = coerceType(node.ports[port].output?.type)
             }
         } else {
             node.ports = {
@@ -283,39 +298,45 @@ export class GraphManager{
     // Input Must Be An Array
     runSafe(node, port='default',input=[{}]){
 
-        // Shallow Copy State before Repackaging
-        let inputCopy = []
+        try {
 
-        inputCopy = this.deeperCopy(input)
+            // Shallow Copy State before Repackaging
+            let inputCopy = []
 
-        // Add Metadata
-        for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
-            // Remove Users with Empty Dictionaries
-            if (Object.keys(inputCopy[i]) == 0) inputCopy.splice(i,1)
-            // Or Add Username
-            else {
-                if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
-                if (!inputCopy[i].meta) inputCopy[i].meta = {}
+            inputCopy = this.deeperCopy(input)
+
+            // Add Metadata
+            for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
+                // Remove Users with Empty Dictionaries
+                if (Object.keys(inputCopy[i]) == 0) inputCopy.splice(i,1)
+                // Or Add Username
+                else {
+                    if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                    if (!inputCopy[i].meta) inputCopy[i].meta = {}
+                }
             }
-        }
 
-        // Only Continue the Chain with Updated Data
-        if (inputCopy.length > 0){
-            
-            let result
-            if (node[port] instanceof Function) result = node[port](inputCopy)
-            else if (node.ports[port].onUpdate instanceof Function) result = node.ports[port].onUpdate(inputCopy) // New ports = params style
-            else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
+            // Only Continue the Chain with Updated Data
+            if (inputCopy.length > 0){
+                
+                let result
+                if (node[port] instanceof Function) result = node[port](inputCopy)
+                else if (node.ports[port].onUpdate instanceof Function) {
+                    result = node.ports[port].onUpdate(inputCopy) // New ports = params style
+                }
+                else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
 
-            // Handle Promises
-            if (!!result && typeof result.then === 'function'){
-                result.then((r) =>{
-                    this.checkToPass(node,port,r)
-                })
-            } else {
-                this.checkToPass(node,port,result)
+                // Handle Promises
+                if (!!result && typeof result.then === 'function'){
+                    result.then((r) =>{
+                        this.checkToPass(node,port,r)
+                    })
+                } else {
+                    this.checkToPass(node,port,result)
+                }
             }
-        }
+        } catch (e) { console.log(e)}
+
 
         return node.states[port]
     }
@@ -521,7 +542,9 @@ export class GraphManager{
             this.updateApp(appId)
 
             // Send Last State to New Edge Target
-            let sendFunction = () => {this.runSafe(target, targetPort, source.states[sourcePort])}
+            let sendFunction = () => {
+                this.runSafe(target, targetPort, source.states[sourcePort])
+            }
             if (sendOutput) sendFunction()
             else return sendFunction
         }

@@ -74,21 +74,21 @@ export class Graph{
             let targetPort = edge.structure.target.split(':')[1] ?? 'default'
             let sP = edge.source.nodeInfo.instance.ports[sourcePort]
             let tP = edge.target.nodeInfo.instance.ports[targetPort]
-            let sourceType = sP.output.type
-            let targetType = tP.input.type
+
+
+            let coerceType = (t) => {
+                if (t === 'float') return 'number'
+                else if (t === 'int') return'number'
+                else return t
+            }
+            let sourceType = coerceType(sP.output.type)
+            let targetType = coerceType(tP.input.type)
 
             let checkCompatibility = (types) => {
-
-                types = types.map(t => {
-                    if (t === 'float') return 'number'
-                    if (t === 'int') return'number'
-                })
-
                 return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
             }
 
             let compatible = checkCompatibility([sourceType, targetType])
-            
             if (res === true && found == null && compatible){
                 this.edges.push(edge)
                 resolve(edge)

@@ -78,8 +78,16 @@ export const settings = {
       {
       nodes: [
 
+        // Biofeedback
         {id: 'breath', class: brainsatplay.plugins.inputs.Breath},
+        {id: 'heg', class: brainsatplay.plugins.inputs.HEG},
 
+        // Utilities
+        {id: 'lastIndex', class: brainsatplay.plugins.utilities.Index},
+        {id: 'transform', class: brainsatplay.plugins.utilities.Transform, params: {value: 4}},
+        // {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
+
+        // Light
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
         // Ground
@@ -130,6 +138,24 @@ export const settings = {
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
       ],
       edges: [
+
+        // HEG Input
+        {
+          source: 'heg:ratio', 
+          target: 'lastIndex'
+        },
+        {
+          source: 'lastIndex', 
+          target: 'transform:add'
+        },
+        {
+          source: 'transform:add', 
+          target: 'groundvertex:uRiverWidth'
+        },
+        {
+          source: 'transform:add', 
+          target: 'meshvertex:uRiverWidth'
+        },
 
         // Microphone Input
         // {

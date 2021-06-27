@@ -7,15 +7,6 @@ export class Circle{
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            radius: {default: 100, min: 0, max:1000, step: 0.01},
-            x: {default: 0, min: 0, max:1000, step: 0.01},
-            y: {default: 0, min: 0, max:1000, step: 0.01},
-            color: {default: '#ffffff'},
-            minRadius: {default: 0, min: 0, max:1000, step: 0.01},
-            scaleRadius: {default: 1, min: 0, max:1000, step: 0.01},
-        }
-
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
         }
@@ -28,32 +19,90 @@ export class Circle{
                 types: {
                     in: null,
                     out: 'function',
+                },
+                onUpdate: () => {
+                    return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]
                 }
             },
             radius: {
-                types: {
-                    in: 'number',
-                    out: null,
+                default: 100,
+                min: 0,
+                max: 1000,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
+                }
+            },
+            x: {
+                default: 0,
+                min: 0,
+                max: 1000,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.x = Number.parseFloat(userData[0].data)
+                }
+            },
+            y: {
+                default: 0,
+                min: 0,
+                max: 1000,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.y = Number.parseFloat(userData[0].data)
                 }
             },
             dx: {
-                types: {
-                    in: 'number',
-                    out: null,
+                default: 0,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.x = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
                 }
             },
             dy: {
-                types: {
-                    in: 'number',
-                    out: null,
+                default: 0,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.y = Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
                 }
             },
             color: {
-                types: {
-                    in: 'color',
-                    out: null,
+                default: '#ffffff',
+                input: {type: 'color'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.color = userData[0].data
                 }
             },
+            minRadius: {
+                default: 0,
+                min: 0,
+                max: 1000,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.minRadius = userData[0].data
+                }
+            },
+            scaleRadius: {
+                default: 1,
+                min: 0,
+                max: 1000,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.scaleRadius = userData[0].data
+                }
+            }
         }
 
     }
@@ -61,36 +110,6 @@ export class Circle{
     init = (app) => {}
 
     deinit = () => {}
-
-    draw = () => {
-        return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]
-    }
-    
-    radius = (userData) => {
-        this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
-        // this.session.graph.runSafe(this,'default',[{data:true}])
-    }
-
-    dx = (userData) => {
-        let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
-        if (desiredX > 0){
-            this.params.x = desiredX
-            // this.session.graph.runSafe(this,'default',[{data:true}])
-        }
-    }
-
-    dy = (userData) => {
-        let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
-        if (desiredY > 0){
-            this.params.y = desiredY
-            // this.session.graph.runSafe(this,'default',[{data:true}])
-        }
-    }
-
-    color = (userData) => {
-        this.params.color = userData[0].data
-        // this.session.graph.runSafe(this,'default',[{data:true}])
-    }
 
     _circleFunction = (ctx) => {
         ctx.beginPath();
