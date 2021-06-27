@@ -487,11 +487,14 @@ export class DataAtlas {
 				beat_detect:{}  
 			};
 
-			if(found.beat_detect.beats.length > 0) {
-				latest.beat_detect.beats = found.beat_detect.beats[found.beat_detect.beats.length-1];
+			if(found.beat_detect.drir_dt.length > 0) {
 				latest.beat_detect.rir = found.beat_detect.rir[found.beat_detect.rir.length-1];
 				latest.beat_detect.rir2 = found.beat_detect.rir2[found.beat_detect.rir2.length-1];
 				latest.beat_detect.drir_dt = found.beat_detect.drir_dt[found.beat_detect.drir_dt.length-1];
+			}
+			if(found.beat_detect.beats.length > 0) {
+				latest.beat_detect.beats = found.beat_detect.beats[found.beat_detect.beats.length-1];
+				
 				latest.beat_detect.localmins = found.beat_detect.localmins[found.beat_detect.localmins.length-1];
 				latest.beat_detect.localmaxs = found.beat_detect.localmaxs[found.beat_detect.localmaxs.length-1];
 				latest.beat_detect.peak_dists = found.beat_detect.peak_dists[found.beat_detect.peak_dists.length-1];
