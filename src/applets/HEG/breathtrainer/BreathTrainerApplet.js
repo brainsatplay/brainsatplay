@@ -290,7 +290,7 @@ export class BreathTrainerApplet {
                 this.ctx2.lineTo(this.amplitudesX[i],a);
             }
         });
-        console.log('stroked',this.amplitudesX[this.amplitudesX.length-1],this.amplitudesY[this.amplitudesY.length-1])
+        //console.log('stroked',this.amplitudesX[this.amplitudesX.length-1],this.amplitudesY[this.amplitudesY.length-1])
         this.ctx2.stroke();
         
         
