@@ -20,7 +20,7 @@ var quantityPoints = 3000
 let groundUniforms = {
   iTime: {value: 0.0},
   uBigWavesSpeed: { value: 0.5 },
-  uBigWavesElevation: { value: 0.12 },
+  uBigWavesElevation: { value: 0.22 },
   uBigWavesFrequency: { value: new THREE.Vector2(2,2)},
   uDepthColor: { value: new THREE.Color('#000000')},
   uSurfaceColor: { value: new THREE.Color('#111111')},
@@ -135,7 +135,7 @@ export const settings = {
         // },
         // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
-        {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
+        {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 1, cameray: 2.0}},
       ],
       edges: [
 
