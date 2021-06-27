@@ -592,8 +592,6 @@ export class GraphEditor{
             let toParse = plugin.paramOptions
             if (toParse == null) toParse = plugin.ports
 
-            console.log(toParse)
-
             for (let key in toParse){
 
                 // Properly Nest Divs
@@ -609,24 +607,25 @@ export class GraphEditor{
                 let optionsType = typeof specifiedOptions
 
                 let input;
-                console.log(defaultType)
+
+                if (defaultType != 'undefined' && defaultType != 'object'){
 
                 if (optionsType == 'object' && specifiedOptions != null){
-                    let options = ``
-                    toParse[key].options.forEach(option => {
-                        let attr = ''
-                        if (option === plugin.params[key]) attr = 'selected'
-                        options += `<option value="${option}" ${attr}>${option}</option>`
-                    })
-                    input = document.createElement('select')
-                    input.innerHTML = options
+                        let options = ``
+                        toParse[key].options.forEach(option => {
+                            let attr = ''
+                            if (option === plugin.params[key]) attr = 'selected'
+                            options += `<option value="${option}" ${attr}>${option}</option>`
+                        })
+                        input = document.createElement('select')
+                        input.innerHTML = options
                 } else if (defaultType === 'boolean'){
                     input = document.createElement('input')
                     input.type = 'checkbox'
                     input.value = plugin.params[key]
                     input.addEventListener('change', (e) => {
                         plugin.params[key] = event.target.checked
-                        if (toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
                     }, false)
                 } else if (defaultType === 'number'){
                     if ('min' in toParse[key] && 'max' in toParse[key]){
@@ -642,34 +641,34 @@ export class GraphEditor{
                         input.addEventListener('input', (e) => {
                             output.innerHTML = input.value
                             plugin.params[key] = Number.parseFloat(input.value)
-                            if (toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+                            if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
                         }, false)
                     } else {
                         input = document.createElement('input')
                         input.type = 'number'
-                        console.log(plugin.params)
                         input.value = plugin.params[key]
                     }
                 } else {
-                    input = document.createElement('input')
-                    // Check if Color String
-                    if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
-                        input.type = 'color'
-                    } else {
-                        input.type = 'text'
-                    }
-                    input.value = plugin.params[key]
+                        input = document.createElement('input')
+                        // Check if Color String
+                        if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
+                            input.type = 'color'
+                        } else {
+                            input.type = 'text'
+                        }
+                        input.value = plugin.params[key]
                 }
 
                 // Add to Document
-                inputContainer.insertAdjacentElement('beforeend',input)
-                containerDiv.insertAdjacentElement('beforeend',inputContainer)
-                selectedParams.insertAdjacentElement('beforeend', containerDiv)
+                    inputContainer.insertAdjacentElement('beforeend',input)
+                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                    selectedParams.insertAdjacentElement('beforeend', containerDiv)
 
-                // Change Live Params with Input Changes
-                input.oninput = (e) => {
-                    plugin.params[key] = input.value
-                    if (toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+                    // Change Live Params with Input Changes
+                    input.oninput = (e) => {
+                        plugin.params[key] = input.value
+                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+                    }
                 }
             }
             }

@@ -23,7 +23,8 @@ export class Debug{
 
     default = (userData) => {
         userData.forEach((u,i) => {
-            console.log(i,u)
+            console.log(u.username,u.data,u.meta,u)
+            
         })
     }
 }
