@@ -67,6 +67,7 @@ export class BreathCapture {
         this.longPeakTimes = [];
 
         this.peakThreshold = 0;
+        this.wasBelowThreshold = false;
 
         this.inPeakVolumes = [];
         this.outPeakVolumes = [];
@@ -134,6 +135,7 @@ export class BreathCapture {
         this.longPeakTimes = [];
 
         this.peakThreshold = 0;
+        this.wasBelowThreshold = false;
 
         this.inPeakVolumes = [];
         this.outPeakVolumes = [];
@@ -458,7 +460,6 @@ export class BreathCapture {
             this.inToOutTimes = [];
             this.breathingRate = []; //Avg difference between most recent breathing peaks
             this.breathingRateVariability = []; //Difference between breathing rates
-
             this.resetOutput();
 
             this.output.isHolding = true;
@@ -503,6 +504,10 @@ export class BreathCapture {
         if(l1 > 1) {
             this.peakThreshold = this.getPeakThreshold(this.audSumSmoothedLong,this.peakslong,this.peakThreshold);
             slowThreshold = this.getPeakThreshold(this.audSumSmoothedSlow, this.peaksslow, 0);
+
+            if(this.audSumSmoothedSlow[this.audSumSmoothedSlow.length-1] < this.peakThreshold) {
+                this.wasBelowThreshold = true;
+            }
         }
         
         //console.log(slowThreshold,this.peakThreshold);
@@ -525,7 +530,7 @@ export class BreathCapture {
 
                 if((l > 1 && s > 2) || this.inPeakTimes.length > 0) {
                     if ((latestSlow > latestLong && (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
-                        if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) {
+                        if((this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] || (this.inPeakTimes.length > 0 && this.outPeakTimes.length === 0)) && this.wasBelowThreshold === true) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.outPeakVolumes.push(latestSlow);
                             if(this.inPeakTimes.length > 0 ) this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.inPeakTimes[this.inPeakTimes.length-1]);
@@ -536,13 +541,17 @@ export class BreathCapture {
                                 } 
                             }
                             this.output.isHolding = false;
+                            this.wasBelowThreshold = false;
                             this.onBreath();
-                        } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
+                        } else if ((this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) && this.wasBelowThreshold === true) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
                             this.output.isHolding = true;
+                            this.wasBelowThreshold = false;
                         }
+                        
                     }
+                    
                 }
             }
             if(this.longPeakTimes[this.longPeakTimes.length-1] !== this.audTime[this.peakslong[this.peakslong.length-1]]) {
@@ -557,6 +566,7 @@ export class BreathCapture {
                 let latestLong = this.audSumSmoothedLong[this.peakslong[this.peakslong.length-1]];
 
                 if(l > 1 && s > 2 && (latestSlow > latestLong) && ((this.inPeakTimes.length === 0 && this.outPeakTimes.length === 0) || Date.now() - placeholder > 20000)) { //only check again if 20 seconds elapse with no breaths captured to not cause overlaps and false positives
+                    
                     if(((this.longPeakTimes[l-2] <= this.slowPeakTimes[s-2] || this.longPeakTimes[l-2]-this.slowPeakTimes[s-2] < 200) || this.longPeakTimes[l-2]-this.slowPeakTimes[s-2] < 200) && (this.longPeakTimes[l-1] >= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200)) {
                         if(this.longPeakTimes[l-2] < this.slowPeakTimes[s-3]){
                             this.inPeakTimes.push(this.slowPeakTimes[s-2]);
@@ -586,7 +596,7 @@ export class BreathCapture {
                             this.onBreath();
                         }
                     } else if (this.longPeakTimes[l-1] <= this.slowPeakTimes[s-1] || this.longPeakTimes[l-1]-this.slowPeakTimes[s-1] < 200) {
-                        if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1]) {
+                        if(this.inPeakTimes[this.inPeakTimes.length-1] > this.outPeakTimes[this.outPeakTimes.length-1] && this.wasBelowThreshold === true) {
                             this.outPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.outPeakVolumes.push(latestSlow);
                             if(this.inPeakTimes.length > 0 ) this.inToOutTimes.push(this.slowPeakTimes[s-1]-this.inPeakTimes[this.inPeakTimes.length-1]);
@@ -596,12 +606,15 @@ export class BreathCapture {
                                     this.breathingRateVariability.push(Math.abs(this.breathingRate[this.breathingRate.length-1]-this.breathingRate[this.breathingRate.length-2]))
                                 } 
                             }
+                            this.wasBelowThreshold = false;
                             this.onBreath();
-                        } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
+                        } else if ((this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1])  && this.wasBelowThreshold === true) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
                             this.output.isHolding = true;
+                            this.wasBelowThreshold = false;
                         }
+                        
                     }
                 }
             }
