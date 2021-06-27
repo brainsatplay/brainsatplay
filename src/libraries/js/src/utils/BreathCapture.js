@@ -35,7 +35,7 @@ Capture.output = {
 */
 
 export class BreathCapture {
-    constructor (onUpdate=this.onUpdate,onBreath=this.onBreath) {
+    constructor (onUpdate=()=>{},onBreath=()=>{}) {
         this.effects = [];
         this.fxStruct = {sourceIdx:undefined,source:undefined,playing:false,id:undefined};
         
