@@ -3,6 +3,7 @@ import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
 import { BreathCapture } from '../../../libraries/js/src/utils/BreathCapture'
+import ts from 'typescript'
 
 
 //Example Applet for integrating with the UI Manager
@@ -49,8 +50,9 @@ export class BreathTrainerApplet {
 
         this.frequencyMaps = [
             {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]},
-            {type:"wimhof",map:[{frequency:0.1,amplitude:2,duration:60}]},
-            {type:"relaxation",map:[{frequency:0.1,amplitude:2,duration:60}]},
+            {type:"breathhold",map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:2,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
+            {type:"wimhof",map:[{frequency:1,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
+            {type:"relaxation",map:[{frequency:0.166667,amplitude:2,duration:60}]},
             {type:"jacobsons",map:[{frequency:0.1,amplitude:2,duration:60}]}
         ];
 
@@ -85,7 +87,13 @@ export class BreathTrainerApplet {
                     <button id='${props.id}startmic'>Start Mic</button>
                     <button id='${props.id}stopmic'>Stop Mic</button>
                     <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
-                   
+                    <select id='${props.id}select'>
+                        <option value='diaphragmatic' selected>Diaphragmatic</option>
+                        <option value='breathhold'>Breath Hold</option>
+                        <option value='relaxation'>Relaxation Breathing</option>
+                        <option value='jacobsons'>Jacobson's Muscular Relaxation</option>
+                        <option value='wimhof'>Wim Hof Method</option>
+                    </select>
                 </div> 
                 <canvas id='${props.id}sinecanvas' style='position:absolute;width:100%;height:100%;'></canvas>
                 <canvas id='${props.id}canvas' style='width:100%;height:100%;background-color:rgba(0,0,0,0);'></canvas>
@@ -116,9 +124,16 @@ export class BreathTrainerApplet {
             //console.log("gen amplitudes");
             this.genBreathingAmplitudes(this.mode);
 
-            // document.getElementById(props.id+'select').onchange = () => {
-            //     this.genBreathingAmplitudes(document.getElementById(props.id+'select').value);
-            // }
+            document.getElementById(props.id+'select').onchange = (event) => {
+                let t = event.target.value;
+                this.time = 0;
+                this.timeScaled = 0;
+                let found = this.frequencyMaps.find((o)=> {
+                    if(o.type === t)
+                        return true;
+                });
+                if(found) this.currentFrequencyMap = found
+            }
 
             document.getElementById(props.id+'startmic').onclick = () => {
                 this.Capture.analyze();
@@ -206,24 +221,38 @@ export class BreathTrainerApplet {
         let audInterval = this.fps;
         //if(this.Capture.audTime[this.Capture.audTime.length-2]>0) audInterval = 0.001*(this.Capture.audTime[this.Capture.audTime.length-1] - this.Capture.audTime[this.Capture.audTime.length-2]);
 
-        this.timeScaled += audInterval+(width/1024 - this.fps);
-        this.time += this.fps;
-        //console.log(this.time);
-
-        let timeaccum = 0;
-        for(let i = 0; i<this.currentFrequencyMap.length; i++) {
-            timeaccum+= this.currentFrequencyMap.map[i].duration;
-            if(this.timeScaled > timeaccum) {
-                this.currentMapIndex = 0;
-                break;
-            }
-            else this.currentMapIndex++;
-        }
 
         //Generate sine wave at time with current frequency
         //when current frequency timer ends, transition to next frequency gradually
         //rotate, rinse, and repeat
         //console.log(this.currentFrequencyMap,this.currentMapIndex);
+
+        if(this.currentFrequency < this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
+            this.latentTime += this.fps;
+            this.currentFrequency += this.fps*this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+            if (this.currentFrequency > this.currentFrequencyMap.map[this.currentMapIndex].frequency) 
+                this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+        } else if (this.currentFrequency > this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
+            this.latentTime += this.fps;
+            this.currentFrequency -= this.fps*this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+            if (this.currentFrequency < this.currentFrequencyMap.map[this.currentMapIndex].frequency) 
+                this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+        }
+
+        
+        this.timeScaled += audInterval+(width/1024 - this.fps);
+        this.time += this.fps;
+        //console.log(this.time);
+        if(this.currentFrequency === this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
+            let timeaccum = 0;
+            for(let i = 0; i<this.currentMapIndex; i++) {
+                timeaccum += this.currentFrequencyMap.map[i].duration;
+            }
+            if(this.time > timeaccum+this.latentTime) {
+                this.currentMapIndex++;
+                if(this.currentMapIndex > this.currentFrequencyMap.map.length) this.currentMapIndex = 0;
+            }
+        }
         let freq = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
         let amp = this.currentFrequencyMap.map[this.currentMapIndex].amplitude+height/4;
 
