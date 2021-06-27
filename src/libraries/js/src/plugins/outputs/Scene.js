@@ -146,12 +146,14 @@ export class Scene{
             // Setup XR Viewport
             this.props.controllers[0].addEventListener( 'connected', ( ) => {
                 document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
+                this.props.controls.enabled = false
             } );
             
             this.props.controllers[0].addEventListener( 'disconnected', () => {
                 this.props.container.appendChild( this.props.VRButton );
                 this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
                 this.responsive()
+                this.props.controls.enabled = true
             } );
 
             // Setup XR Controller
@@ -407,9 +409,9 @@ export class Scene{
             this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
             this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
 
-            if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
-                this._moveHUD()
-            }
+            // if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
+            //     this._moveHUD()
+            // }
 
             // Render
             this.props.renderer.render( this.props.scene, this.props.camera );
