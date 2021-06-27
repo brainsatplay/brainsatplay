@@ -93,6 +93,7 @@ export class BreathTrainerApplet {
                     <button id='${props.id}stopmic'>Stop Mic</button>
                     <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
                     <select id='${props.id}select'>
+                        <option value='none'>None</option>
                         <option value='diaphragmatic' selected>Diaphragmatic</option>
                         <option value='breathhold'>Breath Hold</option>
                         <option value='relaxation'>Relaxation Breathing</option>
@@ -131,11 +132,15 @@ export class BreathTrainerApplet {
 
             document.getElementById(props.id+'select').onchange = (event) => {
                 let t = event.target.value;
-                let found = this.frequencyMaps.find((o)=> {
-                    if(o.type === t)
-                        return true;
-                });
-                if(found) this.currentFrequencyMap = found
+                if(t === 'none') { this.canvas2.style.display = 'none'; }
+                else { 
+                    this.canvas2.style.display = '';
+                    let found = this.frequencyMaps.find((o)=> {
+                        if(o.type === t)
+                            return true;
+                    });
+                    if(found) this.currentFrequencyMap = found
+                }
             }
 
             document.getElementById(props.id+'startmic').onclick = () => {
