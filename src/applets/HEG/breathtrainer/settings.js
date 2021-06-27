@@ -1,5 +1,5 @@
 
-// import featureImg from './feature.png'
+import featureImg from './feature.png'
 
 export const settings = {
     "name": "Breath Trainer", // The name of your applet
@@ -8,7 +8,7 @@ export const settings = {
     "description": "Intuitive breath training visuals.", // A short description of your applet
     "categories": ["train"], // Category tags for your applet
     "module": "BreathTrainerApplet", // The module name for your applet (must match the exported class name in Applet.js)
-    // "image":  featureImg,
+    "image":  featureImg,
     "display": {
       production:true
     },
