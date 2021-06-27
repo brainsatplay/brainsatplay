@@ -132,6 +132,7 @@ export class BreathTrainerApplet {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.animating = false;
+        this.Capture.stop();
         this.AppletHTML.deleteNode();
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
