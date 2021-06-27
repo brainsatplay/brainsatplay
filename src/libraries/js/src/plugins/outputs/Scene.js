@@ -217,7 +217,6 @@ export class Scene{
                 let zComp = this.props.camera.position.z - defaultDistance//*Math.cos(this.props.camera.rotation.y)
                 el.position.set(xComp,yComp,zComp)
                 // el.setRotationFromEuler(this.props.camera.rotation)
-
             }
         })
     }

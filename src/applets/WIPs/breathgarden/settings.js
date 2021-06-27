@@ -113,8 +113,19 @@ export const settings = {
         // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
-        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{html: `Welcome to Breath Garden`}},
-        {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
+        // {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{
+        //   html: `
+        //   <div style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
+        //     <div>
+        //       <h2>Welcome to Breath Garden</h2>
+        //       <div>
+        //         <button>Press Me</button
+        //       </div>
+        //     </div>
+        //   </div>
+        //   `}
+        // },
+        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.outputs.Scene, params: {camerax: 0, cameray: 1.0}},
       ],
@@ -225,10 +236,10 @@ export const settings = {
         // },
 
         // HUD
-        {
-          source: 'html:element', 
-          target: 'hud:element'
-        },
+        // {
+        //   source: 'html:element', 
+        //   target: 'hud:element'
+        // },
         // {
         //   source: 'hud:add', 
         //   target: 'scene:add'

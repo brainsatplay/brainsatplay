@@ -38,7 +38,7 @@ export class HTML{
 
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
+            <div id='${this.props.id}' style='width: 100%; height: 100%;'>
                 ${this.params.html}
             </div>`
         }
