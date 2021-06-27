@@ -340,8 +340,6 @@ export class DataAtlas {
 		var cmap = [];
 		var l = 1, k = 0;
 
-		
-		
 		for( var i = 0; i < (channelTags.length*(channelTags.length + 1)/2)-channelTags.length; i++){
 			if(taggedOnly === false || (taggedOnly === true && ((channelTags[k].tag !== null && channelTags[k+l].tag !== null)&&(channelTags[k].tag !== 'other' && channelTags[k+l].tag !== 'other')&&(channelTags[k].analyze === true && channelTags[k+l].analyze === true)))) {
 				var coord0 = this.getEEGDataByTag(channelTags[k].tag);
@@ -494,7 +492,6 @@ export class DataAtlas {
 			}
 			if(found.beat_detect.beats.length > 0) {
 				latest.beat_detect.beats = found.beat_detect.beats[found.beat_detect.beats.length-1];
-				
 				latest.beat_detect.localmins = found.beat_detect.localmins[found.beat_detect.localmins.length-1];
 				latest.beat_detect.localmaxs = found.beat_detect.localmaxs[found.beat_detect.localmaxs.length-1];
 				latest.beat_detect.peak_dists = found.beat_detect.peak_dists[found.beat_detect.peak_dists.length-1];
