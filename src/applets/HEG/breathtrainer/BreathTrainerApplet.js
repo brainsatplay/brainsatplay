@@ -30,6 +30,9 @@ export class BreathTrainerApplet {
         this.canvas;
         this.ctx;
 
+        this.canvas2;
+        this.ctx2;
+
         this.mode = 'dvb'; //dvb, rlx, jmr, wmhf
         this.animation = 'sine'; //sine, circle;
         
@@ -38,14 +41,32 @@ export class BreathTrainerApplet {
         this.amplitudes = [];
         this.startTime = undefined;
 
-        this.lastFrame = Date.now();
+        this.lastFrame = 0;
+        this.currentFrame = 0;
+        this.time = 0;
+        this.fps = 60;
         this.thisFrame = Date.now();
+
+        this.frequencyMaps = [
+            {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]},
+            {type:"wimhof",map:[{frequency:0.1,amplitude:2,duration:60}]},
+            {type:"relaxation",map:[{frequency:0.1,amplitude:2,duration:60}]},
+            {type:"jacobsons",map:[{frequency:0.1,amplitude:2,duration:60}]}
+        ];
+
+        this.currentFrequencyMap = {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]};
+
+        this.currentFrequency = 0.1;
+        this.currentMapIndex = 0;
+        this.lastAmplitude = 0;
+        this.timeScaled = 0;
 
         this.scaling = 10;
         this.animating = false;
         this.step=-4;
 
         this.Capture = new BreathCapture();
+        
 
     }
 
@@ -65,8 +86,9 @@ export class BreathTrainerApplet {
                     <button id='${props.id}stopmic'>Stop Mic</button>
                     <button id='${props.id}calibrate'>Calibrate (Breathe-in then click after ~1 sec)</button>
                    
-                </div>
-                <canvas id='${props.id}canvas' style='width:100%;height:100%;'></canvas>
+                </div> 
+                <canvas id='${props.id}sinecanvas' style='position:absolute;width:100%;height:100%;'></canvas>
+                <canvas id='${props.id}canvas' style='width:100%;height:100%;background-color:rgba(0,0,0,0);'></canvas>
             </div>`;
         }
 
@@ -85,6 +107,9 @@ export class BreathTrainerApplet {
             this.canvas = document.getElementById(props.id+'canvas');
             this.ctx = this.canvas.getContext("2d");
 
+            this.canvas2 = document.getElementById(props.id+'sinecanvas');
+            this.ctx2 = this.canvas2.getContext("2d");
+
             this.yscaling = this.canvas.height*0.2;
             this.xscaling = this.canvas.width*0.1;
             console.log(this.canvas)
@@ -96,6 +121,7 @@ export class BreathTrainerApplet {
             // }
 
             document.getElementById(props.id+'startmic').onclick = () => {
+                this.Capture.analyze();
                 this.Capture.connectMic();
             }
 
@@ -142,6 +168,8 @@ export class BreathTrainerApplet {
         //let canvas = document.getElementById(this.props.id+"canvas");
         this.canvas.width = this.AppletHTML.node.clientWidth;
         this.canvas.height = this.AppletHTML.node.clientHeight;
+        this.canvas2.width = this.AppletHTML.node.clientWidth;
+        this.canvas2.height = this.AppletHTML.node.clientHeight;
         this.yscaling = this.canvas.height*0.2;
         this.xscaling = this.canvas.width*0.1;
     }
@@ -168,9 +196,55 @@ export class BreathTrainerApplet {
 
     drawAudio = () => {
 
-        this.Capture.calcBreathing();
+        this.lastFrame = this.currentFrame;
+        this.currentFrame = performance.now();
+        this.fps = (this.currentFrame - this.lastFrame)*0.001;
 
-        console.log(this.Capture.output);
+        let height = this.canvas.height;
+        let width = this.canvas.width;
+
+        let audInterval = this.fps;
+        //if(this.Capture.audTime[this.Capture.audTime.length-2]>0) audInterval = 0.001*(this.Capture.audTime[this.Capture.audTime.length-1] - this.Capture.audTime[this.Capture.audTime.length-2]);
+
+        this.timeScaled += audInterval+(width/1024 - this.fps);
+        this.time += this.fps;
+        console.log(this.time);
+
+        let timeaccum = 0;
+        for(let i = 0; i<this.currentFrequencyMap.length; i++) {
+            timeaccum+= this.currentFrequencyMap.map[i].duration;
+            if(this.timeScaled > timeaccum) {
+                this.currentMapIndex = 0;
+                break;
+            }
+            else this.currentMapIndex++;
+        }
+
+        //Generate sine wave at time with current frequency
+        //when current frequency timer ends, transition to next frequency gradually
+        //rotate, rinse, and repeat
+        //console.log(this.currentFrequencyMap,this.currentMapIndex);
+        let freq = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+        let amp = this.currentFrequencyMap.map[this.currentMapIndex].amplitude+height/4;
+
+        //let window = width * (audInterval);
+
+        this.ctx2.clearRect(0,0,this.canvas2.width,this.canvas2.height);
+        this.ctx2.beginPath();
+        this.ctx2.lineWidth = 2;
+        this.ctx2.strokeStyle = 'limegreen';
+
+        let stepSize = 1;
+        let x = 0;
+        let amplitude = 0;
+        while(x<width) {
+            amplitude = (height/2 + amp * Math.sin((x+this.timeScaled)/(width*freq)));
+            this.ctx2.lineTo(x,amplitude);
+            x+=stepSize;
+        }
+        this.ctx2.stroke();
+
+
 
         //FIX
         let foundidx = undefined;
@@ -189,7 +263,7 @@ export class BreathTrainerApplet {
             let inpeakindices = []; let intimes = this.Capture.audTime.filter((o,z)=>{if(this.Capture.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
             let outpeakindices = []; let outtimes = this.Capture.audTime.filter((o,z)=>{if(this.Capture.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
             this.inpeaks = inpeakindices;
-            this.outpeaks = outpeakindices
+            this.outpeaks = outpeakindices;
         }
 
         let xaxis = this.makeArr(0,this.canvas.width,this.Capture.output.audioFFT.length);
