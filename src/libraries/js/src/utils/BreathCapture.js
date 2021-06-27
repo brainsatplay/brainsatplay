@@ -2,7 +2,7 @@
 //Joshua Brewster - MIT License
 
 import {SoundJS} from '../../../../platform/js/frontend/UX/Sound'
-
+import { StateManager } from '../ui/StateManager';
 /* How to use
 
 let Capture = new BreathCapture();
@@ -95,6 +95,8 @@ export class BreathCapture {
             longSmoothedVolume: this.audSumSmoothedLong
         };
 
+        this.state = new StateManager(this.output);
+
         this.analyzing = false;
     }
 
@@ -163,6 +165,8 @@ export class BreathCapture {
             slowSmoothedVolume: this.audSumSmoothedSlow,
             longSmoothedVolume: this.audSumSmoothedLong
         };
+
+        this.state.data = this.output;
     }
 
     stop=()=>{
