@@ -34,16 +34,29 @@ export class HTMLMesh{
 
         this.ports = {
             add: {
-                defaults: {},
                 types: {
                     in: null,
                     out: 'Mesh',
                 }
             },
             element: {
-                types: {
-                    in: 'Element',
-                    out: null,
+                input: {type: 'Element'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let u = userData[0]
+            
+                    const animate = () => {
+                        if (this.props.looping){
+                            this.props.mesh.material.map.update()
+                            this.props.mesh.isHUD = this.params.lock
+                            setTimeout(animate, 1000/10)
+                        }
+                    }
+            
+                    this.props.mesh = new ThreeHTMLMesh(u.data)
+                    this.props.mesh.isHUD = this.params.isHUD
+                    this.session.graph.runSafe(this,'add',[{data:true}])
+                    animate()
                 }
             },
             scale: {
@@ -88,30 +101,6 @@ export class HTMLMesh{
             }
         }
         this.props.looping = false
-    }
-
-    element = (userData) => {
-        let u = userData[0]
-
-
-
-        const animate = () => {
-            if (this.props.looping){
-                // this.props.mesh.material.map.update()
-                // this.props.mesh.isHUD = this.params.lock
-                // setTimeout(animate, 1000/10)
-            }
-        }
-
-        // u.data.style.visibility = 'hidden';
-        u.data.style.position = 'absolute'
-        u.data.style.pointerEvents = 'none'
-        u.data.style.userSelect = 'none'
-
-        this.props.mesh = new ThreeHTMLMesh(u.data)
-        this.props.mesh.isHUD = this.params.isHUD
-        this.session.graph.runSafe(this,'add',[{data:true}])
-        animate()
     }
 
     add = () => {
