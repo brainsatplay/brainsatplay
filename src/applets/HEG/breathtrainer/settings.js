@@ -10,7 +10,7 @@ export const settings = {
     "module": "BreathTrainerApplet", // The module name for your applet (must match the exported class name in Applet.js)
     // "image":  featureImg,
     "display": {
-      production:false
+      production:true
     },
 		"instructions":`
     <p>Follow the sine waves with your breathing pattern! See below for different explanations.</p>
