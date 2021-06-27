@@ -434,7 +434,7 @@ export class BreathCapture {
 	};
 
     //sets a threshold to avoid false positives at low volume
-    getPeakThreshold(arr,peakIndices, thresholdVar) {
+    getPeakThreshold(arr,peakIndices, thresholdVar=0) {
         let threshold;
         let filtered = arr.filter((o,i)=>{if(peakIndices.indexOf(i)>-1) return true;});
         if(thresholdVar === 0) {
@@ -597,6 +597,7 @@ export class BreathCapture {
                         } else if (this.inPeakTimes[this.inPeakTimes.length-1] < this.outPeakTimes[this.outPeakTimes.length-1] && this.inPeakTimes[this.inPeakTimes.length-1] < this.longPeakTimes[l-1]) {
                             this.inPeakTimes.push(this.slowPeakTimes[s-1]);
                             this.inPeakVolumes.push(latestSlow);
+                            this.output.isHolding = true;
                         }
                     }
                 }
