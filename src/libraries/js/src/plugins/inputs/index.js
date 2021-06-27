@@ -4,6 +4,7 @@ import {Event} from './Event'
 import {Noise} from './Noise'
 import {Sine} from './Sine'
 import {Microphone} from './Microphone'
+import {Breath} from './Breath'
 
 export {
     Signal,
@@ -11,5 +12,6 @@ export {
     // Audio,
     Sine,
     Noise,
-    Microphone
+    Microphone,
+    Breath
 }

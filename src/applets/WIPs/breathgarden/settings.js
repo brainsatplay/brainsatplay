@@ -78,8 +78,7 @@ export const settings = {
       {
       nodes: [
 
-        {id: 'microphone', class: brainsatplay.plugins.inputs.Microphone},
-        {id: 'breathdetect', class: brainsatplay.plugins.algorithms.Breath},
+        {id: 'breath', class: brainsatplay.plugins.algorithms.Breath},
 
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
 
@@ -122,10 +121,10 @@ export const settings = {
       edges: [
 
         // Microphone Input
-        {
-          source: 'microphone', 
-          target: 'breathdetect'
-        },
+        // {
+        //   source: 'breath:holding', 
+        //   target: ''
+        // },
 
         // // Draw Sphere to Scene
         // {
