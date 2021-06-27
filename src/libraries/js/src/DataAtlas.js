@@ -359,6 +359,7 @@ export class DataAtlas {
 		return cmap;
 	}
 
+	
 	genHEGStruct(tag,x,y,z) {
 		return {tag:tag,position:{x:x,y:y,z:z},count:0, times:[],red:[],ir:[],ambient:[],ratio:[],temp:[],beat_detect:{beats:[],breaths:[],rir:[],rir2:[],drir_dt:[],localmins:[],localmaxs:[],val_dists:[],peak_dists:[],localmins2:[],localmaxs2:[],val_dists2:[],peak_dists2:[]},lastRead:0, startTime:0}
 	}
@@ -466,6 +467,50 @@ export class DataAtlas {
 		}
 	}
 
+	//Slice of latest HEG data if it exists. Undefined or full of empty arrays if not.
+	getLatestHEGData = (tag=0) => {
+		let found = this.data.heg.find((o)=>{
+			if(o.tag === tag) {
+				return true;
+			}
+		});
+		if(found && found.count > 0) {
+			let latest = { 
+				tag:tag,
+				count:found.count, 
+				times:found.times[found.count-1], 
+				red:found.red[found.count-1], 
+				ir: found.ir[found.count-1], 
+				ambient:found.ambient[found.count-1],
+				ratio:found.ratio[found.count-1],
+				temp:found.temp[found.count-1],
+				beat_detect:{}  
+			};
+
+			if(found.beat_detect.beats.length > 0) {
+				latest.beat_detect.beats = found.beat_detect.beats[found.beat_detect.beats.length-1];
+				latest.beat_detect.rir = found.beat_detect.rir[found.beat_detect.rir.length-1];
+				latest.beat_detect.rir2 = found.beat_detect.rir2[found.beat_detect.rir2.length-1];
+				latest.beat_detect.drir_dt = found.beat_detect.drir_dt[found.beat_detect.drir_dt.length-1];
+				latest.beat_detect.localmins = found.beat_detect.localmins[found.beat_detect.localmins.length-1];
+				latest.beat_detect.localmaxs = found.beat_detect.localmaxs[found.beat_detect.localmaxs.length-1];
+				latest.beat_detect.peak_dists = found.beat_detect.peak_dists[found.beat_detect.peak_dists.length-1];
+				latest.beat_detect.val_dists = found.beat_detect.val_dists[found.beat_detect.val_dists.length-1];
+			}
+			if(found.beat_detect.breaths.length > 0) {
+				latest.beat_detect.beats = found.beat_detect.breaths[found.beat_detect.breaths.length-1];
+				latest.beat_detect.localmins2 = found.beat_detect.localmins2[found.beat_detect.localmins2.length-1];
+				latest.beat_detect.localmaxs2 = found.beat_detect.localmaxs2[found.beat_detect.localmaxs2.length-1];
+				latest.beat_detect.peak_dists2 = found.beat_detect.peak_dists2[found.beat_detect.peak_dists2.length-1];
+				latest.beat_detect.val_dists2 = found.beat_detect.val_dists2[found.beat_detect.val_dists2.length-1];
+			}
+			return latest;
+		} else if(found && found.count === 0) {
+			return found;
+		} else return undefined;
+	}
+
+
 	getEEGDataByChannel = (ch=0, data=this.data) => {
 		let found = undefined;
 		if(typeof ch === 'string') ch = parseInt(ch);
@@ -506,6 +551,7 @@ export class DataAtlas {
 		});
 		return found;
 	}
+
 
     //Return an array of Array(3)s for each coordinate. Useful e.g. for graphics
 	getCoordPositions(device='eeg') {
