@@ -2,6 +2,7 @@ import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
 import {SoundJS} from '../../../platform/js/frontend/UX/Sound'
+import { BreathCapture } from '../../../libraries/js/src/utils/BreathCapture'
 
 
 //Example Applet for integrating with the UI Manager
@@ -76,6 +77,8 @@ export class BreathTrainerApplet {
         this.animating = false;
         this.step=-4;
 
+        this.Capture = new BreathCapture();
+
     }
 
     //---------------------------------
@@ -125,19 +128,15 @@ export class BreathTrainerApplet {
             // }
 
             document.getElementById(props.id+'startmic').onclick = () => {
-                this.connectMic();
+                this.Capture.connectMic();
             }
 
             document.getElementById(props.id+'stopmic').onclick = () => {
-                this.stopMic();
+                this.Capture.stopMic();
             }
             
             document.getElementById(props.id+'calibrate').onclick = () => {
-                if(this.slowPeakTimes.length > 0) {
-                    this.inPeakTimes = [this.slowPeakTimes[this.slowPeakTimes.length-1]];
-                    this.outPeakTimes = [];
-                }
-                
+                this.Capture.calibrate();
             }
 
             //console.log("drawing...")
