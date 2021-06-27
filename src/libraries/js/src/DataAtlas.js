@@ -501,7 +501,7 @@ export class DataAtlas {
 				latest.beat_detect.val_dists = found.beat_detect.val_dists[found.beat_detect.val_dists.length-1];
 			}
 			if(found.beat_detect.breaths.length > 0) {
-				latest.beat_detect.beats = found.beat_detect.breaths[found.beat_detect.breaths.length-1];
+				latest.beat_detect.breaths = found.beat_detect.breaths[found.beat_detect.breaths.length-1];
 				latest.beat_detect.localmins2 = found.beat_detect.localmins2[found.beat_detect.localmins2.length-1];
 				latest.beat_detect.localmaxs2 = found.beat_detect.localmaxs2[found.beat_detect.localmaxs2.length-1];
 				latest.beat_detect.peak_dists2 = found.beat_detect.peak_dists2[found.beat_detect.peak_dists2.length-1];
