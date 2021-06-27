@@ -556,6 +556,8 @@ export class BreathTrainerApplet {
 
         this.Capture.calcBreathing();
 
+        console.log(this.Capture.output);
+
         //FIX
         let foundidx = undefined;
         let found = this.Capture.inPeakTimes.find((t,k)=>{if(t > this.Capture.audTime[0]) {foundidx = k; return true;}});
