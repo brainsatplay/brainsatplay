@@ -163,7 +163,9 @@ app.init()`)
 
     appToFile(app){
 
-        let info = JSON.parse(JSON.stringifyFast(app.info))
+        let info = Object.assign({},app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
+        info.graph = Object.assign({},info.graph)
+        info.graph.nodes = info.graph.nodes.map(n => Object.assign({},n))
 
         let imports = ``
         // Add imports
@@ -197,7 +199,8 @@ app.init()`)
             }
         }
 
-        info = JSON.stringifyFast(info)
+        info = JSON.stringifyWithCircularRefs(info)
+        console.log(info)
         
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;

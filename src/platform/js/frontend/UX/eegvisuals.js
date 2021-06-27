@@ -1117,17 +1117,15 @@ export class Spectrogram {
 			else if (value < 0) { value = 0;}
 			this.ctx.fillStyle = this.colorScale[value];
 			this.ctx.fillRect(width - 1, height - i, 1, 1);
-		  }
-		  if(this.reset === false){
+		}
+		if(this.reset === false){
 			this.ctx.translate(-1, 0);
 			// draw prev canvas before translation
-			this.ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
-			this.ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
+			this.ctx.drawImage(tempCanvas, 0, 0, width, height);
 			// reset transformation matrix
 		  	this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-		  }
-		  else { this.reset = false; }
-		  this.ctx.drawImage(this.canvas, 0, 0, width, height);
+		}
+		else { this.reset = false; }
 	}
 
 	animate = () => {

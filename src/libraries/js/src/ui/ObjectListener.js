@@ -579,7 +579,7 @@ if(JSON.stringifyWithCircularRefs === undefined) {
         } else {
             while (idx-- >= 0) {
             prev = parents[idx];
-            if (prev[key] === value) {
+            if (prev && prev[key] === value) {
                 idx += 2;
                 parents.length = idx;
                 path.length = idx;

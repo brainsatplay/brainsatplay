@@ -380,7 +380,6 @@ export class Scene{
     // Animation and Render Loop
     _animate = () => {
         this.props.renderer.setAnimationLoop( this._render );
-
     }
 
     _render = () => {
