@@ -29,7 +29,7 @@ export let presetManifest = [
         applets: [
             'Breath Garden',
         ],
-        description: "WebXR breathing meditation | 2021 XR Brain Jam.",
+        description: "WebXR breathing meditation | 2021 XR Brain Jam",
         type: "All",
         image: breathgarden,
         lock: false
