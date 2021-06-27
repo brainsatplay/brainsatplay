@@ -6,6 +6,7 @@ import HEGImage from './assets/features/hegbiofeedback.png'
 import hegsens from '../applets/General/sensorium/feature.png'
 import studio from '../applets/WIPs/studio/feature.png'
 import OBB from '../applets/UI/onebitbonanza/feature.jpg'
+import breathgarden from '../applets/WIPs/breathgarden/feature.png'
 
 export let presetManifest = [
     {
@@ -20,6 +21,17 @@ export let presetManifest = [
         description: "Bandpower training, coherence, and more.",
         type: "EEG",
         image: eegNFImage,
+        lock: false
+    },
+    {
+        value: 'BreathGarden',
+        name: "Breath Garden",
+        applets: [
+            'Breath Garden',
+        ],
+        description: "WebXR breathing meditation | 2021 XR Brain Jam",
+        type: "All",
+        image: breathgarden,
         lock: false
     },
     {
@@ -41,7 +53,7 @@ export let presetManifest = [
             'One Bit Bonanza',
         ],
         description: "Experience a random low-bandwidth game every 10 seconds!",
-        type: "All",
+        type: "EEG",
         image: OBB,
         lock: true	
     },

@@ -69,7 +69,7 @@ export const settings = {
     name: "Breath Garden",
     devices: ["EEG", "HEG"],
     author: "Jack of Hearts",
-    description: "WebXR breathing trainer.",
+    description: "WebXR breathing meditation.",
     categories: ["WIP"],
     instructions:"Coming soon...",
     image: featureImg,
@@ -90,9 +90,7 @@ export const settings = {
         {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
         {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
         {id: 'transformer', class: brainsatplay.plugins.utilities.Transform},
-        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 5, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Breathe Out','Breathe In','Breathe Out','Breathe In','Breathe Out','Breathe In','Breathe Out']}},
-
-        {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
+        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 4, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Thank You for Playing!']}},
 
         // Tree
         {id: 'tree1', class: brainsatplay.plugins.utilities.Trees, params: {count: 5}},

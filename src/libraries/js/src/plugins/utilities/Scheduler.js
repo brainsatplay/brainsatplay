@@ -102,6 +102,8 @@ export class Scheduler{
                     let choice = Math.floor(this.params.trialTypes.length * Math.random())
                     this.params.progression.push(this.params.trialTypes[choice])
             }
+        } else {
+            this.params.trialCount = this.params.progression.length
         }
 
         // Start Task Loop
