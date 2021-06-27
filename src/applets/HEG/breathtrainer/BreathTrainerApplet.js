@@ -65,8 +65,9 @@ export class BreathTrainerApplet {
         this.currentMapIndex = 0;
         this.lastAmplitude = 0;
         this.timeScaled = 0;
-
-       
+        this.amplitudesY = new Array(1024).fill(0);
+        this.amplitudesX = new Array(1024).fill(0);
+        
         this.scaling = 10;
         this.animating = false;
         this.step=-4;
@@ -105,12 +106,12 @@ export class BreathTrainerApplet {
         }
 
         /*
-                     <select id='${props.id}select'>
-                        <option value='dvb' selected>Diaphragmatic</option>
-                        <option value='rlx'>Relaxation</option>
-                        <option value='jmr'>Jacobson's Muscular Relaxation</option>
-                        <option value='wmhf'>Wim Hof Method</option>
-                    </select>
+            <select id='${props.id}select'>
+                <option value='dvb' selected>Diaphragmatic</option>
+                <option value='rlx'>Relaxation</option>
+                <option value='jmr'>Jacobson's Muscular Relaxation</option>
+                <option value='wmhf'>Wim Hof Method</option>
+            </select>
 
         */
 
@@ -191,6 +192,12 @@ export class BreathTrainerApplet {
         this.offscreen.height = this.AppletHTML.node.clientHeight;
         this.yscaling = this.canvas.height*0.2;
         this.xscaling = this.canvas.width*0.1;
+
+        this.amplitudesY = new Array(1024).fill(this.canvas2.height*0.5);
+        this.amplitudesX = new Array(1024).fill(0);
+        this.amplitudesX.forEach((x,i) => {
+            this.amplitudesX[i] = (i/1023) * this.canvas2.width;
+        });
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -261,23 +268,40 @@ export class BreathTrainerApplet {
 
         //let window = width * (audInterval);
 
-        var tempCanvasContext = this.offscreenctx;
-		var tempCanvas = tempCanvasContext.canvas;
+
+        // var tempCanvasContext = this.offscreenctx;
+		// var tempCanvas = tempCanvasContext.canvas;
         //this.offscreenctx.canvas.clearRect(0,0,width,height);
-		tempCanvasContext.drawImage(this.canvas2, 0, 0, width, height);
+
+		// tempCanvasContext.drawImage(this.canvas2, 0, 0, width, height);
 
         this.ctx2.clearRect(0,0,width,height);
 
         let x = width-1;
         let amplitude = (height/2 + amp * Math.sin((x+this.timeScaled+width)/(width*freq)));
-        this.ctx2.fillStyle = 'limegreen';
-        this.ctx2.fillRect(width - 1, amplitude, 1, 1);
+        this.amplitudesY.shift(); this.amplitudesY.push(amplitude);
 
-        this.ctx2.translate(-1, 0);
-        // draw prev canvas before translation
-        this.ctx2.drawImage(tempCanvas, 0, 0, width, height);
-        // reset transformation matrix
-        this.ctx2.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx2.strokeStyle = 'limegreen';
+        this.ctx2.beginPath();
+        this.ctx2.moveTo(0,this.amplitudesY[0]);
+
+        this.amplitudesY.forEach((a,i)=>{
+            if(i>0) {
+                this.ctx2.lineTo(this.amplitudesX[i],a);
+            }
+        });
+        console.log('stroked',this.amplitudesX[this.amplitudesX.length-1],this.amplitudesY[this.amplitudesY.length-1])
+        this.ctx2.stroke();
+        
+        
+        // this.ctx2.fillStyle = 'limegreen';
+        // this.ctx2.fillRect(width - 1, amplitude, 1, 1);
+
+        // this.ctx2.translate(-1, 0);
+        // // draw prev canvas before translation
+        // this.ctx2.drawImage(tempCanvas, 0, 0);
+        // // reset transformation matrix
+        // this.ctx2.setTransform(1, 0, 0, 1, 0, 0);
 
         //FIX
         let foundidx = undefined;
