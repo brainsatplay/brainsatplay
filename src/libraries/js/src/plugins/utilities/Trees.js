@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-class Tree{
+class Trees{
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -11,11 +11,11 @@ class Tree{
         this.session = session
         this.params = {}
 
+
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
             meshes: [],
-            numTrees: 5,
             maxSize: .1,
             segments: 8,
             spheres: [],
@@ -30,6 +30,14 @@ class Tree{
                 output: {type: 'Mesh'},
                 onUpdate: () => {
                     return [{data: this.props.groups}]
+                }
+            },
+            count: {
+                default: 1,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.count = userData[0].data
                 }
             },
         }
@@ -86,7 +94,7 @@ class Tree{
             return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
         }
 
-        for (let n = 0; n < this.props.numTrees; n++){
+        for (let n = 0; n < this.params.count; n++){
 
             const initialSphereGeometry = new THREE.SphereGeometry(this.props.maxSize,this.props.segments,this.props.segments)
             const woodMaterial = new THREE.MeshToonMaterial({color: 0xBF784E})
@@ -177,4 +185,4 @@ class Tree{
     deinit = () => {}
 }
 
-export {Tree}
+export {Trees}

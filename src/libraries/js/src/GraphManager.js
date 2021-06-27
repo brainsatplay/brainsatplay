@@ -326,8 +326,6 @@ export class GraphManager{
                 }
                 else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
 
-                if (node.label.includes('tree')) console.log(result, port, inputCopy, node.ports[port].onUpdate)
-
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
                     result.then((r) =>{
