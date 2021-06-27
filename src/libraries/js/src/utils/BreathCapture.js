@@ -216,10 +216,6 @@ export class BreathCapture {
         }
     }
 
-    onUpdate() {
-
-    }
-
     getAudioData() {
         let audioDat = [];
         if(window.audio){
