@@ -27,7 +27,7 @@ export class Light{
             lastRendered: Date.now()
         }
 
-        this.props.mesh = new THREE.DirectionalLight();
+        this.props.mesh = new THREE.AmbientLight( 0xFFFFFF ); //new THREE.DirectionalLight();
 
         this.ports = {
             add: {

@@ -51,7 +51,7 @@ export class DOMFragment {
      * @constructor
      * @alias DOMFragment
      * @description Create a DOM fragment.
-     * @param {function} templateStringGen - Function to generate template string.
+     * @param {function} templateStringGen - Function to generate template string (or template string itself, or Element)
      * @param {HTMLElement} parentNode HTML DOM node to append fragment into.
      * @param {callback} onRender Callback when element is rendered. Use to setup html logic via js
      * @param {callback} onchange Callback when element is changed.
@@ -134,12 +134,19 @@ export class DOMFragment {
     onresize = undefined  //define resizing function
 
     //appendId is the element Id you want to append this fragment to
-    appendFragment(HTMLtoAppend, parentNode) {
-        var template = document.createElement('template');
-        template.innerHTML = HTMLtoAppend;
-        var fragment = template.content;
-        parentNode.appendChild(fragment);
+    appendFragment(toAppend, parentNode) {
+        if (this.isElement(toAppend)) parentNode.appendChild(toAppend);
+        else {
+            var template = document.createElement('template');
+            template.innerHTML = toAppend;
+            var fragment = template.content;
+            parentNode.appendChild(fragment);
+        }
         return parentNode.children[parentNode.children.length-1];
+    }
+
+    isElement = (element) => {
+        return element instanceof Element || element instanceof HTMLDocument;  
     }
   
     //delete selected fragment. Will delete the most recent fragment if Ids are shared.

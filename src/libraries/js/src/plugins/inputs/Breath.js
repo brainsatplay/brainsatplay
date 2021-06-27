@@ -36,7 +36,7 @@ export class Breath{
             let type
             let isArray = Array.isArray(this.props.capture.output[port])
             if (isArray) type = 'array'
-            else typeof this.props.capture.output[port]
+            else type = typeof this.props.capture.output[port]
 
             this.ports[port] = {
                 input: {type: null},
@@ -45,7 +45,8 @@ export class Breath{
                     return [{data: this.props.capture.output[port]}]
                 }
             }
-            this.props.state.addToState(port, this.props.capture.output[port], () => {
+
+            this.props.capture.state.subscribe(port, (data) => {
                 this.session.graph.runSafe(this, port, [{data: true}])
             })
         }
