@@ -87,9 +87,9 @@ export class Scene{
             // Controls
             this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
 
-            let minAngle = Math.PI/2 + 0.0001
-            this.props.camera.rotateX(-0.0001)
-            this.props.controls.minPolarAngle = minAngle
+            // let minAngle = Math.PI/2 + 0.0001
+            // this.props.camera.rotateX(-0.0001)
+            // this.props.controls.minPolarAngle = minAngle
 
 
             this.props.scene.add(this.props.controls.getObject());
@@ -189,6 +189,22 @@ export class Scene{
 
     deinit = () => {
         this.props.looping = false
+        for (let i = this.props.scene.children.length - 1; i >= 0; i--) {
+            const object = this.props.scene.children[i];
+            if (object instanceof THREE.Object3D) {
+                let objectsToRemove = [object]
+                if (object.children.length > 0) objectsToRemove = object.children
+                for (let i = objectsToRemove.length - 1; i >= 0; i--) {
+                    let o = objectsToRemove[i]
+                    if (o.geometery) o.geometry.dispose();
+                    if (o.material) o.material.dispose();
+                    this.props.scene.remove(o);
+                }
+                if (object) this.props.scene.remove(object);
+            }
+        }
+        this.props.scene = null;
+        this.props.renderer = null;
     }
 
     responsive = () => {
@@ -365,37 +381,40 @@ export class Scene{
     }
 
     _render = () => {
-        const time = performance.now()
-        const delta = ( time - this.props.prevTime ) / 1000;
 
-        // Update Raycaster Functionality
-        // this._cleanIntersected();
-        // this.props.controllers.forEach(c => {
-        //     this._intersectObjects( c );
-        // })
+        if (this.props.looping){
+            const time = performance.now()
+            const delta = ( time - this.props.prevTime ) / 1000;
 
-        // Move View
-        this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
-        this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
+            // Update Raycaster Functionality
+            // this._cleanIntersected();
+            // this.props.controllers.forEach(c => {
+            //     this._intersectObjects( c );
+            // })
 
-        this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
-        this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
-        this.props.direction.normalize(); // this ensures consistent movements in all directions
+            // Move View
+            this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
+            this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
 
-        if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
-        if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
+            this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
+            this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
+            this.props.direction.normalize(); // this ensures consistent movements in all directions
 
-        this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
-        this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+            if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
+            if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
 
-        if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
-            this._moveHUD()
+            this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
+            this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+
+            if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
+                this._moveHUD()
+            }
+
+            // Render
+            this.props.renderer.render( this.props.scene, this.props.camera );
+
+            this.props.prevTime = time;
         }
-
-        // Render
-        this.props.renderer.render( this.props.scene, this.props.camera );
-
-        this.props.prevTime = time;
     }
 }
 
