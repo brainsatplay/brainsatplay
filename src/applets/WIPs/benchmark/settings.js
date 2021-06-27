@@ -22,7 +22,7 @@ export const settings = {
       nodes: [
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink},
-        {id: 'scheduler', class: class: brainsatplay.plugins.utilities.Scheduler, params:{}},
+        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{}},
         {id: 'Train UI', class: Train},
         {id: 'data', class: DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
