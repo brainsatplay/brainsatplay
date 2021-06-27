@@ -1,7 +1,5 @@
-import {SoundJS} from '../../../../../platform/js/frontend/UX/Sound'
-import {eegmath} from '../../utils/eegmath'
 import {BreathCapture} from '../../utils/BreathCapture'
-
+import {StateManager} from '../../ui/StateManager'
 
 export class Breath{
     
@@ -28,7 +26,7 @@ export class Breath{
                     return [{data: this.props.capture.output.belowThreshold}]
                 }
             },
-            holding: {
+            isHolding: {
                 default: false,
                 input: {type: null},
                 output: {type: 'boolean'},
@@ -112,25 +110,23 @@ export class Breath{
 
         this.props = {
             capture: new BreathCapture(),
+            state: new StateManager()
         }
     }
 
     init = () => {
         this.props.capture.analyze()
+        this.props.capture.connectMic()
 
-        // On Update Callbacks
-        // this.session.graph.runSafe(this,'belowThreshold', [{data: true}])
-        // this.session.graph.runSafe(this,'isHolding', [{data: true}])
-        // this.session.graph.runSafe(this,'inVolumes', [{data: true}])
-        // this.session.graph.runSafe(this,'outVolumes', [{data: true}])
-        // this.session.graph.runSafe(this,'inTimes', [{data: true}])
-        // this.session.graph.runSafe(this,'outTimes', [{data: true}])
-        // this.session.graph.runSafe(this,'inToOutTimes', [{data: true}])
-        // this.session.graph.runSafe(this,'fastTimes', [{data: true}])
-        // this.session.graph.runSafe(this,'fastRate', [{data: true}])
-        // this.session.graph.runSafe(this,'breathRate', [{data: true}])
-        // this.session.graph.runSafe(this,'brv', [{data: true}])
-
+        // Fire on State Updates
+        let customPorts = ['calibrate']
+        for (let port in this.ports){
+            if (!customPorts.includes(port)){
+                this.props.state.addToState(port, this.props.capture.output[port], () => {
+                    this.session.graph.runSafe(this, port, [{data: true}])
+                })
+            }
+        }
     }
 
     deinit = () => {}
