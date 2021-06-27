@@ -6,11 +6,16 @@ export class Transform{
         this.label = label
         this.session = session
         this.params = params
-        this.paramOptions = {
-            value: {default: 0, options: null},
-        }
 
         this.ports = {
+            value: {
+                default: 0,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.value = userData[0].data
+                }
+            },
             add: {
                 types: {
                     in: 'number',
@@ -65,27 +70,32 @@ export class Transform{
     }
 
     subtract = (userData) => {
+        userData.forEach(u => {
         let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
             userData.forEach(u => {u.data = u.data.map(v => v -= Number.parseFloat(this.params.value))})
             if (!wasArray) u.data = u.data[0]
+        })
         return userData
     }
 
     multiply = (userData) => {
+        userData.forEach(u => {
         let wasArray = Array.isArray(u.data)
         if (!wasArray) u.data = [u.data]
         userData.forEach(u => {u.data = u.data.map(v => v *= Number.parseFloat(this.params.value))})
         if (!wasArray) u.data = u.data[0]
-
+        })
         return userData
     }
 
     divide = (userData) => {
-        let wasArray = Array.isArray(u.data)
-        if (!wasArray) u.data = [u.data]
-        userData.forEach(u => {u.data = u.data.map(v => v /= Number.parseFloat(this.params.value))})
-        if (!wasArray) u.data = u.data[0]
+        userData.forEach(u => {
+            let wasArray = Array.isArray(u.data)
+            if (!wasArray) u.data = [u.data]
+            userData.forEach(u => {u.data = u.data.map(v => v /= Number.parseFloat(this.params.value))})
+            if (!wasArray) u.data = u.data[0]
+        })
         return userData
     }
 
