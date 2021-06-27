@@ -18,94 +18,6 @@ export class Breath{
                     this.props.capture.calibrate()
                 }
             },
-            belowThreshold: {
-                default: false,
-                input: {type: null},
-                output: {type: 'boolean'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.belowThreshold}]
-                }
-            },
-            isHolding: {
-                default: false,
-                input: {type: null},
-                output: {type: 'boolean'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.isHolding}]
-                }
-            },
-            inVolumes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.inVolumes}]
-                }
-            },
-            outVolumes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.outVolumes}]
-                }
-            },
-            inTimes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.inTimes}]
-                }
-            },
-            outTimes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.outTimes}]
-                }
-            },
-            inToOutTimes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.inToOutTimes}]
-                }
-            },
-            fastTimes: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.fastTimes}]
-                }
-            },
-            fastRate: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.fastTimes}]
-                }
-            },
-            breathRate: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.breathRate}]
-                }
-            },
-            brv: {
-                default: [],
-                input: {type: null},
-                output: {type: 'array'},
-                onUpdate: () => {
-                    return [{data: this.props.capture.output.brv}]
-                }
-            }
         }
 
         this.props = {
@@ -119,15 +31,27 @@ export class Breath{
         this.props.capture.connectMic()
 
         // Fire on State Updates
-        let customPorts = ['calibrate']
-        for (let port in this.ports){
-            if (!customPorts.includes(port)){
-                this.props.state.addToState(port, this.props.capture.output[port], () => {
-                    this.session.graph.runSafe(this, port, [{data: true}])
-                })
+        for (let port in this.props.capture.output){
+
+            let type
+            let isArray = Array.isArray(this.props.capture.output[port])
+            if (isArray) type = 'array'
+            else typeof this.props.capture.output[port]
+
+            this.ports[port] = {
+                input: {type: null},
+                output: {type},
+                onUpdate: () => {
+                    return [{data: this.props.capture.output[port]}]
+                }
             }
+            this.props.state.addToState(port, this.props.capture.output[port], () => {
+                this.session.graph.runSafe(this, port, [{data: true}])
+            })
         }
     }
 
-    deinit = () => {}
+    deinit = () => {
+        this.props.capture.stop()
+    }
 }

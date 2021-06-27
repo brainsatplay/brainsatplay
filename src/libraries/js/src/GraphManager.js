@@ -344,7 +344,8 @@ export class GraphManager{
     checkToPass(node,port,result){
         if (result && result.length > 0){
             let allEqual = true
-            node.states[port].splice(result.length-1) // Remove previous states that weren't returned
+            if (node.states[port]) node.states[port].splice(result.length-1) // Remove previous states that weren't returned
+            else node.states[port] = [{}]
 
             result.forEach((o,i) => {
                 if (node.states[port].length > i){

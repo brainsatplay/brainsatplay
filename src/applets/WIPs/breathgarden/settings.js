@@ -55,7 +55,7 @@ let meshUniforms = {
   uRiverWidth: {value: riverWidth}
 }
 
-let invisisphereUniforms = {iTime: {value: 0}}
+let invisisphereUniforms = {iTime: {value: 0}, uSpeedModifier: {value: 0}}
 
 /* 
  App Settings
@@ -83,9 +83,11 @@ export const settings = {
         {id: 'heg', class: brainsatplay.plugins.inputs.HEG},
 
         // Utilities
-        {id: 'lastIndex', class: brainsatplay.plugins.utilities.Index},
-        {id: 'transform', class: brainsatplay.plugins.utilities.Transform, params: {value: 4}},
-        // {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
+        {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
+        {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
+        {id: 'breathClamp', class: brainsatplay.plugins.utilities.Transform},
+        
+        {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
 
         // Light
         {id: 'light', class: brainsatplay.plugins.utilities.Light},
@@ -142,26 +144,34 @@ export const settings = {
         // HEG Input
         {
           source: 'heg:ratio', 
-          target: 'lastIndex'
+          target: 'lastHEG'
         },
         {
-          source: 'lastIndex', 
-          target: 'transform:add'
-        },
-        {
-          source: 'transform:add', 
-          target: 'groundvertex:uRiverWidth'
-        },
-        {
-          source: 'transform:add', 
-          target: 'meshvertex:uRiverWidth'
+          source: 'lastHEG', 
+          target: 'riververtex:uSpeedModifier'
         },
 
         // Microphone Input
-        // {
-        //   source: 'breath:holding', 
-        //   target: ''
-        // },
+        {
+          source: 'breath:slowSmoothedVolume', 
+          target: 'lastBreath'
+        },
+        {
+          source: 'breath:isHolding', 
+          target: 'debug'
+        },
+        {
+          source: 'breath:isHolding', 
+          target: 'breathClamp:value'
+        },
+        {
+          source: 'lastBreath', 
+          target: 'breathClamp:multiply'
+        },
+        {
+          source: 'breathClamp:multiply', 
+          target: 'riververtex:uSpeedModifier'
+        },
 
         // // Draw Sphere to Scene
         // {
