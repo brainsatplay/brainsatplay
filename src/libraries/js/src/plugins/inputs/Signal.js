@@ -90,8 +90,8 @@ export class Signal{
 
                 let callbacks = []
                 for (let port in this.ports){
-                    if (this.ports[port].active.out > 0) callbacks.push(() => {
-                        this.session.graph.runSafe(this,port, [{data:true, meta: {label: `signal_newData`}}])
+                    callbacks.push(() => {
+                        if (this.ports[port].active.out > 0) this.session.graph.runSafe(this,port, [{data:true}])
                     })
                 }
                 this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
