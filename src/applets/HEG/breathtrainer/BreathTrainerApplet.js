@@ -34,6 +34,9 @@ export class BreathTrainerApplet {
         this.canvas2;
         this.ctx2;
 
+        this.offscreen = null;
+		this.offscreenctx = null;
+
         this.mode = 'dvb'; //dvb, rlx, jmr, wmhf
         this.animation = 'sine'; //sine, circle;
         
@@ -51,9 +54,9 @@ export class BreathTrainerApplet {
         this.frequencyMaps = [
             {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]},
             {type:"breathhold",map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:2,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
-            {type:"wimhof",map:[{frequency:1,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
-            {type:"relaxation",map:[{frequency:0.166667,amplitude:2,duration:60}]},
-            {type:"jacobsons",map:[{frequency:0.1,amplitude:2,duration:60}]}
+            {type:"wimhof",map:[{frequency:.01,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
+            {type:"relaxation",map:[{frequency:0.08,amplitude:2,duration:60}]},
+            {type:"jacobsons",map:[{frequency:0.08,amplitude:2,duration:60}]}
         ];
 
         this.currentFrequencyMap = {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]};
@@ -63,6 +66,7 @@ export class BreathTrainerApplet {
         this.lastAmplitude = 0;
         this.timeScaled = 0;
 
+       
         this.scaling = 10;
         this.animating = false;
         this.step=-4;
@@ -118,11 +122,11 @@ export class BreathTrainerApplet {
             this.canvas2 = document.getElementById(props.id+'sinecanvas');
             this.ctx2 = this.canvas2.getContext("2d");
 
+            this.offscreen = new OffscreenCanvas(this.canvas.width,this.canvas.height);
+		    this.offscreenctx = this.offscreen.getContext("2d");
+
             this.yscaling = this.canvas.height*0.2;
             this.xscaling = this.canvas.width*0.1;
-            console.log(this.canvas)
-            //console.log("gen amplitudes");
-            this.genBreathingAmplitudes(this.mode);
 
             document.getElementById(props.id+'select').onchange = (event) => {
                 let t = event.target.value;
@@ -185,6 +189,8 @@ export class BreathTrainerApplet {
         this.canvas.height = this.AppletHTML.node.clientHeight;
         this.canvas2.width = this.AppletHTML.node.clientWidth;
         this.canvas2.height = this.AppletHTML.node.clientHeight;
+        this.offscreen.width = this.AppletHTML.node.clientWidth;
+        this.offscreen.height = this.AppletHTML.node.clientHeight;
         this.yscaling = this.canvas.height*0.2;
         this.xscaling = this.canvas.width*0.1;
     }
@@ -239,7 +245,6 @@ export class BreathTrainerApplet {
                 this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
         }
 
-        
         this.timeScaled += audInterval+(width/1024 - this.fps);
         this.time += this.fps;
         //console.log(this.time);
@@ -258,21 +263,27 @@ export class BreathTrainerApplet {
 
         //let window = width * (audInterval);
 
+        var tempCanvasContext = this.offscreenctx;
+		var tempCanvas = tempCanvasContext.canvas;
+        //this.offscreenctx.canvas.clearRect(0,0,width,height);
+		tempCanvasContext.drawImage(this.canvas2, 0, 0, width, height);
+
         this.ctx2.clearRect(0,0,this.canvas2.width,this.canvas2.height);
-        this.ctx2.beginPath();
-        this.ctx2.lineWidth = 2;
-        this.ctx2.strokeStyle = 'limegreen';
 
         let stepSize = 1;
-        let x = 0;
+        let x = width-1;
         let amplitude = 0;
-        while(x<width) {
-            amplitude = (height/2 + amp * Math.sin((x+this.timeScaled)/(width*freq)));
-            this.ctx2.lineTo(x,amplitude);
-            x+=stepSize;
-        }
-        this.ctx2.stroke();
+        amplitude = (height/2 + amp * Math.sin((x+this.timeScaled+width)/(width*freq)));
+        this.lastAmplitude = amplitude;
+        this.ctx2.fillStyle = 'limegreen';
+        this.ctx2.fillRect(width - 1, amplitude, 1, 1);
 
+        this.ctx2.translate(-1, 0);
+			// draw prev canvas before translation
+        this.ctx2.drawImage(tempCanvas, 0, 0, width, height);
+        // reset transformation matrix
+        this.ctx2.setTransform(1, 0, 0, 1, 0, 0);
+    
 
 
         //FIX
@@ -426,193 +437,6 @@ export class BreathTrainerApplet {
 
         if(this.animating)
             setTimeout(()=>{this.animate();},15);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //Generate sinewave, you can add a noise frequency in too. Array length will be Math.ceil(fs*nSec)
-	genSineWave(freq=20,peakAmp=1,nSec=1,fs=512,freq2=0,peakAmp2=1,offsetx=0,offsetx2=0){
-		var sineWave = [];
-		var t = [];
-		var incscaled = 1/fs; //x-axis time incscaled based on sample rate
-		for (var ti = 0; ti < nSec; ti+=incscaled){
-			var amplitude = Math.sin(2*Math.PI*freq*(ti+offsetx))*peakAmp;
-			amplitude += Math.sin(2*Math.PI*freq2*(ti+offsetx2))*peakAmp2; //Add interference
-			sineWave.push(amplitude);
-			t.push(ti);
-		}
-		return [t,sineWave]; // [[times],[amplitudes]]
-	}
-
-    genBreathingAmplitudes=(mode='dvb')=>{
-        this.startTime = Date.now();
-        let amplitudes = [];
-        if(mode === 'dvb') {
-            amplitudes = this.genSineWave(1/20,1,60,this.fs);
-        } else if (mode === 'rlx') {
-            let sine = this.genSineWave(1/28,1,7,this.fs,0,1,7);
-            let sine2 = this.genSineWave(1/12,1,3,this.fs,0,1,3);
-            let amps = [...sine[1],...sine2[1]];
-            let t = new Array(amps.length).fill(0);
-            t = t.map((x,i)=>{return i/this.fs;})
-            amplitudes = [t, amps];
-           
-        } else if (mode === 'jmr') {
-            amplitudes = this.genSineWave(1/24,1,24*3,this.fs);
-        } else if (mode === 'wmhf') {
-            let sine = this.genSineWave(0.5,1,30,this.fs,0,1,1);
-            let sine2 = this.genSineWave(1/20,1,15,this.fs);
-            let hold1 = new Array(this.fs*10).fill(-1);
-            let sine3 = this.genSineWave(1/20,1,10,this.fs,0,1,15);
-            let hold2 = new Array(this.fs*10).fill(1);
-            let amps = [...sine[1],...sine2[1],...hold1,...sine3[1],...hold2];
-            let t = new Array(amps.length).fill(0);
-            t = t.map((x,i)=>{return i/this.fs;})
-            amplitudes = [t,amps];
-           
-        }
-        
-        this.amplitudes = amplitudes;
-                
-        // this.x = [...this.amplitudes[0],...this.amplitudes[0].map((x)=> {return x+this.amplitudes[0][this.amplitudes[0].length-1]})];
-        // this.y = [...this.amplitudes[1],...this.amplitudes[1]];
-
-        // this.xi0=0;
-        // this.xi1=this.x.length-1;
-        // this.x.find((xn,i)=>{
-        //     if(xn > this.canvas.width || i === this.xi1-1) {
-        //         this.xi1 = i;
-        //         return true;
-        //     }
-        // });
-
-        // this.xDiff = undefined;
-
-        // //console.log(amplitudes);
-    }
-
-    showAxes = (ctx=this.ctx,xOffset=0,yOffset=0) => {
-        var width = ctx.canvas.width;
-        var height = ctx.canvas.height;
-        var xMin = 0;
-        
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(128,128,128,0.3)";
-        
-        // X-Axis
-        ctx.moveTo(xMin, height/2 + xOffset);
-        ctx.lineTo(width, height/2 + xOffset);
-        
-        // Y-Axis
-        ctx.moveTo(width/2 + yOffset, 0);
-        ctx.lineTo(width/2 + yOffset, height);
-
-        // Starting line
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, height);
-        
-        ctx.stroke();
-    }
-    drawPoint = (ctx=this.ctx, y) => {            
-        var radius = 3;
-        ctx.beginPath();
-
-        // Hold x constant at 4 so the point only moves up and down.
-        ctx.arc(this.canvas.width*0.5, y, radius, 0, 2 * Math.PI, false);
-
-        ctx.fillStyle = 'red';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.stroke();
-    }
-
-    plotSine = (ctx=this.ctx, xOffset, yOffset, amplitude=40, frequency=20) => {
-        var width = ctx.canvas.width;
-        var height = ctx.canvas.height;
-        var scale = 20;
-
-        ctx.beginPath();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgb(66,44,255)";
-
-        // console.log("Drawing point...");
-        // drawPoint(ctx, yOffset+this.step);
-        
-        var x = 0;
-        var y = this.canvas.height*0.5;
-        //ctx.moveTo(x, y);
-        let set = false;
-        while (x < width) {
-            y = height/2 + amplitude * Math.sin((x+xOffset)/frequency);
-            if(!set) { set = true; ctx.moveTo(x, y); }
-            ctx.lineTo(x, y);
-            x++;
-            // console.log("x="+x+" y="+y);
-        }
-        ctx.stroke();
-        ctx.save();
-
-        //console.log("Drawing point at y=" + y);
-        ctx.stroke();
-        ctx.restore();
-
-        return y;
-    }
-
-    drawLatest = () => {
-
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-       
-        this.ctx.save();            
-        
-        let y = this.plotSine(this.ctx, this.step, 0, 40, 20);
-        this.showAxes(this.ctx,y-this.canvas.height*0.5,0);
-        this.drawPoint(this.ctx, y);
-        this.ctx.restore();
-
-        this.thisFrame = Date.now();
-        this.step += 0.001*(this.thisFrame - this.lastFrame);
-        this.lastFrame=this.thisFrame;
-        
-        if(this.animating)
-            window.requestAnimationFrame(this.draw);
-
-    }
-
-    spirograph(canvasid) {            
-        var canvas = document.getElementById(canvasid);
-        var context = canvas.getContext("2d");
-        
-        this.showAxes(context);
-        context.save();
-        // var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        var step = 4;
-        for (var i = -4; i < canvas.height; i += step) {
-            // context.putImageData(imageData, 0, 0);
-            this.plotSine(context, i, 54 + i);
-        }
     }
 
    
