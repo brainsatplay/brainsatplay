@@ -554,85 +554,95 @@ export class BreathTrainerApplet {
 
     drawAudio = () => {
 
-        this.calcBreathing();
+        this.Capture.calcBreathing();
 
-        let xaxis = this.makeArr(0,this.canvas.width,this.audfft.length);
-        let xaxis2 = this.makeArr(0,this.canvas.width,this.audSumGraph.length);
-        let xaxis3 = this.makeArr(0,this.canvas.width,this.audhist.length);
+        //FIX
+        let foundidx = undefined;
+        let found = this.Capture.inPeakTimes.find((t,k)=>{if(t > this.Capture.audTime[0]) {foundidx = k; return true;}});
+        if(foundidx) {
+            let inpeakindices = []; let intimes = this.Capture.audTime.filter((o,z)=>{if(this.Capture.inPeakTimes.slice(this.Capture.inPeakTimes.length-foundidx).indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+            this.inpeaks=inpeakindices;
+            let foundidx2 = undefined;
+            let found2 = this.Capture.outPeakTimes.find((t,k)=>{if(t > this.Capture.audTime[0]) {foundidx2 = k; return true;}});
+            if(foundidx2){ 
+                let outpeakindices = []; let outtimes = this.Capture.audTime.filter((o,z)=>{if(this.Capture.outPeakTimes.slice(this.Capture.outPeakTimes.length-foundidx2).indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+                this.outpeaks=outpeakindices;
+            }
+        }
+        else { 
+            let inpeakindices = []; let intimes = this.audTime.filter((o,z)=>{if(this.Capture.inPeakTimes.indexOf(o)>-1) {inpeakindices.push(z); return true;}})
+            let outpeakindices = []; let outtimes = this.audTime.filter((o,z)=>{if(this.Capture.outPeakTimes.indexOf(o)>-1) {outpeakindices.push(z); return true;}})
+            this.inpeaks = inpeakindices;
+            this.outpeaks = outpeakindices
+        }
+
+        let xaxis = this.makeArr(0,this.canvas.width,this.Capture.output.audioFFT.length);
+        let xaxis2 = this.makeArr(0,this.canvas.width,this.Capture.audSumGraph.length);
+        //let xaxis3 = this.makeArr(0,this.canvas.width,this.audhist.length);
 
 
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
         //---------------------------------------------------------- Audio FFT
         this.ctx.linewidth = 2;
         
-        this.ctx.moveTo(0,this.canvas.height-this.audfft[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.Capture.output.audioFFT[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'royalblue';
-        this.audfft.forEach((amp,i)=>{
+        this.Capture.output.audioFFT.forEach((amp,i)=>{
             if(i > 0) {
                 this.ctx.lineTo(xaxis[i],this.canvas.height-amp*(this.canvas.height/255));       
             }
         });
         this.ctx.stroke();
-        //------------------------------------------------------------ Audio FFT Histogram
-        
-        this.ctx.beginPath();
-        this.ctx.moveTo(0,this.canvas.height-this.audhist[0]);
-        this.ctx.strokeStyle = 'turquoise';
-        this.audhist.forEach((amp,i)=>{
-            if(i > 0) {
-                this.ctx.lineTo(xaxis3[i],this.canvas.height-amp*(this.canvas.height/255));       
-            }
-        });
-        this.ctx.stroke();
+
         //------------------------------------------------------------- Audio FFT Sum
 
         this.ctx.linewidth = 3;
         
-        this.ctx.moveTo(0,this.canvas.height-this.audSumGraph[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.Capture.audSumGraph[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = "red"; 
                 
-        this.audSumGraph.forEach((amp,i)=>{
+        this.Capture.audSumGraph.forEach((amp,i)=>{
             if(i > 0) {
-                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.Capture.audSumGraph)));       
             }
         });
         this.ctx.stroke();
         //------------------------------------------------------------- Audio FFT Sum Smoothed
         
-        this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothedFast[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.Capture.audSumSmoothedFast[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = "orange"; 
                 
-        this.audSumSmoothedFast.forEach((amp,i)=>{
+        this.Capture.audSumSmoothedFast.forEach((amp,i)=>{
             if(i > 0) {
-                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.Capture.audSumGraph)));       
             }
         });
         this.ctx.stroke();
         //------------------------------------------------------------- Audio FFT Sum More Smoothed
 
-        this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothedSlow[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.Capture.audSumSmoothedSlow[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = "gold"; 
                 
-        this.audSumSmoothedSlow.forEach((amp,i)=>{
+        this.Capture.audSumSmoothedSlow.forEach((amp,i)=>{
             if(i > 0) {
-                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.Capture.audSumGraph)));       
             }
         });
         this.ctx.stroke();
 
         //------------------------------------------------------------- Audio FFT Sum More Smoothed
         
-        this.ctx.moveTo(0,this.canvas.height-this.audSumSmoothedLong[0]);
+        this.ctx.moveTo(0,this.canvas.height-this.Capture.audSumSmoothedLong[0]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = "yellow"; 
                 
-        this.audSumSmoothedLong.forEach((amp,i)=>{
+        this.Capture.audSumSmoothedLong.forEach((amp,i)=>{
             if(i > 0) {
-                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.audSumGraph)));       
+                this.ctx.lineTo(xaxis2[i],this.canvas.height-amp*(this.canvas.height/Math.max(...this.Capture.audSumGraph)));       
             }
         });
         this.ctx.stroke();
@@ -642,7 +652,7 @@ export class BreathTrainerApplet {
         this.ctx.fillStyle = 'chartreuse';
         this.inpeaks.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
@@ -651,41 +661,41 @@ export class BreathTrainerApplet {
         this.ctx.fillStyle = 'green';
         this.outpeaks.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedSlow[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
         //------------------------------------------------------------- SMA 2 peaks
         this.ctx.fillStyle = 'pink';
-        this.peakslong.forEach((pidx)=> {
+        this.Capture.peakslong.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
         //------------------------------------------------------------- SMA 2 valleys
 
         this.ctx.fillStyle = 'purple';
-        this.valslong.forEach((pidx)=> {
+        this.Capture.valslong.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedLong[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
         //------------------------------------------------------------- SMA fast peaks
         this.ctx.fillStyle = 'red';
-        this.peaksfast.forEach((pidx)=> {
+        this.Capture.peaksfast.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
         //------------------------------------------------------------- SMA fast valleys
 
         this.ctx.fillStyle = 'crimson';
-        this.valsfast.forEach((pidx)=> {
+        this.Capture.valsfast.forEach((pidx)=> {
             this.ctx.beginPath();
-            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.audSumGraph)),5,0,Math.PI*2,true);
+            this.ctx.arc(xaxis2[pidx],this.canvas.height-this.Capture.audSumSmoothedFast[pidx]*(this.canvas.height/Math.max(...this.Capture.audSumGraph)),5,0,Math.PI*2,true);
             this.ctx.closePath();
             this.ctx.fill();
         });
