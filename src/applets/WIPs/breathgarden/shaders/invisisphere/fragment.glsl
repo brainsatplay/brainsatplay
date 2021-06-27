@@ -2,7 +2,7 @@ varying float vMass;
 varying vec2 vCircleSpace;
 varying float vDepth;
 uniform float iTime;
-
+uniform float uColorChange;
 
 float map(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
@@ -116,6 +116,16 @@ void main(){
     // color.g -= 0.2 * ( slashA(st, 0.12,0.2) - slashA(st, 0.07,0.2));
         color += circle(vCircleSpace, 0.8) - circle(vCircleSpace, 0.77) ;
     color *= circle(vCircleSpace, 0.8) * step(st.y,0.75);
-    gl_FragColor = vec4(color,vMass *  2.1 * vDepth + .05 );
-    gl_FragColor = vec4(color,vMass *  2.1 + .05 );
+    // gl_FragColor = vec4(color,vMass *  2.1 * vDepth + .05 );
+
+    vec3 color2 = vec3(0.3);
+    color2 += fbm(q + r);
+    // bump up brightness a smidgen
+    color2 += 0.25;
+    color2.r +=  s + 0.18;
+    // note that r here isn't red, it's river as modulated by undercurrent
+    color2.b += r + 0.5;
+    // pollution as opposite of undercurrent color (couldnt use q without more operations)
+    color2.g += s/2.5;
+    gl_FragColor = vec4(mix(color,color2,uColorChange),vMass *  2.1 + .05 );
 }

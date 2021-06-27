@@ -33,9 +33,12 @@ export class Connectome {
         let ctrlPt1 = [n1.position.x*this.bendStrength, n1.position.y*this.bendStrength]
         let ctrlPt2 = [n2.position.x*this.bendStrength, n2.position.y*this.bendStrength]
         this.p5Instance.noFill()
-        n1.color.setAlpha(55 + 200*e.value)
-        this.p5Instance.stroke(n1.color)
-        this.p5Instance.curve(ctrlPt1[0], ctrlPt1[1], n1.position.x, n1.position.y,n2.position.x, n2.position.y,ctrlPt2[0], ctrlPt2[1]);
+        let color = n1.color ?? n2.color
+        if (color) {
+          color.setAlpha(55 + 200*e.value)
+          this.p5Instance.stroke(color)
+          this.p5Instance.curve(ctrlPt1[0], ctrlPt1[1], n1.position.x, n1.position.y,n2.position.x, n2.position.y,ctrlPt2[0], ctrlPt2[1]);
+        }
       })
       this.p5Instance.pop();
 

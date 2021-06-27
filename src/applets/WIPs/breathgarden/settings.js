@@ -58,7 +58,7 @@ let meshUniforms = {
   uRiverWidth: {value: riverWidth}
 }
 
-let invisisphereUniforms = {iTime: {value: 0}, uSpeedModifier: {value: 0}}
+let invisisphereUniforms = {iTime: {value: 0}, uSpeedModifier: {value: 0}, uColorChange: {value: 0}}
 let particleUniforms = {iTime: {value: 0}, uVerdant: {value: 0}}
 
 /* 
@@ -172,6 +172,10 @@ export const settings = {
         },
         {
           source: 'lastHEG', 
+          target: 'riverfragment:uColorChange'
+        },
+        {
+          source: 'lastHEG', 
           target: 'particlesfragment:uVerdant'
         },
 
@@ -208,8 +212,13 @@ export const settings = {
         },
         {
           source: 'lastBreath', 
+          target: 'riverfragment:uColorChange'
+        },
+        {
+          source: 'lastBreath', 
           target: 'particlesfragment:uVerdant'
         },
+        
         // // Draw Sphere to Scene
         // {
         //   source: 'geometry', 
