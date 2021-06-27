@@ -10,7 +10,6 @@ import invisisphereFragmentShader from './shaders/invisisphere/fragment.glsl'
 import particlesVertexShader from './shaders/particles/vertex.glsl'
 import particlesFragmentShader from './shaders/particles/fragment.glsl'
 import * as THREE from 'three'
-import {Tree} from './Tree.js'
 
 /* 
  Samir Parameters
@@ -96,7 +95,7 @@ export const settings = {
         {id: 'debug', class: brainsatplay.plugins.outputs.Debug},
 
         // Tree
-        {id: 'tree1', class: Tree},
+        {id: 'tree1', class: brainsatplay.plugins.utilities.Trees, params: {count: 5}},
 
         // Light
         {id: 'light', class: brainsatplay.plugins.utilities.Light},

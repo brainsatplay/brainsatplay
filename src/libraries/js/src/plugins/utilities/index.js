@@ -12,6 +12,7 @@ import {Material} from './Material'
 import {Shader} from './Shader'
 import {Index} from './IndexClass'
 import {Scheduler} from './Scheduler'
+import {Trees} from './Trees'
 
 export {
     Brainstorm,
@@ -27,5 +28,6 @@ export {
     Material,
     Shader,
     Index,
-    Scheduler
+    Scheduler,
+    Trees
 }
