@@ -45,6 +45,7 @@ export class BreathTrainerApplet {
         this.amplitudes = [];
         this.startTime = undefined;
 
+        this.rounds=0;
         this.lastFrame = 0;
         this.latentTime = 0;
         this.currentFrame = 0;
@@ -53,11 +54,11 @@ export class BreathTrainerApplet {
         this.thisFrame = Date.now();
 
         this.frequencyMaps = [
-            {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]},
-            {type:"breathhold",map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:1,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
-            {type:"wimhof",map:[{frequency:.01,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
-            {type:"relaxation",map:[{frequency:0.08,amplitude:2,duration:60}]},
-            {type:"jacobsons",map:[{frequency:0.08,amplitude:2,duration:60}]}
+            {type:"diaphragmatic",duration:60,map:[{frequency:0.1,amplitude:2,duration:60}]},
+            {type:"breathhold",duration:60,map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:1,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
+            {type:"wimhof",duration:60,map:[{frequency:.01,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
+            {type:"relaxation",duration:60,map:[{frequency:0.08,amplitude:2,duration:60}]},
+            {type:"jacobsons",duration:60,map:[{frequency:0.08,amplitude:2,duration:60}]}
         ];
 
         this.currentFrequencyMap = {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]};
@@ -283,13 +284,15 @@ export class BreathTrainerApplet {
         if(this.currentFrequency === this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
             let timeaccum = 0;
  
+            let duration = this.currentFrequencyMap.duration;
             for(let i = 0; i<this.currentMapIndex+1; i++) {
                 timeaccum += this.currentFrequencyMap.map[i].duration;
             }
-            if(this.time > timeaccum+this.latentTime) {
-                if(this.currentMapIndex === this.currentFrequencyMap.map.length) this.currentMapIndex = 0;
-                else this.currentMapIndex++;
-                
+            if(this.time > timeaccum+duration*this.rounds+this.latentTime) {
+                if(this.currentMapIndex === this.currentFrequencyMap.map.length-1) {
+                    this.currentMapIndex = 0; this.rounds++;
+                }
+                else {this.currentMapIndex++;}
             }
         }
         //let window = width * (audInterval);
