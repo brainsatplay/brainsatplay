@@ -13,7 +13,7 @@ export const settings = {
       production:true
     },
 		"instructions":`
-    <p>Follow the sine waves with your breathing pattern! See below for different explanations.</p>
+    <p>Follow the sine waves with your breathing pattern! Sync with your mic to see your breaths in real time! See below for different exercises.</p>
     <h3>Easy breathing exercises:</h3>
     <h4>Deep Diaphragmatic Breathing (increase score and HRV):</h4>
     <p>
