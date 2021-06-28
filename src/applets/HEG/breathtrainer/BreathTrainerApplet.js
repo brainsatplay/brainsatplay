@@ -254,7 +254,7 @@ export class BreathTrainerApplet {
         this.ctx2.clearRect(0,0,width,height);
 
         let x = width-1;
-        console.log(amp,x,this.timeScaled,width,freq)
+        //console.log(amp,x,this.timeScaled,width,freq)
         let sineAmp = Math.sin((x+this.timeScaled+width)/(width*freq));
         let amplitude = (height*0.5 + amp * sineAmp);
         this.amplitudesY.shift(); this.amplitudesY.push(amplitude);
@@ -272,7 +272,7 @@ export class BreathTrainerApplet {
         this.ctx2.stroke();
 
         if(this.currentFrequency !== this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
-            this.latentTime += this.fps;
+            //this.latentTime += this.fps;
             this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
         }
 
@@ -284,8 +284,9 @@ export class BreathTrainerApplet {
                 timeaccum += this.currentFrequencyMap.map[i].duration;
             }
             if(this.time > timeaccum+this.latentTime) {
-                this.currentMapIndex++;
                 if(this.currentMapIndex === this.currentFrequencyMap.map.length) this.currentMapIndex = 0;
+                else this.currentMapIndex++;
+                
             }
         }
         //let window = width * (audInterval);
