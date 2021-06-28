@@ -142,6 +142,9 @@ export class BreathTrainerApplet {
                     });
                     if(found) this.currentFrequencyMap = found;
                 }
+
+                this.time = 0;
+                this.timeScaled = 0;
             }
 
             document.getElementById(props.id+'startmic').onclick = () => {
