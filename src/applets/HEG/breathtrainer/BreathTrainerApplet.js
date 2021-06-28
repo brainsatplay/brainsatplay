@@ -46,6 +46,7 @@ export class BreathTrainerApplet {
         this.startTime = undefined;
 
         this.lastFrame = 0;
+        this.latentTime = 0;
         this.currentFrame = 0;
         this.time = 0;
         this.fps = 60;
@@ -53,7 +54,7 @@ export class BreathTrainerApplet {
 
         this.frequencyMaps = [
             {type:"diaphragmatic",map:[{frequency:0.1,amplitude:2,duration:60}]},
-            {type:"breathhold",map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:2,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
+            {type:"breathhold",map:[{frequency:0.1,amplitude:2,duration:5},{frequency:0.0,amplitude:1,duration:10},{frequency:0.1,amplitude:2,duration:5}]},
             {type:"wimhof",map:[{frequency:.01,amplitude:1,duration:30},{frequency:0.1,amplitude:2,duration:30}]},
             {type:"relaxation",map:[{frequency:0.08,amplitude:2,duration:60}]},
             {type:"jacobsons",map:[{frequency:0.08,amplitude:2,duration:60}]}
@@ -139,7 +140,7 @@ export class BreathTrainerApplet {
                         if(o.type === t)
                             return true;
                     });
-                    if(found) this.currentFrequencyMap = found
+                    if(found) this.currentFrequencyMap = found;
                 }
             }
 
@@ -198,7 +199,8 @@ export class BreathTrainerApplet {
         this.yscaling = this.canvas.height*0.2;
         this.xscaling = this.canvas.width*0.1;
 
-        this.amplitudesY = new Array(1024).fill(this.canvas2.height*0.5);
+        if(this.amplitudesY[0] === 0)
+            this.amplitudesY = new Array(1024).fill(this.canvas2.height);
         this.amplitudesX = new Array(1024).fill(0);
         this.amplitudesX.forEach((x,i) => {
             this.amplitudesX[i] = (i/1023) * this.canvas2.width;
@@ -243,36 +245,50 @@ export class BreathTrainerApplet {
         //rotate, rinse, and repeat
         //console.log(this.currentFrequencyMap,this.currentMapIndex);
 
-        if(this.currentFrequency < this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
-            this.latentTime += this.fps;
-            this.currentFrequency += this.fps*this.currentFrequencyMap.map[this.currentMapIndex].frequency;
-            if (this.currentFrequency > this.currentFrequencyMap.map[this.currentMapIndex].frequency) 
-                this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
-        } else if (this.currentFrequency > this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
-            this.latentTime += this.fps;
-            this.currentFrequency -= this.fps*this.currentFrequencyMap.map[this.currentMapIndex].frequency;
-            if (this.currentFrequency < this.currentFrequencyMap.map[this.currentMapIndex].frequency) 
-                this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
-        }
-
         this.timeScaled += audInterval+(width/1024 - this.fps);
         this.time += this.fps;
+
+        let freq = this.currentFrequency;
+        let amp = this.currentFrequencyMap.map[this.currentMapIndex].amplitude+height/4;
+
+        this.ctx2.clearRect(0,0,width,height);
+
+        let x = width-1;
+        console.log(amp,x,this.timeScaled,width,freq)
+        let sineAmp = Math.sin((x+this.timeScaled+width)/(width*freq));
+        let amplitude = (height*0.5 + amp * sineAmp);
+        this.amplitudesY.shift(); this.amplitudesY.push(amplitude);
+
+        this.ctx2.strokeStyle = 'limegreen';
+        this.ctx2.beginPath();
+        this.ctx2.moveTo(-10,this.amplitudesY[0]);
+
+        this.amplitudesY.forEach((a,i)=>{
+            if(i>0) {
+                this.ctx2.lineTo(this.amplitudesX[i],a+height*.2);
+            }
+        });
+        //console.log('stroked',this.amplitudesX[this.amplitudesX.length-1],this.amplitudesY[this.amplitudesY.length-1])
+        this.ctx2.stroke();
+
+        if(this.currentFrequency !== this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
+            this.latentTime += this.fps;
+            this.currentFrequency = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
+        }
+
         //console.log(this.time);
         if(this.currentFrequency === this.currentFrequencyMap.map[this.currentMapIndex].frequency) {
             let timeaccum = 0;
-            for(let i = 0; i<this.currentMapIndex; i++) {
+ 
+            for(let i = 0; i<this.currentMapIndex+1; i++) {
                 timeaccum += this.currentFrequencyMap.map[i].duration;
             }
             if(this.time > timeaccum+this.latentTime) {
                 this.currentMapIndex++;
-                if(this.currentMapIndex > this.currentFrequencyMap.map.length) this.currentMapIndex = 0;
+                if(this.currentMapIndex === this.currentFrequencyMap.map.length) this.currentMapIndex = 0;
             }
         }
-        let freq = this.currentFrequencyMap.map[this.currentMapIndex].frequency;
-        let amp = this.currentFrequencyMap.map[this.currentMapIndex].amplitude+height/4;
-
         //let window = width * (audInterval);
-
 
         // var tempCanvasContext = this.offscreenctx;
 		// var tempCanvas = tempCanvasContext.canvas;
@@ -280,25 +296,6 @@ export class BreathTrainerApplet {
 
 		// tempCanvasContext.drawImage(this.canvas2, 0, 0, width, height);
 
-        this.ctx2.clearRect(0,0,width,height);
-
-        let x = width-1;
-        let amplitude = (height/2 + amp * Math.sin((x+this.timeScaled+width)/(width*freq)));
-        this.amplitudesY.shift(); this.amplitudesY.push(amplitude);
-
-        this.ctx2.strokeStyle = 'limegreen';
-        this.ctx2.beginPath();
-        this.ctx2.moveTo(0,this.amplitudesY[0]);
-
-        this.amplitudesY.forEach((a,i)=>{
-            if(i>0) {
-                this.ctx2.lineTo(this.amplitudesX[i],a);
-            }
-        });
-        //console.log('stroked',this.amplitudesX[this.amplitudesX.length-1],this.amplitudesY[this.amplitudesY.length-1])
-        this.ctx2.stroke();
-        
-        
         // this.ctx2.fillStyle = 'limegreen';
         // this.ctx2.fillRect(width - 1, amplitude, 1, 1);
 
