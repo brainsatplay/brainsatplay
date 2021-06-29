@@ -29,6 +29,8 @@ export class Scheduler{
                         } else {
                             u.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
                         }
+                        u.meta.label = this.label
+                        u.meta.state = this.props.state;
                     })
                     return userData
                 }
@@ -39,6 +41,7 @@ export class Scheduler{
                 onUpdate: (userData) => { 
                     return userData.map(u => {
                         u.data = this.props.state;
+                        u.meta.label = this.label
                         return u
                     })
                 }

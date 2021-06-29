@@ -1,6 +1,5 @@
 
 import {Train} from './Train'
-import {DataManager} from '../analyzer/DataManager'
 import {Test} from './Test'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
@@ -22,10 +21,11 @@ export const settings = {
       nodes: [
         {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
         {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink},
-        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{}},
+        {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{interTrialInterval: 2}},
         {id: 'Train UI', class: Train},
-        {id: 'data', class: DataManager},
+        {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
+        {id: 'motorimagery', class: brainsatplay.plugins.algorithms.MotorImagery},
         {id: 'Test UI', class: Test},
       ],
       edges: [
@@ -77,6 +77,12 @@ export const settings = {
         {
           source: 'scheduler:done', 
           target: 'data:csv'
+        },
+
+        // Train Model
+        {
+          source: 'data:latest',
+          target: 'motorimagery'
         },
 
         // Test your Model

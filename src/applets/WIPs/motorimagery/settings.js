@@ -1,13 +1,11 @@
 
-import {Plot} from '../analyzer/Plot'
-
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "BuckleUp",
+    name: "Motor Imagery",
     devices: ["EEG"],
     author: "Brains@Play",
-    description: "Fitbit Data to B@P.",
+    description: "Benchmark your first MI Brains@Play plugin.",
     categories: ["WIP"],
     instructions:"Coming soon...",
     display: {
@@ -17,15 +15,20 @@ export const settings = {
     // App Logic
     graph:
       {
+      id: 'benchmark',
       nodes: [
-        {id: 'plot', class: Plot},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
+        {id: 'motorimagery', class: brainsatplay.plugins.algorithms.MotorImagery},
       ],
       edges: [
+
+        // Train Model
         {
-          source: 'data:fitbit',
-          target: 'plot'
-        }
+          source: 'data:latest',
+          target: 'motorimagery:train'
+        },
+
+       
       ]
     },
 }

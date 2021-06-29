@@ -13,6 +13,7 @@ import {Shader} from './Shader'
 import {Index} from './IndexClass'
 import {Scheduler} from './Scheduler'
 import {Trees} from './Trees'
+import {DataManager} from './DataManager'
 
 export {
     Brainstorm,
@@ -29,5 +30,6 @@ export {
     Shader,
     Index,
     Scheduler,
-    Trees
+    Trees,
+    DataManager
 }
