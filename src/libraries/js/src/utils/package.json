@@ -1,6 +1,6 @@
 {
   "name": "brainsatplay",
-  "version": "0.0.23",
+  "version": "0.0.21",
   "description": "Brain-Responsive Web Apps with JavaScript",
   "main": "dist/brainsatplay.js",
   "module": "brainsatplay.js",
@@ -35,7 +35,6 @@
     "rxjs-compat": "^6.6.7",
     "streamsearch": "^0.1.2",
     "three": "^0.129.0",
-    "web-worker": "^1.0.0",
-    "webxr-polyfill": "^2.0.3"
+    "web-worker": "^1.0.0"
   }
 }
