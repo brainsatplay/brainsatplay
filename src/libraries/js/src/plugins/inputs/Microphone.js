@@ -1,4 +1,4 @@
-import {SoundJS} from '../../../../../platform/js/frontend/UX/Sound'
+import {SoundJS} from '../../utils/Sound'
 import {eegmath} from '../../utils/eegmath'
 
 

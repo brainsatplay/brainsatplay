@@ -710,7 +710,21 @@ export class GraphEditor{
                             if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
                                 node.instance[k] = instance[k]
                             }
+
+                            if (k === 'ports'){
+                                for (let port in instance.ports){
+                                    if (node.instance.ports[port] == null) node.instance.ports[port] = instance.ports[port]
+                                    else {
+                                        let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
+                                        keys.forEach(str => {
+                                            node.instance.ports[port][str] = instance.ports[port][str]
+                                        })
+                                    }
+                                }
+                            }
                         })
+
+                        // Set New Class
                         node.class = cls
                     }
                 })
