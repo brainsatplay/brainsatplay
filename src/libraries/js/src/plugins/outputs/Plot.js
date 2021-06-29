@@ -151,8 +151,6 @@ class Plot{
     default = (userData) => {
         this.props.userData = userData
         let u = userData[0]
-
-        console.log(u)
         let data = ('data' in u.data) ? u.data.data : u.data
         let query
 
@@ -180,22 +178,16 @@ class Plot{
             return arr.map(t => {
                 if (typeof t === 'number'){
                     var date = new Date(t); // create Date object
-                    // let HH = Math.floor((data.noteTimes[i] - tStart) / (60*60*1000)) // Convert to timestamp
-                    // let MM = Math.floor((data.noteTimes[i] - tStart) / (60*1000)) // Convert to timestamp
-                    // let SS = Math.floor((data.noteTimes[i] - tStart) / (1000)) // Convert to timestamp
-                    // let ss = Math.floor((data.noteTimes[i] - tStart)%1000) // Convert to timestamp
                     return date.customFormat( "#YYYY#-#MM#-#DD# #hh#:#mm#:#SS#.#ss#" ) //`${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS}.${ss}`
                 }
             })
         })
         data.noteTimes = timeVariables[0]
         data.times = timeVariables[1]
-        console.log(data)
 
         let shapes = []
 
         let getTrialInfo = (data) => {
-            console.log(data)
             let trials = []
             let done = false
             data.notes.forEach((n,i) => {
@@ -219,8 +211,6 @@ class Plot{
         }
 
         let trials = getTrialInfo(data)
-
-        console.log(trials)
 
         // Use EEG Channels or Trials
         if (this.params.mode === 'Trials'){

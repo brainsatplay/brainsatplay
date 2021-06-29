@@ -1,6 +1,4 @@
 
-import {Plot} from './Plot'
-
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
@@ -19,7 +17,7 @@ export const settings = {
       {
       id: 'benchmark',
       nodes: [
-        {id: 'plot', class: Plot},
+        {id: 'plot', class: brainsatplay.plugins.outputs.Plot},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
       ],
       edges: [
