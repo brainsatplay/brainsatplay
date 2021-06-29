@@ -27,6 +27,13 @@ export class eegmath {
 		return sum / arr.length;
 	}
 
+	static mode(arr){
+		return arr.sort((a,b) =>
+			  arr.filter(v => v===a).length
+			- arr.filter(v => v===b).length
+		).pop();
+	}
+
 	static variance(arr) { //1D input arrays of length n
 		var mean = this.mean(arr);
 		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length
