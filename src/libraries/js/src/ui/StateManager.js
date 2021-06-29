@@ -252,10 +252,10 @@ export class StateManager {
     }
 
     //removes all secondary responses if idx left null. use "state" key for state-wide change responses
-    removeSecondaryKeyResponse(key=null,responseIdx=null) {
+    removeSecondaryKeyResponse(key=null,responseIdx=null, stopIfEmpty=true) {
         if(key !== null) {
             if(this.listener.hasKey(key)){
-                this.listener.removeFuncs(key, responseIdx);
+                this.listener.removeFuncs(key, responseIdx, stopIfEmpty);
             } else {
                 console.error("key does not exist")
             }
@@ -283,7 +283,7 @@ export class StateManager {
     
     //Unsubscribe from the given key using the index of the response saved from the subscribe() function
     unsubscribe(key, responseIdx=null) {
-        if(responseIdx !== null) this.removeSecondaryKeyResponse(key, responseIdx);
+        if(responseIdx !== null) this.removeSecondaryKeyResponse(key, responseIdx, true);
         else console.error("Specify a subcription function index");
     }
 

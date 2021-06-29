@@ -80,18 +80,22 @@ export class ObjectListener {
     }
 
     //Add extra onchange functions
-    addFunc = (key=null,newCallback=null) => {
+    addFunc = (key=null,newCallback=null, start=true) => {
         var callbackIdx = null;
         if(newCallback !== null){
             if(key === null) {
                 this.listeners.forEach((obj,i) => {
                     callbackIdx = obj.listener.addFunc(newCallback);
+                    if(obj.listener.running == false && start == true)
+                        obj.listener.start();
                 });
             }
             else {
-                var found = this.listeners.find((o,i) => {
-                    if(o.key === key) {
-                        callbackIdx = o.listener.addFunc(newCallback);
+                var found = this.listeners.find((obj,i) => {
+                    if(obj.key === key) {
+                        callbackIdx = obj.listener.addFunc(newCallback);
+                        if(obj.listener.running == false && start == true)
+                            obj.listener.start();
                     }
                 });
             }
@@ -112,7 +116,7 @@ export class ObjectListener {
     }
 
     //Remove extra onchange functions
-    removeFuncs = (key = null, idx = null) => {
+    removeFuncs = (key = null, idx = null, stop=false) => {
         if(key === null) {
             this.listeners.forEach((obj,i) => {
                 obj.listener.removeFuncs(idx);
@@ -122,6 +126,9 @@ export class ObjectListener {
             var found = this.listeners.find((o,i) => {
                 if(o.key === key) {
                     o.listener.removeFuncs(idx);
+                    if(o.listener.onchangeFuncs.length === 0 || stop === true) {
+                        o.listener.stop()
+                    }
                 }
             });
         }
@@ -162,7 +169,7 @@ export class ObjectListener {
     remove(key=null){
         if(key === null) {
             this.listeners.forEach((listener) => {
-                if (listener.stop instanceof Function) listener.stop();
+                listener.stop();
             });
             this.listeners.splice(0,this.listeners.length);
         }
@@ -579,7 +586,7 @@ if(JSON.stringifyWithCircularRefs === undefined) {
         } else {
             while (idx-- >= 0) {
             prev = parents[idx];
-            if (prev && prev[key] === value) {
+            if (prev[key] === value) {
                 idx += 2;
                 parents.length = idx;
                 path.length = idx;
