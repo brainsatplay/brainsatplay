@@ -60,7 +60,7 @@ export class MotorImagery{
                 }
             },
             test: {
-                input: {type: 'array'},
+                input: {type: Array},
                 output: {type: 'number'},
 
                 // Pass correctly-formatted test data (from train...)
@@ -95,7 +95,7 @@ export class MotorImagery{
                 }
             },
             predict: {
-                input: {type: 'array'},
+                input: {type: Array},
                 output: {type: 'int'},
                 onUpdate: (userData) => {
                     if (this.props.models.csp){

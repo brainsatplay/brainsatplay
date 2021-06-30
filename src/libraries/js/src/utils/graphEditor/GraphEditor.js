@@ -15,9 +15,14 @@ export class GraphEditor{
         this.element = null
         this.graph=null
         this.shown = false
-        this.scale = 1
+        this.context = {
+            scale: 1
+        }
         this.searchOptions = []
         this.classRegistry = {}
+
+        this.selectorToggle = null
+        this.search = null
         // this.state = new StateManager()
 
         // // Check changes to params
@@ -170,6 +175,9 @@ export class GraphEditor{
 
                 this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
 
+                // Insert Node Selector with Right Click
+                this.toggleContextMenuEvent(this.viewer)
+
                 // Add Settings Editor
                 this.createSettingsEditor(applet.info)
 
@@ -210,15 +218,15 @@ export class GraphEditor{
                 })
 
                 let updateUI = () => {
-                    this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.scale*100}%)`
+                    this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
                     // this.viewer.style['transformOrigin'] = `${relX*100}% ${relY*100}%`;
                 }
 
                 // Change scale
                 this.viewer.parentNode.addEventListener('wheel', (e)=>{
-                    this.scale += 0.01*-e.deltaY
-                    if (this.scale < 0.3) this.scale = 0.3 // clamp
-                    if (this.scale > 1.5) this.scale = 1.5 // clamp
+                    this.context.scale += 0.01*-e.deltaY
+                    if (this.context.scale < 0.3) this.context.scale = 0.3 // clamp
+                    if (this.context.scale > 2.0) this.context.scale = 2.0 // clamp
                     updateUI()
 
                     for (let key in this.graph.nodes){
@@ -393,6 +401,15 @@ export class GraphEditor{
         tab.click()
     }
 
+    toggleContextMenuEvent = (el) => {
+        el.addEventListener('contextmenu', (ev) =>{
+            ev.preventDefault();
+            // alert('success!');
+            this.selectorToggle.click()
+            return false;
+        }, false);
+    }
+
     createSettingsEditor(settings){
             let settingsContainer = document.getElementById(`${this.props.id}settings`)
             // settingsContainer.innerHTML = ''
@@ -549,13 +566,23 @@ export class GraphEditor{
         if (e.source) e.source = e.source.replace(':default', '')
         if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
-        let edge = await this.graph.addEdge(e)
-        edge.structure.source = edge.structure.source.replace(':default', '')
-        edge.structure.target = edge.structure.target.replace(':default', '')
-        this.addEdgeReactivity(edge) 
-        this.app.info.graph.edges.push(edge.structure) // Change actual settings file
-        this.manager.addEdge(this.app.props.id,edge.structure)   
-        this.editing = false
+        let res = await this.graph.addEdge(e)
+
+        if (res.msg === 'OK'){
+            let edge = res.edge
+            edge.structure.source = edge.structure.source.replace(':default', '')
+            edge.structure.target = edge.structure.target.replace(':default', '')
+            this.addEdgeReactivity(edge) 
+            this.app.info.graph.edges.push(edge.structure) // Change actual settings file
+            this.manager.addEdge(this.app.props.id,edge.structure)   
+            this.editing = false
+        } else {
+
+            // Grab Type of Incomplete Port
+            for (let key in res.edge.structure) for (let cls of res.edge[`${key}Node`].classList) if (cls.includes('type-')) this.search.value = cls.replace('type-','')
+            this.matchOptions()
+            this.selectorToggle.click()
+        }
 
     }
 
@@ -565,7 +592,7 @@ export class GraphEditor{
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
 
         let node = this.graph.addNode(nodeInfo)
-        dragUtils.dragElement(this.graph.parentNode,node.element, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
+        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
 
         if (skipManager == false) this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
@@ -690,6 +717,12 @@ export class GraphEditor{
     createFile(target, name){
         if (name == null || name === '') name = `${target.name}`
         let filename = `${name}.js`
+
+        let node 
+        this.plugins.nodes.forEach(n => {
+            if (n.class.id == target.id) node = n
+        })
+
         if (this.files[filename] == null){
             this.files[filename] = {}
 
@@ -704,8 +737,6 @@ export class GraphEditor{
             settings.onSave = (cls) => {
                 let instanceInfo = this.manager.instantiateNode({id:cls.name,class: cls})
                 let instance = instanceInfo.instance
-                this.plugins.nodes.forEach(node => {
-                    if (node.class.id == target.id){
                         Object.getOwnPropertyNames( instance ).forEach(k => {
                             if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
                                 node.instance[k] = instance[k]
@@ -724,10 +755,8 @@ export class GraphEditor{
                             }
                         })
 
-                        // Set New Class
-                        node.class = cls
-                    }
-                })
+                // Set New Class
+                node.class = cls
                 cls.id = container.id // Assign a reliable id to the class
                 target = cls // Update target replacing all matching nodes
             }
@@ -755,8 +784,10 @@ export class GraphEditor{
             this.saveFileEvent(filename, onsave)
 
             // Add Option to Selector
-            this.addNodeOption(target.id, 'custom', target.name, () => {
+            console.log(target)
+            this.addNodeOption({id:target.id, label: target.name, class:target}, 'custom', () => {
                 this.addNode({class:target})
+                this.selectorToggle.click()
             })
 
         } else {
@@ -794,53 +825,49 @@ export class GraphEditor{
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
         selector.classList.add(`brainsatplay-node-selector`)
+        let selectorMenu = document.createElement('div')
+        selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
-        let addButton = document.getElementById(`${this.props.id}add`)
-        addButton.addEventListener('click', () => {
+        this.selectorToggle = document.getElementById(`${this.props.id}add`)
+
+        let toggleVisibleSelector = (e) => {
+            if(!e.target.closest('.brainsatplay-node-selector-menu') && !e.target.closest(`[id="${this.props.id}add"]`)) this.selectorToggle.click()
+        }
+
+        this.selectorToggle.addEventListener('click', () => {
             if (selector.style.opacity == '1'){
                 selector.style.opacity='0'
                 selector.style.pointerEvents='none'
-                search.value = ''
-                matchOptions(new RegExp('', 'i'))
+                this.search.value = ''
+                this.matchOptions()
+                document.removeEventListener('click', toggleVisibleSelector)
             } else {
                 selector.style.opacity='1'
                 selector.style.pointerEvents='all'
+                document.addEventListener('click', toggleVisibleSelector)
             }
         })
-        let selectorMenu = document.createElement('div')
-        selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
-        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Select a node"></input><div class="node-options"></div>`)
+        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Search"></input><div class="node-options"></div>`)
         selector.insertAdjacentElement('beforeend',selectorMenu)
         container.insertAdjacentElement('afterbegin',selector)
 
         // Populate Available Nodes
         let nodeDiv = document.createElement('div')
-        let search = selectorMenu.getElementsByTagName(`input`)[0]
-
-        let matchOptions = (regex) => {
-            this.searchOptions.forEach(o => {
-                let test = regex.test(o.label)
-                if (test || o.label == 'Add New Plugin') {
-                    o.element.style.display = ''
-                } else {
-                    o.element.style.display = 'none'
-                }
-            })
-        }
+        this.search = selectorMenu.getElementsByTagName(`input`)[0]
 
 
         // Allow Search of Plugins
-        search.oninput = (e) => {
-            let regexp = new RegExp(e.target.value, 'i')
-            matchOptions(regexp)
+        this.search.oninput = (e) => {
+            this.matchOptions()
         }
 
         this.classRegistry = Object.assign({}, plugins)
         this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption('newplugin', 'custom', 'Add New Plugin', () => {
+        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, 'custom', () => {
             this.createFile(Plugin, search.value)
+            this.selectorToggle.click()
         })
 
 
@@ -851,8 +878,9 @@ export class GraphEditor{
                 let cls = this.classRegistry[type][key]
                 if (!usedClasses.includes(cls.id)){
                     let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                    this.addNodeOption(cls.id, type,label, () => {
+                    this.addNodeOption({id: cls.id, label, class: cls}, type, () => {
                         this.addNode({class:cls})
+                        this.selectorToggle.click()
                     })
                     usedClasses.push(cls)
                 }
@@ -863,8 +891,9 @@ export class GraphEditor{
             let cls = n.class
             if (!usedClasses.includes(cls)){
                 this.classRegistry['custom'][cls.name] = cls
-                this.addNodeOption(cls.id, 'custom', cls.name, () => {
+                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, 'custom', () => {
                     this.addNode({class:cls})
+                    this.selectorToggle.click()
                 })
                 usedClasses.push(cls)
             }
@@ -876,7 +905,31 @@ export class GraphEditor{
         this.responsive()
     }
 
-    addNodeOption(id, type, label, onClick){
+    matchOptions = () => {
+        let regex = new RegExp(this.search.value, 'i')
+        this.searchOptions.forEach(o => {
+
+            // Check Label
+            let show = false
+            let labelMatch = regex.test(o.label)
+            if (labelMatch || o.label == 'Add New Plugin') show = true
+            
+            // Check Types
+            o.types.forEach(type => {
+                let typeMatch = regex.test(type)
+                if (typeMatch) show = true
+            })
+
+            if (show) o.element.style.display = ''
+            else o.element.style.display = 'none'
+        })
+    }
+
+    addNodeOption(classInfo, type, onClick){
+        console.log(classInfo)
+        let id = classInfo.id
+        let label = classInfo.label
+        if (('class' in classInfo)) classInfo = classInfo.class
 
         let options = document.querySelector('.brainsatplay-node-selector-menu').querySelector(`.node-options`)
         let selectedType = options.querySelector(`.nodetype-${type}`)
@@ -895,7 +948,17 @@ export class GraphEditor{
             // element.insertAdjacentElement('beforeend',labelDiv)
             selectedType.insertAdjacentElement('beforeend',element)
 
-            this.searchOptions.push({label, element})
+            // Add Instance Details to Plugin Registry
+            let types = new Set()
+            let o = this.app.session.graph.instantiateNode({class:classInfo})
+            let instance = o.instance
+            for(let port in instance.ports){
+                let type = instance.ports[port].input.type
+                if (type instanceof Object) types.add(type.name)
+                else types.add(type)
+            }
+
+            this.searchOptions.push({label, element, types})
         }
 
         element.innerHTML = `<p>${label}</p>`

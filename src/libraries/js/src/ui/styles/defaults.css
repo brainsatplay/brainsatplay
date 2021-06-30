@@ -893,10 +893,11 @@ select {
 .node-port-container > .node-port {
     position: relative;
     background: rgb(200, 200, 200);
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     transition: 0.5s;
     border-radius: 50%;
+    margin: 1px;
     opacity: 40%;
     cursor: pointer;
 }
@@ -932,36 +933,36 @@ select {
     visibility: hidden;
 }
 
-.node-port-container .node-port.DataAtlas {
+.node-port-container .node-port.type-DataAtlas {
     background: rgb(209, 116, 255);
 }
 
-.node-port-container .node-port.string {
+.node-port-container .node-port.type-string {
     background: rgb(255, 145, 233);
 }
 
-.node-port-container .node-port.array {
+.node-port-container .node-port.type-Array {
     background: rgb(133, 255, 133);
 }
 
 
-.node-port-container .node-port.object {
+.node-port-container .node-port.type-Object {
     background: rgb(255, 203, 107);
 }
 
-.node-port-container .node-port.number {
+.node-port-container .node-port.type-number {
     background: rgb(255, 255, 108);
 }
 
-.node-port-container .node-port.float {
+.node-port-container .node-port.type-float {
     background: rgb(255, 255, 108);
 }
 
-.node-port-container .node-port.int {
+.node-port-container .node-port.type-int {
     background: rgb(255, 255, 108);
 }
 
-.node-port-container .node-port.boolean {
+.node-port-container .node-port.type-boolean {
     background: rgb(126, 184, 255);
 }
 

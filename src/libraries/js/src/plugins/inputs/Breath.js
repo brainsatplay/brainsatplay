@@ -35,7 +35,7 @@ export class Breath{
 
             let type
             let isArray = Array.isArray(this.props.capture.output[port])
-            if (isArray) type = 'array'
+            if (isArray) type = Array
             else type = typeof this.props.capture.output[port]
 
             this.ports[port] = {

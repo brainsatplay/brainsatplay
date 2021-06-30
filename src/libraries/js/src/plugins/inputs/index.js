@@ -6,6 +6,7 @@ import {Sine} from './Sine'
 import {Microphone} from './Microphone'
 import {Breath} from './Breath'
 import {HEG} from './HEG'
+import {EEG} from './EEG'
 
 export {
     Signal,
@@ -15,5 +16,6 @@ export {
     Noise,
     Microphone,
     Breath,
-    HEG
+    HEG,
+    EEG
 }

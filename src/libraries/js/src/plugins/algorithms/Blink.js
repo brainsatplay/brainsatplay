@@ -13,7 +13,7 @@ export class Blink{
             default: {
                 types: {
                     in: 'DataAtlas',
-                    out: 'array'                
+                    out: Array              
                 }
             },
             left: {

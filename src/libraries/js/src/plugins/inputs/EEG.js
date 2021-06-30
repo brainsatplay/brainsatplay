@@ -1,7 +1,7 @@
 import { StateManager } from '../../ui/StateManager'
 
 
-export class HEG{
+export class EEG{
     
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -16,22 +16,28 @@ export class HEG{
             toUnsubscribe: {
                 stateAdded: [],
                 stateRemoved: []
-            }
+            },
+            deviceState: null,
+            sps: null,
+            tags: null
         }
 
         this.ports = {}
 
-        let keys = ['times','red', 'ir', 'ambient', 'ratio', 'temp']
+        let keys = ['raw','filtered', 'position']
 
         // Auto-Generate Ports
         keys.forEach(key => {
             this.ports[key] = {
                 input: {type:null},
-                output: {type:Array},
+                output: {type:null},
                 onUpdate: (userData) => {
-                    return [{data: this.session.atlas.data.heg[0][key]}]
+                    return [{data: this.session.atlas.data.eeg[0][key]}]
                 }
             }
+
+            if (key === 'position') this.ports[key].output.type = 'position'
+            else this.ports[key].output.type = Array
         })
 
         let added = (k) => {
@@ -40,8 +46,8 @@ export class HEG{
 
         let removed = (k) => {
             if (k.includes('device')){
-                if (this.session.state.data[k].deviceType === 'heg'){
-                    this.props.state.removeState(`heg_0`)
+                if (this.session.state.data[k].deviceType === 'eeg'){
+                    this.props.state.removeState(k)
                 }
             }
         }
@@ -66,7 +72,7 @@ export class HEG{
         arr.forEach(k => {
             if (k.includes('device')){
                 let callbacks = []
-                if (this.session.state.data[k].deviceType === 'heg'){
+                if (this.session.state.data[k].deviceType === 'eeg'){
                     for (let port in this.ports){
                         callbacks.push(() => {
                             if (this.ports[port].active.out > 0) {
@@ -74,7 +80,10 @@ export class HEG{
                             }
                         })
                     }
-                    this.props.deviceSubscriptions[k] = this.session.subscribe('heg', 0, undefined, (data)=>{
+                    this.props.sps = this.session.atlas.data.eegshared.sps
+                    this.props.tags = this.session.atlas.data.eegshared.eegChannelTags.map(o => o.tag)
+
+                    this.props.deviceSubscriptions[k] = this.session.subscribe('eeg', 'FP1', undefined, (data)=>{
                         callbacks.forEach(f => {f()})
                     }, this.props.state)
                 }

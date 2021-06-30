@@ -200,7 +200,6 @@ app.init()`)
         }
 
         info = JSON.stringifyWithCircularRefs(info)
-        console.log(info)
         
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;

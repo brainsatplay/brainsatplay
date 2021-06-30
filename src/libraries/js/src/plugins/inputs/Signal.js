@@ -25,7 +25,7 @@ export class Signal{
                 analysis: ['eegfft'],
                 types: {
                     in: null,
-                    out: 'array'
+                    out: Array
                 }
             }
         }

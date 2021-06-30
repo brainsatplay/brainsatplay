@@ -87,7 +87,7 @@ class Plot{
         // Port Definition
         this.ports = {
             default: {
-                input: {type: 'object'},
+                input: {type: Object},
                 output: {type: null},
                 onUpdate: () => {
                     console.log('updated')

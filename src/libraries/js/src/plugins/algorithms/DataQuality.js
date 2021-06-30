@@ -30,7 +30,7 @@ export class DataQuality{
             default: {
                 types: {
                     in: 'DataAtlas',
-                    out: 'object'                
+                    out: Object                
                 }
             }
         }

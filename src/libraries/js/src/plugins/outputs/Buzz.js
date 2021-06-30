@@ -48,7 +48,7 @@ export class Buzz{
             },
             audioToMotors: {
                 types: {
-                    in: 'array',
+                    in: Array,
                     out: null
                 }
             },

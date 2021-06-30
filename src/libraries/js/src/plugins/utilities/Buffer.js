@@ -16,7 +16,7 @@ export class Buffer{
             default: {
                 types: {
                     in: undefined,
-                    out: 'array',
+                    out: Array,
                 }
             }
         }

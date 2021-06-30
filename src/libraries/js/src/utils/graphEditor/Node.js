@@ -84,12 +84,12 @@ export class Node{
                 let nodeType
 
                 nodeType = node.ports[port][inorout].type
- 
+                if (nodeType instanceof Object) nodeType = nodeType.name
                 // if (nodeType !== null){
                     let portElement = document.createElement('div')
                     portElement.classList.add(`node-port`)
                     portElement.classList.add(`port-${port}`)
-                    portElement.classList.add(nodeType)
+                    portElement.classList.add(`type-${nodeType}`)
 
                     portElement.setAttribute('data-node', this.nodeInfo.id)
                     portElement.setAttribute('data-port', port)

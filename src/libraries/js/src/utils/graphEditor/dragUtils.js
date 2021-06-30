@@ -1,4 +1,4 @@
-export const dragElement = (container, dragItem, onMove, onDown,onUp) => {
+export const dragElement = (container, dragItem, context, onMove, onDown,onUp) => {
     var active = false;
     var currentX;
     var currentY;
@@ -6,6 +6,7 @@ export const dragElement = (container, dragItem, onMove, onDown,onUp) => {
     var initialY;
     var xOffset = 0;
     var yOffset = 0;
+    var defaultScale = 0.5
 
     // container.addEventListener("touchstart", dragStart, false);
     // container.addEventListener("touchend", dragEnd, false);
@@ -14,15 +15,17 @@ export const dragElement = (container, dragItem, onMove, onDown,onUp) => {
     container.addEventListener("mousedown", dragStart, false);
     container.addEventListener("mouseup", dragEnd, false);
     container.addEventListener("mousemove", drag, false);
+    dragItem.style.transform = `scale(${defaultScale})`;
+
 
     function dragStart(e) {
 
       if (e.type === "touchstart") {
-        initialX = e.touches[0].clientX - xOffset;
-        initialY = e.touches[0].clientY - yOffset;
+        initialX = (e.touches[0].clientX - (context.scale*defaultScale)*xOffset);
+        initialY = (e.touches[0].clientY - (context.scale*defaultScale)*yOffset);
       } else {
-        initialX = e.clientX - xOffset;
-        initialY = e.clientY - yOffset;
+        initialX = (e.clientX - (context.scale*defaultScale)*xOffset);
+        initialY = (e.clientY - (context.scale*defaultScale)*yOffset);
       }
 
       // Account For Nested Control Objects
@@ -46,16 +49,14 @@ export const dragElement = (container, dragItem, onMove, onDown,onUp) => {
         e.preventDefault();
       
         if (e.type === "touchmove") {
-          currentX = e.touches[0].clientX - initialX;
-          currentY = e.touches[0].clientY - initialY;
+          currentX = (e.touches[0].clientX - initialX)/(context.scale*defaultScale);
+          currentY = (e.touches[0].clientY - initialY)/(context.scale*defaultScale);
         } else {
-          currentX = e.clientX - initialX;
-          currentY = e.clientY - initialY;
+          currentX = (e.clientX - initialX)/(context.scale*defaultScale);
+          currentY = (e.clientY - initialY)/(context.scale*defaultScale);
         }
 
-        // if (currentX > 0 && currentX < container.clientWidth){
-            xOffset = currentX;
-        // }
+        xOffset = currentX;
         yOffset = currentY;
 
           setTranslate(xOffset, yOffset, dragItem);
@@ -64,6 +65,8 @@ export const dragElement = (container, dragItem, onMove, onDown,onUp) => {
     }
 
     function setTranslate(xPos, yPos, el) {
-      el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+
+      // Add default scale
+      el.style.transform = `scale(${defaultScale}) translate3d(${xPos}px,${yPos}px, 0)`;
     }
 }
