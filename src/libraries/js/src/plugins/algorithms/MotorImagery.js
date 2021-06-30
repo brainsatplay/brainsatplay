@@ -20,9 +20,7 @@ export class MotorImagery{
                 output: {type: 'number'},
                 onUpdate: (userData) => {
                     let trialsAggregated = this._preprocess(userData)
-
-                    
-
+        
                         let types = Object.keys(trialsAggregated)
 
                         // Project it with CSP

@@ -987,8 +987,9 @@ select {
     pointer-events: none;
     user-select: none;
     text-align: center;
-    font-size: 75%;
-    padding: 3px;
+    font-size: 65%;
+    padding: 4px;
+    height: 21px;
 }
 
 .brainsatplay-default-node h3{
