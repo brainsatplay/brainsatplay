@@ -65,7 +65,7 @@ export class Edge{
 
       let onMouseUp = (e) => {
         if (e.target != this[`${otherType}Node`] && e.target.classList.contains('node-port')){
-          if (Array.from(e.target.parentNode.classList).find(str => str.includes(type))){
+          if (Array.from(e.target.parentNode.parentNode.classList).find(str => str.includes(type))){
             this.structure[type]  = `${e.target.getAttribute('data-node')}:${e.target.getAttribute('data-port')}`
             let split =  this.structure[type].split(':') 
             if (split.length < 2) split.push('default')
@@ -231,16 +231,16 @@ updateControlPoints = (p1,p2) => {
   this.updateElement(
     this.node['c1'],
       {
-          cx: p1.x,
-          cy: p1.y + curveMag
+          cx: p1.x + curveMag,
+          cy: p1.y
       }
   );
 
   this.updateElement(
       this.node['c2'],
       {
-          cx: p2.x,
-          cy: p2.y - curveMag
+          cx: p2.x - curveMag,
+          cy: p2.y
       }
   );
 

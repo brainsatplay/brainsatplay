@@ -225,8 +225,8 @@ export class GraphEditor{
                 // Change scale
                 this.viewer.parentNode.addEventListener('wheel', (e)=>{
                     this.context.scale += 0.01*-e.deltaY
-                    if (this.context.scale < 0.3) this.context.scale = 0.3 // clamp
-                    if (this.context.scale > 2.0) this.context.scale = 2.0 // clamp
+                    if (this.context.scale < 0.5) this.context.scale = 0.5 // clamp
+                    if (this.context.scale > 3.0) this.context.scale = 3.0 // clamp
                     updateUI()
 
                     for (let key in this.graph.nodes){
@@ -545,7 +545,7 @@ export class GraphEditor{
 
     drawEdge = (p1,p2) => {
         let dict = {}
-        let type = Array.from(p1.parentNode.classList).find((str) => {
+        let type = Array.from(p1.parentNode.parentNode.classList).find((str) => {
             if (str.includes('-ports')) return true
         })
         type = type.replace('-ports','')
@@ -784,7 +784,6 @@ export class GraphEditor{
             this.saveFileEvent(filename, onsave)
 
             // Add Option to Selector
-            console.log(target)
             this.addNodeOption({id:target.id, label: target.name, class:target}, 'custom', () => {
                 this.addNode({class:target})
                 this.selectorToggle.click()
@@ -866,7 +865,7 @@ export class GraphEditor{
         let usedClasses = []
 
         this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, 'custom', () => {
-            this.createFile(Plugin, search.value)
+            this.createFile(Plugin, this.search.value)
             this.selectorToggle.click()
         })
 
@@ -926,7 +925,6 @@ export class GraphEditor{
     }
 
     addNodeOption(classInfo, type, onClick){
-        console.log(classInfo)
         let id = classInfo.id
         let label = classInfo.label
         if (('class' in classInfo)) classInfo = classInfo.class

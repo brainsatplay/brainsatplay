@@ -15,6 +15,7 @@ export const dragElement = (container, dragItem, context, onMove, onDown,onUp) =
     container.addEventListener("mousedown", dragStart, false);
     container.addEventListener("mouseup", dragEnd, false);
     container.addEventListener("mousemove", drag, false);
+    
     dragItem.style.transform = `scale(${defaultScale})`;
 
 
@@ -29,7 +30,7 @@ export const dragElement = (container, dragItem, context, onMove, onDown,onUp) =
       }
 
       // Account For Nested Control Objects
-      if (e.target === dragItem || e.target.parentNode === dragItem) {
+      if (e.target === dragItem || (dragItem.contains(e.target) && !e.target.classList.contains('node-port'))) {
         active = true;
         onDown()
       }
