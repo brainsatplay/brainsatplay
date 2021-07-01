@@ -25,21 +25,21 @@ export class Circle{
                 }
             },
             radius: {
-                default: 100,
+                default: 0.5,
                 min: 0,
-                max: 1000,
-                step: 0.01,
+                max: 2,
+                step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
-                }
+                    this.params.radius = userData[0].data
+                },
             },
             x: {
                 default: 0,
                 min: 0,
-                max: 1000,
-                step: 0.01,
+                max: 1,
+                step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (userData) => {
@@ -49,8 +49,8 @@ export class Circle{
             y: {
                 default: 0,
                 min: 0,
-                max: 1000,
-                step: 0.01,
+                max: 1,
+                step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (userData) => {
@@ -81,26 +81,23 @@ export class Circle{
                     this.params.color = userData[0].data
                 }
             },
-            minRadius: {
-                default: 0,
-                min: 0,
-                max: 1000,
-                step: 0.01,
+            radiusOffset: {
+                default: 0.0,
+                min: -1,
+                max: 1,
+                step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.params.minRadius = userData[0].data
+                    this.params.radiusOffset = Number.parseFloat(userData[0].data)
                 }
             },
-            scaleRadius: {
+            offsetScale: {
                 default: 1,
-                min: 0,
-                max: 1000,
-                step: 0.01,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.params.scaleRadius = userData[0].data
+                    this.params.offsetScale = userData[0].data
                 }
             }
         }
@@ -112,11 +109,17 @@ export class Circle{
     deinit = () => {}
 
     _circleFunction = (ctx) => {
+        let width = ctx.canvas.width;
+        let height = ctx.canvas.height;
+
+        let minDim = Math.min(width,height)
+        let relRadiusBase = minDim/2
+
         ctx.beginPath();
         ctx.arc(
-            this.params.x, 
-            this.params.y, 
-            Number.parseFloat(this.params.minRadius) + Number.parseFloat(this.params.radius)*Number.parseFloat(this.params.scaleRadius),
+            width*this.params.x, 
+            height*this.params.y, 
+            Math.abs(relRadiusBase*Number.parseFloat(this.params.radius) + relRadiusBase*Number.parseFloat(this.params.radiusOffset)*Number.parseFloat(this.params.offsetScale)),
             0, 
             Math.PI*2
             );

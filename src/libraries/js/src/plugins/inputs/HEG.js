@@ -26,6 +26,7 @@ export class HEG{
         // Auto-Generate Ports
         keys.forEach(key => {
             this.ports[key] = {
+                default: [],
                 input: {type:null},
                 output: {type:Array},
                 onUpdate: (userData) => {
@@ -33,53 +34,17 @@ export class HEG{
                 }
             }
         })
-
-        let added = (k) => {
-            this._subscribeToDevices([k])
-        }
-
-        let removed = (k) => {
-            if (k.includes('device')){
-                // if (this.session.state.data[k].deviceType === 'heg'){
-                    this.props.state.removeState(`heg_0`)
-                // }
-            }
-        }
-
-        this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
-        this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
 
     init = () => {
-        this._subscribeToDevices(Object.keys(this.session.state.data))
+        this.props.toUnsubscribe = this.session.subscribeToNewDevices('heg', (data) => {
+            this.session.graph.triggerAllActivePorts(this)
+        })
     }
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
-            this.props.toUnsubscribe[key].forEach(idx => {
-                this.session.state.unsubscribeSequential(key,idx)
-            })
+            this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
-    }
-
-    _subscribeToDevices(arr) {
-        arr.forEach(k => {
-            let pass = /^device[.+]*/.test(k)
-            if (pass){
-                let callbacks = []
-                if (this.session.state.data[k].deviceType === 'heg'){
-                    for (let port in this.ports){
-                        callbacks.push(() => {
-                            if (this.ports[port].active.out > 0) {
-                                this.session.graph.runSafe(this,port, [{data:true, force: true}])
-                            }
-                        })
-                    }
-                    this.props.deviceSubscriptions[k] = this.session.subscribe('heg', 0, undefined, (data)=>{
-                        callbacks.forEach(f => {f()})
-                    }, this.props.state)
-                }
-            }
-        })
     }
 }

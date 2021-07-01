@@ -10,7 +10,6 @@ export class Signal{
         this.session = session
         this.params = params
         this.paramOptions = {
-            autoconnect: {default: false, show: false},
             device: {default: 'eeg', options: ['eeg', 'heg'], show: false}
         }
 
@@ -38,37 +37,17 @@ export class Signal{
                 stateRemoved: []
             }
         }
-
-        let added = (k) => {
-            this._subscribeToDevices([k])
-        }
-
-        let removed = (k) => {
-            if (k.includes('device')){
-                this.props.state.removeState(this.props.subscribedTag)
-            }
-        }
-
-        this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
-        this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
 
     init = () => {
-
-        // Auto-Start a Synthetic Stream
-        if (this.params.autoconnect && this.session.deviceStreams.length === 0 && this.params.device === 'eeg') {
-            this.session.connectDevice(undefined, undefined, undefined, {device: 'Synthetic', variant: '', analysis: ['eegcoherence']})
-        } else {
-            this._subscribeToDevices(Object.keys(this.session.state.data))
-        }
+        this.props.toUnsubscribe = this.session.subscribeToNewDevices('eeg', (data) => {
+            this.session.graph.triggerAllActivePorts(this)
+        })
     }
 
     deinit = () => {
-        // MUST DISCONNECT STREAM
         for (let key in this.props.toUnsubscribe){
-            this.props.toUnsubscribe[key].forEach(idx => {
-                this.session.state.unsubscribeSequential(key,idx)
-            })
+            this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }
 
@@ -82,28 +61,5 @@ export class Signal{
         if(data) data = channel.fft;
         else data= new Array(256).fill(0);
         return [{data, meta: {label: `signal_${this.params.device}_fft`}}]
-    }
-
-    _subscribeToDevices(arr) {
-        arr.forEach(k => {
-            let pass = /^device[.+]*/.test(k)
-            if (pass){
-                let callbacks = []
-                for (let port in this.ports){
-                    callbacks.push(() => {
-                        if (this.ports[port].active.out > 0) this.session.graph.runSafe(this,port, [{data:true, force: true}])
-                    })
-                }
-                let firstTag = this.session.state.data[k].eegChannelTags[0].tag
-                this.props.subscribedTag = `${this.params.device}_${firstTag}`
-
-                this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, firstTag, undefined, (data)=>{
-                    callbacks.forEach(f => {
-                        f()
-                    })
-                }, this.props.state)
-            }
-        })
-
     }
 }

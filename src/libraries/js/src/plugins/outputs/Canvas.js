@@ -16,7 +16,7 @@ export class Canvas{
         }
 
         this.ports = {
-            default: {
+            draw: {
                 input: {type: 'function'},
                 output: {type: null},
                 onUpdate: (userData) => {

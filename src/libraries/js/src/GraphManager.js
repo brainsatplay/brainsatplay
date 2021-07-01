@@ -383,6 +383,15 @@ export class GraphManager{
         }
     }
 
+
+    triggerAllActivePorts(node){
+        for (let port in node.ports){
+            if (node.ports[port].active.out > 0) {
+                this.runSafe(node,port, [{data:true, force: true}])
+            }
+        }
+    }
+
     init(id, settings){
         let name = settings.name
         let graph = settings.graph
