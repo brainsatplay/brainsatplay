@@ -60,6 +60,6 @@ export class VertexShader{
         this.props.uniforms = []
         result.forEach(a => {this.props.uniforms.push(a[2])})
 
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        this.session.graph.runSafe(this,'default',[{data:true, force: true}])
     }
 }

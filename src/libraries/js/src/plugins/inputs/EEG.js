@@ -46,9 +46,7 @@ export class EEG{
 
         let removed = (k) => {
             if (k.includes('device')){
-                if (this.session.state.data[k].deviceType === 'eeg'){
-                    this.props.state.removeState(k)
-                }
+                this.props.state.removeState(this.props.subscribedTag)
             }
         }
 
@@ -70,20 +68,23 @@ export class EEG{
 
     _subscribeToDevices(arr) {
         arr.forEach(k => {
-            if (k.includes('device')){
+            let pass = /^device[.+]*/.test(k)
+            if (pass){
                 let callbacks = []
                 if (this.session.state.data[k].deviceType === 'eeg'){
                     for (let port in this.ports){
                         callbacks.push(() => {
                             if (this.ports[port].active.out > 0) {
-                                this.session.graph.runSafe(this,port, [{data:true}])
+                                this.session.graph.runSafe(this,port, [{data:true, force: true}])
                             }
                         })
                     }
                     this.props.sps = this.session.atlas.data.eegshared.sps
                     this.props.tags = this.session.atlas.data.eegshared.eegChannelTags.map(o => o.tag)
-
-                    this.props.deviceSubscriptions[k] = this.session.subscribe('eeg', 'FP1', undefined, (data)=>{
+                    let firstTag = this.session.state.data[k].eegChannelTags[0].tag
+                    this.props.subscribedTag = `${this.params.device}_${firstTag}`
+    
+                    this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, firstTag, undefined, (data)=>{
                         callbacks.forEach(f => {f()})
                     }, this.props.state)
                 }

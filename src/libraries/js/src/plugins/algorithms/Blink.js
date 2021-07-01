@@ -67,7 +67,8 @@ export class Blink{
             // context: null,
             // drawFunctions: {},
             looping: false,
-            dataquality: null
+            dataquality: null,
+            blinkData: {}
         }
 
         // Dependencies
@@ -81,12 +82,11 @@ export class Blink{
     }
 
     init = () => {
-
         this.props.looping = true
 
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; border: 1px solid white;'>
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 1000;'>
             </div>`
         }
 
@@ -97,24 +97,16 @@ export class Blink{
             this.props.container.insertAdjacentHTML('beforeend', html)
             ui.setupHTML()
 
-            this.session.graph.runSafe(this.props.canvas.instance, 'default', [
+            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'default', [
                 {
                     data: (ctx) => {
                         if (this.props.looping){
                             if (this.params.debug){
-                                this.props.container.style.opacity = 1
-                                ctx.beginPath();
-                                ctx.arc(
-                                    100 + 25*Math.sin(Date.now()/1000), 
-                                    100 + 25*Math.cos(Date.now()/1000),  
-                                    Number.parseFloat(10) + Number.parseFloat(0)*Number.parseFloat(1),
-                                    0, 
-                                    Math.PI*2
-                                    );
-                                ctx.fillStyle = `#ffffff`;
-                                ctx.fill();
-                                ctx.closePath();
-                            } else this.props.container.style.opacity = 0
+                                this._drawSignal(ctx)
+                            } else {
+                                this.props.container.style.opacity = 0
+                                this.props.container.style.pointerEvents = 'none'
+                            }
                         }
                     }
                 }
@@ -159,9 +151,58 @@ export class Blink{
         return userData
     }
 
+    _drawSignal = (ctx) => {
+        let scale = 0.1
+        let yInt = 0.5
+        let weight = 2
+        let width = ctx.canvas.width;
+        let height = ctx.canvas.height;
+        let keys = Object.keys(this.props.blinkData)
+        if (keys.length > 0){
+            // Display
+            this.props.container.style.opacity = 1
+            this.props.container.style.pointerEvents = 'all'
+
+            // Grab Data From First Tag
+            let tag = keys[0]
+            if (tag){
+                if (this.props.blinkData[tag] != null) {
+                let data = this.props.blinkData[tag]
+                let chQ = this.props.channelQuality[tag]
+                // var scale = 20;
+
+                // DRAW SIGNAL
+                ctx.beginPath(); // Draw a new path
+                let dx = width/(data.length - 1)
+                data.forEach((y,i) => ctx.lineTo(dx*i,-Number.parseFloat(scale)*y + Number.parseFloat(height*yInt)))
+                let redMult = Math.max(0, Math.min(1, (chQ/this.params.qualityThreshold - 1)))
+                let greenMult = 1-Math.max(0, Math.min(1, (chQ/this.params.qualityThreshold)))
+                ctx.strokeStyle = `rgb(${255*redMult},${255*greenMult},${50})`; // Pick a color
+                ctx.lineWidth = Number.parseFloat(weight)
+                ctx.stroke(); // Draw
+
+                // DRAW THRESHOLD
+                let direction = [1,-1]
+                direction.forEach(d => {
+                    ctx.beginPath(); // Draw a new path
+                    let thresholdArray = [d*this.params.blinkThreshold,d*this.params.blinkThreshold]
+                    dx = width/(thresholdArray.length - 1)
+                    thresholdArray.forEach((y,i) => ctx.lineTo(dx*i,-Number.parseFloat(scale)*y + Number.parseFloat(height*yInt)))
+                    ctx.strokeStyle = `#ffffff`; // Pick a color
+                    ctx.lineWidth = Number.parseFloat(weight)
+                    ctx.stroke(); // Draw
+                })
+            }
+        }
+        } else {
+            this.props.container.style.opacity = 0
+            this.props.container.style.pointerEvents = 'none'
+        }
+    }
+
     _calculateBlink = (user, tags) => {
         let blink = false
-        this._dataQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
+        this.props.channelQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
         if (Date.now() - this.lastBlink > this.params.blinkDuration){
             tags.forEach(tag => {
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
@@ -180,13 +221,17 @@ export class Blink{
 
         try {
             let data = this.session.atlas.getEEGDataByTag(tag,user.data) // Grab from user's own atlas data
-            let chQ = this._dataQuality[tag] 
-            if (data != null && chQ < this.params.qualityThreshold){
-                if (data.filtered.length > 0){
-                    let blinkRange = data.filtered.slice(data.filtered.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
-                    let max = Math.max(...blinkRange.map(v => Math.abs(v)))
-                    blink = (max > this.params.blinkThreshold)
-                }
+            let chQ = this.props.channelQuality[tag] 
+            if (data){
+                let processedData = data.filtered // Try Filtered
+                if (processedData.length === 0) processedData = data.raw // Try Raw
+                if (processedData.length > 0){
+                    this.props.blinkData[tag] = processedData.slice(processedData.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
+                    let max = Math.max(...this.props.blinkData[tag].map(v => Math.abs(v)))
+                    
+                    // Only Count Blink if Above Quality Threshold
+                    if (data != null && chQ < this.params.qualityThreshold) blink = (max > this.params.blinkThreshold)
+                 }
             }
         } catch (e) {console.error('input not formatted properly')}
 

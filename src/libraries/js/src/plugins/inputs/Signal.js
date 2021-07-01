@@ -45,7 +45,7 @@ export class Signal{
 
         let removed = (k) => {
             if (k.includes('device')){
-                this.props.state.removeState(`${this.params.device}_FP1`)
+                this.props.state.removeState(this.props.subscribedTag)
             }
         }
 
@@ -74,27 +74,30 @@ export class Signal{
 
     default = () => {
         // Add timestamp to force update an object passed by reference
-        return [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`, timestamp: Date.now()}}]
+        return [{data: this.session.atlas.data, meta: {label: `signal_${this.params.device}`}}]
     }
 
     fft = () => {
         let data = this.session.atlas.getLatestFFTData()[0];
         if(data) data = channel.fft;
         else data= new Array(256).fill(0);
-        return [{data, meta: {label: `signal_${this.params.device}_fft`, timestamp: Date.now()}}]
+        return [{data, meta: {label: `signal_${this.params.device}_fft`}}]
     }
 
     _subscribeToDevices(arr) {
         arr.forEach(k => {
-            if (k.includes('device')){
-
+            let pass = /^device[.+]*/.test(k)
+            if (pass){
                 let callbacks = []
                 for (let port in this.ports){
                     callbacks.push(() => {
-                        if (this.ports[port].active.out > 0) this.session.graph.runSafe(this,port, [{data:true}])
+                        if (this.ports[port].active.out > 0) this.session.graph.runSafe(this,port, [{data:true, force: true}])
                     })
                 }
-                this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, 'FP1', undefined, (data)=>{
+                let firstTag = this.session.state.data[k].eegChannelTags[0].tag
+                this.props.subscribedTag = `${this.params.device}_${firstTag}`
+
+                this.props.deviceSubscriptions[k] = this.session.subscribe(this.params.device, firstTag, undefined, (data)=>{
                     callbacks.forEach(f => {
                         f()
                     })

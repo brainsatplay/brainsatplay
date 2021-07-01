@@ -24,7 +24,6 @@ class UI {
             gameOptions: {
                 margin: 50,
             },
-            lastPaddleCollided: null,
             canvas: null
         }
 
@@ -69,12 +68,6 @@ class UI {
             this.props.canvas.width = container.offsetWidth
             this.props.canvas.height = container.offsetHeight
 
-            this.props.lastPaddleCollided = this.props.paddles.find(o => {
-                if (o.username === 'me'){
-                    return true
-                }
-            })
-            
             let margin = 25
             this.props.paddles.forEach((o) => {
                 if (o.username === 'me') o.x = this.props.gameOptions.margin
@@ -162,7 +155,6 @@ class UI {
                             // Check Y
                             if (Math.abs(yDist) <= this.props.paddleOptions.height/2 ) {
                                 this.props.ball.direction *= -1
-                                this.props.lastPaddleCollided = o
                                 this.props.ball.angle = 2*Math.PI*yDist/(this.props.paddleOptions.height/2)
                                 o.color = `rgb(129, 218, 250)`
                             }
@@ -172,8 +164,16 @@ class UI {
 
                     // Check if Reset is Needed
                     if (this.props.ball.x < 0 || this.props.ball.x > this.props.canvas.width){
+                        let sign = Math.sign(this.props.ball.direction)
+                        let winningPaddle;
+                        if (sign === 1){
+                            winningPaddle = this.props.paddles.find(o => {if (o.username === 'me') return true})
+                        } else {
+                            winningPaddle = this.props.paddles.find(o => {if (o.username !== 'me') return true})
+                        }
+                        winningPaddle.score++
+
                         this.props.ball.direction *= -1
-                        if (this.props.lastPaddleCollided) this.props.lastPaddleCollided.score++
                         reset()
                     }
 

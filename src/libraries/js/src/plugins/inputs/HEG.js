@@ -40,9 +40,9 @@ export class HEG{
 
         let removed = (k) => {
             if (k.includes('device')){
-                if (this.session.state.data[k].deviceType === 'heg'){
+                // if (this.session.state.data[k].deviceType === 'heg'){
                     this.props.state.removeState(`heg_0`)
-                }
+                // }
             }
         }
 
@@ -64,13 +64,14 @@ export class HEG{
 
     _subscribeToDevices(arr) {
         arr.forEach(k => {
-            if (k.includes('device')){
+            let pass = /^device[.+]*/.test(k)
+            if (pass){
                 let callbacks = []
                 if (this.session.state.data[k].deviceType === 'heg'){
                     for (let port in this.ports){
                         callbacks.push(() => {
                             if (this.ports[port].active.out > 0) {
-                                this.session.graph.runSafe(this,port, [{data:true}])
+                                this.session.graph.runSafe(this,port, [{data:true, force: true}])
                             }
                         })
                     }

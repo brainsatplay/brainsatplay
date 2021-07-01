@@ -45,9 +45,6 @@ export class GraphManager{
             if (node.params[port] == null) node.params[port] = node.ports[port].default
         }
 
-
-
-
         // Set Params to Info Object
         nodeInfo.params = node.params
 
@@ -73,6 +70,9 @@ export class GraphManager{
                         }
                     }
                 // }
+
+                // Always Force Defaults
+                node.states[port][0].force = true
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
@@ -309,11 +309,15 @@ export class GraphManager{
             if (inputCopy.length > 0){
                 
                 let result
-                if (node[port] instanceof Function) result = node[port](inputCopy)
+                if (node[port] instanceof Function) {
+                    result = node[port](inputCopy)
+                }
                 else if (node.ports[port].onUpdate instanceof Function) {
                     result = node.ports[port].onUpdate(inputCopy) // New ports = params style
                 }
-                else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
+                else if (node.states[port] != null && node['default'] instanceof Function) {
+                    result = node['default'](inputCopy) 
+                }
 
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
@@ -333,22 +337,44 @@ export class GraphManager{
     checkToPass(node,port,result){
         if (result && result.length > 0){
             let allEqual = true
-            if (node.states[port]) node.states[port].splice(result.length-1) // Remove previous states that weren't returned
-            else node.states[port] = [{}]
+            let forced = false
+
+            if (node.states[port] == null) node.states[port] = result
+            // else node.states[port].splice(result.length-1) // REMOVE previous states?
 
             result.forEach((o,i) => {
-                if (node.states[port].length > i){
-                    let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
-                    if (!thisEqual){
-                        node.states[port][i] = o
+
+                // Check if Forced Update
+                if (o.force) {
+                    forced = true
+                    node.states[port][i] = o
+                }
+
+                // Otherwise Check If Current State === Previous State
+                if (!forced){
+                    if (node.states[port]){
+                        if (node.states[port].length > i){
+
+                            let case1 = JSON.stringifyFast(node.states[port][i])
+                            let case2 = JSON.stringifyFast(o)
+
+                            let thisEqual = case1 === case2
+                            if (!thisEqual){
+                                node.states[port][i] = o
+                                allEqual = false
+                            }
+                        } else {
+                            node.states[port].push(o)
+                            allEqual = false
+                        }
+                    } else {
+                        node.states[port] = [o]
                         allEqual = false
                     }
-                } else {
-                    node.states[port].push(o)
-                    allEqual = false
-                }
-            })            
-            if (!allEqual && node.stateUpdates){
+            }
+            })
+            
+            if ((!allEqual || forced) && node.stateUpdates){
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = true

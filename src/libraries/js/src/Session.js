@@ -1515,12 +1515,12 @@ else {
 				}
 
 				// Auto-set username with Google Login
-				if (this.info.googleAuth != null) {
-					this.info.googleAuth.refreshCustomData().then(data => {
-						loginPage.querySelector(`[name="username"]`).value = data.username
-						loginButton.click()
-					})
-				}
+				// if (this.info.googleAuth != null) {
+				// 	this.info.googleAuth.refreshCustomData().then(data => {
+				// 		loginPage.querySelector(`[name="username"]`).value = data.username
+				// 		loginButton.click()
+				// 	})
+				// }
 
 				loginPage.style.transition = 'opacity 1s'
 				loginPage.style.opacity = '1'
