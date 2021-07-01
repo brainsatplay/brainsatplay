@@ -51,9 +51,9 @@ export class Geometry{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
             this.props.lastRendered = Date.now()
-            this.session.graph.runSafe(this,'default',[{data:true}])
+            this.session.graph.runSafe(this,'default',[{data:true, force: true}])
         })
-        this.session.graph.runSafe(this,'default',[{data:true}])
+        this.session.graph.runSafe(this,'default',[{data:true, force: true}])
 
     }
 

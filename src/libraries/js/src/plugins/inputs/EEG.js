@@ -1,7 +1,7 @@
 import { StateManager } from '../../ui/StateManager'
 
 
-export class HEG{
+export class EEG{
     
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -16,28 +16,33 @@ export class HEG{
             toUnsubscribe: {
                 stateAdded: [],
                 stateRemoved: []
-            }
+            },
+            deviceState: null,
+            // sps: null,
+            // tags: null
         }
 
         this.ports = {}
 
-        let keys = ['times','red', 'ir', 'ambient', 'ratio', 'temp']
+        let keys = ['raw','filtered', 'position']
 
         // Auto-Generate Ports
         keys.forEach(key => {
             this.ports[key] = {
-                default: [],
                 input: {type:null},
-                output: {type:Array},
+                output: {type:null},
                 onUpdate: (userData) => {
-                    return [{data: this.session.atlas.data.heg[0][key]}]
+                    return [{data: this.session.atlas.data.eeg[0][key]}]
                 }
             }
+
+            if (key === 'position') this.ports[key].output.type = 'position'
+            else this.ports[key].output.type = Array
         })
     }
 
     init = () => {
-        this.props.toUnsubscribe = this.session.subscribeToNewDevices('heg', (data) => {
+        this.props.toUnsubscribe = this.session.subscribeToNewDevices('eeg', (data) => {
             this.session.graph.triggerAllActivePorts(this)
         })
     }

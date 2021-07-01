@@ -4,6 +4,7 @@ import {eegmath} from './../../utils/eegmath';
 export class MotorImagery{
 
     static id = String(Math.floor(Math.random()*1000000))
+    static hidden = true
     
     constructor(label, session, params={}) {
         this.label = label
@@ -19,61 +20,8 @@ export class MotorImagery{
                 input: {type: undefined},
                 output: {type: 'number'},
                 onUpdate: (userData) => {
-                    let trialsAggregated = {}
-
-                    // Get Trials for Each User
-                    userData.forEach((u,i) => {
-
-                        // Get Trial Information
-                        let getTrialInfo = (data) => {
-                            let trials = []
-                            let done = false
-                            data.notes.forEach((n,i) => {
-                                if (n.includes('scheduler') && !done){
-                                    if (trials.length > 0 && (n.includes('ITI') || n.includes('Done'))){
-                                        trials[trials.length - 1].end.time = data.noteTimes[i] - data.times[0], // Subtract beginning time
-                                        trials[trials.length - 1].end.idx = data.noteIndices[i]
-                                        if (n.includes('Done')) done = true
-                                    } else if (!n.includes('ITI') && !n.includes('Done')){
-                                        trials.push({label: n.replace('scheduler ', ''), start: {
-                                            time: data.noteTimes[i] - data.times[0], // Subtract beginning time
-                                            idx: data.noteIndices[i]
-                                        }, end: {}})
-                                    }
-                                }
-                            })
-                            return trials
-                        }
-
-                        let trials = getTrialInfo(u.data.data)
-
-                        // Aggregate Trial Label + All Channel Data Together
-                        let extractTrialsFromData = (data, time, trialInfo) => {
-                            return trialInfo.map(o => {
-                                return {label: o.label, data: data.slice(o.start.idx,o.end.idx+1), time: time.slice(o.start.idx,o.end.idx+1)}
-                            })
-                        }
-
-                        for (let key in u.data.data){
-                            if (key.includes('_signal')){
-                                let trialData = extractTrialsFromData(u.data.data[key], u.data.data.times, trials)
-                                trialData.forEach((o,i) => {
-                                    if (o.label != ''){ // Remove empty labels
-                                        if (trialsAggregated[o.label] == null) trialsAggregated[o.label] = {data: [], time: [], dataLabels: []}
-                                        let channelIdx = trialsAggregated[o.label].dataLabels.indexOf(key)
-                                        if (channelIdx == -1) {
-                                            trialsAggregated[o.label].data.push([])
-                                            trialsAggregated[o.label].dataLabels.push(key)
-                                            channelIdx = trialsAggregated[o.label].data.length - 1
-                                        }
-                                        trialsAggregated[o.label].data[channelIdx].push(...o.data)
-                                        if (channelIdx == 0) trialsAggregated[o.label].time.push(...o.time)
-                                    }
-                                })
-                            }
-                        }
-                    })
-
+                    let trialsAggregated = this._preprocess(userData)
+        
                         let types = Object.keys(trialsAggregated)
 
                         // Project it with CSP
@@ -111,7 +59,7 @@ export class MotorImagery{
                 }
             },
             test: {
-                input: {type: 'array'},
+                input: {type: Array},
                 output: {type: 'number'},
 
                 // Pass correctly-formatted test data (from train...)
@@ -119,7 +67,6 @@ export class MotorImagery{
                     let u = userData[0]
 
                     // Compute testing data features
-                    console.log(u.data)
                     let featuresFeetTesting = eegmath.transpose([this._computeTrialFeatures(this.props.models.csp, u.data[0])]);
                     let featuresRightTesting = eegmath.transpose([this._computeTrialFeatures(this.props.models.csp, u.data[1])]);
             
@@ -145,38 +92,36 @@ export class MotorImagery{
                     console.log(bac);
                     return [{data: bac}]
                 }
+            },
+            predict: {
+                input: {type: Array},
+                output: {type: 'int'},
+                onUpdate: (userData) => {
+                    if (this.props.models.csp){
+                        userData.forEach((u,i) => {
+                            let features = eegmath.transpose([this._computeTrialFeatures(this.props.models.csp, u.data)]);
+                            let predictions = features.map(this._classify).filter(value => value != -1);
+                            u.data = eegmath.mode(predictions)
+                        })
+                    } else console.error('model not trained')
+                }
+
             }
         }
 
         this.props = {
             bci: bci,
-            sampleRate: 250,
-            lowFreq: 7,
-            highFreq: 30,
-            filterOrder: 128,
-            firCalculator: new Fili.FirCoeffs(),
             models: {
                 csp: null,
                 lda: null
             }
         }
-
-        this.props.coeffs = this.props.firCalculator.bandpass({order: this.props.filterOrder, Fs: this.props.sampleRate, F1: this.props.lowFreq, F2: this.props.highFreq});
-        this.props.filter = new Fili.FirFilter(this.props.coeffs);
     }
 
     init = () => {
     }
 
     deinit = () => {}
-
-    // _logisticLearn = (setA, setB) => {
-    //     let trainingSet = [].concat(...[setA, setB].map((features, index) => {
-    //         return features.map(feature => [feature, index]);
-    //     }));
-    //     let logistic = regression.logistic(trainingSet, {alpha: 0.001, iterations: 1000, lambda: 0.0})
-    //     return logistic;
-    // }
 
     _classify = (feature) => {
         let projection = this.props.bci.ldaProject(this.props.models.lda, feature);
@@ -205,5 +150,63 @@ export class MotorImagery{
     
         // Concat the features from each trial
         return [].concat(...features);
+    }
+
+    _preprocess = (userData) => {
+        let trialsAggregated = {}
+
+        // Get Trials for Each User
+        userData.forEach((u,i) => {
+
+            // Get Trial Information
+            let getTrialInfo = (data) => {
+                let trials = []
+                let done = false
+                data.notes.forEach((n,i) => {
+                    if (n.includes('scheduler') && !done){
+                        if (trials.length > 0 && (n.includes('ITI') || n.includes('Done'))){
+                            trials[trials.length - 1].end.time = data.noteTimes[i] - data.times[0], // Subtract beginning time
+                            trials[trials.length - 1].end.idx = data.noteIndices[i]
+                            if (n.includes('Done')) done = true
+                        } else if (!n.includes('ITI') && !n.includes('Done')){
+                            trials.push({label: n.replace('scheduler ', ''), start: {
+                                time: data.noteTimes[i] - data.times[0], // Subtract beginning time
+                                idx: data.noteIndices[i]
+                            }, end: {}})
+                        }
+                    }
+                })
+                return trials
+            }
+
+            let trials = getTrialInfo(u.data.data)
+
+            // Aggregate Trial Label + All Channel Data Together
+            let extractTrialsFromData = (data, time, trialInfo) => {
+                return trialInfo.map(o => {
+                    return {label: o.label, data: data.slice(o.start.idx,o.end.idx+1), time: time.slice(o.start.idx,o.end.idx+1)}
+                })
+            }
+
+            for (let key in u.data.data){
+                if (key.includes('_signal')){
+                    let trialData = extractTrialsFromData(u.data.data[key], u.data.data.times, trials)
+                    trialData.forEach((o,i) => {
+                        if (o.label != ''){ // Remove empty labels
+                            if (trialsAggregated[o.label] == null) trialsAggregated[o.label] = {data: [], time: [], dataLabels: []}
+                            let channelIdx = trialsAggregated[o.label].dataLabels.indexOf(key)
+                            if (channelIdx == -1) {
+                                trialsAggregated[o.label].data.push([])
+                                trialsAggregated[o.label].dataLabels.push(key)
+                                channelIdx = trialsAggregated[o.label].data.length - 1
+                            }
+                            trialsAggregated[o.label].data[channelIdx].push(...o.data)
+                            if (channelIdx == 0) trialsAggregated[o.label].time.push(...o.time)
+                        }
+                    })
+                }
+            }
+        })
+        return trialsAggregated
     }
 }

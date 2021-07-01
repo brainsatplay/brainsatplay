@@ -30,7 +30,7 @@ export class DataQuality{
             default: {
                 types: {
                     in: 'DataAtlas',
-                    out: 'object'                
+                    out: Object                
                 }
             }
         }
@@ -52,13 +52,14 @@ export class DataQuality{
             let data = u.data //(u.data != null) ? u.data : this.session.atlas.data
 
             try {
-
                 if (this.params.method === 'Standard Deviation'){
                     let channels = data.eegshared.eegChannelTags
                     channels.forEach((o,i) => {
                         let coord = this.session.atlas.getEEGDataByChannel(o.ch, data)
-                        if (coord.filtered.length > 0){
-                            let slice = coord.filtered.slice(coord.filtered.length - this.params.window)
+                        let processedData = coord.filtered // Try Filtered
+                        if (processedData.length === 0) processedData = coord.raw // Try Raw
+                        if (processedData.length > 0){
+                            let slice = processedData.slice(processedData.length - this.params.window)
                             let meanVariance = eegmath.variance(slice)
                             let stdev = Math.sqrt(meanVariance)
                             if (this.params.output === 'Mean') arr.push(stdev)

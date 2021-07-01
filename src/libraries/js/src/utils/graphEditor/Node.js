@@ -70,6 +70,14 @@ export class Node{
         let element = document.createElement(`div`)
         element.classList.add("brainsatplay-display-node")
 
+        let portManager = document.createElement(`div`)
+        portManager.classList.add("brainsatplay-port-manager")
+
+        let labelContainer = document.createElement(`div`)
+        labelContainer.classList.add(`node-label-container`)
+
+
+        let labelsAdded = []
         // for (let param in node.params){
         let portTypes = ['target','source']
         portTypes.forEach(s => {
@@ -84,26 +92,33 @@ export class Node{
                 let nodeType
 
                 nodeType = node.ports[port][inorout].type
- 
+                if (nodeType instanceof Object) nodeType = nodeType.name
                 // if (nodeType !== null){
+                    let portWrapper = document.createElement('div')
+                    portWrapper.classList.add(`node-port-wrapper`)
                     let portElement = document.createElement('div')
                     portElement.classList.add(`node-port`)
                     portElement.classList.add(`port-${port}`)
-                    portElement.classList.add(nodeType)
+                    portElement.classList.add(`type-${nodeType}`)
 
                     portElement.setAttribute('data-node', this.nodeInfo.id)
                     portElement.setAttribute('data-port', port)
 
-                    portElement.innerHTML = `
-                        <div class="node-tooltip">
-                            <p>${port}</p>
-                        </div>
-                    `
-                    portContainer.insertAdjacentElement('beforeend',portElement)
+                    if (!labelsAdded.includes(port)){
+                        labelContainer.innerHTML += `
+                            <div class="node-label">
+                                <span>${port}</span>
+                            </div>
+                        `
+                        labelsAdded.push(port)
+                    }
+                    portWrapper.insertAdjacentElement('beforeend',portElement)
+                    portContainer.insertAdjacentElement('beforeend',portWrapper)
                 // }
             }
 
-            element.insertAdjacentElement('beforeend',portContainer)
+            portManager.insertAdjacentElement('beforeend',labelContainer)
+            portManager.insertAdjacentElement('beforeend',portContainer)
         })
 
         element.insertAdjacentHTML('beforeend', `
@@ -113,18 +128,22 @@ export class Node{
         </div>
         `)   
 
+        element.insertAdjacentElement('beforeend', portManager)
         nodeDiv.insertAdjacentElement('beforeend',element)
         this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
 
 
         let portContainers = nodeDiv.getElementsByClassName(`node-port-container`)
 
-        let maxWidth = 0
+        let minWidth = 100
+        let minHeight = 0
         for (let container of portContainers){
-            maxWidth = Math.max(maxWidth, container.offsetWidth)
+            minHeight = Math.max(minHeight, container.offsetHeight)
         }
+        minWidth = Math.max(minWidth, labelContainer.offsetWidth)
 
-        if (element.querySelector('.node-text').offsetWidth < maxWidth) element.style.width = `${maxWidth}px`
+        if (portManager.offsetWidth < minWidth) portManager.style.width = `${minWidth}px`
+        if (portManager.offsetHeight < minHeight) portManager.style.height = `${minHeight}px`
 
 
         return nodeDiv

@@ -532,14 +532,17 @@ export class AppletManager {
                     appletDiv.addEventListener('dragover', (e) => {
                         e.preventDefault()
                         if (this.prevHovered != appletDiv){
-                            let draggingGA = document.querySelector('.dragging').style.gridArea
-                            let hoveredGA = appletDiv.style.gridArea
-                            appletDiv.style.gridArea = draggingGA
-                            document.querySelector('.dragging').style.gridArea = hoveredGA
-                            this.responsive()
-                            this.prevHovered = appletDiv
-                            if (appletDiv != document.querySelector('.dragging')){
-                                this.lastSwapped = appletDiv
+                            let dragging = document.querySelector('.dragging')
+                            if (dragging){
+                                let draggingGA = dragging.style.gridArea
+                                let hoveredGA = appletDiv.style.gridArea
+                                appletDiv.style.gridArea = draggingGA
+                                dragging.style.gridArea = hoveredGA
+                                this.responsive()
+                                this.prevHovered = appletDiv
+                                if (appletDiv != dragging){
+                                    this.lastSwapped = appletDiv
+                                }
                             }
                         }
                         appletDiv.classList.add('hovered')

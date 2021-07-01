@@ -2,6 +2,29 @@
 
 // import 'https://cdn.plot.ly/plotly-2.0.0.min.js'
 
+//*** This code is copyright 2002-2016 by Gavin Kistner, !@phrogz.net
+//*** It is covered under the license viewable at http://phrogz.net/JS/_ReuseLicense.txt
+Date.prototype.customFormat = function(formatString){
+    var YYYY,YY,MMMM,MMM,MM,M,DDDD,DDD,DD,D,hhhh,hhh,hh,h,mm,m,SS,S,ss,s,ampm,AMPM,dMod,th;
+    YY = ((YYYY=this.getFullYear())+"").slice(-2);
+    MM = (M=this.getMonth()+1)<10?('0'+M):M;
+    MMM = (MMMM=["January","February","March","April","May","June","July","August","September","October","November","December"][M-1]).substring(0,3);
+    DD = (D=this.getDate())<10?('0'+D):D;
+    DDD = (DDDD=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][this.getDay()]).substring(0,3);
+    th=(D>=10&&D<=20)?'th':((dMod=D%10)==1)?'st':(dMod==2)?'nd':(dMod==3)?'rd':'th';
+    formatString = formatString.replace("#YYYY#",YYYY).replace("#YY#",YY).replace("#MMMM#",MMMM).replace("#MMM#",MMM).replace("#MM#",MM).replace("#M#",M).replace("#DDDD#",DDDD).replace("#DDD#",DDD).replace("#DD#",DD).replace("#D#",D).replace("#th#",th);
+    h=(hhh=this.getHours());
+    if (h==0) h=24;
+    if (h>12) h-=12;
+    hh = h<10?('0'+h):h;
+    hhhh = hhh<10?('0'+hhh):hhh;
+    AMPM=(ampm=hhh<12?'am':'pm').toUpperCase();
+    mm=(m=this.getMinutes())<10?('0'+m):m;
+    SS=(S=this.getSeconds())<10?('0'+S):S;
+    ss=(s=this.getMilliseconds())<10?('0'+s):s;
+    return formatString.replace("#hhhh#",hhhh).replace("#hhh#",hhh).replace("#hh#",hh).replace("#h#",h).replace("#mm#",mm).replace("#m#",m).replace("#SS#",SS).replace("#S#",S).replace("#ss#",ss).replace("#s#",s).replace("#ampm#",ampm).replace("#AMPM#",AMPM);
+  };
+
 class Plot{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -14,7 +37,9 @@ class Plot{
         this.params = params
 
         this.paramOptions = {
-            mode: {default: 'Channels', options: ['Channels','Trials']}
+            mode: {default: 'Channels', options: ['Channels','Trials']},
+            data: {default: []},
+            type: {default: 'line', options: ['line','bar']}
         }
 
         // UI Identifier
@@ -23,14 +48,13 @@ class Plot{
             container: null,
             plotConfig: {responsive: true},
             plotLayout: {
-                title: 'Your Data',
                 xaxis: {
                   autorange: true,
                   rangeselector: {buttons: [
                       {step: 'all'}
                     ]},
                   rangeslider: {},
-                  type: 'time',
+                //   type: 'time',
                   rangemode: 'nonnegative'
                 },
                 yaxis: {
@@ -41,9 +65,34 @@ class Plot{
             userData: []
         }
 
+        if (this.params.title !== false){
+            this.props.plotLayout.title = this.params.title ?? 'Your Data'
+            this.props.plotLayout.margin = {
+                l: 50,
+                r: 50,
+                b: 25,
+                t: 75,
+                pad: 4
+            }
+        } else {
+            this.props.plotLayout.margin = {
+                l: 50,
+                r: 50,
+                b: 25,
+                t: 25,
+                pad: 4
+            }
+        }
+
         // Port Definition
         this.ports = {
-            default: {}
+            default: {
+                input: {type: Object},
+                output: {type: null},
+                onUpdate: () => {
+                    console.log('updated')
+                }
+            }
         }
     }
 
@@ -78,7 +127,7 @@ class Plot{
                 if (this.params.mode != prevState){
                     Plotly.purge(this.props.container)
                     this.session.graph.runSafe(this,'default',this.props.userData)
-                    prevState = this.props.mode
+                    prevState = this.params.mode
                 }
                 setTimeout(animate, 1000/2)
             }
@@ -100,42 +149,15 @@ class Plot{
     }
 
     default = (userData) => {
-
         this.props.userData = userData
         let u = userData[0]
-
-        let data = u.data.data
-
+        let data = ('data' in u.data) ? u.data.data : u.data
         let query
-        if (u.meta.label.includes('fitbit')){
-            query = `-intraday`
-        } else {
-            query = `_signal`
-        }
-        let states = Object.keys(data).filter(s => {
-            if (s.includes(query)) return s
-        })
 
-        if (u.meta.label.includes('fitbit')){
-            let newData = {times: [],notes: ['scheduler Dinner', 'scheduler ITI'], noteTimes: [60*18, 60*19], noteIndices: [null,null]}
-
-            states.forEach(s => {
-                let messyData = data[s][`activities-${s}`].dataset
-                newData[s] = []
-                messyData.forEach((o,i) => {
-                    newData.times.push(i)
-                    newData[s].push(o.value)
-                })
-            })
-
-            data = newData
-        }
+        let restrictedStates = ['notes','times', 'noteTimes', 'noteIndices', 'fftTimes', 'fftFreqs']
+        let states = (this.params.data.length > 0) ? this.params.data : Object.keys(data).filter(s => !restrictedStates.includes(s))
 
         let traces = []
-        let timestamps = data.times
-        let tStart = timestamps[0]
-        timestamps = timestamps.map(t => t - tStart)
-
         // Declare Points for Text
         // let trace2 = {
         //     x: [],
@@ -150,6 +172,18 @@ class Plot{
         //         family: 'Montserrat'
         //     }
         // };
+        let timeVariables = [data.noteTimes, data.times]
+
+        timeVariables = timeVariables.map(arr => {
+            return arr.map(t => {
+                if (typeof t === 'number'){
+                    var date = new Date(t); // create Date object
+                    return date.customFormat( "#YYYY#-#MM#-#DD# #hh#:#mm#:#SS#.#ss#" ) //`${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS}.${ss}`
+                }
+            })
+        })
+        data.noteTimes = timeVariables[0]
+        data.times = timeVariables[1]
 
         let shapes = []
 
@@ -158,22 +192,21 @@ class Plot{
             let done = false
             data.notes.forEach((n,i) => {
                 if (n.includes('scheduler') && !done){
+
                     if (trials.length > 0 && (n.includes('ITI') || n.includes('Done'))){
-                        trials[trials.length - 1].end.time = data.noteTimes[i] - tStart
+                        trials[trials.length - 1].end.time = data.noteTimes[i]
                         trials[trials.length - 1].end.idx = data.noteIndices[i]
-                        // let trialLength = trials[trials.length - 1].end.time - trials[trials.length - 1].start.time
-                        // trace2.x.push(trials[trials.length - 1].start + trialLength/2)
-                        // trace2.y.push(10000)
-                        // trace2.text.push(trials[trials.length - 1].label)
                         if (n.includes('Done')) done = true
                     } else if (!n.includes('ITI') && !n.includes('Done')){
                         trials.push({label: n.replace('scheduler ', ''), start: {
-                            time: data.noteTimes[i] - tStart,
+                            time: data.noteTimes[i],
                             idx: data.noteIndices[i]
                         }, end: {}})
                     }
                 }
             })
+
+            trials = trials.filter(t => Object.keys(t.end).length > 0) // Remove incomplete trials
             return trials
         }
 
@@ -190,6 +223,7 @@ class Plot{
                 })
             }
 
+            let timestamps = this._getTimestamps(data,s)
             trials = extractTrialsFromData(stateData, timestamps, trials)
         }
 
@@ -200,20 +234,22 @@ class Plot{
                     y: trial.data,
                     // xaxis: `x${i+1}`,
                     // yaxis: `y${i+1}`,
-                    type: 'line',
+                    type: this.params.type,
                     name: `Trial ${i} | ${trial.label}`
                 })
             })
         } else {
 
             states.forEach((s,i) => {
-                let stateData = data[s]
+                let dataset = data[s].data ?? data[s]
+                let timestamps = this._getTimestamps(data,s)
+
                 traces.push({
                     x: timestamps,
-                    y: stateData,
+                    y: dataset,
                     // xaxis: `x${i+1}`,
                     // yaxis: `y${i+1}`,
-                    type: 'line',
+                    type: this.params.type,
                     name: s.replace(query,'')
                 })
             })
@@ -262,6 +298,13 @@ class Plot{
     }
 
     deinit = () => {}
+
+    _getTimestamps  = (data, state) => {
+        let timestamps = data[state].times ?? data.times
+        let tStart = timestamps[0]
+        if (typeof tStart === 'number') timestamps = timestamps.map(t => t - tStart)
+        return timestamps
+    }
 }
 
 export {Plot}

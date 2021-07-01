@@ -15,7 +15,7 @@ export class Microphone{
             default: {
                 default: [],
                 input: {type: null},
-                output: {type: 'array'},
+                output: {type: Array},
                 onUpdate: () => {
                     let audioDat = [];
 

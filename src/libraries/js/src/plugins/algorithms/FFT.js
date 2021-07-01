@@ -10,8 +10,8 @@ export class FFT{
         this.ports = {
             default: {
                 types: {
-                    in: 'array',
-                    out: 'array'                
+                    in: Array,
+                    out: Array               
                 }
             }
         }

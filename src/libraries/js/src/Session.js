@@ -641,6 +641,58 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
+	subscribeToNewDevices = (type, callback) => {
+
+		let subscribedTags = {}
+		let subscribedPointers = {}
+		
+        let added = (k) => {
+            checkIfDevice([k])
+        }
+
+        let removed = (k) => {
+			let tag = subscribedTags[k]
+            if (tag){
+				this.state[subscribedPointers[tag].method](tag, subscribedPointers[tag].idx)
+				delete subscribedPointers[tag]
+				delete subscribedTags[k]
+            }
+        }
+
+        subscribedPointers['stateAdded'] = {}
+		subscribedPointers['stateAdded'].idx = this.state.subscribeSequential('stateAdded', added)
+		subscribedPointers['stateAdded'].method = 'unsubscribeSequential' 
+
+		subscribedPointers['stateRemoved'] = {}
+        subscribedPointers['stateRemoved'].idx = this.state.subscribeSequential('stateRemoved', removed)
+		subscribedPointers['stateRemoved'].method = 'unsubscribeSequential' 
+
+		let checkIfDevice = (arr) => {
+			arr.forEach(k => {
+				let pass = /^device[.+]*/.test(k)
+				if (pass){
+					if (this.state.data[k].deviceType === type || type === undefined){
+						this.atlas.data.eegshared.eegChannelTags.map(o => o.tag)
+
+						let firstTag = (type === 'eeg') ? this.state.data[k].eegChannelTags[0].tag : 0
+						subscribedTags[k] = `${type}_${firstTag}`
+
+						subscribedPointers[`${type}_${firstTag}`] = {method: 'unsubscribe'}
+						subscribedPointers[`${type}_${firstTag}`].idx = this.subscribe(type, firstTag, undefined, (data)=>{
+							callback(data)
+						})
+					}
+				}
+			})
+		}
+
+		callback(Object.keys(this.state.data)) // Pass Existing States on Init
+
+		return subscribedPointers
+	}
+
+
+
 	subscribe = (deviceTypeNameOrIdx = 'eeg', tag = 'FP1', prop = null, onData = (newData) => { }, stateManager = this.state) => {
 		let sub = undefined;
 		let atlasTag = tag;
@@ -1515,12 +1567,12 @@ else {
 				}
 
 				// Auto-set username with Google Login
-				if (this.info.googleAuth != null) {
-					this.info.googleAuth.refreshCustomData().then(data => {
-						loginPage.querySelector(`[name="username"]`).value = data.username
-						loginButton.click()
-					})
-				}
+				// if (this.info.googleAuth != null) {
+				// 	this.info.googleAuth.refreshCustomData().then(data => {
+				// 		loginPage.querySelector(`[name="username"]`).value = data.username
+				// 		loginButton.click()
+				// 	})
+				// }
 
 				loginPage.style.transition = 'opacity 1s'
 				loginPage.style.opacity = '1'

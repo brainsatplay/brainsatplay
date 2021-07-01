@@ -9,7 +9,7 @@ export class Index{
 
         this.ports = {
             default: {
-                input: {type: 'array'},
+                input: {type: Array},
                 output: {type: 'number'},
                 onUpdate: (userData) => {
                     let u = userData[0]

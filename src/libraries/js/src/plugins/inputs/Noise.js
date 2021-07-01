@@ -39,7 +39,7 @@ export class Noise{
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{data:true}])
+                this.session.graph.runSafe(this,'default',[{data:true, force: true}])
                 setTimeout(animate, Math.min(100, this.params.interval))
             }
         }

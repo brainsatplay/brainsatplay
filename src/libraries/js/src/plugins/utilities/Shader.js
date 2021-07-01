@@ -14,12 +14,12 @@ export class Shader{
 
         this.ports = {
             default: {
-                default: this.params.glsl ?? '', 
+                default: '', 
                 meta: {label: this.label, uniforms: this.props.uniforms},
                 input: {type: null},
                 output: {type: 'glsl'},
                 onUpdate: () => {
-                    return [{data: this.params.glsl, meta: {label: this.label, uniforms: this.props.uniforms}}]
+                    return [{data: this.params.glsl, force: true, meta: {label: this.label, uniforms: this.props.uniforms}}]
                 }
             },
             set: {
@@ -30,7 +30,7 @@ export class Shader{
                     if (typeof u.data === 'string'){
                         this.params.glsl = u.data
                         this._setDynamicPorts(this.params.glsl)
-                        this.session.graph.runSafe(this,'default',[{data:true}])
+                        this.session.graph.runSafe(this,'default',[{data:true, force: true}])
                     }
                 }
             }
@@ -63,10 +63,9 @@ export class Shader{
         this.ports[name] = {
             input: {type},
             default: this.props.uniforms[name]?.value,
-            output: {type},
+            output: {type: null},
             onUpdate: (userData) => {
-                this.props.uniforms[name].value = userData[0].data
-                return [{data: this.ports[name].output.value, meta: {label: `${this.label}_${name}`}}]
+                this.props.uniforms[name].value = userData[0].data // Passed by reference at the beginning
             }
         }
 

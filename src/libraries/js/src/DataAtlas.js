@@ -7,6 +7,7 @@ import { WorkerManager } from "./Workers"
 import { GraphManager } from "./GraphManager"
 
 import { Blink } from "./plugins/algorithms/Blink"
+import {DOMFragment} from './ui/DOMFragment'
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -34,20 +35,44 @@ export class DataAtlas {
 		}
 
 		this.props = {
-			id: String(Math.floor(Math.random()*1000000))
+			id: this._getRandomId()
 		}
 		
-		this.graph = new GraphManager({atlas: this}, {gui: false})
-		this.graph.init(this.props.id, 
+
+		// Add Blink Detection
+		this.graph = new GraphManager({atlas: this})
+		this.liveGraph = this.graph.init(this.props.id, 
 			{
-				name: 'DataAtlas', 
+				name: 'BlinkDetection', 
 				graph: {
 					nodes: [
-						{id: 'blink', class: Blink},
+						{id: 'blink', class: Blink, params: {debug: true}},
 					],
 				}
 			}
 		)
+		this.graph.start(this.props.id, this._getRandomId())
+
+		this.liveGraph.nodes.forEach(n => {
+			let ui = n.ui
+            if (ui){
+                n.fragment = new DOMFragment( // Fast HTML rendering container object
+                    ui.HTMLtemplate, //Define the html template string or function with properties
+                    undefined,    //Define where to append to (use the parentNode)
+                    undefined,         //Reference to the HTML render properties (optional)
+                    ui.setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+                    undefined,          //Can have an onchange function fire when properties change
+                    "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+                    undefined, // deinit
+                    ui.responsive // responsive
+                )
+            }
+		})
+		
+		this.liveGraph.setupCallbacks.forEach(func => {
+			if (func instanceof Function) func()
+		})
+
 
 		let analysisDict = {
 			eegcoherence: false,
@@ -167,6 +192,11 @@ export class DataAtlas {
 	deinit = () => {
 		this.settings.runAnalysisLoop = false;
 		window.workers.terminate(this.workerId);
+		this.graph.remove(this.props.id)
+	}
+
+	_getRandomId = () => {
+		return String(Math.floor(Math.random()*1000000))
 	}
 
     genEEGCoordinateStruct(tag,x=0,y=0,z=0){

@@ -65,36 +65,41 @@ export class Graph{
         return new Promise(async (resolve, reject) => {
             let edge = new Edge(e, this.nodes)
             let res = await edge.insert(this.parentNode)
-            let found = this.edges.find(e => {
-                if (e.structure.source == edge.structure.source && e.structure.target == edge.structure.target) return true
-            })
+            let found,compatible
+            if (res === true){
+                found = this.edges.find(e => {
+                    if (e.structure.source == edge.structure.source && e.structure.target == edge.structure.target) return true
+                })
 
-            // Check Edge Compatibility
-            let sourcePort = edge.structure.source.split(':')[1] ?? 'default'
-            let targetPort = edge.structure.target.split(':')[1] ?? 'default'
-            let sP = edge.source.nodeInfo.instance.ports[sourcePort]
-            let tP = edge.target.nodeInfo.instance.ports[targetPort]
+                // Check Edge Compatibility
+                let sourcePort = edge.structure.source.split(':')[1] ?? 'default'
+                let targetPort = edge.structure.target.split(':')[1] ?? 'default'
+                let sP = edge.source.nodeInfo.instance.ports[sourcePort]
+                let tP = edge.target.nodeInfo.instance.ports[targetPort]
 
 
-            let coerceType = (t) => {
-                if (t === 'float') return 'number'
-                else if (t === 'int') return'number'
-                else return t
+                let coerceType = (t) => {
+                    if (t === 'float') return 'number'
+                    else if (t === 'int') return'number'
+                    else return t
+                }
+                let sourceType = coerceType(sP.output.type)
+                let targetType = coerceType(tP.input.type)
+
+                let checkCompatibility = (types) => {
+                    return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
+                }
+
+                compatible = checkCompatibility([sourceType, targetType])
             }
-            let sourceType = coerceType(sP.output.type)
-            let targetType = coerceType(tP.input.type)
-
-            let checkCompatibility = (types) => {
-                return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
-            }
-
-            let compatible = checkCompatibility([sourceType, targetType])
-            if (res === true && found == null && compatible){
+        
+        if (res === true && found == null && compatible){
                 this.edges.push(edge)
-                resolve(edge)
+                resolve({msg: 'OK', edge: edge})
             } else {
                 this.removeEdge(edge)
-                if (compatible == false) reject('ports are not of compatible types')
+                if (res != true) resolve({msg: 'edge is incomplete', edge: edge})
+                else if (compatible == false) reject('ports are not of compatible types')
                 else if (found == null) reject('edge already exists')
                 else reject(res)
             }

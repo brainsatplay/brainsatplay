@@ -57,48 +57,51 @@ class UI{
     }
 
     left = (userData) => {
-
-        userData.forEach(u => {
-            let leftEye = document.getElementById(this.props.id+"-left")
-            let leftOpacity = 1-(u.data? 1 : 0)
-            if(!u.data) { 
-                this.leftred-=0.5;    
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-            } else {
-                this.leftred = 255;
-                document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
-            }
-            if(this.leftred <= 50) {
-                this.leftred = 255;
-                leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
-                document.getElementById(this.props.id+"-leftiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';      
-                leftOpacity = 0;
-            }
-            leftEye.style.opacity = leftOpacity;
-        })
+        let leftEye = document.getElementById(this.props.id+"-left")
+        if (leftEye){
+            userData.forEach(u => {
+                let leftOpacity = 1-(u.data? 1 : 0)
+                if(!u.data) { 
+                    this.leftred-=0.5;    
+                    leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                } else {
+                    this.leftred = 255;
+                    document.getElementById(this.props.id+"-leftiris").style.background = 'gold';
+                }
+                if(this.leftred <= 50) {
+                    this.leftred = 255;
+                    leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')'; 
+                    document.getElementById(this.props.id+"-leftiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';      
+                    leftOpacity = 0;
+                }
+                leftEye.style.opacity = leftOpacity;
+            })
+        }
         return userData
     }
 
     right = (userData) => {
 
-        userData.forEach(u => {
-            let rightEye = document.getElementById(this.props.id+"-right")
-            let rightOpacity = 1-(u.data? 1 : 0)
-            if(!u.data) {
-                this.rightred-=0.5;
-                rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
-            } else {
-                this.rightred = 255;
-                document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
-            } 
-            if(this.rightred <= 50){
-                this.rightred = 255;
-                rightEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
-                document.getElementById(this.props.id+"-rightiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
-                rightOpacity = 0;
-            }
-            rightEye.style.opacity = rightOpacity;
-        })
+        let rightEye = document.getElementById(this.props.id+"-right")
+        if (rightEye){
+            userData.forEach(u => {
+                let rightOpacity = 1-(u.data? 1 : 0)
+                if(!u.data) {
+                    this.rightred-=0.5;
+                    rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
+                } else {
+                    this.rightred = 255;
+                    document.getElementById(this.props.id+"-rightiris").style.background = 'gold';
+                } 
+                if(this.rightred <= 50){
+                    this.rightred = 255;
+                    rightEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
+                    document.getElementById(this.props.id+"-rightiris").style.background = 'rgb('+(100+Math.random()*155)+','+(100+Math.random()*155)+','+(100+Math.random()*155)+')';
+                    rightOpacity = 0;
+                }
+                rightEye.style.opacity = rightOpacity;
+            })
+    }
         return userData
     }
 
@@ -115,7 +118,9 @@ class UI{
         let container = document.getElementById(this.props.id)
         let leftEye = document.getElementById(this.props.id+"-left")
         let rightEye = document.getElementById(this.props.id+"-right")
-        leftEye.style.width = leftEye.style.height = rightEye.style.width = rightEye.style.height = `${Math.min(container.clientWidth,container.clientHeight)/4}px`
+        if (rightEye && leftEye){
+            leftEye.style.width = leftEye.style.height = rightEye.style.width = rightEye.style.height = `${Math.min(container.clientWidth,container.clientHeight)/4}px`
+        }
     }
 }
 
