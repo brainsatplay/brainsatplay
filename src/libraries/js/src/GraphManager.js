@@ -114,20 +114,9 @@ export class GraphManager{
             node.states['default'] = [{}]
         }
         
-        // Instantiate Dependencies
-        let depDict = {}
-        let instance, analysis;
-        if (node.dependencies){
-            node.dependencies.forEach(d => {
-                ({instance, analysis} = this.instantiateNode(d))
-                depDict[d.id] = instance
-                if (analysis.size > 0) toAnalyze.add(...Array.from(analysis))
-            })
-        }
-        node.dependencies = depDict
-
         nodeInfo.controls = controlsToBind
         if (nodeInfo.analysis == null) nodeInfo.analysis = []
+        if (node.analysis) toAnalyze.add(...node.analysis)
         nodeInfo.analysis.push(...Array.from(toAnalyze))
         return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }

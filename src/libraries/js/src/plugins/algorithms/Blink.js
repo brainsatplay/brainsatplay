@@ -1,4 +1,5 @@
 import {DataQuality} from './DataQuality'
+import {Canvas} from '../outputs/Canvas'
 
 export class Blink{
     
@@ -36,6 +37,7 @@ export class Blink{
             //     default: 'Threshold', 
             //     options: ['Threshold']
             // }, 
+            debug: {default: false},
             blinkDuration: {
                 default: 100,
                 options: null,
@@ -57,15 +59,76 @@ export class Blink{
                 step: 1
             }
         }
-        
-        this.dependencies = [{id: 'dataquality', class: DataQuality, params: {}}] // Converted to a dictionary of active instances
+
+        this.props = {
+            id: String(Math.floor(Math.random() * 1000000)),
+            canvas: null,
+            // container: null,
+            // context: null,
+            // drawFunctions: {},
+            looping: false,
+            dataquality: null
+        }
+
+        // Dependencies
+        this.analysis = new Set()
+        this.props.dataquality = this.session.atlas.graph.instantiateNode({id: 'dataquality', class: DataQuality, params: {}}, this.session)
+        this.props.canvas = this.session.atlas.graph.instantiateNode({id: 'canvas', class: Canvas, params: {}}, this.session)
+        this.analysis.add(...Array.from(this.props.dataquality.analysis))
+        this.analysis.add(...Array.from(this.props.canvas.analysis))
 
         this.lastBlink = Date.now()
     }
 
-    init = () => {}
+    init = () => {
 
-    deinit = () => {}
+        this.props.looping = true
+
+        let HTMLtemplate = () => {
+            return `
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; border: 1px solid white;'>
+            </div>`
+        }
+
+        let setupHTML = (app) => {
+            this.props.container = document.getElementById(`${this.props.id}`);
+            let ui = this.props.canvas.instance.init()
+            let html = ui.HTMLtemplate()
+            this.props.container.insertAdjacentHTML('beforeend', html)
+            ui.setupHTML()
+
+            this.session.graph.runSafe(this.props.canvas.instance, 'default', [
+                {
+                    data: (ctx) => {
+                        if (this.props.looping){
+                            if (this.params.debug){
+                                this.props.container.style.opacity = 1
+                                ctx.beginPath();
+                                ctx.arc(
+                                    100 + 25*Math.sin(Date.now()/1000), 
+                                    100 + 25*Math.cos(Date.now()/1000),  
+                                    Number.parseFloat(10) + Number.parseFloat(0)*Number.parseFloat(1),
+                                    0, 
+                                    Math.PI*2
+                                    );
+                                ctx.fillStyle = `#ffffff`;
+                                ctx.fill();
+                                ctx.closePath();
+                            } else this.props.container.style.opacity = 0
+                        }
+                    }
+                }
+            ])
+        }
+
+        return { HTMLtemplate, setupHTML}
+    }
+
+    deinit = () => {
+        this.props.looping = false
+        this.props.canvas.instance.deinit()
+        this.props.dataquality.instance.deinit()
+    }
 
     default = (userData) => {
 
@@ -98,7 +161,7 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
-        this._dataQuality = this.session.atlas.graph.runSafe(this.dependencies['dataquality'],'default',[user])[0].data // Grab results of dependencies (no mutation)
+        this._dataQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
         if (Date.now() - this.lastBlink > this.params.blinkDuration){
             tags.forEach(tag => {
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
