@@ -4,6 +4,7 @@ import {eegmath} from './../../utils/eegmath';
 export class MotorImagery{
 
     static id = String(Math.floor(Math.random()*1000000))
+    static hidden = true
     
     constructor(label, session, params={}) {
         this.label = label

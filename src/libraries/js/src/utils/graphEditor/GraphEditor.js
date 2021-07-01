@@ -875,13 +875,15 @@ export class GraphEditor{
 
             for (let key in nodeType){
                 let cls = this.classRegistry[type][key]
-                if (!usedClasses.includes(cls.id)){
-                    let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                    this.addNodeOption({id: cls.id, label, class: cls}, type, () => {
-                        this.addNode({class:cls})
-                        this.selectorToggle.click()
-                    })
-                    usedClasses.push(cls)
+                if (cls.hidden != true){
+                    if (!usedClasses.includes(cls.id)){
+                        let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
+                        this.addNodeOption({id: cls.id, label, class: cls}, type, () => {
+                            this.addNode({class:cls})
+                            this.selectorToggle.click()
+                        })
+                        usedClasses.push(cls)
+                    }
                 }
             }
         }
