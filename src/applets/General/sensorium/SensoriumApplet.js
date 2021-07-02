@@ -310,11 +310,11 @@ void main(){
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
                             
-                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:2; opacity:1;'>Hide Controls</button> 
-
-                <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index: 1;overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
+                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:7; opacity:1;'>Hide Controls</button> 
+                <div id='${props.id}overlay' style='position:absolute; z-index:4; height:100%; width:100%; opacity:0.0; background-color:black; transition:all 1s ease-in-out;'></div>
+                <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index:5; overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
                     <div>
-                        <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 2;"></div>
+                        <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 6;"></div>
                         <div style="display: flex; align-items: center;">
                             <h3 style='text-shadow: 0px 0px 2px black, 0 0 10px black;'>Effects</h3>
                             <button id='${props.id}addeffect' style="background: black; color: white; margin: 25px 10px;">+</button>
@@ -337,7 +337,7 @@ void main(){
                     </div>
                 </div>
 
-                <div id='${props.id}container' style="height:100%; width:100%;">
+                <div id='${props.id}container' style="height:100%; width:100%; z-index:0;">
                 </div>
             </div>  
                                         
@@ -411,39 +411,46 @@ void main(){
             
             
             selector.onchange = (ev) => {
-                
-                if(this.previousSelect === 'fromtext')
+
+                document.getElementById(this.props.id+'overlay').style.opacity = 1.0;
+
+                setTimeout(()=>{
+                    if(this.previousSelect === 'fromtext')
                     this.shaderTemplate = this.liveEditor.input.value;
                 
-                this.previousSelect = ev.target.value;
+                    this.previousSelect = ev.target.value;
 
-                if (ev.target.value === 'fromtext') {
-                    console.log('from text')
-                    // document.getElementById(props.id+'textshader').style.display = '';
-                    this.startTime = Date.now(); //reset start time
+                    if (ev.target.value === 'fromtext') {
+                        console.log('from text')
+                        // document.getElementById(props.id+'textshader').style.display = '';
+                        this.startTime = Date.now(); //reset start time
 
-                    let fragmentShader = this.shaderTemplate;
-                    this.liveEditor.updateSettings({language: 'glsl', target: fragmentShader})
+                        let fragmentShader = this.shaderTemplate;
+                        this.liveEditor.updateSettings({language: 'glsl', target: fragmentShader})
 
-                    editorContainer.style.display = '';
-                    this.editorhidden = false;
-                }
-                else if (ev.target.value != 'Gallery'){
-                    for(const prop in this.shaders) {
-                        if(ev.target.value === this.shaders[prop].name) {
-                            this.currentShader = this.shaders[prop];
-                            break;
-                        }
+                        editorContainer.style.display = '';
+                        this.editorhidden = false;
                     }
-                    if(ev.target.value === 'Galaxy' || ev.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
-                    this.shaderEdited = false;
-                    this.swapShader();
-                    this.setEffectOptions();
-                } 
-                else {
-                   
-                    // document.getElementById(props.id+'textshader').style.display = 'none';
-                }
+                    else if (ev.target.value != 'Gallery'){
+                        for(const prop in this.shaders) {
+                            if(ev.target.value === this.shaders[prop].name) {
+                                this.currentShader = this.shaders[prop];
+                                break;
+                            }
+                        }
+                        if(ev.target.value === 'Galaxy' || ev.target.value === 'Nega Galaxy')  this.startTime = Date.now() - Math.random()*1000000; //random start time for default shaders just to vary them up
+                        this.shaderEdited = false;
+                        this.swapShader();
+                        this.setEffectOptions();
+                    } 
+                    else {
+                    
+                        // document.getElementById(props.id+'textshader').style.display = 'none';
+                    }
+
+                    document.getElementById(this.props.id+'overlay').style.opacity = 0.0;
+                },1000);
+                  
             }
 
             let showhide = document.getElementById(props.id+'showhide');

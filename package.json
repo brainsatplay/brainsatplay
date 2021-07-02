@@ -8,8 +8,8 @@
     "url": "git+https://github.com/brainsaplay/brainsatplay"
   },
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=5000' node app.js",
-    "build": "NODE_OPTIONS='--max-old-space-size=5000' snowpack build",
+    "start": "node --max-old-space-size=5000 app.js",
+    "build": "snowpack NODE_OPTIONS='--max-old-space-size=5000' build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
