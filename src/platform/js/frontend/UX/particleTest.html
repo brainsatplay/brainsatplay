@@ -106,7 +106,7 @@
             this.ctx.beginPath();
             let magnitude = Math.sqrt(particle.velocity.x*particle.velocity.x + particle.velocity.y*particle.velocity.y + particle.velocity.z*particle.velocity.z)
             
-            var value = Math.floor(magnitude*255/particle.maxSpeed);
+            var value = Math.floor(magnitude*255/(particle.maxSpeed*1.2));
             if(value > 255) { value = 255; }
             else if (value < 0) { value = 0; }
             this.ctx.fillStyle = this.colorScale[value];
