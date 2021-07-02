@@ -49,7 +49,7 @@
                 separation:0.08,
                 alignment:0.002,
                 useSwirl:true,
-                swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
+                swirl:{x:0.5,y:0.5,z:0.5,mul:0.001},
                 useAttractor:true,
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.01},
                 groupRadius:200,
@@ -555,7 +555,7 @@
         }
 
         let particleTest = new ParticleDynamics(
-            [['boids',1500],['boids',1500]],
+            [['boids',1500],['boids',1000],['boids',500]],
             document.getElementById('canvas'),
             true
         );
