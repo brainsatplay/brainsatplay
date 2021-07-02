@@ -330,7 +330,7 @@ export class LiveEditor {
         document.getElementById(`${this.props.id}editorContainer`)
         .insertAdjacentHTML(
             'afterbegin',
-            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:1; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
+            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:2; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
                 <style>
                     table tr th {
                         border: 2px solid gold;
