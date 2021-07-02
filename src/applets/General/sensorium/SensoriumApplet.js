@@ -231,33 +231,12 @@ export class SensoriumApplet {
                 uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
                 credit: 'JoshP (Shadertoy) * JoshB'
             },
-            waves: {
-                name: 'Rainbow Waves',
-                vertexShader: vertexShader,
-                fragmentShader: wavesFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
-                credit: 'Pixi.js'
-            },
-            noisecircle: {
-                name: 'Noise Circle',
-                vertexShader: vertexShader,
-                fragmentShader: noiseCircleFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
-                credit: 'Garrett Flynn'
-            },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
                 uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Danilo Guanabara (Shadertoy)'
-            },
-            voronoiblobs: {
-                name: 'Voronoi Blobs',
-                vertexShader: vertexShader,
-                fragmentShader: blobFragmentShader,
-                uniforms: [],
-                credit: 'Elise (Shadertoy)'
             },
         }
 
