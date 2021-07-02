@@ -940,8 +940,18 @@ export class GraphEditor{
                 if (typeMatch) show = true
             })
 
-            if (show) o.element.style.display = ''
-            else o.element.style.display = 'none'
+            let change = 0
+            if (show && o.element.style.display == 'none') {
+                o.element.style.display = ''
+                change = 1
+            } else if (!show && o.element.style.display !== 'none') {
+                o.element.style.display = 'none'
+                change = -1
+            }
+
+            console.log(o)
+            let count = document.querySelector(`.${o.category}-count`)
+            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + change
         })
     }
 
@@ -964,6 +974,13 @@ export class GraphEditor{
                 selectedType.classList.add(`brainsatplay-option-type`)
                 selectedType.classList.add(`option-type-collapsible`)
                 selectedType.classList.add(`option-type-collapsible`)
+
+                let count = document.createElement('div')
+                count.classList.add('count')
+                count.classList.add(`${type}-count`)
+                count.innerHTML = 0
+
+                selectedType.insertAdjacentElement('beforeend',count)
                 options.insertAdjacentElement('beforeend',selectedType)
                 selectedType.onclick = () => {
                     selectedType.classList.toggle("active");
@@ -989,7 +1006,7 @@ export class GraphEditor{
                 onClick()
                 document.getElementById(`${this.props.id}add`).click() // Close menu
             }
-            
+
             // element.insertAdjacentElement('beforeend',labelDiv)
             contentOfType.insertAdjacentElement('beforeend',element)
 
@@ -1003,8 +1020,11 @@ export class GraphEditor{
                 else types.add(type)
             }
 
-            this.searchOptions.push({label, element, types})
+            this.searchOptions.push({label, element, types, category: type})
             if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
+
+            let count = options.querySelector(`.${type}-count`)
+            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
         }
     }
 

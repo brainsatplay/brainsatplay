@@ -642,10 +642,20 @@ select {
     background: rgb(5,5,5);
     cursor: pointer;
     transition: 0.5s;
+    position: relative;
 }
 
 .brainsatplay-option-type:hover{
     background: rgb(10,10,10);
+}
+
+.brainsatplay-option-type > .count {
+    color: white;
+    opacity: 0.25;
+    position: absolute;
+    top: 50%;
+    right: 25px;
+    transform: translateY(-50%)
 }
 
 .brainsatplay-option-type:after {
@@ -656,7 +666,7 @@ select {
     opacity: 0.25;
     border: 1px solid white;
     border-width: 0 2px 2px 0;
-    padding: 3px;
+    padding: 2px;
     margin: 4px 10px 0px -5px;
     transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
