@@ -883,7 +883,7 @@ export class GraphEditor{
         this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, 'custom', () => {
+        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, undefined, () => {
             this.createFile(Plugin, this.search.value)
             this.selectorToggle.click()
         })
@@ -896,8 +896,8 @@ export class GraphEditor{
                 let cls = this.classRegistry[type][key]
                 if (cls.hidden != true){
                     if (!usedClasses.includes(cls.id)){
-                        let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                        this.addNodeOption({id: cls.id, label, class: cls}, type, () => {
+                        // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
+                        this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
                             this.addNode({class:cls})
                             this.selectorToggle.click()
                         })
@@ -951,21 +951,47 @@ export class GraphEditor{
         if (('class' in classInfo)) classInfo = classInfo.class
 
         let options = document.querySelector('.brainsatplay-node-selector-menu').querySelector(`.node-options`)
-        let selectedType = options.querySelector(`.nodetype-${type}`)
-        if (selectedType == null) {
-            selectedType = document.createElement('div')
-            selectedType.classList.add(`nodetype-${type}`)
-            options.insertAdjacentElement('beforeend',selectedType)
+        let contentOfType = options.querySelector(`.nodetype-${type}`)
+        if (contentOfType == null) {
+
+            contentOfType = document.createElement('div')
+            contentOfType.classList.add('option-type-content')
+            contentOfType.classList.add(`nodetype-${type}`)
+
+            if (type != null){
+                let selectedType = document.createElement('div')
+                selectedType.innerHTML = type[0].toUpperCase() + type.slice(1)
+                selectedType.classList.add(`brainsatplay-option-type`)
+                selectedType.classList.add(`option-type-collapsible`)
+                selectedType.classList.add(`option-type-collapsible`)
+                options.insertAdjacentElement('beforeend',selectedType)
+                selectedType.onclick = () => {
+                    selectedType.classList.toggle("active");
+                    var content = selectedType.nextElementSibling;
+                    if (content.style.maxHeight){
+                        content.style.maxHeight = null;
+                      } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                      }
+                }
+            }
+
+            options.insertAdjacentElement('beforeend',contentOfType)
         }
 
-        let element = selectedType.querySelector(`.${label}`)
+        let element = contentOfType.querySelector(`.${label}`)
         if (element == null){
             element = document.createElement('div')
             element.classList.add("brainsatplay-option-node")
             element.classList.add(`${id}`)
-
+            element.innerHTML = `<p>${label}</p>`
+            element.onclick = () => {
+                onClick()
+                document.getElementById(`${this.props.id}add`).click() // Close menu
+            }
+            
             // element.insertAdjacentElement('beforeend',labelDiv)
-            selectedType.insertAdjacentElement('beforeend',element)
+            contentOfType.insertAdjacentElement('beforeend',element)
 
             // Add Instance Details to Plugin Registry
             let types = new Set()
@@ -978,13 +1004,7 @@ export class GraphEditor{
             }
 
             this.searchOptions.push({label, element, types})
-        }
-
-        element.innerHTML = `<p>${label}</p>`
-
-        element.onclick = () => {
-            onClick()
-            document.getElementById(`${this.props.id}add`).click() // Close menu
+            if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
         }
     }
 
