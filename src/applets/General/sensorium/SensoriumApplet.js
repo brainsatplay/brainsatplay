@@ -32,6 +32,8 @@ import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
 import spinthings from './shaders/spinthings/fragment.glsl'
 import bandsynth from './shaders/bandlimited/fragment.glsl'
+import tripclock from './shaders/clock/fragment.glsl'
+import julia from './shaders/julia/fragment.glsl'
 
 //Import sound files
 import bloops from './sounds/wav/guitarbloops.wav'
@@ -261,6 +263,20 @@ export class SensoriumApplet {
                 fragmentShader: bandsynth,
                 uniforms: [],
                 credit: 'Vinicius_Jesus'
+            },
+            clock: {
+                name: 'Clock',
+                vertexShader: vertexShader,
+                fragmentShader: tripclock,
+                uniforms: [],
+                credit: '4eckme'
+            },
+            julia: {
+                name: 'Julia Set',
+                vertexShader: vertexShader,
+                fragmentShader: julia,
+                uniforms: [],
+                credit: ' gaetanThiesson'
             }
         }
 

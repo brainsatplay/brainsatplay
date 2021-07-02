@@ -77,7 +77,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord )
 
     // separation
     float th = -3.;
-    mode = (q.x<th);
     
     // deformation
     vec2 p = 2.0*q/dot(q,q);
@@ -91,9 +90,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord )
     // vignetting
     col *= 1.5 - 0.2*length(q);
     
-    // separation
-    col *= smoothstep(0.005,0.010,abs(q.x-th));
-
     fragColor = vec4( col, 1.0 );
 }
 
