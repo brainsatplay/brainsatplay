@@ -586,6 +586,11 @@ export class GraphEditor{
 
     }
 
+    addPort(node,port){
+        this.graph.nodes[node.label].addPort(port)
+        this.addPortEvents(this.graph.nodes[node.label])
+    }
+
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)

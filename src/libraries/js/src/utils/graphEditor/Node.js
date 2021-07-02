@@ -1,6 +1,6 @@
 
-export class Node{
-    constructor(nodeInfo, graph) {     
+export class Node {
+    constructor(nodeInfo, graph) {
         this.graph = graph
         this.nodeInfo = nodeInfo
         this.parentNode = this.graph.parentNode ?? document.body
@@ -8,11 +8,11 @@ export class Node{
         this.edges = []
     }
 
-    registerEdge(edge){
-        this.edges.push(edge)   
+    registerEdge(edge) {
+        this.edges.push(edge)
     }
 
-    updateEdge(edge){
+    updateEdge(edge) {
         let o = this.edges.find(o => o === edge)
         // Derive Queries
 
@@ -27,8 +27,8 @@ export class Node{
         portElement.classList.add('active') // Label Active Node
 
         let portDim = portElement.getBoundingClientRect()
-        let svgP = o.svgPoint(o.svg, portDim.left + portDim.width/2, portDim.top + portDim.height/2)
-        
+        let svgP = o.svgPoint(o.svg, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
+
         // Update Edge Anchor
         o.updateElement(
             o.node[className],
@@ -39,12 +39,12 @@ export class Node{
         );
 
         // Grab Other Side of Edge
-        let otherType = (type == 'source') ? 'target': 'source'
+        let otherType = (type == 'source') ? 'target' : 'source'
         let otherElement = o[`${otherType}Node`]
         let svgO
-        if (otherElement){
+        if (otherElement) {
             let otherDim = otherElement.getBoundingClientRect()
-            svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width/2, otherDim.top + otherDim.height/2)
+            svgO = o.svgPoint(o.svg, otherDim.left + otherDim.width / 2, otherDim.top + otherDim.height / 2)
         } else {
             svgO = svgP
         }
@@ -62,90 +62,98 @@ export class Node{
         })
     }
 
-    createElement (nodeInfo) {
+    addPort(port) {
+        let node = this.nodeInfo.instance
+        let portTypes = ['target', 'source']
+        portTypes.forEach(s => {
+
+            let inorout = (s == 'target') ? 'input' : 'output'
+            let nodeType
+
+            nodeType = node.ports[port][inorout].type
+            if (nodeType instanceof Object) nodeType = nodeType.name
+            let portWrapper = document.createElement('div')
+            portWrapper.classList.add(`node-port-wrapper`)
+            let portElement = document.createElement('div')
+            portElement.classList.add(`node-port`)
+            portElement.classList.add(`port-${port}`)
+            portElement.classList.add(`type-${nodeType}`)
+            portElement.setAttribute('data-node', this.nodeInfo.id)
+            portElement.setAttribute('data-port', port)
+
+            let existingLabel = this.portLabels.querySelector(`[name="${port}"]`)
+            if (!existingLabel) {
+                this.portLabels.innerHTML += `
+                    <div class="node-label" name="${port}">
+                        <span>${port}</span>
+                    </div>
+                `
+            }
+            portWrapper.insertAdjacentElement('beforeend', portElement)
+            this[`${inorout}Ports`].insertAdjacentElement('beforeend', portWrapper)
+        })
+
+        this.resize()
+    }
+
+    createElement(nodeInfo) {
         let node = nodeInfo.instance
-        let nodeDiv = document.createElement(`div`)
-        nodeDiv.classList.add("brainsatplay-default-node-div")
+        this.nodeDiv = document.createElement(`div`)
+        this.nodeDiv.classList.add("brainsatplay-default-node-div")
 
         let element = document.createElement(`div`)
         element.classList.add("brainsatplay-display-node")
 
-        let portManager = document.createElement(`div`)
-        portManager.classList.add("brainsatplay-port-manager")
+        this.portManager = document.createElement(`div`)
+        this.portManager.classList.add("brainsatplay-port-manager")
 
-        let labelContainer = document.createElement(`div`)
-        labelContainer.classList.add(`node-label-container`)
+        // Add Port Label Container
+        this.portLabels = document.createElement(`div`)
+        this.portLabels.classList.add(`node-label-container`)
 
+        // Add Port Containers
+        this[`inputPorts`] = document.createElement('div')
+        this[`inputPorts`].classList.add(`node-port-container`)
+        this[`inputPorts`].classList.add(`target-ports`)
+        this[`outputPorts`] = document.createElement('div')
+        this[`outputPorts`].classList.add(`node-port-container`)
+        this[`outputPorts`].classList.add(`source-ports`)
 
-        let labelsAdded = []
-        // for (let param in node.params){
-        let portTypes = ['target','source']
-        portTypes.forEach(s => {
+        this.portManager.insertAdjacentElement('beforeend', this[`inputPorts`])
+        this.portManager.insertAdjacentElement('beforeend', this[`outputPorts`])
+        this.portManager.insertAdjacentElement('beforeend', this.portLabels)
 
-            let portContainer = document.createElement('div')
-            portContainer.classList.add(`node-port-container`)
-            portContainer.classList.add(`${s}-ports`)
-
-            for (let port in node.ports){
-
-                let inorout = (s == 'target') ? 'input' : 'output'
-                let nodeType
-
-                nodeType = node.ports[port][inorout].type
-                if (nodeType instanceof Object) nodeType = nodeType.name
-                // if (nodeType !== null){
-                    let portWrapper = document.createElement('div')
-                    portWrapper.classList.add(`node-port-wrapper`)
-                    let portElement = document.createElement('div')
-                    portElement.classList.add(`node-port`)
-                    portElement.classList.add(`port-${port}`)
-                    portElement.classList.add(`type-${nodeType}`)
-
-                    portElement.setAttribute('data-node', this.nodeInfo.id)
-                    portElement.setAttribute('data-port', port)
-
-                    if (!labelsAdded.includes(port)){
-                        labelContainer.innerHTML += `
-                            <div class="node-label">
-                                <span>${port}</span>
-                            </div>
-                        `
-                        labelsAdded.push(port)
-                    }
-                    portWrapper.insertAdjacentElement('beforeend',portElement)
-                    portContainer.insertAdjacentElement('beforeend',portWrapper)
-                // }
-            }
-
-            portManager.insertAdjacentElement('beforeend',labelContainer)
-            portManager.insertAdjacentElement('beforeend',portContainer)
-        })
+        for (let port in node.ports) {
+            this.addPort(port)
+        }
 
         element.insertAdjacentHTML('beforeend', `
         <div class="node-text">
             <h3>${node.constructor.name}</h3>
             <p>${node.label}<p>
         </div>
-        `)   
+        `)
 
-        element.insertAdjacentElement('beforeend', portManager)
-        nodeDiv.insertAdjacentElement('beforeend',element)
-        this.parentNode.insertAdjacentElement('beforeend',nodeDiv)
+        element.insertAdjacentElement('beforeend', this.portManager)
+        this.nodeDiv.insertAdjacentElement('beforeend', element)
+        this.parentNode.insertAdjacentElement('beforeend', this.nodeDiv)
 
+        this.resize()
 
-        let portContainers = nodeDiv.getElementsByClassName(`node-port-container`)
+        return this.nodeDiv
+    }
+
+    resize(){
+        let portContainers = this.nodeDiv.getElementsByClassName(`node-port-container`)
 
         let minWidth = 100
         let minHeight = 0
-        for (let container of portContainers){
+        for (let container of portContainers) {
             minHeight = Math.max(minHeight, container.offsetHeight)
         }
-        minWidth = Math.max(minWidth, labelContainer.offsetWidth)
+        minWidth = Math.max(minWidth, this.portLabels.offsetWidth)
 
-        if (portManager.offsetWidth < minWidth) portManager.style.width = `${minWidth}px`
-        if (portManager.offsetHeight < minHeight) portManager.style.height = `${minHeight}px`
-
-
-        return nodeDiv
+        if (this.portManager.offsetWidth < minWidth) this.portManager.style.width = `${minWidth}px`
+        if (this.portManager.offsetHeight < minHeight) this.portManager.style.height = `${minHeight}px`
     }
 }

@@ -97,7 +97,7 @@ export class Blink{
             this.props.container.insertAdjacentHTML('beforeend', html)
             ui.setupHTML()
 
-            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'default', [
+            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
                 {
                     data: (ctx) => {
                         if (this.props.looping){

@@ -34,7 +34,7 @@ export const settings = {
         },
         { 
           source: 'neurofeedback', 
-          target: 'brainstorm:neurofeedback'
+          target: 'brainstorm'
         },
         {
           source: 'brainstorm:neurofeedback', 

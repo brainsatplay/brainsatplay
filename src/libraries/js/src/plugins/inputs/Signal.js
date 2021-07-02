@@ -58,7 +58,7 @@ export class Signal{
 
     fft = () => {
         let data = this.session.atlas.getLatestFFTData()[0];
-        if(data) data = channel.fft;
+        if(data) data = data.fft;
         else data= new Array(256).fill(0);
         return [{data, meta: {label: `signal_${this.params.device}_fft`}}]
     }
