@@ -958,6 +958,10 @@ export  class ParticleDynamics {
 
     }
 
+    removeGroup = (idx) => {
+        this.particles.splice(idx,1);
+    }
+
     newParticle(assignments=undefined) {
         let proto = JSON.parse(JSON.stringify(this.prototype));
         if(assignments) Object.assign(proto,assignments);
