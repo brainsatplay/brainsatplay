@@ -30,6 +30,8 @@ import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl
 import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
+import spinthings from './shaders/spinthings/fragment.glsl'
+
 //Import sound files
 import bloops from './sounds/wav/guitarbloops.wav'
 import acousticloop3 from './sounds/wav/acousticloop3.wav'
@@ -259,6 +261,13 @@ export class SensoriumApplet {
                 uniforms: [],
                 credit: 'Elise (Shadertoy)'
             },
+            spinthings: {
+                name: 'Spin Things',
+                vertexShader: vertexShader,
+                fragmentShader: spinthings,
+                uniforms: [],
+                credit: 'Vinicius_Jesus'
+            }
         }
 
         this.brainMetrics = [
