@@ -432,7 +432,7 @@
         addGroup(
             rule=['boids',50], 
             groupRuleGen=this.defaultGroupRule,
-            timestepFunc=this.defautTimestepFunc,
+            timestepFunc=this.defaultTimestepFunc,
             animateParticle=this.defaultAnimation
         ) 
             {
@@ -448,7 +448,7 @@
                 timestepFunc = this.boidsTimestepFunc;
                 groupRuleGen = this.defaultBoidGroupRule;
             } else if (timestepFunc === undefined) {
-                timestepFunc = this.defautTimestepFunc;
+                timestepFunc = this.defaultTimestepFunc;
             }
 
             let newGroup = new Array(count).fill(0);

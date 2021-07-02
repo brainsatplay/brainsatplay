@@ -499,9 +499,9 @@ export  class ParticleDynamics {
         boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
         boid:{
             boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
-            cohesion:0.02,
-            separation:0.05,
-            alignment:0.002,
+            cohesion:0.04,
+            separation:0.2,
+            alignment:0.004,
             useSwirl:true,
             swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
             useAttractor:true,
@@ -886,7 +886,7 @@ export  class ParticleDynamics {
     addGroup(
         rule=['boids',50], 
         groupRuleGen=this.defaultGroupRule,
-        timestepFunc=this.defautTimestepFunc,
+        timestepFunc=this.defaultTimestepFunc,
         animateParticle=this.defaultAnimation
     ) 
         {
@@ -902,7 +902,7 @@ export  class ParticleDynamics {
             timestepFunc = this.boidsTimestepFunc;
             groupRuleGen = this.defaultBoidGroupRule;
         } else if (timestepFunc === undefined) {
-            timestepFunc = this.defautTimestepFunc;
+            timestepFunc = this.defaultTimestepFunc;
         }
 
         let newGroup = new Array(count).fill(0);
