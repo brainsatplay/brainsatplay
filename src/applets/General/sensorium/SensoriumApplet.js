@@ -31,6 +31,7 @@ import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 
 import spinthings from './shaders/spinthings/fragment.glsl'
+import bandsynth from './shaders/bandlimited/fragment.glsl'
 
 //Import sound files
 import bloops from './sounds/wav/guitarbloops.wav'
@@ -251,6 +252,13 @@ export class SensoriumApplet {
                 name: 'Spin Things',
                 vertexShader: vertexShader,
                 fragmentShader: spinthings,
+                uniforms: [],
+                credit: 'Vinicius_Jesus'
+            },
+            bandwidth: {
+                name: 'Bandlimited Synthesis',
+                vertexShader: vertexShader,
+                fragmentShader: bandsynth,
                 uniforms: [],
                 credit: 'Vinicius_Jesus'
             }
