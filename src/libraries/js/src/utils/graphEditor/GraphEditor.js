@@ -404,6 +404,12 @@ export class GraphEditor{
     toggleContextMenuEvent = (el) => {
         el.addEventListener('contextmenu', (ev) =>{
             ev.preventDefault();
+            this.nextNode = {
+                position: {
+                    x: ev.clientX,
+                    y: ev.clientY
+                }
+            }
             // alert('success!');
             this.selectorToggle.click()
             return false;
@@ -605,6 +611,14 @@ export class GraphEditor{
 
         if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
 
+        // Place Node if Location is Provided
+        if (this.nextNode) {
+            let rect = this.viewer.getBoundingClientRect()
+            node.element.style.top = `${this.nextNode.position.y - rect.top}px`
+            node.element.style.left = `${this.nextNode.position.x  - rect.left}px`
+            this.nextNode = null
+        }
+
         return node
     }
 
@@ -654,7 +668,7 @@ export class GraphEditor{
                 } else if (defaultType === 'boolean'){
                     input = document.createElement('input')
                     input.type = 'checkbox'
-                    input.value = plugin.params[key]
+                    input.checked = plugin.params[key]
                     input.addEventListener('change', (e) => {
                         plugin.params[key] = event.target.checked
                         if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
