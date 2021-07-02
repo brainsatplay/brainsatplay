@@ -76,7 +76,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord )
 	vec2 q = (2.0*fragCoord-iResolution.xy)/iResolution.y;
 
     // separation
-    float th = -2.;
+    float th = -3.;
     mode = (q.x<th);
     
     // deformation
