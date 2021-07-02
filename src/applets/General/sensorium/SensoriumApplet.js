@@ -289,9 +289,9 @@ void main(){
             return `
             <div id='${props.id}' style='height:100%; width:100%; position: relative; max-height: 100vh;'>
                             
-                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:7; opacity:1;'>Hide Controls</button> 
+                <button id='`+props.id+`showhide' style='position:absolute; top: 0px; z-index:5; opacity:1;'>Hide Controls</button> 
                 <div id='${props.id}overlay' style='position:absolute; z-index:4; height:100%; width:100%; opacity:0.0; background-color:black; transition:all 1s ease-in-out;'></div>
-                <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index:5; overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
+                <div id='`+props.id+`menu' style='display: flex; transition: 0.5s; max-height: 100%; padding: 25px; position: absolute; top: 0; left: 0; width: 100%; z-index:4; overflow: hidden; background: rgba(0,0,0,0.0); height: 100%;'>
                     <div>
                         <div class='guiContainer' style="position:absolute; bottom: 0px; left: 0px; z-index: 6;"></div>
                         <div style="display: flex; align-items: center;">
