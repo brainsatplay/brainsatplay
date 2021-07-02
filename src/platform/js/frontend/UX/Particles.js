@@ -460,7 +460,7 @@ export class Boids {
 
 
 
-export class ParticleDynamics {
+export  class ParticleDynamics {
   constructor(
       rules=[
       ['boids',100],
@@ -558,7 +558,7 @@ export class ParticleDynamics {
   
   defaultAnimation = (particle) => {
       this.ctx.beginPath();
-      let magnitude = Math.sqrt(particle.velocity.x*particle.velocity.x + particle.velocity.y*particle.velocity.y)
+      let magnitude = Math.sqrt(particle.velocity.x*particle.velocity.x + particle.velocity.y*particle.velocity.y + particle.velocity.z*particle.velocity.z)
       
       var value = Math.floor(magnitude*255/particle.maxSpeed);
       if(value > 255) { value = 255; }
@@ -609,12 +609,12 @@ export class ParticleDynamics {
       if(this.canvas) {
           let h = this.canvas.height;
           let w = this.canvas.width;
-          let startX =  Math.random()*w;;
+          let startX =  Math.random()*w;
           let startY =  Math.random()*h;
           particle.startingX = startX;
           particle.startingY = startY;
           particle.startingZ = startY;
-          particle.position = {x:startX,y:startY,z:startY}
+          particle.position = {x:startX,y:startY,z:startY};
           particle.boundingBox = {
               left:particle.boundingBox.left*w,
               right:particle.boundingBox.right*w,
@@ -703,27 +703,27 @@ export class ParticleDynamics {
 
       let expiredidx = [];
       group.particles.forEach((p,i) => {
-      
-      // Adjust for gravity
-      p.velocity.y += p.gravity*timeStep;
-      
-      p.position.x += p.velocity.x*timeStep;
-      p.position.y += p.velocity.x*timeStep;
-      p.position.y += p.velocity.x*timeStep;
+          
+          // Adjust for gravity
+          p.velocity.y += p.gravity*timeStep;
+          
+          p.position.x += p.velocity.x*timeStep;
+          p.position.y += p.velocity.x*timeStep;
+          p.position.y += p.velocity.x*timeStep;
 
-      this.checkParticleBounds(p);
+          this.checkParticleBounds(p);
 
-      // Age the particle
-      p.life+=timeStep;
+          // Age the particle
+          p.life+=timeStep;
 
-      if(this.defaultCanvas) {
-          group.animateParticle(p);
-      }
+          if(this.defaultCanvas) {
+              group.animateParticle(p);
+          }
 
-      // If Particle is old, it goes in the chamber for renewal
-      if (p.life >= p.lifeTime) {
-          expiredidx.push(i);
-      }
+          // If Particle is old, it goes in the chamber for renewal
+          if (p.life >= p.lifeTime) {
+              expiredidx.push(i);
+          }
 
       });
 
@@ -737,7 +737,7 @@ export class ParticleDynamics {
   calcBoids = (particles=[]) => {
       
       const newVelocities = [];
-  
+      outer:
       for(var i = 0; i < particles.length; i++) {
           let p0 = particles[i];
           const inRange = []; //indices of in-range boids
@@ -745,7 +745,7 @@ export class ParticleDynamics {
           const cohesionVec = [p0.position.x,p0.position.y,p0.position.z]; //Mean position of all boids for cohesion multiplier
           const separationVec = [0,0,0]; //Sum of a-b vectors, weighted by 1/x to make closer boids push harder.
           const alignmentVec = [p0.velocity.x,p0.velocity.y,p0.velocity.z]; //Perpendicular vector from average of boids velocity vectors. Higher velocities have more alignment pull.
-          let groupCount = 0;
+          let groupCount = 1;
   
           nested:
           for(let j = 0; j < particles.length; j++) {
@@ -753,32 +753,38 @@ export class ParticleDynamics {
               if(distances.length > p.boid.groupSize) { break nested; }
 
               let randj = Math.floor(Math.random()*particles.length); // Get random index
-              if(randj === i || inRange.indexOf(randj) > -1) { continue; }
-              let pr = particles[randj];
-      
-              let disttemp = this.distance3D(p0.position,pr.position);
+              if(j===i || randj === i || inRange.indexOf(randj) > -1) {  } else {
+                  let pr = particles[randj];
+                  let disttemp = this.distance3D(p0.position,pr.position);
+                  
+                  if(disttemp > p0.boid.groupRadius) { } else {
+                      distances.push(disttemp);
+                      inRange.push(randj);
               
-              if(disttemp > p.boid.groupRadius) { continue; }
-              distances.push(disttemp);
-              inRange.push(randj);
-      
-              cohesionVec[0] = cohesionVec[0] + pr.position.x;
-              cohesionVec[1] = cohesionVec[1] + pr.position.y;
-              cohesionVec[2] = cohesionVec[2] + pr.position.z;
+                      cohesionVec[0] = cohesionVec[0] + pr.position.x;
+                      cohesionVec[1] = cohesionVec[1] + pr.position.y;
+                      cohesionVec[2] = cohesionVec[2] + pr.position.z;
 
-              let distInv = (1/disttemp);
-              if(distInv == Infinity) distInv = p.maxSpeed;
-              else if (distInv == -Infinity) distInv = -p.maxSpeed;
-              separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
-              separationVec[1] = separationVec[1] + p0.position.y-pr.position.y*distInv; 
-              separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z + 1)*distInv;
-   
-              //console.log(separationVec);
-              alignmentVec[0] = alignmentVec[0] + pr.velocity.x; 
-              alignmentVec[1] = alignmentVec[1] + pr.velocity.y;
-              alignmentVec[2] = alignmentVec[2] + pr.velocity.z;
-              
-              groupCount++;
+                      if(isNaN(disttemp) || isNaN(cohesionVec[0]) || isNaN(pr.position.x)) {
+                          console.log(disttemp, i, randj, p0.position, pr.position, cohesionVec); p0.position.x = NaN; 
+                          return;
+                      }
+
+                      let distInv = (1/disttemp);
+                      if(distInv == Infinity) distInv = p.maxSpeed;
+                      else if (distInv == -Infinity) distInv = -p.maxSpeed;
+                      separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
+                      separationVec[1] = separationVec[1] + (p0.position.y-pr.position.y)*distInv; 
+                      separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z)*distInv;
+          
+                      //console.log(separationVec);
+                      alignmentVec[0] = alignmentVec[0] + pr.velocity.x; 
+                      alignmentVec[1] = alignmentVec[1] + pr.velocity.y;
+                      alignmentVec[2] = alignmentVec[2] + pr.velocity.z;
+                      
+                      groupCount++;
+                  }
+              }
           }    
   
           cohesionVec[0] = p0.boid.cohesion*(cohesionVec[0]/groupCount-p0.position.x);
@@ -807,13 +813,15 @@ export class ParticleDynamics {
               attractorVec[2] = (p0.boid.attractor.z-p0.position.z)*p0.boid.attractor.mul;
           }
 
-          if(i===0) console.log(p0.position, p0.velocity, i, cohesionVec,separationVec,alignmentVec,swirlVec,attractorVec)
+          //if(i===0) console.log(p0, p0.position, p0.velocity, cohesionVec,separationVec,alignmentVec,swirlVec,attractorVec)
 
           newVelocities.push([
               p0.velocity.x*p0.drag+cohesionVec[0]+alignmentVec[0]+separationVec[0]+swirlVec[0]+attractorVec[0],
               p0.velocity.y*p0.drag+cohesionVec[1]+alignmentVec[1]+separationVec[1]+swirlVec[1]+attractorVec[1],
               p0.velocity.z*p0.drag+cohesionVec[2]+alignmentVec[2]+separationVec[2]+swirlVec[2]+attractorVec[1]
           ]);
+          //console.log(i,groupCount)
+          if(isNaN(newVelocities[newVelocities.length-1][0])) console.log(p0, i, groupCount, p0.position, p0.velocity, cohesionVec,separationVec,alignmentVec,swirlVec,attractorVec)
       }
   
       if(newVelocities.length === particles.length){ // Update particle velocities if newVelocities updated completely, else there was likely an error
@@ -852,11 +860,12 @@ export class ParticleDynamics {
               p.boid.attractor.z = p.boundingBox.back*0.5;
 
               p.position.x += p.velocity.x*timeStep;
-              p.position.y += p.velocity.x*timeStep;
-              p.position.y += p.velocity.x*timeStep;
+              p.position.y += p.velocity.y*timeStep;
+              p.position.z += p.velocity.z*timeStep;
+
+              if(isNaN(p.position.x)) {console.log("after check",p.position,p.velocity,i);};
 
               this.checkParticleBounds(p);
-
               // Adjust for gravity
               p.velocity.y += p.gravity*timeStep;
 
@@ -967,7 +976,7 @@ export class ParticleDynamics {
   }
 
   loop = (lastFrame=performance.now()*0.001,ticks=0) => {
-      if(this.looping === false || ticks > 100) return; 
+      if(this.looping === false) return; 
       
       let currFrame = performance.now()*0.001;
       let timeStep = currFrame - lastFrame;
@@ -978,9 +987,16 @@ export class ParticleDynamics {
 
       this.particles.forEach((group) => {
           group.timestepFunc(group,timeStep);
+          
+          if(isNaN(group.particles[0].position.x)) {
+              console.log(timeStep,ticks,group.particles[0]);
+              this.looping = false;
+              return;
+          }
       });
 
       let tick = ticks+1;
+
 
       setTimeout(()=>{requestAnimationFrame(()=>{this.loop(currFrame,tick)})},15);
   }
