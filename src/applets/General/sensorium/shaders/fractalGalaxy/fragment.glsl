@@ -67,10 +67,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	float freqs[4];
 	
 	//Sound
-	freqs[0] = iFFT[25]+.25;
-	freqs[1] = iFFT[75]+.1;
-	freqs[2] = iFFT[125]+.15;
-	freqs[3] = iFFT[200]+.3;
+	freqs[0] = iAudio[25]/255.+iFFT[25]*.1+.25;
+	freqs[1] = iAudio[75]/255.+iFFT[75]*.1+.1;
+	freqs[2] = iAudio[125]/255.+iFFT[125]*.1+.15;
+	freqs[3] = iAudio[200]/255.+iFFT[200]*.1+.3;
 
 	float t = field(p,freqs[2]);
 	float v = (1. - exp((abs(uv.x) - 1.) * 6.)) * (1. - exp((abs(uv.y) - 1.) * 6.));
