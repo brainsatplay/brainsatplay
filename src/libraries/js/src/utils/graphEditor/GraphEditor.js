@@ -941,7 +941,7 @@ export class GraphEditor{
             })
 
             let change = 0
-            if (show && o.element.style.display == 'none') {
+            if (show && o.element.style.display === 'none') {
                 o.element.style.display = ''
                 change = 1
             } else if (!show && o.element.style.display !== 'none') {
@@ -949,7 +949,6 @@ export class GraphEditor{
                 change = -1
             }
 
-            console.log(o)
             let count = document.querySelector(`.${o.category}-count`)
             if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + change
         })
