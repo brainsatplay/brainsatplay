@@ -146,5 +146,7 @@ void main()
         outColor += vec4(color*alpha*vec3(circle(mouse,uv,diameter + noise, Thickness, Glow)), alpha);
     // }
 
+    // vec2 p = (2.*fragCoord.xy-iResolution.xy) / iResolution.y; 
+	// fragColor = vec4( 5. / (40. * abs(2.*length(p)-1.) ) );
     gl_FragColor = vec4(outColor);
 }
