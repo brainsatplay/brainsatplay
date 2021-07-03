@@ -230,28 +230,28 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
                 uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
-                credit: 'JoshP (Shadertoy)'
+                credit: 'JoshB x JoshP x CBS'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
                 uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
-                credit: 'JoshP (Shadertoy) * JoshB'
+                credit: 'JoshB x JoshP'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
                 uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
-                credit: 'Danilo Guanabara (Shadertoy)'
+                credit: 'Danilo Guanabara'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
                 uniforms: [],
-                credit: 'Elise (Shadertoy)'
+                credit: 'Elise'
             },
             spinthings: {
                 name: 'Spin Things',
@@ -265,21 +265,21 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: pulseFragmentShader,
                 uniforms: [],
-                credit: 'haquxx (Shadertoy)'
+                credit: 'haquxx'
             },
             marble: {
                 name: 'Glowing Marble',
                 vertexShader: vertexShader,
                 fragmentShader: marbleFragmentShader,
                 uniforms: [],
-                credit: 'nasana (Shadertoy)'
+                credit: 'nasana'
             },
             turbulence: {
                 name: 'Turbulence',
                 vertexShader: vertexShader,
                 fragmentShader: turbulenceFragmentShader,
                 uniforms: [],
-                credit: 'exandro (Shadertoy)'
+                credit: 'exandro'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
@@ -300,7 +300,7 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: julia,
                 uniforms: [],
-                credit: ' gaetanThiesson'
+                credit: 'gaetanThiesson'
             }
         }
 
@@ -447,7 +447,7 @@ void main(){
 
             let selector = document.getElementById(`${this.props.id}shaderSelector`)
             Object.keys(this.shaders).forEach((k) => {
-                selector.insertAdjacentHTML('beforeend', `<option value='${this.shaders[k].name}'>${this.shaders[k].name}</option>`)
+                selector.insertAdjacentHTML('beforeend', `<option value='${this.shaders[k].name}'>${this.shaders[k].name} by ${this.shaders[k].credit}</option>`)
             });
             selector.insertAdjacentHTML('beforeend', `<option value='fromtext'>Blank Shader</option>`)
             this.swapShader();
