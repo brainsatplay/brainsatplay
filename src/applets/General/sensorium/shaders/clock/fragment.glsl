@@ -223,7 +223,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     // You can fix it to display any date and any time of 1 million years.
     
     vec2 coord = fragCoord - (iResolution.xy / vec2(2.0));//simmetric
-    fragColor= f(coord.x*10.,coord.y*10.,float(jDate.w)); //go
+    fragColor= f(coord.x*15.,coord.y*15.,float(jDate.w)); //go
     if (coord.x*coord.x+coord.y*coord.y>170.0*170.0*N){//shadow
         if (coord.x*coord.x+coord.y*coord.y<180.0*180.0*N)//shadow
             fragColor/=8.0;//shadow
