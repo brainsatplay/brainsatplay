@@ -31,6 +31,7 @@ import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
 import marbleFragmentShader from './shaders/marble/fragment.glsl'
 import turbulenceFragmentShader from './shaders/turbulence/fragment.glsl'
+import pulseFragmentShader from './shaders/pulse/fragment.glsl'
 
 import spinthings from './shaders/spinthings/fragment.glsl'
 import bandsynth from './shaders/bandlimited/fragment.glsl'
@@ -258,6 +259,13 @@ export class SensoriumApplet {
                 fragmentShader: spinthings,
                 uniforms: [],
                 credit: 'Vinicius_Jesus'
+            },
+            pulse: {
+                name: 'Pulse',
+                vertexShader: vertexShader,
+                fragmentShader: pulseFragmentShader,
+                uniforms: [],
+                credit: 'haquxx (Shadertoy)'
             },
             marble: {
                 name: 'Glowing Marble',
