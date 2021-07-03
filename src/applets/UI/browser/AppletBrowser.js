@@ -189,7 +189,7 @@ export class AppletBrowser {
             mainContainer.insertAdjacentHTML('beforeend', 
             `
             <div id="${this.props.id}-appletheader" class="browser-header">
-                <h1>Your Apps</h1>
+                <h1>App Library</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
                 <div style="margin: 5px; flex-grow: 1;">
@@ -278,7 +278,9 @@ export class AppletBrowser {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
-        this.props.motorImagery.deinit()
+        for (let key in this.props.trainingModules){
+            this.props.trainingModules[key].deinit()
+        }
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
