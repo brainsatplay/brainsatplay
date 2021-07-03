@@ -1137,6 +1137,7 @@ void main(){
                 mesh.rotation.set(0,Math.PI,0)
             } else if (type === 'plane') {
                 mesh.geometry = this.createViewGeometry('plane')
+                mesh.rotation.set(0,Math.PI,0)   
             } else if (type === 'circle') {
                 mesh.geometry = this.createViewGeometry('circle');
                 mesh.rotation.set(0,Math.PI,0)   
