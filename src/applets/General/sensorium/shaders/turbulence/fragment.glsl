@@ -1,19 +1,18 @@
 // Source: https://www.shadertoy.com/view/WsjBRW
 
-#define FFTCOUNT 128
-
+#define FFTLENGTH 256
 precision mediump float;
 varying vec2 vUv;
-
-uniform float amplitude;
-uniform float historyLength;
+varying vec2 vTextureCoord;
 uniform vec2 iResolution;
-uniform vec2 mouse;
 uniform float iTime;
-uniform float iFrontalAlpha1Coherence;
 uniform float iHEG;
 uniform float iHRV;
-uniform float iFFT[FFTCOUNT];
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
 
 void main()
 {
