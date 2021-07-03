@@ -466,9 +466,8 @@ void main(){
             
             selector.onchange = (ev) => {
 
-                document.getElementById(this.props.id+'overlay').style.opacity = 1.0;
 
-                setTimeout(()=>{
+                let onSwap = () => {
                     if(this.previousSelect === 'fromtext')
                     this.shaderTemplate = this.liveEditor.input.value;
                 
@@ -503,7 +502,15 @@ void main(){
                     }
 
                     document.getElementById(this.props.id+'overlay').style.opacity = 0.0;
-                },1000);
+                }
+
+                if(this.startTime < 1) {
+                    document.getElementById(this.props.id+'overlay').style.opacity = 1.0;
+
+                    setTimeout(()=>{
+                        onSwap();
+                    },1000);
+                } else onSwap();
                   
             }
 
