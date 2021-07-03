@@ -168,7 +168,7 @@ export class SensoriumApplet {
         this.guiControllers = [];
 
         this.mouseclicked = false;
-        this.mousexy = [0,0];
+        this.mousexyzw = [0,0,0,0];
 
         //Available uniforms for shaders. See comments for usage
         this.modifiers = {
@@ -216,8 +216,16 @@ export class SensoriumApplet {
 
         this.additionalUniforms = {
             iTime: 0, //milliseconds elapsed from shader begin
+            iTimeDelta:0,
+            iFrame:0,
+            iFrameRate:0,
+            iChannelTime:[0,0,0,0],
+            iChannelResolution:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],
+            iChannel:[1,2,3,4], //sampler2d array
+            iSampleRate:44100,
             iResolution: ['x','y'], //viewport resolution
-            iMouse: ['x','y'],  //XY mouse coordinates
+            iDate: [0,0,0,0],
+            iMouse: ['x','y','z','w'],  //XY mouse coordinates, z, w are last click location
             iMouseInput: false, //Click occurred before past frame?
             iImage: undefined //Texture map returned from shader (to keep state)
         }
@@ -415,12 +423,14 @@ void main(){
 
 
             document.getElementById(this.props.id).onmousemove = (ev) => {
-                this.mousexy[0] = ev.offsetX;
-                this.mousexy[1] = ev.offsetY;
+                this.mousexyzw[0] = ev.offsetX;
+                this.mousexyzw[1] = ev.offsetY;
             }
 
             document.getElementById(this.props.id).onmousedown = (ev) => {
                 this.mouseclicked = 1.0;
+                this.mousexyzw[3] = ev.offsetX;
+                this.mousexyzw[4] = ev.offsetY;
             }
 
             /**
@@ -660,6 +670,14 @@ void main(){
         this.startTime = Date.now();
         this.render = () => {
             if (this.three.renderer.domElement != null){
+
+                let time = (Date.now() - this.startTime)/1000;
+                this.additionalUniforms.iTimeDelta = time - this.additionalUniforms.iTime;
+                this.additionalUniforms.iTime = time;
+                this.additionalUniforms.iFrame++;
+                this.additionalUniforms.iFrameRate = 1/(this.additionalUniforms.iTimeDelta*0.001);
+                
+                
                 let userData = this.session.getBrainstormData(this.info.name, this.graph.streams)
                 //let hostData = this.session.getHostData(this.info.name);
                 //console.log(userData)
@@ -1719,14 +1737,22 @@ void main(){
         }
         // Defaults
         else if (u === 'iTime'){
-            return  (Date.now() - this.startTime)/1000; // Seconds
+            return  this.additionalUniforms.iTime; // Seconds
+        }
+        else if (u === 'iTimeDelta') {
+            return this.additionalUniforms.iTimeDelta;
         }
         else if (u === 'iResolution'){
-            if(this.currentView === 'halfsphere' || this.currentView === 'circle')
-                return new THREE.Vector2(this.three.meshHeight, this.three.meshHeight); //fixes aspect ratio on halfsphere and circle to be square
-            else if (this.currentView !== 'plane') 
-                return  new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight); //fix for messed up aspect ratio on vrscreen and sphere
-            else return new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //leave plane aspect alone
+            if(this.currentView === 'halfsphere' || this.currentView === 'circle') {
+                this.additionalUniforms.iResolution = new THREE.Vector2(this.three.meshHeight, this.three.meshHeight);
+                return this.additionalUniforms.iResolution; //fixes aspect ratio on halfsphere and circle to be square
+            } else if (this.currentView !== 'plane') {
+                this.additionalUniforms.iResolution = new THREE.Vector2(Math.max(this.three.meshWidth,this.three.meshHeight), this.three.meshHeight); //fix for messed up aspect ratio on vrscreen and sphere
+                return this.additionalUniforms.iResolution;
+            } else {
+                this.additionalUniforms.iResolution = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //leave plane aspect alone
+                return this.additionalUniforms.iResolution;
+            }
         }
     }
 
@@ -1744,10 +1770,12 @@ void main(){
             } else if (name === 'iImage') { 
                 material.uniforms[name].value = new THREE.Texture(this.three.renderer.domElement.toDataURL());
             } else if (name === 'iMouse') {
-                material.uniforms[name].value = new THREE.Vector2(...this.mousexy);
+                material.uniforms[name].value = new THREE.Vector4(...this.mousexyzw);
             } else if (name === 'iMouseInput') {
                 material.uniforms[name].value = this.mouseclicked;
                 this.mouseclicked = 0.0;
+            } else if (name === 'iDate') {
+                material.uniforms[name].value = new THREE.Vector4(Date.getYear(),Date.getMonth(),Date.getDay(),Date.getHours()*3600+Date.getMinutes()*60+Date.getSeconds());
             } else if (material.uniforms[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {
