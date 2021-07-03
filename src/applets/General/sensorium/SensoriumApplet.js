@@ -1781,7 +1781,6 @@ void main(){
                 let date = new Date();
                 this.additionalUniforms.iDate = new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds());
                 material.uniforms[name].value = this.additionalUniforms.iDate;
-                console.log(this.additionalUniforms.iDate)
             } else if (material.uniforms[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {

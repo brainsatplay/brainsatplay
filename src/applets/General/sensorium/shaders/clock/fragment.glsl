@@ -186,8 +186,6 @@ vec4 f(float x, float y, float t) {float N=iResolution.y/360.0;//clock zoom
     if ((x*x+y*y)<=150.0*150.0*N&&(x*x+y*y)>=146.0*146.0*N)//light shadow
         return vec4(0.92,0.92,0.92,1.0);//shadow
     
-    
-    
     if (x*x+y*y<=20.0*20.0*N)//10 radius
         return vec4(1.0,1.0,1.0, 1.0);
     if ((x*x+y*y)<=90.0*90.0*N)//90 radius
@@ -231,7 +229,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
             fragColor/=8.0;//shadow
      }
     if (coord.x*coord.x+coord.y*coord.y<=146.0*146.0*N&&fragColor.w!=0.5)//arrows texture animate
-        fragColor+=abs(tan(abs(degrees(atan(coord.x, coord.y))*4.0-jDate.w*2.0)))/16.0;
+        fragColor+=abs(tan(abs(jDate.w*2.0)))/16.0;
 }
 
 void main() {
