@@ -250,56 +250,56 @@ export class SensoriumApplet {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'Elise'
             },
             spinthings: {
                 name: 'Spin Things',
                 vertexShader: vertexShader,
                 fragmentShader: spinthings,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             pulse: {
                 name: 'Pulse',
                 vertexShader: vertexShader,
                 fragmentShader: pulseFragmentShader,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'haquxx'
             },
             marble: {
                 name: 'Glowing Marble',
                 vertexShader: vertexShader,
                 fragmentShader: marbleFragmentShader,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'nasana'
             },
             turbulence: {
                 name: 'Turbulence',
                 vertexShader: vertexShader,
                 fragmentShader: turbulenceFragmentShader,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'exandro'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
                 vertexShader: vertexShader,
                 fragmentShader: bandsynth,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             clock: {
                 name: 'Clock',
                 vertexShader: vertexShader,
                 fragmentShader: tripclock,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: '4eckme'
             },
             julia: {
                 name: 'Julia Set',
                 vertexShader: vertexShader,
                 fragmentShader: julia,
-                uniforms: [],
+                uniforms: ['iFrontalAlpha1Coherence'],
                 credit: 'gaetanThiesson'
             }
         }

@@ -21,9 +21,8 @@ void main()
     vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
 
     for(float i = 1.0; i < 8.0; i++){
-    uv.y += i * 0.1 / i * 
-      sin(uv.x * i * i + iTime * 0.5) * sin(uv.y * i * i + iTime * 0.5);
-  }
+        uv.y+=i*(0.1 * (1.0 - iFrontalAlpha1Coherence))/i*sin(uv.x*i*i+iTime*0.5)*sin(uv.y*i*i+iTime*0.5);
+    }
     
    vec3 col;
    col.r  = uv.y - 0.1;

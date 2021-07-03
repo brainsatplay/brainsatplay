@@ -40,7 +40,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec4 color = vec4(hsv2rgb(h, 1.0, 1.0), 1.0);
     float radius = 0.5;
     float width = 0.8;
-    float power = 0.1;
+    float power = 0.01 + 0.25*iFrontalAlpha1Coherence; //0.1;
     vec3 finalColor = drawCircle(pos, radius, width, power, color);
 
     pos = abs(pos);
