@@ -968,11 +968,13 @@ void main(){
                 if(cmd.fullscreen == true) {
                     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
                     if (!fullscreenElement) {
-                        if (this.AppletHTML.node.requestFullscreen) {
-                            this.AppletHTML.node.requestFullscreen()
-                        } else if (this.AppletHTML.node.webkitRequestFullscreen) {
-                            this.AppletHTML.node.webkitRequestFullscreen()
-                        }
+                        try{
+                            if (this.AppletHTML.node.requestFullscreen) {
+                                this.AppletHTML.node.requestFullscreen()
+                            } else if (this.AppletHTML.node.webkitRequestFullscreen) {
+                                this.AppletHTML.node.webkitRequestFullscreen()
+                            }
+                        } catch(er) {console.error(er)}
                     } 
                 }
                 if(cmd.shader) {
