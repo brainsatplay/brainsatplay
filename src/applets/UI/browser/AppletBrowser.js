@@ -6,7 +6,7 @@ import placeholderImage from '../../../platform/assets/features/placeholder.png'
 import {getAppletSettings} from "../../../platform/js/general/importUtils"
 import * as settingsFile from './settings'
 
-import {MotorImagery} from '../../../libraries/js/src/plugins/algorithms/MotorImagery'
+import {Train} from '../../../libraries/js/src/plugins/utilities/Train'
 import {Application} from '../../../libraries/js/src/Application'
 
 //Example Applet for integrating with the UI Manager
@@ -28,7 +28,7 @@ export class AppletBrowser {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random()*1000000)), //Keep random ID,
-            motorImagery: null
+            trainingModules: {}
         };
 
 
@@ -75,23 +75,25 @@ export class AppletBrowser {
         let trainingContainer = document.createElement('div')
         trainingContainer.id = `${this.props.id}-appletsection`
         trainingContainer.classList.add(`applet-container`)
+
         mainContainer.insertAdjacentElement('beforeend', trainingContainer)
 
-        // Motor Imagery
-        let motorImageryPrompt = document.createElement('div')
-        motorImageryPrompt.classList.add('training-prompt-container')
-        trainingContainer.insertAdjacentElement('beforeend', motorImageryPrompt)
-        this.props.motorImagery =  new Application(
-            {
-            graph: {
-                nodes: [{id: 'motorImagery', class: MotorImagery, params: {}}],
-                edges: []
-            }
-        },
-        motorImageryPrompt, 
-        this.session
-        )
-        this.props.motorImagery.init()
+        let trainingModes = ['Blink', 'Motor Imagery', 'SSVEP', 'P300']
+        // Training Selection
+        trainingModes.forEach(mode => {
+            this.props.trainingModules[mode] =  new Application(
+                {
+                graph: {
+                    nodes: [{id: mode, class: Train, params: {mode}}],
+                    edges: []
+                }
+            },
+            trainingContainer, 
+            this.session
+            )
+            this.props.trainingModules[mode].init()
+            this.props.trainingModules[mode].AppletHTML.node.style.flex = '47%'
+        })
 
 
         // HTML Fragments

@@ -119,47 +119,7 @@ export class MotorImagery{
         }
     }
 
-    init = () => {
-
-        let HTMLtemplate = () => {
-            return `
-                <div id='${this.props.id}prompt' class="training-prompt">
-                    <div>
-                        <h2>Motor Imagery</h2>
-                        <p>Latest Performance: <span id="${this.props.id}performance"></spam></p>
-                    </div>
-                    <div>
-                        <button class="brainsatplay-default-button disabled">Train Now</button>
-                    </div>
-                </div>
-            `
-        }
-
-        let setupHTML = (app) => {
-            this.props.performance = document.getElementById(`${this.props.id}performance`);
-            this.props.performance.innerHTML = '-'
-            // let ui = this.props.canvas.instance.init()
-            // let html = ui.HTMLtemplate()
-            // this.props.container.insertAdjacentHTML('beforeend', html)
-            // ui.setupHTML()
-
-            // this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
-            //     {
-            //         data: (ctx) => {
-            //             if (this.props.looping){
-            //                 if (this.params.debug){
-            //                     this._drawSignal(ctx)
-            //                 } else {
-            //                     this.props.container.style.opacity = 0
-            //                     this.props.container.style.pointerEvents = 'none'
-            //                 }
-            //             }
-            //         }
-            //     }
-            // ])
-        }
-        return {HTMLtemplate, setupHTML}
-    }
+    init = () => {}
 
     deinit = () => {}
 
