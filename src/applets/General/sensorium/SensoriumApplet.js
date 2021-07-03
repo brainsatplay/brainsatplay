@@ -214,6 +214,8 @@ export class SensoriumApplet {
             iFrontalAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         };
 
+        let date = new Date();
+
         this.additionalUniforms = {
             iTime: 0, //milliseconds elapsed from shader begin
             iTimeDelta:0,
@@ -224,13 +226,16 @@ export class SensoriumApplet {
             iChannel:[1,2,3,4], //sampler2d array
             iSampleRate:44100,
             iResolution: ['x','y'], //viewport resolution
-            iDate: [0,0,0,0],
+            iDate: new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds()),
             iMouse: ['x','y','z','w'],  //XY mouse coordinates, z, w are last click location
             iMouseInput: false, //Click occurred before past frame?
             iImage: undefined //Texture map returned from shader (to keep state)
         }
 
-        this.defaultUniforms = {iResolution: {value: 'auto'}, iTime: {value: 0}}
+        this.defaultUniforms = {
+            iResolution: {value: 'auto'}, 
+            iTime: {value: 0}
+        };
 
         this.shaders = {
             galaxy: {
@@ -300,7 +305,7 @@ export class SensoriumApplet {
                 name: 'Clock',
                 vertexShader: vertexShader,
                 fragmentShader: tripclock,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iFrontalAlpha1Coherence','iDate'],
                 credit: '4eckme'
             },
             julia: {
@@ -1315,8 +1320,6 @@ void main(){
                             this.hostSoundsUpdated = false;
                         }
                     });
-
-                    console.log(fx)
                    
                 }
             }
@@ -1775,7 +1778,10 @@ void main(){
                 material.uniforms[name].value = this.mouseclicked;
                 this.mouseclicked = 0.0;
             } else if (name === 'iDate') {
-                material.uniforms[name].value = new THREE.Vector4(Date.getYear(),Date.getMonth(),Date.getDay(),Date.getHours()*3600+Date.getMinutes()*60+Date.getSeconds());
+                let date = new Date();
+                this.additionalUniforms.iDate = new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds());
+                material.uniforms[name].value = this.additionalUniforms.iDate;
+                console.log(this.additionalUniforms.iDate)
             } else if (material.uniforms[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {
