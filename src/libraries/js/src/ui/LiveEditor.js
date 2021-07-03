@@ -333,6 +333,7 @@ export class LiveEditor {
                 <table style='font-size:12px;'>
                     <tr><th width='30%'>Uniforms</th><th width='20%'>Ranges</th><th width='50%'>Descriptions</th></tr>
                     <tr><td>uniform float iTime</td><td>0-</td><td>Time increment</td></tr>
+                    <tr><td>uniform float iTimeDelta</td><td>0-</td><td>Time since last frame</td></tr>
                     <tr><td>uniform vec2 iResolution</td><td>0-</td><td>Viewport Resolution</td></tr>
                     <tr><td>uniform vec2 iMouse</td><td>0-</td><td>Mouseover relative pixel coordinates</td></tr>
                     <tr><td>uniform float iMouseInput</td><td>0.0 or 1.0</td><td>Mouse clicked before current frame?</td></tr>
@@ -356,6 +357,12 @@ export class LiveEditor {
                     <tr><td>uniform float iAlpha1Alpha2</td><td>0-10</td><td>Alpha1/Alpha2 Bandpower Ratio</td></tr>
                     <tr><td>uniform float iAlphaBeta</td><td>0-10</td><td>Alpha/Beta Bandpower Ratio</td></tr>
                     <tr><td>uniform float iThetaBeta</td><td>0-10</td><td>Theta/Beta Bandpower Ratio</td></tr>
+                    <tr><td>uniform vec4 iDate</td><td>0-</td><td>x=year,y=month,z=day,w=time of day (sec)</td></tr>
+                    <tr><td>uniform float iFrame</td><td>0-</td><td>Frame ticks since begin</td></tr>
+                    <tr><td>uniform float iFrameRate</td><td>0-</td><td>Frames per Second</td></tr>
+                    <tr><td>uniform sampler2D iChannel0..3</td><td>2D array of vec4(r,g,b,a)</td><td>Texture channel, by default has a 2048x2048 grid texture</td></tr>
+                    <tr><td>uniform vec3 iChannelResolution[4]</td><td>Array of vec3</td><td>Texture resolution, default 2048x2048</td></tr>
+                    <tr><td>uniform float iChannelTime[4]</td><td>Array of float</td><td>iTime per channel, same as iTime just used by some shaderToys</td></tr>
                     <tr><td colSpan=3>If pasting from ShaderToy and it only has the mainImage function but no main(), paste this at the bottom of the shader: <br>
                       void main() {<br>
                         mainImage(gl_FragColor, vUv*iResolution);<br>

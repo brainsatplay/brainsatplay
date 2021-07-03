@@ -51,6 +51,11 @@ import fluteshot1 from './sounds/wav/fluteshot1.wav'
 import fluteshot2 from './sounds/wav/fluteshot2.wav'
 import drumhit1 from './sounds/wav/drum_hit_1.wav'
 import drumkick1 from './sounds/wav/drum_kick_1.wav'
+
+//Textures
+import uvgrid from './uvgrid.png'
+
+
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 
 //Example Applet for integrating with the UI Manager
@@ -224,13 +229,16 @@ export class SensoriumApplet {
             iFrameRate:0,
             iChannelTime:[0,0,0,0],
             iChannelResolution:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],
-            iChannel:[1,2,3,4], //sampler2d array
+            iChannel0:null,
+            iChannel1:null,
+            iChannel2:null,
+            iChannel3:null,
             iSampleRate:44100,
             iResolution: ['x','y'], //viewport resolution
             iDate: new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds()),
             iMouse: ['x','y','z','w'],  //XY mouse coordinates, z, w are last click location
             iMouseInput: false, //Click occurred before past frame?
-            iImage: new THREE.Texture() //Texture map returned from shader (to keep state)
+            iImage: null //Texture map returned from shader (to keep state)
         }
 
         this.shaders = {
@@ -682,11 +690,28 @@ void main(){
                 });
                 if(found) {
                     if(u === 'iImage') {
+                        this.three.renderer.domElement.ctx.clearRect(0,0,this.AppletHTML.node.clientWidth,this.AppletHTML.node.clientHeight);
                         bciuniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
                     }
+                    else if (u === 'iChannelResolution') {
+                        bciuniforms[u] = {type:'v3v', value:this.additionalUniforms[u]};
+                    }   else if (u.includes('iChannel')) {
+                        if(!this.additionalUniforms[u]) {
+                            this.additionalUniforms[u] = new THREE.Texture(uvgrid);
+                        }
+                        bciuniforms[u] = {type:'t', value:this.additionalUniforms[u]};
+                        if(!uniforms['iChannelResolution']) {
+                            uniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
+                        }
+                        let ch = parseInt(u[8]);
+                        bciuniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
+                            bciuniforms[u].value.image.width,
+                            bciuniforms[u].value.image.height
+                        )
+                    }
                     else bciuniforms[u]={value:this.additionalUniforms[u]};
-                } //add arbitrary uniforms not listed anywhere
-            }
+                }
+            } //add arbitrary uniforms not listed anywhere
         });
         material.uniforms = bciuniforms;
     
@@ -1710,7 +1735,23 @@ void main(){
                 });
                 if(found) {
                     if(u === 'iImage') {
+                        this.three.renderer.domElement.ctx.clearRect(0,0,this.AppletHTML.node.clientWidth,this.AppletHTML.node.clientHeight);
                         bciuniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+                    } else if (u === 'iChannelResolution') {
+                        bciuniforms[u] = {type:'v3v', value:this.additionalUniforms[u]};
+                    } else if (u.includes('iChannel')) {
+                        if(!this.additionalUniforms[u]) {
+                            this.additionalUniforms[u] = new THREE.Texture(uvgrid);
+                        }
+                        bciuniforms[u] = {type:'t', value:this.additionalUniforms[u]};
+                        if(!uniforms['iChannelResolution']) {
+                            uniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
+                        }
+                        let ch = parseInt(u[8]);
+                        bciuniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
+                            bciuniforms[u].value.image.width,
+                            bciuniforms[u].value.image.height
+                        )
                     }
                     else bciuniforms[u]={value:this.additionalUniforms[u]};
                 } //add arbitrary uniforms not listed anywhere
@@ -1761,7 +1802,23 @@ void main(){
                 });
                 if(found) {
                     if(u === 'iImage') {
+                        this.three.renderer.domElement.ctx.clearRect(0,0,this.AppletHTML.node.clientWidth,this.AppletHTML.node.clientHeight);
                         uniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+                    } else if (u === 'iChannelResolution') {
+                        uniforms[u] = {type:'v3v', value:this.additionalUniforms[u]};
+                    } else if (u.includes('iChannel')) {
+                        if(!this.additionalUniforms[u]) {
+                            this.additionalUniforms[u] = new THREE.Texture(uvgrid);
+                        }
+                        uniforms[u] = {type:'t', value:this.additionalUniforms[u]};
+                        if(!uniforms['iChannelResolution']) {
+                            uniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
+                        }
+                        let ch = parseInt(u[8]);
+                        uniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
+                            uniforms[u].value.image.width,
+                            uniforms[u].value.image.height
+                        )
                     }
                     else uniforms[u]={value:this.additionalUniforms[u]};
                 } //add arbitrary uniforms not listed anywhere
@@ -1845,6 +1902,8 @@ void main(){
             } else if (name === 'iMouseInput') {
                 material.uniforms[name].value = this.mouseclicked;
                 this.mouseclicked = 0.0;
+            } else if (name === 'iChannelTime') {
+                material.uniforms[name].value = [this.additionalUniforms.iTime,this.additionalUniforms.iTime,this.additionalUniforms.iTime,this.additionalUniforms.iTime];
             } else if (name === 'iDate') {
                 let date = new Date();
                 this.additionalUniforms.iDate = new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds());
