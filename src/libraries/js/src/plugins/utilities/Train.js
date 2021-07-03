@@ -20,6 +20,13 @@ export class Train{
                 onUpdate: (userData) => {
                     this.params.mode = userData[0].data
                 }
+            },
+            ui: {
+                input: {type: null},
+                output: {type: Object},
+                onUpdate: () => {
+                    return [{data: this.props.ui}]
+                }
             }
         }
 
@@ -29,13 +36,14 @@ export class Train{
             models: {
                 csp: null,
                 lda: null
-            }
+            },
+            ui: {}
         }
     }
 
     init = () => {
 
-        let HTMLtemplate = () => {
+        this.props.ui.HTMLtemplate = () => {
             return `
             <div class="training-prompt-container">
                 <div id='${this.props.id}prompt' class="training-prompt">
@@ -51,11 +59,12 @@ export class Train{
             `
         }
 
-        let setupHTML = (app) => {
+        this.props.ui.setupHTML = (app) => {
             this.props.performance = document.getElementById(`${this.props.id}performance`);
             this.props.performance.innerHTML = '-'
         }
-        return {HTMLtemplate, setupHTML}
+
+        this.session.graph.runSafe(this,'ui',[{force: true}])
     }
 
     deinit = () => {}

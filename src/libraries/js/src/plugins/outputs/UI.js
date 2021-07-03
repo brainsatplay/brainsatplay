@@ -1,4 +1,6 @@
-export class HTML{
+import {DOMFragment} from '../../ui/DOMFragment'
+
+export class UI{
 
     static id = String(Math.floor(Math.random()*1000000))
     
@@ -12,10 +14,27 @@ export class HTML{
             container: null,
             context: null,
             drawFunctions: {},
-            looping: false
+            looping: false,
+            fragments: {}
         }
 
         this.ports = {
+            html: {
+                input: {type: 'string'},
+                output: {type: null},
+                default: ``,
+                onUpdate: (userData) => {
+                    this.params.html = userData[0].data
+                },
+            },
+            parentNode: {
+                input: {type: 'Element'},
+                output: {type: null},
+                default: document.body,
+                onUpdate: (userData) => {
+                    this.params.parentNode = userData[0].data
+                },
+            },
             element: {
                 input: {type: null},
                 output: {type: 'Element'},
@@ -37,6 +56,23 @@ export class HTML{
                     let val = userData[0].data
                     this.props.container.style.opacity = val
                 }
+             },
+             add: {
+                input: {type:Object},
+                output: {type: null},
+                onUpdate:(userData) => {
+                    let u = userData[0]
+                    let dict = u.data
+
+                    if (dict.HTMLtemplate && u.meta.source && this.props.fragments[u.meta.source] == null){
+                        this.props.fragments[u.meta.source] = new DOMFragment(
+                            dict.HTMLtemplate,
+                            this.props.ui.node,
+                            undefined,
+                            dict.setupHTML
+                        )
+                    }
+                }
              }
         }
     }
@@ -47,7 +83,8 @@ export class HTML{
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
         this.props.container.style = this.params.style
-        this.props.container.insertAdjacentHTML(`beforeend`,this.params.html)
+        this.props.container.insertAdjacentHTML(`beforeend`, this.params.html)
+
         var descendants = this.props.container.querySelectorAll("*");
         for (let node of descendants){
             if (node.id){
@@ -61,22 +98,28 @@ export class HTML{
             }
         }
 
-        let HTMLtemplate = () => {
-            return this.props.container
-        }
+        let HTMLtemplate = ``
 
         let setupHTML = (app) => {
-
-            this.props.container = document.getElementById(`${this.props.id}`);
-
-            // Set Default Port Output
-            this.ports.element.default = this.props.container
+            this.props.ui = new DOMFragment(
+                () => {return this.props.container},
+                app.id,
+                ()=>{
+                    console.log('creating')
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                this.responsive
+            )
         }
 
         return { HTMLtemplate, setupHTML}
     }
 
-    deinit = () => {
+    deinit = () => { 
+        // this.props.ui.deleteNode() 
     }
 
     responsive = () => {}

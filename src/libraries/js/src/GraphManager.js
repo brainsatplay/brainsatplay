@@ -56,23 +56,29 @@ export class GraphManager{
                 node.states[port] = [{}]
                 let defaults = node.ports[port].defaults
 
-                // if (defaults && defaults.output) {
+                // Send Default Outputs (forced)
+                try {
+                    if (Array.isArray(defaults.output)) {
+                        node.states[port] = defaults.output
+                        node.states[port][0].force = true
+                    }
+                    else if (defaults.output.constructor == Object && 'data' in defaults.output) {
+                        node.states[port] = [defaults.output]
+                        node.states[port][0].force = true
+                    }
+                } catch {
                     try {
-                        if (Array.isArray(defaults.output)) node.states[port] = defaults.output
-                        else if (defaults.output.constructor == Object && 'data' in defaults.output) node.states[port] = [defaults.output]
+                        if (node.ports[port].default) {
+                            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
+                            node.states[port][0].force = true
+                        }
                     } catch {
-                        try {
-                            if (node.ports[port].default) node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
-                        } catch {
-                            if (defaults && defaults.output) {
-                                node.states[port] = defaults.output
-                            }
+                        if (defaults && defaults.output) {
+                            node.states[port] = defaults.output
+                            node.states[port][0].force = true
                         }
                     }
-                // }
-
-                // Always Force Defaults
-                node.states[port][0].force = true
+                }
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
@@ -290,22 +296,22 @@ export class GraphManager{
     runSafe(node, port='default',input=[{}]){
 
         try {
-
             // Shallow Copy State before Repackaging
             let inputCopy = []
 
             inputCopy = this.deeperCopy(input)
-
+            
             // Add Metadata
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries
-                if (Object.keys(inputCopy[i]) == 0) inputCopy.splice(i,1)
+                if (Object.keys(inputCopy[i]) == 0 && inputCopy[i].force != true) inputCopy.splice(i,1)
                 // Or Add Username
                 else {
                     if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
                     if (!inputCopy[i].meta) inputCopy[i].meta = {}
                 }
             }
+            
 
             // Only Continue the Chain with Updated Data
             if (inputCopy.length > 0){
@@ -577,6 +583,13 @@ export class GraphManager{
 
             // Send Last State to New Edge Target
             let sendFunction = () => {
+
+                // Add Default Metadata
+                source.states[sourcePort].forEach(o => {
+                    if (o.meta == null) o.meta = {}
+                    o.meta.source = label
+                    o.meta.session = applet.sessionId
+                })
                 this.runSafe(target, targetPort, source.states[sourcePort])
             }
             if (sendOutput) sendFunction()

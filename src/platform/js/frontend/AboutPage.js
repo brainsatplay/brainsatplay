@@ -47,15 +47,11 @@ export class AboutPage{
         this._init()
     }
 
-    _init(){
-        console.log('initing')
-    }
+    _init(){}
 
     _toggle(){
 
     }
 
-    responsive(){
-        console.log('responding')
-    }
+    responsive(){}
 }

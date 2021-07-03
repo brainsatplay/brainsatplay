@@ -7,6 +7,7 @@ import {getAppletSettings} from "../../../platform/js/general/importUtils"
 import * as settingsFile from './settings'
 
 import {Train} from '../../../libraries/js/src/plugins/utilities/Train'
+import {UI} from '../../../libraries/js/src/plugins/outputs/UI'
 import {Application} from '../../../libraries/js/src/Application'
 
 //Example Applet for integrating with the UI Manager
@@ -79,21 +80,24 @@ export class AppletBrowser {
         mainContainer.insertAdjacentElement('beforeend', trainingContainer)
 
         let trainingModes = ['Blink', 'Motor Imagery', 'SSVEP', 'P300']
+
+        let settings = {
+            graph: {
+                nodes: [],
+                edges: []
+            }
+        }
+
         // Training Selection
-        trainingModes.forEach(mode => {
-            this.props.trainingModules[mode] =  new Application(
-                {
-                graph: {
-                    nodes: [{id: mode, class: Train, params: {mode}}],
-                    edges: []
-                }
-            },
-            trainingContainer, 
-            this.session
-            )
-            this.props.trainingModules[mode].init()
-            this.props.trainingModules[mode].AppletHTML.node.style.flex = '47%'
+        trainingModes.forEach((mode,i) => {
+            settings.graph.nodes.push({id: mode, class: Train, params: {mode}})
+            settings.graph.nodes.push({id: `${mode}ui`, class: UI, params: {style: `flex: 47%;`, parentNode:trainingContainer}})
+            settings.graph.edges.push({source: `${mode}:ui`, target: `${mode}ui:add`})
         })
+
+        this.props.trainingModule =  new Application(settings,trainingContainer,this.session)
+        this.props.trainingModule.init()
+        trainingContainer.style.padding = 0
 
 
         // HTML Fragments
@@ -278,9 +282,7 @@ export class AppletBrowser {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
-        for (let key in this.props.trainingModules){
-            this.props.trainingModules[key].deinit()
-        }
+        this.props.trainingModule.deinit()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

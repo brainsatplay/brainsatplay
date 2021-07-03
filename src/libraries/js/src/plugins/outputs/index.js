@@ -3,7 +3,7 @@ import {Cursor} from './Cursor'
 import {Buzz} from './Buzz'
 import {Canvas} from '../graphics/Canvas'
 import {Scene} from '../graphics/Scene'
-import {HTML} from './HTML'
+import {UI} from './UI'
 import {Plot} from './Plot'
 
-export {Debug,Cursor,Buzz,Canvas,Scene,HTML,Plot}
+export {Debug,Cursor,Buzz,Canvas,Scene,UI,Plot}
