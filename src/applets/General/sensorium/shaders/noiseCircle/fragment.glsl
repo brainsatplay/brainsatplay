@@ -1,18 +1,16 @@
-#define FFTCOUNT 128
-
+#define FFTLENGTH 256
 precision mediump float;
 varying vec2 vUv;
-
-uniform float amplitude;
-uniform float historyLength;
+varying vec2 vTextureCoord;
 uniform vec2 iResolution;
-uniform vec2 mouse;
 uniform float iTime;
-uniform float iFrontalAlpha1Coherence;
 uniform float iHEG;
 uniform float iHRV;
-uniform float iFFT[FFTCOUNT];
-
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
 float circle(in vec2 _center, in vec2 _uv, in float _Diameter, in float Thickness, in float Glow){
     vec2 dist = _uv-_center;
     float outer = 1.-smoothstep(_Diameter-(_Diameter*(1.-Glow)),

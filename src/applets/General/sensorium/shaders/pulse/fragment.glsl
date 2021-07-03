@@ -1,19 +1,18 @@
 // Source: https://www.shadertoy.com/view/3tdSRn
 
-#define FFTCOUNT 128
-
+#define FFTLENGTH 256
 precision mediump float;
 varying vec2 vUv;
-
-uniform float amplitude;
-uniform float historyLength;
+varying vec2 vTextureCoord;
 uniform vec2 iResolution;
-uniform vec2 mouse;
 uniform float iTime;
-uniform float iFrontalAlpha1Coherence;
 uniform float iHEG;
 uniform float iHRV;
-uniform float iFFT[FFTCOUNT];
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
 
 vec3 drawCircle(vec2 pos, float radius, float width, float power, vec4 color)
 {
@@ -41,7 +40,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec4 color = vec4(hsv2rgb(h, 1.0, 1.0), 1.0);
     float radius = 0.5;
     float width = 0.8;
-    float power = 0.1;
+    float power = 0.01 + 0.25*iFrontalAlpha1Coherence; //0.1;
     vec3 finalColor = drawCircle(pos, radius, width, power, color);
 
     pos = abs(pos);

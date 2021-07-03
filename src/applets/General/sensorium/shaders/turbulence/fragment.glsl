@@ -1,19 +1,18 @@
 // Source: https://www.shadertoy.com/view/WsjBRW
 
-#define FFTCOUNT 128
-
+#define FFTLENGTH 256
 precision mediump float;
 varying vec2 vUv;
-
-uniform float amplitude;
-uniform float historyLength;
+varying vec2 vTextureCoord;
 uniform vec2 iResolution;
-uniform vec2 mouse;
 uniform float iTime;
-uniform float iFrontalAlpha1Coherence;
 uniform float iHEG;
 uniform float iHRV;
-uniform float iFFT[FFTCOUNT];
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
 
 void main()
 {
@@ -22,9 +21,8 @@ void main()
     vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
 
     for(float i = 1.0; i < 8.0; i++){
-    uv.y += i * 0.1 / i * 
-      sin(uv.x * i * i + iTime * 0.5) * sin(uv.y * i * i + iTime * 0.5);
-  }
+        uv.y+=i*(0.1 * (1.0 - iFrontalAlpha1Coherence))/i*sin(uv.x*i*i+iTime*0.5)*sin(uv.y*i*i+iTime*0.5);
+    }
     
    vec3 col;
    col.r  = uv.y - 0.1;
