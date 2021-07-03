@@ -29,6 +29,8 @@ import blobFragmentShader from './shaders/voronoiblobs/fragment.glsl'
 import fractalpyramidFragmentShader from './shaders/fractalpyramid/fragment.glsl'
 import cineshaderlavaFragmentShader from './shaders/cineshaderlava/fragment.glsl'
 import octagramsFragmentShader from './shaders/octagrams/fragment.glsl'
+import marbleFragmentShader from './shaders/marble/fragment.glsl'
+import turbulenceFragmentShader from './shaders/turbulence/fragment.glsl'
 
 import spinthings from './shaders/spinthings/fragment.glsl'
 import bandsynth from './shaders/bandlimited/fragment.glsl'
@@ -256,6 +258,20 @@ export class SensoriumApplet {
                 fragmentShader: spinthings,
                 uniforms: [],
                 credit: 'Vinicius_Jesus'
+            },
+            marble: {
+                name: 'Glowing Marble',
+                vertexShader: vertexShader,
+                fragmentShader: marbleFragmentShader,
+                uniforms: [],
+                credit: 'nasana (Shadertoy)'
+            },
+            turbulence: {
+                name: 'Turbulence',
+                vertexShader: vertexShader,
+                fragmentShader: turbulenceFragmentShader,
+                uniforms: [],
+                credit: 'exandro (Shadertoy)'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
