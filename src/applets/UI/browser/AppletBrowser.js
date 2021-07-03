@@ -6,6 +6,9 @@ import placeholderImage from '../../../platform/assets/features/placeholder.png'
 import {getAppletSettings} from "../../../platform/js/general/importUtils"
 import * as settingsFile from './settings'
 
+import {MotorImagery} from '../../../libraries/js/src/plugins/algorithms/MotorImagery'
+import {Application} from '../../../libraries/js/src/Application'
+
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
 
@@ -24,9 +27,11 @@ export class AppletBrowser {
         //------------------------
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
+            id: String(Math.floor(Math.random()*1000000)), //Keep random ID,
+            motorImagery: null
         };
-        
+
+
         // Default Configuration Settings 
         this.appletToReplace = 0
         this.showPresets = true
@@ -55,14 +60,39 @@ export class AppletBrowser {
         let presetSelections = []
         let presetEl = document.createElement('div')
         presetEl.classList.add('preset-container')
-        // let presetHeader = document.createElement('div')
-        // presetHeader.innerHTML = `
-        // <div id="${this.props.id}-appletheader" class="browser-header">
-        //     <h1>Featured</h1>
-        // </div>
-        // `
-        // mainContainer.insertAdjacentElement('beforeend', presetHeader)
         mainContainer.insertAdjacentElement('beforeend', presetEl)
+
+
+        // Training Prompts
+        let trainingHeader = document.createElement('div')
+        trainingHeader.innerHTML = `
+        <div id="${this.props.id}-trainingheader" class="browser-header">
+            <h1>Training</h1>
+        </div>
+        `
+        mainContainer.insertAdjacentElement('beforeend', trainingHeader)
+
+        let trainingContainer = document.createElement('div')
+        trainingContainer.id = `${this.props.id}-appletsection`
+        trainingContainer.classList.add(`applet-container`)
+        mainContainer.insertAdjacentElement('beforeend', trainingContainer)
+
+        // Motor Imagery
+        let motorImageryPrompt = document.createElement('div')
+        motorImageryPrompt.classList.add('motor-imagery-prompt-container')
+        trainingContainer.insertAdjacentElement('beforeend', motorImageryPrompt)
+        this.props.motorImagery =  new Application(
+            {
+            graph: {
+                nodes: [{id: 'motorImagery', class: MotorImagery, params: {}}],
+                edges: []
+            }
+        },
+        motorImageryPrompt, 
+        this.session
+        )
+        this.props.motorImagery.init()
+
 
         // HTML Fragments
 
@@ -157,7 +187,7 @@ export class AppletBrowser {
             mainContainer.insertAdjacentHTML('beforeend', 
             `
             <div id="${this.props.id}-appletheader" class="browser-header">
-                <h1>Applets</h1>
+                <h1>Your Apps</h1>
                 <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                     
                 <div style="margin: 5px; flex-grow: 1;">
@@ -246,6 +276,7 @@ export class AppletBrowser {
     //Delete all event listeners and loops here and delete the HTML block
     deinit() {
         this.AppletHTML.deleteNode();
+        this.props.motorImagery.deinit()
         //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 

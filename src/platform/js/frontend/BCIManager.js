@@ -25,6 +25,7 @@ import { CSV } from '../../../libraries/js/src/utils/csv'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
+import { AboutPage } from './AboutPage'
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
@@ -150,7 +151,7 @@ export class BCIAppManager {
                     <button class="collapsible">
                     <div class="img-cont">
                     <img src="${HelpIcon}">
-                    <span>Help</span>
+                    <span>Learn More</span>
                     </div>
                     </button>
                 </div>
@@ -482,8 +483,10 @@ export class BCIAppManager {
         ]
         let helpMenu = document.getElementById('help-menu').querySelector('button')
 
-        let tutorialManager = new TutorialManager('sidebar-tutorial', tooltips, document.body, helpMenu)
-        tutorialManager.init()
+        let aboutPage = new AboutPage(document.getElementById('page'), helpMenu)
+
+        // let tutorialManager = new TutorialManager('sidebar-tutorial', tooltips, document.body, helpMenu)
+        // tutorialManager.init()
     }
 
     deinitUI = () => { //Destroy the UI and logic/loops
