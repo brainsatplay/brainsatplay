@@ -653,7 +653,7 @@ void main(){
     this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const geometry = this.createViewGeometry()
+    const geometry = this.createViewGeometry();
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
@@ -914,12 +914,14 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = this.createViewGeometry()
+            let newGeometry = this.createViewGeometry();
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
                 p.material.uniforms.iResolution.value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
-            })
+                
+                p.rotation.set(0,Math.PI,0);
+            });
             
             this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
