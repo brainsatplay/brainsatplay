@@ -335,7 +335,7 @@ export class LiveEditor {
                     <tr><td>uniform float iTime</td><td>0-</td><td>Time increment</td></tr>
                     <tr><td>uniform float iTimeDelta</td><td>0-</td><td>Time since last frame</td></tr>
                     <tr><td>uniform vec2 iResolution</td><td>0-</td><td>Viewport Resolution</td></tr>
-                    <tr><td>uniform vec2 iMouse</td><td>0-</td><td>Mouseover relative pixel coordinates</td></tr>
+                    <tr><td>uniform vec4 iMouse</td><td>0-dim</td><td>Mouseover relative pixel coordinates, [PosX,PosY,LastClickX,LastClickY]</td></tr>
                     <tr><td>uniform float iMouseInput</td><td>0.0 or 1.0</td><td>Mouse clicked before current frame?</td></tr>
                     <tr><td>uniform sampler2D iImage</td><td>2D array of vec4(r,g,b,a)</td><td>Copy of image from last frame</td></tr>
                     <tr><td>uniform float iAudioFFT[256]</td><td>0-255</td><td>Audio power spectrum, higher index = higher frequencies</td></tr>
