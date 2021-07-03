@@ -120,11 +120,10 @@ export class GraphEditor{
                 let toggleClass = '.brainsatplay-default-editor-toggle'
                 let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
                 // Search for Toggle
-                if (this.app.AppletHTML.node){
-                    let tries = 0
-                    let checkToggle = () => {
-                        if (tries < 10){
-
+                let tries = 0
+                let checkToggle = () => {
+                    if (tries < 10){
+                        if (this.app.AppletHTML){
                             // Grab
                             if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
                             if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
@@ -136,11 +135,13 @@ export class GraphEditor{
                                 setTimeout(() => {checkToggle()},500)
                                 tries++
                             }
-                        } else console.warn('toggle not available')
-                    }
-
-                    checkToggle()
+                        } else {
+                            tries = 11
+                        }
+                    } else console.warn('toggle not available')
                 }
+
+                checkToggle()
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')

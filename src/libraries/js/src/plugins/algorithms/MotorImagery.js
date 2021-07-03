@@ -123,7 +123,7 @@ export class MotorImagery{
 
         let HTMLtemplate = () => {
             return `
-                <div id='${this.props.id}prompt' class="motor-imagery-prompt">
+                <div id='${this.props.id}prompt' class="training-prompt">
                     <div>
                         <h2>Motor Imagery</h2>
                         <p>Latest Performance: <span id="${this.props.id}performance"></spam></p>

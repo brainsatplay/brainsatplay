@@ -1125,44 +1125,46 @@ select {
 
 
 /* Motor Imagery */
-.motor-imagery-prompt-container {
+.training-prompt-container {
     padding: 25px; 
     width: 100%;
-    height: 200px;
+    max-height: 250px;
 }
 
-.motor-imagery-prompt {
+.training-prompt {
     display: flex; 
     align-items: center; 
-    justify-content: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap;
     height: 100%;
     background: rgb(25,25,25);
     border-radius: 5px;
-    /* grid-template-columns: repeat(2, 1fr); */
-    padding: 50px;
+    padding: 25px;
     width: 100%;
     border: 1px solid gray;
 }
 
-.motor-imagery-prompt > div {
+.training-prompt > div {
     width: 100%;
+    flex: 47%;
+    padding: 10px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.motor-imagery-prompt h2 {
+.training-prompt h2 {
     margin: 0;
     width: 100%;
 }
 
-.motor-imagery-prompt p {
+.training-prompt p {
     margin: 0;
     padding-top: 10px;
     font-size: 75%;
 }
 
-.motor-imagery-prompt button.disabled {
+.training-prompt button.disabled {
     opacity: 50%;
     pointer-events: none;
 }

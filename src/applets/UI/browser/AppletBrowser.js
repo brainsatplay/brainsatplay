@@ -79,7 +79,7 @@ export class AppletBrowser {
 
         // Motor Imagery
         let motorImageryPrompt = document.createElement('div')
-        motorImageryPrompt.classList.add('motor-imagery-prompt-container')
+        motorImageryPrompt.classList.add('training-prompt-container')
         trainingContainer.insertAdjacentElement('beforeend', motorImageryPrompt)
         this.props.motorImagery =  new Application(
             {
