@@ -835,17 +835,15 @@ void main(){
                         } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
                             this.isHost = false;
                             document.getElementById(this.props.id+'submitconfig').style.display = 'none';
-                            
                         }
                     }                  
-                
                 });
-            
-            }
-            
+            }            
         });
-
-        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
+       
+        //document.getElementById(this.props.id).getElementsByClassName('brainsatplay-default-fullscreen-icon')[0].click();
+        this.configure(this.settings);
+        //You can give the app initialization settings if you want via an array.
 
     }
 
@@ -966,6 +964,16 @@ void main(){
                     document.getElementById(this.props.id+'showhide').onclick();
                     document.getElementById(this.props.id+'showhide').onmouseleave();
                     document.getElementById(this.props.id+'exitSession').style.display = 'none';   
+                }
+                if(cmd.fullscreen == true) {
+                    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                    if (!fullscreenElement) {
+                        if (this.AppletHTML.node.requestFullscreen) {
+                            this.AppletHTML.node.requestFullscreen()
+                        } else if (this.AppletHTML.node.webkitRequestFullscreen) {
+                            this.AppletHTML.node.webkitRequestFullscreen()
+                        }
+                    } 
                 }
                 if(cmd.shader) {
                     let shaderselector = document.getElementById(this.props.id+'shaderSelector');
@@ -1193,6 +1201,9 @@ void main(){
             settings[0].spectating = false;
         }
         console.log("Current settings: ",settings);
+
+        settings[0].fullscreen = true;
+
         return settings;
     }
 
