@@ -217,6 +217,7 @@ export class SensoriumApplet {
         let date = new Date();
 
         this.additionalUniforms = {
+            iResolution: 'auto', 
             iTime: 0, //milliseconds elapsed from shader begin
             iTimeDelta:0,
             iFrame:0,
@@ -229,90 +230,85 @@ export class SensoriumApplet {
             iDate: new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds()),
             iMouse: ['x','y','z','w'],  //XY mouse coordinates, z, w are last click location
             iMouseInput: false, //Click occurred before past frame?
-            iImage: undefined //Texture map returned from shader (to keep state)
+            iImage: new THREE.Texture() //Texture map returned from shader (to keep state)
         }
-
-        this.defaultUniforms = {
-            iResolution: {value: 'auto'}, 
-            iTime: {value: 0}
-        };
 
         this.shaders = {
             galaxy: {
                 name: 'Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
-                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
+                uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
                 credit: 'JoshB x JoshP x CBS'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
-                uniforms: ['iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
                 credit: 'JoshB x JoshP'
             },
             creation: {
                 name: 'Creation',
                 vertexShader: vertexShader,
                 fragmentShader: creationFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence','iHEG','iHRV'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence','iHEG','iHRV'],
                 credit: 'Danilo Guanabara'
             },
             voronoiblobs: {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'Elise'
             },
             spinthings: {
                 name: 'Spin Things',
                 vertexShader: vertexShader,
                 fragmentShader: spinthings,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             pulse: {
                 name: 'Pulse',
                 vertexShader: vertexShader,
                 fragmentShader: pulseFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'haquxx'
             },
             marble: {
                 name: 'Glowing Marble',
                 vertexShader: vertexShader,
                 fragmentShader: marbleFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'nasana'
             },
             turbulence: {
                 name: 'Turbulence',
                 vertexShader: vertexShader,
                 fragmentShader: turbulenceFragmentShader,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'exandro'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
                 vertexShader: vertexShader,
                 fragmentShader: bandsynth,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             clock: {
                 name: 'Clock',
                 vertexShader: vertexShader,
                 fragmentShader: tripclock,
-                uniforms: ['iFrontalAlpha1Coherence','iDate'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence','iDate'],
                 credit: '4eckme'
             },
             julia: {
                 name: 'Julia Set',
                 vertexShader: vertexShader,
                 fragmentShader: julia,
-                uniforms: ['iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
                 credit: 'gaetanThiesson'
             }
         }
@@ -648,7 +644,7 @@ void main(){
     let shaderKeys = Object.keys(this.shaders);
     let numShaders = shaderKeys.length;
 
-    this.defaultUniforms.iResolution = {value: new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)}; //Required for ShaderToy shaders
+    this.additionalUniforms.iResolution = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //Required for ShaderToy shaders
     
     let k = shaderKeys[0]
     // shaderKeys.forEach((k,i) => {
@@ -657,8 +653,36 @@ void main(){
             side: THREE.DoubleSide,
             vertexShader: this.shaders[k].vertexShader,
             fragmentShader: this.shaders[k].fragmentShader,
-            uniforms: {...this.defaultUniforms}// Default Uniforms 
+            uniforms: {}// Default Uniforms 
         });
+
+        
+        let bciuniforms = {};
+        this.shaders[k].uniforms.forEach((u)=>{
+            let pass = false;
+            for(const prop in this.modifiers) {
+                if(u === prop) {
+                    bciuniforms[u]={value:this.modifiers[u]};
+                    pass = true;
+                    break;
+                }
+            }
+            if(!pass) {
+                let found = Object.keys(this.additionalUniforms).find((j) => {
+                    if(u === j) {
+                        return true;
+                    }
+                });
+                if(found) {
+                    if(u === 'iImage') {
+                        bciuniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+                    }
+                    else bciuniforms[u]={value:this.additionalUniforms[u]};
+                } //add arbitrary uniforms not listed anywhere
+            }
+        });
+        material.uniforms = bciuniforms;
+    
 
         let radius = 0;//10
         let plane = new THREE.Mesh(geometry, material)
@@ -1659,6 +1683,33 @@ void main(){
             side: THREE.DoubleSide,
             transparent: true,
         });
+
+        
+        let bciuniforms = {};
+        this.currentShader.uniforms.forEach((u)=>{
+            let pass = false;
+            for(const prop in this.modifiers) {
+                if(u === prop) {
+                    bciuniforms[u]={value:this.modifiers[u]};
+                    pass = true;
+                    break;
+                }
+            }
+            if(!pass) {
+                let found = Object.keys(this.additionalUniforms).find((j) => {
+                    if(u === j) {
+                        return true;
+                    }
+                });
+                if(found) {
+                    if(u === 'iImage') {
+                        bciuniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+                    }
+                    else bciuniforms[u]={value:this.additionalUniforms[u]};
+                } //add arbitrary uniforms not listed anywhere
+            }
+        });
+        newMaterial.uniforms = bciuniforms;
         
         this.updateMaterialUniforms(newMaterial,this.modifiers);
         this.generateGUI(this.currentShader.uniforms);
@@ -1684,35 +1735,42 @@ void main(){
             alluniforms.push(a[2].replace(/(\[.+\])/g, ''))
         })
         let bciuniforms = [];
+        let uniforms = {};
         alluniforms.forEach((u) => {
+            let pass = false;
             for(const prop in this.modifiers) {
                 if(u === prop) {
                     bciuniforms.push(u);
+                    uniforms[u]={value:this.modifiers[u]};
+                    pass = true;
+                    break;
                 }
             }
-            let found = Object.keys(this.additionalUniforms).find((k) => {
-                if(u === k) {
-                    return true;
-                }
-            });
-            if(!found && bciuniforms.indexOf(u) < 0) {
-                bciuniforms.push(u);
-            } //add arbitrary uniforms not listed anywhere
+            if(bciuniforms.indexOf(u) < 0) {
+                let found = Object.keys(this.additionalUniforms).find((k) => {
+                    if(u === k) {
+                        return true;
+                    }
+                });
+                if(found) {
+                    if(u === 'iImage') {
+                        uniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
+                    }
+                    else uniforms[u]={value:this.additionalUniforms[u]};
+                } //add arbitrary uniforms not listed anywhere
+            }
         })
         this.currentShader.uniforms = bciuniforms;
-
         // Create New Shader
         let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.currentShader.vertexShader,
             fragmentShader: fragShader,
             side: THREE.DoubleSide,
-            transparent: true,
+            transparent: true
         });
         try{
-            if(this.currentShader.uniforms.find((name)=>{if(name === 'iImage') return true;})) {
-                newMaterial.uniforms[name] = {type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
-            }
-
+            newMaterial.uniforms = uniforms;
+            console.log(uniforms)
             this.updateMaterialUniforms(newMaterial,this.modifiers);
             this.generateGUI(this.currentShader.uniforms);
 
@@ -1727,12 +1785,12 @@ void main(){
 
     getData(u) {        
         if (u === 'iFFT'){
-                let channel = this.session.atlas.getLatestFFTData()[0]
-                if (channel.fft){
-                    let fft = eegmath.interpolateArray(channel.fft,256);
-                    if(fft) return  fft;
-                    else return new Array(256).fill(0);
-                }else return new Array(256).fill(0);
+            let channel = this.session.atlas.getLatestFFTData()[0]
+            if (channel.fft){
+                let fft = eegmath.interpolateArray(channel.fft,256);
+                if(fft) return  fft;
+                else return new Array(256).fill(0);
+            } else return new Array(256).fill(0);
         }
         else if (u === 'iHRV'){
             if (this.session.atlas.data.heg.length > 0) return  this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].hrv; 
@@ -1759,17 +1817,20 @@ void main(){
         }
     }
 
-    updateMaterialUniforms = (material,modifiers={}) => {
-        let uniformsToUpdate = JSON.parse(JSON.stringify(this.defaultUniforms));
-        this.currentShader.uniforms.forEach((u)=> uniformsToUpdate[u]=0);
+    updateMaterialUniforms = (material,modifiers=this.modifiers) => {
+        
+        let uniformsToUpdate = this.currentShader.uniforms;
 
-        for (let name in uniformsToUpdate){
-            let value = uniformsToUpdate[name];
+        for (let i=0; i<uniformsToUpdate.length; i++){
+            let name = uniformsToUpdate[i];
+            let value = material.uniforms[i];
 
-            if (material.uniforms[name] == null) material.uniforms[name] = {}
+            if (material.uniforms[name] == null) material.uniforms[name] = {value:0};
 
-            if (Object.keys(this.defaultUniforms).includes(name)){
-                material.uniforms[name].value = this.getData(name)
+            if (name === 'iResolution') {
+                material.uniforms[name].value = this.getData('iResolution');
+            } else if (name === 'iTime') {
+                material.uniforms[name].value = this.additionalUniforms.iTime;
             } else if (name === 'iImage') { 
                 material.uniforms[name].value = new THREE.Texture(this.three.renderer.domElement.toDataURL());
             } else if (name === 'iMouse') {
@@ -1781,7 +1842,7 @@ void main(){
                 let date = new Date();
                 this.additionalUniforms.iDate = new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds());
                 material.uniforms[name].value = this.additionalUniforms.iDate;
-            } else if (material.uniforms[name]) {
+            } else if (material.uniforms[name] && modifiers[name]) {
                 material.uniforms[name].value = modifiers[name];
             } else {
                 material.uniforms[name].value = value;
