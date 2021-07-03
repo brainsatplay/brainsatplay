@@ -9,9 +9,12 @@ export class Debug{
 
         this.ports = {
             default: {
-                types: {
-                    in: undefined,
-                    out: null
+                input: {type: undefined},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    userData.forEach((u,i) => {
+                        console.log(u.username,u.data,u.meta,u)
+                    })
                 }
             }
         }
@@ -20,11 +23,4 @@ export class Debug{
     init = () => {}
 
     deinit = () => {}
-
-    default = (userData) => {
-        userData.forEach((u,i) => {
-            console.log(u.username,u.data,u.meta,u)
-            
-        })
-    }
 }

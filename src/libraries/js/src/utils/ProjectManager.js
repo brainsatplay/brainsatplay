@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplay from '../../brainsatplay'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.20";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.22";
 
 let defaultPlugins = []
 for (let type in brainsatplay.plugins){
@@ -200,7 +200,6 @@ app.init()`)
         }
 
         info = JSON.stringifyWithCircularRefs(info)
-        console.log(info)
         
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;

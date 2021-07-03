@@ -21,7 +21,7 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.inputs.Signal},
+        {id: 'signal', class: brainsatplay.plugins.biosignals.Signal},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
         {id: 'ui', class: UI, params: {}},
@@ -34,7 +34,7 @@ export const settings = {
         },
         { 
           source: 'neurofeedback', 
-          target: 'brainstorm:neurofeedback'
+          target: 'brainstorm'
         },
         {
           source: 'brainstorm:neurofeedback', 

@@ -150,7 +150,7 @@ export class bci2000Plugin {
                     this.states[stateId] = Array.from({length: possibilities}, (e,i) => {
                         if (possibilities > 1) id = `${stateId}_${i}` // Create unique ID
                         else id = stateId
-                        return {data: false, meta: {id}, timestamp: Date.now()} // Set with expected (boolean) value
+                        return {data: false, meta: {id}} // Set with expected (boolean) value
                     })
                 })
             }

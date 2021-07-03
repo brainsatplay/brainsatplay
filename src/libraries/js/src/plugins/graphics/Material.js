@@ -63,7 +63,7 @@ export class Material{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
                 this.props.lastRendered = Date.now()
-                this.session.graph.runSafe(this,'default',[{data:true}])
+                this.session.graph.runSafe(this,'default',[{data:true, force: true}])
         })
         
         this._passShaderMaterial()
@@ -118,7 +118,7 @@ export class Material{
     _passShaderMaterial = () => {
         if (this.props.vertexShader && this.props.fragmentShader) {
             this.params.type = 'ShaderMaterial'
-            this.session.graph.runSafe(this,'default',[{data:true}])
+            this.session.graph.runSafe(this,'default',[{data:true, force: true}])
         }
         else this.params.type = 'MeshStandardMaterial'
     }

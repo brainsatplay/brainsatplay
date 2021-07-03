@@ -45,9 +45,6 @@ export class GraphManager{
             if (node.params[port] == null) node.params[port] = node.ports[port].default
         }
 
-
-
-
         // Set Params to Info Object
         nodeInfo.params = node.params
 
@@ -73,6 +70,9 @@ export class GraphManager{
                         }
                     }
                 // }
+
+                // Always Force Defaults
+                node.states[port][0].force = true
 
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
@@ -114,20 +114,9 @@ export class GraphManager{
             node.states['default'] = [{}]
         }
         
-        // Instantiate Dependencies
-        let depDict = {}
-        let instance, analysis;
-        if (node.dependencies){
-            node.dependencies.forEach(d => {
-                ({instance, analysis} = this.instantiateNode(d))
-                depDict[d.id] = instance
-                if (analysis.size > 0) toAnalyze.add(...Array.from(analysis))
-            })
-        }
-        node.dependencies = depDict
-
         nodeInfo.controls = controlsToBind
         if (nodeInfo.analysis == null) nodeInfo.analysis = []
+        if (node.analysis) toAnalyze.add(...node.analysis)
         nodeInfo.analysis.push(...Array.from(toAnalyze))
         return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
@@ -193,6 +182,8 @@ export class GraphManager{
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
+
+        nodeInfo.instance.app = appId
         
             let node = nodeInfo.instance
             let ui = node.init(nodeInfo.params)
@@ -318,13 +309,21 @@ export class GraphManager{
 
             // Only Continue the Chain with Updated Data
             if (inputCopy.length > 0){
-                
                 let result
-                if (node[port] instanceof Function) result = node[port](inputCopy)
-                else if (node.ports[port].onUpdate instanceof Function) {
-                    result = node.ports[port].onUpdate(inputCopy) // New ports = params style
+                if (node[port] instanceof Function) {
+                    result = node[port](inputCopy)
                 }
-                else if (node.states[port] != null && node['default'] instanceof Function) result = node['default'](inputCopy) 
+                else if (node.ports[port] && node.ports[port].onUpdate instanceof Function) {
+                    result = node.ports[port].onUpdate(inputCopy) // New style
+                }
+                else if (node.states[port] != null) {
+                    if (node.ports['default'] && node.ports['default'].onUpdate instanceof Function) {
+                        result = node.ports['default'].onUpdate(inputCopy)
+                    }
+                    if (node.states[port] != null && node['default'] instanceof Function) {
+                        result = node['default'](inputCopy) 
+                    }
+                }
 
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
@@ -344,26 +343,57 @@ export class GraphManager{
     checkToPass(node,port,result){
         if (result && result.length > 0){
             let allEqual = true
-            if (node.states[port]) node.states[port].splice(result.length-1) // Remove previous states that weren't returned
-            else node.states[port] = [{}]
+            let forced = false
+
+            if (node.states[port] == null) node.states[port] = result
 
             result.forEach((o,i) => {
-                if (node.states[port].length > i){
-                    let thisEqual = JSON.stringifyFast(node.states[port][i]) === JSON.stringifyFast(o)
-                    if (!thisEqual){
-                        node.states[port][i] = o
+
+                // Check if Forced Update
+                if (o.force) {
+                    forced = true
+                    node.states[port][i] = o
+                }
+
+                // Otherwise Check If Current State === Previous State
+                if (!forced){
+                    if (node.states[port]){
+                        if (node.states[port].length > i){
+
+                            let case1 = JSON.stringifyFast(node.states[port][i])
+                            let case2 = JSON.stringifyFast(o)
+
+                            let thisEqual = case1 === case2
+                            if (!thisEqual){
+                                node.states[port][i] = o
+                                allEqual = false
+                            }
+                        } else {
+                            node.states[port].push(o)
+                            allEqual = false
+                        }
+                    } else {
+                        node.states[port] = [o]
                         allEqual = false
                     }
-                } else {
-                    node.states[port].push(o)
-                    allEqual = false
-                }
-            })            
-            if (!allEqual && node.stateUpdates){
+            }
+            })
+
+            if ((!allEqual || forced) && node.stateUpdates){
+                // node.states[port] = result
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = true
                 node.stateUpdates.manager.setState(updateObj)
+            }
+        }
+    }
+
+
+    triggerAllActivePorts(node){
+        for (let port in node.ports){
+            if (node.ports[port].active.out > 0) {
+                this.runSafe(node,port, [{data:true, force: true}])
             }
         }
     }
@@ -421,11 +451,22 @@ export class GraphManager{
             // Listen for Updates on Multiplayer Edges
             applet.edges.forEach((edge,i) => {
                 this._subscribeToBrainstorm(edge, appId)
-
             })
         }
 
         return applet
+    }
+
+    addPort = (node, port, info) => {
+        if (node.ports[port] == null){
+            // Add Port to Node
+            node.ports[port] = info
+
+            // Add Port to Visual Editor
+            console.log('adding port')
+            let editor = this.applets[node.app].editor
+            if (editor) editor.addPort(node,port)
+        }
     }
 
     addEdge = (appId, newEdge, sendOutput=true) => {
@@ -477,7 +518,7 @@ export class GraphManager{
                     let input = source.states[sourcePort]
                     input.forEach(u => {
                         if (!u.meta) u.meta = {}
-                        u.meta.source = sourceName
+                        u.meta.source = label
                         u.meta.session = applet.sessionId
                     })
                     if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
@@ -490,25 +531,17 @@ export class GraphManager{
             // Register Brainstorm State
             if (target instanceof plugins.utilities.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
-                
-                // Replace Default Update Command and Send Local Updates to the Brainstorm
-                _onTriggered = (trigger) => {
-                    // Get Upstream Output
-                    let output = source.states[sourcePort]
-                    if (output.length > 0){
-                        output.forEach(u => {
-                            u.meta.source = sourceName
-                            u.meta.session = applet.sessionId
-                        })
-                        this.runSafe(target, 'send', output) // Refresh personal state data
-                    }
-                }
 
                 // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
                 this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
-                    this.runSafe(target, targetPort, [{data: true, meta: {source: label, session: applet.sessionId}}]) // Update port state
                     _onTriggered(trigger) // Trigger Downstream Changes
                 })
+
+                // Initialize Port
+                if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
+                source.states[sourcePort][0].meta.source = label
+                source.states[sourcePort][0].meta.session = applet.sessionId
+                this.runSafe(target, 'default', source.states[sourcePort]) // Register port
             } 
 
             // And Listen for Local Changes
@@ -704,44 +737,14 @@ export class GraphManager{
         let targetInfo = applet.nodes.find(n => {
             if (n.id == targetName) return true
         })
+
         let target = targetInfo.instance
+        let label = this.getLabel(source,sourcePort)
 
         if (target instanceof plugins.utilities.Brainstorm) {
-
-            let id = (sourcePort != 'default') ? `${ sourceInfo.instance.label}_${sourcePort}` :  sourceInfo.instance.label
-
-            if (applet.subscriptions.session[id] == null) applet.subscriptions.session[id] = []
-            
-            let found = this.findStreamFunction(id)
-
-            if (found == null) {
-
-                let _brainstormCallback = (userData) => {
-                    this.registry.local[sourceName].registry[sourcePort].callbacks.forEach((f,i) => {
-                        if (f instanceof Function) f(userData)
-                    })
-                }
-
-                let _localCallback = (userData) => {
-                    if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                    _brainstormCallback(userData)
-                }
-
-                // Create Brainstorm Stream
-                let subId1 = this.session.streamAppData(id, this.registry.local[sourceName].registry[sourcePort].state, applet.sessionId,_localCallback) //()=>{}) // Local changes are already listened to
-                applet.subscriptions.session[id].push({id: subId1, target: null})
-
-                // Subscribe to Changes in Session Data
-                let subId2 = this.session.state.subscribeSequential(applet.sessionId, (sessionInfo) => {
-                    let data = [{data: true, meta: {source: id, session: applet.sessionId}}] // Trigger Brainstorm Update
-                    _brainstormCallback(data)
-                })
-
-                if (applet.subscriptions.session[applet.sessionId] == null) applet.subscriptions.session[applet.sessionId] = []
-                applet.subscriptions.session[applet.sessionId].push({id: subId2, target: null})
-
-                _localCallback() // Initialize with Your Data
-            } 
+            source.states[sourcePort][0].meta.source = label
+            source.states[sourcePort][0].meta.session = applet.sessionId
+            this.runSafe(target, 'default', source.states[sourcePort]) // Activate Port Subscriptions
         }
     }
 

@@ -23,14 +23,21 @@ export class Scheduler{
                 input: {type:null},
                 output: {type: 'string'},
                 onUpdate: (userData) => { 
-                    userData.forEach(u => {
-                        if (u.meta.state != 'ITI'){
-                            u.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
-                        } else {
-                            u.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
-                        }
-                    })
-                    return userData
+                    if (this.props.currentTrial >= 0){
+                        userData.forEach(u => {
+                            u.data = this.props.currentTrial
+                            u.meta.label = this.label
+                            u.meta.state = this.props.state;
+                            if (u.meta.state != 'ITI'){
+                                u.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+                            } else {
+                                u.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+                            }
+                            u.meta.stateDuration = this.params.duration*1000
+                            u.meta.trialCount = this.params.trialCount
+                        })
+                        return userData
+                    }
                 }
             }, 
             state: {
@@ -39,6 +46,7 @@ export class Scheduler{
                 onUpdate: (userData) => { 
                     return userData.map(u => {
                         u.data = this.props.state;
+                        u.meta.label = this.label
                         return u
                     })
                 }
@@ -47,7 +55,7 @@ export class Scheduler{
                 input: {type:null},
                 output: {type: 'boolean'},
                 onUpdate: (userData) => { 
-                    return [{data:true}]
+                    return [{data:true, force: true}]
                 }
             },
             update: {
@@ -57,7 +65,6 @@ export class Scheduler{
                     let trigger = userData[0].data
                     if (trigger && this.params.mode === 'Manual') {
                         this._taskUpdate(false, true)
-                        // return [{data:true, meta: {label: `${this.label}_update`}}]
                     }
                 }
             },
@@ -73,7 +80,6 @@ export class Scheduler{
                             }
                         }
                         this.init()
-                        // return [{data:true, meta: {label: `${this.label}_reset`}}]
                     }
                 }
             },
@@ -121,7 +127,6 @@ export class Scheduler{
 
     _taskUpdate = (loop=true, forceUpdate=false) => {
 
-        let state = this.session.atlas.graph.deeperCopy(this.states['default'])[0]
 
         if (this.props.currentTrial > -1){
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
@@ -129,32 +134,27 @@ export class Scheduler{
             // Main Trial Loop
             if (forceUpdate || (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000)){  
 
-                state = this._startNewTrial()
+                this._startNewTrial()
 
                 // Stop on Last Trial
                 if (this.props.currentTrial >= this.params.trialCount){ // Stop Loop
-                    state.data = this.props.currentTrial // Update State Data
                     this.props.state = ''
-                    state.meta.stateDuration = 1
-                    state.meta.stateTimeElapsed = 1
-                    this.session.atlas.graph.runSafe(this,'state',[{data: true}])
-                    this.session.atlas.graph.runSafe(this,'done',[state])
+                    this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
+                    this.session.atlas.graph.runSafe(this,'done',[{data: true, force: true}])
                 }
             } 
 
             // Inter-trial Interval Loop
             else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
-                state.meta.stateDuration = this.params.interTrialInterval*1000
                 this.props.iti = true
-                this.session.atlas.graph.runSafe(this,'state',[{data: true}])
+                this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
             }
         } else {
-            state = this._startNewTrial()
-            state.meta.trialCount = this.params.trialCount
+            this._startNewTrial()
         }
 
-        this.session.atlas.graph.runSafe(this,'default', [state])
+        this.session.atlas.graph.runSafe(this,'default', [{data: true, force: true}])
         if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -162,11 +162,7 @@ export class Scheduler{
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
-        let state = this.session.atlas.graph.deeperCopy(this.states['default'])[0]
-        state.data = this.props.currentTrial
         this.props.state = this.params.progression[this.props.currentTrial]
-        state.meta.stateDuration = this.params.duration*1000
-        this.session.atlas.graph.runSafe(this,'state',[{data: true}])
-        return state
+        this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
     }
 }

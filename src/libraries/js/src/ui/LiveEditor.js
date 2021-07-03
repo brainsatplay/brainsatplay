@@ -67,17 +67,7 @@ export class LiveEditor {
                     language = this.props.language[0].toUpperCase() + this.props.language.slice(1)
               }
 
-            let targetName = (this.function == null) ? 'From Scratch' : this.function
-            // let template = `
-            // <div id='${this.props.id}liveEditor' style="color: white; width: 100%; height: 100%; z-index: 100000;">
-            
-            //     <div id='${this.props.id}shaderheader' style="display: flex; align-items: center; text-shadow: 0px 0px 2px black, 0 0 10px black;">
-            //         <div style='width: 50%; padding: 10px;'>
-            //             <h3 style="margin: 0;">Live Code Editor</h3>
-            //             <span style="font-size: 70%;">${language}</span> | <span id='${this.props.id}head' style="font-size: 70%;">${targetName}</span>
-            //         </div>
-            //     </div>
-            let template = `
+              let template = `
             <div id='${this.props.id}liveEditor' class="brainsatplay-live-code-editor">
                 <div id='${this.props.id}editorContainer' style="position: relative; width: 100%; height: 100%;">
                     <div style="display: flex; position: absolute; top: 0; right: 0; z-index: 2;">
@@ -330,7 +320,7 @@ export class LiveEditor {
         document.getElementById(`${this.props.id}editorContainer`)
         .insertAdjacentHTML(
             'afterbegin',
-            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:1; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
+            `<div id='${this.props.id}reference' style='position:absolute; background-color:black; color:white; z-index:2; display:none; font-size:16px bold; height:80%; overflow-y:scroll; border:1px solid red;'>
                 <style>
                     table tr th {
                         border: 2px solid gold;

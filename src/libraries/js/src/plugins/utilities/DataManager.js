@@ -14,7 +14,6 @@ export class DataManager{
             get:{},
             csv:{},
             latest:{},
-            fitbit:{}
         }
 
         this.props = {}
@@ -23,9 +22,6 @@ export class DataManager{
     init = () => {
         if (this.ports.latest.active){
             this.session.graph.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
-        }
-        if (this.ports.fitbit.active){
-            this.session.graph.runSafe(this,'fitbit',[{data: true, meta: `${this.label}_init`}])
         }
     }
 
@@ -75,42 +71,5 @@ export class DataManager{
             })
         })
     })
-    }
-
-
-    fitbit = () => {
-        return new Promise((resolve) => {
-        fetch('http://localhost/clients', {
-            method: 'post',
-            headers: {
-            "Content-type": "application/json"
-            },
-            body: JSON.stringify({'selection':'all'})
-        })
-        .then(res => {
-            return res.json()
-        })
-        .then((clients) =>{
-            // Get Client Info
-            let client = clients[0]
-            let id = client.user_id
-            fetch('http://localhost/clients', {
-            method: 'post',
-            headers: {
-            "Content-type": "application/json"
-            },
-            body: JSON.stringify( {'selection':id,'data':['profile','heart','sleep','steps', 'heart-intraday','steps-intraday']})
-            })
-            .then(res => {
-                return res.json()
-            })
-            .then((data) =>{
-                resolve([{data: {data}, meta:{label: `${this.label}_fitbit`}}])
-        })
-        })
-        .catch(e => {
-            console.log(e)
-        })
-        })
     }
 }

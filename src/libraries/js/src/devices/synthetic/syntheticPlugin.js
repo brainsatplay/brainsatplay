@@ -21,10 +21,10 @@ export class syntheticPlugin {
 
 
         this.states = {
-            'key_ArrowUp': {data: 0, meta: {id:'key_ArrowUp'}, timestamp: Date.now()},
-            'key_ArrowDown': {data: 0, meta: {id:'key_ArrowDown'}, timestamp: Date.now()},
-            'key_ArrowLeft': {data: 0, meta: {id:'key_ArrowLeft'}, timestamp: Date.now()},
-            'key_ArrowRight': {data: 0, meta: {id:'key_ArrowRight'}, timestamp: Date.now()},
+            'key_ArrowUp': {data: 0, meta: {id:'key_ArrowUp'}},
+            'key_ArrowDown': {data: 0, meta: {id:'key_ArrowDown'}},
+            'key_ArrowLeft': {data: 0, meta: {id:'key_ArrowLeft'}},
+            'key_ArrowRight': {data: 0, meta: {id:'key_ArrowRight'}},
         }
 
 

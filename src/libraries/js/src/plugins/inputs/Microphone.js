@@ -1,4 +1,4 @@
-import {SoundJS} from '../../../../../platform/js/frontend/UX/Sound'
+import {SoundJS} from '../../utils/Sound'
 import {eegmath} from '../../utils/eegmath'
 
 
@@ -15,7 +15,7 @@ export class Microphone{
             default: {
                 default: [],
                 input: {type: null},
-                output: {type: 'array'},
+                output: {type: Array},
                 onUpdate: () => {
                     let audioDat = [];
 

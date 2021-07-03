@@ -68,10 +68,10 @@ export class Move{
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                if (this.props.right) this.session.atlas.graph.runSafe(this,'right',[{data: true}])
-                if (this.props.left) this.session.atlas.graph.runSafe(this,'left',[{data: true}])
-                if (this.props.up) this.session.atlas.graph.runSafe(this,'up',[{data: true}])
-                if (this.props.down) this.session.atlas.graph.runSafe(this,'down',[{data: true}])
+                if (this.props.right) this.session.atlas.graph.runSafe(this,'right',[{data: true, force: true}])
+                if (this.props.left) this.session.atlas.graph.runSafe(this,'left',[{data: true, force: true}])
+                if (this.props.up) this.session.atlas.graph.runSafe(this,'up',[{data: true, force: true}])
+                if (this.props.down) this.session.atlas.graph.runSafe(this,'down',[{data: true, force: true}])
                 setTimeout(() => {animate()}, 1000/60)
             }
         }
@@ -138,8 +138,8 @@ export class Move{
         // let desiredY = this.props.y + dy
         // this.props.x = desiredX
         // this.props.y = desiredY
-        this.session.atlas.graph.runSafe(this,'dx',[{data: dx}])
-        this.session.atlas.graph.runSafe(this,'dy',[{data: dy}])
+        this.session.atlas.graph.runSafe(this,'dx',[{data: dx, force: true}])
+        this.session.atlas.graph.runSafe(this,'dy',[{data: dy, force: true}])
         // this.session.atlas.graph.runSafe(this,'x',[{data: this.props.x}])
         // this.session.atlas.graph.runSafe(this,'y',[{data: this.props.y}])
     }

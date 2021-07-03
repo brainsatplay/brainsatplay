@@ -72,7 +72,7 @@ export class Light{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
             if (Date.now() - this.props.lastRendered > 500){
-                this.session.graph.runSafe(this,'add',[{data:true}])
+                this.session.graph.runSafe(this,'add',[{data:true, force: true}])
                 this.props.lastRendered = Date.now()
             }
         })
@@ -100,14 +100,14 @@ export class Light{
     
     radius = (userData) => {
         this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
-        // this.session.graph.runSafe(this,'default',[{data:true}])
+        // this.session.graph.runSafe(this,'default',[{data:true, force: true}])
     }
 
     dx = (userData) => {
         let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
         if (desiredX > 0){
             this.params.x = desiredX
-            // this.session.graph.runSafe(this,'default',[{data:true}])
+            // this.session.graph.runSafe(this,'default',[{data:true, force: true}])
         }
     }
 
@@ -115,12 +115,12 @@ export class Light{
         let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
         if (desiredY > 0){
             this.params.y = desiredY
-            // this.session.graph.runSafe(this,'default',[{data:true}])
+            // this.session.graph.runSafe(this,'default',[{data:true, force: true}])
         }
     }
 
     color = (userData) => {
         this.params.color = userData[0].data
-        // this.session.graph.runSafe(this,'default',[{data:true}])
+        // this.session.graph.runSafe(this,'default',[{data:true, force: true}])
     }
 }

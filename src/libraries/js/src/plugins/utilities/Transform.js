@@ -67,13 +67,13 @@ export class Transform{
             },
             mean: {
                 types: {
-                    in: 'array',
+                    in: Array,
                     out: 'number',
                 }
             },
             sum: {
                 types: {
-                    in: 'array',
+                    in: Array,
                     out: 'number',
                 }
             }

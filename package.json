@@ -8,8 +8,8 @@
     "url": "git+https://github.com/brainsaplay/brainsatplay"
   },
   "scripts": {
-    "start": "node app.js",
-    "build": "NODE_OPTIONS='--max-old-space-size=5000' snowpack build",
+    "start": "node --max-old-space-size=5000 app.js",
+    "build": "snowpack NODE_OPTIONS='--max-old-space-size=5000' build",
     "postbuild": "workbox generateSW",
     "webpack": "webpack --mode production",
     "generate-docs": "jsdoc -c jsdoc.config.json"
@@ -26,6 +26,7 @@
     "@tensorflow-models/facemesh": "0.0.5",
     "@tensorflow/tfjs": "^3.3.0",
     "bci2k": "^2.3.5",
+    "bcijs": "^1.8.0",
     "brainsatplay": "0.0.8",
     "browserfs": "^1.4.3",
     "bufferutil": "^4.0.3",
