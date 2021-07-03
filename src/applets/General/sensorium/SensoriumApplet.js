@@ -247,14 +247,14 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
                 uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
-                credit: 'JoshB x JoshP x CBS'
+                credit: 'JoshP x CBS'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
                 uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
-                credit: 'JoshB x JoshP'
+                credit: 'JoshP'
             },
             creation: {
                 name: 'Creation',
