@@ -19,22 +19,6 @@ export class UI{
         }
 
         this.ports = {
-            html: {
-                input: {type: 'string'},
-                output: {type: null},
-                default: ``,
-                onUpdate: (userData) => {
-                    this.params.html = userData[0].data
-                },
-            },
-            parentNode: {
-                input: {type: 'Element'},
-                output: {type: null},
-                default: document.body,
-                onUpdate: (userData) => {
-                    this.params.parentNode = userData[0].data
-                },
-            },
             element: {
                 input: {type: null},
                 output: {type: 'Element'},
@@ -42,13 +26,6 @@ export class UI{
                     return [{data: this.props.container}]
                 },
             },
-             style: {
-                 input: {type:'string'},
-                 output: {type: null},
-                 onUpdate: (userData) => {
-                     this.params.style = userData[0].data
-                 }
-             },
              opacity: {
                 input: {type:'number'},
                 output: {type: null},
@@ -65,16 +42,42 @@ export class UI{
                     let dict = u.data
 
                     if (dict.HTMLtemplate && u.meta.source && this.props.fragments[u.meta.source] == null){
+
+                        // Insert Fragment
                         this.props.fragments[u.meta.source] = new DOMFragment(
                             dict.HTMLtemplate,
                             this.props.ui.node,
                             undefined,
                             dict.setupHTML
                         )
+
+                        console.log(this.app)
+                        this.session.graph._resizeAllNodeFragments(this.app)
                     }
                 }
              }
         }
+
+        // Dynamically Add Ports
+        let ports = [
+            {key: 'html', input: {type: 'string'}, output: {type: null}, default: ``}, 
+            {key: 'parentNode', input: {type: 'Element'}, output: {type: null}, default: document.body}, 
+            {key: 'style', input: {type: 'string'}, output: {type: null}}, 
+
+            {key: 'deinit', input: {type: Function}, output: {type: null}, default: ()=>{}}, 
+            {key: 'responsive',input: {type: Function}, output: {type: null}, default: ()=>{}}
+        ]
+
+        ports.forEach(o => {
+            this.ports[o.key] = {
+                input: o.input,
+                output: o.output,
+                default: o.default,
+                onUpdate: (userData) => {
+                    this.params[o.key] = userData[0].data
+                },
+            }
+        })
     }
 
     init = () => {
@@ -105,13 +108,8 @@ export class UI{
                 () => {return this.props.container},
                 app.id,
                 ()=>{
-                    console.log('creating')
+                    if (this.params.setupHTML instanceof Function) this.params.setupHTML()
                 },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                this.responsive
             )
         }
 
@@ -119,8 +117,11 @@ export class UI{
     }
 
     deinit = () => { 
+        if (this.params.deinit instanceof Function) this.params.deinit()
         // this.props.ui.deleteNode() 
     }
 
-    responsive = () => {}
+    responsive = () => {
+        if (this.params.responsive instanceof Function) this.params.responsive()
+    }
 }

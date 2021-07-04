@@ -30,7 +30,7 @@ export class Application{
 
         // Grab Style of Previous Top-Level Wrapper
         let defaultStyle = ``
-        if (this.props.id)defaultStyle = document.getElementById(this.props.id).style.cssText 
+        if (this.props.id) defaultStyle = document.getElementById(this.props.id).style.cssText 
         else defaultStyle = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
 
         // Get New ID
@@ -45,7 +45,7 @@ export class Application{
                 if (func instanceof Function) func()
             })
 
-            // Create Device Connector (if required)
+            // Create Device Manager (if required)
             if (this.info.connect){
                 let parentNode = this.info.connect.parentNode
                 let toggleButton = this.info.connect.toggle
