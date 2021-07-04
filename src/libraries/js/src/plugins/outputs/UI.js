@@ -52,11 +52,11 @@ export class UI{
                         // Insert Fragment
                         this.props.fragments[u.meta.source] = new DOMFragment(
                             dict.HTMLtemplate,
-                            this.props.ui.node,
+                            this.app.AppletHTML.node,
                             undefined,
                             dict.setupHTML
                         )
-                        this.session.graph._resizeAllNodeFragments(this.app)
+                        this.session.graph._resizeAllNodeFragments(this.app.props.id)
                     }
                 }
              }
@@ -65,16 +65,17 @@ export class UI{
         // Dynamically Add Ports
         let ports = [
             {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: ``, onUpdate: (userData) => {
-                this.props.container.innerHTML = userData[0].data
+                this.props.content.innerHTML = userData[0].data
 
                 // Create ID Ports
-                var descendants = this.props.container.querySelectorAll("*");
+                var descendants = this.props.content.querySelectorAll("*");
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
                             input: {type: 'string'},
                             output: {type: null},
                             onUpdate: (userData) => {
+                                console.log(node, userData[0].data)
                                 node.innerHTML = userData[0].data
                             }
                         })
@@ -83,7 +84,14 @@ export class UI{
             }}, 
             {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: ``, onUpdate: (userData) => {
-                this.props.styleElement.innerHTML = userData[0].data
+                if (this.props.style == null){
+                    this.props.style = document.createElement('style')
+                    this.props.style.id = `${this.props.id}style`
+                    this.props.style.type = 'text/css';
+                    this.app.AppletHTML.appendStylesheet(() => {return this.props.style});
+                }
+
+                this.props.style.innerHTML = userData[0].data
             }}, 
             {key: 'deinit', input: {type: Function}, output: {type: null}, default: ()=>{}}, 
             {key: 'responsive',input: {type: Function}, output: {type: null}, default: ()=>{}}
@@ -106,26 +114,21 @@ export class UI{
 
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-
+        this.props.content = document.createElement('div')
+        this.props.content.id = `${this.props.id}content`
+        this.props.container.insertAdjacentElement('beforeend', this.props.content)
         // Create Stylesheet
-        this.props.styleElement = document.createElement('style');
-        this.props.styleElement.type = 'text/css';
-        this.props.styleElement.id = `${this.props.id}style`;
 
-        let HTMLtemplate = ``
+        let HTMLtemplate = this.props.container
 
-        let setupHTML = (app) => {
-            this.props.ui = new DOMFragment(
-                () => {return this.props.container},
-                app.id,
-                this.params,
-                ()=>{
-                    if (this.params.setupHTML instanceof Function) this.params.setupHTML()
-                    document.head.appendChild(this.props.styleElement);
-                    this.session.graph.runSafe(this,'html', [{data: this.params.html}])
+        let setupHTML = () => {
+                if (this.params.setupHTML instanceof Function) this.params.setupHTML()
+
+                // Wait to Reference AppletHTML
+                this.session.graph.runSafe(this,'html', [{data: this.params.html}])
+                setTimeout(() => {
                     this.session.graph.runSafe(this,'style', [{data: this.params.style}])
-                },
-            )
+                }, 100)
         }
 
         return { HTMLtemplate, setupHTML}
@@ -133,8 +136,6 @@ export class UI{
 
     deinit = () => { 
         if (this.params.deinit instanceof Function) this.params.deinit()
-        this.props.styleElement.remove()
-        // this.props.ui.deleteNode() 
     }
 
     responsive = () => {

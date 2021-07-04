@@ -718,7 +718,7 @@ export class GraphEditor{
 
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
+        if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
 
         let node = this.graph.addNode(nodeInfo)

@@ -2,7 +2,6 @@
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './utils/graphEditor/GraphEditor'
 import  {plugins} from '../brainsatplay'
-import { Session } from './Session'
 
 export class GraphManager{
     constructor(session, settings = {}){
@@ -163,7 +162,9 @@ export class GraphManager{
         return String(Math.floor(Math.random()*1000000))
     }
 
-    addNode(appId,nodeInfo){
+    addNode(app,nodeInfo){
+
+        let appId = app.props.id
 
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
@@ -188,9 +189,8 @@ export class GraphManager{
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
+        nodeInfo.instance.app = app
 
-        nodeInfo.instance.app = appId
-        
             let node = nodeInfo.instance
             let ui = node.init(nodeInfo.params)
             if (ui != null) {
@@ -404,7 +404,10 @@ export class GraphManager{
         }
     }
 
-    init(id, settings){
+    init(app){
+        let id = app.props.id
+        let settings = app.info
+
         let name = settings.name
         let graph = settings.graph
 
@@ -431,7 +434,7 @@ export class GraphManager{
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
-                    this.addNode(id,nodeInfo)
+                    this.addNode(app,nodeInfo)
                 })
             }
 

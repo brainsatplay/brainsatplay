@@ -1410,10 +1410,10 @@ else {
 		}
 	}
 
-	registerApp(appId,settings){
-		this.info.apps[appId] = this.graph.init(appId, settings)
-		this.info.apps[appId].settings = settings
-		return this.info.apps[appId]
+	registerApp(app){
+		this.info.apps[app.props.id] = this.graph.init(app)
+		this.info.apps[app.props.id].settings = app.info
+		return this.info.apps[app.props.id]
 	}
 
 	removeApp(appId){

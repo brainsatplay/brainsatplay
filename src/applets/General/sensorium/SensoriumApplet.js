@@ -123,16 +123,21 @@ export class SensoriumApplet {
 
         // Plugins
         this.graph = new GraphManager(this.session)
-        this.graph.init(this.props.id, 
-        {
-            name: this.info.name, 
-            graph: {
-                nodes: [
-                    {id: 'buzz', class: Buzz},
-                ],
+        let app = {
+			props: {
+				id: this.props.id
+			},
+			info: {
+                name: this.info.name, 
+                graph: {
+                    nodes: [
+                        {id: 'buzz', class: Buzz},
+                    ],
+                }
             }
-        }
-        )
+		}
+
+        this.graph.init(app)
         this.graph.streams = ['modifiers','hostData']
 
         this.tutorialManager = null
@@ -405,7 +410,7 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
 
             document.getElementById(props.id+'changeview').onclick = () => {

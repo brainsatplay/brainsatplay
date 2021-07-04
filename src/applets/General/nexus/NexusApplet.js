@@ -83,7 +83,7 @@ export class NexusApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.createIntro(this)
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
         }
 

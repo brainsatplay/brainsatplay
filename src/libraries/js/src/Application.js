@@ -37,9 +37,10 @@ export class Application{
         this.props.id = String(Math.floor(Math.random()*1000000))
 
         // Register App in Session
-        this.graph = this.session.registerApp(this.props.id, this.info)
+        this.graph = this.session.registerApp(this)
         // this.info.graph = this.graph
         let setupHTML = () => {
+            // Insert Intefaces and Add App Reference
             this.graph.nodes.forEach(node => {this.insertInterface(node)})
             this.graph.setupCallbacks.forEach(func => {
                 if (func instanceof Function) func()
