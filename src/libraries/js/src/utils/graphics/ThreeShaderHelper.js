@@ -275,7 +275,9 @@ void main(){
         author='',
         atlas=this.session.atlas
     ) {
-        let geometry = this.createMeshGeometry(type,width,height);
+        let geometry;
+        if(typeof type === 'string') geometry = this.createMeshGeometry(type,width,height);
+        else geometry = type; //can pass a str8 geometry object
         let material = this.generateShaderMaterial(fragment,vertex);
         let mesh = new THREE.Mesh(geometry,material);
         
