@@ -184,7 +184,6 @@ void main(){
 
         this.setMeshRotation(0);
 
-
     }
 
     //Generate a shader mesh with the specified parameters. Returns a mesh with the ShaderMaterial applied.
@@ -246,6 +245,44 @@ void main(){
     removeCanvasEventListeners(canvas=this.canvas) { 
         canvas.removeEventListener('mousemove', this.onmousemove);
         canvas.removeEventListener('mousedown', this.mousedown);
+    }
+
+    //create a whole new shader mesh with specified settings
+    addNewShaderMesh(
+        fragment=this.defaultFragmentTemplate,
+        vertex=this.defaultVertexTemplate,
+        type='plane',
+        width=this.canvas.width, 
+        height=this.canvas.height,
+        uniformNames=[],
+        name='',
+        author='',
+        atlas=this.session.atlas
+    ) {
+        let geometry = this.createMeshGeometry(type,width,height);
+        let material = this.generateShaderMaterial(fragment,vertex);
+        let mesh = new THREE.Mesh(geometry,material);
+        
+
+        this.shaderSettings.push({
+            name:name,
+            vertexShader: vertex,
+            fragmentShader: fragment,
+            uniformNames:uniformNames,
+            author:author
+        });
+
+        let uniforms = this.generateMaterialUniforms(this.shaderSettings[this.shaderSettings.length-1]);
+
+        materal.uniforms = uniforms;
+
+        this.updateMaterialUniforms(material,uniformNames,atlas,type);
+
+        this.currentViews.push(type);
+        this.materials.push(material);
+        this.meshes.push(mesh);
+
+
     }
 
     //only applies to the main mesh geometry
@@ -613,16 +650,16 @@ void main(){
     }
 
     //applies to main shader
-    setShader = (matidx=0, name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
+    setShader = (matidx=0, name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='',atlas=this.session.atlas) => {
         this.shaderSettings[matidx].name = name;
         this.shaderSettings[matidx].vertexShader = vertexShader;
         this.shaderSettings[matidx].fragmentShader = fragmentShader;
         this.shaderSettings[matidx].uniformNames = uniformNames;
         this.shaderSettings[matidx].author = author;
 
-        let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
+        let uniforms = this.generateMaterialUniforms(this.shaderSettings[matidx]); //get base/invariant uniforms
 
-        this.material[matidx] = new THREE.ShaderMaterial({
+        this.materials[matidx] = new THREE.ShaderMaterial({
             vertexShader: this.shaderSettings.vertexShader,
             fragmentShader: this.shaderSettings.fragmentShader,
             side: THREE.DoubleSide,
@@ -630,7 +667,7 @@ void main(){
             uniforms:uniforms
         });
 
-        this.updateMaterialUniforms(); //get latest data
+        this.updateMaterialUniforms(this.materials[matidx],uniformNames,atlas,this.currentViews[matidx]); //get latest data
         
         if(this.meshes[matidx]){
             this.meshes[matidx].material.dispose();
@@ -640,7 +677,7 @@ void main(){
 
     swapShader = (matidx=0,onchange=()=>{this.startTime=Date.now()}) => {
 
-        let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
+        let uniforms = this.generateMaterialUniforms(this.shaderSettings[matidx]); //get base/invariant uniforms
 
         this.materials[matidx] = new THREE.ShaderMaterial({
             vertexShader: this.shaderSettings[matidx].vertexShader,
