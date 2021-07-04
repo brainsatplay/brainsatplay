@@ -449,6 +449,10 @@ void main(){
 
     }
 
+    updateAllMaterialUniforms() {
+        //should probably make a more efficient function to update all of the material uniforms with the same gets instead of applying per-shader. Just thinking of extreme cases
+    }
+
     //applies to main shader
     setShader = (matidx=0, name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
         this.shaderSettings[matidx].name = name;
