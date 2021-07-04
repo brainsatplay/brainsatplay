@@ -223,6 +223,10 @@ void main(){
         }
     }
 
+    deinit() {
+        this.removeCanvasEventListeners();
+    }
+
     onmousemove=(ev)=> {
         this.mousexyzw[0] = ev.offsetX;
         this.mousexyzw[1] = ev.offsetY;
