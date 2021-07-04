@@ -305,8 +305,8 @@ void main(){
         }
     }
 
-    //Updates dynamic uniforms. Static uniforms (textures, meshes, etc) are set once.
-    updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,meshType=this.currentView,atlas=this.session.atlas) {
+    //Updates dynamic uniforms for selected material, uniforms. Static uniforms (textures, meshes, etc) are set once.
+    updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,atlas=this.session.atlas,meshType=this.currentView) {
         let time = Date.now();
         
         for(let name in uniformNames) {
@@ -443,7 +443,7 @@ void main(){
 
     }
 
-
+    //applies to main shader
     setShader = (name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
         this.shaderSettings.name = name;
         this.shaderSettings.vertexShader = vertexShader;
