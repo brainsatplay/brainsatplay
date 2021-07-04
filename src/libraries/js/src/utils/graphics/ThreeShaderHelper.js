@@ -210,7 +210,7 @@ void main(){
         });
     }
 
-    //Generate a shader mesh with the specified parameters
+    //Generate a shader mesh with the specified parameters: sphere, plane, circle, halfsphere, vrscreen
     static createMeshGeometry(type='plane',width,height){
         if (type === 'sphere'){
             return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
