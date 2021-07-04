@@ -672,7 +672,7 @@ void main(){
         this.shaderSettings[matidx].author = author;
         this.shaderSettings[matidx].uniformNames = alluniforms;
 
-        this.swapShader(onchange);
+        this.swapShader(matidx,onchange);
 
     }
 
