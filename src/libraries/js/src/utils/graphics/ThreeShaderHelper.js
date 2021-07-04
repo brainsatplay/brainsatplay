@@ -229,6 +229,7 @@ void main(){
         }
     }
 
+    //only applies to the main mesh geometry
     setMeshGeometry(type='plane') {
         this.currentView = type;
         this.mesh.geometry = this.createMeshGeometry(type);
@@ -257,9 +258,9 @@ void main(){
         }
     }
 
-    
-    addUniformSetting(name='newUniform',callback=()=>{return 0;},defaultValue=0,type=undefined,min=0,max=1,step=0.1) { //min,max,step are for slider controls (only applies to floats)
-        this.uniformSettings[name] = {callback:callback,default:defaultValue,min:min,max:max,step:step};
+    //lets you add uniform settings e.g. textures, floats, vertex lists (for meshes, type=v3v)
+    addUniformSetting(name='newUniform',defaultValue=0,type=undefined,callback=()=>{return 0;},min=0,max=1,step=0.1) { //min,max,step are for slider controls (only applies to floats)
+        this.uniformSettings[name] = {default:defaultValue,min:min,max:max,step:step,callback:callback};
         this.baseUniforms[name] = {value:defaultValue};
         if(type) { this.baseUniforms[name].type = type; }
     }
