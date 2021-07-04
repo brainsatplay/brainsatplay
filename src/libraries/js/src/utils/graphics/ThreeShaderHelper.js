@@ -278,7 +278,7 @@ void main(){
         }
     }
 
-    updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,atlas=this.session.atlas) {
+    updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,meshType=this.currentView,atlas=this.session.atlas) {
         let time = Date.now();
         
         for(let name in uniformNames) {
@@ -288,10 +288,10 @@ void main(){
             }
 
             if(name === 'iResolution') {
-                if(this.currentView === 'halfsphere' || this.currentView === 'circle') {
+                if(meshType === 'halfsphere' || meshType === 'circle') {
                     material.uniforms.iResolution.value.x = this.canvas.width;
                     material.uniforms.iResolution.value.y = this.canvas.height;
-                } else if (this.currentView !== 'plane') {
+                } else if (meshType !== 'plane') {
                     material.uniforms.iResolution.value = new THREE.Vector2(Math.max(this.canvas.width,this.canvas.height), this.canvas.width); //fix for messed up aspect ratio on vrscreen and sphere
                 } else {
                     material.uniforms.iResolution.value = new THREE.Vector2(this.canvas.width, this.canvas.height); //leave plane aspect alone
