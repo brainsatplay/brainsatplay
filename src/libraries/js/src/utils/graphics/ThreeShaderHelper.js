@@ -152,7 +152,7 @@ void main(){
         this.vertexTemplate = this.defaultVertexTemplate;
         this.fragmentTemplate = this.defaultFragmentTemplate;
 
-        this.shaderSettings = {
+        this.shaderSettings = [{
             name: 'default',
             vertexShader: this.vertexTemplate,
             fragmentShader: this.fragmentTemplate,
@@ -168,39 +168,42 @@ void main(){
                 'iAudio'
             ],
             author:'B@P'
-        }
+        }];
 
         let uniforms = this.generateMaterialUniforms();
 
         let geometry = this.createMeshGeometry('plane',canvas.width,canvas.height);
-        this.currentView = 'plane';
+        this.currentViews = ['plane'];
 
-        this.material = new THREE.ShaderMaterial({
+        let material = new THREE.ShaderMaterial({
             transparent:true,
             side: THREE.DoubleSide,
-            vertexShader: this.shaderSettings.vertexShader,
-            fragmentShader: this.shaderSettings.fragmentShader,
+            vertexShader: this.shaderSettings[0].vertexShader,
+            fragmentShader: this.shaderSettings[0].fragmentShader,
             uniforms:uniforms
         });
 
-        this.mesh = new THREE.Mesh({
+        let mesh = new THREE.Mesh({
             geometry:geometry,
-            material:this.material,
+            material:material,
         });
 
-        this.setMeshRotation();
+        this.materials = [material];
+        this.meshes = [mesh];
+
+        this.setMeshRotation(0);
 
 
     }
 
-    //Generate a shader mesh with the specified parameters
+    //Generate a shader mesh with the specified parameters. Returns a mesh with the ShaderMaterial applied.
     static generateShaderGeometry(type='plane',width,height,fragment=this.defaultFragmentTemplate,vertex=this.defaultVertexTemplate) {
         let geometry = this.createMeshGeometry(type,width,height);
         let material = this.generateShaderMaterial(fragment,vertex);
         return new THREE.Mesh(geometry,material);
     }
     
-    //Generate a shader material with the specified vertex and fragment
+    //Generate a shader material with the specified vertex and fragment. Returns a material.
     static generateShaderMaterial(fragment=this.defaultFragmentTemplate,vertex=this.defaultVertexTemplate) {
         return new THREE.ShaderMaterial({
             vertexShader: vertex,
@@ -210,7 +213,7 @@ void main(){
         });
     }
 
-    //Generate a shader mesh with the specified parameters: sphere, plane, circle, halfsphere, vrscreen
+    //Generate a shader mesh with the specified parameters: supports sphere, plane, circle, halfsphere, vrscreen
     static createMeshGeometry(type='plane',width,height){
         if (type === 'sphere'){
             return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
@@ -230,18 +233,21 @@ void main(){
     }
 
     //only applies to the main mesh geometry
-    setMeshGeometry(type='plane') {
-        this.currentView = type;
-        this.mesh.geometry = this.createMeshGeometry(type);
-        this.mesh.rotation.set(0,Math.PI,0);
+    setMeshGeometry(matidx=0,type='plane') {
+        if(this.meshes[matidx]) {
+            this.currentViews[matidx] = type;
+            this.meshes[matidx].geometry = this.createMeshGeometry(type);
+            this.meshes[matidx].rotation.set(0,Math.PI,0);
+        }
     }
 
-    setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
-        this.mesh.rotation.set(anglex,angley,anglez);
+    setMeshRotation(matidx=0,anglex=0,angley=Math.PI,anglez=0){
+        if(this.meshes[matidx])
+            this.meshes[matidx].rotation.set(anglex,angley,anglez);
     }
 
     //this should allow you to set custom textures
-    setChannelTexture(channelNum=0,imageOrVideo=uvgrid,material=this.material) {
+    setChannelTexture(channelNum=0,imageOrVideo=uvgrid,material=this.materials[0]) {
         if(!this.baseUniforms['iChannel'+channelNum]) { //if adding new textures, the glsl needs to be able to accommodate it
             let l = this.baseUniforms['iChannelResolution'].value.length-1;
             if(this.baseUniforms['iChannelResolution'].value.length-1 < channelNum) {
@@ -266,7 +272,7 @@ void main(){
     }
 
 
-    generateMaterialUniforms(shaderSettings=this.shaderSettings) {
+    generateMaterialUniforms(shaderSettings=this.shaderSettings[0]) {
         let uniforms = {};
         shaderSettings.uniformNames.forEach((u)=>{
             let pass = false;
@@ -296,7 +302,7 @@ void main(){
         return uniforms;
     }
 
-    resetMaterialUniforms(material,uniformNames) {
+    resetMaterialUniforms(material=this.materials[0],uniformNames=this.shaderSettings[0].uniformNames) {
         for(let name in uniformNames) {
             if(this.uniformSettings[name]) {
                 this.baseUniforms[name].value = this.uniformSettings[name].default;
@@ -306,7 +312,7 @@ void main(){
     }
 
     //Updates dynamic uniforms for selected material, uniforms. Static uniforms (textures, meshes, etc) are set once.
-    updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,atlas=this.session.atlas,meshType=this.currentView) {
+    updateMaterialUniforms(material=this.materials[0],uniformNames=this.shaderSettings[0].uniformNames,atlas=this.session.atlas,meshType=this.currentViews[matidx]) {
         let time = Date.now();
         
         for(let name in uniformNames) {
@@ -444,16 +450,16 @@ void main(){
     }
 
     //applies to main shader
-    setShader = (name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
-        this.shaderSettings.name = name;
-        this.shaderSettings.vertexShader = vertexShader;
-        this.shaderSettings.fragmentShader = fragmentShader;
-        this.shaderSettings.uniformNames = uniformNames;
-        this.shaderSettings.author = author;
+    setShader = (matidx=0, name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
+        this.shaderSettings[matidx].name = name;
+        this.shaderSettings[matidx].vertexShader = vertexShader;
+        this.shaderSettings[matidx].fragmentShader = fragmentShader;
+        this.shaderSettings[matidx].uniformNames = uniformNames;
+        this.shaderSettings[matidx].author = author;
 
         let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
 
-        this.material = new THREE.ShaderMaterial({
+        this.material[matidx] = new THREE.ShaderMaterial({
             vertexShader: this.shaderSettings.vertexShader,
             fragmentShader: this.shaderSettings.fragmentShader,
             side: THREE.DoubleSide,
@@ -463,17 +469,19 @@ void main(){
 
         this.updateMaterialUniforms(); //get latest data
         
-        this.mesh.material.dispose();
-        this.mesh.material = this.material;
+        if(this.meshes[matidx]){
+            this.meshes[matidx].material.dispose();
+            this.meshes[matidx].material = this.materials[matidx];
+        }
     }
 
-    swapShader = (onchange=()=>{this.startTime=Date.now()}) => {
+    swapShader = (matidx=0,onchange=()=>{this.startTime=Date.now()}) => {
 
         let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
 
-        this.material = new THREE.ShaderMaterial({
-            vertexShader: this.shaderSettings.vertexShader,
-            fragmentShader: this.shaderSettings.fragmentShader,
+        this.materials[matidx] = new THREE.ShaderMaterial({
+            vertexShader: this.shaderSettings[matidx].vertexShader,
+            fragmentShader: this.shaderSettings[matidx].fragmentShader,
             side: THREE.DoubleSide,
             transparent: true,
             uniforms: uniforms
@@ -481,13 +489,15 @@ void main(){
 
         this.updateMaterialUniforms(); //get latest data
 
-        this.mesh.material.dispose();
-        this.mesh.material = this.material;
+        if(this.meshes[matidx]){
+            this.meshes[matidx].material.dispose();
+            this.meshes[matidx].material = this.materials[matidx];
+        }
 
         onchange();
     }
 
-    setShaderFromText = (fragmentShaderText=this.defaultFragmentTemplate,vertexShaderText=this.defaultVertexTemplate,name='',author='',onchange=()=>{this.startTime=Date.now()}) => {
+    setShaderFromText = (matidx=0,fragmentShaderText=this.defaultFragmentTemplate,vertexShaderText=this.defaultVertexTemplate,name='',author='',onchange=()=>{this.startTime=Date.now()}) => {
 
         this.fragmentTemplate = fragmentShaderText;
         this.vertexTemplate = vertexShaderText;
@@ -509,11 +519,11 @@ void main(){
             alluniforms.push(a[2].replace(/(\[.+\])/g, ''));
         });
 
-        this.shaderSettings.name = name;
-        this.shaderSettings.vertexShader = vertexShaderText;
-        this.shaderSettings.fragmentShader = fragmentShaderText;
-        this.shaderSettings.author = author;
-        this.shaderSettings.uniformNames = alluniforms;
+        this.shaderSettings[matidx].name = name;
+        this.shaderSettings[matidx].vertexShader = vertexShaderText;
+        this.shaderSettings[matidx].fragmentShader = fragmentShaderText;
+        this.shaderSettings[matidx].author = author;
+        this.shaderSettings[matidx].uniformNames = alluniforms;
 
         this.swapShader(onchange);
 
