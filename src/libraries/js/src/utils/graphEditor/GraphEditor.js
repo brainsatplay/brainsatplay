@@ -4,6 +4,12 @@ import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
 import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
+
+// Project Selection
+import {appletManifest} from '../../../../../platform/appletManifest'
+import { getApplet, getAppletSettings } from "../../../../../platform/js/general/importUtils"
+
+// Node Interaction
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
@@ -70,10 +76,12 @@ export class GraphEditor{
                     <div id="${this.props.id}GraphEditor" class="brainsatplay-node-sidebar">
                         <div>
                             <div class='node-sidebar-section'>
-                                <h3>0.1. Project Info</h3>
+                                <h3>Projects</h3>
                             </div>
-                            <div class='node-sidebar-header'>
-                                <h4>Settings</h4>
+                            <div id="${this.props.id}projects" class='node-sidebar-content'>
+                            </div>
+                            <div class='node-sidebar-section'>
+                                <h3>Project Info</h3>
                             </div>
                             <div id="${this.props.id}settings" class='node-sidebar-content'>
                             </div>
@@ -84,20 +92,14 @@ export class GraphEditor{
                                 <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit Project</button>
                             </div>
                             <div class='node-sidebar-section'>
-                                <h3>0.2. Node Editor</h3>
+                                <h3>Node Editor</h3>
                                 <button id="${this.props.id}add" class="brainsatplay-default-button">+</button>
-                            </div>
-                            <div class='node-sidebar-header'>
-                                <h4>Parameters</h4>
                             </div>
                             <div id="${this.props.id}params" class='node-sidebar-content'>
                             <p></p>
                             </div>
                         </div>
                         <div>
-                            <div class='node-sidebar-header'>
-                                <h4>Interactions</h4>
-                            </div>
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
@@ -119,6 +121,11 @@ export class GraphEditor{
 
                 let toggleClass = '.brainsatplay-default-editor-toggle'
                 let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
+
+
+                // Insert Projects
+                this.insertProjects()
+
                 // Search for Toggle
                 let tries = 0
                 let checkToggle = () => {
@@ -310,8 +317,120 @@ export class GraphEditor{
         e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
     }
 
-    getMousePosition = () => {
+    insertProjects = async () => {
 
+        this.props.projectContainer = document.getElementById(`${this.props.id}projects`)
+        this.props.projectContainer.style.padding = '0px'
+        this.props.projectContainer.style.display = 'block'
+
+        let galleries = {
+            personal: {
+                header: '',
+                projects: []
+            }, 
+            templates: {
+                header: 'Examples',
+                projects: []
+            }
+        }
+
+        // Get Project Settings Files
+        let projectSet = await this.app.session.projects.list()
+        projectSet = Array.from(projectSet).map(async str => {
+            let files = await this.app.session.projects.getFilesFromDB(str)
+            let settings =  await this.app.session.projects.load(files)
+            return {destination: 'personal', settings}
+        })
+
+        // Get Template Files
+        let templateSet = []
+        for (let key in appletManifest){
+            let o = appletManifest[key]
+            let settings = await getAppletSettings(o.folderUrl)
+            if (settings.graph) templateSet.push({destination: 'templates', settings})
+        }
+
+        Promise.allSettled([...projectSet,...templateSet]).then(set => {
+
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
+            set.forEach(o => {
+                if (o.status === 'fulfilled' && o.value.settings){
+                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
+                }
+            })
+
+            // Add Load from File Button
+            galleries.personal.projects.unshift({name: 'Load from File'})
+
+            Object.keys(galleries).forEach(k => {
+
+                let o = galleries[k]
+
+                // Create Top Header
+                if (k !== 'personal'){
+                    let div = document.createElement('div')
+                    div.classList.add(`brainsatplay-option-type`) 
+                    div.classList.add(`option-type-collapsible`)
+                    div.innerHTML = o.header
+                    this.addDropdownFunctionality(div)
+                    this.props.projectContainer.insertAdjacentElement('beforeend', div)
+                }
+
+                // Create Project List
+                let projects = document.createElement('div')
+                projects.id = `${this.props.id}-projectlist-${k}`
+                projects.classList.add("option-type-content")
+                this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
+
+
+                o.projects.forEach(settings => {
+                    let item = document.createElement('div')
+                    item.innerHTML = settings.name
+                    item.classList.add('brainsatplay-option-node')
+                    item.style.padding = '10px 20px'
+                    item.style.display = 'block'
+
+                    item.onclick = async () => {
+
+                        // if (this.props.projects.style.pointerEvents != 'none'){
+                        // Rename Template Projects
+                        if (k === 'templates'){
+                            settings = Object.assign({}, settings)
+                            if (settings.name === 'Blank Project') settings.name = 'My Project'
+                        }
+
+                        // Create Application
+                        if (settings.name === 'Load from File') {
+                            settings = await this.session.projects.loadFromFile()
+                            this._createApp(settings)
+                        } else this._createApp(settings)
+                    // }
+                    }
+                    if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
+                        // div.style.flex = '43%'
+                        projects.insertAdjacentElement('afterbegin',item)
+                    } else {projects.insertAdjacentElement('beforeend',item)}
+
+                })
+
+                if (k === 'personal') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+            })
+        })
+    }
+
+    _createApp(settings){
+        settings.editor = {
+            parentId: this.app.parentNode,
+            show: true,
+            style: `
+            position: block;
+            z-index: 9;
+            `,
+        }
+        this.props.app = this.app.session.initApp(settings, this.app.parentNode,this.app.session,['edit'])
+        // this.props.projects.style.opacity = '0'
+        // this.props.projects.style.pointerEvents = 'none'
+        this.props.app.init()
     }
 
     createViewTabs = () => {
@@ -443,6 +562,8 @@ export class GraphEditor{
                 } else {
                     let containerDiv = document.createElement('div')
                     containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+                    containerDiv.classList.add(`content-div`)
+
                     let inputContainer = document.createElement('div')
                     inputContainer.style.position = 'relative'    
                     let input = document.createElement('input')
@@ -709,6 +830,7 @@ export class GraphEditor{
                 // Add to Document
                     inputContainer.insertAdjacentElement('beforeend',input)
                     containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                    containerDiv.classList.add(`content-div`)
                     selectedParams.insertAdjacentElement('beforeend', containerDiv)
 
                     // Change Live Params with Input Changes
@@ -973,7 +1095,6 @@ export class GraphEditor{
                 selectedType.innerHTML = type[0].toUpperCase() + type.slice(1)
                 selectedType.classList.add(`brainsatplay-option-type`)
                 selectedType.classList.add(`option-type-collapsible`)
-                selectedType.classList.add(`option-type-collapsible`)
 
                 let count = document.createElement('div')
                 count.classList.add('count')
@@ -982,15 +1103,7 @@ export class GraphEditor{
 
                 selectedType.insertAdjacentElement('beforeend',count)
                 options.insertAdjacentElement('beforeend',selectedType)
-                selectedType.onclick = () => {
-                    selectedType.classList.toggle("active");
-                    var content = selectedType.nextElementSibling;
-                    if (content.style.maxHeight){
-                        content.style.maxHeight = null;
-                      } else {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                      }
-                }
+                this.addDropdownFunctionality(selectedType)
             }
 
             options.insertAdjacentElement('beforeend',contentOfType)
@@ -1025,6 +1138,18 @@ export class GraphEditor{
 
             let count = options.querySelector(`.${type}-count`)
             if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
+        }
+    }
+
+    addDropdownFunctionality = (node) => {
+        node.onclick = () => {
+            node.classList.toggle("active");
+            var content = node.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+              } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+              }
         }
     }
 

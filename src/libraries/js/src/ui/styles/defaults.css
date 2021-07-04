@@ -513,6 +513,10 @@ select {
 .brainsatplay-default-container.brainsatplay-node-editor > .main{
     display: flex;
     flex-direction: column;
+    height: 100%;
+    max-height: 100vh;
+    width: 100%;
+    position: relative;
 }
 
 .brainsatplay-node-view{
@@ -524,12 +528,6 @@ select {
     /* height: 100px;  */
 }
 
-.brainsatplay-node-editor > div {
-    height: 100%;
-    max-height: 100vh;
-    width: 100%;
-    position: relative;
-}
 /* Style the tab */
 .brainsatplay-node-editor-tabs > .tab {
     overflow-x: scroll;
@@ -808,7 +806,7 @@ select {
     overflow: scroll;
 }
 
-.node-sidebar-content > div{
+.node-sidebar-content > .content-div {
     display: grid;
     /* padding: 5px;  */
     grid-template-columns: 1fr 1fr;
