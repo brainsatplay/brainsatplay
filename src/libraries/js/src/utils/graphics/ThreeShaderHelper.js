@@ -8,6 +8,40 @@ import uvgrid from './uvgrid.png'
 
 export class THREEShaderHelper {
 
+    static defaultVertexTemplate = `
+varying vec2 vUv;
+
+void main()
+{
+
+    vUv = uv;
+
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
+
+    gl_Position = projectedPosition;
+}
+`;
+
+static defaultFragmentTemplate = `
+#define FFTLENGTH 256
+precision mediump float;
+uniform vec2 iResolution; //Shader display resolution
+uniform float iTime; //Shader time increment
+
+uniform float iHEG;
+uniform float iHRV;
+uniform float iHR;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iFFT[FFTLENGTH];
+uniform float iAudio[FFTLENGTH];
+void main(){
+    gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
+}                    
+`;
+
     constructor(session=undefined, canvas=undefined) {
 
         if(!canvas || !session) {console.error('THREEShaderHelper needs a canvas and a session!'); return false;};
@@ -188,6 +222,51 @@ void main(){
         this.setMeshRotation();
 
 
+    }
+
+    //Generate a shader mesh with the specified parameters
+    static generateShaderGeometry(type='plane',width,height,vertex,fragment) {
+        let geometry = this.createMeshGeometry(type,width,height);
+        let material = this.generateShaderMaterial(vertex,fragment);
+        return new THREE.Mesh(geometry,material);
+    }
+    
+    //Generate a shader material with the specified vertex and fragment
+    static generateShaderMaterial(vertex,fragment) {
+        return new THREE.ShaderMaterial({
+            vertexShader: vertex,
+            fragmentShader: fragment,
+            side: THREE.DoubleSide,
+            transparent: true
+        });
+    }
+
+    //Generate a shader mesh with the specified parameters
+    static createMeshGeometry(type='plane',width,height){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
+            let plane = new THREE.PlaneGeometry(width, height, 1, 1);
+            let angle = (2 * Math.PI * 1) - Math.PI/2;
+            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)));
+            plane.rotation.set(0,-angle - Math.PI/2,0);
+            return plane;
+        } else if (type === 'circle') {      
+            return new THREE.CircleGeometry( Math.min(width, height), 32 );
+        } else if (type === 'halfsphere') {      
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
+        }
+    }
+
+    setMeshGeometry(type='plane') {
+        this.currentView = type;
+        this.mesh.geometry = this.createMeshGeometry(type);
+    }
+
+    setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
+        this.mesh.rotation.set(anglex,angley,anglez);
     }
 
     generateMaterialUniforms(shaderSettings=this.shaderSettings) {
@@ -485,33 +564,6 @@ void main(){
         });
     }
 
-    
-    createMeshGeometry(type='plane',width,height){
-        if (type === 'sphere'){
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
-        } else if (type === 'plane') {
-            let plane = new THREE.PlaneGeometry(width, height, 1, 1);
-            let angle = (2 * Math.PI * 1) - Math.PI/2;
-            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)));
-            plane.rotation.set(0,-angle - Math.PI/2,0);
-            return plane;
-        } else if (type === 'circle') {      
-            return new THREE.CircleGeometry( Math.min(width, height), 32 );
-        } else if (type === 'halfsphere') {      
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
-        } else if (type === 'vrscreen') {
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
-        }
-    }
-
-    setMeshGeometry(type='plane') {
-        this.currentView = type;
-        this.mesh.geometry = this.createMeshGeometry(type);
-    }
-
-    setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
-        this.mesh.rotation.set(anglex,angley,anglez);
-    }
 
 
 }
