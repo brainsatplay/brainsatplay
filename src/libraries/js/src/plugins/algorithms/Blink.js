@@ -1,9 +1,12 @@
 import {DataQuality} from './DataQuality'
 import {Canvas} from '../graphics/Canvas'
+import {Event} from '../inputs/Event'
 
 export class Blink{
     
     static id = String(Math.floor(Math.random()*1000000))
+    static targets = [Event]
+    static models = [{name: 'Threshold'}]
 
     constructor(label, session, params={}) {
         this.label = label

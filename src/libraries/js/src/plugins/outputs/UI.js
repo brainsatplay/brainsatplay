@@ -52,7 +52,7 @@ export class UI{
                         // Insert Fragment
                         this.props.fragments[u.meta.source] = new DOMFragment(
                             dict.HTMLtemplate,
-                            this.app.AppletHTML.node,
+                            this.props.content,
                             undefined,
                             dict.setupHTML
                         )

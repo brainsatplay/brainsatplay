@@ -123,7 +123,9 @@ export class GraphManager{
         if (nodeInfo.analysis == null) nodeInfo.analysis = []
         if (node.analysis) toAnalyze.add(...node.analysis)
         nodeInfo.analysis.push(...Array.from(toAnalyze))
-        return {instance: node, controls: controlsToBind, analysis: toAnalyze}
+        nodeInfo.instance = node;
+        return nodeInfo
+        // return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
 
     removeNode(appId,label, resize=true){
@@ -179,12 +181,11 @@ export class GraphManager{
 
         this.applets[appId].nodes.push(nodeInfo);
         
-        ({instance, controls, analysis} = this.instantiateNode(nodeInfo,this.session))
-        nodeInfo.instance = instance;
+        nodeInfo = this.instantiateNode(nodeInfo,this.session)
 
         // if (this.applets[appId].nodes[nodeInfo.id].analysis == null) this.applets[appId].nodes[nodeInfo.id].analysis = []
         // this.applets[appId].nodes[nodeInfo.id].analysis.push(...analysis);
-        if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
+        if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
 
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}

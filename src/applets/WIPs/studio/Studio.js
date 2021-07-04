@@ -48,10 +48,14 @@ class Studio{
     }
 
     deinit = () => {
-        if (this.props.app) this.props.app.deinit()
+        console.log(this.props.app, this.props.app.editor?.app, this.app?.editor?.app)
+        if (this.props.app.editor.app) {
+            this.props.app.editor.app.deinit()
+        }
     }
 
     _createApp(settings){
+
         let settingsCopy = Object.assign({}, settings)
         if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
         settingsCopy.editor = {
