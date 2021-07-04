@@ -469,9 +469,11 @@ export class GraphManager{
             node.ports[port] = info
 
             // Add Port to Visual Editor
-            console.log('adding port')
-            let editor = this.applets[node.app].editor
-            if (editor) editor.addPort(node,port)
+            let applet = this.applets[node.app]
+            if (applet){
+                let editor = applet.editor
+                if (editor) editor.addPort(node,port)
+            }
         }
     }
 

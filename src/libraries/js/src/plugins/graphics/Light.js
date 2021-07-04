@@ -36,7 +36,7 @@ export class Light{
                 },
                 types: {
                     in: null,
-                    out: 'function',
+                    out: Function,
                 }
             },
             radius: {

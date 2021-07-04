@@ -7,8 +7,6 @@ class Studio{
     constructor(label, session) {
 
         // Generic Plugin Attributes
-
-        console.log(settings)
         this.label = label
         this.session = session
         this.params = {}
