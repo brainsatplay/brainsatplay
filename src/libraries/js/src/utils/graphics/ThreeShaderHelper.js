@@ -10,7 +10,7 @@ export class THREEShaderHelper {
 
     constructor(session=undefined, canvas=undefined) {
 
-        if(!canvas || !session) {console.error('THREEShaderHelper needs a canvas!'); return false;};
+        if(!canvas || !session) {console.error('THREEShaderHelper needs a canvas and a session!'); return false;};
 
         this.session = session;
         this.eegchannel = 0;
