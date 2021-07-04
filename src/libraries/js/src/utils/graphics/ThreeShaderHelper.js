@@ -149,39 +149,8 @@ void main(){
             iFrontalAlpha1Coherence: {default:0, min:0, max:1.1,step:0.1}                           //Alpha 1 coherence, typically between 0 and 1 and up, 0.9 and up is a strong correlation
         }
 
-this.vertexTemplate = `
-varying vec2 vUv;
-
-void main()
-{
-
-    vUv = uv;
-
-    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-    vec4 viewPosition = viewMatrix * modelPosition;
-    vec4 projectedPosition = projectionMatrix * viewPosition;
-
-    gl_Position = projectedPosition;
-}
-`;
-
-this.fragmentTemplate = `
-#define FFTLENGTH 256
-precision mediump float;
-uniform vec2 iResolution; //Shader display resolution
-uniform float iTime; //Shader time increment
-
-uniform float iHEG;
-uniform float iHRV;
-uniform float iHR;
-uniform float iHB;
-uniform float iFrontalAlpha1Coherence;
-uniform float iFFT[FFTLENGTH];
-uniform float iAudio[FFTLENGTH];
-void main(){
-    gl_FragColor = vec4(iAudio[20]/255. + iHEG*0.1+gl_FragCoord.x/gl_FragCoord.y,gl_FragCoord.y/gl_FragCoord.x,gl_FragCoord.y/gl_FragCoord.x - iHEG*0.1 - iAudio[120]/255.,1.0);
-}                    
-`;
+        this.vertexTemplate = this.defaultVertexTemplate;
+        this.fragmentTemplate = this.defaultFragmentTemplate;
 
         this.shaderSettings = {
             name: 'default',
@@ -225,14 +194,14 @@ void main(){
     }
 
     //Generate a shader mesh with the specified parameters
-    static generateShaderGeometry(type='plane',width,height,vertex,fragment) {
+    static generateShaderGeometry(type='plane',width,height,fragment=this.defaultFragmentTemplate,vertex=this.defaultVertexTemplate) {
         let geometry = this.createMeshGeometry(type,width,height);
-        let material = this.generateShaderMaterial(vertex,fragment);
+        let material = this.generateShaderMaterial(fragment,vertex);
         return new THREE.Mesh(geometry,material);
     }
     
     //Generate a shader material with the specified vertex and fragment
-    static generateShaderMaterial(vertex,fragment) {
+    static generateShaderMaterial(fragment=this.defaultFragmentTemplate,vertex=this.defaultVertexTemplate) {
         return new THREE.ShaderMaterial({
             vertexShader: vertex,
             fragmentShader: fragment,
@@ -263,6 +232,7 @@ void main(){
     setMeshGeometry(type='plane') {
         this.currentView = type;
         this.mesh.geometry = this.createMeshGeometry(type);
+        this.mesh.rotation.set(0,Math.PI,0);
     }
 
     setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
@@ -496,7 +466,7 @@ void main(){
         onchange();
     }
 
-    setShaderFromText = (fragmentShaderText=this.fragmentTemplate,vertexShaderText=this.vertexTemplate,name='',author='',onchange=()=>{this.startTime=Date.now()}) => {
+    setShaderFromText = (fragmentShaderText=this.defaultFragmentTemplate,vertexShaderText=this.defaultVertexTemplate,name='',author='',onchange=()=>{this.startTime=Date.now()}) => {
 
         this.fragmentTemplate = fragmentShaderText;
         this.vertexTemplate = vertexShaderText;
