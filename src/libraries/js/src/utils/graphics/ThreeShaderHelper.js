@@ -60,16 +60,7 @@ void main(){
         this.gui = new GUI({ autoPlace: false });
         this.guiControllers = [];
 
-        canvas.addEventListener('mousemove', (ev) => {
-            this.mousexyzw[0] = ev.offsetX;
-            this.mousexyzw[1] = ev.offsetY;
-        });
-
-        canvas.addEventListener('mousedown',(ev) => {
-            this.mouseclicked = 1.0;
-            this.mousexyzw[2] = ev.offsetX;
-            this.mousexyzw[3] = ev.offsetY;
-        });
+        this.addCanvasEventListeners(canvas);
 
         let date = new Date();
 
@@ -230,6 +221,27 @@ void main(){
         } else if (type === 'vrscreen') {
             return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
         }
+    }
+
+    onmousemove=(ev)=> {
+        this.mousexyzw[0] = ev.offsetX;
+        this.mousexyzw[1] = ev.offsetY;
+    }
+
+    mousedown = (ev) => {
+        this.mouseclicked = 1.0;
+        this.mousexyzw[2] = ev.offsetX;
+        this.mousexyzw[3] = ev.offsetY; 
+    }
+
+    addCanvasEventListeners(canvas=this.canvas) { 
+        canvas.addEventListener('mousemove', this.onmousemove);
+        canvas.addEventListener('mousedown', this.mousedown);
+    }
+
+    removeCanvasEventListeners(canvas=this.canvas) { 
+        canvas.removeEventListener('mousemove', this.onmousemove);
+        canvas.removeEventListener('mousedown', this.mousedown);
     }
 
     //only applies to the main mesh geometry
