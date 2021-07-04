@@ -18,7 +18,7 @@ export class Circle{
                 },
                 types: {
                     in: null,
-                    out: 'function',
+                    out: Function,
                 },
                 onUpdate: () => {
                     return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]

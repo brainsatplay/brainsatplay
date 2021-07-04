@@ -17,7 +17,7 @@ export class Canvas{
 
         this.ports = {
             draw: {
-                input: {type: 'function'},
+                input: {type: Function},
                 output: {type: null},
                 onUpdate: (userData) => {
                     console.log(userData)
@@ -28,7 +28,7 @@ export class Canvas{
             },
             element: {
                 input: {type: null},
-                output: {type: 'Element'},
+                output: {type: Element},
                 onUpdate: () => {
                     return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
                 }

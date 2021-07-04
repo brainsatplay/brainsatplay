@@ -89,7 +89,7 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
-                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit Project</button>
+                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit the Studio</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>Node Editor</h3>
@@ -170,10 +170,11 @@ export class GraphEditor{
                 exit.onclick = () => {
                     // If Inside Studio, Bring Back UI
                     if (this.isStudio){
-                        this.app.deinit()
-                        let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
-                        projectWindow.style.opacity = 1
-                        projectWindow.style.pointerEvents = 'all'
+                        document.getElementById('applet-browser-button').click()
+                        // this.app.deinit()
+                        // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                        // projectWindow.style.opacity = 1
+                        // projectWindow.style.pointerEvents = 'all'
 
                     } else { // Otherwise just toggle the editor display
                         this.toggleDisplay()
@@ -592,27 +593,23 @@ export class GraphEditor{
                 this.shown = true
 
                 // Move App Into Preview
-                // if (this.isStudio){
-                    this.appNode = this.app.AppletHTML.node
-                    this.preview.appendChild(this.appNode)
-                    setTimeout(() => {
+                this.appNode = this.app.AppletHTML.node
+                this.preview.appendChild(this.appNode)
+                setTimeout(() => {
 
-                    this.responsive()
-                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                this.responsive()
+                this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 },100)
-                // }
             } else {
                 this.element.node.style.opacity = 0
                 this.element.node.style.pointerEvents = 'none'
                 this.shown = false
 
-                // if (this.isStudio){
-                    this.app.AppletHTML.parentNode.appendChild(this.appNode)
-                    setTimeout(() => {
-                        this.responsive()
-                        this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
-                    },100)
-                // }
+                this.app.AppletHTML.parentNode.appendChild(this.appNode)
+                setTimeout(() => {
+                    this.responsive()
+                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                },100)
             }
         }
     }
@@ -761,7 +758,6 @@ export class GraphEditor{
             if (toParse == null) toParse = plugin.ports
 
             for (let key in toParse){
-
                 // Properly Nest Divs
                 let containerDiv = document.createElement('div')
                 containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
@@ -770,13 +766,17 @@ export class GraphEditor{
 
                 // Sort through Params
                 if (toParse[key].show != false){
-                let defaultType = typeof toParse[key].default
+
+                let defaultType = toParse[key].input.type ?? typeof toParse[key].default
+                if (typeof defaultType !== 'string') defaultType = defaultType.name
+
                 let specifiedOptions = toParse[key].options
                 let optionsType = typeof specifiedOptions
 
                 let input;
 
-                if (defaultType != 'undefined' && defaultType != 'object'){
+                // Cannot Handle Objects or Elements
+                if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
 
                 if (optionsType == 'object' && specifiedOptions != null){
                         let options = ``
@@ -815,6 +815,54 @@ export class GraphEditor{
                         input = document.createElement('input')
                         input.type = 'number'
                         input.value = plugin.params[key]
+                    }
+                } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
+                    input = document.createElement('button')
+                    input.classList.add('brainsatplay-default-button')
+                    input.style.width = 'auto'
+                    input.innerHTML = `Edit ${defaultType}`
+                    
+                    let container = document.createElement('div')
+                    container.style = `
+                        width: 75vw;
+                        height: 75vh;
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        z-index: 1000;
+                        transform: translate(-50%, -50%)
+                    `
+                    
+                    document.body.insertAdjacentElement('beforeend', container)
+                    let settings = {}
+                    settings.onOpen = (res) => {
+                        container.style.pointerEvents = 'all'
+                        container.style.opacity = '1'
+                    }
+        
+                    settings.onSave = (res) => {
+                        this.manager.runSafe(plugin, key, [{data: res}])
+                    }
+        
+                    settings.onClose = (res) => {
+                        container.style.pointerEvents = 'none'
+                        container.style.opacity = '0'
+                    }
+
+                    if (defaultType === 'Function'){
+                        settings.language = 'javascript'
+                        settings.target = plugin.params
+                        settings.function = key
+                    } else {
+                        settings.language = defaultType.toLowerCase()
+                        settings.target = plugin.params[key]
+                    }
+
+                    settings.onClose()
+
+                    let editor
+                    input.onclick = () => {
+                        if (editor == null) editor = new LiveEditor(settings, container)
                     }
                 } else {
                         input = document.createElement('input')
@@ -911,8 +959,10 @@ export class GraphEditor{
             settings.target = target
             settings.className = name
             settings.shortcuts = {
-                save: false
+                save: true
             }
+            settings.showClose = false
+
             let editor = new LiveEditor(settings,container)
             let tab = this.addTab(filename, container.id, settings.onOpen)
             this.files[filename].container = container
@@ -965,7 +1015,10 @@ export class GraphEditor{
     createPluginSearch = (container) => {
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
+        selector.style.opacity = '0'
+        selector.style.pointerEvents = 'none'
         selector.classList.add(`brainsatplay-node-selector`)
+
         let selectorMenu = document.createElement('div')
         selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
@@ -1043,8 +1096,6 @@ export class GraphEditor{
         })
 
         selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
-        selector.style.opacity = '0'
-        selector.style.pointerEvents = 'none'
         this.responsive()
     }
 

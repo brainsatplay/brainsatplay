@@ -26,7 +26,7 @@ export class Line{
                 },
                 types: {
                     in: null,
-                    out: 'function',
+                    out: Function,
                 }
             },
             set: {

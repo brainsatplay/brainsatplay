@@ -39,7 +39,6 @@ export class Shader{
 
     init = () => {
         if (this.params.uniforms) this.props.uniforms = this.params.uniforms
-        delete this.params.uniforms
         this.session.graph.runSafe(this,'set',[{data:this.params.glsl}])
     }
 
@@ -58,7 +57,6 @@ export class Shader{
     _setPort = (match) => {
         let name = match[2]
         let type = match[1]
-
         // Set Port
         this.ports[name] = {
             input: {type},

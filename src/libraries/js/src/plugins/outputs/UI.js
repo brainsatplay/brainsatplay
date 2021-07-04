@@ -21,7 +21,8 @@ export class UI{
         this.ports = {
             element: {
                 input: {type: null},
-                output: {type: 'Element'},
+                output: {type: Element},
+                default: document.createElement('div'),
                 onUpdate: () => {
                     return [{data: this.props.container}]
                 },
@@ -29,6 +30,10 @@ export class UI{
              opacity: {
                 input: {type:'number'},
                 output: {type: null},
+                default: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
                 onUpdate:(userData) => {
                     let val = userData[0].data
                     this.props.container.style.opacity = val
@@ -37,6 +42,7 @@ export class UI{
              add: {
                 input: {type:Object},
                 output: {type: null},
+                default: {},
                 onUpdate:(userData) => {
                     let u = userData[0]
                     let dict = u.data
@@ -50,8 +56,6 @@ export class UI{
                             undefined,
                             dict.setupHTML
                         )
-
-                        console.log(this.app)
                         this.session.graph._resizeAllNodeFragments(this.app)
                     }
                 }
@@ -60,46 +64,53 @@ export class UI{
 
         // Dynamically Add Ports
         let ports = [
-            {key: 'html', input: {type: 'string'}, output: {type: null}, default: ``}, 
-            {key: 'parentNode', input: {type: 'Element'}, output: {type: null}, default: document.body}, 
-            {key: 'style', input: {type: 'string'}, output: {type: null}}, 
+            {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: ``, onUpdate: (userData) => {
+                this.props.container.innerHTML = userData[0].data
 
+                // Create ID Ports
+                var descendants = this.props.container.querySelectorAll("*");
+                for (let node of descendants){
+                    if (node.id){
+                        this.session.graph.addPort(this,node.id, {
+                            input: {type: 'string'},
+                            output: {type: null},
+                            onUpdate: (userData) => {
+                                node.innerHTML = userData[0].data
+                            }
+                        })
+                    }
+                }
+            }}, 
+            {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
+            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: ``, onUpdate: (userData) => {
+                this.props.styleElement.innerHTML = userData[0].data
+            }}, 
             {key: 'deinit', input: {type: Function}, output: {type: null}, default: ()=>{}}, 
             {key: 'responsive',input: {type: Function}, output: {type: null}, default: ()=>{}}
         ]
 
         ports.forEach(o => {
-            this.ports[o.key] = {
+            this.session.graph.addPort(this,o.key, {
                 input: o.input,
                 output: o.output,
                 default: o.default,
                 onUpdate: (userData) => {
                     this.params[o.key] = userData[0].data
+                    o.onUpdate(userData)
                 },
-            }
+            })
         })
     }
 
     init = () => {
 
-        // Create ID Ports
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-        this.props.container.style = this.params.style
-        this.props.container.insertAdjacentHTML(`beforeend`, this.params.html)
 
-        var descendants = this.props.container.querySelectorAll("*");
-        for (let node of descendants){
-            if (node.id){
-                this.ports[node.id] = {
-                    input: {type: 'string'},
-                    output: {type: null},
-                    onUpdate: (userData) => {
-                        node.innerHTML = userData[0].data
-                    }
-                }
-            }
-        }
+        // Create Stylesheet
+        this.props.styleElement = document.createElement('style');
+        this.props.styleElement.type = 'text/css';
+        this.props.styleElement.id = `${this.props.id}style`;
 
         let HTMLtemplate = ``
 
@@ -107,8 +118,12 @@ export class UI{
             this.props.ui = new DOMFragment(
                 () => {return this.props.container},
                 app.id,
+                this.params,
                 ()=>{
                     if (this.params.setupHTML instanceof Function) this.params.setupHTML()
+                    document.head.appendChild(this.props.styleElement);
+                    this.session.graph.runSafe(this,'html', [{data: this.params.html}])
+                    this.session.graph.runSafe(this,'style', [{data: this.params.style}])
                 },
             )
         }
@@ -118,6 +133,7 @@ export class UI{
 
     deinit = () => { 
         if (this.params.deinit instanceof Function) this.params.deinit()
+        this.props.styleElement.remove()
         // this.props.ui.deleteNode() 
     }
 
