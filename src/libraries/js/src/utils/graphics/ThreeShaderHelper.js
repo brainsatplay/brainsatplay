@@ -257,6 +257,14 @@ void main(){
         }
     }
 
+    
+    addUniformSetting(name='newUniform',callback=()=>{return 0;},defaultValue=0,type=undefined,min=0,max=1,step=0.1) { //min,max,step are for slider controls (only applies to floats)
+        this.uniformSettings[name] = {callback:callback,default:defaultValue,min:min,max:max,step:step};
+        this.baseUniforms[name] = {value:defaultValue};
+        if(type) { this.baseUniforms[name].type = type; }
+    }
+
+
     generateMaterialUniforms(shaderSettings=this.shaderSettings) {
         let uniforms = {};
         shaderSettings.uniformNames.forEach((u)=>{
@@ -296,6 +304,7 @@ void main(){
         }
     }
 
+    //Updates dynamic uniforms. Static uniforms (textures, meshes, etc) are set once.
     updateMaterialUniforms(material=this.material,uniformNames=this.shaderSettings.uniformNames,meshType=this.currentView,atlas=this.session.atlas) {
         let time = Date.now();
         
@@ -431,12 +440,6 @@ void main(){
             }
         }
 
-    }
-
-    addUniformSetting(name='newUniform',callback=()=>{return 0;},defaultValue=0,type=undefined,min=0,max=1) {
-        this.uniformSettings[name] = {callback:callback,default:defaultValue,min:min,max:max};
-        this.baseUniforms[name] = {value:defaultValue};
-        if(type) { this.baseUniforms[name].type = type; }
     }
 
 
