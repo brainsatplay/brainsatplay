@@ -6,6 +6,22 @@ import {eegmath} from '../eegmath'
 
 import uvgrid from './uvgrid.png'
 
+/*
+This class cretes THREE.js shader meshes that have responsive uniforms to bci and shadertoy presets
+
+Usage:
+
+let helper = new THREEShaderHelper(session,canvas);
+
+three.scene.add(this.meshes[0]);
+
+//you can add meshes, uniforms, and a bunch of other things
+
+//in animation loop:
+    this.updateAllMaterialUniforms();
+    three.renderer.render(three.scene, three.camera);
+*/
+
 export class THREEShaderHelper {
 
     static defaultVertexTemplate = `
