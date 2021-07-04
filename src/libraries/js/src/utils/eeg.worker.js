@@ -3,6 +3,25 @@ import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
+function parseFunctionFromText(method){
+    //Get the text inside of a function (regular or arrow);
+    getFunctionBody = (methodString) => {
+      return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+    }
+
+    getFunctionHead = (methodString) => {
+      return methodString.slice(0,methodString.indexOf('{') + 1);
+    }
+
+    let newFuncHead = getFunctionHead(method);
+    let newFuncBody = getFunctionBody(method);
+
+    let newFunc = eval(newFuncHead+newFuncBody+"}");
+
+    return newFunc;
+
+}
+
 const onMessage = (event) => {
   // define gpu instance
   //console.log("worker executing...")
@@ -12,30 +31,19 @@ const onMessage = (event) => {
   let callbacks = [
     {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
 
-      //Get the text inside of a function (regular or arrow);
-      getFunctionBody = (methodString) => {
-        return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
-      }
-
-      getFunctionHead = (methodString) => {
-        return methodString.slice(0,methodString.indexOf('{') + 1);
-      }
-
-      let newFuncHead = getFunctionHead(args[1]);
-      let newFuncBody = getFunctionBody(args[1]);
-      let newFunc = eval(newFuncHead+newFuncBody+"}");
+      let newFunc = parseFunctionFromText(args[1]);
 
       let newCallback = {case:args[0],callback:newFunc};
       callbacks.push(newCallback);
 
     }},
-    {case:'addgpufunc',callback:(args)=>{
-      gpu.addFunction(args[0]);
+    {case:'addgpufunc',callback:(args)=>{ //arg0 = gpu in-thread function string
+      gpu.addFunction(parseFunctionFromText(args[0]));
     }},
-    {case:'addkernel',callback:(args)=>{
-      gpu.addKernel(args[0],args[1]);
+    {case:'addkernel',callback:(args)=>{ //arg0 = kernel name, arg1 = kernel function string
+      gpu.addKernel(args[0],parseFunctionFromText(args[1]));
     }},
-    {case:'callkernel',callback:(args)=>{
+    {case:'callkernel',callback:(args)=>{ //arg0 = kernel name, args.slice(1) = kernel input arguments
       gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
     }},
     {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
