@@ -118,7 +118,7 @@ void main(){
             iFrame:     {default:0,min:0,max:999999, step:1},
             iFrameRate: {default:0,min:0,max:144, step:1},
             iChannelTime:   {default:[0,0,0,0],min:0,max:99999, step:1},
-            iChannelResolution:{type:'v3v',min:8,max:8192,, step:1, default:[new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100)]},
+            iChannelResolution:{type:'v3v',min:8,max:8192, step:1, default:[new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100)]},
             iChannel0:  {type:'t', default:new THREE.Texture(uvgrid)},
             iChannel1:  {type:'t', default:new THREE.Texture(uvgrid)},
             iChannel2:  {type:'t', default:new THREE.Texture(uvgrid)},
