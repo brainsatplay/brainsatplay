@@ -239,6 +239,22 @@ void main(){
         this.mesh.rotation.set(anglex,angley,anglez);
     }
 
+    //this should allow you to set custom textures
+    setChannelTexture(channelNum=0,imageOrVideo=uvgrid,material=this.material) {
+        if(!this.baseUniforms['iChannel'+channelNum]) {
+            let l = this.baseUniforms['iChannelResolution'].value.length-1;
+            if(this.baseUniforms['iChannelResolution'].value.length-1 < channelNum) {
+                this.baseUniforms['iChannelResolution'].value.push(...new Array(channelNum-l).fill(0));
+                this.baseUniforms['iChannelTime'].value.push(...new Array(channelNum-l).fill(Date.now()-this.startTime));
+            }
+        }
+        this.baseUniforms['iChannel'+channelNum] = {type:'t', value:new THREE.Texture(imageOrVideo)};
+        this.baseUniforms['iChannelResolution'].value[channelNum] = new THREE.Vector2(imageOrVideo.width, imageOrVideo.height);
+        if(material) {
+            material.uniforms['iChannel'+channelNum] = this.baseUniforms['iChannel'+channelNum];
+        }
+    }
+
     generateMaterialUniforms(shaderSettings=this.shaderSettings) {
         let uniforms = {};
         shaderSettings.uniformNames.forEach((u)=>{
@@ -308,10 +324,9 @@ void main(){
                 this.lastFrame = time;
             } else if (name === 'iChannelTime') {
                 let t = (time-this.startTime)*0.001;
-                material.uniforms.iChannelTime[0] = t;
-                material.uniforms.iChannelTime[1] = t;
-                material.uniforms.iChannelTime[2] = t;
-                material.uniforms.iChannelTime[3] = t;
+                material.uniforms.iChannelTime.forEach((t,i)=>{
+                    material.uniforms.iChannelTime.value[i] = t;
+                });
             } else if (name === 'iDate') {
                 let date = new Date();
                 material.uniforms.iDate.value.x = date.getYear();
