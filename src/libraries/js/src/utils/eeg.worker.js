@@ -29,6 +29,15 @@ const onMessage = (event) => {
       callbacks.push(newCallback);
 
     }},
+    {case:'addgpufunc',callback:(args)=>{
+      gpu.addFunction(args[0]);
+    }},
+    {case:'addkernel',callback:(args)=>{
+      gpu.addKernel(args[0],args[1]);
+    }},
+    {case:'callkernel',callback:(args)=>{
+      gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
+    }},
     {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
     {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},
     {case:'cov1d', callback:(args)=>{return eegmath.cov1d(...args);}},
