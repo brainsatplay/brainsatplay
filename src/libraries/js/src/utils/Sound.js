@@ -173,6 +173,11 @@ export class SoundJS { //Only one Audio context at a time!
       if(this.sourceList[bufferIndex])
         this.sourceList[bufferIndex].playbackRate.value = rate;
     }
+
+    getAnalyzerData() {
+      var array = new Uint8Array(this.analyserNode.frequencyBinCount);
+      return this.analyserNode.getByteFrequencyData(array);
+    }
   
     record(name = new Date().toISOString(), args={audio:true, video:false}, type=null, streamElement=null, save=false,onbegin=()=>{}){ // video settings vary e.g. video:{width:{min:1024,ideal:1280,max:1920},height:{min:576,ideal:720,max:1080}}
       /*

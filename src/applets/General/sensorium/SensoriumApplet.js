@@ -172,7 +172,7 @@ export class SensoriumApplet {
         this.three.planes = [];
         this.guiControllers = [];
 
-        this.mouseclicked = false;
+        this.mouseclicked = 0.0;
         this.mousexyzw = [0,0,0,0];
 
         //Available uniforms for shaders. See comments for usage
@@ -222,7 +222,6 @@ export class SensoriumApplet {
         let date = new Date();
 
         this.additionalUniforms = {
-            iResolution: 'auto', 
             iTime: 0, //milliseconds elapsed from shader begin
             iTimeDelta:0,
             iFrame:0,
@@ -661,7 +660,7 @@ void main(){
 
     this.additionalUniforms.iResolution = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //Required for ShaderToy shaders
     
-    let k = shaderKeys[0]
+    let k = shaderKeys[0];
     // shaderKeys.forEach((k,i) => {
         let material = new THREE.ShaderMaterial({
             transparent: true,
@@ -672,7 +671,7 @@ void main(){
         });
 
         
-        let bciuniforms = {};
+        let bciuniforms = {}; 
         this.shaders[k].uniforms.forEach((u)=>{
             let pass = false;
             for(const prop in this.modifiers) {
@@ -700,8 +699,8 @@ void main(){
                             this.additionalUniforms[u] = new THREE.Texture(uvgrid);
                         }
                         bciuniforms[u] = {type:'t', value:this.additionalUniforms[u]};
-                        if(!uniforms['iChannelResolution']) {
-                            uniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
+                        if(!bciuniforms['iChannelResolution']) {
+                            bciuniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
                         }
                         let ch = parseInt(u[8]);
                         bciuniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
@@ -1603,9 +1602,9 @@ void main(){
                                 effectStruct.source.playbackRate.value = hr_mod;
                             }
                             this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
-                        }
+                        }       
                     }
-                        else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
+                    else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
                         if(this.session.atlas.data.heg[0].ratio.length > 0) {
                             if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
                             let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;
