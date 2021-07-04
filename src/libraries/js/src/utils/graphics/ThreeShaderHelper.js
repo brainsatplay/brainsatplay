@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { Texture } from 'three';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {eegmath} from '../eegmath'
@@ -77,23 +78,23 @@ export class THREEShaderHelper {
 
         //default settings for uniforms
         this.uniformSettings = {
-            iResolution: {default:THREE.Vector2(100,100),min:8,max:8192}, //viewport resolution
-            iTime:      {default:0,min:0,max:999999}, //milliseconds elapsed from shader begin
-            iTimeDelta: {default:0,min:0,max:2},
-            iFrame:     {default:0,min:0,max:999999},
-            iFrameRate: {default:0,min:0,max:144},
-            iChannelTime:   {default:[0,0,0,0],min:0,max:99999},
-            iChannelResolution:{type:'v3v',min:8,max:8192, default:[new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100)]},
+            iResolution: {default:THREE.Vector2(100,100),min:8,max:8192, step:1}, //viewport resolution
+            iTime:      {default:0,min:0,max:999999, step:1}, //milliseconds elapsed from shader begin
+            iTimeDelta: {default:0,min:0,max:2, step:0.1},
+            iFrame:     {default:0,min:0,max:999999, step:1},
+            iFrameRate: {default:0,min:0,max:144, step:1},
+            iChannelTime:   {default:[0,0,0,0],min:0,max:99999, step:1},
+            iChannelResolution:{type:'v3v',min:8,max:8192,, step:1, default:[new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100),new THREE.Vector3(100,100)]},
             iChannel0:  {type:'t', default:new THREE.Texture(uvgrid)},
             iChannel1:  {type:'t', default:new THREE.Texture(uvgrid)},
             iChannel2:  {type:'t', default:new THREE.Texture(uvgrid)},
             iChannel3:  {type:'t', default:new THREE.Texture(uvgrid)},
-            iSampleRate:    {type:'1f', default:44100,min:8000,max:96000},
+            iSampleRate:    {type:'1f', default:44100,min:8000,max:96000, step:1000},
             iDate:      {default:new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*3600+date.getMinutes()*60+date.getSeconds())},
-            iMouse:     {default:[0,0,0,0],min:0,max:8192},  //XY mouse coordinates, z, w are last click location
+            iMouse:     {default:[0,0,0,0],min:0,max:8192, step:1},  //XY mouse coordinates, z, w are last click location
             iMouseInput: {default:false}, //Click occurred before past frame?
             iImage:           {type:'t', default:new THREE.Texture(canvas.toDataURL())}, //Texture map returned from shader (to keep state)
-            iAudio:           {default: new Array(256).fill(0), min:0,max:255},              //Audio analyser FFT, array of 256, values max at 255
+            iAudio:           {default: new Array(256).fill(0), min:0,max:255, step:1},              //Audio analyser FFT, array of 256, values max at 255
             iHRV:             {default:0, min:0, max:40,step:0.5},                           //Heart Rate Variability (values typically 5-30)
             iHEG:             {default:0, min:-3, max:3,step:0.1},                           //HEG change from baseline, starts at zero and can go positive or negative
             iHR:              {default:0, min:0, max:240,step:1},                            //Heart Rate in BPM
@@ -191,7 +192,7 @@ void main(){
 
     generateMaterialUniforms(shaderSettings=this.shaderSettings) {
         let bciuniforms = {};
-        shaderSettings.uniforms.forEach((u)=>{
+        shaderSettings.uniformNames.forEach((u)=>{
             let pass = false;
             for(const prop in this.baseUniforms) {
                 if (prop === 'iChannelResolution') {
@@ -206,6 +207,8 @@ void main(){
                         bciuniforms[u].value.image.width,
                         bciuniforms[u].value.image.height
                     );
+                } else if (prop.includes('iImage')){
+                   bciuniforms[u] = {type:'t',value:this.canvas.toDataURL()};
                 }
                 else if(u === prop) {
                     bciuniforms[u]=this.baseUniforms[u];
@@ -219,9 +222,9 @@ void main(){
 
     resetMaterialUniforms() {
         for(let name in this.shaderSettings.uniformNames) {
-            if(this.uniformSettings[name] && this.material.uniforms[name]) {
-                this.material.uniforms[name].value = this.uniformSettings[name].default;
+            if(this.uniformSettings[name]) {
                 this.baseUniforms[name].value = this.uniformSettings[name].default;
+                this.material.uniforms[name] = this.baseUniforms[name];
             }
         }
     }
@@ -231,6 +234,10 @@ void main(){
         
         for(let name in this.shaderSettings.uniformNames) {
         
+            if (!this.material.uniforms[name]) { 
+                this.material.uniforms[name] = {value:0};
+            }
+
             if(name === 'iResolution') {
                 if(this.currentView === 'halfsphere' || this.currentView === 'circle') {
                     this.material.uniforms.iResolution.value.x = this.canvas.width;
@@ -346,6 +353,10 @@ void main(){
                     this.material.uniforms.iAlphaTheta.value = this.session.atlas.getAlphaThetaRatio(this.session.atlas.getEEGDataByChannel(channel))
                 } else if (this.session.atlas.settings.analysis.eegcoherence === true && name === 'iFrontalAlpha1Coherence') {
                     this.material.uniforms.iFrontalAlpha1Coherence.value = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(),'alpha1') // this.session.atlas.getLatestCoherenceData(0)[0].mean.alpha1;
+                } else if (this.uniformSettings[name]) {
+                    if(this.uniformSettings[name].callback) {
+                        this.material.uniforms[name].value = this.uniformSettings[name].callback();
+                    }
                 }
             } else if (this.uniformSettings[name]) {
                 if(this.uniformSettings[name].callback) {
@@ -362,32 +373,6 @@ void main(){
         if(type) { this.baseUniforms[name].type = type; }
     }
 
-    createMeshGeometry(type='plane',width,height){
-        if (type === 'sphere'){
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
-        } else if (type === 'plane') {
-            let plane = new THREE.PlaneGeometry(width, height, 1, 1);
-            let angle = (2 * Math.PI * 1) - Math.PI/2;
-            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)));
-            plane.rotation.set(0,-angle - Math.PI/2,0);
-            return plane;
-        } else if (type === 'circle') {      
-            return new THREE.CircleGeometry( Math.min(width, height), 32 );
-        } else if (type === 'halfsphere') {      
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
-        } else if (type === 'vrscreen') {
-            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
-        }
-    }
-
-    setMeshGeometry(type='plane') {
-        this.currentView = type;
-        this.mesh.geometry = this.createMeshGeometry(type);
-    }
-
-    setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
-        this.mesh.rotation.set(anglex,angley,anglez);
-    }
 
     setShader = (name='',vertexShader=``,fragmentShader=``,uniformNames=[],author='') => {
         this.shaderSettings.name = name;
@@ -396,22 +381,9 @@ void main(){
         this.shaderSettings.uniformNames = uniformNames;
         this.shaderSettings.author = author;
 
-        let uniforms = this.generateMaterialUniforms();
+        let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
 
         this.material = new THREE.ShaderMaterial({
-            transparent:true,
-            side: THREE.DoubleSide,
-            vertexShader: this.shaderSettings.vertexShader,
-            fragmentShader: this.shaderSettings.fragmentShader,
-            uniforms:uniforms
-        });
-    }
-
-    swapShader = (onchange=()=>{this.startTime=Date.now()}) => {
-
-        let uniforms = this.generateMaterialUniforms();
-
-        let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.shaderSettings.vertexShader,
             fragmentShader: this.shaderSettings.fragmentShader,
             side: THREE.DoubleSide,
@@ -419,8 +391,28 @@ void main(){
             uniforms:uniforms
         });
 
+        this.updateMaterialUniforms(); //get latest data
+        
         this.mesh.material.dispose();
-        this.mesh.material = newMaterial;
+        this.mesh.material = this.material;
+    }
+
+    swapShader = (onchange=()=>{this.startTime=Date.now()}) => {
+
+        let uniforms = this.generateMaterialUniforms(); //get base/invariant uniforms
+
+        this.material = new THREE.ShaderMaterial({
+            vertexShader: this.shaderSettings.vertexShader,
+            fragmentShader: this.shaderSettings.fragmentShader,
+            side: THREE.DoubleSide,
+            transparent: true,
+            uniforms: uniforms
+        });
+
+        this.updateMaterialUniforms(); //get latest data
+
+        this.mesh.material.dispose();
+        this.mesh.material = this.material;
 
         onchange();
     }
@@ -435,7 +427,16 @@ void main(){
         let result = [...fragmentShader.matchAll(regex)]
         let alluniforms = [];
         result.forEach(a => {
-            alluniforms.push(a[2].replace(/(\[.+\])/g, ''))
+            if(a[1].includes('sampler')){
+                this.baseUniforms[u] = {default:new Texture(uvmap),type:'t'};
+                this.uniformSettings[u] = {default:new Texture(uvmap),type:'t'};
+            } else if (a[1].includes('float')) {
+                if(!this.baseUniforms[u]) {
+                    this.baseUniforms[u] = {value:0};
+                    this.uniformSettings[u] = {default:0,min:0,max:100,step:1};
+                }
+            }
+            alluniforms.push(a[2].replace(/(\[.+\])/g, ''));
         });
 
         this.shaderSettings.name = name;
@@ -482,6 +483,34 @@ void main(){
                 }
             } 
         });
+    }
+
+    
+    createMeshGeometry(type='plane',width,height){
+        if (type === 'sphere'){
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50).rotateY(-Math.PI*0.5);
+        } else if (type === 'plane') {
+            let plane = new THREE.PlaneGeometry(width, height, 1, 1);
+            let angle = (2 * Math.PI * 1) - Math.PI/2;
+            plane.position.set(radius*(Math.cos(angle)),0,radius*(Math.sin(angle)));
+            plane.rotation.set(0,-angle - Math.PI/2,0);
+            return plane;
+        } else if (type === 'circle') {      
+            return new THREE.CircleGeometry( Math.min(width, height), 32 );
+        } else if (type === 'halfsphere') {      
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI, Math.PI, 0, Math.PI).translate(0,0,-3);
+        } else if (type === 'vrscreen') {
+            return new THREE.SphereGeometry(Math.min(width, height), 50, 50, -2*Math.PI-1, Math.PI+1, 0.5, Math.PI-1).rotateY(0.5).translate(0,0,-3);
+        }
+    }
+
+    setMeshGeometry(type='plane') {
+        this.currentView = type;
+        this.mesh.geometry = this.createMeshGeometry(type);
+    }
+
+    setMeshRotation(anglex=0,angley=Math.PI,anglez=0){
+        this.mesh.rotation.set(anglex,angley,anglez);
     }
 
 
