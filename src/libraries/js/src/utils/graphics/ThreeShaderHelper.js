@@ -240,40 +240,40 @@ void main(){
     }
 
     generateMaterialUniforms(shaderSettings=this.shaderSettings) {
-        let bciuniforms = {};
+        let uniforms = {};
         shaderSettings.uniformNames.forEach((u)=>{
             let pass = false;
             for(const prop in this.baseUniforms) {
                 if (prop === 'iChannelResolution') {
-                    bciuniforms[u] = this.baseUniforms[u];
+                    uniforms[u] = this.baseUniforms[u];
                 } else if (prop.includes('iChannel')) {
-                    bciuniforms[u] = this.baseUniforms[u];
-                    if(!bciuniforms['iChannelResolution']) {
-                        bciuniforms['iChannelResolution'] = this.baseUniforms['iChannelResolution'];
+                    uniforms[u] = this.baseUniforms[u];
+                    if(!uniforms['iChannelResolution']) {
+                        uniforms['iChannelResolution'] = this.baseUniforms['iChannelResolution'];
                     }
                     let ch = parseInt(u[8]);
-                    bciuniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
-                        bciuniforms[u].value.image.width,
-                        bciuniforms[u].value.image.height
+                    uniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
+                        uniforms[u].value.image.width,
+                        uniforms[u].value.image.height
                     );
                 } else if (prop.includes('iImage')){
-                   bciuniforms[u] = {type:'t',value:this.canvas.toDataURL()};
+                   uniforms[u] = {type:'t',value:this.canvas.toDataURL()};
                 }
                 else if(u === prop) {
-                    bciuniforms[u]=this.baseUniforms[u];
+                    uniforms[u]=this.baseUniforms[u];
                     pass = true;
                     break;
                 }
             }
         });
-        return bciuniforms;
+        return uniforms;
     }
 
-    resetMaterialUniforms() {
-        for(let name in this.shaderSettings.uniformNames) {
+    resetMaterialUniforms(material,uniformNames) {
+        for(let name in uniformNames) {
             if(this.uniformSettings[name]) {
                 this.baseUniforms[name].value = this.uniformSettings[name].default;
-                this.material.uniforms[name] = this.baseUniforms[name];
+                material.uniforms[name] = this.baseUniforms[name];
             }
         }
     }
