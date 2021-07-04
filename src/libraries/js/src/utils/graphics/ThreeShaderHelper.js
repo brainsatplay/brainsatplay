@@ -241,7 +241,7 @@ void main(){
 
     //this should allow you to set custom textures
     setChannelTexture(channelNum=0,imageOrVideo=uvgrid,material=this.material) {
-        if(!this.baseUniforms['iChannel'+channelNum]) {
+        if(!this.baseUniforms['iChannel'+channelNum]) { //if adding new textures, the glsl needs to be able to accommodate it
             let l = this.baseUniforms['iChannelResolution'].value.length-1;
             if(this.baseUniforms['iChannelResolution'].value.length-1 < channelNum) {
                 this.baseUniforms['iChannelResolution'].value.push(...new Array(channelNum-l).fill(0));
@@ -252,6 +252,8 @@ void main(){
         this.baseUniforms['iChannelResolution'].value[channelNum] = new THREE.Vector2(imageOrVideo.width, imageOrVideo.height);
         if(material) {
             material.uniforms['iChannel'+channelNum] = this.baseUniforms['iChannel'+channelNum];
+            material.uniforms['iChannelResolution'] = this.baseUniforms['iChannelResolution'];
+            material.uniforms['iChannelTime'] = this.baseUniforms['iChannelTime'];
         }
     }
 
