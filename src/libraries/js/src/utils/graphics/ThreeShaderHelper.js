@@ -282,7 +282,6 @@ void main(){
         this.materials.push(material);
         this.meshes.push(mesh);
 
-
     }
 
     //only applies to the main mesh geometry
@@ -643,7 +642,7 @@ void main(){
                 materialsfiltered.forEach(material => {
                     if (!material.uniforms[name]) { 
                         material.uniforms[name] = {value:value};
-                    } else material.unfiroms[name].value = value;
+                    } else material.uniforms[name].value = value;
                 });
             }
         });
