@@ -67,8 +67,8 @@ void main(){
 
         canvas.addEventListener('mousedown',(ev) => {
             this.mouseclicked = 1.0;
-            this.mousexyzw[3] = ev.offsetX;
-            this.mousexyzw[4] = ev.offsetY;
+            this.mousexyzw[2] = ev.offsetX;
+            this.mousexyzw[3] = ev.offsetY;
         });
 
         let date = new Date();
