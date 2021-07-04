@@ -323,8 +323,7 @@ void main(){
 
             if(name === 'iResolution') {
                 if(meshType === 'halfsphere' || meshType === 'circle') {
-                    material.uniforms.iResolution.value.x = this.canvas.width;
-                    material.uniforms.iResolution.value.y = this.canvas.height;
+                    material.uniforms.iResolution.value = new THREE.Vector2(this.canvas.width,this.canvas.height);
                 } else if (meshType !== 'plane') {
                     material.uniforms.iResolution.value = new THREE.Vector2(Math.max(this.canvas.width,this.canvas.height), this.canvas.width); //fix for messed up aspect ratio on vrscreen and sphere
                 } else {
@@ -333,16 +332,22 @@ void main(){
             } else if (name === 'iTime') {
                 material.uniforms.iTime.value = (time-this.startTime)*0.001;
             } else if (name === 'iTimeDelta') {
-                material.uniforms.iTimeDelta.value = (time-this.lastTime)*0.001;
-                this.lastTime = time;
+                let t0 = time-this.lastTime;
+                material.uniforms.iTimeDelta.value = (t0)*0.001;
+                if(t0 > 5) {
+                    this.lastTime = time;
+                }
             } else if (name === 'iFrame') {
                 material.uniforms.iFrame.value++;
             } else if (name === 'iFrameRate') {
-                material.uniforms.iFrameRate.value = time - this.lastFrame;
-                this.lastFrame = time;
+                let t0 = time - this.lastFrame;
+                material.uniforms.iFrameRate.value = 1/(t0*0.001);
+                if(t0 > 5) { 
+                    this.lastFrame = time;
+                }
             } else if (name === 'iChannelTime') {
                 let t = (time-this.startTime)*0.001;
-                material.uniforms.iChannelTime.forEach((t,i)=>{
+                material.uniforms.iChannelTime.value.forEach((t,i)=>{
                     material.uniforms.iChannelTime.value[i] = t;
                 });
             } else if (name === 'iDate') {
@@ -352,14 +357,14 @@ void main(){
                 material.uniforms.iDate.value.z = date.getDay();
                 material.uniforms.iDate.value.w = date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds();
             } else if (name === 'iMouse') {
-                material.uniforms.iMouse= new THREE.Vector4(...this.mousexyzw);
+                material.uniforms.iMouse.value = new THREE.Vector4(...this.mousexyzw);
             } else if (name === 'iMouseInput') {
-                material.uniforms.iMouseInput = this.mouseclicked;
+                material.uniforms.iMouseInput.value = this.mouseclicked;
             } else if (name === 'iImage') {
                 material.uniforms.iImage.value = this.canvas.toDataURL();
             } else if (name === 'iAudio') {
                 if(window.audio) {
-                    Array.from(window.audio.getAnalyzerData().slice(0,256));
+                    material.uniforms.iFFT.value = Array.from(window.audio.getAnalyzerData().slice(0,256));
                 }
             } else if (name === 'iHEG') {
                 if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
@@ -449,8 +454,146 @@ void main(){
 
     }
 
+    //update all of the uniforms simultaneously to save time
     updateAllMaterialUniforms() {
-        //should probably make a more efficient function to update all of the material uniforms with the same gets instead of applying per-shader. Just thinking of extreme cases
+        Object.keys(this.baseUniforms).forEach((name) => {
+            let materialsfiltered = [];
+            this.shaderSettings.filter((setting,j) => {
+                if(setting.uniformNames.indexOf(name)>-1) {
+                    materialsfiltered.push(this.materials[j]);
+                    return true;
+                }
+            });     
+            if(materialsfiltered.length > 0) {
+                let value;
+                if(name === 'iResolution') {
+                    if(meshType === 'halfsphere' || meshType === 'circle') {
+                        value = new THREE.Vector2(this.canvas.width,this.canvas.height);
+                    } else if (meshType !== 'plane') {
+                        value = new THREE.Vector2(Math.max(this.canvas.width,this.canvas.height), this.canvas.width); //fix for messed up aspect ratio on vrscreen and sphere
+                    } else {
+                        value = new THREE.Vector2(this.canvas.width, this.canvas.height); //leave plane aspect alone
+                    }
+                } else if (name === 'iTime') {
+                    value = (time-this.startTime)*0.001;
+                } else if (name === 'iTimeDelta') {
+                    value = (time-this.lastTime)*0.001;
+                    this.lastTime = time;
+                } else if (name === 'iFrame') {
+                    this.baseUniforms.iFrame.value++;
+                    value = this.baseUniforms.iFrame.value;
+                } else if (name === 'iFrameRate') {
+                    value = 1/((time - this.lastFrame)*0.001);
+                    this.lastFrame = time;
+                } else if (name === 'iChannelTime') {
+                    let t = (time-this.startTime)*0.001;
+                    this.baseUniforms.iChannelTime.value.forEach((t,i)=>{
+                        this.baseUniforms.iChannelTime.value[i] = t;
+                    });
+                    value = this.baseUniforms.iChannelTime.value;
+                } else if (name === 'iDate') {
+                    let date = new Date();
+                    value = new THREE.Vector4(date.getYear(),date.getMonth(),date.getDay(),date.getHours()*60*60+date.getMinutes()*60+date.getSeconds());
+                } else if (name === 'iMouse') {
+                    value = new THREE.Vector4(...this.mousexyzw);
+                } else if (name === 'iMouseInput') {
+                    value = this.mouseclicked;
+                } else if (name === 'iImage') {
+                    value = this.canvas.toDataURL();
+                } else if (name === 'iAudio') {
+                    if(window.audio) {
+                        value = Array.from(window.audio.getAnalyzerData().slice(0,256));
+                    }
+                } else if (name === 'iHEG') {
+                    if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                        if(atlas.data.heg[this.heg].ratio.length > 0) {
+                            if(!this.hegbaseline) this.hegbaseline = atlas.data.heg[this.heg].ratio[atlas.data.heg[this.heg].ratio.length-1];
+                            let hegscore = atlas.data.heg[this.heg].ratio[atlas.data.heg[this.heg].ratio.length-1] - this.hegbaseline;
+                            value = hegscore;
+                        }
+                    }
+                } else if (name === 'iHRV') {
+                    if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                        if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                            if(atlas.data.heg[this.heg].beat_detect.beats.length > 0) {
+                                let hrv = atlas.data.heg[this.heg].beat_detect.beats[atlas.data.heg[this.heg].beat_detect.beats.length-1].hrv;
+                                value = hrv;
+                            }
+                        }
+                    }
+                } else if (name === 'iHR') {
+                    if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                        if(atlas.data.heg[this.heg].beat_detect.beats.length > 0) {
+                            let hr_mod = 60/atlas.data.heg[this.heg].beat_detect.beats[atlas.data.heg[this.heg].beat_detect.beats.length-1].bpm;
+                            value = hr_mod;
+                        }
+                    }
+                } else if (name === 'iHB') {
+                    if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                    
+                        if(atlas.data.heg[this.heg].beat_detect.beats.length > 0) {
+                           value = 1/(0.001*(time-atlas.data.heg[this.heg].beat_detect.beats[atlas.data.heg[this.heg].beat_detect.beats.length-1].t)) 
+                        }
+                    }
+                } else if (name === 'iBRV') {
+                    if(atlas.data.heg.length>0 && atlas.settings.deviceConnected === true) {
+                        
+                        if(atlas.data.heg[this.heg].beat_detect.breaths.length > 0) {
+                            iBRV = atlas.data.heg[this.heg].beat_detect.breaths[atlas.data.heg[this.heg].beat_detect.breaths.length-1].brv;
+                        }
+                    }
+                } else if(atlas.settings.eeg === true && atlas.settings.analyzing === true) { 
+                    let channel = this.channel;
+                
+                    if (name === 'iFFT') {
+                        let data = atlas.getLatestFFTData(channel)[0];
+                        if (data.fft){
+                            let fft = eegmath.interpolateArray(channel.fft,256);
+                            if(fft) value = fft;
+                        }
+                    }
+                    else if (name === 'iDelta') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.delta;                 
+                    } else if (name === 'iTheta') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.theta;              
+                    } else if (name === 'iAlpha1') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.alpha1;               
+                    } else if (name === 'iAlpha2') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.alpha2;                  
+                    } else if (name === 'iBeta') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.beta;                   
+                    } else if (name === 'iGamma') {
+                        value = atlas.getLatestFFTData(channel)[0].mean.lowgamma;
+                    } else if (name === 'i40Hz') {
+                        value = atlas.get40HzGamma(atlas.getEEGDataByChannel(channel))                  
+                    } else if (name === 'iThetaBeta') {
+                        value = atlas.getThetaBetaRatio(atlas.getEEGDataByChannel(channel))                 
+                    } else if (name === 'iAlpha1Alpha2') {
+                        value = atlas.getAlphaRatio(atlas.getEEGDataByChannel(channel))              
+                    } else if (name === 'iAlphaBeta') {
+                        value = atlas.getAlphaBetaRatio(atlas.getEEGDataByChannel(channel)) 
+                    } else if (name === 'iAlphaTheta') {
+                        value = atlas.getAlphaThetaRatio(atlas.getEEGDataByChannel(channel))
+                    } else if (atlas.settings.analysis.eegcoherence === true && name === 'iFrontalAlpha1Coherence') {
+                        value = atlas.getCoherenceScore(atlas.getFrontalCoherenceData(),'alpha1') // atlas.getLatestCoherenceData(0)[0].mean.alpha1;
+                    } else if (this.uniformSettings[name]) {
+                        if(this.uniformSettings[name].callback) {
+                            value = this.uniformSettings[name].callback();
+                        }
+                    }
+                } else if (this.uniformSettings[name]) {
+                    if(this.uniformSettings[name].callback) {
+                        value = this.uniformSettings[name].callback();
+                    }
+                }
+            
+                materialsfiltered.forEach(material => {
+                    if (!material.uniforms[name]) { 
+                        material.uniforms[name] = {value:value};
+                    } else material.unfiroms[name].value = value;
+                });
+            }
+        });
     }
 
     //applies to main shader
