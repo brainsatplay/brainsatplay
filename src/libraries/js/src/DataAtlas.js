@@ -49,7 +49,7 @@ export class DataAtlas {
 				name: 'BlinkDetection', 
 				graph: {
 					nodes: [
-						{id: 'blink', class: Blink, params: {debug: true}},
+						{id: 'blink', class: Blink},
 					],
 				}
 			}
