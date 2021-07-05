@@ -161,7 +161,47 @@ export class DynamicParticles {
         if(rule[1] > 3000 && rule[1] < 5000) {particle.boid.searchLimit = 5;}
         else if (rule[1]>=5000) {particle.boid.searchLimit = 1;}
 
-        if(this.canvas) {
+        if(rule[2]){
+            let h = rule[2][0];
+            let w = rule[2][1];
+            let d = rule[2][2]
+            let startX =  Math.random()*w;
+            let startY =  Math.random()*h;
+            let startZ =    Math.random()*d;
+            particle.startingX = startX;
+            particle.startingY = startY;
+            particle.startingZ = startZ;
+            particle.position = {x:startX,y:startY,z:startZ};
+            particle.boundingBox = {
+                left:particle.boundingBox.left*w,
+                right:particle.boundingBox.right*w,
+                bot:particle.boundingBox.bot*h,
+                top:particle.boundingBox.top*h,
+                front:particle.boundingBox.front*d,
+                back:particle.boundingBox.back*d
+            };
+            particle.boid.boundingBox = {
+                left:particle.boid.boundingBox.left*w,
+                right:particle.boid.boundingBox.right*w,
+                bot:particle.boid.boundingBox.bot*h,
+                top:particle.boid.boundingBox.top*h,
+                front:particle.boid.boundingBox.front*d,
+                back:particle.boid.boundingBox.back*d
+            };
+            particle.boid.attractor = {
+                x:0.5*w,
+                y:0.5*h,
+                z:0.5*w,
+                mul:particle.boid.attractor.mul
+            };
+            particle.boid.swirl = {
+                x:0.5*w,
+                y:0.5*h,
+                z:0.5*w,
+                mul:particle.boid.swirl.mul
+            };
+        }
+        else if(this.canvas) {
             let h = this.canvas.height;
             let w = this.canvas.width;
             let startX =  Math.random()*w;
@@ -198,6 +238,44 @@ export class DynamicParticles {
                 z:0.5*w,
                 mul:particle.boid.swirl.mul
             };
+        } else {
+            let h = 1;
+            let w = 1;
+            let startX =  Math.random();
+            let startY =  Math.random();
+            particle.startingX = startX;
+            particle.startingY = startY;
+            particle.startingZ = startY;
+            particle.position = {x:startX,y:startY,z:startY};
+            particle.boundingBox = {
+                left:particle.boundingBox.left*w,
+                right:particle.boundingBox.right*w,
+                bot:particle.boundingBox.bot*h,
+                top:particle.boundingBox.top*h,
+                front:particle.boundingBox.front*h,
+                back:particle.boundingBox.back*h
+            };
+            particle.boid.boundingBox = {
+                left:particle.boid.boundingBox.left*w,
+                right:particle.boid.boundingBox.right*w,
+                bot:particle.boid.boundingBox.bot*h,
+                top:particle.boid.boundingBox.top*h,
+                front:particle.boid.boundingBox.front*h,
+                back:particle.boid.boundingBox.back*h
+            };
+            particle.boid.attractor = {
+                x:0.5*w,
+                y:0.5*h,
+                z:0.5*w,
+                mul:particle.boid.attractor.mul
+            };
+            particle.boid.swirl = {
+                x:0.5*w,
+                y:0.5*h,
+                z:0.5*w,
+                mul:particle.boid.swirl.mul
+            };
+        }
         }
 
     }
