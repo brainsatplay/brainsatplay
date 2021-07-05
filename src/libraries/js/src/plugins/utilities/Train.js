@@ -1,6 +1,7 @@
 import {Blink} from '../algorithms/Blink'
-import {MotorImagery} from '..//algorithms/MotorImagery'
+import {LDA} from '../models/LDA'
 import {createCards} from '../../ui/browserUtils';
+import * as brainsatplay from '../../../brainsatplay'
 
 export class Train{
 
@@ -10,6 +11,13 @@ export class Train{
         this.label = label
         this.session = session
         this.params = params
+
+        this.paramOptions = {
+            trials: {default: 10, min: 1, max: 1000, step: 1},
+            trialDuration: {default: 4000, min: 0, max: 60*60*1000, step: 1},
+            interTrialIntervalMin: {default: 500, min: 0, max: 60*60*1000, step: 1},
+            interTrialIntervalMax: {default: 500, min: 0, max: 60*60*1000, step: 1},
+        }
 
         this.ports = {
             mode: {
@@ -59,12 +67,12 @@ export class Train{
             this.props.performance.innerHTML = '-'
 
             this.props.start = document.getElementById(`${this.props.id}start`);
-            // this.props.start.classList.toggle('disabled')
+            this.props.start.classList.toggle('disabled')
 
             // Create Training Overlay
             let trainingInfo = {id: this.props.id, class: null}
             if (this.params.mode === 'Motor Imagery'){
-                trainingInfo.class = MotorImagery
+                trainingInfo.class = LDA
             } else {
                 trainingInfo.class = Blink
             }
@@ -97,23 +105,33 @@ export class Train{
         document.body.insertAdjacentElement('beforeend', this.props.gameOverlay)
 
         // Get Compatible Models and Games
-        let modelTypes = info.class.models
-        let eventTargets = info.class.targets
-
+        let modelTypes = Object.keys(brainsatplay.plugins.models)
+        
         this.props.trainingOverlay.insertAdjacentHTML('beforeend', `<h1>${this.params.mode}</h1>`)  
 
         // Display Models
-        if (modelTypes.length > 1){
-            let modelContainer = document.createElement('div')
-            this.props.trainingOverlay.insertAdjacentElement('beforeend', modelContainer)
-            modelContainer.insertAdjacentHTML('beforebegin', '<h2>Choose your Model</h2><hr>')
-            modelTypes.forEach(model => {
-                let name = model.name[0].toUpperCase() + model.name.slice(1)
-                modelContainer.insertAdjacentHTML('beforeend', `<button class="brainsatplay-default-button">${name}</button>`)
-            })
-        } else {
-            // Select only model to train
-        }
+        let selectedModel
+        let modelContainer = document.createElement('div')
+        modelContainer.classList.add('training-model-container')
+        this.props.trainingOverlay.insertAdjacentElement('beforeend', modelContainer)
+        modelTypes.forEach((model, i) => {
+            let label = model[0].toUpperCase() + model.slice(1)
+            let button = document.createElement('button')
+            button.classList.add('training-model-button')
+            button.innerHTML = label
+            button.onclick = () => {
+                for (let child of modelContainer.children){
+                    if (child === button) {
+                        selectedModel = brainsatplay.plugins.models[model]
+                        child.classList.add('selected')
+                    }
+                    else child.classList.remove('selected')
+                }
+            }
+            modelContainer.insertAdjacentElement('beforeend', button)
+            if (i === 0) button.click()
+        })
+
 
         // Display Games
         let gameContainer = document.createElement('div')
@@ -136,12 +154,18 @@ export class Train{
         let applets = createCards(this.params.applets, appletFilter)
 
         let selectedSettings
-        applets.forEach(o => {
+        applets.forEach((o,i) => {
             o.element.onclick = () => {
-                o.element.classList.toggle('selected')
-                selectedSettings = o.settings
+                for (let child of gameContainer.children){
+                    if (child === o.element) {
+                        o.element.classList.add('selected')
+                        selectedSettings = o.settings
+                    }
+                    else child.classList.remove('selected')
+                }
             }
             gameContainer.insertAdjacentElement('beforeend', o.element)
+            if (i === 0) o.element.click()
         })
 
 
@@ -160,6 +184,7 @@ export class Train{
         continueToggle.classList.add(`brainsatplay-default-button`)
         continueToggle.innerHTML = 'Start Training'
         continueToggle.onclick = () => {
+            // FIX: Integrate selectedModel
             this.props.trainingGame = this.session.initApp(selectedSettings, this.props.gameOverlay,this.session)
             this.props.trainingGame.init()
             this.props.gameOverlay.classList.toggle('shown')
