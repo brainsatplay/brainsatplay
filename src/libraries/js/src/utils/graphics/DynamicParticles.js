@@ -46,10 +46,13 @@ export class DynamicParticles {
                 cohesion:0.03,
                 separation:0.03,
                 alignment:0.006,
-                useSwirl:true,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
-                useAttractor:true,
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.01},
+                useCohesion:true,
+                useSeparation:true,
+                useAlignment:true,
+                useSwirl:true,
+                useAttractor:true,
                 groupRadius:200,
                 groupSize:10,
                 searchLimit:25
@@ -303,27 +306,33 @@ export class DynamicParticles {
                         distances.push(disttemp);
                         inRange.push(randj);
                 
-                        cohesionVec[0] = cohesionVec[0] + pr.position.x;
-                        cohesionVec[1] = cohesionVec[1] + pr.position.y;
-                        cohesionVec[2] = cohesionVec[2] + pr.position.z;
+                        if(p0.boid.useCohesion){
+                            cohesionVec[0] = cohesionVec[0] + pr.position.x;
+                            cohesionVec[1] = cohesionVec[1] + pr.position.y;
+                            cohesionVec[2] = cohesionVec[2] + pr.position.z;
+                        }
 
                         if(isNaN(disttemp) || isNaN(cohesionVec[0]) || isNaN(pr.position.x)) {
                             console.log(disttemp, i, randj, p0.position, pr.position, cohesionVec); p0.position.x = NaN; 
                             return;
                         }
 
-                        let distInv = (1/disttemp);
-                        if(distInv == Infinity) distInv = p.maxSpeed;
-                        else if (distInv == -Infinity) distInv = -p.maxSpeed;
-                        separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
-                        separationVec[1] = separationVec[1] + (p0.position.y-pr.position.y)*distInv; 
-                        separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z)*distInv;
-            
-                        //console.log(separationVec);
-                        alignmentVec[0] = alignmentVec[0] + pr.velocity.x; 
-                        alignmentVec[1] = alignmentVec[1] + pr.velocity.y;
-                        alignmentVec[2] = alignmentVec[2] + pr.velocity.z;
-                        
+                        if(p0.boid.useSeparation){
+                            let distInv = (1/disttemp);
+                            if(distInv == Infinity) distInv = p.maxSpeed;
+                            else if (distInv == -Infinity) distInv = -p.maxSpeed;
+                            separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
+                            separationVec[1] = separationVec[1] + (p0.position.y-pr.position.y)*distInv; 
+                            separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z)*distInv;
+                        }
+
+                        if(p0.boid.useAlignment){
+                            //console.log(separationVec);
+                            alignmentVec[0] = alignmentVec[0] + pr.velocity.x; 
+                            alignmentVec[1] = alignmentVec[1] + pr.velocity.y;
+                            alignmentVec[2] = alignmentVec[2] + pr.velocity.z;
+                        }
+
                         groupCount++;
                     }
                 }
@@ -332,18 +341,23 @@ export class DynamicParticles {
 
             let _groupCount = 1/groupCount;
     
-            cohesionVec[0] = p0.boid.cohesion*(cohesionVec[0]*_groupCount-p0.position.x);
-            cohesionVec[1] = p0.boid.cohesion*(cohesionVec[1]*_groupCount-p0.position.y);
-            cohesionVec[2] = p0.boid.cohesion*(cohesionVec[2]*_groupCount-p0.position.z);
-            
-            alignmentVec[0] = -(p0.boid.alignment*alignmentVec[1]*_groupCount);
-            alignmentVec[1] = p0.boid.alignment*alignmentVec[0]*_groupCount;
-            alignmentVec[2] = p0.boid.alignment*alignmentVec[2]*_groupCount;//Use a perpendicular vector [-y,x,z]
-    
-            separationVec[0] = p0.boid.separation*separationVec[0];
-            separationVec[1] = p0.boid.separation*separationVec[1];
-            separationVec[2] = p0.boid.separation*separationVec[2];
-        
+            if(p0.boid.useCohesion){
+                cohesionVec[0] = p0.boid.cohesion*(cohesionVec[0]*_groupCount-p0.position.x);
+                cohesionVec[1] = p0.boid.cohesion*(cohesionVec[1]*_groupCount-p0.position.y);
+                cohesionVec[2] = p0.boid.cohesion*(cohesionVec[2]*_groupCount-p0.position.z);
+            } else { cohesionVec[0] = 0; cohesionVec[1] = 0; cohesionVec[2] = 0; }
+
+            if(p0.boid.useCohesion){
+                alignmentVec[0] = -(p0.boid.alignment*alignmentVec[1]*_groupCount);
+                alignmentVec[1] = p0.boid.alignment*alignmentVec[0]*_groupCount;
+                alignmentVec[2] = p0.boid.alignment*alignmentVec[2]*_groupCount;//Use a perpendicular vector [-y,x,z]
+            } else { alignmentVec[0] = 0; alignmentVec[1] = 0; alignmentVec[2] = 0; }    
+
+            if(p0.boid.useCohesion){
+                separationVec[0] = p0.boid.separation*separationVec[0];
+                separationVec[1] = p0.boid.separation*separationVec[1];
+                separationVec[2] = p0.boid.separation*separationVec[2];
+            } else { separationVec[0] = 0; separationVec[1] = 0; separationVec[2] = 0; }
 
             const swirlVec = [0,0,0];
             if(p0.boid.useSwirl == true){
