@@ -29,6 +29,8 @@ export class DynamicParticles {
         this.prototype = {
             position:{x:0,y:0,z:0},
             velocity:{x:0,y:0,z:0},
+            acceleration:{x:0,y:0,z:0},
+            force:{x:0,y:0,z:0},
             type:"boids", //Behavior trees: boids, predators, plant cell, animal cell, algae, bacteria, atom, proton, neutron, electron, conway, can combine
             particleSize: 5,
             startingX: 0.5, 
@@ -36,7 +38,10 @@ export class DynamicParticles {
             maxSpeed: 100, 
             xBounce: -1,
             yBounce: -1,
-            gravity: 0.0,
+            gravity: 0.0, //Downward z acceleration (9.81m/s^2 = Earth gravity)
+            mass:1,
+            attraction: 0.00000000006674, //Newton's gravitational constant
+            useAttraction:false, //particles can attract each other on a curve
             drag:0.033,
             life:0, //Seconds since spawn
             lifeTime: 100000000, //Number of seconds before the particle despawns
@@ -278,8 +283,39 @@ export class DynamicParticles {
     
     }
 
+    calcAttraction = (particle1,particle2,distance,timeStep) => { 
+        let deltax = particle2.position.x-particle1.position.x,
+            deltay = particle2.position.y-particle1.position.y,
+            deltaz = particle2.position.z-particle1.position.z;
+
+        let Fg =  particle1.attraction * particle1.mass*particle2.mass/(distance*distance);
+
+        let FgOnBody1x = Fg*deltax,
+            FgOnBody1y = Fg*deltay,
+            FgOnBody1z = Fg*deltaz;
+
+        let v1x = timeStep*FgOnBody1x/particle1.mass,
+            v1y = timeStep*FgOnBody1y/particle1.mass,
+            v1z = timeStep*FgOnBody1z/particle1.mass;
+
+        particle1.velocity.x += v1x;
+        particle1.velocity.y += v1y;
+        particle1.velocity.z += v1z;
+
+        let v2x = -timeStep*FgOnBody1x/particle2.mass,
+            v2y = -timeStep*FgOnBody1y/particle2.mass,
+            v2z = -timeStep*FgOnBody1z/particle2.mass;
+
+        particle2.velocity.x += v2x;
+        particle2.velocity.y += v2y;
+        particle2.velocity.z += v2z;
+
+        return v1x, v1y, v1z, v2x, v2y, v2z;
+
+    }
+
     //pass a particle group in, will add to particle velocities and return true if successful
-    calcBoids = (particles=[]) => {
+    calcBoids = (particles=[],timeStep) => {
         
         const newVelocities = [];
         outer:
@@ -290,6 +326,7 @@ export class DynamicParticles {
             const cohesionVec = [p0.position.x,p0.position.y,p0.position.z]; //Mean position of all boids for cohesion multiplier
             const separationVec = [0,0,0]; //Sum of a-b vectors, weighted by 1/x to make closer boids push harder.
             const alignmentVec = [p0.velocity.x,p0.velocity.y,p0.velocity.z]; //Perpendicular vector from average of boids velocity vectors. Higher velocities have more alignment pull.
+            const attractionVec = [0,0,0];
             let groupCount = 1;
     
             nested:
@@ -324,6 +361,10 @@ export class DynamicParticles {
                             separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
                             separationVec[1] = separationVec[1] + (p0.position.y-pr.position.y)*distInv; 
                             separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z)*distInv;
+                        }
+
+                        if(p0.useAttraction) {
+                            this.calcAttraction(p0,pr,disttemp,timeStep);
                         }
 
                         if(p0.boid.useAlignment){
@@ -403,7 +444,7 @@ export class DynamicParticles {
         }    
 
     boidsTimestepFunc = (group,timeStep) => {
-        let success = this.calcBoids(group.particles);
+        let success = this.calcBoids(group.particles, timeStep);
         if(success) {
             let expiredidx = [];
             let anchorTick = timeStep*0.05;
