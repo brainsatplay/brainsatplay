@@ -42,7 +42,7 @@ export class DynamicParticles {
             mass:1,
             attraction: 0.00000000006674, //Newton's gravitational constant
             useAttraction:false, //particles can attract each other on a curve
-            drag:0.033,
+            drag:0.033, //Drag coefficient applied to v(t-1)
             life:0, //Seconds since spawn
             lifeTime: 100000000, //Number of seconds before the particle despawns
             boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
