@@ -440,7 +440,7 @@ export class ThreeSunriseApplet {
                     let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
                     let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.onData(score);
-                    this.draw();
+                    //this.draw();
                 }
             }
 

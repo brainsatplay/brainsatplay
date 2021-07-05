@@ -72,8 +72,6 @@ export class DynamicParticles {
             }
         };
 
-
-
         this.init();
         
     }
@@ -388,9 +386,7 @@ export class DynamicParticles {
         }
         else { console.error("Boids error"); return false; }
     
-        }
-    
-        
+        }    
 
     boidsTimestepFunc = (group,timeStep) => {
         let success = this.calcBoids(group.particles);
@@ -527,6 +523,9 @@ export class DynamicParticles {
             if(this.defaultCanvas) {
                 this.canvas.width = this.canvas.parentNode.clientWidth;
                 this.canvas.height = this.canvas.parentNode.clientHeight;
+
+                this.canvas.style.width = this.canvas.parentNode.clientWidth;
+                this.canvas.style.height = this.canvas.parentNode.clientHeight;
             }
             let proto = JSON.parse(JSON.stringify(this.prototype));
             this.particles.forEach((p) => {

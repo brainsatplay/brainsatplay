@@ -534,6 +534,9 @@
                 if(this.defaultCanvas) {
                     this.canvas.width = this.canvas.parentNode.clientWidth;
                     this.canvas.height = this.canvas.parentNode.clientHeight;
+
+                    this.canvas.style.width = this.canvas.parentNode.clientWidth;
+                    this.canvas.style.height = this.canvas.parentNode.clientHeight;
                 }
                 let proto = JSON.parse(JSON.stringify(this.prototype));
                 this.particles.forEach((p) => {
