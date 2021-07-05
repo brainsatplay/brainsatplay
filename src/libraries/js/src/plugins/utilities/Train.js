@@ -59,7 +59,7 @@ export class Train{
             this.props.performance.innerHTML = '-'
 
             this.props.start = document.getElementById(`${this.props.id}start`);
-            this.props.start.classList.toggle('disabled')
+            // this.props.start.classList.toggle('disabled')
 
             // Create Training Overlay
             let trainingInfo = {id: this.props.id, class: null}
