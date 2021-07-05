@@ -276,7 +276,7 @@ export class DynamicParticles {
                 mul:particle.boid.swirl.mul
             };
         }
-        }
+        
 
     }
 
