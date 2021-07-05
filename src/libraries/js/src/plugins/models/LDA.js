@@ -1,13 +1,10 @@
 import bci from 'bcijs/browser.js'
-import {eegmath} from './../../utils/eegmath';
-import {Move} from '../utilities/Move'
+import {eegmath} from '../../utils/eegmath';
 
-export class MotorImagery{
+export class LDA{
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
-    static targets = [Move]
-    static models = [{name: 'LDA'}]
 
     constructor(label, session, params={}) {
         this.label = label

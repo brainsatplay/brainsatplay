@@ -25,7 +25,7 @@ export const settings = {
         {id: 'Train UI', class: Train},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'motorimagery', class: brainsatplay.plugins.algorithms.MotorImagery},
+        {id: 'motorimagery', class: brainsatplay.plugins.models.LDA},
         {id: 'Test UI', class: Test},
       ],
       edges: [

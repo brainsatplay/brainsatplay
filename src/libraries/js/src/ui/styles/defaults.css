@@ -1138,12 +1138,37 @@ select {
 .training-game-container {
     display: flex;
     overflow-x: scroll;
+    padding: 10px;
 }
 
 .training-game-container > div{
     width: 250px;
     min-width: 250px;
     max-width: 250px;
+}
+
+.training-overlay h1 {
+    margin-bottom: 10px;
+}
+
+.training-model-container {
+    display: flex;
+    width: 100%;
+}
+
+.training-model-button {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: rgb(25,25,25);
+    transition: 0.5s;
+    font-size: 70%;
+}
+
+.training-model-button.selected{
+    background: rgb(40,40,40);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
 }
 
 .training-buttons {
@@ -1234,8 +1259,11 @@ select {
 }
 
 .browser-card:hover, .browser-card.selected{
-    /* box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6); */
     background-color:rgb(35,35,35)
+}
+
+.browser-card.selected{
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
 }
 
 .browser-card.preset{
