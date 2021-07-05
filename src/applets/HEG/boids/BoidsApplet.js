@@ -217,7 +217,7 @@ export class BoidsApplet {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(45, this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 0.01, 1000);
         this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setPixelRatio(Math.min(this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 2))
+        this.renderer.setPixelRatio(Math.min(this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 2));
         this.renderer.shadowMap.enabled = true;
 
         this.renderer.domElement.style.width = '100%';
