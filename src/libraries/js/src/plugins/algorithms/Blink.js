@@ -59,14 +59,21 @@ export class Blink{
             //     options: ['Threshold']
             // }, 
             debug: {default: false},
+            blinkWindow: {
+                default: 25,
+                options: null,
+                min: 0,
+                max: 2000,
+                step: 1
+            },
             blinkDuration: {
-                default: 100,
+                default: 500,
                 options: null,
                 min: 0,
                 max: 2000,
                 step: 1
             }, blinkThreshold: {
-                default: 100,
+                default: 200,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -76,8 +83,8 @@ export class Blink{
                 default: 50,
                 options: null,
                 min: 0,
-                max: 200,
-                step: 1
+                max: 1000,
+                step: 0.01
             }
         }
 
@@ -98,12 +105,15 @@ export class Blink{
 
         // Dependencies
         this.analysis = new Set()
-        this.props.dataquality = this.session.atlas.graph.instantiateNode({id: 'dataquality', class: DataQuality, params: {}}, this.session)
+        this.props.dataquality = this.session.atlas.graph.instantiateNode({id: 'dataquality', class: DataQuality, params: {method: 'Mean Amplitude'}}, this.session)
         this.props.canvas = this.session.atlas.graph.instantiateNode({id: 'canvas', class: Canvas, params: {}}, this.session)
         this.analysis.add(...Array.from(this.props.dataquality.analysis))
         this.analysis.add(...Array.from(this.props.canvas.analysis))
 
-        this.lastBlink = Date.now()
+        this.lastBlink = {}
+        this.lastBlink.left = Date.now()
+        this.lastBlink.right = Date.now()
+
     }
 
     init = () => {
@@ -176,9 +186,9 @@ export class Blink{
 
                     let dx = ( sideLength )/(data.length - 1)
                     data.forEach((y,i) => ctx.lineTo(sideLength*side + dx*i,-Number.parseFloat(scale)*y + Number.parseFloat(height*yInt)))
-                    let redMult = Math.max(0, Math.min(1, (chQ/this.params.qualityThreshold - 1)))
-                    let greenMult = 1-Math.max(0, Math.min(1, (chQ/this.params.qualityThreshold)))
-                    ctx.strokeStyle = `rgb(${255*redMult},${255*greenMult},${255})`; // Pick a color
+                    let redMult = Math.max(0, Math.min(1, (1-chQ)))
+                    let greenMult = 1 - Math.max(0, Math.min(1, (1-chQ)))
+                    ctx.strokeStyle = `rgb(${255*redMult},${255*greenMult},${0})`; // Pick a color
                     ctx.lineWidth = Number.parseFloat(weight)
                     ctx.stroke(); // Draw
 
@@ -217,17 +227,18 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
+        this.props.dataquality.params.qualityThreshold = this.params.qualityThreshold
         this.props.channelQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
-        if (Date.now() - this.lastBlink > this.params.blinkDuration){
-            tags.forEach(tag => {
+        tags.forEach(tag => {
+            let side = this._getTagSide(tag)
+            if (Date.now() - this.lastBlink[side] > this.params.blinkDuration){
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
-                if (tryBlink != null){ // If Tag Exists
-                    blink = tryBlink
+                if (tryBlink == true) {
+                    blink = true // Only update blink if true (FIX: Sum up multiple channels if exists)
+                    this.lastBlink[side] = Date.now() // Update blink time (if detected)
                 }
-            })
-
-            if (blink) this.lastBlink = Date.now() // Update blink time (if detected)
-        }
+            }
+        })
         return blink
     }
 
@@ -241,11 +252,13 @@ export class Blink{
                 let processedData = data.filtered // Try Filtered
                 if (processedData.length === 0) processedData = data.raw // Try Raw
                 if (processedData.length > 0){
-                    this.props.blinkData[tag] = processedData.slice(processedData.length-(this.params.blinkDuration/1000)*user.data.eegshared.sps)
+                    this.props.blinkData[tag] = processedData.slice(processedData.length-(this.params.blinkWindow/1000)*user.data.eegshared.sps)
                     let max = Math.max(...this.props.blinkData[tag].map(v => Math.abs(v)))
                     
                     // Only Count Blink if Above Quality Threshold
-                    if (data != null && chQ < this.params.qualityThreshold) blink = (max > this.params.blinkThreshold)
+                    if (data != null && chQ >= 1) {
+                        blink = (max > this.params.blinkThreshold)
+                    }
                  }
             }
         } catch (e) {console.error('input not formatted properly')}

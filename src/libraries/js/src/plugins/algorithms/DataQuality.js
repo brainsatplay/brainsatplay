@@ -13,16 +13,22 @@ export class DataQuality{
         // Operator Configuration 
         this.paramOptions = {
             method: {
-                default: 'Standard Deviation', 
-                options: ['Standard Deviation']
+                default: 'Mean Amplitude', 
+                options: ['Standard Deviation', 'Mean Amplitude']
             },
             output: {
                 default: 'Channels',
                 options: ['Mean', 'Channels']
             }, 
             window: {
-                default: 1000,
+                default: 100,
                 options: null
+            },
+            qualityThreshold: {
+                default: 50,
+                min: 0,
+                max: 1000,
+                step: 0.01
             }
         },
 
@@ -52,24 +58,33 @@ export class DataQuality{
             let data = u.data //(u.data != null) ? u.data : this.session.atlas.data
 
             try {
-                if (this.params.method === 'Standard Deviation'){
-                    let channels = data.eegshared.eegChannelTags
-                    channels.forEach((o,i) => {
-                        let coord = this.session.atlas.getEEGDataByChannel(o.ch, data)
-                        let processedData = coord.filtered // Try Filtered
-                        if (processedData.length === 0) processedData = coord.raw // Try Raw
-                        if (processedData.length > 0){
-                            let slice = processedData.slice(processedData.length - this.params.window)
+                let channels = data.eegshared.eegChannelTags
+                channels.forEach((o,i) => {
+                    let coord = this.session.atlas.getEEGDataByChannel(o.ch, data)
+                    let processedData = coord.filtered // Try Filtered
+                    if (processedData.length === 0) processedData = coord.raw // Try Raw
+                    if (processedData.length > 0){
+                        let quality
+                        let slice = processedData.slice(processedData.length - this.params.window)
+
+                        // Calculate Quality (0+, where > 1 is good quality)
+                        if (this.params.method === 'Standard Deviation'){
                             let meanVariance = eegmath.variance(slice)
-                            let stdev = Math.sqrt(meanVariance)
-                            if (this.params.output === 'Mean') arr.push(stdev)
-                            else dict[coord.tag] = stdev
-                        } else {
-                            if (this.params.output === 'Mean') arr.push(NaN)
-                            else dict[coord.tag] = NaN
+                            let std = Math.sqrt(meanVariance)
+                            quality = this.params.qualityThreshold / std
+                        } else if (this.params.method === 'Mean Amplitude'){
+                            let absSlice = slice.map(v => Math.abs(v))
+                            let mean = eegmath.mean(absSlice)
+                            quality = this.params.qualityThreshold / mean
                         }
-                    })
-                }
+
+                        if (this.params.output === 'Mean') arr.push(quality)
+                        else dict[coord.tag] = quality
+                    } else {
+                        if (this.params.output === 'Mean') arr.push(NaN)
+                        else dict[coord.tag] = NaN
+                    }
+                })
             } catch {
                 console.error('input not compatible')
                 arr.push(0)
