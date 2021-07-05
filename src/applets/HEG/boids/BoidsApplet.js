@@ -309,6 +309,11 @@ export class BoidsApplet {
         pointmat.map = myTexture;
         */
         this.points = new THREE.Points( geometry, pointmat );
+
+        this.points.position.x-=500;
+        this.points.position.y-=500;
+        this.points.position.z-=500;
+
         this.scene.add( this.points );
     }
 
