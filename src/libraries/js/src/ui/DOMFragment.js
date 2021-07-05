@@ -246,8 +246,9 @@ export class DOMFragment {
             });
         }
         else if (typeof styles === 'function') {
-            let stylehtml = styles();
-            node.insertAdjacentHTML('afterbegin',stylehtml);
+            let styleResult = styles();
+            if (typeof styleResult === 'string') node.insertAdjacentHTML('afterbegin',styleResult);
+            else node.insertAdjacentElement('afterbegin',styleResult);
         }
     }
 }

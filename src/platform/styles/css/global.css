@@ -61,11 +61,6 @@ button {
     overflow-y: scroll;
 }
 
-.brainsatplay-about-page.shown {
-    opacity: 1;
-    pointer-events: all;
-}
-
 .brainsatplay-about-page > .about-container {
    padding: 0px 50px 50px 50px;
 }

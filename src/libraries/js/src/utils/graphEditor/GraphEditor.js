@@ -169,9 +169,9 @@ export class GraphEditor{
                 let exit = document.getElementById(`${this.props.id}exit`)
                 exit.onclick = () => {
                     // If Inside Studio, Bring Back UI
+                    console.log(isStudio)
                     if (this.isStudio){
                         document.getElementById('applet-browser-button').click()
-                        // this.app.deinit()
                         // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
                         // projectWindow.style.opacity = 1
                         // projectWindow.style.pointerEvents = 'all'
@@ -402,7 +402,7 @@ export class GraphEditor{
 
                         // Create Application
                         if (settings.name === 'Load from File') {
-                            settings = await this.session.projects.loadFromFile()
+                            settings = await this.app.session.projects.loadFromFile()
                             this._createApp(settings)
                         } else this._createApp(settings)
                     // }
@@ -420,6 +420,7 @@ export class GraphEditor{
     }
 
     _createApp(settings){
+
         settings.editor = {
             parentId: this.app.parentNode,
             show: true,
@@ -428,10 +429,8 @@ export class GraphEditor{
             z-index: 9;
             `,
         }
-        this.props.app = this.app.session.initApp(settings, this.app.parentNode,this.app.session,['edit'])
-        // this.props.projects.style.opacity = '0'
-        // this.props.projects.style.pointerEvents = 'none'
-        this.props.app.init()
+
+        this.app.replace(settings)
     }
 
     createViewTabs = () => {
@@ -718,7 +717,7 @@ export class GraphEditor{
 
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
+        if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
 
         let node = this.graph.addNode(nodeInfo)

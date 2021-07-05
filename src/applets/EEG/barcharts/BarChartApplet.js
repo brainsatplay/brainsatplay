@@ -68,7 +68,7 @@ export class BarChartApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
             addChannelOptions(props.id+'channel', this.session.atlas.data.eegshared.eegChannelTags, true);
             addChannelOptions(props.id+'channel2', this.session.atlas.data.eegshared.eegChannelTags, true);

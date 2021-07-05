@@ -26,7 +26,8 @@ export class LiveEditor {
                 id: Math.floor(Math.random()*10000000),
                 language: settings.language,
                 supportedLanguages: ['javascript', 'html', 'css', 'glsl'],
-                shortcuts: settings.shortcuts
+                shortcuts: settings.shortcuts,
+                settings:settings
             }
             this.editorId = this.props.id+'editor';
             this.input = undefined;
@@ -38,8 +39,6 @@ export class LiveEditor {
                 if(typeof this.parentNode === 'string') { //can just input the div id
                     this.parentNode = document.getElementById(this.parentNode);
                 }
-
-                this._updateSettings(settings)
         
                 this.init();
                 this.onOpen()
@@ -206,7 +205,7 @@ export class LiveEditor {
                 this._checkTab(this.input,e)
             }
 
-            this._setContent()
+            this.updateSettings(this.props.settings)
         }
 
         this.ui = new DOMFragment(
@@ -257,8 +256,8 @@ export class LiveEditor {
             this.onClose = settings.onClose
         }
 
-        if (settings.showClose === false) document.getElementById(`${this.props.id}close`).style.display = 'none'
-
+        let close = document.getElementById(`${this.props.id}close`)
+        if (close && settings.showClose === false) close.style.display = 'none'
 
 
         // For JS Editor

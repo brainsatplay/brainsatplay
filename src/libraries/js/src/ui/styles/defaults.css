@@ -35,9 +35,6 @@ a {
 a:hover{
     color: rgb(200, 200, 200)
 }
-a.hover{
-    color: rgb(200, 200, 200)
-}
 
 /* Selector */
 select {
@@ -1123,6 +1120,21 @@ select {
 
 
 /* Motor Imagery */
+.training-overlay {
+    z-index: 1000; 
+    background: black; 
+    width:100vw; 
+    height: 100vh; 
+    position: absolute; 
+    padding: 50px;
+    top: 0; 
+    left: 0; 
+    opacity: 0; 
+    pointer-events: none;
+    transform: 0.5s;
+    overflow-y: scroll;
+}
+
 .training-prompt-container {
     padding: 25px; 
     width: 100%;
@@ -1265,5 +1277,8 @@ select {
     background-color: rgb(35,35,35);
 }
 
-
-
+/* Shown / Hidden Classes */
+.shown {
+    opacity: 1;
+    pointer-events: all;
+}

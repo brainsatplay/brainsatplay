@@ -2,7 +2,6 @@
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './utils/graphEditor/GraphEditor'
 import  {plugins} from '../brainsatplay'
-import { Session } from './Session'
 
 export class GraphManager{
     constructor(session, settings = {}){
@@ -124,7 +123,9 @@ export class GraphManager{
         if (nodeInfo.analysis == null) nodeInfo.analysis = []
         if (node.analysis) toAnalyze.add(...node.analysis)
         nodeInfo.analysis.push(...Array.from(toAnalyze))
-        return {instance: node, controls: controlsToBind, analysis: toAnalyze}
+        nodeInfo.instance = node;
+        return nodeInfo
+        // return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
 
     removeNode(appId,label, resize=true){
@@ -163,7 +164,9 @@ export class GraphManager{
         return String(Math.floor(Math.random()*1000000))
     }
 
-    addNode(appId,nodeInfo){
+    addNode(app,nodeInfo){
+
+        let appId = app.props.id
 
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
@@ -178,19 +181,17 @@ export class GraphManager{
 
         this.applets[appId].nodes.push(nodeInfo);
         
-        ({instance, controls, analysis} = this.instantiateNode(nodeInfo,this.session))
-        nodeInfo.instance = instance;
+        nodeInfo = this.instantiateNode(nodeInfo,this.session)
 
         // if (this.applets[appId].nodes[nodeInfo.id].analysis == null) this.applets[appId].nodes[nodeInfo.id].analysis = []
         // this.applets[appId].nodes[nodeInfo.id].analysis.push(...analysis);
-        if (controls.length > 0) this.applets[appId].controls.options.add(...controls);
+        if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
 
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
+        nodeInfo.instance.app = app
 
-        nodeInfo.instance.app = appId
-        
             let node = nodeInfo.instance
             let ui = node.init(nodeInfo.params)
             if (ui != null) {
@@ -404,7 +405,10 @@ export class GraphManager{
         }
     }
 
-    init(id, settings){
+    init(app){
+        let id = app.props.id
+        let settings = app.info
+
         let name = settings.name
         let graph = settings.graph
 
@@ -431,7 +435,7 @@ export class GraphManager{
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
-                    this.addNode(id,nodeInfo)
+                    this.addNode(app,nodeInfo)
                 })
             }
 

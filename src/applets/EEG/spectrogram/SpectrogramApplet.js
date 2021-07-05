@@ -66,7 +66,7 @@ export class SpectrogramApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
 
             let a = this.session.atlas;
