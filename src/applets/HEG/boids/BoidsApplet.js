@@ -190,16 +190,10 @@ export class BoidsApplet {
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive() {
-        let canvas = document.getElementById(this.props.id+"canvas");
-        canvas.width = this.AppletHTML.node.clientWidth;
-        canvas.height = this.AppletHTML.node.clientHeight;
-
-        canvas.style.width = this.AppletHTML.node.clientWidth;
-        canvas.style.height = this.AppletHTML.node.clientHeight;
-
-        this.renderer.setPixelRatio(Math.min(this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 2))
         this.camera.aspect = this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight;
         this.camera.updateProjectionMatrix();
+        this.renderer.setSize(this.AppletHTML.node.clientWidth, this.AppletHTML.node.clientHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
     }
 
     configure(settings=[]) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
@@ -215,8 +209,10 @@ export class BoidsApplet {
     setupThreeScene(){
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 0.01, 1000);
+        this.camera.position.z = 5
+        
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setPixelRatio(Math.min(this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 2));
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
         this.renderer.shadowMap.enabled = true;
 
         this.renderer.domElement.style.width = '100%';
@@ -254,7 +250,7 @@ export class BoidsApplet {
 
                 let x = boid.position.x;
                 let y = boid.position.y;
-                let z = boid.position.z ;
+                let z = -boid.position.z ;
 
                 vertices.push( x, y, z );
             });
@@ -297,11 +293,11 @@ export class BoidsApplet {
         geometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3));
 
         let pointmat = new THREE.PointsMaterial( 
-            { color: 0x888888 },
-            // { 
-            //     vertexColors: THREE.VertexColors,
-            //     opacity:0.99
-            // } 
+            // { color: 0xffffff },
+            { 
+                vertexColors: THREE.VertexColors,
+                opacity:0.99
+            } 
             );
 
         /*
@@ -314,11 +310,6 @@ export class BoidsApplet {
         */
         this.points = new THREE.Points( geometry, pointmat );
         this.scene.add( this.points );
-
-        let meshGeo = new THREE.SphereGeometry(1, 32,32)
-        let meshMat = new THREE.MeshBasicMaterial({color: '#ffffff'})
-        this.mesh = new THREE.Mesh(meshGeo, meshMat)
-        this.scene.add( this.mesh );
     }
 
     renderScene = () => {
@@ -330,13 +321,12 @@ export class BoidsApplet {
             group.particles.forEach((boid,j)=>{
                 positions[count*3] =   boid.position.x;
                 positions[count*3+1] = boid.position.y;
-                positions[count*3+2] = boid.position.z;
+                positions[count*3+2] = -boid.position.z;
                 count++;
             });
         });
 
-        console.log('render')
-        // this.points.geometry.attributes.position.needsUpdate = true;   
+        this.points.geometry.attributes.position.needsUpdate = true;   
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
     }
