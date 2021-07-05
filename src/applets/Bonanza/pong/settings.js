@@ -1,5 +1,5 @@
 
-// import featureImg from './feature.png'
+import featureImg from './feature.png'
 import {UI} from './UI.js'
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
@@ -14,6 +14,9 @@ export const settings = {
     bonanza: {
       minTime: 60, // s
     },
+    image: featureImg,
+
+    canTrain: true,
 
     // App Logic
     graph:

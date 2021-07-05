@@ -48,10 +48,7 @@ class Studio{
     }
 
     deinit = () => {
-        console.log(this.props.app, this.props.app.editor?.app, this.app?.editor?.app)
-        if (this.props.app.editor.app) {
-            this.props.app.editor.app.deinit()
-        }
+        if (this.props.app) this.props.app.deinit()
     }
 
     _createApp(settings){

@@ -1,11 +1,9 @@
-import {Signal} from './Signal'
-import {Breath} from './Breath'
-import {HEG} from './HEG'
 import {EEG} from './EEG'
+import {HEG} from './HEG'
+import {Breath} from './Breath'
 
 export {
-    Signal,
-    Breath,
+    EEG,
     HEG,
-    EEG
+    Breath,
 }

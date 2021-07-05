@@ -1,5 +1,5 @@
 import { StateManager } from '../../ui/StateManager'
-
+// import { DataAtlas } from '../../DataAtlas'
 
 export class EEG{
     
@@ -22,7 +22,16 @@ export class EEG{
             // tags: null
         }
 
-        this.ports = {}
+        this.ports = {
+            data: {
+                input: {type:null},
+                output: {type: 'DataAtlas'},
+                default: this.session.atlas.data,
+                onUpdate: () => {
+                    return [{data: this.session.atlas.data}]
+                }
+            }
+        }
 
         let keys = ['raw','filtered', 'position']
 
@@ -42,7 +51,7 @@ export class EEG{
     }
 
     init = () => {
-        this.props.toUnsubscribe = this.session.subscribeToNewDevices('eeg', (data) => {
+        this.props.toUnsubscribe = this.session.subscribeToDevices('eeg', (data) => {
             this.session.graph.triggerAllActivePorts(this)
         })
     }

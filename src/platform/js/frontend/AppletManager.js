@@ -296,11 +296,14 @@ export class AppletManager {
             window.history.replaceState({ additionalInformation: 'Updated Invalid URL' }, '', window.location.origin)
         }
 
-        Promise.all(appletPromises).then((configApplets) => {
+        Promise.all(appletPromises).then(async (configApplets) => {
 
             // Check the compatibility of current applets with connected devices
             this.appletsSpawned = 0;
-            currentApplets.forEach(async (appname, i) => {
+
+            let appletsCreated = []
+
+            currentApplets.forEach((appname, i) => {
                 let appletSettings = (appname != null) ? appletManifest[appname] : null
                 let compatible = false;
                 if (appletSettings != null) compatible = this.checkDeviceCompatibility(appletSettings) // Check if applet is compatible with current device(s)
@@ -323,12 +326,7 @@ export class AppletManager {
                         }
 
                         let clsInstance = this.createInstance(appletCls, appletInfo[1], config)
-
-                        this.applets[i] = {
-                            appletIdx: i + 1,
-                            name: this.appletConfigs[i],
-                            classinstance: clsInstance
-                        }
+                        appletsCreated.push(clsInstance)
                         configApplets.splice(0, 1)
                         this.appletsSpawned++;
                     }
@@ -337,15 +335,27 @@ export class AppletManager {
                 }
             })
 
-            this.initApplets();
+            Promise.all(appletsCreated).then((resolved) => {
 
-            // Generate applet selectors
+                // Unfoled Created Applets
+                resolved.forEach((instance, i) => {
+                    this.applets[i] = {
+                        appletIdx: i + 1,
+                        name: this.appletConfigs[i],
+                        classinstance: instance
+                    }
+                })
 
-            if (showOptions) {
-                this.showOptions()
-            } else {
-                document.body.querySelector('.applet-select-container').style.display = 'none'
-            }
+                // Initialize Applets
+                this.initApplets();
+
+                // Create Applet Selector
+                if (showOptions) {
+                    this.showOptions()
+                } else {
+                    document.body.querySelector('.applet-select-container').style.display = 'none'
+                }
+            })
         })
     }
 
@@ -614,15 +624,32 @@ export class AppletManager {
 
 
     createInstance = (appletCls, info={}, config=[]) => {
-        let parentNode = document.getElementById("applets")
-        if (appletCls === Application){
-            return new Application(info, parentNode, this.session, config)
-        } else {
-            return new appletCls(parentNode, this.session, config)
-        }
+
+        return new Promise(resolve => {
+            let parentNode = document.getElementById("applets")
+            if (appletCls === Application){
+                resolve(new Application(info, parentNode, this.session, config))
+            } else {
+                if (info.name === 'Applet Browser'){
+                    config = {
+                        hide: [],
+                        applets: Object.keys(appletManifest).map(async (key) => {
+                            return await getAppletSettings(appletManifest[key].folderUrl)
+                        }),
+                        presets: presetManifest
+                    }
+                    Promise.all(config.applets).then((resolved) => {
+                        config.applets=resolved
+                        resolve(new appletCls(parentNode, this.session, config, info))
+                    })
+                } else {
+                    resolve(new appletCls(parentNode, this.session, config))
+                }
+            }
+        })
     }
 
-    addApplet = (appletCls, appletIdx, info={}) => {
+    addApplet = async (appletCls, appletIdx, info={}) => {
         if (this.appletsSpawned < this.maxApplets) {
             var found = this.applets.find((o, i) => {
                 if (o.appletIdx === appletIdx) {
@@ -635,7 +662,7 @@ export class AppletManager {
 
             //var pos = appletIdx-1; if(pos > this.applets.length) {pos = this.applets.length; this.applets.push({appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.session), container: container});}
             //else { this.applets.splice(pos,0,{appletIdx: appletIdx, name: classObj.name, classinstance: new classObj.cls("applets",this.session), container: container});}
-            let clsInstance = this.createInstance(appletCls, info)
+            let clsInstance = await this.createInstance(appletCls, info)
             
             var pos = appletIdx - 1; if (pos > this.applets.length) { pos = this.applets.length; this.applets[pos] = { appletIdx: pos + 1, name: classObj.name, classinstance: clsInstance }; }
             else { this.applets[pos] = { appletIdx: pos + 1, name: appletCls.name, classinstance: clsInstance }; }

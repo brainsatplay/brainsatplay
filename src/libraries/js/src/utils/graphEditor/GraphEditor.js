@@ -169,7 +169,6 @@ export class GraphEditor{
                 let exit = document.getElementById(`${this.props.id}exit`)
                 exit.onclick = () => {
                     // If Inside Studio, Bring Back UI
-                    console.log(isStudio)
                     if (this.isStudio){
                         document.getElementById('applet-browser-button').click()
                         // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
@@ -449,7 +448,8 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
-            this.app.saveGraph()
+            console.log(this.app)
+            this.app.updateGraph()
             this.app.session.projects.save(this.app)
         }
         save.onclick = onsave
@@ -719,7 +719,6 @@ export class GraphEditor{
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
-
         let node = this.graph.addNode(nodeInfo)
         dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
 
@@ -766,7 +765,7 @@ export class GraphEditor{
                 // Sort through Params
                 if (toParse[key].show != false){
 
-                let defaultType = toParse[key].input.type ?? typeof toParse[key].default
+                let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
                 if (typeof defaultType !== 'string') defaultType = defaultType.name
 
                 let specifiedOptions = toParse[key].options

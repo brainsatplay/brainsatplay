@@ -20,7 +20,7 @@ export class BlobApplet {
     constructor(
         parent=document.body,
         session=new Session(),
-        settings=[]
+        settings=[],
     ) {
     
         //-------Keep these------- 
