@@ -67,20 +67,20 @@ export class Blink{
                 step: 1
             },
             blinkDuration: {
-                default: 500,
+                default: 250,
                 options: null,
                 min: 0,
                 max: 2000,
                 step: 1
             }, blinkThreshold: {
-                default: 200,
+                default: 150,
                 options: null,
                 min: 0,
                 max: 1000,
                 step: 1
             }, 
             qualityThreshold: {
-                default: 50,
+                default: 75,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -252,8 +252,12 @@ export class Blink{
                 let processedData = data.filtered // Try Filtered
                 if (processedData.length === 0) processedData = data.raw // Try Raw
                 if (processedData.length > 0){
-                    this.props.blinkData[tag] = processedData.slice(processedData.length-(this.params.blinkWindow/1000)*user.data.eegshared.sps)
-                    let max = Math.max(...this.props.blinkData[tag].map(v => Math.abs(v)))
+                    let durationLength = (this.params.blinkDuration/1000)*user.data.eegshared.sps
+                    let windowLength = (this.params.blinkWindow/1000)*user.data.eegshared.sps
+                    this.props.blinkData[tag] = processedData.slice(processedData.length-durationLength)
+
+                    let dataWindow = this.props.blinkData[tag].slice(this.props.blinkData[tag].length - Math.min(windowLength, durationLength))
+                    let max = Math.max(...dataWindow.map(v => Math.abs(v)))
                     
                     // Only Count Blink if Above Quality Threshold
                     if (data != null && chQ >= 1) {
