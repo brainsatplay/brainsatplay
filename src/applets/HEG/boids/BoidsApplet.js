@@ -174,9 +174,8 @@ export class BoidsApplet {
         this.setupParticleInstances();
 
         this.looping = true;
-        this.updateLoop();
 
-
+        this.renderer.setAnimationLoop(this.updateLoop);
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -215,28 +214,28 @@ export class BoidsApplet {
 
     setupThreeScene(){
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 0.01, 1000);
-        this.renderer = new THREE.WebGLRenderer();
+        this.camera = new THREE.PerspectiveCamera(75, this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 0.01, 1000);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setPixelRatio(Math.min(this.AppletHTML.node.clientWidth / this.AppletHTML.node.clientHeight, 2));
         this.renderer.shadowMap.enabled = true;
 
         this.renderer.domElement.style.width = '100%';
         this.renderer.domElement.style.height = '100%';
         this.renderer.domElement.id = `${this.props.id}canvas`;
-        this.renderer.domElement.style.opacity = '0';
-        this.renderer.domElement.style.transition = 'opacity 1s';
+        // this.renderer.domElement.style.opacity = '0';
+        // this.renderer.domElement.style.transition = 'opacity 1s';
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enablePan = true
         this.controls.enableDamping = true
         this.controls.enabled = true;
-        this.controls.minPolarAngle = 2*Math.PI/6; // radians
-        this.controls.maxPolarAngle = 4*Math.PI/6; // radians
-        this.controls.minDistance = 0; // radians
-        this.controls.maxDistance = 1000; // radians
+        // this.controls.minPolarAngle = 2*Math.PI/6; // radians
+        // this.controls.maxPolarAngle = 4*Math.PI/6; // radians
+        // this.controls.minDistance = 0; // radians
+        // this.controls.maxDistance = 1000; // radians
 
         document.getElementById(this.props.id+"canvasContainer").appendChild(this.renderer.domElement);
-    
+        // this.renderer.domElement.style.opacity = '1';
     }
 
     setupParticleInstances=()=>{
@@ -255,7 +254,7 @@ export class BoidsApplet {
 
                 let x = boid.position.x;
                 let y = boid.position.y;
-                let z = boid.position.z;
+                let z = boid.position.z ;
 
                 vertices.push( x, y, z );
             });
@@ -297,10 +296,13 @@ export class BoidsApplet {
 
         geometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3));
 
-        let pointmat = new THREE.PointsMaterial( { 
-            vertexColors: THREE.VertexColors,
-            opacity:0.99
-        } );
+        let pointmat = new THREE.PointsMaterial( 
+            { color: 0x888888 },
+            // { 
+            //     vertexColors: THREE.VertexColors,
+            //     opacity:0.99
+            // } 
+            );
 
         /*
         var spriteUrl = 'https://i.ibb.co/NsRgxZc/star.png';
@@ -312,6 +314,11 @@ export class BoidsApplet {
         */
         this.points = new THREE.Points( geometry, pointmat );
         this.scene.add( this.points );
+
+        let meshGeo = new THREE.SphereGeometry(1, 32,32)
+        let meshMat = new THREE.MeshBasicMaterial({color: '#ffffff'})
+        this.mesh = new THREE.Mesh(meshGeo, meshMat)
+        this.scene.add( this.mesh );
     }
 
     renderScene = () => {
@@ -328,7 +335,8 @@ export class BoidsApplet {
             });
         });
 
-        this.points.geometry.attributes.position.needsUpdate = true;   
+        console.log('render')
+        // this.points.geometry.attributes.position.needsUpdate = true;   
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
     }
@@ -353,8 +361,6 @@ export class BoidsApplet {
             }
 
             this.renderScene();
-
-            setTimeout(() => { this.loop = this.renderer.setAnimationLoop(this.updateLoop); },16);
         }
     }
 

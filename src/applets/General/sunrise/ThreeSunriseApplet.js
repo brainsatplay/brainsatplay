@@ -377,7 +377,7 @@ export class ThreeSunriseApplet {
             
 
                 this.looping = true;
-                this.render();
+                this.renderer.setAnimationLoop( this.render )
             }
         },333);
     }
@@ -467,10 +467,10 @@ export class ThreeSunriseApplet {
             
             this.composer.render();
             
-            setTimeout(()=>{
-                if(this.renderer)
-                    this.threeAnim = this.renderer.setAnimationLoop( this.render )
-            },15);
+            // setTimeout(()=>{
+            //     if(this.renderer)
+            //         this.threeAnim = this.renderer.setAnimationLoop( this.render )
+            // },15);
         }
     }  
 
