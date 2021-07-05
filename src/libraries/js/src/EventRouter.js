@@ -29,7 +29,7 @@ export class EventRouter{
         if (!('states' in this.device)) this.device.states = {}
 
         // Blink 
-        // TO DO: Check for Frontal Electrodes
+        // TO DO: Check for All Frontal Electrodes
         if (this.device.info.deviceType === 'eeg'){
             this.device.states['blink_left'] = {data: 0, meta: {id:'blink_left'}}
             this.device.states['blink_right'] = {data: 0, meta: {id:'blink_right'}}

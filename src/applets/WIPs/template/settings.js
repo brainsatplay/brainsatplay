@@ -21,7 +21,7 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.biosignals.Signal},
+        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
         {id: 'ui', class: UI, params: {}},
@@ -29,7 +29,7 @@ export const settings = {
 
       edges: [
         {
-          source: 'signal', 
+          source: 'eeg:data', 
           target: 'neurofeedback'
         },
         { 

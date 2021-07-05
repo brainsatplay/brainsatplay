@@ -294,7 +294,7 @@ export class GraphManager{
     }
 
     // Input Must Be An Array
-    runSafe(node, port='default',input=[{}]){
+    runSafe(node, port='default',input=[{}], internal=false){
 
         try {
             // Shallow Copy State before Repackaging
@@ -310,9 +310,9 @@ export class GraphManager{
                 else {
                     if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
                     if (!inputCopy[i].meta) inputCopy[i].meta = {}
+                    if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
                 }
-            }
-            
+            }            
 
             // Only Continue the Chain with Updated Data
             if (inputCopy.length > 0){
@@ -352,7 +352,7 @@ export class GraphManager{
             let allEqual = true
             let forced = false
 
-            if (node.states[port] == null) node.states[port] = result
+            if (node.states[port] == null) node.states[port] = []
 
             result.forEach((o,i) => {
 
@@ -371,6 +371,7 @@ export class GraphManager{
                             let case2 = JSON.stringifyFast(o)
 
                             let thisEqual = case1 === case2
+ 
                             if (!thisEqual){
                                 node.states[port][i] = o
                                 allEqual = false
@@ -400,7 +401,7 @@ export class GraphManager{
     triggerAllActivePorts(node){
         for (let port in node.ports){
             if (node.ports[port].active.out > 0) {
-                this.runSafe(node,port, [{data:true, force: true}])
+                this.runSafe(node,port, [{data:true, force: true}], true)
             }
         }
     }
@@ -534,7 +535,7 @@ export class GraphManager{
                         u.meta.session = applet.sessionId
                     })
                     if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                    return this.runSafe(target, targetPort, input)
+                    return this.runSafe(target, targetPort, input, true)
                 }
             }
             
@@ -553,7 +554,7 @@ export class GraphManager{
                 if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
                 source.states[sourcePort][0].meta.source = label
                 source.states[sourcePort][0].meta.session = applet.sessionId
-                this.runSafe(target, 'default', source.states[sourcePort]) // Register port
+                this.runSafe(target, 'default', source.states[sourcePort], true) // Register port
             } 
 
             // And Listen for Local Changes
@@ -596,7 +597,7 @@ export class GraphManager{
                     o.meta.source = label
                     o.meta.session = applet.sessionId
                 })
-                this.runSafe(target, targetPort, source.states[sourcePort])
+                this.runSafe(target, targetPort, source.states[sourcePort], true)
             }
             if (sendOutput) sendFunction()
             else return sendFunction
@@ -763,7 +764,7 @@ export class GraphManager{
         if (target instanceof plugins.utilities.Brainstorm) {
             source.states[sourcePort][0].meta.source = label
             source.states[sourcePort][0].meta.session = applet.sessionId
-            this.runSafe(target, 'default', source.states[sourcePort]) // Activate Port Subscriptions
+            this.runSafe(target, 'default', source.states[sourcePort], true) // Activate Port Subscriptions
         }
     }
 

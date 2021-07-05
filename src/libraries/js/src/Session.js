@@ -232,6 +232,7 @@ export class Session {
 		newStream.ondisconnect = () => {
 			ondisconnect(newStream);
 			this.ondisconnected();
+			this.deviceStreams[i].device.atlas.deinit()
 			this.deviceStreams.splice(i, 1);
 			this.state.removeState(stateId)
 
@@ -641,7 +642,7 @@ export class Session {
 	}
 
 	//listen for changes to atlas data properties
-	subscribeToNewDevices = (type, callback) => {
+	subscribeToDevices = (type, callback) => {
 
 		let subscribedTags = {}
 		let subscribedPointers = {}
@@ -686,7 +687,7 @@ export class Session {
 			})
 		}
 
-		callback(Object.keys(this.state.data)) // Pass Existing States on Init
+		checkIfDevice(Object.keys(this.state.data)) // Pass Existing States on Init
 
 		return subscribedPointers
 	}

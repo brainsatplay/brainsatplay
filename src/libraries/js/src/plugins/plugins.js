@@ -5,4 +5,4 @@ import * as utilities from './utilities/index.js'
 import * as graphics from './graphics/index.js'
 import * as biosignals from './biosignals/index.js'
 
-export {inputs, algorithms, outputs, utilities,graphics,biosignals}
+export {inputs, biosignals, algorithms, outputs, utilities,graphics}
