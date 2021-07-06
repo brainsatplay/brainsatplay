@@ -29,7 +29,7 @@ export class EventRouter{
         if (!('states' in this.device)) this.device.states = {}
 
         // Blink 
-        // TO DO: Check for Frontal Electrodes
+        // TO DO: Check for All Frontal Electrodes
         if (this.device.info.deviceType === 'eeg'){
             this.device.states['blink_left'] = {data: 0, meta: {id:'blink_left'}}
             this.device.states['blink_right'] = {data: 0, meta: {id:'blink_right'}}
@@ -47,12 +47,14 @@ export class EventRouter{
                     let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
 
                     if (blinkBoth || blinkLeft || blinkRight){
-                        let blinks = this.device.atlas.getBlink()
+                        let blinks = this.device.atlas.getBlink({debug: true})
                         if (blinks){
                             if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
                             if (blinks[0] != null && blinkLeft) this.device.states['blink_left'].data = blinks[0]
                             if (blinks[1] != null && blinkRight) this.device.states['blink_right'].data = blinks[1]
                         }
+                    } else {
+                        this.device.atlas.getBlink({debug: false})
                     }
             });
         }

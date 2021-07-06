@@ -35,9 +35,6 @@ a {
 a:hover{
     color: rgb(200, 200, 200)
 }
-a.hover{
-    color: rgb(200, 200, 200)
-}
 
 /* Selector */
 select {
@@ -513,6 +510,10 @@ select {
 .brainsatplay-default-container.brainsatplay-node-editor > .main{
     display: flex;
     flex-direction: column;
+    height: 100%;
+    max-height: 100vh;
+    width: 100%;
+    position: relative;
 }
 
 .brainsatplay-node-view{
@@ -524,12 +525,6 @@ select {
     /* height: 100px;  */
 }
 
-.brainsatplay-node-editor > div {
-    height: 100%;
-    max-height: 100vh;
-    width: 100%;
-    position: relative;
-}
 /* Style the tab */
 .brainsatplay-node-editor-tabs > .tab {
     overflow-x: scroll;
@@ -808,7 +803,7 @@ select {
     overflow: scroll;
 }
 
-.node-sidebar-content > div{
+.node-sidebar-content > .content-div {
     display: grid;
     /* padding: 5px;  */
     grid-template-columns: 1fr 1fr;
@@ -1123,6 +1118,214 @@ select {
   }
 
 
+
+/* Motor Imagery */
+.training-overlay {
+    z-index: 1000; 
+    background: black; 
+    width: 100vw; 
+    height: 100vh; 
+    position: absolute; 
+    padding: 50px;
+    top: 0; 
+    left: 0; 
+    opacity: 0; 
+    pointer-events: none;
+    transition: opacity 0.5s;
+    overflow: hidden;
+}
+
+.training-game-container {
+    display: flex;
+    overflow-x: scroll;
+    padding: 10px;
+}
+
+.training-game-container > div{
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+}
+
+.training-overlay h1 {
+    margin-bottom: 10px;
+}
+
+.training-model-container {
+    display: flex;
+    width: 100%;
+}
+
+.training-model-button {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: rgb(25,25,25);
+    transition: 0.5s;
+    font-size: 70%;
+}
+
+.training-model-button.selected{
+    background: rgb(40,40,40);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
+}
+
+.training-buttons {
+    position: absolute !important; 
+    bottom: 25px; 
+    right: 25px; 
+    display: flex;
+}
+
+.training-prompt-container {
+    padding: 25px; 
+    width: 100%;
+    max-height: 100%;
+}
+
+.training-prompt {
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap;
+    height: 100%;
+    background: rgb(25,25,25);
+    border-radius: 5px;
+    padding: 25px;
+    width: 100%;
+    border: 1px solid gray;
+}
+
+.training-prompt > div {
+    width: 100%;
+    flex: 47%;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.training-prompt h2 {
+    margin: 0;
+    width: 100%;
+}
+
+.training-prompt p {
+    margin: 0;
+    padding-top: 10px;
+    font-size: 75%;
+}
+
+.training-prompt button.disabled {
+    opacity: 50%;
+    pointer-events: none;
+}
+
+
+/* Applet Browser */
+
+.brainsatplay-browser{
+    height:100%; width:100%;
+    overflow-y: scroll;
+    /* padding: 50px */
+}
+
+
+.browser-card{
+    min-width: 100px;
+    width: 200px; 
+    cursor: pointer;
+    border-radius: 5px;
+    position: relative;  
+    font-size: 80%;
+    flex-grow: 1;
+    overflow: hidden;
+    background: rgb(15,15,15);
+    margin: 5px;
+    transition: 0.5s;
+}
+
+.browser-card > img {
+    width: 100%;
+    aspect-ratio: 2 / 1; 
+    object-fit: cover;
+}
+
+.browser-card > .info {
+   padding: 0px 25px 10px 25px;
+   z-index: 1;
+   position: relative;
+}
+
+.browser-card:hover, .browser-card.selected{
+    background-color:rgb(35,35,35)
+}
+
+.browser-card.selected{
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
+}
+
+.browser-card.preset{
+   flex: 40%;
+   margin: 0;
+   border-radius: 0;
+   background: black;
+   height: 200px;
+}
+
+.browser-card.preset > img {
+    position: absolute;
+    top: 0; 
+    left: 0;
+    height: 100%;
+}
+
+.browser-card.preset > .info {
+    padding: 10px 25px;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    transition: 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+ }
+
+ .browser-card.preset > .info > div{
+    /* position: absolute;
+    bottom: 0;
+    transform: translate(0px, -50%) */
+ }
+
+ .browser-card.preset:hover > .info {
+    background: rgba(0,0,0,0.5);
+ }
+
+.preset-container {
+    display: flex;
+    flex-wrap: wrap; 
+    align-items: stretch; 
+    justify-content: center;
+}
+
+.applet-container{
+    display: flex;
+    flex-wrap: wrap; 
+    align-items: stretch; 
+    justify-content: center;
+    padding: 0px 50px 50px 50px
+}
+
+.browser-header{
+    display: grid; 
+    grid-template-columns: repeat(2,1fr); 
+    padding: 25px 50px 0px 50px;
+    border-bottom: 2px solid white;
+    margin-bottom: 25px;
+}
+
+
+
 /* DEFAULT UI ELEMENTS */
 /* Intro UI */
 .brainsatplay-default-menu {
@@ -1219,3 +1422,8 @@ select {
     background-color: rgb(35,35,35);
 }
 
+/* Shown / Hidden Classes */
+.shown {
+    opacity: 1;
+    pointer-events: all;
+}

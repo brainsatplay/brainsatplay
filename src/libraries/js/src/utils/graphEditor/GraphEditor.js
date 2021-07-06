@@ -4,6 +4,12 @@ import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
 import  {plugins} from '../../../brainsatplay'
 import  {Plugin} from '../../plugins/Plugin'
+
+// Project Selection
+import {appletManifest} from '../../../../../platform/appletManifest'
+import { getApplet, getAppletSettings } from "../../../../../platform/js/general/importUtils"
+
+// Node Interaction
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
@@ -70,10 +76,12 @@ export class GraphEditor{
                     <div id="${this.props.id}GraphEditor" class="brainsatplay-node-sidebar">
                         <div>
                             <div class='node-sidebar-section'>
-                                <h3>0.1. Project Info</h3>
+                                <h3>Projects</h3>
                             </div>
-                            <div class='node-sidebar-header'>
-                                <h4>Settings</h4>
+                            <div id="${this.props.id}projects" class='node-sidebar-content'>
+                            </div>
+                            <div class='node-sidebar-section'>
+                                <h3>Project Info</h3>
                             </div>
                             <div id="${this.props.id}settings" class='node-sidebar-content'>
                             </div>
@@ -81,23 +89,17 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
-                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit Project</button>
+                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit the Studio</button>
                             </div>
                             <div class='node-sidebar-section'>
-                                <h3>0.2. Node Editor</h3>
+                                <h3>Node Editor</h3>
                                 <button id="${this.props.id}add" class="brainsatplay-default-button">+</button>
-                            </div>
-                            <div class='node-sidebar-header'>
-                                <h4>Parameters</h4>
                             </div>
                             <div id="${this.props.id}params" class='node-sidebar-content'>
                             <p></p>
                             </div>
                         </div>
                         <div>
-                            <div class='node-sidebar-header'>
-                                <h4>Interactions</h4>
-                            </div>
                             <div id="${this.props.id}params" class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding-top: 10px;">
                                 <button id="${this.props.id}edit" class="brainsatplay-default-button">Edit Node</button>
                                 <button id="${this.props.id}delete" class="brainsatplay-default-button">Delete Node</button>
@@ -119,12 +121,16 @@ export class GraphEditor{
 
                 let toggleClass = '.brainsatplay-default-editor-toggle'
                 let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-                // Search for Toggle
-                if (this.app.AppletHTML.node){
-                    let tries = 0
-                    let checkToggle = () => {
-                        if (tries < 10){
 
+
+                // Insert Projects
+                this.insertProjects()
+
+                // Search for Toggle
+                let tries = 0
+                let checkToggle = () => {
+                    if (tries < 10){
+                        if (this.app.AppletHTML){
                             // Grab
                             if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
                             if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
@@ -136,11 +142,13 @@ export class GraphEditor{
                                 setTimeout(() => {checkToggle()},500)
                                 tries++
                             }
-                        } else console.warn('toggle not available')
-                    }
-
-                    checkToggle()
+                        } else {
+                            tries = 11
+                        }
+                    } else console.warn('toggle not available')
                 }
+
+                checkToggle()
 
                 this.mainPage = document.getElementById(`${this.props.id}MainPage`)
                 this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
@@ -162,10 +170,10 @@ export class GraphEditor{
                 exit.onclick = () => {
                     // If Inside Studio, Bring Back UI
                     if (this.isStudio){
-                        this.app.deinit()
-                        let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
-                        projectWindow.style.opacity = 1
-                        projectWindow.style.pointerEvents = 'all'
+                        document.getElementById('applet-browser-button').click()
+                        // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                        // projectWindow.style.opacity = 1
+                        // projectWindow.style.pointerEvents = 'all'
 
                     } else { // Otherwise just toggle the editor display
                         this.toggleDisplay()
@@ -309,8 +317,119 @@ export class GraphEditor{
         e.node['curve'].addEventListener('click', () => {this._onClickEdge(e)})
     }
 
-    getMousePosition = () => {
+    insertProjects = async () => {
 
+        this.props.projectContainer = document.getElementById(`${this.props.id}projects`)
+        this.props.projectContainer.style.padding = '0px'
+        this.props.projectContainer.style.display = 'block'
+
+        let galleries = {
+            personal: {
+                header: '',
+                projects: []
+            }, 
+            templates: {
+                header: 'Examples',
+                projects: []
+            }
+        }
+
+        // Get Project Settings Files
+        let projectSet = await this.app.session.projects.list()
+        projectSet = Array.from(projectSet).map(async str => {
+            let files = await this.app.session.projects.getFilesFromDB(str)
+            let settings =  await this.app.session.projects.load(files)
+            return {destination: 'personal', settings}
+        })
+
+        // Get Template Files
+        let templateSet = []
+        for (let key in appletManifest){
+            let o = appletManifest[key]
+            let settings = await getAppletSettings(o.folderUrl)
+            if (settings.graph) templateSet.push({destination: 'templates', settings})
+        }
+
+        Promise.allSettled([...projectSet,...templateSet]).then(set => {
+
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
+            set.forEach(o => {
+                if (o.status === 'fulfilled' && o.value.settings){
+                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
+                }
+            })
+
+            // Add Load from File Button
+            galleries.personal.projects.unshift({name: 'Load from File'})
+
+            Object.keys(galleries).forEach(k => {
+
+                let o = galleries[k]
+
+                // Create Top Header
+                if (k !== 'personal'){
+                    let div = document.createElement('div')
+                    div.classList.add(`brainsatplay-option-type`) 
+                    div.classList.add(`option-type-collapsible`)
+                    div.innerHTML = o.header
+                    this.addDropdownFunctionality(div)
+                    this.props.projectContainer.insertAdjacentElement('beforeend', div)
+                }
+
+                // Create Project List
+                let projects = document.createElement('div')
+                projects.id = `${this.props.id}-projectlist-${k}`
+                projects.classList.add("option-type-content")
+                this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
+
+
+                o.projects.forEach(settings => {
+                    let item = document.createElement('div')
+                    item.innerHTML = settings.name
+                    item.classList.add('brainsatplay-option-node')
+                    item.style.padding = '10px 20px'
+                    item.style.display = 'block'
+
+                    item.onclick = async () => {
+
+                        // if (this.props.projects.style.pointerEvents != 'none'){
+                        // Rename Template Projects
+                        if (k === 'templates'){
+                            settings = Object.assign({}, settings)
+                            if (settings.name === 'Blank Project') settings.name = 'My Project'
+                        }
+
+                        // Create Application
+                        if (settings.name === 'Load from File') {
+                            settings = await this.app.session.projects.loadFromFile()
+                            this._createApp(settings)
+                        } else this._createApp(settings)
+                    // }
+                    }
+                    if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
+                        // div.style.flex = '43%'
+                        projects.insertAdjacentElement('afterbegin',item)
+                    } else {projects.insertAdjacentElement('beforeend',item)}
+
+                })
+
+                if (k === 'personal') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+            })
+        })
+    }
+
+    _createApp(settings){
+
+        settings.editor = {
+            parentId: this.app.parentNode,
+            show: true,
+            style: `
+            position: block;
+            z-index: 9;
+            `,
+        }
+
+        this.app.replace(settings)
     }
 
     createViewTabs = () => {
@@ -329,7 +448,8 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
-            this.app.saveGraph()
+            console.log(this.app)
+            this.app.updateGraph()
             this.app.session.projects.save(this.app)
         }
         save.onclick = onsave
@@ -442,6 +562,8 @@ export class GraphEditor{
                 } else {
                     let containerDiv = document.createElement('div')
                     containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+                    containerDiv.classList.add(`content-div`)
+
                     let inputContainer = document.createElement('div')
                     inputContainer.style.position = 'relative'    
                     let input = document.createElement('input')
@@ -470,27 +592,23 @@ export class GraphEditor{
                 this.shown = true
 
                 // Move App Into Preview
-                // if (this.isStudio){
-                    this.appNode = this.app.AppletHTML.node
-                    this.preview.appendChild(this.appNode)
-                    setTimeout(() => {
+                this.appNode = this.app.AppletHTML.node
+                this.preview.appendChild(this.appNode)
+                setTimeout(() => {
 
-                    this.responsive()
-                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                this.responsive()
+                this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 },100)
-                // }
             } else {
                 this.element.node.style.opacity = 0
                 this.element.node.style.pointerEvents = 'none'
                 this.shown = false
 
-                // if (this.isStudio){
-                    this.app.AppletHTML.parentNode.appendChild(this.appNode)
-                    setTimeout(() => {
-                        this.responsive()
-                        this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
-                    },100)
-                // }
+                this.app.AppletHTML.parentNode.appendChild(this.appNode)
+                setTimeout(() => {
+                    this.responsive()
+                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                },100)
             }
         }
     }
@@ -599,9 +717,8 @@ export class GraphEditor{
 
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = this.manager.addNode(this.app.props.id, nodeInfo)
+        if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
-
         let node = this.graph.addNode(nodeInfo)
         dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
 
@@ -639,7 +756,6 @@ export class GraphEditor{
             if (toParse == null) toParse = plugin.ports
 
             for (let key in toParse){
-
                 // Properly Nest Divs
                 let containerDiv = document.createElement('div')
                 containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
@@ -648,13 +764,17 @@ export class GraphEditor{
 
                 // Sort through Params
                 if (toParse[key].show != false){
-                let defaultType = typeof toParse[key].default
+
+                let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
+                if (typeof defaultType !== 'string') defaultType = defaultType.name
+
                 let specifiedOptions = toParse[key].options
                 let optionsType = typeof specifiedOptions
 
                 let input;
 
-                if (defaultType != 'undefined' && defaultType != 'object'){
+                // Cannot Handle Objects or Elements
+                if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
 
                 if (optionsType == 'object' && specifiedOptions != null){
                         let options = ``
@@ -694,6 +814,54 @@ export class GraphEditor{
                         input.type = 'number'
                         input.value = plugin.params[key]
                     }
+                } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
+                    input = document.createElement('button')
+                    input.classList.add('brainsatplay-default-button')
+                    input.style.width = 'auto'
+                    input.innerHTML = `Edit ${defaultType}`
+                    
+                    let container = document.createElement('div')
+                    container.style = `
+                        width: 75vw;
+                        height: 75vh;
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        z-index: 1000;
+                        transform: translate(-50%, -50%)
+                    `
+                    
+                    document.body.insertAdjacentElement('beforeend', container)
+                    let settings = {}
+                    settings.onOpen = (res) => {
+                        container.style.pointerEvents = 'all'
+                        container.style.opacity = '1'
+                    }
+        
+                    settings.onSave = (res) => {
+                        this.manager.runSafe(plugin, key, [{data: res}])
+                    }
+        
+                    settings.onClose = (res) => {
+                        container.style.pointerEvents = 'none'
+                        container.style.opacity = '0'
+                    }
+
+                    if (defaultType === 'Function'){
+                        settings.language = 'javascript'
+                        settings.target = plugin.params
+                        settings.function = key
+                    } else {
+                        settings.language = defaultType.toLowerCase()
+                        settings.target = plugin.params[key]
+                    }
+
+                    settings.onClose()
+
+                    let editor
+                    input.onclick = () => {
+                        if (editor == null) editor = new LiveEditor(settings, container)
+                    }
                 } else {
                         input = document.createElement('input')
                         // Check if Color String
@@ -708,6 +876,7 @@ export class GraphEditor{
                 // Add to Document
                     inputContainer.insertAdjacentElement('beforeend',input)
                     containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                    containerDiv.classList.add(`content-div`)
                     selectedParams.insertAdjacentElement('beforeend', containerDiv)
 
                     // Change Live Params with Input Changes
@@ -788,8 +957,10 @@ export class GraphEditor{
             settings.target = target
             settings.className = name
             settings.shortcuts = {
-                save: false
+                save: true
             }
+            settings.showClose = false
+
             let editor = new LiveEditor(settings,container)
             let tab = this.addTab(filename, container.id, settings.onOpen)
             this.files[filename].container = container
@@ -842,7 +1013,10 @@ export class GraphEditor{
     createPluginSearch = (container) => {
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
+        selector.style.opacity = '0'
+        selector.style.pointerEvents = 'none'
         selector.classList.add(`brainsatplay-node-selector`)
+
         let selectorMenu = document.createElement('div')
         selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
@@ -920,8 +1094,6 @@ export class GraphEditor{
         })
 
         selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
-        selector.style.opacity = '0'
-        selector.style.pointerEvents = 'none'
         this.responsive()
     }
 
@@ -972,7 +1144,6 @@ export class GraphEditor{
                 selectedType.innerHTML = type[0].toUpperCase() + type.slice(1)
                 selectedType.classList.add(`brainsatplay-option-type`)
                 selectedType.classList.add(`option-type-collapsible`)
-                selectedType.classList.add(`option-type-collapsible`)
 
                 let count = document.createElement('div')
                 count.classList.add('count')
@@ -981,15 +1152,7 @@ export class GraphEditor{
 
                 selectedType.insertAdjacentElement('beforeend',count)
                 options.insertAdjacentElement('beforeend',selectedType)
-                selectedType.onclick = () => {
-                    selectedType.classList.toggle("active");
-                    var content = selectedType.nextElementSibling;
-                    if (content.style.maxHeight){
-                        content.style.maxHeight = null;
-                      } else {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                      }
-                }
+                this.addDropdownFunctionality(selectedType)
             }
 
             options.insertAdjacentElement('beforeend',contentOfType)
@@ -1024,6 +1187,18 @@ export class GraphEditor{
 
             let count = options.querySelector(`.${type}-count`)
             if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
+        }
+    }
+
+    addDropdownFunctionality = (node) => {
+        node.onclick = () => {
+            node.classList.toggle("active");
+            var content = node.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+              } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+              }
         }
     }
 

@@ -1,11 +1,11 @@
 import bci from 'bcijs/browser.js'
-import {eegmath} from './../../utils/eegmath';
+import {eegmath} from '../../utils/eegmath';
 
-export class MotorImagery{
+export class LDA{
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
-    
+
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
@@ -110,6 +110,7 @@ export class MotorImagery{
         }
 
         this.props = {
+            id: String(Math.floor(Math.random() * 1000000)),            
             bci: bci,
             models: {
                 csp: null,
@@ -118,8 +119,7 @@ export class MotorImagery{
         }
     }
 
-    init = () => {
-    }
+    init = () => {}
 
     deinit = () => {}
 

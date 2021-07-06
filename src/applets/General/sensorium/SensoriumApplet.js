@@ -123,16 +123,21 @@ export class SensoriumApplet {
 
         // Plugins
         this.graph = new GraphManager(this.session)
-        this.graph.init(this.props.id, 
-        {
-            name: this.info.name, 
-            graph: {
-                nodes: [
-                    {id: 'buzz', class: Buzz},
-                ],
+        let app = {
+			props: {
+				id: this.props.id
+			},
+			info: {
+                name: this.info.name, 
+                graph: {
+                    nodes: [
+                        {id: 'buzz', class: Buzz},
+                    ],
+                }
             }
-        }
-        )
+		}
+
+        this.graph.init(app)
         this.graph.streams = ['modifiers','hostData']
 
         this.tutorialManager = null
@@ -172,7 +177,7 @@ export class SensoriumApplet {
         this.three.planes = [];
         this.guiControllers = [];
 
-        this.mouseclicked = false;
+        this.mouseclicked = 0.0;
         this.mousexyzw = [0,0,0,0];
 
         //Available uniforms for shaders. See comments for usage
@@ -222,7 +227,6 @@ export class SensoriumApplet {
         let date = new Date();
 
         this.additionalUniforms = {
-            iResolution: 'auto', 
             iTime: 0, //milliseconds elapsed from shader begin
             iTimeDelta:0,
             iFrame:0,
@@ -247,14 +251,14 @@ export class SensoriumApplet {
                 vertexShader: vertexShader,
                 fragmentShader: galaxyFragmentShader,
                 uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence', 'iFFT'],
-                credit: 'JoshB x JoshP x CBS'
+                credit: 'JoshP x CBS'
             },
             negagalaxy: {
                 name: 'Nega Galaxy',
                 vertexShader: vertexShader,
                 fragmentShader: negaGalaxyFragmentShader,
                 uniforms: ['iResolution','iTime','iAudio','iHRV','iHEG','iHB','iHR','iFrontalAlpha1Coherence'],
-                credit: 'JoshB x JoshP'
+                credit: 'JoshP'
             },
             creation: {
                 name: 'Creation',
@@ -406,7 +410,7 @@ void main(){
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
 
             document.getElementById(props.id+'changeview').onclick = () => {
@@ -438,8 +442,8 @@ void main(){
 
             document.getElementById(this.props.id).onmousedown = (ev) => {
                 this.mouseclicked = 1.0;
-                this.mousexyzw[3] = ev.offsetX;
-                this.mousexyzw[4] = ev.offsetY;
+                this.mousexyzw[2] = ev.offsetX;
+                this.mousexyzw[3] = ev.offsetY;
             }
 
             /**
@@ -653,7 +657,7 @@ void main(){
     this.controls.maxDistance = this.baseCameraPos.z*1000; // radians
 
     // Plane
-    const geometry = this.createViewGeometry()
+    const geometry = this.createViewGeometry();
     let tStart = Date.now();
 
     let shaderKeys = Object.keys(this.shaders);
@@ -661,7 +665,7 @@ void main(){
 
     this.additionalUniforms.iResolution = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight); //Required for ShaderToy shaders
     
-    let k = shaderKeys[0]
+    let k = shaderKeys[0];
     // shaderKeys.forEach((k,i) => {
         let material = new THREE.ShaderMaterial({
             transparent: true,
@@ -672,7 +676,7 @@ void main(){
         });
 
         
-        let bciuniforms = {};
+        let bciuniforms = {}; 
         this.shaders[k].uniforms.forEach((u)=>{
             let pass = false;
             for(const prop in this.modifiers) {
@@ -700,8 +704,8 @@ void main(){
                             this.additionalUniforms[u] = new THREE.Texture(uvgrid);
                         }
                         bciuniforms[u] = {type:'t', value:this.additionalUniforms[u]};
-                        if(!uniforms['iChannelResolution']) {
-                            uniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
+                        if(!bciuniforms['iChannelResolution']) {
+                            bciuniforms['iChannelResolution'] = {type:'v3v', value:this.additionalUniforms['iChannelResolution']};
                         }
                         let ch = parseInt(u[8]);
                         bciuniforms['iChannelResolution'].value[ch] = new THREE.Vector3(
@@ -914,12 +918,14 @@ void main(){
             this.three.meshWidth = this.fov_y * this.camera.aspect
             this.three.meshHeight = this.three.meshWidth/containerAspect
 
-            let newGeometry = this.createViewGeometry()
+            let newGeometry = this.createViewGeometry();
             this.three.planes.forEach(p => {
                 p.geometry.dispose()
                 p.geometry = newGeometry
                 p.material.uniforms.iResolution.value = new THREE.Vector2(this.three.meshWidth, this.three.meshHeight)
-            })
+                
+                p.rotation.set(0,Math.PI,0);
+            });
             
             this.three.renderer.setSize(this.canvasContainer.offsetWidth, this.canvasContainer.offsetHeight);
         }
@@ -1137,6 +1143,7 @@ void main(){
                 mesh.rotation.set(0,Math.PI,0)
             } else if (type === 'plane') {
                 mesh.geometry = this.createViewGeometry('plane')
+                mesh.rotation.set(0,Math.PI,0)   
             } else if (type === 'circle') {
                 mesh.geometry = this.createViewGeometry('circle');
                 mesh.rotation.set(0,Math.PI,0)   
@@ -1600,9 +1607,9 @@ void main(){
                                 effectStruct.source.playbackRate.value = hr_mod;
                             }
                             this.modifiers.iHR = this.session.atlas.data.heg[0].beat_detect.beats[this.session.atlas.data.heg[0].beat_detect.beats.length-1].bpm;
-                        }
+                        }       
                     }
-                        else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
+                    else if (option === 'iHEG') { //Raise HEG ratio compared to baseline
                         if(this.session.atlas.data.heg[0].ratio.length > 0) {
                             if(!effectStruct.hegbaseline) effectStruct.hegbaseline = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1];
                             let hegscore = this.session.atlas.data.heg[0].ratio[this.session.atlas.data.heg[0].ratio.length-1]-effectStruct.hegbaseline;

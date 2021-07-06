@@ -6,23 +6,44 @@ export class Plugin{
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            number: {default: 10, min: 0, max: 100, step: 0.01}
-        }
-
+        // Data May Be Passed Through Ports (automatically assigned to an parameter)
         this.ports = {
-            default: {}
+            default: {
+                input: {type: undefined},
+                output: {type: undefined},
+                onUpdate: (userData) => {
+                    console.log(userData, this.params.number)
+                    return userData
+                }
+            },
+            number: {
+                input: {type: 'number'},
+                output: {type: null},
+                default: 10,
+                meta: {label: `${this.label}_number`},
+                min: 0,
+                max: 100,
+                step: 0.01,
+                onUpdate: (userData) => {
+                    let u = userData[0]
+                    this.params.number = u.data // Auto-assigned parameter
+                }
+            }
         }
 
-        this.props = {}
+        this.props = {
+            id: String(Math.floor(Math.random() * 1000000)),            
+        }
 
     }
 
-    init = () => {}
+    init = () => {
+        let HTMLtemplate = () => {return `<div id='${this.props.id}'></div>`}
+
+        let setupHTML = (app) => {}
+
+        return {HTMLtemplate, setupHTML}
+    }
 
     deinit = () => {}
-
-    default = (userData) => {
-        console.log(userData, this.params.number)
-    }
 }

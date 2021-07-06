@@ -72,7 +72,7 @@ export class ThreeSunriseApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
 
             this.scene = new THREE.Scene();
@@ -377,7 +377,7 @@ export class ThreeSunriseApplet {
             
 
                 this.looping = true;
-                this.render();
+                this.renderer.setAnimationLoop( this.render )
             }
         },333);
     }
@@ -440,7 +440,7 @@ export class ThreeSunriseApplet {
                     let slice = this.session.atlas.data.heg[0].ratio.slice(ct-avg);
                     let score = this.session.atlas.data.heg[0].ratio[ct-1] - this.mean(slice);
                     this.onData(score);
-                    this.draw();
+                    //this.draw();
                 }
             }
 
@@ -467,10 +467,10 @@ export class ThreeSunriseApplet {
             
             this.composer.render();
             
-            setTimeout(()=>{
-                if(this.renderer)
-                    this.threeAnim = this.renderer.setAnimationLoop( this.render )
-            },15);
+            // setTimeout(()=>{
+            //     if(this.renderer)
+            //         this.threeAnim = this.renderer.setAnimationLoop( this.render )
+            // },15);
         }
     }  
 

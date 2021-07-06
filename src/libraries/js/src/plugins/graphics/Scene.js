@@ -53,7 +53,7 @@ export class Scene{
         this.ports = {
             default: {
                 types: {
-                    in: 'function',
+                    in: Function,
                     out: null
                 }
             },
@@ -213,7 +213,7 @@ export class Scene{
     responsive = () => {
         this.props.camera.aspect = this.props.container.offsetWidth / this.props.container.offsetHeight;
         this.props.camera.updateProjectionMatrix();
-        this.props.renderer.setSize( this.props.container.offsetWidth, this.props.container.offsetHeight );
+        if (this.props.renderer) this.props.renderer.setSize( this.props.container.offsetWidth, this.props.container.offsetHeight );
     }
 
     default = (userData) => {

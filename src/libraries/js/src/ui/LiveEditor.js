@@ -25,8 +25,9 @@ export class LiveEditor {
             this.props = {
                 id: Math.floor(Math.random()*10000000),
                 language: settings.language,
-                supportedLanguages: ['javascript', 'html', 'glsl'],
-                shortcuts: settings.shortcuts
+                supportedLanguages: ['javascript', 'html', 'css', 'glsl'],
+                shortcuts: settings.shortcuts,
+                settings:settings
             }
             this.editorId = this.props.id+'editor';
             this.input = undefined;
@@ -38,8 +39,6 @@ export class LiveEditor {
                 if(typeof this.parentNode === 'string') { //can just input the div id
                     this.parentNode = document.getElementById(this.parentNode);
                 }
-
-                this._updateSettings(settings)
         
                 this.init();
                 this.onOpen()
@@ -74,6 +73,7 @@ export class LiveEditor {
                         <button id='${this.props.id}referenceToggle' class="brainsatplay-default-button" style="width: auto;min-height: 35px;">Reference</button>    
                         <button id='${this.props.id}reset' class="brainsatplay-default-button" style="width: auto; min-height: 25px;">Reset</button>
                         <button id='${this.props.id}submit' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Save</button>
+                        <button id='${this.props.id}close' class="brainsatplay-default-button" style="width: auto;min-height: 25px;">Close</button>
                     </div>
                     <textarea id='${this.props.id}editor' class="brainsatplay-code-editing" spellcheck="false" placeholder='Write your ${language} code...'></textarea>
                     <pre class="brainsatplay-code-highlighting" aria-hidden="true">
@@ -88,17 +88,19 @@ export class LiveEditor {
 
             this.input = document.getElementById(`${this.props.id}editor`)
             let reset = document.getElementById(`${this.props.id}reset`)
-            // let close = document.getElementById(`${this.props.id}close`)
+            let close = document.getElementById(`${this.props.id}close`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
+
+
             /* 
             
                 Declare Events
 
             */
 
-        //    close.onclick = () => {
-        //        this.onClose()
-        //    }
+           close.onclick = () => {
+               this.onClose()
+           }
 
             reset.onclick = () => {
                 if (this.props.language === 'javascript'){
@@ -106,8 +108,8 @@ export class LiveEditor {
                     // this.body = this.getFunctionBody(this.target[this.function]);
                     // this.head = this.getFunctionHead(this.target[this.function]);
                     this.target[this.function] = this.copy;
-                } else if (this.props.language === 'html'){
-                    this.target.innerHTML = this.copy;   
+                } else if (['html', 'css'].includes(this.props.language)){
+                    this.target = this.copy;   
                     // try{ eval(this.defaultScripts); } catch(er) {alert('Script error: ', er);}
                 } else if (this.props.language === 'glsl'){
                     this.target = this.copy;
@@ -154,12 +156,18 @@ export class LiveEditor {
                 if (this.props.language === 'javascript'){
                     let newFunc = undefined;
                     try{ 
-                        newFunc = eval(this.head+this.input.value.replace(/window/g,'err').replace(/gapi/g,'err')+'}');
+                        newFunc = eval(
+                            // this.head+
+                            this.input.value.replace(/window/g,'err').replace(/gapi/g,'err')
+                            // +'}'
+                            );
                     } 
-                    catch (er) {}
+                    catch (er) {console.log(er)}
+
                     if(newFunc){
                         this.target[this.function] = newFunc;
-                        this.onSave()
+                        this.onSave(this.target)
+
                     } else if (this.function == null && this.target instanceof Object){
                         try {
                             newFunc = eval(`(${this.input.value})`)
@@ -176,14 +184,14 @@ export class LiveEditor {
                     }
                 } 
                 
-                else if (this.props.language === 'html') {
-                    this.target.innerHTML = this.input.value;
-                    this.onSave()
+                else if (['html', 'css'].includes(this.props.language)) {
+                    this.target = this.input.value;
+                    this.onSave(this.target)
                     // try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
                 }
 
                 else if (this.props.language === 'glsl'){
-                    this.onSave()
+                    this.onSave(this.target)
                 }
             }
 
@@ -197,7 +205,7 @@ export class LiveEditor {
                 this._checkTab(this.input,e)
             }
 
-            this._setContent()
+            this.updateSettings(this.props.settings)
         }
 
         this.ui = new DOMFragment(
@@ -244,9 +252,12 @@ export class LiveEditor {
             this.onOpen = settings.onOpen
         }
 
-        // if (settings.onOpen){
-        //     this.onClose = settings.onClose
-        // }
+        if (settings.onOpen){
+            this.onClose = settings.onClose
+        }
+
+        let close = document.getElementById(`${this.props.id}close`)
+        if (close && settings.showClose === false) close.style.display = 'none'
 
 
         // For JS Editor
@@ -259,7 +270,7 @@ export class LiveEditor {
             // Handle Specific Functions (from target)
             if (typeof this.target === 'object' && this.target != null && this.function != null){
                 this.head = this.getFunctionHead(this.target[this.function]);
-                this.body = this.getFunctionBody(this.target[this.function]);
+                this.body = this.target[this.function] // this.getFunctionBody(this.target[this.function]);
                 this.copy = this.target[this.function].toString();
             } 
 
@@ -272,14 +283,14 @@ export class LiveEditor {
             } else {
                 console.warn('settings file is improperly configured...')
             }
-        } else if (this.props.language === 'html') {
+        } else if (['html', 'css'].includes(this.props.language)) {
             if (this.target != null){
-                if (typeof this.target === 'string'){
-                    this.target = document.getElementById(this.target);
-                }
-                this.head = this.target.id
-                this.body = this.target.innerHTML
-                this.copy = this.target.innerHTML
+                // if (typeof this.target === 'string'){
+                //     this.target = document.getElementById(this.target);
+                // }
+                this.head = this.props.language // this.target.id
+                this.body = this.target//this.target.innerHTML
+                this.copy = this.target//this.target.innerHTML
             } else {
                 console.warn('settings file does not contain a target...')
             }

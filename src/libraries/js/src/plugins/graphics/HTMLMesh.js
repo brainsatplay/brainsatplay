@@ -40,7 +40,7 @@ export class HTMLMesh{
                 }
             },
             element: {
-                input: {type: 'Element'},
+                input: {type: Element},
                 output: {type: null},
                 onUpdate: (userData) => {
                     let u = userData[0]

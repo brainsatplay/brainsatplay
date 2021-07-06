@@ -84,6 +84,7 @@
     "streamsearch": "^0.1.2",
     "style-loader": "^2.0.0",
     "three": "^0.126.1",
+    "three.phenomenon": "^1.2.0",
     "timechart": "^0.5.2",
     "tls": "0.0.1",
     "tslib": "^2.0.3",

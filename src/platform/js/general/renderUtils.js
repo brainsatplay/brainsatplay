@@ -719,6 +719,18 @@ class Physics {
             gravity: 9.81
         };
 
+        this.dynamicBoundingVolumeTree = {
+            proto:{
+                parent:undefined,
+                children:[],
+                bodies:[],
+                XX:0,
+                YY:0,
+                ZZ:0
+            },
+            tree:{}
+        };
+
         this.bodySettings = {
 
             index: null,
@@ -726,7 +738,7 @@ class Physics {
             collisionEnabled: true,
             collisionType: "Sphere", //Sphere, Box, Point
             collisionRadius: 1, //Radius of sphere or nearest point on side planes in a box
-            collisionBoundsScale: [1,1,1], //Can distort the bounding box, doesn't affect the sphere yet.
+            collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions (eigenvalues), doesn't affect the sphere yet.
 
             dynamic: true,
 
@@ -753,6 +765,58 @@ class Physics {
             this.physicsBodies.push(JSON.parse(JSON.stringify(this.bodySettings)));
             this.physicsBodies[i].index = i;
         }
+    }
+
+    generateBoundingVolumeTree(bodies=this.physicsBodies) {
+        
+        /*
+        How to make dynamic bounding volume tree:
+
+        1. Find the bounding volume of all of the objects combined.
+        2. Now subdivide bounding volumes by whatever magnitude until you have groups of 2-5 objects close to each other.
+        3. Use box collision checks on the tree to find the best candidates to search for collisions
+        
+        */
+
+        let boundX, boundY, boundZ;
+
+        let minX, minY, minZ;
+
+        bodies.forEach((body)=>{
+
+            let xx = body.position[0]+body.collisionRadius*body.collisionBoundsScale[0];
+            let yy = body.position[1]+body.collisionRadius*body.collisionBoundsScale[1];
+            let zz = body.position[2]+body.collisionRadius*body.collisionBoundsScale[2];
+
+            boundX = Math.max(boundX,xx);
+            boundY = Math.max(boundY,yy);
+            boundZ = Math.max(boundZ,zz);
+
+            minX = Math.min(minX,xx);
+            minY = Math.min(minY,yy);
+            minZ = Math.min(minZ,zz);
+
+        });
+
+        let head = JSON.parse(JSON.stringify(this.dynamicBoundingVolumeTree.proto));
+
+        head.XX = boundX;
+        head.YY = boundY;
+        head.ZZ = boundZ;
+
+        head.bodies = bodies;
+        
+        this.dynamicBoundingVolumeTree.tree = head;
+
+        /*
+            Now search children recursively till you have small enough groups to speed up collision checking
+
+            nearestneighborsearch bodies by radius,
+            next create bounds at that radius to capture all bodies
+            repeat at a smaller radius till no more objects can be grouped at a minimum group size or radius
+            bodies will be referenced in each 
+        */
+
     }
 
     timeStep(dt) { //dt in seconds

@@ -5,6 +5,7 @@ import {Buffer} from './Buffer'
 import {Index} from './IndexClass'
 import {Scheduler} from './Scheduler'
 import {DataManager} from './DataManager'
+import {Train} from './Train'
 
 export {
     Brainstorm,
@@ -13,5 +14,6 @@ export {
     Buffer,
     Index,
     Scheduler,
-    DataManager
+    DataManager,
+    Train
 }

@@ -20,7 +20,7 @@ export class BlobApplet {
     constructor(
         parent=document.body,
         session=new Session(),
-        settings=[]
+        settings=[],
     ) {
     
         //-------Keep these------- 
@@ -63,7 +63,7 @@ export class BlobApplet {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
-            this.session.registerApp(this.props.id,this.info)
+            this.session.registerApp(this)
             this.session.startApp(this.props.id)
         }
 

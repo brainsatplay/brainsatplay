@@ -19,20 +19,20 @@ export const settings = {
       {
       id: 'benchmark',
       nodes: [
-        {id: 'signal', class: brainsatplay.plugins.biosignals.Signal},
+        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink},
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{interTrialInterval: 2}},
         {id: 'Train UI', class: Train},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'motorimagery', class: brainsatplay.plugins.algorithms.MotorImagery},
+        {id: 'motorimagery', class: brainsatplay.plugins.models.LDA},
         {id: 'Test UI', class: Test},
       ],
       edges: [
 
         // Set Up Your Algorithm
         {
-          source: 'signal', 
+          source: 'eeg:data', 
           target: 'My Algorithm'
         },
         // {

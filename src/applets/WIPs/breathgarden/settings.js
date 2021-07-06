@@ -138,7 +138,7 @@ export const settings = {
         // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
 
         {id: 'sine', class: brainsatplay.plugins.inputs.Event},//, params: {center: 0.5, scale: 0.5, frequency: 0.1}},
-        {id: 'html', class: brainsatplay.plugins.outputs.HTML, params:{
+        {id: 'html', class: brainsatplay.plugins.outputs.UI, params:{
           html: `
           <div style='background: transparent; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
             <div>

@@ -41,16 +41,20 @@ export class DataAtlas {
 
 		// Add Blink Detection
 		this.graph = new GraphManager({atlas: this})
-		this.liveGraph = this.graph.init(this.props.id, 
-			{
+		let app = {
+			props: {
+				id: this.props.id
+			},
+			info: {
 				name: 'BlinkDetection', 
 				graph: {
 					nodes: [
-						{id: 'blink', class: Blink, params: {debug: true}},
+						{id: 'blink', class: Blink},
 					],
 				}
 			}
-		)
+		}
+		this.liveGraph = this.graph.init(app)
 		this.graph.start(this.props.id, this._getRandomId())
 
 		this.liveGraph.nodes.forEach(n => {

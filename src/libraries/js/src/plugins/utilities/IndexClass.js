@@ -14,8 +14,10 @@ export class Index{
                 onUpdate: (userData) => {
                     let u = userData[0]
                     let idx;
-                    if (this.params.method == 'last') idx = u.data.length - 1
-                    return [{data: u.data[idx]}]
+                    if (u.data){
+                        if (this.params.method == 'last') idx = u.data.length - 1
+                        return [{data: u.data[idx]}]
+                    }
                 }
             },
             method: {
