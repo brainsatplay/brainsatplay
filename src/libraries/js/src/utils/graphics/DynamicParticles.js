@@ -47,7 +47,7 @@ export class DynamicParticles {
             boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
             boid:{
                 boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
-                cohesion:0.005,
+                cohesion:0.003,
                 separation:0.0001,
                 alignment:0.006,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.002},
