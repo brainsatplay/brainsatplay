@@ -35,7 +35,7 @@ export class DynamicParticles {
             particleSize: 5,
             startingX: 0.5, 
             startingY: 0.5,
-            maxSpeed: 100, 
+            maxSpeed: 30, 
             xBounce: -1,
             yBounce: -1,
             gravity: 0.0, //Downward z acceleration (9.81m/s^2 = Earth gravity)
@@ -49,7 +49,7 @@ export class DynamicParticles {
             boid:{
                 boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
                 cohesion:0.03,
-                separation:0.03,
+                separation:0.1,
                 alignment:0.006,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.01},
@@ -433,7 +433,7 @@ export class DynamicParticles {
                         }
 
                         if(p0.boid.useSeparation){
-                            let distInv = (1/disttemp);
+                            let distInv = (1/(disttemp*disttemp));
                             if(distInv == Infinity) distInv = p.maxSpeed;
                             else if (distInv == -Infinity) distInv = -p.maxSpeed;
                             separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
