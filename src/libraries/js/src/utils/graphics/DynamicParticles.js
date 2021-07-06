@@ -319,7 +319,7 @@ export class DynamicParticles {
 
     defaultTimestepFunc = (group,timeStep)=>{ //what happens on each time step?
 
-        if(group.particles.length < groupmax) {
+        if(group.particles.length < group.max) {
             let max = group.max;
             let count = group.particles.length;
             if(group.spawnRate) {
@@ -327,13 +327,14 @@ export class DynamicParticles {
                 max = group.spawnRate;
             
             }
-
             while(count < max) {
                 //add a new particle
                 group.particles.push(this.newParticle());
                 group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
                 count++;
             }
+        } else if (group.particles.length > group.max) {
+            group.particles.splice(group.max);
         }
 
         let expiredidx = [];
@@ -595,26 +596,30 @@ export class DynamicParticles {
     }    
 
     boidsTimestepFunc = (group,timeStep) => {
+        // let anchorTick = timeStep*0.05;
+        if(group.particles.length < group.max) {
+            let max = group.max;
+            let count = group.particles.length;
+            if(group.spawnRate) {
+                count=0;
+                max = group.spawnRate;
+            
+            }
+
+            while(count < max) {
+                //add a new particle
+                group.particles.push(this.newParticle());
+                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+                count++;
+            }
+        } else if (group.particles.length > group.max) {
+            group.particles.splice(group.max);
+        }
+        
         let success = this.calcBoids(group.particles, timeStep);
         if(success) {
             let expiredidx = [];
-            // let anchorTick = timeStep*0.05;
-            if(group.particles.length < groupmax) {
-                let max = group.max;
-                let count = group.particles.length;
-                if(group.spawnRate) {
-                    count=0;
-                    max = group.spawnRate;
-                
-                }
-    
-                while(count < max) {
-                    //add a new particle
-                    group.particles.push(this.newParticle());
-                    group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
-                    count++;
-                }
-            }
+            
 
             group.particles.forEach((p,i) => {
 
