@@ -610,7 +610,9 @@ export class DynamicParticles {
         let spawnCount = rule[3];
         let respawnRate = rule[4];
         let useBoids = rule[5]; //for the default function
+        if(type === 'boids') useBoids = true; //default true for this rule
         let pTimestepFunc = rule[6];
+        
 
         if(!rule[0] || !rule[1]) return false;
 
