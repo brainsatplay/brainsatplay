@@ -30,7 +30,7 @@ export class Material{
             uniforms: {}
         }
         
-        this.props.material = new THREE.MeshStandardMaterial();
+        this.props.material = new THREE.MeshStandardMaterial({color: this.paramOptions.color.default});
 
         this.ports = {
             default: {

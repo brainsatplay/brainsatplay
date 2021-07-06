@@ -51,9 +51,9 @@ export class Scene{
         }
 
         this.ports = {
-            default: {
+            add: {
                 types: {
-                    in: Function,
+                    in: 'Mesh',
                     out: null
                 }
             },
@@ -216,10 +216,11 @@ export class Scene{
         if (this.props.renderer) this.props.renderer.setSize( this.props.container.offsetWidth, this.props.container.offsetHeight );
     }
 
-    default = (userData) => {
+    add = (userData) => {
         userData.forEach(u => {
             if (!Array.isArray(u.data)) u.data = [u.data]
             u.data.forEach(mesh => {
+                console.log('added mesh', mesh)
                 this.props.scene.add(mesh)
                 if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
             })

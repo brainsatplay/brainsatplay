@@ -86,9 +86,12 @@ export class Object3D{
         this.props.looping = true
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
-            if (Date.now() - this.props.lastRendered > 500){
+            this._updateProps()
+
+            // Replace Mesh if Necessary
+            if (this.prevType != this.params.type) {
                 this.session.graph.runSafe(this,'add',[{data:true, force: true}])
-                this.props.lastRendered = Date.now()
+                this.prevType = this.params.type
             }
         })
         this.session.graph.runSafe(this,'add',[{data:true, force: true}])
@@ -121,7 +124,6 @@ export class Object3D{
                 this.props.mesh.geometry.dispose();
                 this.props.mesh.material.dispose();
             }
-            // this.props.scene.remove(this.props.mesh);
         }
         this.props.looping = false
     }
@@ -132,7 +134,6 @@ export class Object3D{
         if (this.props.mesh){
             this.props.mesh.material.dispose()
             this.props.mesh.material = this.props.material
-            // this.session.graph.runSafe(this,'add',[{data:true, force: true}])
         }
     }
 
@@ -142,34 +143,37 @@ export class Object3D{
         if (this.props.mesh){
             this.props.mesh.geometry.dispose()
             this.props.mesh.geometry = this.props.geometry
-            // this.session.graph.runSafe(this,'add',[{data:true, force: true}])
         }
     }
 
     add = () => {
         this._setObject()
+        this._updateProps()
+
+        return [{data: this.props.mesh, meta: {label: this.label}}]
+    }
+
+
+    _updateProps = () => {
         this.props.mesh.scale.set(this.params.scalex, this.params.scaley,this.params.scalez)
         this.props.mesh.position.set(this.params.x, this.params.y, this.params.z)
         if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1, 1);
         this.props.mesh.rotateX(this.params.rotatex)
         this.props.mesh.rotateY(this.params.rotatey)
         this.props.mesh.rotateZ(this.params.rotatez)
-
         this.props.mesh.name = `${this.label}`
 
-        return [{data: this.props.mesh, meta: {label: this.label}}]
+        console.log(this.props.mesh)
     }
 
     scale = (userData) => {
         this.params.scale = Math.abs(Number.parseFloat(userData[0].data))
-        this.session.graph.runSafe(this,'add',[{data:true, force: true}])
     }
 
     dx = (userData) => {
         let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
         if (desiredX > 0){
             this.params.x = desiredX
-            this.session.graph.runSafe(this,'add',[{data:true, force: true}])
         }
     }
 
@@ -177,7 +181,6 @@ export class Object3D{
         let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
         if (desiredY > 0){
             this.params.y = desiredY
-            this.session.graph.runSafe(this,'add',[{data:true, force: true}])
         }
     }
 
