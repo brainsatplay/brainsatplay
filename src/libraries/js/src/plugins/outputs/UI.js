@@ -117,8 +117,9 @@ export class UI{
         this.props.content = document.createElement('div')
         this.props.content.id = `${this.props.id}content`
         this.props.container.insertAdjacentElement('beforeend', this.props.content)
+        this.props.content.style = this.params.containerStyle
+        
         // Create Stylesheet
-
         let HTMLtemplate = this.props.container
 
         let setupHTML = () => {

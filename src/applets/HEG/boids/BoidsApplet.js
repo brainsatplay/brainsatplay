@@ -170,9 +170,9 @@ export class BoidsApplet {
         this.canvas = this.renderer.domElement;
 
         this.boids = new DynamicParticles([
-            ['boids',4000,[250,250,250]],
-            ['boids',5000,[250,250,250]],
-            ['boids',700,[250,250,250]]],
+            ['boids',4000,[450,450,450]],
+            ['boids',5000,[450,450,450]],
+            ['boids',700,[450,450,450]]],
             this.canvas,
             false
             );
@@ -323,8 +323,9 @@ export class BoidsApplet {
         */
         this.points = new THREE.Points( geometry, pointmat );
 
-        this.points.position.y -=150;
-        this.points.position.x -=150;
+        this.points.position.y -=225;
+        this.points.position.x -=225
+        this.points.position.z +=75;
 
         this.scene.add( this.points );
     }
