@@ -35,12 +35,12 @@ export class DynamicParticles {
             particleSize: 5,
             startingX: 0.5, 
             startingY: 0.5,
-            maxSpeed: 30, 
+            maxSpeed: 40, 
             xBounce: -1,
             yBounce: -1,
             gravity: 0.0, //Downward z acceleration (9.81m/s^2 = Earth gravity)
             mass:1,
-            attraction: 0.00000000006674, //Newton's gravitational constant
+            attraction: 0.00000000006674, //Newton's gravitational constant by default
             useAttraction:false, //particles can attract each other on a curve
             drag:0.033, //Drag coefficient applied to v(t-1)
             life:0, //Seconds since spawn
@@ -48,9 +48,9 @@ export class DynamicParticles {
             boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
             boid:{
                 boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
-                cohesion:0.03,
+                cohesion:0.01,
                 separation:0.01,
-                alignment:0.006,
+                alignment:0.004,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.01},
                 useCohesion:true,
@@ -145,6 +145,11 @@ export class DynamicParticles {
             return {x:vec3.x/normal,y:vec3.y/normal,z:vec3.z/normal};
         }
             
+    }
+
+    //Assign new properties to a group by index
+    setGroupProperties=(groupIdx,properties={})=>{
+        this.particles[groupIdx].particles.map(p=>Object.assign(p,properties));
     }
 
     defaultGroupRule = (particle,rule) =>{
@@ -482,9 +487,9 @@ export class DynamicParticles {
 
             const swirlVec = [0,0,0];
             if(p0.boid.useSwirl == true){
-                swirlVec[0] = -(p0.position.y-p0.boid.swirl.y)*p0.boid.swirl.mul;
-                swirlVec[1] = (p0.position.x-p0.boid.swirl.x)*p0.boid.swirl.mul;
-                swirlVec[2] = (p0.position.z-p0.boid.swirl.z)*p0.boid.swirl.mul;
+                swirlVec[0] = -(p0.position.z-p0.boid.swirl.z)*p0.boid.swirl.mul;
+                swirlVec[1] = (p0.position.y-p0.boid.swirl.y)*p0.boid.swirl.mul;
+                swirlVec[2] = (p0.position.x-p0.boid.swirl.x)*p0.boid.swirl.mul
             }
             const attractorVec = [0,0,0];
 
