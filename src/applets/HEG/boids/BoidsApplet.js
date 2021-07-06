@@ -263,7 +263,7 @@ export class BoidsApplet {
                 let roll2 = Math.random();
                 if(i==0){
                     if(roll2 <= 0.3){
-                        color.set('lightcyan');
+                        color.set('lightseagreen');
                     } else if (roll2 <= 0.85){
                         color.set('blue');
                     } else {
