@@ -169,7 +169,7 @@ export class BoidsApplet {
 
         this.canvas = this.renderer.domElement;
 
-        this.boids = new DynamicParticles([['boids',1000,[200,200,200]],['boids',500,[200,200,200]],['boids',700,[200,200,200]]],this.canvas,false);
+        this.boids = new DynamicParticles([['boids',1000,[250,250,250]],['boids',500,[250,250,250]],['boids',700,[250,250,250]]],this.canvas,false);
 
         this.setupParticleInstances();
 
