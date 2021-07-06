@@ -49,7 +49,7 @@ export class DynamicParticles {
             boid:{
                 boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
                 cohesion:0.03,
-                separation:0.3,
+                separation:0.01,
                 alignment:0.006,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.003},
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.01},
@@ -168,6 +168,7 @@ export class DynamicParticles {
             let startX =  Math.random()*w;
             let startY =  Math.random()*h;
             let startZ =    Math.random()*d;
+            particle.boid.separation *= (h+w+d)/3;
             particle.startingX = startX;
             particle.startingY = startY;
             particle.startingZ = startZ;
@@ -218,6 +219,7 @@ export class DynamicParticles {
                 front:particle.boundingBox.front*h,
                 back:particle.boundingBox.back*h
             };
+            particle.boid.separation *= (h+w)/3;
             particle.boid.boundingBox = {
                 left:particle.boid.boundingBox.left*w,
                 right:particle.boid.boundingBox.right*w,
