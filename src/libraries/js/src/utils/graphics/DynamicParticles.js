@@ -31,6 +31,7 @@ export class DynamicParticles {
             velocity:{x:0,y:0,z:0},
             acceleration:{x:0,y:0,z:0},
             force:{x:0,y:0,z:0},
+            timestepFunc: undefined,//(group,particle,timeStep)=>{} per-particle step function you can customize
             type:"boids", //Behavior trees: boids, predators, plant cell, animal cell, algae, bacteria, atom, proton, neutron, electron, conway, can combine
             particleSize: 5,
             startingX: 0.5, 
@@ -38,7 +39,7 @@ export class DynamicParticles {
             maxSpeed: 40, 
             xBounce: -1,
             yBounce: -1,
-            gravity: 0.0, //Downward z acceleration (9.81m/s^2 = Earth gravity)
+            gravity: 0.0, //Downward z acceleration (-9.81m/s^2 = Earth gravity)
             mass:1,
             attraction: 0.00000000006674, //Newton's gravitational constant by default
             useAttraction:false, //particles can attract each other on a curve
@@ -78,6 +79,7 @@ export class DynamicParticles {
                 reproductionRange:[3,3], //nCell neighbors range required to produce a living cell
                 groupRadius:10 //pixel distance for grouping 
             }
+            
         };
 
         this.init();
@@ -346,12 +348,39 @@ export class DynamicParticles {
         let expiredidx = [];
         group.particles.forEach((p,i) => {
             
-            // Adjust for gravity
-            p.velocity.y += p.gravity*timeStep;
+            if(p.timestepFunc) p.timestepFunc(group, p, timeStep);
+
+            if(p.gravity !== 0) p.velocity.y += p.gravity*timeStep;
             
-            p.position.x += p.velocity.x*timeStep;
-            p.position.y += p.velocity.x*timeStep;
-            p.position.y += p.velocity.x*timeStep;
+            if(p.force.x !== 0){ 
+                p.velocity.x += p.force.x*timeStep/p.mass;
+            }
+            if(p.force.y !== 0){
+                p.velocity.y += p.force.y*timeStep/p.mass;
+            }
+            if(p.force.z !== 0){
+                p.velocity.z += p.force.z*timeStep/p.mass;
+            }
+
+            if(p.acceleration.x !== 0){ 
+                p.velocity.x += p.acceleration.x*timeStep;
+            }
+            if(p.acceleration.y !== 0){
+                p.velocity.y += p.acceleration.y*timeStep;
+            }
+            if(p.acceleration.z !== 0){
+                p.velocity.z += p.acceleration.z*timeStep;
+            }
+
+            if(p.velocity.x !== 0){
+                p.position.x += p.velocity.x*timeStep;
+            }
+            if(p.velocity.y !== 0){
+                p.position.y += p.velocity.y*timeStep;
+            }
+            if(p.velocity.z !== 0){
+                p.position.z += p.velocity.z*timeStep;
+            }
 
             this.checkParticleBounds(p);
 
@@ -502,8 +531,17 @@ export class DynamicParticles {
 
             if(p0.boid.useAttractor == true){
                 attractorVec[0] = (p0.boid.attractor.x-p0.position.x)*p0.boid.attractor.mul;
+                if(p0.position.x > p0.boid.boundingBox.left || p0.position.x < p0.boid.boundingBox.right) {
+                    attractorVec[0] *= 3; //attractor should be in the bounding box for this to work properly 
+                }
                 attractorVec[1] = (p0.boid.attractor.y-p0.position.y)*p0.boid.attractor.mul;
+                if(p0.position.y > p0.boid.boundingBox.top || p0.position.y < p0.boid.boundingBox.bottom) {
+                    attractorVec[1] *= 3;
+                }
                 attractorVec[2] = (p0.boid.attractor.z-p0.position.z)*p0.boid.attractor.mul;
+                if(p0.position.z > p0.boid.boundingBox.front || p0.position.z < p0.boid.boundingBox.back) {
+                    attractorVec[2] *= 3;
+                }
             }
         
             //console.log(attractorVec)
@@ -548,17 +586,44 @@ export class DynamicParticles {
             }
 
             group.particles.forEach((p,i) => {
-                
-                p.position.x += p.velocity.x*timeStep;
-                p.position.y += p.velocity.y*timeStep;
-                p.position.z += p.velocity.z*timeStep;
 
-                if(isNaN(p.position.x)) {console.log("after check",p.position,p.velocity,i);};
+                if(p.timestepFunc) p.timestepFunc(group, p, timeStep);
+
+                if(p.gravity !== 0) p.velocity.y += p.gravity*timeStep;
+                
+                if(p.force.x !== 0){ 
+                    p.velocity.x += p.force.x*timeStep/p.mass;
+                }
+                if(p.force.y !== 0){
+                    p.velocity.y += p.force.y*timeStep/p.mass;
+                }
+                if(p.force.z !== 0){
+                    p.velocity.z += p.force.z*timeStep/p.mass;
+                }
+
+                if(p.acceleration.x !== 0){ 
+                    p.velocity.x += p.acceleration.x*timeStep;
+                }
+                if(p.acceleration.y !== 0){
+                    p.velocity.y += p.acceleration.y*timeStep;
+                }
+                if(p.acceleration.z !== 0){
+                    p.velocity.z += p.acceleration.z*timeStep;
+                }
+
+                if(p.velocity.x !== 0){
+                    p.position.x += p.velocity.x*timeStep;
+                }
+                if(p.velocity.y !== 0){
+                    p.position.y += p.velocity.y*timeStep;
+                }
+                if(p.velocity.z !== 0){
+                    p.position.z += p.velocity.z*timeStep;
+                }
+
+                if(isNaN(p.position.x)) {console.log("after check",p.position,p.velocity,i); return;};
 
                 this.checkParticleBounds(p);
-                // Adjust for gravity
-                p.velocity.y += p.gravity*timeStep;
-
                 // Age the particle
                 p.life+=timeStep;
                 //if(i==0) console.log(p.life,p)
@@ -583,20 +648,20 @@ export class DynamicParticles {
     addRule(
         type='',
         groupRuleGen=(particle,rule)=>{},
-        timestepFunc=(group,timestep)=>{},
+        groupTimestepFunc=(group,timestep)=>{},
         animateParticle=(particle)=>{}
     ) {
         if(type.length > 0 && typeof groupRuleGen === 'function' && typeof timestepFunc === 'function' && typeof animateParticle === 'function'){
             this.rules.push({
                 type:type,
                 groupRuleGen:groupRuleGen,
-                timestepFunc:timestepFunc,
+                timestepFunc:groupTimestepFunc,
                 animateParticle:animateParticle
             });
         } else return false;
     }
 
-    addGroup(
+    addGroup( //type, count, bounding box, particle timestepFunc
         rule=['boids',50]
     ) 
         {
@@ -605,6 +670,7 @@ export class DynamicParticles {
         
         let type = rule[0];
         let count = rule[1];
+        let pTimestepFunc = rule[3];
 
         if(!rule[0] || !rule[1]) return false;
 
@@ -629,6 +695,7 @@ export class DynamicParticles {
         newGroup.forEach((p,i)=>{
             newGroup[i] = this.newParticle();
             groupRuleGen(newGroup[i],rule);
+            if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
             newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
             newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
             newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
