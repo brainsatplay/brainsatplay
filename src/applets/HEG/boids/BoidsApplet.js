@@ -246,8 +246,12 @@ export class BoidsApplet {
     
         let vertices = [];
 
-        this.boids.particles.forEach((group)=> {
+        let color = new THREE.Color();
+        let colors = [];
 
+        this.boids.particles.forEach((group,i)=> {
+
+            let roll = Math.random();
             group.particles.forEach((boid)=>{
 
                 let x = boid.position.x;
@@ -255,41 +259,42 @@ export class BoidsApplet {
                 let z = -boid.position.z ;
 
                 vertices.push( x, y, z );
+
+                let roll2 = Math.random();
+                if(i==0){
+                    if(roll2 <= 0.3){
+                        color.set('lightcyan');
+                    } else if (roll2 <= 0.85){
+                        color.set('blue');
+                    } else {
+                        color.set('turquoise');
+                    }
+                    colors.push(color.r,color.g,color.b);
+                }
+                else if (i==1) {
+                    if(roll2 <= 0.3){
+                        color.set('pink');
+                    } else if (roll2 <= 0.85){
+                        color.set('red');
+                    } else {
+                        color.set('orange');
+                    }
+                    colors.push(color.r,color.g,color.b);
+                }
+                else {
+                    color.setRGB(Math.random(),Math.random(),Math.random());
+                    colors.push(color.r,color.g,color.b);
+                }
             });
         });
 
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
         
-        let color = new THREE.Color();
-        let colors = [];
+      
 
         for (let i = 0; i < this.nBoids; i++) {
-            let roll = Math.random();
-            if(roll <= 0.15){
-                color.set('skyblue');
-                colors.push(color.r,color.g,color.b);
-            }
-            else if ((roll > 0.15) && (roll <= 0.3)) {
-                color.set('royalblue');
-                colors.push(color.r,color.g,color.b);
-            }
-            else if ((roll > 0.3) && (roll <= 0.45)) { 
-                color.set('purple');
-                colors.push(color.r,color.g,color.b);
-            }
-            else if ((roll > 0.45) && (roll <= 0.6)) { 
-                color.set('firebrick');
-                colors.push(color.r,color.g,color.b);
-            }
-            else if ((roll > 0.6) && (roll < 0.9)) {
-                color.set('white');
-                colors.push(color.r,color.g,color.b);
-            }
-            else {
-                color.set('goldenrod');
-                colors.push(color.r,color.g,color.b);
-            }
+            
         }
 
         geometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3));
