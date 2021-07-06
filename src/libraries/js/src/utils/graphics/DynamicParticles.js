@@ -632,9 +632,9 @@ export class DynamicParticles {
 
         let newGroup = new Array(maxcount).fill(0);
 
-        let attractorx = Math.random()*0.5+0.25;
-        let attractory = Math.random()*0.5+0.25;
-        let attractorz = Math.random()*0.5+0.25;
+        let attractorx = Math.random()*0.4+0.35;
+        let attractory = Math.random()*0.4+0.35;
+        let attractorz = Math.random()*0.4+0.35;
 
 
         if(spawnCount){
