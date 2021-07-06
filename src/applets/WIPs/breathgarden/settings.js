@@ -146,7 +146,7 @@ export const settings = {
             </div>
           </div>
           `,
-          style: `
+          containerStyle: `
           position: absolute;
           pointer-events: none;
           user-select: none;
