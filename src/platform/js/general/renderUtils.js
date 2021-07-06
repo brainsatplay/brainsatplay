@@ -740,7 +740,7 @@ class Physics {
             collisionRadius: 1, //Radius of sphere or nearest point on side planes in a box
             collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions (eigenvalues), doesn't affect the sphere yet.
 
-            dynamic: true,
+            dynamic: true, //Does this object move? Changes objects added to the dynamic bounding volume
 
             position: [0,0,0], //[x,y,z] or [i,j,k]
             velocity: [0,0,0],
