@@ -304,10 +304,14 @@ export class DynamicParticles {
 
     defaultTimestepFunc = (group,timeStep)=>{ //what happens on each time step?
 
-        if(group.particles.length < group.max) {
+        let max = group.max;
+        if(group.spawnRate) max = group.spawnRate;
+
+        while(added < max) {
             //add a new particle
             group.particles.push(this.newParticle());
-            group.groupRuleGen(group.particles[group.particles.length-1],rule);
+            group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+            added++
         }
 
         let expiredidx = [];
@@ -573,11 +577,14 @@ export class DynamicParticles {
         if(success) {
             let expiredidx = [];
             // let anchorTick = timeStep*0.05;
+            let max = group.max;
+            if(group.spawnRate) max = group.spawnRate;
 
-            if(group.particles.length < group.max) {
+            while(added < max) {
                 //add a new particle
                 group.particles.push(this.newParticle());
                 group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+                added++
             }
 
             group.particles.forEach((p,i) => {
@@ -667,6 +674,8 @@ export class DynamicParticles {
         let count = rule[1];
         let boundingBox = rule[2];
         let pTimestepFunc = rule[3];
+        let spawnCount = rule[4];
+        let respawnRate = rule[5];
 
         if(!rule[0] || !rule[1]) return false;
 
@@ -688,16 +697,31 @@ export class DynamicParticles {
         let attractory = Math.random()*0.5+0.25;
         let attractorz = Math.random()*0.5+0.25;
 
-        newGroup.forEach((p,i)=>{
-            newGroup[i] = this.newParticle();
-            groupRuleGen(newGroup[i],rule);
-            if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
-            newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
-            newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
-            newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
-            if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
-        });
-
+        if(spawnCount){
+            for(let i = 0; i < spawnCount; i++){
+                newGroup[i] = this.newParticle();
+                groupRuleGen(newGroup[i],rule);
+                if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
+                if(type === 'boids') {
+                    newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
+                    newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
+                    newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
+                    if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
+                }
+            }
+        } else {
+            newGroup.forEach((p,i)=>{
+                newGroup[i] = this.newParticle();
+                groupRuleGen(newGroup[i],rule);
+                if(type === 'boids'){
+                    if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
+                    newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
+                    newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
+                    newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
+                    if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
+                }
+            });
+        }
         this.particles.push(
         {
             rule:rule,
@@ -707,6 +731,7 @@ export class DynamicParticles {
             timestepFunc:timestepFunc, 
             groupRuleGen:groupRuleGen,
             animateParticle:animateParticle,
+            spawnRate:rule[5], //respawn rate
             groupId:"id"+Math.floor(Math.random()*99999999)
         });
 
