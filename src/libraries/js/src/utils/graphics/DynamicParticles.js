@@ -15,6 +15,21 @@ export class DynamicParticles {
         this.looping = false;
 
         this.startingRules = rules;
+
+        /*
+            Rule format:
+            [
+                [ //group 1 rule
+                    'type', //named group type. Use addRule(...) to generate rulesets
+                    count,  //max number of particles
+                    boundingBox[x,y,z], //bounding box for the group. Scales calculations accordingly. Can also use the canvas dimensions passed in by default
+                    timestepFunc, (per particle timestep, groups have additional rules for efficient scoping)
+                    spawnRate, //number of particles added per frame (respawns all if undefined)
+                    initialCount //initial count of particles (spawns all if undefined) 
+                ], etc...
+            ]
+        */
+
         this.nGroups = this.startingRules.length;
 
         this.particles = [];
@@ -304,14 +319,21 @@ export class DynamicParticles {
 
     defaultTimestepFunc = (group,timeStep)=>{ //what happens on each time step?
 
-        let max = group.max;
-        if(group.spawnRate) max = group.spawnRate;
+        if(group.particles.length < groupmax) {
+            let max = group.max;
+            let count = group.particles.length;
+            if(group.spawnRate) {
+                count=0;
+                max = group.spawnRate;
+            
+            }
 
-        while(added < max) {
-            //add a new particle
-            group.particles.push(this.newParticle());
-            group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
-            added++
+            while(count < max) {
+                //add a new particle
+                group.particles.push(this.newParticle());
+                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+                count++;
+            }
         }
 
         let expiredidx = [];
@@ -577,14 +599,21 @@ export class DynamicParticles {
         if(success) {
             let expiredidx = [];
             // let anchorTick = timeStep*0.05;
-            let max = group.max;
-            if(group.spawnRate) max = group.spawnRate;
-
-            while(added < max) {
-                //add a new particle
-                group.particles.push(this.newParticle());
-                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
-                added++
+            if(group.particles.length < groupmax) {
+                let max = group.max;
+                let count = group.particles.length;
+                if(group.spawnRate) {
+                    count=0;
+                    max = group.spawnRate;
+                
+                }
+    
+                while(count < max) {
+                    //add a new particle
+                    group.particles.push(this.newParticle());
+                    group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+                    count++;
+                }
             }
 
             group.particles.forEach((p,i) => {
@@ -672,7 +701,7 @@ export class DynamicParticles {
         
         let type = rule[0];
         let count = rule[1];
-        let boundingBox = rule[2];
+        let boundingBox = rule[2]; //passed to groupRuleGen
         let pTimestepFunc = rule[3];
         let spawnCount = rule[4];
         let respawnRate = rule[5];
@@ -731,7 +760,7 @@ export class DynamicParticles {
             timestepFunc:timestepFunc, 
             groupRuleGen:groupRuleGen,
             animateParticle:animateParticle,
-            spawnRate:rule[5], //respawn rate
+            spawnRate:respawnRate, //respawn rate
             groupId:"id"+Math.floor(Math.random()*99999999)
         });
 
