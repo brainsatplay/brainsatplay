@@ -21,11 +21,13 @@ export class DynamicParticles {
             [
                 [ //group 1 rule
                     'type', //named group type. Use addRule(...) to generate rulesets
-                    count,  //max number of particles
+                    maxcount,  //max number of particles
                     boundingBox[x,y,z], //bounding box for the group. Scales calculations accordingly. Can also use the canvas dimensions passed in by default
-                    timestepFunc, (per particle timestep, groups have additional rules for efficient scoping)
                     spawnRate, //number of particles added per frame (respawns all if undefined)
                     initialCount //initial count of particles (spawns all if undefined) 
+                    useBoids, //use boids? mainly applies to the default function unless you integrate this into your own rules
+                    timestepFunc, (per particle timestep, groups have additional rules for efficient scoping)
+                    
                 ], etc...
             ]
         */
@@ -33,12 +35,16 @@ export class DynamicParticles {
         this.nGroups = this.startingRules.length;
 
         this.particles = [];
+        this.maxParticles = 0; //max possible particles based on rulesets
+        this.startingRules.forEach((rule)=>{
+            this.totalParticles += rule[1];
+        });
 
         this.colorScale = ['#000000', '#030106', '#06010c', '#090211', '#0c0215', '#0e0318', '#10031b', '#12041f', '#130522', '#140525', '#150628', '#15072c', '#16082f', '#160832', '#160936', '#160939', '#17093d', '#170a40', '#170a44', '#170a48', '#17094b', '#17094f', '#170953', '#170956', '#16085a', '#16085e', '#150762', '#140766', '#140669', '#13066d', '#110571', '#100475', '#0e0479', '#0b037d', '#080281', '#050185', '#020089', '#00008d', '#000090', '#000093', '#000096', '#000099', '#00009c', '#00009f', '#0000a2', '#0000a5', '#0000a8', '#0000ab', '#0000ae', '#0000b2', '#0000b5', '#0000b8', '#0000bb', '#0000be', '#0000c1', '#0000c5', '#0000c8', '#0000cb', '#0000ce', '#0000d1', '#0000d5', '#0000d8', '#0000db', '#0000de', '#0000e2', '#0000e5', '#0000e8', '#0000ec', '#0000ef', '#0000f2', '#0000f5', '#0000f9', '#0000fc', '#0803fe', '#2615f9', '#3520f4', '#3f29ef', '#4830eb', '#4e37e6', '#543ee1', '#5944dc', '#5e49d7', '#614fd2', '#6554cd', '#6759c8', '#6a5ec3', '#6c63be', '#6e68b9', '#6f6db4', '#7072af', '#7177aa', '#717ba5', '#7180a0', '#71859b', '#718996', '#708e91', '#6f928b', '#6e9786', '#6c9b80', '#6aa07b', '#68a475', '#65a96f', '#62ad69', '#5eb163', '#5ab65d', '#55ba56', '#4fbf4f', '#48c347', '#40c73f', '#36cc35', '#34ce32', '#37cf31', '#3ad130', '#3cd230', '#3fd32f', '#41d52f', '#44d62e', '#46d72d', '#48d92c', '#4bda2c', '#4ddc2b', '#4fdd2a', '#51de29', '#53e029', '#55e128', '#58e227', '#5ae426', '#5ce525', '#5ee624', '#60e823', '#62e922', '#64eb20', '#66ec1f', '#67ed1e', '#69ef1d', '#6bf01b', '#6df11a', '#6ff318', '#71f416', '#73f614', '#75f712', '#76f810', '#78fa0d', '#7afb0a', '#7cfd06', '#7efe03', '#80ff00', '#85ff00', '#89ff00', '#8eff00', '#92ff00', '#96ff00', '#9aff00', '#9eff00', '#a2ff00', '#a6ff00', '#aaff00', '#adff00', '#b1ff00', '#b5ff00', '#b8ff00', '#bcff00', '#bfff00', '#c3ff00', '#c6ff00', '#c9ff00', '#cdff00', '#d0ff00', '#d3ff00', '#d6ff00', '#daff00', '#ddff00', '#e0ff00', '#e3ff00', '#e6ff00', '#e9ff00', '#ecff00', '#efff00', '#f3ff00', '#f6ff00', '#f9ff00', '#fcff00', '#ffff00', '#fffb00', '#fff600', '#fff100', '#ffec00', '#ffe700', '#ffe200', '#ffdd00', '#ffd800', '#ffd300', '#ffcd00', '#ffc800', '#ffc300', '#ffbe00', '#ffb900', '#ffb300', '#ffae00', '#ffa900', '#ffa300', '#ff9e00', '#ff9800', '#ff9300', '#ff8d00', '#ff8700', '#ff8100', '#ff7b00', '#ff7500', '#ff6f00', '#ff6800', '#ff6100', '#ff5a00', '#ff5200', '#ff4900', '#ff4000', '#ff3600', '#ff2800', '#ff1500', '#ff0004', '#ff000c', '#ff0013', '#ff0019', '#ff001e', '#ff0023', '#ff0027', '#ff002b', '#ff012f', '#ff0133', '#ff0137', '#ff013b', '#ff023e', '#ff0242', '#ff0246', '#ff0349', '#ff034d', '#ff0450', '#ff0454', '#ff0557', '#ff065b', '#ff065e', '#ff0762', '#ff0865', '#ff0969', '#ff0a6c', '#ff0a70', '#ff0b73', '#ff0c77', '#ff0d7a', '#ff0e7e', '#ff0f81', '#ff1085', '#ff1188', '#ff128c', '#ff138f', '#ff1493'];
 
         this.rules = [
-            {type:'default',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc,animateParticle:this.defaultAnimation},
-            {type:'boids',groupRuleGen:this.defaultBoidGroupRule, timestepFunc:this.boidsTimestepFunc, animateParticle:this.defaultAnimation }
+            {type:'default',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc, animateParticle:this.defaultAnimation},
+            {type:'boids',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc, animateParticle:this.defaultAnimation }
         ]
 
         this.prototype = {
@@ -78,7 +84,7 @@ export class DynamicParticles {
                 useAttraction:false, //particles can attract each other on a curve
                 groupRadius:200,
                 groupSize:10,
-                searchLimit:25
+                searchLimit:10
             },
             plant:{
                 diet:"photosynthetic", //if plant or animal cell: herbivore, carnivore, omnivore, photosynthetic, dead, dead_animal, dead_plant. Determines what other particles they will consume/trend toward
@@ -181,47 +187,15 @@ export class DynamicParticles {
     defaultGroupRule = (particle,rule) =>{
 
         particle.type = rule[0];
-        let h=1,w=1,d=1;
-        if(rule[2]){
-             h = rule[2][0];
-             w = rule[2][1];
-             d = rule[2][2];
-            particle.boid.separation *= (h+w+d)/3;
-        }
-        else if(this.canvas) {
-             h = this.canvas.height;
-             w = this.canvas.width;
-             d = this.canvas.width;
-        } else {
-             h = 1;
-             w = 1;
-             d = 1;
-        }
-        particle.startingX = Math.random();
-        particle.startingY = Math.random();
-        particle.startingZ = Math.random();
-        particle.position = {x:startX,y:startY,z:startZ};
-        particle.boundingBox = {
-            left:particle.boundingBox.left*w,
-            right:particle.boundingBox.right*w,
-            bot:particle.boundingBox.bot*h,
-            top:particle.boundingBox.top*h,
-            front:particle.boundingBox.front*d,
-            back:particle.boundingBox.back*d
-        };
-    } //can dynamically allocate particle group properties
 
-
-    defaultBoidGroupRule = (particle,rule) => {
-
-        particle.rule = rule[0];
-        if(rule[1] > 3000 && rule[1] < 5000) {particle.boid.searchLimit = 5;}
+        if(rule[1] > 3000 && rule[1] < 5000) {particle.boid.searchLimit = 3;}
         else if (rule[1]>=5000) {particle.boid.searchLimit = 1;}
 
-        let avoidanceGroups = rule[4];
+        let avoidanceGroups = rule[7];
         if(avoidanceGroups){
             particle.boid.avoidance.groups = avoidanceGroups;
         } 
+
         let h=1,w=1,d=1;
         if(rule[2]){
              h = rule[2][0];
@@ -241,40 +215,39 @@ export class DynamicParticles {
         let startX =  Math.random()*w;
         let startY =  Math.random()*h;
         let startZ =  Math.random()*d;
-        particle.startingX = startX;
-            particle.startingY = startY;
-            particle.startingZ = startZ;
-            particle.position = {x:startX,y:startY,z:startZ};
-            particle.boundingBox = {
-                left:particle.boundingBox.left*w,
-                right:particle.boundingBox.right*w,
-                bot:particle.boundingBox.bot*h,
-                top:particle.boundingBox.top*h,
-                front:particle.boundingBox.front*d,
-                back:particle.boundingBox.back*d
-            };
-            particle.boid.boundingBox = {
-                left:particle.boid.boundingBox.left*w,
-                right:particle.boid.boundingBox.right*w,
-                bot:particle.boid.boundingBox.bot*h,
-                top:particle.boid.boundingBox.top*h,
-                front:particle.boid.boundingBox.front*d,
-                back:particle.boid.boundingBox.back*d
-            };
-            particle.boid.attractor = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*d,
-                mul:particle.boid.attractor.mul
-            };
-            particle.boid.swirl = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*d,
-                mul:particle.boid.swirl.mul
-            };
-
-    }
+        particle.startingX = Math.random();
+        particle.startingY = Math.random();
+        particle.startingZ = Math.random();
+        particle.position = {x:startX,y:startY,z:startZ};
+        particle.boundingBox = {
+            left:particle.boundingBox.left*w,
+            right:particle.boundingBox.right*w,
+            bot:particle.boundingBox.bot*h,
+            top:particle.boundingBox.top*h,
+            front:particle.boundingBox.front*d,
+            back:particle.boundingBox.back*d
+        };
+        particle.boid.boundingBox = {
+            left:particle.boid.boundingBox.left*w,
+            right:particle.boid.boundingBox.right*w,
+            bot:particle.boid.boundingBox.bot*h,
+            top:particle.boid.boundingBox.top*h,
+            front:particle.boid.boundingBox.front*d,
+            back:particle.boid.boundingBox.back*d
+        };
+        particle.boid.attractor = {
+            x:0.5*w,
+            y:0.5*h,
+            z:0.5*d,
+            mul:particle.boid.attractor.mul
+        };
+        particle.boid.swirl = {
+            x:0.5*w,
+            y:0.5*h,
+            z:0.5*d,
+            mul:particle.boid.swirl.mul
+        };
+    } //can dynamically allocate particle group properties
 
     checkParticleBounds = (particle) => {
         
@@ -335,6 +308,11 @@ export class DynamicParticles {
             }
         } else if (group.particles.length > group.max) {
             group.particles.splice(group.max);
+        }
+
+        if(group.useBoids) {
+            let success = this.calcBoids(group.particles,timeStep);
+            if(!success) console.error('boids error');
         }
 
         let expiredidx = [];
@@ -595,92 +573,6 @@ export class DynamicParticles {
     
     }    
 
-    boidsTimestepFunc = (group,timeStep) => {
-        // let anchorTick = timeStep*0.05;
-        if(group.particles.length < group.max) {
-            let max = group.max;
-            let count = group.particles.length;
-            if(group.spawnRate) {
-                count=0;
-                max = group.spawnRate;
-            
-            }
-
-            while(count < max) {
-                //add a new particle
-                group.particles.push(this.newParticle());
-                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
-                count++;
-            }
-        } else if (group.particles.length > group.max) {
-            group.particles.splice(group.max);
-        }
-        
-        let success = this.calcBoids(group.particles, timeStep);
-        if(success) {
-            let expiredidx = [];
-            
-
-            group.particles.forEach((p,i) => {
-
-                if(p.timestepFunc) p.timestepFunc(group, p, timeStep);
-
-                if(p.gravity !== 0) p.velocity.y += p.gravity*timeStep;
-                
-                if(p.force.x !== 0){ 
-                    p.velocity.x += p.force.x*timeStep/p.mass;
-                }
-                if(p.force.y !== 0){
-                    p.velocity.y += p.force.y*timeStep/p.mass;
-                }
-                if(p.force.z !== 0){
-                    p.velocity.z += p.force.z*timeStep/p.mass;
-                }
-
-                if(p.acceleration.x !== 0){ 
-                    p.velocity.x += p.acceleration.x*timeStep;
-                }
-                if(p.acceleration.y !== 0){
-                    p.velocity.y += p.acceleration.y*timeStep;
-                }
-                if(p.acceleration.z !== 0){
-                    p.velocity.z += p.acceleration.z*timeStep;
-                }
-
-                if(p.velocity.x !== 0){
-                    p.position.x += p.velocity.x*timeStep;
-                }
-                if(p.velocity.y !== 0){
-                    p.position.y += p.velocity.y*timeStep;
-                }
-                if(p.velocity.z !== 0){
-                    p.position.z += p.velocity.z*timeStep;
-                }
-
-                if(isNaN(p.position.x)) {console.log("after check",p.position,p.velocity,i); return;};
-
-                this.checkParticleBounds(p);
-                // Age the particle
-                p.life+=timeStep;
-                //if(i==0) console.log(p.life,p)
-
-                if(this.defaultCanvas) {
-                    group.animateParticle(p);
-                }
-
-                // If Particle is old, it goes in the chamber for renewal
-                if (p.life >= p.lifeTime) {
-                    expiredidx.push(i);
-                }
-            });
-
-            expiredidx.reverse().forEach((x)=>{
-                group.particles.splice(x,1);
-            });
-            
-        }
-    }
-
     addRule(
         type='',
         groupRuleGen=(particle,rule)=>{},
@@ -697,6 +589,14 @@ export class DynamicParticles {
         } else return false;
     }
 
+    removeGroup(groupIdx=0) {
+        if(!this.particles[groupIdx]) return false;
+
+        this.maxParticles -= this.particles[groupIdx].max;
+        this.particles.slice(groupIdx,1);
+        return true;
+    }
+
     addGroup( //type, count, bounding box, particle timestepFunc
         rule=['boids',50]
     ) 
@@ -705,13 +605,16 @@ export class DynamicParticles {
         if(!Array.isArray(rule)) return false;
         
         let type = rule[0];
-        let count = rule[1];
+        let maxcount = rule[1];
         let boundingBox = rule[2]; //passed to groupRuleGen
-        let pTimestepFunc = rule[3];
-        let spawnCount = rule[4];
-        let respawnRate = rule[5];
+        let spawnCount = rule[3];
+        let respawnRate = rule[4];
+        let useBoids = rule[5]; //for the default function
+        let pTimestepFunc = rule[6];
 
         if(!rule[0] || !rule[1]) return false;
+
+        this.maxParticles += rule[1];
 
         let timestepFunc, groupRuleGen, animateParticle;
         
@@ -725,11 +628,12 @@ export class DynamicParticles {
 
         if(!timestepFunc || !groupRuleGen || (this.defaultCanvas && !animateParticle)) return false;
 
-        let newGroup = new Array(count).fill(0);
+        let newGroup = new Array(maxcount).fill(0);
 
         let attractorx = Math.random()*0.5+0.25;
         let attractory = Math.random()*0.5+0.25;
         let attractorz = Math.random()*0.5+0.25;
+
 
         if(spawnCount){
             for(let i = 0; i < spawnCount; i++){
@@ -760,12 +664,13 @@ export class DynamicParticles {
         {
             rule:rule,
             type:type, 
-            max:count, 
+            max:maxcount, 
             particles:newGroup, 
             timestepFunc:timestepFunc, 
             groupRuleGen:groupRuleGen,
             animateParticle:animateParticle,
             spawnRate:respawnRate, //respawn rate
+            useBoids:useBoids,
             groupId:"id"+Math.floor(Math.random()*99999999)
         });
 

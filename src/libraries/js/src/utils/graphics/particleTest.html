@@ -22,15 +22,36 @@
         this.looping = false;
 
         this.startingRules = rules;
+
+        /*
+            Rule format:
+            [
+                [ //group 1 rule
+                    'type', //named group type. Use addRule(...) to generate rulesets
+                    maxcount,  //max number of particles
+                    boundingBox[x,y,z], //bounding box for the group. Scales calculations accordingly. Can also use the canvas dimensions passed in by default
+                    spawnRate, //number of particles added per frame (respawns all if undefined)
+                    initialCount //initial count of particles (spawns all if undefined) 
+                    useBoids, //use boids? mainly applies to the default function unless you integrate this into your own rules
+                    timestepFunc, (per particle timestep, groups have additional rules for efficient scoping)
+                    
+                ], etc...
+            ]
+        */
+
         this.nGroups = this.startingRules.length;
 
         this.particles = [];
+        this.maxParticles = 0; //max possible particles based on rulesets
+        this.startingRules.forEach((rule)=>{
+            this.totalParticles += rule[1];
+        });
 
         this.colorScale = ['#000000', '#030106', '#06010c', '#090211', '#0c0215', '#0e0318', '#10031b', '#12041f', '#130522', '#140525', '#150628', '#15072c', '#16082f', '#160832', '#160936', '#160939', '#17093d', '#170a40', '#170a44', '#170a48', '#17094b', '#17094f', '#170953', '#170956', '#16085a', '#16085e', '#150762', '#140766', '#140669', '#13066d', '#110571', '#100475', '#0e0479', '#0b037d', '#080281', '#050185', '#020089', '#00008d', '#000090', '#000093', '#000096', '#000099', '#00009c', '#00009f', '#0000a2', '#0000a5', '#0000a8', '#0000ab', '#0000ae', '#0000b2', '#0000b5', '#0000b8', '#0000bb', '#0000be', '#0000c1', '#0000c5', '#0000c8', '#0000cb', '#0000ce', '#0000d1', '#0000d5', '#0000d8', '#0000db', '#0000de', '#0000e2', '#0000e5', '#0000e8', '#0000ec', '#0000ef', '#0000f2', '#0000f5', '#0000f9', '#0000fc', '#0803fe', '#2615f9', '#3520f4', '#3f29ef', '#4830eb', '#4e37e6', '#543ee1', '#5944dc', '#5e49d7', '#614fd2', '#6554cd', '#6759c8', '#6a5ec3', '#6c63be', '#6e68b9', '#6f6db4', '#7072af', '#7177aa', '#717ba5', '#7180a0', '#71859b', '#718996', '#708e91', '#6f928b', '#6e9786', '#6c9b80', '#6aa07b', '#68a475', '#65a96f', '#62ad69', '#5eb163', '#5ab65d', '#55ba56', '#4fbf4f', '#48c347', '#40c73f', '#36cc35', '#34ce32', '#37cf31', '#3ad130', '#3cd230', '#3fd32f', '#41d52f', '#44d62e', '#46d72d', '#48d92c', '#4bda2c', '#4ddc2b', '#4fdd2a', '#51de29', '#53e029', '#55e128', '#58e227', '#5ae426', '#5ce525', '#5ee624', '#60e823', '#62e922', '#64eb20', '#66ec1f', '#67ed1e', '#69ef1d', '#6bf01b', '#6df11a', '#6ff318', '#71f416', '#73f614', '#75f712', '#76f810', '#78fa0d', '#7afb0a', '#7cfd06', '#7efe03', '#80ff00', '#85ff00', '#89ff00', '#8eff00', '#92ff00', '#96ff00', '#9aff00', '#9eff00', '#a2ff00', '#a6ff00', '#aaff00', '#adff00', '#b1ff00', '#b5ff00', '#b8ff00', '#bcff00', '#bfff00', '#c3ff00', '#c6ff00', '#c9ff00', '#cdff00', '#d0ff00', '#d3ff00', '#d6ff00', '#daff00', '#ddff00', '#e0ff00', '#e3ff00', '#e6ff00', '#e9ff00', '#ecff00', '#efff00', '#f3ff00', '#f6ff00', '#f9ff00', '#fcff00', '#ffff00', '#fffb00', '#fff600', '#fff100', '#ffec00', '#ffe700', '#ffe200', '#ffdd00', '#ffd800', '#ffd300', '#ffcd00', '#ffc800', '#ffc300', '#ffbe00', '#ffb900', '#ffb300', '#ffae00', '#ffa900', '#ffa300', '#ff9e00', '#ff9800', '#ff9300', '#ff8d00', '#ff8700', '#ff8100', '#ff7b00', '#ff7500', '#ff6f00', '#ff6800', '#ff6100', '#ff5a00', '#ff5200', '#ff4900', '#ff4000', '#ff3600', '#ff2800', '#ff1500', '#ff0004', '#ff000c', '#ff0013', '#ff0019', '#ff001e', '#ff0023', '#ff0027', '#ff002b', '#ff012f', '#ff0133', '#ff0137', '#ff013b', '#ff023e', '#ff0242', '#ff0246', '#ff0349', '#ff034d', '#ff0450', '#ff0454', '#ff0557', '#ff065b', '#ff065e', '#ff0762', '#ff0865', '#ff0969', '#ff0a6c', '#ff0a70', '#ff0b73', '#ff0c77', '#ff0d7a', '#ff0e7e', '#ff0f81', '#ff1085', '#ff1188', '#ff128c', '#ff138f', '#ff1493'];
 
         this.rules = [
-            {type:'default',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc,animateParticle:this.defaultAnimation},
-            {type:'boids',groupRuleGen:this.defaultBoidGroupRule, timestepFunc:this.boidsTimestepFunc, animateParticle:this.defaultAnimation }
+            {type:'default',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc, animateParticle:this.defaultAnimation},
+            {type:'boids',groupRuleGen:this.defaultGroupRule, timestepFunc:this.defaultTimestepFunc, animateParticle:this.defaultAnimation }
         ]
 
         this.prototype = {
@@ -38,6 +59,7 @@
             velocity:{x:0,y:0,z:0},
             acceleration:{x:0,y:0,z:0},
             force:{x:0,y:0,z:0},
+            timestepFunc: undefined,//(group,particle,timeStep)=>{} per-particle step function you can customize
             type:"boids", //Behavior trees: boids, predators, plant cell, animal cell, algae, bacteria, atom, proton, neutron, electron, conway, can combine
             particleSize: 5,
             startingX: 0.5, 
@@ -45,26 +67,28 @@
             maxSpeed: 40, 
             xBounce: -1,
             yBounce: -1,
-            gravity: 0.0, //Downward z acceleration (9.81m/s^2 = Earth gravity)
+            gravity: 0.0, //Downward z acceleration (-9.81m/s^2 = Earth gravity)
             mass:1,
-            attraction: 0.00000000006674, //Newton's gravitational constant by default
-            useAttraction:false, //particles can attract each other on a curve
             drag:0.033, //Drag coefficient applied to v(t-1)
             life:0, //Seconds since spawn
             lifeTime: 100000000, //Number of seconds before the particle despawns
             boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
             boid:{
                 boundingBox:{left:0,right:1,bot:1,top:0,front:0,back:1}, //bounding box, 1 = max height/width of render window
-                cohesion:0.01,
-                separation:0.01,
+                cohesion:0.003,
+                separation:0.0001,
                 alignment:0.006,
                 swirl:{x:0.5,y:0.5,z:0.5,mul:0.002},
                 attractor:{x:0.5,y:0.5,z:0.5,mul:0.003},
+                avoidance:{groups:[],mul:0.1},
                 useCohesion:true,
                 useSeparation:true,
                 useAlignment:true,
                 useSwirl:true,
                 useAttractor:true,
+                useAvoidance:true,
+                attraction: 0.00000000006674, //Newton's gravitational constant by default
+                useAttraction:false, //particles can attract each other on a curve
                 groupRadius:200,
                 groupSize:10,
                 searchLimit:25
@@ -85,6 +109,7 @@
                 reproductionRange:[3,3], //nCell neighbors range required to produce a living cell
                 groupRadius:10 //pixel distance for grouping 
             }
+            
         };
 
         this.init();
@@ -167,139 +192,69 @@
     }
 
     defaultGroupRule = (particle,rule) =>{
+
         particle.type = rule[0];
-        particle.startingX = Math.random();
-        particle.startingY = Math.random();
-        particle.startingZ = Math.random();
-    } //can dynamically allocate particle group properties
 
-
-    defaultBoidGroupRule = (particle,rule) => {
-
-        particle.rule = rule[0];
         if(rule[1] > 3000 && rule[1] < 5000) {particle.boid.searchLimit = 5;}
         else if (rule[1]>=5000) {particle.boid.searchLimit = 1;}
 
+        let avoidanceGroups = rule[7];
+        if(avoidanceGroups){
+            particle.boid.avoidance.groups = avoidanceGroups;
+        } 
+
+        let h=1,w=1,d=1;
         if(rule[2]){
-            let h = rule[2][0];
-            let w = rule[2][1];
-            let d = rule[2][2];
-            let startX =  Math.random()*w;
-            let startY =  Math.random()*h;
-            let startZ =  Math.random()*d;
+             h = rule[2][0];
+             w = rule[2][1];
+             d = rule[2][2];
             particle.boid.separation *= (h+w+d)/3;
-            particle.startingX = startX;
-            particle.startingY = startY;
-            particle.startingZ = startZ;
-            particle.position = {x:startX,y:startY,z:startZ};
-            particle.boundingBox = {
-                left:particle.boundingBox.left*w,
-                right:particle.boundingBox.right*w,
-                bot:particle.boundingBox.bot*h,
-                top:particle.boundingBox.top*h,
-                front:particle.boundingBox.front*d,
-                back:particle.boundingBox.back*d
-            };
-            particle.boid.boundingBox = {
-                left:particle.boid.boundingBox.left*w,
-                right:particle.boid.boundingBox.right*w,
-                bot:particle.boid.boundingBox.bot*h,
-                top:particle.boid.boundingBox.top*h,
-                front:particle.boid.boundingBox.front*d,
-                back:particle.boid.boundingBox.back*d
-            };
-            particle.boid.attractor = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*d,
-                mul:particle.boid.attractor.mul
-            };
-            particle.boid.swirl = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*d,
-                mul:particle.boid.swirl.mul
-            };
         }
         else if(this.canvas) {
-            let h = this.canvas.height;
-            let w = this.canvas.width;
-            let startX =  Math.random()*w;
-            let startY =  Math.random()*h;
-            particle.startingX = startX;
-            particle.startingY = startY;
-            particle.startingZ = startY;
-            particle.position = {x:startX,y:startY,z:startY};
-            particle.boundingBox = {
-                left:particle.boundingBox.left*w,
-                right:particle.boundingBox.right*w,
-                bot:particle.boundingBox.bot*h,
-                top:particle.boundingBox.top*h,
-                front:particle.boundingBox.front*h,
-                back:particle.boundingBox.back*h
-            };
-            particle.boid.separation *= (h+w)/3;
-            particle.boid.boundingBox = {
-                left:particle.boid.boundingBox.left*w,
-                right:particle.boid.boundingBox.right*w,
-                bot:particle.boid.boundingBox.bot*h,
-                top:particle.boid.boundingBox.top*h,
-                front:particle.boid.boundingBox.front*h,
-                back:particle.boid.boundingBox.back*h
-            };
-            particle.boid.attractor = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*w,
-                mul:particle.boid.attractor.mul
-            };
-            particle.boid.swirl = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*w,
-                mul:particle.boid.swirl.mul
-            };
+             h = this.canvas.height;
+             w = this.canvas.width;
+             d = this.canvas.width;
         } else {
-            let h = 1;
-            let w = 1;
-            let startX =  Math.random();
-            let startY =  Math.random();
-            particle.startingX = startX;
-            particle.startingY = startY;
-            particle.startingZ = startY;
-            particle.position = {x:startX,y:startY,z:startY};
-            particle.boundingBox = {
-                left:particle.boundingBox.left*w,
-                right:particle.boundingBox.right*w,
-                bot:particle.boundingBox.bot*h,
-                top:particle.boundingBox.top*h,
-                front:particle.boundingBox.front*h,
-                back:particle.boundingBox.back*h
-            };
-            particle.boid.boundingBox = {
-                left:particle.boid.boundingBox.left*w,
-                right:particle.boid.boundingBox.right*w,
-                bot:particle.boid.boundingBox.bot*h,
-                top:particle.boid.boundingBox.top*h,
-                front:particle.boid.boundingBox.front*h,
-                back:particle.boid.boundingBox.back*h
-            };
-            particle.boid.attractor = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*w,
-                mul:particle.boid.attractor.mul
-            };
-            particle.boid.swirl = {
-                x:0.5*w,
-                y:0.5*h,
-                z:0.5*w,
-                mul:particle.boid.swirl.mul
-            };
+             h = 1;
+             w = 1;
+             d = 1;
         }
-        
-
-    }
+        let startX =  Math.random()*w;
+        let startY =  Math.random()*h;
+        let startZ =  Math.random()*d;
+        particle.startingX = Math.random();
+        particle.startingY = Math.random();
+        particle.startingZ = Math.random();
+        particle.position = {x:startX,y:startY,z:startZ};
+        particle.boundingBox = {
+            left:particle.boundingBox.left*w,
+            right:particle.boundingBox.right*w,
+            bot:particle.boundingBox.bot*h,
+            top:particle.boundingBox.top*h,
+            front:particle.boundingBox.front*d,
+            back:particle.boundingBox.back*d
+        };
+        particle.boid.boundingBox = {
+            left:particle.boid.boundingBox.left*w,
+            right:particle.boid.boundingBox.right*w,
+            bot:particle.boid.boundingBox.bot*h,
+            top:particle.boid.boundingBox.top*h,
+            front:particle.boid.boundingBox.front*d,
+            back:particle.boid.boundingBox.back*d
+        };
+        particle.boid.attractor = {
+            x:0.5*w,
+            y:0.5*h,
+            z:0.5*d,
+            mul:particle.boid.attractor.mul
+        };
+        particle.boid.swirl = {
+            x:0.5*w,
+            y:0.5*h,
+            z:0.5*d,
+            mul:particle.boid.swirl.mul
+        };
+    } //can dynamically allocate particle group properties
 
     checkParticleBounds = (particle) => {
         
@@ -345,20 +300,64 @@
     defaultTimestepFunc = (group,timeStep)=>{ //what happens on each time step?
 
         if(group.particles.length < group.max) {
-            //add a new particle
-            group.particles.push(this.newParticle());
-            group.groupRuleGen(group.particles[group.particles.length-1],rule);
+            let max = group.max;
+            let count = group.particles.length;
+            if(group.spawnRate) {
+                count=0;
+                max = group.spawnRate;
+            
+            }
+            while(count < max) {
+                //add a new particle
+                group.particles.push(this.newParticle());
+                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
+                count++;
+            }
+        } else if (group.particles.length > group.max) {
+            group.particles.splice(group.max);
+        }
+
+        if(group.useBoids) {
+            let success = this.calcBoids(group.particles,timeStep);
+            if(!success) console.error('boids error');
         }
 
         let expiredidx = [];
         group.particles.forEach((p,i) => {
             
-            // Adjust for gravity
-            p.velocity.y += p.gravity*timeStep;
+            if(p.timestepFunc) p.timestepFunc(group, p, timeStep);
+
+            if(p.gravity !== 0) p.velocity.y += p.gravity*timeStep;
             
-            p.position.x += p.velocity.x*timeStep;
-            p.position.y += p.velocity.x*timeStep;
-            p.position.y += p.velocity.x*timeStep;
+            if(p.force.x !== 0){ 
+                p.velocity.x += p.force.x*timeStep/p.mass;
+            }
+            if(p.force.y !== 0){
+                p.velocity.y += p.force.y*timeStep/p.mass;
+            }
+            if(p.force.z !== 0){
+                p.velocity.z += p.force.z*timeStep/p.mass;
+            }
+
+            if(p.acceleration.x !== 0){ 
+                p.velocity.x += p.acceleration.x*timeStep;
+            }
+            if(p.acceleration.y !== 0){
+                p.velocity.y += p.acceleration.y*timeStep;
+            }
+            if(p.acceleration.z !== 0){
+                p.velocity.z += p.acceleration.z*timeStep;
+            }
+
+            if(p.velocity.x !== 0){
+                p.position.x += p.velocity.x*timeStep;
+            }
+            if(p.velocity.y !== 0){
+                p.position.y += p.velocity.y*timeStep;
+            }
+            if(p.velocity.z !== 0){
+                p.position.z += p.velocity.z*timeStep;
+            }
 
             this.checkParticleBounds(p);
 
@@ -414,19 +413,20 @@
     }
 
     //pass a particle group in, will add to particle velocities and return true if successful
-    calcBoids = (particles=[],timeStep) => {
+    calcBoids = (particles=[],timeStep, from=0, to=particles.length) => {
         
         const newVelocities = [];
         outer:
-        for(var i = 0; i < particles.length; i++) {
+        for(var i = from; i < to; i++) {
             let p0 = particles[i];
             const inRange = []; //indices of in-range boids
             const distances = []; //Distances of in-range boids
-            const cohesionVec = [p0.position.x,p0.position.y,p0.position.z]; //Mean position of all boids for cohesion multiplier
-            const separationVec = [0,0,0]; //Sum of a-b vectors, weighted by 1/x to make closer boids push harder.
-            const alignmentVec = [p0.velocity.x,p0.velocity.y,p0.velocity.z]; //Perpendicular vector from average of boids velocity vectors. Higher velocities have more alignment pull.
-            const attractionVec = [0,0,0];
-            let groupCount = 1;
+            const boidVelocities = [p0.position.x,p0.position.y,p0.position.z,0,0,0,p0.velocity.x,p0.velocity.y,p0.velocity.z,0,0,0,0,0,0,0,0,0]; //Velocity mods of in-range boids, representing each type of modifier
+            /*
+                cohesion, separation, alignment, attraction, avoidance
+            */
+            
+           let groupCount = 1;
     
             nested:
             for(let j = 0; j < particles.length; j++) {
@@ -443,74 +443,112 @@
                         inRange.push(randj);
                 
                         if(p0.boid.useCohesion){
-                            cohesionVec[0] = cohesionVec[0] + pr.position.x;
-                            cohesionVec[1] = cohesionVec[1] + pr.position.y;
-                            cohesionVec[2] = cohesionVec[2] + pr.position.z;
+                            boidVelocities[0] = boidVelocities[0] + pr.position.x;
+                            boidVelocities[1] = boidVelocities[1] + pr.position.y;
+                            boidVelocities[2] = boidVelocities[2] + pr.position.z;
                         }
 
-                        if(isNaN(disttemp) || isNaN(cohesionVec[0]) || isNaN(pr.position.x)) {
-                            console.log(disttemp, i, randj, p0.position, pr.position, cohesionVec); p0.position.x = NaN; 
+                        if(isNaN(disttemp) || isNaN(boidVelocities[0]) || isNaN(pr.position.x)) {
+                            console.log(disttemp, i, randj, p0.position, pr.position, boidVelocities); p0.position.x = NaN; 
                             return;
                         }
 
                         if(p0.boid.useSeparation){
-                            let distInv = (1/(disttemp*disttemp));
+                            let distInv = (p0.boid.groupRadius/(disttemp*disttemp));
                             if(distInv == Infinity) distInv = p.maxSpeed;
                             else if (distInv == -Infinity) distInv = -p.maxSpeed;
-                            separationVec[0] = separationVec[0] + (p0.position.x-pr.position.x)*distInv;
-                            separationVec[1] = separationVec[1] + (p0.position.y-pr.position.y)*distInv; 
-                            separationVec[2] = separationVec[2] + (p0.position.z-pr.position.z)*distInv;
+                            boidVelocities[3] = boidVelocities[3] + (p0.position.x-pr.position.x)*distInv;
+                            boidVelocities[4] = boidVelocities[4] + (p0.position.y-pr.position.y)*distInv; 
+                            boidVelocities[5] = boidVelocities[5] + (p0.position.z-pr.position.z)*distInv;
                         }
 
-                        if(p0.useAttraction) {
+                        if(p0.boid.useAttraction) {
                             this.calcAttraction(p0,pr,disttemp,timeStep);
                         }
 
                         if(p0.boid.useAlignment){
                             //console.log(separationVec);
-                            alignmentVec[0] = alignmentVec[0] + pr.velocity.x; 
-                            alignmentVec[1] = alignmentVec[1] + pr.velocity.y;
-                            alignmentVec[2] = alignmentVec[2] + pr.velocity.z;
+                            boidVelocities[6] = boidVelocities[6] + pr.velocity.x; 
+                            boidVelocities[7] = boidVelocities[7] + pr.velocity.y;
+                            boidVelocities[8] = boidVelocities[8] + pr.velocity.z;
                         }
 
                         groupCount++;
                     }
                 }
-            }    
+            }
+            
+            if(p0.boid.useAvoidance && p0.boid.avoidance.groups.length > 0) {
+                let searchidx = Math.floor(Math.random()*p0.boid.avoidanceGroups.length);
+                const inRange2 = [];
+                nested2:
+                for(let k = 0; k < p0.searchLimit; k++) {
+                    searchidx++;
+                    let group = p0.boid.avoidanceGroups[searchidx%p0.boid.avoidanceGroups.length];
+                    if(inRange2 > p0.boid.groupSize) { break nested2; }
+
+                    let randj = Math.floor(Math.random()*group.length); // Get random index
+                    if(j===i || randj === i || inRange2.indexOf(randj) > -1) {  } else {
+                        let pr = group[randj];
+                        let disttemp = this.distance3D(p0.position,pr.position);
+                        
+                        if(disttemp > p0.boid.groupRadius) { } else {
+                            inRange2.push(randj);
+                            let distInv = (p0.boid.groupRadius/(disttemp*disttemp));
+                            if(distInv == Infinity) distInv = p.maxSpeed;
+                            else if (distInv == -Infinity) distInv = -p.maxSpeed;
+                            boidVelocities[15] = boidVelocities[15] + (p0.position.x-pr.position.x)*distInv;
+                            boidVelocities[16] = boidVelocities[16] + (p0.position.y-pr.position.y)*distInv; 
+                            boidVelocities[17] = boidVelocities[17] + (p0.position.z-pr.position.z)*distInv;
+                        }
+                    }
+                } 
+
+                boidVelocities[15] 
+            }
 
 
             let _groupCount = 1/groupCount;
     
             if(p0.boid.useCohesion){
-                cohesionVec[0] = p0.boid.cohesion*(cohesionVec[0]*_groupCount-p0.position.x);
-                cohesionVec[1] = p0.boid.cohesion*(cohesionVec[1]*_groupCount-p0.position.y);
-                cohesionVec[2] = p0.boid.cohesion*(cohesionVec[2]*_groupCount-p0.position.z);
-            } else { cohesionVec[0] = 0; cohesionVec[1] = 0; cohesionVec[2] = 0; }
+                boidVelocities[0] = p0.boid.cohesion*(boidVelocities[0]*_groupCount-p0.position.x);
+                boidVelocities[1] = p0.boid.cohesion*(boidVelocities[1]*_groupCount-p0.position.y);
+                boidVelocities[2] = p0.boid.cohesion*(boidVelocities[2]*_groupCount-p0.position.z);
+            } else { boidVelocities[0] = 0; boidVelocities[1] = 0; boidVelocities[2] = 0; }
 
             if(p0.boid.useCohesion){
-                alignmentVec[0] = -(p0.boid.alignment*alignmentVec[1]*_groupCount);
-                alignmentVec[1] = p0.boid.alignment*alignmentVec[0]*_groupCount;
-                alignmentVec[2] = p0.boid.alignment*alignmentVec[2]*_groupCount;//Use a perpendicular vector [-y,x,z]
-            } else { alignmentVec[0] = 0; alignmentVec[1] = 0; alignmentVec[2] = 0; }    
+                boidVelocities[3] = p0.boid.separation*boidVelocities[3];
+                boidVelocities[4] = p0.boid.separation*boidVelocities[4];
+                boidVelocities[5] = p0.boid.separation*boidVelocities[5];
+            } else { boidVelocities[3] = 0; boidVelocities[4] = 0; boidVelocities[5] = 0; }
 
             if(p0.boid.useCohesion){
-                separationVec[0] = p0.boid.separation*separationVec[0];
-                separationVec[1] = p0.boid.separation*separationVec[1];
-                separationVec[2] = p0.boid.separation*separationVec[2];
-            } else { separationVec[0] = 0; separationVec[1] = 0; separationVec[2] = 0; }
+                boidVelocities[6] = -(p0.boid.alignment*boidVelocities[6]*_groupCount);
+                boidVelocities[7] = p0.boid.alignment*boidVelocities[7]*_groupCount;
+                boidVelocities[8] = p0.boid.alignment*boidVelocities[8]*_groupCount;//Use a perpendicular vector [-y,x,z]
+            } else { boidVelocities[6] = 0; boidVelocities[7] = 0; boidVelocities[8] = 0; }    
 
             const swirlVec = [0,0,0];
             if(p0.boid.useSwirl == true){
-                swirlVec[0] = -(p0.position.z-p0.boid.swirl.z)*p0.boid.swirl.mul;
-                swirlVec[1] = (p0.position.y-p0.boid.swirl.y)*p0.boid.swirl.mul;
-                swirlVec[2] = (p0.position.x-p0.boid.swirl.x)*p0.boid.swirl.mul
+                boidVelocities[9] = -(p0.position.z-p0.boid.swirl.z)*p0.boid.swirl.mul;
+                boidVelocities[10] = (p0.position.y-p0.boid.swirl.y)*p0.boid.swirl.mul;
+                boidVelocities[11] = (p0.position.x-p0.boid.swirl.x)*p0.boid.swirl.mul
             }
             const attractorVec = [0,0,0];
 
             if(p0.boid.useAttractor == true){
-                attractorVec[0] = (p0.boid.attractor.x-p0.position.x)*p0.boid.attractor.mul;
-                attractorVec[1] = (p0.boid.attractor.y-p0.position.y)*p0.boid.attractor.mul;
-                attractorVec[2] = (p0.boid.attractor.z-p0.position.z)*p0.boid.attractor.mul;
+                boidVelocities[12] = (p0.boid.attractor.x-p0.position.x)*p0.boid.attractor.mul;
+                if(p0.position.x > p0.boid.boundingBox.left || p0.position.x < p0.boid.boundingBox.right) {
+                    boidVelocities[12] *= 3; //attractor should be in the bounding box for this to work properly 
+                }
+                boidVelocities[13] = (p0.boid.attractor.y-p0.position.y)*p0.boid.attractor.mul;
+                if(p0.position.y > p0.boid.boundingBox.top || p0.position.y < p0.boid.boundingBox.bottom) {
+                    boidVelocities[13] *= 3;
+                }
+                boidVelocities[14] = (p0.boid.attractor.z-p0.position.z)*p0.boid.attractor.mul;
+                if(p0.position.z > p0.boid.boundingBox.front || p0.position.z < p0.boid.boundingBox.back) {
+                    boidVelocities[14] *= 3;
+                }
             }
         
             //console.log(attractorVec)
@@ -518,9 +556,9 @@
             //if(i===0) console.log(p0, p0.position, p0.velocity, cohesionVec,separationVec,alignmentVec,swirlVec,attractorVec)
 
             newVelocities.push([
-                p0.velocity.x*p0.drag+cohesionVec[0]+alignmentVec[0]+separationVec[0]+swirlVec[0]+attractorVec[0],
-                p0.velocity.y*p0.drag+cohesionVec[1]+alignmentVec[1]+separationVec[1]+swirlVec[1]+attractorVec[1],
-                p0.velocity.z*p0.drag+cohesionVec[2]+alignmentVec[2]+separationVec[2]+swirlVec[2]+attractorVec[2]
+                p0.velocity.x*p0.drag+boidVelocities[0]+boidVelocities[3]+boidVelocities[6]+boidVelocities[9]+boidVelocities[12]+boidVelocities[15],
+                p0.velocity.y*p0.drag+boidVelocities[1]+boidVelocities[4]+boidVelocities[7]+boidVelocities[10]+boidVelocities[13]+boidVelocities[16],
+                p0.velocity.z*p0.drag+boidVelocities[2]+boidVelocities[5]+boidVelocities[8]+boidVelocities[11]+boidVelocities[14]+boidVelocities[17]
             ]);
             //console.log(i,groupCount)
             if(isNaN(newVelocities[newVelocities.length-1][0])) console.log(p0, i, groupCount, p0.position, p0.velocity, cohesionVec,separationVec,alignmentVec,swirlVec,attractorVec)
@@ -540,70 +578,33 @@
         }
         else { console.error("Boids error"); return false; }
     
-        }    
-
-    boidsTimestepFunc = (group,timeStep) => {
-        let success = this.calcBoids(group.particles, timeStep);
-        if(success) {
-            let expiredidx = [];
-            let anchorTick = timeStep*0.05;
-
-            if(group.particles.length < group.max) {
-                //add a new particle
-                group.particles.push(this.newParticle());
-                group.groupRuleGen(group.particles[group.particles.length-1],group.rule);
-            }
-
-            group.particles.forEach((p,i) => {
-                
-                p.position.x += p.velocity.x*timeStep;
-                p.position.y += p.velocity.y*timeStep;
-                p.position.z += p.velocity.z*timeStep;
-
-                if(isNaN(p.position.x)) {console.log("after check",p.position,p.velocity,i);};
-
-                this.checkParticleBounds(p);
-                // Adjust for gravity
-                p.velocity.y += p.gravity*timeStep;
-
-                // Age the particle
-                p.life+=timeStep;
-                //if(i==0) console.log(p.life,p)
-
-                if(this.defaultCanvas) {
-                    group.animateParticle(p);
-                }
-
-                // If Particle is old, it goes in the chamber for renewal
-                if (p.life >= p.lifeTime) {
-                    expiredidx.push(i);
-                }
-            });
-
-            expiredidx.reverse().forEach((x)=>{
-                group.particles.splice(x,1);
-            });
-            
-        }
-    }
+    }    
 
     addRule(
         type='',
         groupRuleGen=(particle,rule)=>{},
-        timestepFunc=(group,timestep)=>{},
+        groupTimestepFunc=(group,timestep)=>{},
         animateParticle=(particle)=>{}
     ) {
         if(type.length > 0 && typeof groupRuleGen === 'function' && typeof timestepFunc === 'function' && typeof animateParticle === 'function'){
             this.rules.push({
                 type:type,
                 groupRuleGen:groupRuleGen,
-                timestepFunc:timestepFunc,
+                timestepFunc:groupTimestepFunc,
                 animateParticle:animateParticle
             });
         } else return false;
     }
 
-    addGroup(
+    removeGroup(groupIdx=0) {
+        if(!this.particles[groupIdx]) return false;
+
+        this.maxParticles -= this.particles[groupIdx].max;
+        this.particles.slice(groupIdx,1);
+        return true;
+    }
+
+    addGroup( //type, count, bounding box, particle timestepFunc
         rule=['boids',50]
     ) 
         {
@@ -611,9 +612,16 @@
         if(!Array.isArray(rule)) return false;
         
         let type = rule[0];
-        let count = rule[1];
+        let maxcount = rule[1];
+        let boundingBox = rule[2]; //passed to groupRuleGen
+        let spawnCount = rule[3];
+        let respawnRate = rule[4];
+        let useBoids = rule[5]; //for the default function
+        let pTimestepFunc = rule[6];
 
         if(!rule[0] || !rule[1]) return false;
+
+        this.maxParticles += rule[1];
 
         let timestepFunc, groupRuleGen, animateParticle;
         
@@ -627,30 +635,50 @@
 
         if(!timestepFunc || !groupRuleGen || (this.defaultCanvas && !animateParticle)) return false;
 
-        let newGroup = new Array(count).fill(0);
+        let newGroup = new Array(maxcount).fill(0);
 
         let attractorx = Math.random()*0.5+0.25;
         let attractory = Math.random()*0.5+0.25;
         let attractorz = Math.random()*0.5+0.25;
 
-        newGroup.forEach((p,i)=>{
-            newGroup[i] = this.newParticle();
-            groupRuleGen(newGroup[i],rule);
-            newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
-            newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
-            newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
-            if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
-        });
 
+        if(spawnCount){
+            for(let i = 0; i < spawnCount; i++){
+                newGroup[i] = this.newParticle();
+                groupRuleGen(newGroup[i],rule);
+                if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
+                if(type === 'boids') {
+                    newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
+                    newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
+                    newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
+                    if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
+                }
+            }
+        } else {
+            newGroup.forEach((p,i)=>{
+                newGroup[i] = this.newParticle();
+                groupRuleGen(newGroup[i],rule);
+                if(type === 'boids'){
+                    if(pTimestepFunc) newGroup[i].timestepFunc = timestepFunc;
+                    newGroup[i].boid.attractor.x = newGroup[i].boid.boundingBox.right*attractorx;
+                    newGroup[i].boid.attractor.y = newGroup[i].boid.boundingBox.bot*attractory;
+                    newGroup[i].boid.attractor.z = newGroup[i].boid.boundingBox.back*attractorz;
+                    if(attractorx < 0.5) newGroup[i].boid.swirl.mul = -newGroup[i].boid.swirl.mul;
+                }
+            });
+        }
         this.particles.push(
         {
             rule:rule,
             type:type, 
-            max:count, 
+            max:maxcount, 
             particles:newGroup, 
             timestepFunc:timestepFunc, 
             groupRuleGen:groupRuleGen,
-            animateParticle:animateParticle
+            animateParticle:animateParticle,
+            spawnRate:respawnRate, //respawn rate
+            useBoids:useBoids,
+            groupId:"id"+Math.floor(Math.random()*99999999)
         });
 
         return newGroup;
