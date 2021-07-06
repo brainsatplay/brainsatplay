@@ -176,6 +176,8 @@ export class BoidsApplet {
         this.looping = true;
 
         this.renderer.setAnimationLoop(this.updateLoop);
+        
+        this.scoringLoop();
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -339,6 +341,24 @@ export class BoidsApplet {
 		var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
 	}
+
+    scoringLoop = () => {
+        if(!this.looping) return;
+
+        if(this.session.atlas.settings.heg && this.session.atlas.settings.deviceConnected) {
+                let ct = this.session.atlas.data.heg[0].count;
+                if(ct >= 2) {
+                    //update particle rules periodically based on score
+                    this.boids.particles.forEach((group,i)=> {
+                        this.boids.updateGroupProperties(i,
+                        {
+                            mul:this.score*0.002
+                        },'boids','swirl');
+                    });
+                }
+        }
+        setTimeout(()=>{this.scoringLoop();},300);
+    }
 
     updateLoop = () => {
 

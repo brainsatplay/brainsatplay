@@ -148,8 +148,15 @@ export class DynamicParticles {
     }
 
     //Assign new properties to a group by index
-    setGroupProperties=(groupIdx,properties={})=>{
-        this.particles[groupIdx].particles.map(p=>Object.assign(p,properties));
+    updateGroupProperties=(groupIdx,properties={},key=undefined,subkey=undefined)=>{
+        if(key) {
+            if(subkey)
+            this.particles[groupIdx].particles.map(p=>Object.assign(p[key][subkey],properties));
+            else
+                this.particles[groupIdx].particles.map(p=>Object.assign(p[key],properties));
+        
+        }    else
+            this.particles[groupIdx].particles.map(p=>Object.assign(p,properties));
     }
 
     defaultGroupRule = (particle,rule) =>{
@@ -169,10 +176,10 @@ export class DynamicParticles {
         if(rule[2]){
             let h = rule[2][0];
             let w = rule[2][1];
-            let d = rule[2][2]
+            let d = rule[2][2];
             let startX =  Math.random()*w;
             let startY =  Math.random()*h;
-            let startZ =    Math.random()*d;
+            let startZ =  Math.random()*d;
             particle.boid.separation *= (h+w+d)/3;
             particle.startingX = startX;
             particle.startingY = startY;
@@ -197,13 +204,13 @@ export class DynamicParticles {
             particle.boid.attractor = {
                 x:0.5*w,
                 y:0.5*h,
-                z:0.5*w,
+                z:0.5*d,
                 mul:particle.boid.attractor.mul
             };
             particle.boid.swirl = {
                 x:0.5*w,
                 y:0.5*h,
-                z:0.5*w,
+                z:0.5*d,
                 mul:particle.boid.swirl.mul
             };
         }
@@ -615,9 +622,9 @@ export class DynamicParticles {
 
         let newGroup = new Array(count).fill(0);
 
-        let attractorx = Math.random();
-        let attractory = Math.random();
-        let attractorz = Math.random();
+        let attractorx = Math.random()*0.5+0.25;
+        let attractory = Math.random()*0.5+0.25;
+        let attractorz = Math.random()*0.5+0.25;
 
         newGroup.forEach((p,i)=>{
             newGroup[i] = this.newParticle();
