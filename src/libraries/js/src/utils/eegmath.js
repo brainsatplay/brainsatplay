@@ -5,6 +5,12 @@ export class eegmath {
 	}
 
 	//----------------------------------------------------------------
+	//-------------------- Static Variables---------------------------
+	//----------------------------------------------------------------
+
+	static TWO_PI = Math.PI*2;
+
+	//----------------------------------------------------------------
 	//-------------------- Static Functions --------------------------
 	//----------------------------------------------------------------
 
@@ -36,7 +42,7 @@ export class eegmath {
 
 	static variance(arr) { //1D input arrays of length n
 		var mean = this.mean(arr);
-		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length
+		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length;
 	}
 
 	static transpose(mat){
@@ -58,7 +64,26 @@ export class eegmath {
 		  }
 		}
 		return m;
-	  }
+	}
+
+	//Get probability densities for the samples
+	static normalDistribution(samples) {
+		let mean = this.mean(samples);
+		let variance = this.variance(samples);
+		let nSamples = samples.length;
+
+		let probabilities = [];
+
+		let denom = 1/(this.TWO_PI*variance);
+		let _variance = 1/variance;
+		for (let i = 0; i < nSamples; i++) {
+			probabilities.push(Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom);
+		}
+	
+		return probabilities;
+	}
+
+
 
 	//2D matrix covariance (e.g. for lists of signals). Pretty fast!!!
 	static cov2d(mat) { //[[x,y,z,w],[x,y,z,w],...] input list of vectors of the same length
