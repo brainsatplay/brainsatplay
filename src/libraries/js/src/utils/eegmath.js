@@ -49,7 +49,7 @@ export class eegmath {
 		return mat[0].map((_, colIndex) => mat.map(row => row[colIndex]));
 	}
 
-	//Matrix multiplication from: https://stackoverflow.com/questions/27205018/multiply-2-matrices-in-javascript
+	//2D Matrix multiplication from: https://stackoverflow.com/questions/27205018/multiply-2-matrices-in-javascript
 	static matmul(a, b) {
 		var aNumRows = a.length, aNumCols = a[0].length,
 			bNumRows = b.length, bNumCols = b[0].length,
@@ -67,7 +67,7 @@ export class eegmath {
 	}
 
 	//Get probability densities for the samples
-	static normalDistribution(samples) {
+	static normalDistribution(samples=[]) {
 		let mean = this.mean(samples);
 		let variance = this.variance(samples);
 		let nSamples = samples.length;
@@ -83,6 +83,19 @@ export class eegmath {
 		return probabilities;
 	}
 
+	static linearDiscriminantAnalysis(samples=[], classifier=[]) {
+		let mean = this.mean(samples);
+		let meank = this.mean(classifier);
+		let covariance = this.cov1d(samples,classifier);
+		let probs = this.normalDistribution(samples);
+
+		let dk = [];
+		for(let i = 0; i < samples.length; i++){ 
+			dk.push(x[i]*covariance*meank - .5*mean*covariance*meank + Math.log10(probs[i]));
+		}
+
+		return dk;
+	}
 
 
 	//2D matrix covariance (e.g. for lists of signals). Pretty fast!!!
@@ -115,7 +128,7 @@ export class eegmath {
 			mat[y][x] = (x - rowAvg)*(x - colAvg) / (mat[y].length - 1);
 		*/
 
-		console.log(matproducts);
+		//console.log(matproducts);
 		//Transpose matrix
 		var matproductstransposed = this.transpose(matproducts);
 
