@@ -89,12 +89,13 @@ export class Object3D{
             this._updateProps()
 
             // Replace Mesh if Necessary
-            if (this.prevType != this.params.type) {
+            if (this.props.prevType != this.params.type) {
                 this.session.graph.runSafe(this,'add',[{data:true, force: true}])
-                this.prevType = this.params.type
+                this.props.prevType = this.params.type
             }
         })
         this.session.graph.runSafe(this,'add',[{data:true, force: true}])
+        this.props.prevType = this.params.type
 
         let animate = () => {
             if (this.props.looping){
@@ -162,12 +163,10 @@ export class Object3D{
         this.props.mesh.rotateY(this.params.rotatey)
         this.props.mesh.rotateZ(this.params.rotatez)
         this.props.mesh.name = `${this.label}`
-
-        console.log(this.props.mesh)
     }
 
     scale = (userData) => {
-        this.params.scale = Math.abs(Number.parseFloat(userData[0].data))
+        this.params.scalex = this.params.scaley = this.params.scalez = Math.abs(Number.parseFloat(userData[0].data))
     }
 
     dx = (userData) => {
