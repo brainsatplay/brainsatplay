@@ -271,56 +271,56 @@ export class SensoriumApplet {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Elise'
             },
             spinthings: {
                 name: 'Spin Things',
                 vertexShader: vertexShader,
                 fragmentShader: spinthings,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             pulse: {
                 name: 'Pulse',
                 vertexShader: vertexShader,
                 fragmentShader: pulseFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHR','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'haquxx'
             },
             marble: {
                 name: 'Glowing Marble',
                 vertexShader: vertexShader,
                 fragmentShader: marbleFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHR','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'nasana'
             },
             turbulence: {
                 name: 'Turbulence',
                 vertexShader: vertexShader,
                 fragmentShader: turbulenceFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'exandro'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
                 vertexShader: vertexShader,
                 fragmentShader: bandsynth,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             clock: {
                 name: 'Clock',
                 vertexShader: vertexShader,
                 fragmentShader: tripclock,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence','iDate'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence','iDate'],
                 credit: '4eckme'
             },
             julia: {
                 name: 'Julia Set',
                 vertexShader: vertexShader,
                 fragmentShader: julia,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHR','iHB','iAudio','iFFT','iFrontalAlpha1Coherence'],
                 credit: 'gaetanThiesson'
             }
         }
@@ -1821,6 +1821,7 @@ void main(){
                     }
                 });
                 if(found) {
+                    bciuniforms.push(u);
                     if(u === 'iImage') {
                         this.three.renderer.domElement.ctx.clearRect(0,0,this.AppletHTML.node.clientWidth,this.AppletHTML.node.clientHeight);
                         uniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
@@ -1843,9 +1844,10 @@ void main(){
                     else uniforms[u]={value:this.additionalUniforms[u]};
                 } //add arbitrary uniforms not listed anywhere
             }
-        })
+        });
         this.currentShader.uniforms = bciuniforms;
         // Create New Shader
+        
         let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.currentShader.vertexShader,
             fragmentShader: fragShader,
@@ -1854,7 +1856,7 @@ void main(){
         });
         try{
             newMaterial.uniforms = uniforms;
-            console.log(uniforms)
+            
             this.updateMaterialUniforms(newMaterial,this.modifiers);
             this.generateGUI(this.currentShader.uniforms);
 
@@ -1908,6 +1910,7 @@ void main(){
         for (let i=0; i<uniformsToUpdate.length; i++){
             let name = uniformsToUpdate[i];
             let value = material.uniforms[i];
+            console.log( name, material.uniforms[name])
 
             if (material.uniforms[name] == null) material.uniforms[name] = {value:0};
 
@@ -1930,10 +1933,9 @@ void main(){
                 material.uniforms[name].value = this.additionalUniforms.iDate;
             } else if (material.uniforms[name] && modifiers[name]) {
                 material.uniforms[name].value = modifiers[name];
-            } else {
-                material.uniforms[name].value = value;
-            }
+            } 
         }
+        
         return material;
     }
     
@@ -1964,7 +1966,6 @@ void main(){
                 if (p.material.uniforms[key] == null) p.material.uniforms[key] = {};
                 p.material.uniforms[key].value = value;
             });
-            
         }
 
         let folders = Object.keys(this.gui.__folders)

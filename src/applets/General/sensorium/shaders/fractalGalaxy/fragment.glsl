@@ -23,8 +23,8 @@ float field(in vec3 p,float s) {
 	float tw = 0.;
 	for (int i = 0; i < 14; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
-		float w = exp(-float(i) / 7.);
+		p = abs(p) / mag + vec3(-.5+(iAudio[100]*0.00001)+iHB*0.5+iHEG*0.1, -.4+(iAudio[200]*0.00001)+iHB*0.5+iHEG*0.1, -1.5);
+		float w = exp(-float(i) / (7.+iHRV*0.1+iFrontalAlpha1Coherence));
 		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
 		tw += w;
 		prev = mag;
@@ -40,7 +40,7 @@ float field2(in vec3 p, float s) {
 	float tw = 0.;
 	for (int i = 0; i < 14; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
+		p = abs(p) / mag + vec3(-.5+iAudio[80]*0.00001-iHB*0.5, -.4+iAudio[160]*0.00001, -1.5);
 		float w = exp(-float(i) / 7.);
 		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
 		tw += w;
@@ -67,9 +67,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	float freqs[4];
 	
 	//Sound
-	freqs[0] = iAudio[25]/255.+iFFT[25]*.1+.25;
+	freqs[0] = iAudio[25]/255.+iFFT[25]*.1+.25+iHEG*0.1;
 	freqs[1] = iAudio[75]/255.+iFFT[75]*.1+.1;
-	freqs[2] = iAudio[125]/255.+iFFT[125]*.1+.15;
+	freqs[2] = iAudio[125]/255.+iFFT[125]*.1+.15+iHRV*0.01;
 	freqs[3] = iAudio[200]/255.+iFFT[200]*.1+.3;
 
 	float t = field(p,freqs[2])*2.;

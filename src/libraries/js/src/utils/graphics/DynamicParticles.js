@@ -497,7 +497,11 @@ export class DynamicParticles {
                     }
                 } 
 
-                boidVelocities[15] 
+                let _len = inRange2.length;
+                boidVelocities[15] = boidVelocities[15]*_len;
+                boidVelocities[16] = boidVelocities[16]*_len;
+                boidVelocities[17] = boidVelocities[17]*_len;
+
             }
 
 
