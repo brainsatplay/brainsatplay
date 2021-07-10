@@ -23,8 +23,8 @@ float field(in vec3 p,float s) {
 	float tw = 0.;
 	for (int i = 0; i < 14; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
-		float w = exp(-float(i) / 7.);
+		p = abs(p) / mag + vec3(-.5+(iAudio[100]*0.00001)+iHB*0.5+iHEG*0.1, -.4+(iAudio[200]*0.00001)+iHB*0.5+iHEG*0.1, -1.5);
+		float w = exp(-float(i) / (7.+iHRV*0.1+iFrontalAlpha1Coherence));
 		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
 		tw += w;
 		prev = mag;
@@ -40,7 +40,7 @@ float field2(in vec3 p, float s) {
 	float tw = 0.;
 	for (int i = 0; i < 14; ++i) {
 		float mag = dot(p, p);
-		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
+		p = abs(p) / mag + vec3(-.5+iAudio[80]*0.00001-iHB*0.5, -.4+iAudio[160]*0.00001, -1.5);
 		float w = exp(-float(i) / 7.);
 		accum += w * exp(-strength * pow(abs(mag - prev), 2.2));
 		tw += w;
