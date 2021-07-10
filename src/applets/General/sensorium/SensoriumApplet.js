@@ -1934,13 +1934,6 @@ void main(){
             } else if (material.uniforms[name] && modifiers[name]) {
                 material.uniforms[name].value = modifiers[name];
             } 
-            // else {
-            //     console.log(value)
-            //     material.uniforms[name].value = value;
-            // }
-
-            // console.log( name, material.uniforms[name])
-
         }
         
         return material;
