@@ -1821,6 +1821,7 @@ void main(){
                     }
                 });
                 if(found) {
+                    bciuniforms.push(u);
                     if(u === 'iImage') {
                         this.three.renderer.domElement.ctx.clearRect(0,0,this.AppletHTML.node.clientWidth,this.AppletHTML.node.clientHeight);
                         uniforms[u]={type:'t', value: new THREE.Texture(this.three.renderer.domElement.toDataURL())}
@@ -1843,9 +1844,10 @@ void main(){
                     else uniforms[u]={value:this.additionalUniforms[u]};
                 } //add arbitrary uniforms not listed anywhere
             }
-        })
+        });
         this.currentShader.uniforms = bciuniforms;
         // Create New Shader
+        
         let newMaterial = new THREE.ShaderMaterial({
             vertexShader: this.currentShader.vertexShader,
             fragmentShader: fragShader,
@@ -1854,7 +1856,7 @@ void main(){
         });
         try{
             newMaterial.uniforms = uniforms;
-            console.log(uniforms)
+            
             this.updateMaterialUniforms(newMaterial,this.modifiers);
             this.generateGUI(this.currentShader.uniforms);
 
@@ -1961,10 +1963,9 @@ void main(){
     generateGUI(uniforms){
         let updateUniformsWithGUI = (key,value) => {
             this.three.planes.forEach(p => {
-                if (p.material.uniforms[key] == null) p.material.uniforms[key] = {};
+                if (p.material.uniforms[key] === null) p.material.uniforms[key] = {};
                 p.material.uniforms[key].value = value;
             });
-            
         }
 
         let folders = Object.keys(this.gui.__folders)
