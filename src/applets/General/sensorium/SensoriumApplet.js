@@ -1910,6 +1910,7 @@ void main(){
         for (let i=0; i<uniformsToUpdate.length; i++){
             let name = uniformsToUpdate[i];
             let value = material.uniforms[i];
+            console.log( name, material.uniforms[name])
 
             if (material.uniforms[name] == null) material.uniforms[name] = {value:0};
 
@@ -1932,10 +1933,9 @@ void main(){
                 material.uniforms[name].value = this.additionalUniforms.iDate;
             } else if (material.uniforms[name] && modifiers[name]) {
                 material.uniforms[name].value = modifiers[name];
-            } else {
-                material.uniforms[name].value = value;
-            }
+            } 
         }
+        
         return material;
     }
     
