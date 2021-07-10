@@ -271,56 +271,56 @@ export class SensoriumApplet {
                 name: 'Voronoi Blobs',
                 vertexShader: vertexShader,
                 fragmentShader: blobFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Elise'
             },
             spinthings: {
                 name: 'Spin Things',
                 vertexShader: vertexShader,
                 fragmentShader: spinthings,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             pulse: {
                 name: 'Pulse',
                 vertexShader: vertexShader,
                 fragmentShader: pulseFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHR','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'haquxx'
             },
             marble: {
                 name: 'Glowing Marble',
                 vertexShader: vertexShader,
                 fragmentShader: marbleFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHR','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'nasana'
             },
             turbulence: {
                 name: 'Turbulence',
                 vertexShader: vertexShader,
                 fragmentShader: turbulenceFragmentShader,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'exandro'
             },
             bandwidth: {
                 name: 'Bandlimited Synthesis',
                 vertexShader: vertexShader,
                 fragmentShader: bandsynth,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHB','iAudio','iFrontalAlpha1Coherence'],
                 credit: 'Vinicius_Jesus'
             },
             clock: {
                 name: 'Clock',
                 vertexShader: vertexShader,
                 fragmentShader: tripclock,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence','iDate'],
+                uniforms: ['iResolution','iTime','iHEG','iHRV','iHB','iAudio','iFrontalAlpha1Coherence','iDate'],
                 credit: '4eckme'
             },
             julia: {
                 name: 'Julia Set',
                 vertexShader: vertexShader,
                 fragmentShader: julia,
-                uniforms: ['iResolution','iTime','iFrontalAlpha1Coherence'],
+                uniforms: ['iResolution','iTime','iHEG','iHR','iHB','iAudio','iFFT','iFrontalAlpha1Coherence'],
                 credit: 'gaetanThiesson'
             }
         }

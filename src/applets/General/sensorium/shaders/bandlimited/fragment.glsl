@@ -31,8 +31,6 @@ varying vec2 vTextureCoord;
 uniform vec2 iResolution;
 uniform float iTime;
 uniform float iHEG;
-uniform float iHRV;
-uniform float iHR;
 uniform float iHB;
 uniform float iFrontalAlpha1Coherence;
 uniform float iFFT[FFTLENGTH];
@@ -58,15 +56,15 @@ vec3  mcos( vec3 x){return mode?cos(x):fcos(x);}
 // (see https://iquilezles.org/www/articles/palettes/palettes.htm)
 vec3 getColor( in float t )
 {
-    vec3 col = vec3(0.6,0.5,0.4);
-    col += 0.14*mcos(6.2832*t*  1.0+vec3(0.0,0.5,0.6));
-    col += 0.13*mcos(6.2832*t*  3.1+vec3(0.5,0.6,1.0));
-    col += 0.12*mcos(6.2832*t*  5.1+vec3(0.1,0.7,1.1));
-    col += 0.11*mcos(6.2832*t*  9.1+vec3(0.1,0.5,1.2));
-    col += 0.10*mcos(6.2832*t* 17.1+vec3(0.0,0.3,0.9));
-    col += 0.09*mcos(6.2832*t* 31.1+vec3(0.1,0.5,1.3));
-    col += 0.08*mcos(6.2832*t* 65.1+vec3(0.1,0.5,1.3));
-    col += 0.07*mcos(6.2832*t*131.1+vec3(0.3,0.2,0.8));
+    vec3 col=vec3(0.6+iAudio[50]*0.001,0.5,0.4);
+    col+=0.14*mcos(6.2832*t*1.0+vec3(0.0,0.5,0.6));
+    col+=0.13*mcos(6.2832*t*3.1+vec3(0.5,0.6,1.0));
+    col+=0.12*mcos(6.2832*t*5.1+vec3(0.1,0.7,1.1))+iAudio[200]*0.003;
+    col+=0.11*mcos(6.2832*t*9.1+vec3(0.1,0.5,1.2))*(3.0-iHEG);
+    col+=0.10*mcos(6.2832*t*17.1+vec3(0.0,0.3,0.9))*iFrontalAlpha1Coherence;
+    col+=0.09*mcos(6.2832*t*31.1+vec3(0.1,0.5,1.3))-iAudio[100]*0.003;;
+    col+=0.08*mcos(6.2832*t*65.1+vec3(0.1,0.5,1.3));
+    col+=0.07*mcos(6.2832*t*131.1+vec3(0.3,0.2,0.8));
     return col;
 }
 
@@ -82,7 +80,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord )
     vec2 p = 2.0*q/dot(q,q);
 
     // animation
-    p.xy += 0.05*iTime;
+    p.xy += 0.03*iTime+iHEG*0.01+iHB;
 
     // texture
     vec3 col = min(getColor(p.x),getColor(p.y));

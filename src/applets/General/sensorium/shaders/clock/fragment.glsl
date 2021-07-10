@@ -44,8 +44,8 @@ float day() {
 vec4 bg(vec2 fragCoord) {
     vec2 coord = (fragCoord)*4.0;
    	float t = (iTime);
-    float x = float(coord.x)+64.0*sin((coord.x+coord.y)/60.0);
-    float y = float(coord.y)+64.0*cos((coord.x-coord.y)/60.0);
+    float x = float(coord.x+iHEG+iHB)+64.0*sin((coord.x+coord.y)/60.0);
+    float y = float(coord.y+iHRV*0.1)+64.0*cos((coord.x-coord.y)/60.0);
     float r = float(x*x*t + y*y*t);
     vec4 fragColor = vec4(
         cos(sqrt(r)/x),
@@ -53,8 +53,8 @@ vec4 bg(vec2 fragCoord) {
         cos(sqrt(r)/y),
         sin(y/x)
     );
-    fragColor.x+=(tan((degrees(atan(x, y))*1.0-t*2.0)))/4.0;
-    fragColor.y+=(tan((degrees(atan(x, y))*1.0-t*2.0)))/4.0;
+    fragColor.x+=(tan((degrees(atan(x, y))*1.0-t*2.0-iHEG*10.)))/4.0;
+    fragColor.y+=(tan((degrees(atan(x, y))*1.0-t*2.0-iFrontalAlpha1Coherence*100.)))/4.0;
     fragColor.z+=(tan((degrees(atan(x, y))*1.0-t*2.0)))/4.0;
     return fragColor;
 }

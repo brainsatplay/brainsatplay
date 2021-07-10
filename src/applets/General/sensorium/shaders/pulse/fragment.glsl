@@ -20,7 +20,7 @@ vec3 drawCircle(vec2 pos, float radius, float width, float power, vec4 color)
     dist1 = fract((dist1 * 5.0) - fract(iTime));
     float dist2 = dist1 - radius;
     float intensity = pow(radius / abs(dist2), width); 
-    vec3 col = color.rgb * intensity * power * max((0.8- abs(dist2)), 0.0);
+    vec3 col=color.rgb*intensity*power*max((iHRV*.01+0.8-abs(dist2*iHB)),0.0);
     return col;
 }
 
@@ -41,7 +41,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float radius = 0.5;
     float width = 0.8;
     float power = 0.01 + 0.25*iFrontalAlpha1Coherence; //0.1;
-    vec3 finalColor = drawCircle(pos, radius, width, power, color);
+    if(iHEG > 0.0) power += iHEG;
+    vec3 finalColor = drawCircle(pos, radius+iHR*0.001+iAudio[30]*0.002+iAudio[150]*0.002, width, power, color);
 
     pos = abs(pos);
     // vec3 finalColor = vec3(pos.x, 0.0, pos.y);

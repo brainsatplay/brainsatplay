@@ -21,12 +21,12 @@ void main()
     vec2 uv = (vUv-0.5)*2.0 *responsiveScaling ;
 
     for(float i = 1.0; i < 8.0; i++){
-        uv.y+=i*(0.1 * (1.0 - iFrontalAlpha1Coherence))/i*sin(uv.x*i*i+iTime*0.5)*sin(uv.y*i*i+iTime*0.5);
+        uv.y+=i*(0.1 * (1.0 - iFrontalAlpha1Coherence-iHEG*0.3))/i*sin(uv.x*i*i+iTime*0.5)*sin(uv.y*i*i+iTime*0.5+iHB+iHEG);
     }
     
    vec3 col;
-   col.r  = uv.y - 0.1;
-   col.g = uv.y + 0.3;
-   col.b = uv.y + 0.95;
+   col.r  = uv.y - 0.1-iHRV*0.01+iAudio[200]*0.003;
+   col.g = uv.y + 0.3+iAudio[40]*0.003;
+   col.b = uv.y + 0.95+iHEG*0.1;
     gl_FragColor = vec4(col,1.0);
 }

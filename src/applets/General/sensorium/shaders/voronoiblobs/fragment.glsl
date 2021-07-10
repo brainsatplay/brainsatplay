@@ -7,6 +7,11 @@ precision mediump float;
 varying vec2 vUv;
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iHEG;
+uniform float iHB;
+uniform float iFrontalAlpha1Coherence;
+uniform float iAudio[256];
+
 vec2 random2( vec2 p )
  {
     return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
@@ -42,9 +47,9 @@ float voronoi(vec2 i_stP, vec2 f_stP, vec2 stP, float scalarP)
 
 void main(){
     float aspect = iResolution.x/iResolution.y;
-    vec2 responsiveScaling = vec2(1.0/((1.0/aspect) * min(1.0,aspect)), 1.0/(1.0 * min(1.0,aspect)));
+    vec2 responsiveScaling=vec2(4./((1.0/aspect)*min(1.0,aspect)),4./(1.0*min(1.0,aspect)));
     vec2 uv = vUv.xy*responsiveScaling;
-    vec3 color = vec3(0.);
+    vec3 color=vec3(iHB-0.5,-1.,0.);
 
     float scalar = 10.;
     uv *= scalar;
@@ -60,5 +65,5 @@ void main(){
     // Draw grid
     //color.r += step(.98, f_st.x) + step(.98, f_st.y);
 
-    gl_FragColor = vec4(color,1.0);
+    gl_FragColor=vec4(2.-color.x,1.-color.y+iHEG+iFrontalAlpha1Coherence+iAudio[200]*0.03,color.z,1.0);
 }

@@ -24,12 +24,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uv = fragCoord/iResolution.xy;
     uv -= 0.5;uv *= 1.3;uv += 0.5;
     vec4 col = vec4(1.0);
-    float time = iTime;
+    float time = iTime*0.05+1.0;
     
     int u_maxIterations = 75;
     
-    float r = 0.7885*(sin((time/3.) - 1.57)*0.2+0.85);
-	vec2 c = vec2(r*cos((time/3.)), r*sin((time/3.)));
+    float r=0.7885*(sin((time/(3.+iHRV*0.01+iFFT[80]*0.001+iAudio[150]*0.0001+iHB))-1.57)*0.2+0.85);
+    vec2 c=vec2(r*cos((time/(3.01+iHEG+iFFT[30]*0.001-iAudio[60]*0.0001+iFrontalAlpha1Coherence))),r*sin((time/3.)));
     
     vec2 z = vec2(0.);
     z.x = 3.0 * (uv.x - 0.5);
@@ -58,7 +58,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     float f_ite = float(iterations);
     float f_maxIte = float(u_maxIterations);
-    fragColor = vec4(escaped ? iterationCol : coreCol, f_ite/f_maxIte );
+    fragColor = vec4(escaped ? iterationCol : coreCol,3.-f_ite/f_maxIte );
 }
 
 
