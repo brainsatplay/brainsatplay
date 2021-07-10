@@ -1963,7 +1963,7 @@ void main(){
     generateGUI(uniforms){
         let updateUniformsWithGUI = (key,value) => {
             this.three.planes.forEach(p => {
-                if (p.material.uniforms[key] === null) p.material.uniforms[key] = {};
+                if (p.material.uniforms[key] == null) p.material.uniforms[key] = {};
                 p.material.uniforms[key].value = value;
             });
         }
