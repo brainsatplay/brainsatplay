@@ -54,7 +54,7 @@ vec4 bg(vec2 fragCoord) {
         sin(y/x)
     );
     fragColor.x+=(tan((degrees(atan(x, y))*1.0-t*2.0-iHEG*10.)))/4.0;
-    fragColor.y+=(tan((degrees(atan(x, y))*1.0-t*2.0-iFrontalAlpha1Coherence*100.)))/4.0;
+    fragColor.y+=(tan((degrees(atan(x, y))*1.0-t*2.0-iFrontalAlpha1Coherence*100.+iAudio[200]*0.003)))/4.0;
     fragColor.z+=(tan((degrees(atan(x, y))*1.0-t*2.0)))/4.0;
     return fragColor;
 }
