@@ -130,7 +130,7 @@ export class BoidsApplet {
                 });
             }
             document.getElementById(props.id+'alignreset').onclick = () => {
-                document.getElementById(props.id+'alignment').value = 0.006;
+                document.getElementById(props.id+'align').value = 0.006;
                 this.boids.particles.forEach((p,i)=>{
                     this.boids.updateGroupProperties(i,{alignment:0.006},'boid');
                 });
