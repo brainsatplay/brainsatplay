@@ -483,25 +483,38 @@ export class AppletManager {
                             infoMask.style.pointerEvents = 'none';
                             if (instance == null) {
                                 await getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)).then((browser) => {
-                                    instance = new browser(appletMask, this.session, [
-                                        {
-                                            appletIdx: appletIdx,
-                                            showPresets: false,
-                                            displayMode: 'tight'
-                                        }
-                                    ]);
-                                    instance.init()
+                                   
+                                    let config = {
+                                        hide: [],
+                                        applets: Object.keys(appletManifest).map(async (key) => {
+                                            return await getAppletSettings(appletManifest[key].folderUrl)
+                                        }),
+                                        presets: presetManifest,
 
-                                    thisApplet.deinit = (() => {
-                                        var defaultDeinit = thisApplet.deinit;
-                                    
-                                        return function() {    
-                                            instance.deinit()
-                                            appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
-                                            let result = defaultDeinit.apply(this, arguments);                              
-                                            return result;
-                                        };
-                                    })()
+                                        // OLD
+                                        appletIdx: appletIdx,
+                                        showPresets: false,
+                                        displayMode: 'tight'
+                                    }
+
+                                    Promise.all(config.applets).then((resolved) => {
+                                        config.applets=resolved
+                                        let instance = new browser(appletMask, this.session, [config])
+
+                                      // FIX
+                                        instance.init()
+
+                                        thisApplet.deinit = (() => {
+                                            var defaultDeinit = thisApplet.deinit;
+                                        
+                                            return function() {    
+                                                instance.deinit()
+                                                appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
+                                                let result = defaultDeinit.apply(this, arguments);                              
+                                                return result;
+                                            };
+                                        })()
+                                    })
                                 })
                             }
                         }
@@ -640,7 +653,7 @@ export class AppletManager {
                     }
                     Promise.all(config.applets).then((resolved) => {
                         config.applets=resolved
-                        resolve(new appletCls(parentNode, this.session, config, info))
+                        resolve(new appletCls(parentNode, this.session, [config], info))
                     })
                 } else {
                     resolve(new appletCls(parentNode, this.session, config))

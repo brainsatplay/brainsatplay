@@ -31,7 +31,9 @@ export class AppletBrowser {
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random() * 1000000)), //Keep random ID,
-            trainingModules: {}
+            trainingModules: {},
+            applets: [],
+            presets: []
         };
 
 
@@ -59,6 +61,9 @@ export class AppletBrowser {
 
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props = this.props) => {
+
+            if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
+
             this.props.container = document.getElementById(this.props.id)
 
             if (this.showPresets) {
@@ -78,8 +83,6 @@ export class AppletBrowser {
             undefined,          //Can have an onchange function fire when properties change
             "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
         );
-
-        if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
     }
 
     //Delete all event listeners and loops here and delete the HTML block
@@ -98,12 +101,15 @@ export class AppletBrowser {
     }
 
     configure(settings = []) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
+            
         settings.forEach((cmd, i) => {
-            // if (cmd.appletIdx != null) this.appletToReplace = cmd.appletIdx
+            if (cmd.appletIdx != null) this.appletToReplace = cmd.appletIdx
             if (cmd.showPresets != null) this.showPresets = cmd.showPresets
-            // if (cmd.showApplets != null) this.showApplets = cmd.showApplets
+            if (cmd.showApplets != null) this.showApplets = cmd.showApplets 
             if (cmd.displayMode != null) this.displayMode = cmd.displayMode
 
+            if (cmd.applets != null) this.props.applets = cmd.applets
+            if (cmd.presets != null) this.props.presets = cmd.presets
         });
     }
 
@@ -111,7 +117,7 @@ export class AppletBrowser {
         let presetEl = document.createElement('div')
         presetEl.classList.add('preset-container')
         this.props.container.insertAdjacentElement('beforeend', presetEl)
-        this.settings.presets.forEach(preset => {
+        this.props.presets.forEach(preset => {
 
             let presetCard = document.createElement('div')
             presetCard.classList.add(`browser-card`)
@@ -169,7 +175,7 @@ export class AppletBrowser {
 
         // Training Selection
         trainingModes.forEach((mode, i) => {
-            settings.graph.nodes.push({ id: mode, class: Train, params: { mode , applets: this.settings.applets} })
+            settings.graph.nodes.push({ id: mode, class: Train, params: { mode , applets: this.props.applets} })
             settings.graph.nodes.push({ id: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
             settings.graph.edges.push({ source: `${mode}:ui`, target: `${mode}ui:add` })
         })
@@ -181,7 +187,7 @@ export class AppletBrowser {
 
     _createLibrary = async () => {
         let filter
-        let appletInfo = await createCards(this.settings.applets, filter)
+        let appletInfo = await createCards(this.props.applets, filter)
 
         this.props.container.insertAdjacentHTML('beforeend',
             `
