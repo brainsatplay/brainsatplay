@@ -17,7 +17,7 @@ export const settings = {
       {
       id: 'benchmark',
       nodes: [
-        {id: 'plot', class: brainsatplay.plugins.outputs.Plot},
+        {id: 'plot', class: brainsatplay.plugins.interfaces.Plot},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
       ],
       edges: [

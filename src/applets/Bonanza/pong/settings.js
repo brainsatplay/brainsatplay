@@ -22,8 +22,8 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowDown'}},
+        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {id: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
         {id: 'move', class: brainsatplay.plugins.utilities.Move},
         {id: 'ui', class: UI, params: {}},
       ],

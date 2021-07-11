@@ -1,5 +1,5 @@
 import {DataQuality} from './DataQuality'
-import {Canvas} from '../graphics/Canvas'
+import {Canvas} from '../canvas/Canvas'
 
 export class Blink{
     

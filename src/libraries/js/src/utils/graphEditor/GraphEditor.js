@@ -1113,6 +1113,8 @@ export class GraphEditor{
             })
 
             let change = 0
+
+            let parent = o.element.parentNode
             if (show && o.element.style.display === 'none') {
                 o.element.style.display = ''
                 change = 1
@@ -1122,7 +1124,21 @@ export class GraphEditor{
             }
 
             let count = document.querySelector(`.${o.category}-count`)
-            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + change
+            if (count) {
+                let numMatching = Number.parseFloat(count.innerHTML) + change
+                count.innerHTML = numMatching
+
+                // Open/Close Dropdown
+                // if (parent.previousElementSibling){
+                    if (numMatching === 0 || this.search.value === '') {
+                        parent.previousElementSibling.classList.remove('active') // Close dropdown
+                        parent.style.maxHeight = 0
+                    } else if (show) {
+                        parent.previousElementSibling.classList.add("active");
+                        parent.style.maxHeight = parent.scrollHeight + "px";
+                    }
+                // }
+            }
         })
     }
 
@@ -1196,9 +1212,9 @@ export class GraphEditor{
             var content = node.nextElementSibling;
             if (content.style.maxHeight){
                 content.style.maxHeight = null;
-              } else {
+            } else {
                 content.style.maxHeight = content.scrollHeight + "px";
-              }
+            }
         }
     }
 

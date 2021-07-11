@@ -82,7 +82,7 @@ export class GraphManager{
                 // Derive Control Structure
                 let firstUserDefault= node.states[port][0]
                 if (
-                    node instanceof plugins.inputs.Event
+                    node instanceof plugins.controls.Event
                     // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
                     ){
                     let controlDict = {}

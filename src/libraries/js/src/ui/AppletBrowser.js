@@ -2,7 +2,7 @@ import { Session } from '../Session'
 import { DOMFragment } from './DOMFragment'
 
 import { Train } from '../plugins/utilities/Train'
-import { UI } from '../plugins/outputs/UI'
+import { UI } from '../plugins/interfaces/UI'
 import { Application } from '../Application'
 
 import {createCards} from './browserUtils.js'
