@@ -469,7 +469,7 @@ export class GraphManager{
     }
 
     addPort = (node, port, info) => {
-        if (node.ports[port] == null){
+        if (node.ports[port] == null || node.ports[port].onUpdate == null){
             // Add Port to Node
             node.ports[port] = info
 
@@ -534,6 +534,7 @@ export class GraphManager{
                         u.meta.source = label
                         u.meta.session = applet.sessionId
                     })
+
                     if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
                     return this.runSafe(target, targetPort, input, true)
                 }
