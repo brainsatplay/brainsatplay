@@ -86,11 +86,11 @@ export class Graph{
                 let sourceType = coerceType(sP.output.type)
                 let targetType = coerceType(tP.input.type)
 
-                let checkCompatibility = (types) => {
-                    return !(types[0] != types[1] && !(types[0] === undefined || types[1] === undefined))
+                let checkCompatibility = (source,target) => {
+                    return source == target || (source === undefined || target === undefined) || (target instanceof Object && source instanceof target)
                 }
 
-                compatible = checkCompatibility([sourceType, targetType])
+                compatible = checkCompatibility(sourceType, targetType)
             }
         
         if (res === true && found == null && compatible){

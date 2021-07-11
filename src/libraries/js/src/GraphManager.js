@@ -28,7 +28,6 @@ export class GraphManager{
     }
 
     instantiateNode(nodeInfo,session=this.session){
-
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
         let toAnalyze = new Set()
@@ -52,61 +51,7 @@ export class GraphManager{
 
         if (node.ports != null){
             for (let port in node.ports){
-                node.states[port] = [{}]
-                let defaults = node.ports[port].defaults
-
-                // Send Default Outputs (forced)
-                try {
-                    if (Array.isArray(defaults.output)) {
-                        node.states[port] = defaults.output
-                        node.states[port][0].force = true
-                    }
-                    else if (defaults.output.constructor == Object && 'data' in defaults.output) {
-                        node.states[port] = [defaults.output]
-                        node.states[port][0].force = true
-                    }
-                } catch {
-                    try {
-                        if (node.ports[port].default) {
-                            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
-                            node.states[port][0].force = true
-                        }
-                    } catch {
-                        if (defaults && defaults.output) {
-                            node.states[port] = defaults.output
-                            node.states[port][0].force = true
-                        }
-                    }
-                }
-
-                // Derive Control Structure
-                let firstUserDefault= node.states[port][0]
-                if (
-                    node instanceof plugins.controls.Event
-                    // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
-                    ){
-                    let controlDict = {}
-                    controlDict.format = typeof firstUserDefault.data
-                    controlDict.label = this.getLabel(node,port) // Display Label
-                    controlDict.target = {
-                        state: node.states,
-                        port: port
-                    }
-                    controlsToBind.push(controlDict)
-                }
-                if (node.ports[port].analysis == null) node.ports[port].analysis = []
-                if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
-                
-                if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
-                if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
-
-                let coerceType = (t) => {
-                    if (t === 'float') return 'number'
-                    else if (t === 'int') return'number'
-                    else return t
-                }
-                node.ports[port].input.type = coerceType(node.ports[port].input?.type)
-                node.ports[port].output.type = coerceType(node.ports[port].output?.type)
+                controlsToBind.push(...this.instantiateNodePort(node, port))
             }
         } else {
             node.ports = {
@@ -228,9 +173,7 @@ export class GraphManager{
         if (this.registry.local[node.label] == null){
             this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
             for (let port in node.states){
-                this.registry.local[node.label].registry[port] = {}
-                this.registry.local[node.label].registry[port].state = node.states[port]
-                this.registry.local[node.label].registry[port].callbacks = []
+                this.addPortToRegistry(node,port)
             }
         }
         this.registry.local[node.label].count++
@@ -468,18 +411,117 @@ export class GraphManager{
         return applet
     }
 
-    addPort = (node, port, info) => {
-        if (node.ports[port] == null || node.ports[port].onUpdate == null){
-            // Add Port to Node
-            node.ports[port] = info
+    addPortToRegistry = (node,port) => {
+        this.registry.local[node.label].registry[port] = {}
+        this.registry.local[node.label].registry[port].state = node.states[port]
+        this.registry.local[node.label].registry[port].callbacks = []
+    }
 
-            // Add Port to Visual Editor
-            let applet = this.applets[node.app]
-            if (applet){
-                let editor = applet.editor
-                if (editor) editor.addPort(node,port)
+    instantiateNodePort = (node, port) => {
+
+        // Grab Controls
+        let controls = []
+
+        // Set Port State
+        node.states[port] = [{}]
+
+        let defaults = node.ports[port].defaults
+
+        // Send Default Outputs (forced)
+        try {
+            if (Array.isArray(defaults.output)) {
+                node.states[port] = defaults.output
+                node.states[port][0].force = true
+            }
+            else if (defaults.output.constructor == Object && 'data' in defaults.output) {
+                node.states[port] = [defaults.output]
+                node.states[port][0].force = true
+            }
+        } catch {
+            try {
+                if (node.ports[port].default) {
+                    node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
+                    node.states[port][0].force = true
+                }
+            } catch {
+                if (defaults && defaults.output) {
+                    node.states[port] = defaults.output
+                    node.states[port][0].force = true
+                }
             }
         }
+
+        // Derive Control Structure
+        let firstUserDefault= node.states[port][0]
+        if (
+            node instanceof plugins.controls.Event
+            // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
+            ){
+            let controlDict = {}
+            controlDict.format = typeof firstUserDefault.data
+            controlDict.label = this.getLabel(node,port) // Display Label
+            controlDict.target = {
+                state: node.states,
+                port: port
+            }
+            controls.push(controlDict)
+        }
+        if (node.ports[port].analysis == null) node.ports[port].analysis = []
+        if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
+        
+        if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
+        if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
+
+        let coerceType = (t) => {
+            if (t === 'float') return 'number'
+            else if (t === 'int') return'number'
+            else return t
+        }
+        node.ports[port].input.type = coerceType(node.ports[port].input?.type)
+        node.ports[port].output.type = coerceType(node.ports[port].output?.type)
+
+        return controls
+    }
+
+    addPort = (node, port, info) => {
+        if (node.states && info) { // Only if node is fully instantiated
+            if (node.ports[port] == null || node.ports[port].onUpdate == null){
+
+                // Add Port to Node
+                node.ports[port] = info
+                this.instantiateNodePort(node,port)
+                this.addPortToRegistry(node,port)
+
+                // Add Port to Visual Editor
+                let applet = this.applets[node.app?.props?.id]
+                if (applet){
+                    let editor = applet.editor
+
+                    if (editor) editor.addPort(node,port)
+                }
+            }
+        }
+    }
+
+    getTypeDict = (val) => {
+        let typeDict = {type: val}
+        if (typeDict.type != null){
+
+            // Catch Objects
+            if (typeDict.type instanceof Object) {
+
+                // Catch Arrays
+                if (Array.isArray(typeDict.type)) typeDict.type = Array
+
+                // Catch Other Object Types
+                else {
+                    typeDict.type = Object
+                    typeDict.name = val.name ?? typeDict.type.name
+                }
+            }
+            else typeDict.type = typeof typeDict.type
+        }
+        return typeDict
     }
 
     addEdge = (appId, newEdge, sendOutput=true) => {

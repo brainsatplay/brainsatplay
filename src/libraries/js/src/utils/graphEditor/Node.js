@@ -71,7 +71,7 @@ export class Node {
             let nodeType
 
             nodeType = node.ports[port][inorout].type
-            if (nodeType instanceof Object) nodeType = nodeType.name
+            if (nodeType instanceof Object) nodeType = node.ports[port][inorout].name ?? nodeType.name
             let portWrapper = document.createElement('div')
             portWrapper.classList.add(`node-port-wrapper`)
             let portElement = document.createElement('div')

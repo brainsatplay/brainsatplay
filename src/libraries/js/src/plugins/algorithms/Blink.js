@@ -12,7 +12,7 @@ export class Blink{
 
         this.ports = {
             default: {
-                input: {type: 'DataAtlas'},
+                input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
                 onUpdate: (userData) => {
                     let leftBlinks = this.session.atlas.graph.runSafe(this,'left',userData)

@@ -1101,26 +1101,31 @@ export class GraphEditor{
         let regex = new RegExp(this.search.value, 'i')
         this.searchOptions.forEach(o => {
 
-            // Check Label
-            let show = false
-            let labelMatch = regex.test(o.label)
-            if (labelMatch || o.label == 'Add New Plugin') show = true
-            
-            // Check Types
-            o.types.forEach(type => {
-                let typeMatch = regex.test(type)
-                if (typeMatch) show = true
-            })
-
             let change = 0
-
+            let show = false
             let parent = o.element.parentNode
-            if (show && o.element.style.display === 'none') {
+
+            if (this.search.value !== ''){
+                // Check Label
+                let labelMatch = regex.test(o.label)
+                if (labelMatch || o.label == 'Add New Plugin') show = true
+                
+                // Check Types
+                o.types.forEach(type => {
+                    let typeMatch = regex.test(type)
+                    if (typeMatch) show = true
+                })
+
+                if (show && o.element.style.display === 'none') {
+                    o.element.style.display = ''
+                    change = 1
+                } else if (!show && o.element.style.display !== 'none') {
+                    o.element.style.display = 'none'
+                    change = -1
+                }
+            } else if (o.element.style.display === 'none'){
                 o.element.style.display = ''
                 change = 1
-            } else if (!show && o.element.style.display !== 'none') {
-                o.element.style.display = 'none'
-                change = -1
             }
 
             let count = document.querySelector(`.${o.category}-count`)
@@ -1129,15 +1134,19 @@ export class GraphEditor{
                 count.innerHTML = numMatching
 
                 // Open/Close Dropdown
-                // if (parent.previousElementSibling){
+                if (parent.previousElementSibling){
                     if (numMatching === 0 || this.search.value === '') {
                         parent.previousElementSibling.classList.remove('active') // Close dropdown
-                        parent.style.maxHeight = 0
+                        parent.style.maxHeight = null
+
+                        // Also Show/Hide Toggle
+                        if (numMatching === 0) parent.previousElementSibling.style.display = 'none'
+                        else parent.previousElementSibling.style.display = ''
                     } else if (show) {
                         parent.previousElementSibling.classList.add("active");
                         parent.style.maxHeight = parent.scrollHeight + "px";
                     }
-                // }
+                }
             }
         })
     }
@@ -1210,11 +1219,8 @@ export class GraphEditor{
         node.onclick = () => {
             node.classList.toggle("active");
             var content = node.nextElementSibling;
-            if (content.style.maxHeight){
-                content.style.maxHeight = null;
-            } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
+            if (content.style.maxHeight) content.style.maxHeight = null; 
+            else content.style.maxHeight = content.scrollHeight + "px";
         }
     }
 
