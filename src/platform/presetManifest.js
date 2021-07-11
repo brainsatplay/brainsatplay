@@ -73,7 +73,6 @@ export let presetManifest = [
         name: "HEG Biofeedback",
         applets: [
             'Circle',
-            'Boids',
             'Audio',
             'Pulse Monitor',
         ],

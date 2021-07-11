@@ -1910,7 +1910,7 @@ void main(){
         for (let i=0; i<uniformsToUpdate.length; i++){
             let name = uniformsToUpdate[i];
             let value = material.uniforms[i];
-            console.log( name, material.uniforms[name])
+            //console.log( name, material.uniforms[name])
 
             if (material.uniforms[name] == null) material.uniforms[name] = {value:0};
 
