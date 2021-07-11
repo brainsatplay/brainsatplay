@@ -89,7 +89,6 @@ export const settings = {
         // Utilities
         {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
         {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
-        {id: 'transformer', class: brainsatplay.plugins.utilities.Transform},
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 4, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Thank You for Playing!']}},
 
         // Tree

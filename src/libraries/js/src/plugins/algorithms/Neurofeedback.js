@@ -37,7 +37,7 @@ export class Neurofeedback{
                     output: [{data: 0, meta: {label: `neurofeedback`}}]
                 },
                 types: {
-                    in: 'DataAtlas',
+                    in: {type: Object, name: 'DataAtlas'},
                     out: 'number'
                 }
             }, 

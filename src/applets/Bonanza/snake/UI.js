@@ -20,15 +20,18 @@ class UI{
 
         // Port Definition
         this.ports = {
-            default: {
-                defaults: {
-                    input: [{username: 'Username', value: 'Value', meta: {label: 'Waiting for Data'}}]
-                },
+            up: {
+                output: {type: null}
             },
-            up: {},
-            down: {},
-            left: {},
-            right: {}
+            down: {
+                output: {type: null}
+            },
+            left: {
+                output: {type: null}
+            },
+            right: {
+                output: {type: null}
+            }
         }
     }
 
@@ -137,10 +140,6 @@ const moveSnake = () => {
         let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
         canvas.width = squareLength
         canvas.height = squareLength
-    }
-
-    default = (userData) => {
-        return userData
     }
 
     up = (userData) => {

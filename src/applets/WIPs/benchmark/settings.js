@@ -32,7 +32,7 @@ export const settings = {
 
         // Set Up Your Algorithm
         {
-          source: 'eeg:data', 
+          source: 'eeg:atlas', 
           target: 'My Algorithm'
         },
         // {

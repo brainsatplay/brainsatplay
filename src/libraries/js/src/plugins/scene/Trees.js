@@ -179,7 +179,7 @@ class Trees{
         }
 
         this.ports.add.default = this.props.groups
-        this.session.graph.runSafe(this,'add',[{data: true}])
+        this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
     }
 
     deinit = () => {}

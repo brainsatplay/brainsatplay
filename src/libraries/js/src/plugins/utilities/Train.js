@@ -86,11 +86,11 @@ export class Train{
             }
         }
 
-        this.session.graph.runSafe(this,'ui',[{force: true}])
+        this.session.graph.runSafe(this,'ui',[{forceRun: true, forceUpdate: true}])
     }
 
     deinit = () => {
-        this.props.trainingOverlay.remove()
+        if (this.props.trainingOverlay) this.props.trainingOverlay.remove()
     }
 
     _createTrainingIntro = (info) => {

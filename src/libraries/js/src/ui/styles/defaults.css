@@ -967,7 +967,7 @@ select {
     /* background: rgb(255, 105, 97); */
     /* opacity: 100%; */
     background: rgb(129, 218, 250);
-    transform: scale(1.1)
+    transform: scale(1.2)
 }
 
 .node-port-container .node-port:hover {
@@ -1067,7 +1067,7 @@ select {
 }
 
   .brainsatplay-node-viewer > .edge path {
-    stroke-width: 1;
+    stroke-width: 2;
     stroke: white;
     stroke-linecap: round;
     fill: none;

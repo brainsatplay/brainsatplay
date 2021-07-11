@@ -763,7 +763,7 @@ export class GraphEditor{
                 inputContainer.style.position = 'relative'
 
                 // Sort through Params
-                if (toParse[key].show != false){
+                if (toParse[key].edit != false){
 
                 let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
                 if (typeof defaultType !== 'string') defaultType = defaultType.name
@@ -861,6 +861,7 @@ export class GraphEditor{
                     let editor
                     input.onclick = () => {
                         if (editor == null) editor = new LiveEditor(settings, container)
+                        else settings.onOpen()
                     }
                 } else {
                         input = document.createElement('input')
@@ -1244,6 +1245,15 @@ export class GraphEditor{
             }
             else this.preview.parentNode.style.height = 'auto'
         }
+
+        // Set Grid Width and Height (only get bigger...)
+        let newWidth = this.viewer.parentNode.clientWidth
+        let oldWidth = Number.parseFloat(this.viewer.style.width.replace('px',''))
+        if (oldWidth < newWidth || isNaN(oldWidth)) this.viewer.style.width = `${newWidth}px`
+        let newHeight = this.viewer.parentNode.clientHeight
+        let oldHeight = Number.parseFloat(this.viewer.style.height.replace('px',''))
+        if (oldHeight < newHeight || isNaN(oldHeight)) this.viewer.style.height = `${newHeight}px`
+
 
         if(this.graph){
             for (let key in this.graph.nodes){
