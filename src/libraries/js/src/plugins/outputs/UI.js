@@ -75,7 +75,6 @@ export class UI{
                             input: {type: 'string'},
                             output: {type: null},
                             onUpdate: (userData) => {
-                                console.log(node, userData[0].data)
                                 node.innerHTML = userData[0].data
                             }
                         })
