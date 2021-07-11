@@ -16,7 +16,7 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
 import {GraphManager} from '../../../libraries/js/src/GraphManager'
-import {Buzz} from '../../../libraries/js/src/plugins/outputs/Buzz'
+import {Buzz} from '../../../libraries/js/src/plugins/haptics/Buzz'
 
 //Import shader urls
 import vertexShader from './shaders/vertex.glsl'

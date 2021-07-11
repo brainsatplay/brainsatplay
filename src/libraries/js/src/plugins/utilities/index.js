@@ -6,6 +6,7 @@ import {Index} from './IndexClass'
 import {Scheduler} from './Scheduler'
 import {DataManager} from './DataManager'
 import {Train} from './Train'
+import {Enumerate} from './Enumerate'
 
 export {
     Brainstorm,
@@ -15,5 +16,6 @@ export {
     Index,
     Scheduler,
     DataManager,
-    Train
+    Train,
+    Enumerate
 }

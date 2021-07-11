@@ -1,5 +1,4 @@
 import { StateManager } from '../../ui/StateManager'
-// import { DataAtlas } from '../../DataAtlas'
 
 export class EEG{
     
@@ -25,7 +24,7 @@ export class EEG{
         this.ports = {
             data: {
                 input: {type:null},
-                output: {type: 'DataAtlas'},
+                output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,
                 onUpdate: () => {
                     return [{data: this.session.atlas.data}]
@@ -39,14 +38,20 @@ export class EEG{
         keys.forEach(key => {
             this.ports[key] = {
                 input: {type:null},
-                output: {type:null},
+                output: {type:Array},
                 onUpdate: (userData) => {
-                    return [{data: this.session.atlas.data.eeg[0][key]}]
+
+                    let data = []
+                    this.session.atlas.data.eeg.forEach(coord => {
+                        data.push(coord[key])
+                    })
+
+                    return [{data}]
                 }
             }
 
-            if (key === 'position') this.ports[key].output.type = 'position'
-            else this.ports[key].output.type = Array
+            // if (key === 'position') this.ports[key].output.type = 'position'
+            // else this.ports[key].output.type = Array
         })
     }
 
