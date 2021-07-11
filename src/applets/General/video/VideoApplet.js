@@ -70,6 +70,7 @@ export class VideoApplet {
                 <div id="`+props.id+`menu" style='position:absolute; z-index:4;'>
                     <button id="`+props.id+`showhide" style='' >Hide UI</button>
                     <input id="`+props.id+`fs" type="file" accept="video/*"/>
+                    <div id="${props.id}message"></div>
                     <div id="`+props.id+`timeDiv"><input id="`+props.id+`timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+props.id+`vidbar"><button id="`+props.id+`minus1min">--</button><button id="`+props.id+`minus10sec">-</button><button id="`+props.id+`play">||</button><button id="`+props.id+`plus10sec">+</button><button id="`+props.id+`plus1min">++</button></div></div> 
                     <div id="`+props.id+`vidbuttons">
@@ -78,7 +79,7 @@ export class VideoApplet {
                           <tr><td><button id="`+props.id+`useAlpha">Fade</button></td></tr> 
                           <tr><td><button id="`+props.id+`useRate">Speed</button></td></tr> 
                           <tr><td><button id="`+props.id+`useVol">Volume</button></td></tr> 
-                          <tr><td><button id="`+props.id+`useTime">Time</button></td></tr> 
+                          <tr><td><button id="`+props.id+`useTime" style='opacity:0.2;'>Time</button></td></tr> 
                         </table>
                     </div>
                 </div> 
@@ -101,6 +102,8 @@ export class VideoApplet {
             
             //document.getElementById(props.id+"stopbutton").addEventListener('click', this.stopVideo, false);
             
+            this.localFileVideoPlayer();
+
             document.getElementById(props.id+"play").onclick = () => {
                 if(this.vidQuery.playbackRate == 0){
                     if(this.useRate == true){
@@ -290,23 +293,18 @@ export class VideoApplet {
     }
    
     
-    localFileVideoPlayer() {
+    localFileVideoPlayer = () => {
         'use strict'
         var URL = window.URL || window.webkitURL;
-        var displayMessage = function (message, isError) {
-          var element = document.querySelector('#message');
-          element.innerHTML = message;
-          element.className = isError ? 'error' : 'info';
-        }
-        var playSelectedFile = function (event) {
-          var file = this.files[0];
+
+        var playSelectedFile = (event) => {
+          var file = event.target.files[0];
           var type = file.type;
           var videoNode = document.getElementById(this.props.id+'video');
           var canPlay = videoNode.canPlayType(type);
           if (canPlay === ''){ canPlay = 'no';}
           var message = 'Can play type "' + type + '": ' + canPlay;
           var isError = canPlay === 'no';
-          displayMessage(message, isError)
           if (isError) {
             return;
           }
