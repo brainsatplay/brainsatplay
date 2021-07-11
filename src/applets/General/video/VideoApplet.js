@@ -107,11 +107,11 @@ export class VideoApplet {
             document.getElementById(props.id+"play").onclick = () => {
                 if(this.vidQuery.playbackRate == 0){
                     if(this.useRate == true){
-                    this.vidQuery.playbackRate = this.playRate;
+                      this.vidQuery.playbackRate = this.playRate;
                     }
                     else {
-                    this.playRate = 1;
-                    this.vidQuery.playbackRate = 1;
+                      this.playRate = 1;
+                      this.vidQuery.playbackRate = 1;
                     }
                     document.getElementById(props.id+"play").innerHTML = "||";
                 }
