@@ -63,12 +63,12 @@ export class BoidsApplet {
                     <div>Score: <span id='`+props.id+`score'>0</span></div>
                     <button id='`+props.id+`showhide' style='opacity:0.2; z-index:2;'>Show UI</button><br>
                     <table id='`+props.id+`table' style='z-index:99; display:none;'>
-                        <tr><td>Cohesion:</td><td><input type='range' id='`+props.id+`cohesion' min="0" max="0.1" value="0.0001" step="0.0001"></td><td><button id='`+props.id+`cohesionreset'>Reset</button></td></tr>
-                        <tr><td>Separation:</td><td><input type='range' id='`+props.id+`separation' min="0" max="10" value="1" step="0.1"></td><td><button id='`+props.id+`separationreset'>Reset</button></td></tr>
-                        <tr><td>Alignment:</td><td><input type='range' id='`+props.id+`align' min="0" max="0.9" value="0.5" step="0.01"></td><td><button id='`+props.id+`alignreset'>Reset</button></td></tr>
-                        <tr><td>Swirl:</td><td><input type='range' id='`+props.id+`swirl' min="0" max="0.01" value="0.0001" step="0.0001" ></td><td><button id='`+props.id+`swirlreset'>Reset</button></td></tr>
+                        <tr><td>Cohesion:</td><td><input type='range' id='`+props.id+`cohesion' min="0" max="0.1" value="0.003" step="0.0001"></td><td><button id='`+props.id+`cohesionreset'>Reset</button></td></tr>
+                        <tr><td>Separation:</td><td><input type='range' id='`+props.id+`separation' min="0" max="1" value="0.0001" step="0.0001"></td><td><button id='`+props.id+`separationreset'>Reset</button></td></tr>
+                        <tr><td>Alignment:</td><td><input type='range' id='`+props.id+`align' min="0" max="0.05" value="0.006" step="0.001"></td><td><button id='`+props.id+`alignreset'>Reset</button></td></tr>
+                        <tr><td>Swirl:</td><td><input type='range' id='`+props.id+`swirl' min="0" max="0.01" value="0.002" step="0.0001" ></td><td><button id='`+props.id+`swirlreset'>Reset</button></td></tr>
                         <tr><td>Anchor:</td><td><input type='range' id='`+props.id+`anchor' min="0" max="0.05" value="0.003" step="0.001" ></td><td><button id='`+props.id+`anchorreset'>Reset</button></td></tr>
-                        <tr><td>Max Speed:</td><td><input type='range' id='`+props.id+`speed' min="0" max="10" value="1" step="0.1" ></td><td><button id='`+props.id+`speedreset'>Reset</button></td></tr>
+                        <tr><td>Max Speed:</td><td><input type='range' id='`+props.id+`speed' min="0" max="200" value="40" step="1" ></td><td><button id='`+props.id+`speedreset'>Reset</button></td></tr>
                         <tr><td>Gravity:</td><td><input type='range' id='`+props.id+`gravity' min="0" max="10" value="0" step="0.1"></td><td><button id='`+props.id+`gravityreset'>Reset</button></td></tr>
                     </table>
                 </div>
@@ -102,55 +102,83 @@ export class BoidsApplet {
                 showhide.style.opacity = 0.2;
             }
 
-            // document.getElementById(props.id+'cohesion').onchange = () => {
-            //     this.class.cohesionMul = document.getElementById(props.id+'cohesion').value;
-            // }
-            // document.getElementById(props.id+'cohesionreset').onclick = () => {
-            //     this.class.cohesionMul = 0.001;
-            //     document.getElementById(props.id+'cohesion').value = 0.001;
-            // }
-            // document.getElementById(props.id+'separation').onchange = () => {
-            //     this.class.separationMul = document.getElementById(props.id+'separation').value;
-            // }
-            // document.getElementById(props.id+'separationreset').onclick = () => {
-            //     this.class.separationMul = 1;
-            //     document.getElementById(props.id+'separation').value = 1;
-            // }
-            // document.getElementById(props.id+'align').onchange = () => {
-            //     this.class.alignmentMul = document.getElementById(props.id+'align').value;
-            // }
-            // document.getElementById(props.id+'alignreset').onclick = () => {
-            //     this.class.alignmentMul = 0.5;
-            //     document.getElementById(props.id+'align').value = 0.5;
-            // }
-            // document.getElementById(props.id+'swirl').onchange = () => {
-            //     this.class.swirlMul = document.getElementById(props.id+'swirl').value;
-            // }
-            // document.getElementById(props.id+'swirlreset').onclick = () => {
-            //     this.class.swirlMul = 0.0001;
-            //     document.getElementById(props.id+'swirl').value = 0.0001;
-            // }
-            // document.getElementById(props.id+'anchor').onchange = () => {
-            //     this.class.attractorMul = document.getElementById(props.id+'anchor').value;
-            // }
-            // document.getElementById(props.id+'anchorreset').onclick = () => {
-            //     this.class.attractorMul = 0.003;
-            //     document.getElementById(props.id+'anchor').value = 0.003;
-            // }
-            // document.getElementById(props.id+'speed').onchange = () => {
-            //     this.class.particleClass.settings.maxSpeed = document.getElementById(props.id+'speed').value;
-            // }
-            // document.getElementById(props.id+'speedreset').onclick = () => {
-            //     this.class.particleClass.settings.maxSpeed = 1;
-            //     document.getElementById(props.id+'speed').value = 1;
-            // }
-            // document.getElementById(props.id+'gravity').onchange = () => {
-            //     this.class.particleClass.settings.gravity = document.getElementById(props.id+'gravity').value;
-            // }
-            // document.getElementById(props.id+'gravityreset').onclick = () => {
-            //     this.class.particleClass.settings.gravity = 0;
-            //     document.getElementById(props.id+'gravity').value = 0;
-            // }
+            document.getElementById(props.id+'cohesion').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{cohesion:ev.target.value},'boid');
+                });
+            }
+            document.getElementById(props.id+'cohesionreset').onclick = () => {
+                document.getElementById(props.id+'cohesion').value = 0.003;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{cohesion:0.003},'boid');
+                });
+            }
+            document.getElementById(props.id+'separation').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{separation:ev.target.value},'boid');
+                });
+            }
+            document.getElementById(props.id+'separationreset').onclick = () => {
+                document.getElementById(props.id+'separation').value = 0.0001;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{separation:0.0001},'boid');
+                });
+            }
+            document.getElementById(props.id+'align').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{alignment:ev.target.value},'boid');
+                });
+            }
+            document.getElementById(props.id+'alignreset').onclick = () => {
+                document.getElementById(props.id+'alignment').value = 0.006;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{alignment:0.006},'boid');
+                });
+            }
+            document.getElementById(props.id+'swirl').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{mul:ev.target.value},'boid','swirl');
+                });
+            }
+            document.getElementById(props.id+'swirlreset').onclick = () => {
+                document.getElementById(props.id+'swirl').value = 0.002;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{mul:0.002},'boid','swirl');
+                });
+            }
+            document.getElementById(props.id+'anchor').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{mul:ev.target.value},'boid','attractor');
+                });
+            }
+            document.getElementById(props.id+'anchorreset').onclick = () => {
+                document.getElementById(props.id+'anchor').value = 0.003;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{mul:0.003},'boid','attractor');
+                });
+            }
+            document.getElementById(props.id+'speed').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{maxSpeed:ev.target.value});
+                });
+            }
+            document.getElementById(props.id+'speedreset').onclick = () => {
+                document.getElementById(props.id+'speed').value = 40;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{maxSpeed:40});
+                });
+            }
+            document.getElementById(props.id+'gravity').onchange = (ev) => {
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{gravity:-ev.target.value});
+                });
+            }
+            document.getElementById(props.id+'gravityreset').onclick = () => {
+                document.getElementById(props.id+'gravity').value = 0;
+                this.boids.particles.forEach((p,i)=>{
+                    this.boids.updateGroupProperties(i,{gravity:0});
+                });
+            }
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
