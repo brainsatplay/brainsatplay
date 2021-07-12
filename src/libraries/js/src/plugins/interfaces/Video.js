@@ -16,7 +16,11 @@ export class Video{
         // Create Video Player
         this.container = document.createElement('div');
         this.container.id = this.props.id
-        this.container.style.position="relative"
+        this.container.style=`
+        position: relative;
+        width: 100%;
+        height: 100%;
+        `
 
         this.container.onload = () => {
             this.setup()
@@ -317,8 +321,9 @@ export class Video{
 
     responsive = () => {
         this.props.videos.forEach(el => {
-            el.width = this.app.AppletHTML.node.clientWidth;
-            el.height = this.app.AppletHTML.node.clientHeight;
+            console.log(el.parentNode.clientWidth)
+            el.width = el.parentNode.clientWidth;
+            el.height = el.parentNode.clientHeight;
         })
             // this.c.width = this.app.AppletHTML.node.clientWidth;
             // this.c.height = this.app.AppletHTML.node.clientHeight;
