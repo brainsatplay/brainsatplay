@@ -1,3 +1,5 @@
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
+
 export const settings = {
     name: "CineMatic",
     devices: ["EEG", "HEG"],
@@ -12,8 +14,7 @@ export const settings = {
     // App Logic
     graph:
     {
-      nodes: [],
-
+      nodes: [{id:'player', class: brainsatplay.plugins.interfaces.Video}],
       edges: []
     },
 }

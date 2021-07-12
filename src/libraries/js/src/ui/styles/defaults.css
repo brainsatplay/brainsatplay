@@ -821,6 +821,7 @@ select {
     text-align: left;
 }
 
+
 .node-sidebar-content > div > div > input{
     background: black;
     color: white;
@@ -829,6 +830,10 @@ select {
     font-size: 80%;
     width: 100%;
 }
+
+/* .node-sidebar-content input[type="file"]{
+    background: none;
+} */
 
 
 .node-sidebar-content input[type="range"] {

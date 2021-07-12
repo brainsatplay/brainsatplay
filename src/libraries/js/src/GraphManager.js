@@ -114,7 +114,6 @@ export class GraphManager{
 
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
-        let instance,controls, analysis;
 
         let found = this.applets[appId].nodes.find(n => {
             if (n.id == nodeInfo.id){
@@ -269,7 +268,7 @@ export class GraphManager{
             }            
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active.out > 0 || node.ports[port].output.type === null || forceUpdate))){
+            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active?.out > 0 || node.ports[port]?.output?.type === null || forceUpdate))){
                 let result
                 if (node[port] instanceof Function) {
                     result = node[port](inputCopy)
@@ -322,7 +321,6 @@ export class GraphManager{
                         if (node.states[port].length > i){
 
                             let case1, case2
-                            console.log(o.stringify, o)
                             if (o.stringify === false){
                                 case1 = node.states[port][i]
                                 case2 = o
@@ -391,23 +389,24 @@ export class GraphManager{
 
         // Create Nodes
 
-        let edgeSetupCallbacks = []
+        let setupCallbacks = []
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
-                    this.addNode(app,nodeInfo)
+                    let o = this.addNode(app,nodeInfo)
+                    // setupCallbacks.push(o.setupFunction)
                 })
             }
 
             // Create Edges
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
-                    edgeSetupCallbacks.push(this.addEdge(id, edge, false))
+                    setupCallbacks.push(this.addEdge(id, edge, false))
                 })
             }
         }
 
-        this.applets[id].setupCallbacks = edgeSetupCallbacks
+        this.applets[id].setupCallbacks = setupCallbacks
 
         return this.applets[id]
     }
@@ -439,7 +438,7 @@ export class GraphManager{
 
         let defaults = node.ports[port].defaults
 
-        // Send Default Outputs (forced)
+        // Force Default Outputs to Next Node
         try {
             if (Array.isArray(defaults.output)) {
                 node.states[port] = defaults.output
@@ -453,13 +452,13 @@ export class GraphManager{
             }
         } catch {
             try {
-                if (node.ports[port].default) {
+                if (node.ports[port].default != null) {
                     node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
                     node.states[port][0].forceRun = true
                     node.states[port][0].forceUpdate = true
                 }
             } catch {
-                if (defaults && defaults.output) {
+                if (defaults && defaults.output != null) {
                     node.states[port] = defaults.output
                     node.states[port][0].forceRun = true
                     node.states[port][0].forceUpdate = true
