@@ -1,5 +1,5 @@
 import {DataQuality} from './DataQuality'
-import {Canvas} from '../graphics/Canvas'
+import {Canvas} from '../canvas/Canvas'
 
 export class Blink{
     
@@ -12,7 +12,7 @@ export class Blink{
 
         this.ports = {
             default: {
-                input: {type: 'DataAtlas'},
+                input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
                 onUpdate: (userData) => {
                     let leftBlinks = this.session.atlas.graph.runSafe(this,'left',userData)
@@ -130,7 +130,9 @@ export class Blink{
             ui.setupHTML()
 
             this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
-                {
+                {  
+                    forceRun: true,
+                    forceUpdate: true,
                     data: (ctx) => {
                         if (this.props.looping){
                             if (this.params.debug){

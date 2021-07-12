@@ -17,16 +17,22 @@ class UI{
 
         // Port Definition
         this.ports = {
-            default: {},
-            readout: {}, 
-            color: {}
+            default: {
+                output: {type: null}
+            },
+            readout: {
+                output: {type: null}
+            }, 
+            color: {
+                output: {type: null}
+            }
         }
     }
 
     init = () => {
         // Simply define the HTML template
-        let HTMLtemplate = () => {return `
-            <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
+        let HTMLtemplate = () => {
+            return `<div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
                 <div style="width: 80%">
                     <h1 id="${this.props.id}-label"></h1>
                     <div id="${this.props.id}-readout"></div>
@@ -85,7 +91,6 @@ class UI{
         if (Array.isArray(userData)){
             userData.forEach(u =>{
             for (let readout of coherenceReadouts){
-                // console.log(readout)
                 if (readout.id.replace(`${this.props.id}-`,'') === u.username){
                     readout.style = (u.data ? "color: red;" : "")
                 }

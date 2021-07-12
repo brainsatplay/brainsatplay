@@ -24,15 +24,15 @@ export const settings = {
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{interTrialInterval: 2}},
         {id: 'Train UI', class: Train},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
-        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'motorimagery', class: brainsatplay.plugins.models.LDA},
+        {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        {id: 'motorimagery', class: brainsatplay.plugins.machinelearning.LDA},
         {id: 'Test UI', class: Test},
       ],
       edges: [
 
         // Set Up Your Algorithm
         {
-          source: 'eeg:data', 
+          source: 'eeg:atlas', 
           target: 'My Algorithm'
         },
         // {

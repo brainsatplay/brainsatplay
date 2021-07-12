@@ -90,11 +90,11 @@ export class Object3D{
 
             // Replace Mesh if Necessary
             if (this.props.prevType != this.params.type) {
-                this.session.graph.runSafe(this,'add',[{data:true, force: true}])
+                this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
                 this.props.prevType = this.params.type
             }
         })
-        this.session.graph.runSafe(this,'add',[{data:true, force: true}])
+        this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
         this.props.prevType = this.params.type
 
         let animate = () => {

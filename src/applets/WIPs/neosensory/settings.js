@@ -21,9 +21,9 @@ export const settings = {
       {
       nodes: [
         {id: 'ui', class: UI, params: {}},
-        {id: 'buzz', class: brainsatplay.plugins.outputs.Buzz},
-        {id: 'spacebar', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'Space'}},
-        {id: 'up', class: brainsatplay.plugins.inputs.Event, params: {keycode: 'ArrowUp'}},
+        {id: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
+        {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
       ],
       edges: [
 

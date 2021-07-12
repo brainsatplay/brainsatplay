@@ -55,7 +55,7 @@ export class Scheduler{
                 input: {type:null},
                 output: {type: 'boolean'},
                 onUpdate: (userData) => { 
-                    return [{data:true, force: true}]
+                    return [{data:true, forceUpdate: true}]
                 }
             },
             update: {
@@ -139,8 +139,8 @@ export class Scheduler{
                 // Stop on Last Trial
                 if (this.props.currentTrial >= this.params.trialCount){ // Stop Loop
                     this.props.state = ''
-                    this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
-                    this.session.atlas.graph.runSafe(this,'done',[{data: true, force: true}])
+                    this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
+                    this.session.atlas.graph.runSafe(this,'done',[{forceRun: true, forceUpdate: true}])
                 }
             } 
 
@@ -148,13 +148,13 @@ export class Scheduler{
             else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
                 this.props.iti = true
-                this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
+                this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
             }
         } else {
             this._startNewTrial()
         }
 
-        this.session.atlas.graph.runSafe(this,'default', [{data: true, force: true}])
+        this.session.atlas.graph.runSafe(this,'default', [{forceRun: true, forceUpdate: true}])
         if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -163,6 +163,6 @@ export class Scheduler{
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
         this.props.state = this.params.progression[this.props.currentTrial]
-        this.session.atlas.graph.runSafe(this,'state',[{data: true, force: true}])
+        this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
     }
 }

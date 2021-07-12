@@ -1,5 +1,5 @@
 import {Blink} from '../algorithms/Blink'
-import {LDA} from '../models/LDA'
+import {LDA} from '../machinelearning/LDA'
 import {createCards} from '../../ui/browserUtils';
 import * as brainsatplay from '../../../brainsatplay'
 
@@ -86,11 +86,11 @@ export class Train{
             }
         }
 
-        this.session.graph.runSafe(this,'ui',[{force: true}])
+        this.session.graph.runSafe(this,'ui',[{forceRun: true, forceUpdate: true}])
     }
 
     deinit = () => {
-        this.props.trainingOverlay.remove()
+        if (this.props.trainingOverlay) this.props.trainingOverlay.remove()
     }
 
     _createTrainingIntro = (info) => {
@@ -105,7 +105,7 @@ export class Train{
         document.body.insertAdjacentElement('beforeend', this.props.gameOverlay)
 
         // Get Compatible Models and Games
-        let modelTypes = Object.keys(brainsatplay.plugins.models)
+        let modelTypes = Object.keys(brainsatplay.plugins.machinelearning)
         
         this.props.trainingOverlay.insertAdjacentHTML('beforeend', `<h1>${this.params.mode}</h1>`)  
 
@@ -122,7 +122,7 @@ export class Train{
             button.onclick = () => {
                 for (let child of modelContainer.children){
                     if (child === button) {
-                        selectedModel = brainsatplay.plugins.models[model]
+                        selectedModel = brainsatplay.plugins.machinelearning[model]
                         child.classList.add('selected')
                     }
                     else child.classList.remove('selected')

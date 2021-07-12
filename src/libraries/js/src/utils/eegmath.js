@@ -40,10 +40,71 @@ export class eegmath {
 		).pop();
 	}
 
+	static std(arr,mean=undefined){
+		let avg = mean; 
+		if(!mean) avg = this.mean(arr);
+		let summed = 0;
+		for(let i = 0; i<arr.length; i++) {
+			let subbed = arr[i] - avg;
+			summed += subbed*subbed;
+		}
+		
+		return Math.sqrt(summed/arr.length);
+	}
+
+	static zscore(arr){
+		let mean = this.mean(arr);
+		let std = this.std(arr,mean);
+		let z = [];
+		for (let i = 0; i<arr.length; i++) {
+			z.push((arr[i]-mean) / std);
+		}
+
+		return z;
+	}
+
 	static variance(arr) { //1D input arrays of length n
 		var mean = this.mean(arr);
 		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length;
 	}
+
+	static dot(vec1,vec2) { //nDimensional vector dot product
+        var dot=0;
+        for(var i=0; i<vec.length; i++) {
+            dot+= vec1[i]*vec2[i];
+        }
+    }
+
+    static cross3D(vec1,vec2) { //3D vector cross product
+        return [
+            vec1[1]*vec2[2]-vec1[2]*vec2[1],
+            vec1[2]*vec2[0]-vec1[0]*vec2[2],
+            vec1[0]*vec2[1]-vec1[1]*vec2[0]]
+    }
+
+    static magnitude(vec) { //nDimensional magnitude
+        var sqrd = 0;
+        vec.forEach((c) => {
+            sqrd+=c*c;
+        })
+        return Math.sqrt(sqrd)
+    }
+
+    static distance(point1, point2) { //nDimensional vector distance function
+        var dsqrd = 0;
+        point1.forEach((c,i) => {
+            dsqrd += (point2[i] - c)*(point2[i] - c);
+        })
+        return Math.sqrt(dsqrd);
+    }
+
+    static makeVec(point1,point2) {  //Make vector from two nDimensional points (arrays)
+        var vec = [];
+        point1.forEach((c,i) => {
+            vec.push(point2[i]-c);
+        })
+        return vec;
+    }
 
 	static transpose(mat){
 		return mat[0].map((_, colIndex) => mat.map(row => row[colIndex]));
@@ -62,6 +123,30 @@ export class eegmath {
 			  m[r][c] += a[r][i] * b[i][c];
 			}
 		  }
+		}
+		return m;
+	}
+
+	//Apply scalar to 2D matrix 
+	static matscale(mat,scalar) {
+		let m = [];
+		for (var i = 0; i < mat.length; i++) {
+			m[i] = [];
+			for (let j = 0; j < mat[0].length; j++) {
+				m[i][j] = mat[i][j] * scalar;
+			}
+		}
+		return m;
+	}
+
+	//2d matrix subtraction
+	static matsub(a,b) {
+		let m = [];
+		for (let i = 0; i < a.length; i++) {
+			m[i] = [];
+			for (var j = 0; j < a[0].length; j++) {
+				m[i][j] = a[i][j] - b[i][j];
+			}
 		}
 		return m;
 	}
@@ -152,6 +237,26 @@ export class eegmath {
 	//Covariance between two 1D arrays
 	static cov1d(arr1,arr2) {
 		return this.cov2d([arr1,arr2]);
+	}
+
+	//3d covariance
+	static cov3d(x,y,z) {
+		return [
+			[this.cov1d(x,x),this.cov1d(x,y),this.cov1d(x,z)],
+			[this.cov1d(y,x),this.cov1d(y,y),this.cov1d(y,z)],
+			[this.cov1d(z,x),this.cov1d(z,y),this.cov1d(z,z)]
+		];
+	}
+
+	//n-dimensional covariance matrix
+	static covNd(dimensionalData=[]) {
+		let covariance = [];
+		dimensionalData.forEach((arr,i)=>{
+			covariance.push([]);
+			dimensionalData.forEach((arr2,j)=>{
+				covariance[i].push(this.cov1d(arr,arr2));
+			});
+		});
 	}
 
 	//Simple cross correlation.
@@ -408,5 +513,143 @@ export class eegmath {
         return threshold;
     }
 
+	//-------------------------------------------------------------
+	//The following Eigenvalue/PCA Math was adapted from: https://github.com/johnmihalik/eigenvector/blob/master/pca.js
+	static column(mat, x) {
+		let col = new Array(mat.length).fill(0).map(() => new Array(1).fill(0));
+		for (let i = 0; i < mat.length; i ++) {
+			col[i][0] = mat[i][x];
+		}
+		return col;
+	}
+
+	//flatten a vector of 1-value vectors
+	static flatten_vector(v) {
+		let v_new = [];
+		for (let i = 0; i < v.length; i++) {
+			v_new[i] = v[i][0];
+		}
+		return v_new;
+	}
+
+	static squared_difference(v1, v2) {
+		let sum = 0.0;
+		for (let i = 0; i < v1.length; i ++) {
+			sum = sum + Math.pow( v1[i] - v2[i], 2 );
+		}
+		return sum;
+	}
+
+	// See: https://math.stackexchange.com/questions/768882/power-method-for-finding-all-eigenvectors
+	static shift_deflate(M, eigenvalue, eigenvector)  {
+		let len = Math.sqrt( this.matmul(this.transpose(eigenvector), eigenvector)  );
+		let U = this.matscale(eigenvector, 1.0/len);
+		let delta = this.matscale( this.matmul(U, this.transpose(U)) , eigenvalue);
+		let M_new = this.matsub(M, delta);
+		return M_new;
+	}
+
+	static eigenvalue_of_vector(M, eigenvector) {
+		// Xt * M * x
+		ev = this.matmul( this.matmul(this.transpose(eigenvector), M ), eigenvector);
+		return ev;
+	}
+
+	//Input square 2D matrix
+	static power_iteration(M, tolerance=0.00001, max_iterations=1000) {
+
+		let rank = M.length;
 	
+		// Initialize the first guess pf the eigenvector to a row vector of the sqrt of the rank
+		let eigenvector = new Array(rank).fill(0).map(() => new Array(1).fill(Math.sqrt(rank)));
+	
+		// Compute the corresponding eigenvalue
+		let eigenvalue = this.eigenvalue_of_vector(M, eigenvector);
+	
+		let epsilon = 1.0;
+		let iter = 0;
+		while (epsilon > tolerance && iter < max_iterations) {
+	
+			let old_eigenvalue = JSON.parse(JSON.stringify(eigenvalue));
+	
+			// Multiply the Matrix M by the guessed eigenveector
+			let Mv = this.matmul(M,eigenvector);
+	
+			// Normalize the eigenvector to unit length
+			eigenvector = this.normalize(Mv);
+	
+			// Calculate the associated eigenvalue with the eigenvector (transpose(v) * M * v)
+			eigenvalue = this.eigenvalue_of_vector(M, eigenvector);
+	
+			// Calculate the epsilon of the differences
+			epsilon = Math.abs( eigenvalue - old_eigenvalue);
+			iter++;
+	
+		};
+	
+		return [eigenvalue, eigenvector];
+	}
+	
+	//Input square 2D matrix
+	static eigens(M, tolerance=0.0001, max_iterations=1000) {
+
+		let eigenvalues = [];
+		let eigenvectors = [];
+	
+		for (let i = 0; i < M.length; i++ ) {
+	
+			// Compute the remaining most prominent eigenvector of the matrix M
+			let result = this.power_iteration(M, tolerance, max_iterations);
+	
+			// Separate the eigenvalue and vector from the return array
+			let eigenvalue = result[0];
+			let eigenvector = result[1];
+	
+			eigenvalues[i] = eigenvalue;
+			eigenvectors[i] = this.flatten_vector(eigenvector);
+	
+			// Now remove or peel off the last eigenvector
+			M = this.shift_deflate(M, eigenvalue, eigenvector);
+		}
+	
+		return [eigenvalues, eigenvectors];
+	}
+
+	//Input square 2D matrix. For eeg data you input a square covariance matrix of the signal data (or the z-scores of the signal data)
+	static pca(mat,tolerance = 0.00001) {
+		let dims = mat.length;
+		
+		let t = new Array(dims);
+		let p = new Array(dims);
+
+		let mat_t = this.transpose(mat);
+		t[0] = this.column(mat,0);
+		let epsilon = 1.0;
+		let iter = 0;
+		while(espilon > tolerance) {
+			iter++;
+			p[0] = this.matmul(mat_t,t[0]);
+			let tp = this.matmul(this.transpose(t[0]),t[0]);
+			p[0] = this.matscale(p[0], 1.0 / tp);
+
+			// Normalize p
+			let p_length = Math.sqrt(this.matmul(this.transpose(p[0]), p[0]));
+			p[0] = this.matscale(p[0], 1.0 / p_length);
+	
+			let t_new = this.matmul(X, p[0]);
+			let pp = this.matmul(this.transpose(p[0]), p[0]);
+			t_new = this.matscale(t_new, 1.0 / pp);
+	
+			epsilon = this.squared_difference(t[0], t_new);
+	
+			t[0] = JSON.parse(JSON.stringify(t_new));
+		}
+
+		let components = this.matmul(this.transpose(t[0]),t[0]);
+
+		return components;
+	}	
+
+	//-------------------------------------------------------------
+
 }

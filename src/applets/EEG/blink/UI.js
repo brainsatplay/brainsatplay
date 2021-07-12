@@ -17,9 +17,15 @@ class UI{
 
         // Port Definition
         this.ports = {
-            default: {},
-            left: {},
-            right: {}
+            default: {
+                output: {type: null}
+            },
+            left: {
+                output: {type: null}
+            },
+            right: {
+                output: {type: null}
+            }
         }
 
         this.sub1 = undefined;

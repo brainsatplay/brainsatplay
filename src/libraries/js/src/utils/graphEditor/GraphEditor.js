@@ -763,7 +763,7 @@ export class GraphEditor{
                 inputContainer.style.position = 'relative'
 
                 // Sort through Params
-                if (toParse[key].show != false){
+                if (toParse[key].edit != false){
 
                 let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
                 if (typeof defaultType !== 'string') defaultType = defaultType.name
@@ -861,6 +861,7 @@ export class GraphEditor{
                     let editor
                     input.onclick = () => {
                         if (editor == null) editor = new LiveEditor(settings, container)
+                        else settings.onOpen()
                     }
                 } else {
                         input = document.createElement('input')
@@ -1101,28 +1102,53 @@ export class GraphEditor{
         let regex = new RegExp(this.search.value, 'i')
         this.searchOptions.forEach(o => {
 
-            // Check Label
-            let show = false
-            let labelMatch = regex.test(o.label)
-            if (labelMatch || o.label == 'Add New Plugin') show = true
-            
-            // Check Types
-            o.types.forEach(type => {
-                let typeMatch = regex.test(type)
-                if (typeMatch) show = true
-            })
-
             let change = 0
-            if (show && o.element.style.display === 'none') {
+            let show = false
+            let parent = o.element.parentNode
+
+            if (this.search.value !== ''){
+                // Check Label
+                let labelMatch = regex.test(o.label)
+                if (labelMatch || o.label == 'Add New Plugin') show = true
+                
+                // Check Types
+                o.types.forEach(type => {
+                    let typeMatch = regex.test(type)
+                    if (typeMatch) show = true
+                })
+
+                if (show && o.element.style.display === 'none') {
+                    o.element.style.display = ''
+                    change = 1
+                } else if (!show && o.element.style.display !== 'none') {
+                    o.element.style.display = 'none'
+                    change = -1
+                }
+            } else if (o.element.style.display === 'none'){
                 o.element.style.display = ''
                 change = 1
-            } else if (!show && o.element.style.display !== 'none') {
-                o.element.style.display = 'none'
-                change = -1
             }
 
             let count = document.querySelector(`.${o.category}-count`)
-            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + change
+            if (count) {
+                let numMatching = Number.parseFloat(count.innerHTML) + change
+                count.innerHTML = numMatching
+
+                // Open/Close Dropdown
+                if (parent.previousElementSibling){
+                    if (numMatching === 0 || this.search.value === '') {
+                        parent.previousElementSibling.classList.remove('active') // Close dropdown
+                        parent.style.maxHeight = null
+
+                        // Also Show/Hide Toggle
+                        if (numMatching === 0) parent.previousElementSibling.style.display = 'none'
+                        else parent.previousElementSibling.style.display = ''
+                    } else if (show) {
+                        parent.previousElementSibling.classList.add("active");
+                        parent.style.maxHeight = parent.scrollHeight + "px";
+                    }
+                }
+            }
         })
     }
 
@@ -1194,11 +1220,8 @@ export class GraphEditor{
         node.onclick = () => {
             node.classList.toggle("active");
             var content = node.nextElementSibling;
-            if (content.style.maxHeight){
-                content.style.maxHeight = null;
-              } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-              }
+            if (content.style.maxHeight) content.style.maxHeight = null; 
+            else content.style.maxHeight = content.scrollHeight + "px";
         }
     }
 
@@ -1222,6 +1245,15 @@ export class GraphEditor{
             }
             else this.preview.parentNode.style.height = 'auto'
         }
+
+        // Set Grid Width and Height (only get bigger...)
+        let newWidth = this.viewer.parentNode.clientWidth
+        let oldWidth = Number.parseFloat(this.viewer.style.width.replace('px',''))
+        if (oldWidth < newWidth || isNaN(oldWidth)) this.viewer.style.width = `${newWidth}px`
+        let newHeight = this.viewer.parentNode.clientHeight
+        let oldHeight = Number.parseFloat(this.viewer.style.height.replace('px',''))
+        if (oldHeight < newHeight || isNaN(oldHeight)) this.viewer.style.height = `${newHeight}px`
+
 
         if(this.graph){
             for (let key in this.graph.nodes){

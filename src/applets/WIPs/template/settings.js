@@ -29,7 +29,7 @@ export const settings = {
 
       edges: [
         {
-          source: 'eeg:data', 
+          source: 'eeg:atlas', 
           target: 'neurofeedback'
         },
         { 
