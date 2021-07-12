@@ -1,8 +1,8 @@
-export class Brainstorm{
+export class Brainstorm {
 
-    static id = String(Math.floor(Math.random()*1000000))
-    
-    constructor(label, session, params={}) {
+    static id = String(Math.floor(Math.random() * 1000000))
+
+    constructor(label, session, params = {}) {
         this.label = label
         this.session = session
         this.params = params
@@ -13,8 +13,8 @@ export class Brainstorm{
 
         this.ports = {
             default: {
-                input: {type: undefined},
-                output: {type: null},
+                input: { type: undefined },
+                output: { type: null },
                 onUpdate: (userData) => {
                     // Register as New Port
                     let u = userData[0]
@@ -22,7 +22,7 @@ export class Brainstorm{
                     let sessionId = u.meta.session
 
                     // Register New Port
-                    if (port != null){
+                    if (port != null) {
                         let label = port
                         let splitId = label.split('_')
                         let sourceName = splitId[0]
@@ -31,59 +31,60 @@ export class Brainstorm{
                         // Register New Port
                         this.session.graph.addPort(
                             this,
-                            port, 
+                            port,
                             {
-                                input: {type: null},
-                                output: {type: undefined},
+                                input: { type: null },
+                                output: { type: undefined },
                                 onUpdate: (userData) => {
                                     return userData // Pass through to update state data and trigger downstream nodes
                                 }
                             }
                         )
-                    // Subscribe in Session
-                    if (sessionId != null){
-                        if (this.props.subscriptions[label] == null){
-                            if (this.props.subscriptions[label] == null) this.props.subscriptions[label] = []
 
-                            let found = this.session.graph.findStreamFunction(label)
-                
-                            if (found == null) {
-                
-                                let _brainstormCallback = (userData) => {
-                                    this.session.graph.registry.local[sourceName].registry[sourcePort].callbacks.forEach((f,i) => {
-                                        if (f instanceof Function) f(userData)
+                        // Subscribe in Session
+                        if (sessionId != null) {
+                            if (this.props.subscriptions[label] == null) {
+                                if (this.props.subscriptions[label] == null) this.props.subscriptions[label] = []
+
+                                let found = this.session.graph.findStreamFunction(label)
+
+                                if (found == null) {
+
+                                    let _brainstormCallback = (userData) => {
+                                        this.session.graph.registry.local[sourceName].registry[sourcePort].callbacks.forEach((f, i) => {
+                                            if (f instanceof Function) f(userData)
+                                        })
+                                    }
+
+                                    // Create Brainstorm Stream
+                                    let subId1 = this.session.streamAppData(label, this.session.graph.registry.local[sourceName].registry[sourcePort].state, sessionId, () => { })
+                                    this.props.subscriptions[label].push({ id: subId1, target: null })
+
+                                    // Get Changed Session Data
+                                    let subId2 = this.session.state.subscribe(sessionId, (sessionInfo) => {
+                                        let returned = this._getBrainstormData(label, sessionId)
+                                        let copy = this.session.graph.runSafe(this, label, returned)
+                                        _brainstormCallback(copy)
                                     })
+
+                                    this.props.subscriptions[label].push({ id: subId2, target: null })
                                 }
-
-                                // Create Brainstorm Stream
-                                let subId1 = this.session.streamAppData(label, this.session.graph.registry.local[sourceName].registry[sourcePort].state, sessionId,()=>{})
-                                this.props.subscriptions[label].push({id: subId1, target: null})
-
-                                // Get Changed Session Data
-                                let subId2 = this.session.state.subscribe(sessionId, (sessionInfo) => {
-                                    let returned = this._getBrainstormData(label, sessionId)
-                                    let copy = this.session.graph.runSafe(this,label,returned)
-                                    _brainstormCallback(copy)
-                                })
-
-                                this.props.subscriptions[label].push({id: subId2, target: null})
-                            } 
-                        } 
+                            }
                         }
-                    } 
+                    }
                 }
             }
         }
     }
 
-    init = () => {}
+    init = () => { }
 
-    deinit = () => {}
+    deinit = () => { }
 
     _getBrainstormData(label, sessionId) {
-        if (label && sessionId){
-            label = label.replace('brainstorm_','')
-            let brainstorm = this.session.getBrainstormData(sessionId,[label], 'app', 'plugin')
+        if (label && sessionId) {
+            label = label.replace('brainstorm_', '')
+            let brainstorm = this.session.getBrainstormData(sessionId, [label], 'app', 'plugin')
             return brainstorm
         }
     }

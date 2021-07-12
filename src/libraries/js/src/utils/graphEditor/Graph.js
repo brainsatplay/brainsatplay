@@ -87,6 +87,7 @@ export class Graph{
                 let targetType = coerceType(tP.input.type)
 
                 let checkCompatibility = (source,target) => {
+                    console.log(source,target)
                     return source == target || (source === undefined || target === undefined) || (target instanceof Object && source instanceof target)
                 }
 

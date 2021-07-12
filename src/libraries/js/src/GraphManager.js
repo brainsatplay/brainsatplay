@@ -406,10 +406,6 @@ export class GraphManager{
         if (applet){
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
-            // Listen for Updates on Multiplayer Edges
-            applet.edges.forEach((edge,i) => {
-                this._subscribeToBrainstorm(edge, appId)
-            })
         }
 
         return applet
@@ -494,6 +490,8 @@ export class GraphManager{
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated
             if (node.ports[port] == null || node.ports[port].onUpdate == null){
+
+                console.log('adding port')
 
                 // Add Port to Node
                 node.ports[port] = info
@@ -598,11 +596,6 @@ export class GraphManager{
             // Register Brainstorm State
             if (target instanceof plugins.utilities.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
-
-                // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
-                this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
-                    _onTriggered(trigger) // Trigger Downstream Changes
-                })
 
                 // Initialize Port
                 if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
@@ -788,38 +781,6 @@ export class GraphManager{
             this.applets[appId].analysis.dynamic.splice(i,1)
         })
         this.updateApp(appId)
-    }
-
-    // Internal Methods
-    _subscribeToBrainstorm(edge, appId){
-
-        let applet = this.applets[appId]
-        let splitSource = edge.source.split(':')
-        let sourceName = splitSource[0]
-        let sourcePort = splitSource[1]
-        if (sourcePort == null) sourcePort = 'default'
-
-        let sourceInfo = applet.nodes.find(n => {
-            if (n.id == sourceName) return true
-        })
-        let source = sourceInfo.instance
-        let splitTarget = edge.target.split(':')
-        let targetName = splitTarget[0]
-        let targetPort = splitTarget[1]
-        if (targetPort == null) targetPort = 'default'
-
-        let targetInfo = applet.nodes.find(n => {
-            if (n.id == targetName) return true
-        })
-
-        let target = targetInfo.instance
-        let label = this.getLabel(source,sourcePort)
-
-        if (target instanceof plugins.utilities.Brainstorm) {
-            source.states[sourcePort][0].meta.source = label
-            source.states[sourcePort][0].meta.session = applet.sessionId
-            this.runSafe(target, 'default', source.states[sourcePort], true) // Activate Port Subscriptions
-        }
     }
 
     // Create a Node Editor
