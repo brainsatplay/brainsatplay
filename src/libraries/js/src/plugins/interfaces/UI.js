@@ -53,7 +53,7 @@ export class UI{
                         // Insert Fragment
                         this.props.fragments[u.meta.source] = new DOMFragment(
                             dict.HTMLtemplate,
-                            this.props.content,
+                            this.props.container,
                             undefined,
                             dict.setupHTML
                         )
@@ -66,10 +66,10 @@ export class UI{
         // Dynamically Add Ports
         let ports = [
             {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: ``, onUpdate: (userData) => {
-                this.props.content.innerHTML = userData[0].data
+                this.props.container.innerHTML = userData[0].data
 
                 // Create ID Ports
-                var descendants = this.props.content.querySelectorAll("*");
+                var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
@@ -129,15 +129,15 @@ export class UI{
 
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-        this.props.container.style= `
-            width: 100%;
-            height: 100%;
-        `
-        this.props.content = document.createElement('div')
-        this.props.content.id = `${this.props.id}content`
-        this.props.content.classList.add('brainsatplay-ui-container')
-        this.props.container.insertAdjacentElement('beforeend', this.props.content)
-        this.props.content.style = this.params.containerStyle
+        // this.props.container.style= `
+        //     width: 100%;
+        //     height: 100%;
+        // `
+        // this.props.content = document.createElement('div')
+        // this.props.content.id = `${this.props.id}content`
+        this.props.container.classList.add('brainsatplay-ui-container')
+        // this.props.container.insertAdjacentElement('beforeend', this.props.content)
+        this.props.container.style = this.params.containerStyle
         
         // Create Stylesheet
         let HTMLtemplate = this.props.container
