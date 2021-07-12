@@ -14,7 +14,27 @@ export const settings = {
     // App Logic
     graph:
     {
-      nodes: [{id:'player', class: brainsatplay.plugins.interfaces.Video}],
-      edges: []
+      nodes: [
+        {id:'player', class: brainsatplay.plugins.interfaces.Video},
+        {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+          html: `<div id="vidContainer" class="video-container"></div>`,
+          style: `
+          .brainsatplay-ui-container {
+            width: 100%;
+            height: 100%;
+          }
+          
+          .video-container {
+            width: 100%;
+            height: 100%;
+          }
+          `
+        }}
+
+      ],
+      edges: [{
+        source: 'player:element',
+        target: 'ui:vidContainer'
+      }]
     },
 }

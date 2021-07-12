@@ -7,16 +7,30 @@ export class Video{
         this.session = session
         this.params = params
 
+        this.props = {
+            id: String(Math.floor(Math.random()*1000000))
+        };
+
+        // Create Video Player
+        this.container = document.createElement('div');
+        this.container.id = this.props.id
+        this.container.style.position="relative"
+
+        this.container.onload = () => {
+            this.setup()
+            this.responsive()
+        }
+
+        this.vidQuery = document.createElement('video')
+        this.vidQuery.type = 'video/mp4'
+        this.vidQuery.width = '100%'
+        this.vidQuery.height = '100%'
+        this.vidQuery.muted = true
+        this.vidQuery.loop = true
+        this.vidQuery.autoplay = true
+        this.container.insertAdjacentElement('beforeend', this.vidQuery)
+
         this.ports = {
-            // default: {
-            //     input: {type: undefined},
-            //     output: {type: null},
-            //     onUpdate: (userData) => {
-            //         userData.forEach((u,i) => {
-            //             console.log(u.username,u.data,u.meta,u)
-            //         })
-            //     }
-            // },
             url: {
                 default: 'https://vjs.zencdn.net/v/oceans.mp4',
                 input: {type: 'string'},
@@ -26,11 +40,20 @@ export class Video{
                 }
             },
             file: {
-                input: {type: 'file'},
+                input: {type: 'file', accept: "video/*"},
                 output: {type: null},
                 onUpdate: (userData) => {
                     this.params.file = userData[0].data
                     this.startFile(this.params.file)
+                }
+            },
+            element: {
+                input: {type: null},
+                output: {type: Element},
+                default: this.container,
+                onUpdate: () => {
+                    this.params.element = this.container
+                    return this.container
                 }
             },
         }
@@ -101,17 +124,11 @@ export class Video{
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    console.log(o.name, this.params[o.name])
                     this.params[o.name] = userData[0].data
                     o.onUpdate()
                 }
             }
         })
-
-        this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
-            id: String(Math.floor(Math.random()*1000000)), //Keep random ID
-            //Add whatever else
-        };
 
         this.looping = false;
 
@@ -139,10 +156,8 @@ export class Video{
     init = () => {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
-        let HTMLtemplate = () => { 
-            return `
-            <div id="`+this.props.id+`">
-                <div id="`+this.props.id+`menu" style='position:absolute; z-index:4;'>
+        this.container.insertAdjacentHTML('beforeend',`
+                <div id="`+this.props.id+`menu" style='position:absolute; z-index:4; top: 0; left: 0'>
                     <button id="`+this.props.id+`showhide" style='' >Hide UI</button>
                     <input id="`+this.props.id+`fs" type="file" accept="video/*"/>
                     <div id="${this.props.id}message"></div>
@@ -158,129 +173,124 @@ export class Video{
                         </table>
                     </div>
                 </div> 
-                <canvas id="`+this.props.id+`canvas" height=100% width=100% style='position:absolute; z-index:2;'></canvas>
-                <video id="`+this.props.id+`video" src="${this.params.url}" style="z-index:1;" type="video/mp4" height=100% width=100% autoplay loop muted></video> 
+                <canvas id="`+this.props.id+`canvas" height=100% width=100% style='position:absolute; z-index:2; top: 0; left: 0'></canvas>
             </div> 
-          `;
-        }
+          `
+        )
 
-        //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
-        let setupHTML = () => {
-            this.vidQuery = document.getElementById(this.props.id+'video');
-            this.c = document.getElementById(this.props.id+'canvas');
-            this.gl = this.c.getContext("webgl");
-            this.timeSlider = document.getElementById(this.props.id+"timeSlider");
-                
-            //document.getElementById(this.props.id+"startbutton").addEventListener('click', this.startVideo, false);
-            
-            //document.getElementById(this.props.id+"stopbutton").addEventListener('click', this.stopVideo, false);
-            
-            this.localFileVideoPlayer();
-
-            document.getElementById(this.props.id+"play").onclick = () => {
-                if(this.vidQuery.playbackRate == 0){
-                    if(this.params.speed == true){
-                      this.vidQuery.playbackRate = this.playRate;
-                    }
-                    else {
-                      this.playRate = 1;
-                      this.vidQuery.playbackRate = 1;
-                    }
-                    document.getElementById(this.props.id+"play").innerHTML = "||";
-                }
-                else{
-                    this.vidQuery.playbackRate = 0;
-                    document.getElementById(this.props.id+"play").innerHTML = ">";
-                }
-            }
-            
-            document.getElementById(this.props.id+"useAlpha").onclick = () => {
-                this.session.graph.runSafe(this,'fade',[{data: !this.params.fade}])
-            }
-
-            document.getElementById(this.props.id+"useRate").onclick = () => {
-                this.session.graph.runSafe(this,'speed',[{data: !this.params.speed}])
-            }
-
-            document.getElementById(this.props.id+"useVol").onclick = () => {
-                this.session.graph.runSafe(this,'volume',[{data: !this.params.volume}])
-            }
-
-            document.getElementById(this.props.id+"useTime").onclick = () => {
-                this.session.graph.runSafe(this,'time',[{data: !this.params.time}])
-            }
-            document.getElementById(this.props.id+"useTime").click() // Auto-off
-
-            this.timeSlider.addEventListener("change", () => {
-            // Calculate the new time
-                var time = this.vidQuery.duration * (this.timeSlider.value / 1000);
-            
-            // Update the video time
-                this.vidQuery.currentTime = time;
-            });
-
-            this.timeSlider.onmousedown = () => {
-                this.sliderfocus = true;
-            }
-
-            this.timeSlider.ontouchstart = () => {
-                this.sliderfocus = true;
-            }
-
-            this.timeSlider.onchange = () => {
-                this.sliderfocus = false;
-            }
-
-            document.getElementById(this.props.id+"minus1min").onclick = () => {
-                this.vidQuery.currentTime -= 60;
-            }
-            document.getElementById(this.props.id+"plus1min").onclick = () => {
-                this.vidQuery.currentTime += 60;
-            }
-            document.getElementById(this.props.id+"minus10sec").onclick = () => {
-                this.vidQuery.currentTime -= 10;
-            }
-            document.getElementById(this.props.id+"plus10sec").onclick = () => {
-                this.vidQuery.currentTime += 10;
-            }
-
-            document.getElementById(this.props.id+"showhide").onclick = () => {
-                if(this.hidden == false) {
-                    this.hidden = true;
-                    document.getElementById(this.props.id+"showhide").innerHTML = "Show UI";
-                    document.getElementById(this.props.id+"vidbuttons").style.display = "none";
-                    document.getElementById(this.props.id+"timeDiv").style.display = "none";
-                    document.getElementById(this.props.id+"fs").style.display = "none";
-                }
-                else{
-                    this.hidden = false;
-                    document.getElementById(this.props.id+"showhide").innerHTML = "Hide UI";
-                    document.getElementById(this.props.id+"vidbuttons").style.display = "";
-                    document.getElementById(this.props.id+"timeDiv").style.display = "";
-                    document.getElementById(this.props.id+"fs").style.display = "";
-                }
-            }
-
-            this.looping = true;
-            this.initVideo();
-        }
-
-        return {HTMLtemplate, setupHTML}
+        window.addEventListener('resize', this.responsive)
     }
 
     deinit = () => {
         this.looping = false;
+        window.removeEventListener('resize', this.responsive)
         this.stopVideo();
-        //document.getElementById(this.props.id+"startbutton").removeEventListener('click', this.startVideo);
-        //document.getElementById(this.props.id+"stopbutton").removeEventListener('click', this.stopVideo);
         cancelAnimationFrame(this.animationId);
     }
 
+    setup = () => {
+        this.vidQuery.src = this.params.url
+        this.c = document.getElementById(this.props.id+'canvas');
+        this.gl = this.c.getContext("webgl");
+        this.timeSlider = document.getElementById(this.props.id+"timeSlider");
+            
+        this.localFileVideoPlayer();
+
+        document.getElementById(this.props.id+"play").onclick = () => {
+            if(this.vidQuery.playbackRate == 0){
+                if(this.params.speed == true){
+                  this.vidQuery.playbackRate = this.playRate;
+                }
+                else {
+                  this.playRate = 1;
+                  this.vidQuery.playbackRate = 1;
+                }
+                document.getElementById(this.props.id+"play").innerHTML = "||";
+            }
+            else{
+                this.vidQuery.playbackRate = 0;
+                document.getElementById(this.props.id+"play").innerHTML = ">";
+            }
+        }
+        
+        document.getElementById(this.props.id+"useAlpha").onclick = () => {
+            this.session.graph.runSafe(this,'fade',[{data: !this.params.fade}])
+        }
+
+        document.getElementById(this.props.id+"useRate").onclick = () => {
+            this.session.graph.runSafe(this,'speed',[{data: !this.params.speed}])
+        }
+
+        document.getElementById(this.props.id+"useVol").onclick = () => {
+            this.session.graph.runSafe(this,'volume',[{data: !this.params.volume}])
+        }
+
+        document.getElementById(this.props.id+"useTime").onclick = () => {
+            this.session.graph.runSafe(this,'time',[{data: !this.params.time}])
+        }
+        document.getElementById(this.props.id+"useTime").click() // Auto-off
+
+        this.timeSlider.addEventListener("change", () => {
+        // Calculate the new time
+            var time = this.vidQuery.duration * (this.timeSlider.value / 1000);
+        
+        // Update the video time
+            this.vidQuery.currentTime = time;
+        });
+
+        this.timeSlider.onmousedown = () => {
+            this.sliderfocus = true;
+        }
+
+        this.timeSlider.ontouchstart = () => {
+            this.sliderfocus = true;
+        }
+
+        this.timeSlider.onchange = () => {
+            this.sliderfocus = false;
+        }
+
+        document.getElementById(this.props.id+"minus1min").onclick = () => {
+            this.vidQuery.currentTime -= 60;
+        }
+        document.getElementById(this.props.id+"plus1min").onclick = () => {
+            this.vidQuery.currentTime += 60;
+        }
+        document.getElementById(this.props.id+"minus10sec").onclick = () => {
+            this.vidQuery.currentTime -= 10;
+        }
+        document.getElementById(this.props.id+"plus10sec").onclick = () => {
+            this.vidQuery.currentTime += 10;
+        }
+
+        document.getElementById(this.props.id+"showhide").onclick = () => {
+            if(this.hidden == false) {
+                this.hidden = true;
+                document.getElementById(this.props.id+"showhide").innerHTML = "Show UI";
+                document.getElementById(this.props.id+"vidbuttons").style.display = "none";
+                document.getElementById(this.props.id+"timeDiv").style.display = "none";
+                document.getElementById(this.props.id+"fs").style.display = "none";
+            }
+            else{
+                this.hidden = false;
+                document.getElementById(this.props.id+"showhide").innerHTML = "Hide UI";
+                document.getElementById(this.props.id+"vidbuttons").style.display = "";
+                document.getElementById(this.props.id+"timeDiv").style.display = "";
+                document.getElementById(this.props.id+"fs").style.display = "";
+            }
+        }
+
+        this.looping = true;
+        this.initVideo();
+    }
+
     responsive = () => {
-        this.vidQuery.width = this.app.AppletHTML.node.clientWidth;
-        this.vidQuery.height = this.app.AppletHTML.node.clientHeight;
-        this.c.width = this.app.AppletHTML.node.clientWidth;
-        this.c.height = this.app.AppletHTML.node.clientHeight;
+        // if (this.app.AppletHTML){
+            this.vidQuery.width = this.app.AppletHTML.node.clientWidth;
+            this.vidQuery.height = this.app.AppletHTML.node.clientHeight;
+            this.c.width = this.app.AppletHTML.node.clientWidth;
+            this.c.height = this.app.AppletHTML.node.clientHeight;
+        // }
     }
 
     startVideo = () => {
@@ -297,8 +307,7 @@ export class Video{
         var URL = window.URL || window.webkitURL;
         if (file){
             var type = file.type;
-            var videoNode = document.getElementById(this.props.id+'video');
-            var canPlay = videoNode.canPlayType(type);
+            var canPlay = this.vidQuery.canPlayType(type);
             if (canPlay === ''){ canPlay = 'no';}
             var message = 'Can play type "' + type + '": ' + canPlay;
             var isError = canPlay === 'no';
@@ -307,7 +316,7 @@ export class Video{
             }
         }
         var fileURL = URL.createObjectURL(file);
-        videoNode.src = fileURL;
+        this.vidQuery.src = fileURL;
     }
    
     
@@ -372,7 +381,7 @@ export class Video{
         }
       }
       
-      animateRect = () => {
+      animate = () => {
         if(this.looping === true) {
           if((this.sliderfocus == false)) {
             this.timeSlider.value = Math.floor(1000 * this.vidQuery.currentTime / this.vidQuery.duration);
@@ -394,7 +403,7 @@ export class Video{
 
           this.gl.clearColor(0,0,0.01,this.alpha);
           this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-          setTimeout(()=>{this.animationId = requestAnimationFrame(this.animateRect);},15); 
+          setTimeout(()=>{this.animationId = requestAnimationFrame(this.animate);},15); 
         }
       }
 
@@ -411,8 +420,7 @@ export class Video{
             var rect = this.vidQuery.getBoundingClientRect();
             this.gl.clearColor(0,0,0.1,0);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    
-            this.animateRect();
+            this.animate();
        }
 
 }

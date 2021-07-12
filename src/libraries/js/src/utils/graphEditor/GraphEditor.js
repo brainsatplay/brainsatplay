@@ -449,7 +449,6 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
-            console.log(this.app)
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
         }
@@ -860,7 +859,7 @@ export class GraphEditor{
                     
                     input = document.createElement('input')
                     input.type = 'file'
-                    input.accept = "video/*"
+                    input.accept = toParse[key].input?.accept // Only in new format
                     input.style.display = 'none'
 
                     let button = document.createElement('button')

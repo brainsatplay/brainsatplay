@@ -15,7 +15,8 @@ export class UI{
             context: null,
             drawFunctions: {},
             looping: false,
-            fragments: {}
+            fragments: {},
+            onload: [],
         }
 
         this.ports = {
@@ -75,13 +76,24 @@ export class UI{
                             input: {type: undefined},
                             output: {type: null},
                             onUpdate: (userData) => {
-                                node.innerHTML = String(userData[0].data)
+                                let data = userData[0].data
+                                if (data instanceof Function) data = data()
+
+                                node.innerHTML = ''
+                                if (
+                                    typeof data === "object" ? data instanceof HTMLElement : //DOM2
+                                    data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
+                                ) {
+                                    node.insertAdjacentElement('beforeend', data)
+                                    setTimeout(() => {data.onload()},100) // Wait a bit for onload functions to ensure element has been added
+                                }
+                                else node.insertAdjacentHTML('beforeend', String(data))
                             }
                         })
                     }
                 }
             }}, 
-            {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
+            // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: ``, onUpdate: (userData) => {
                 if (this.props.style == null){
                     this.props.style = document.createElement('style')
@@ -107,7 +119,9 @@ export class UI{
                     o.onUpdate(userData)
                 }
             }
-            })
+            
+            if (o.edit === false) this.ports[o.key].edit = false
+        })
 
     }
 
