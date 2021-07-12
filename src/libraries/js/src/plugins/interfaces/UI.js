@@ -30,7 +30,7 @@ export class UI{
              opacity: {
                 input: {type:'number'},
                 output: {type: null},
-                default: 0,
+                default: 1,
                 min: 0,
                 max: 1,
                 step: 0.01,
@@ -72,10 +72,10 @@ export class UI{
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
-                            input: {type: 'string'},
+                            input: {type: undefined},
                             output: {type: null},
                             onUpdate: (userData) => {
-                                node.innerHTML = userData[0].data
+                                node.innerHTML = String(userData[0].data)
                             }
                         })
                     }
@@ -97,16 +97,18 @@ export class UI{
         ]
 
         ports.forEach(o => {
-            this.session.graph.addPort(this,o.key, {
+
+            this.ports[o.key] = {
                 input: o.input,
                 output: o.output,
                 default: o.default,
                 onUpdate: (userData) => {
                     this.params[o.key] = userData[0].data
                     o.onUpdate(userData)
-                },
+                }
+            }
             })
-        })
+
     }
 
     init = () => {
@@ -115,6 +117,7 @@ export class UI{
         this.props.container.id = this.props.id
         this.props.content = document.createElement('div')
         this.props.content.id = `${this.props.id}content`
+        this.props.content.classList.add('brainsatplay-ui-container')
         this.props.container.insertAdjacentElement('beforeend', this.props.content)
         this.props.content.style = this.params.containerStyle
         

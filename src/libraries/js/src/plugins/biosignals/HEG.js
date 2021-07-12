@@ -21,7 +21,7 @@ export class HEG{
         }
 
         this.ports = {
-            data: {
+            atlas: {
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,

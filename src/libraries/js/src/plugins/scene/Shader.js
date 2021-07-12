@@ -19,7 +19,7 @@ export class Shader{
                 input: {type: null},
                 output: {type: 'glsl'},
                 onUpdate: () => {
-                    return [{data: this.params.glsl, force: true, meta: {label: this.label, uniforms: this.props.uniforms}}]
+                    return [{data: this.params.glsl, meta: {label: this.label, uniforms: this.props.uniforms}}]
                 }
             },
             set: {
@@ -30,7 +30,7 @@ export class Shader{
                     if (typeof u.data === 'string'){
                         this.params.glsl = u.data
                         this._setDynamicPorts(this.params.glsl)
-                        this.session.graph.runSafe(this,'default',[{data:true, force: true}])
+                        this.session.graph.runSafe(this,'default',[{forceRun: true, forceUpdate: true}])
                     }
                 }
             }
@@ -39,7 +39,7 @@ export class Shader{
 
     init = () => {
         if (this.params.uniforms) this.props.uniforms = this.params.uniforms
-        this.session.graph.runSafe(this,'set',[{data:this.params.glsl}])
+        this.session.graph.runSafe(this,'set',[{data:this.params.glsl, forceUpdate: true}])
     }
 
     deinit = () => {}
@@ -57,15 +57,16 @@ export class Shader{
     _setPort = (match) => {
         let name = match[2]
         let type = match[1]
+        
         // Set Port
-        this.ports[name] = {
+        this.session.graph.addPort(this,name, {
             input: {type},
             default: this.props.uniforms[name]?.value,
             output: {type: null},
             onUpdate: (userData) => {
                 this.props.uniforms[name].value = userData[0].data // Passed by reference at the beginning
             }
-        }
+        })
 
         // Set Param
         this.params[name] = this.props.uniforms[name]?.value

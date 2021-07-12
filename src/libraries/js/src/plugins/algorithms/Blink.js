@@ -130,7 +130,9 @@ export class Blink{
             ui.setupHTML()
 
             this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
-                {
+                {  
+                    forceRun: true,
+                    forceUpdate: true,
                     data: (ctx) => {
                         if (this.props.looping){
                             if (this.params.debug){

@@ -35,8 +35,9 @@ class UI {
 
         // Port Definition
         this.ports = {
-            default: {},
-            paddle: {}
+            paddle: {
+                output: {type: null}
+            }
         }
     }
 
@@ -208,10 +209,6 @@ class UI {
             this.props.canvas.height = container.offsetHeight
 
         }
-    }
-
-    default = (userData) => {
-        return userData
     }
 
     paddle = (userData) => {

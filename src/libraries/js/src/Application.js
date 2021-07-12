@@ -93,8 +93,8 @@ export class Application{
             this.info.graph = copiedSettings.graph // Replace settings
         }
 
-        replace = (info=this.info,parentNode=this.parent,session=this.session, settings=this.settings) => {
-            this._setCoreAttributes(info, parentNode,session, settings)
+        replace = (info=this.info,parentNode=this.parentNode,session=this.session, settings=this.settings) => {
+            this._setCoreAttributes(info, parentNode, session, settings)
             this.deinit(true)
             this.init()
         }

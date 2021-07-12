@@ -24,15 +24,8 @@ export class Breath{
             capture: new BreathCapture(),
             state: new StateManager()
         }
-    }
 
-    init = () => {
-        this.props.capture.analyze()
-        this.props.capture.connectMic()
-
-        // Fire on State Updates
         for (let port in this.props.capture.output){
-
             let type
             let isArray = Array.isArray(this.props.capture.output[port])
             if (isArray) type = Array
@@ -50,6 +43,11 @@ export class Breath{
                 this.session.graph.runSafe(this, port, [{data: true}])
             })
         }
+    }
+
+    init = () => {
+        this.props.capture.analyze()
+        this.props.capture.connectMic()
     }
 
     deinit = () => {

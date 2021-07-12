@@ -35,7 +35,7 @@ export class Sine{
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{data:true, force: true}])
+                this.session.graph.runSafe(this,'default',[{forceRun: true}])
                 setTimeout(animate,1000/Number.parseFloat(this.params.rate))
             }
         }

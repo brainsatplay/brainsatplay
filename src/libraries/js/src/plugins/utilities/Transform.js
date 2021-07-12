@@ -7,73 +7,106 @@ export class Transform{
         this.session = session
         this.params = params
 
+        this.props = {
+            input: []
+        }
+
         this.ports = {
-            value: {
+            input: {
+                edit: false,
                 default: 0,
-                input: {type: 'number'},
+                input: {type: undefined},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.params.value = userData[0].data
+                    this.props.input = userData
+                    this.session.graph.runSafe(this,'not',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'toFloat',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'sum',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'mean',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'add',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'subtract',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'multiply',[{forceRun: true}])
+                    this.session.graph.runSafe(this,'divide',[{forceRun: true}])
                 }
             },
 
             not: {
+                edit: false,
                 default: 0,
-                input: {type: 'boolean'},
+                input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
+                onUpdate: () => {
+                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    return inputCopy.map(u => {
                         u.data = !u.data
+                        return u
                     })
-                    return userData
-                }
+                },
             },
 
             toFloat: {
+                edit: false,
                 default: 0,
-                input: {type: undefined},
+                input: {type: null},
                 output: {type: 'number'},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
+                onUpdate: () => {
+                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    return inputCopy.map(u => {
                         u.data = this._parseProperFormat(u.data)
+                        return u
                     })
-                    return userData
                 }
             },
 
             add: {
-                types: {
-                    in: 'number',
-                    out: 'number',
+                default: 0,
+                input: {type: 'number'},
+                output: {type: 'number'},
+                onUpdate: (userData) => {
+                    if (userData[0].data) this.params.add = userData[0].data
+            
+                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    return inputCopy.map(u => {
+                        let wasArray = Array.isArray(u.data)
+                        if (!wasArray) u.data = [u.data]
+                        u.data = u.data.map(v => v += this._parseProperFormat(this.params.add))
+                        if (!wasArray) u.data = u.data[0]
+                        return u
+                    })
                 }
             },
             subtract: {
+                default: 0,
                 types: {
                     in: 'number',
                     out: 'number',
                 }
             },
             multiply: {
+                default: 0,
                 types: {
                     in: 'number',
                     out: 'number',
                 }
             },
             divide: {
+                default: 0,
                 types: {
                     in: 'number',
                     out: 'number',
                 }
             },
             mean: {
+                edit: false,
                 types: {
-                    in: Array,
+                    in: null,
                     out: 'number',
                 }
             },
             sum: {
+                edit: false,
                 types: {
-                    in: Array,
+                    in: null,
                     out: 'number',
                 }
             }
@@ -84,54 +117,64 @@ export class Transform{
 
     deinit = () => {}
 
-    add = (userData) => {
-        userData.forEach(u => {
+    subtract = (userData) => {
+        if (userData[0].data) this.params.subtract = userData[0].data
+        let inputCopy = this.session.graph.deeperCopy(this.props.input)
+
+        inputCopy.forEach(u => {
             let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
-            u.data = u.data.map(v => v += this._parseProperFormat(this.params.value))
+            u.data = u.data.map(v => v -= this._parseProperFormat(this.params.subtract))
             if (!wasArray) u.data = u.data[0]
         })
-        return userData
-    }
 
-    subtract = (userData) => {
-        userData.forEach(u => {
-        let wasArray = Array.isArray(u.data)
-            if (!wasArray) u.data = [u.data]
-            userData.forEach(u => {u.data = u.data.map(v => v -= this._parseProperFormat(this.params.value))})
-            if (!wasArray) u.data = u.data[0]
-        })
-        return userData
+        return inputCopy
     }
 
     multiply = (userData) => {
-        userData.forEach(u => {
-        let wasArray = Array.isArray(u.data)
-        if (!wasArray) u.data = [u.data]
-        userData.forEach(u => {u.data = u.data.map(v => v *= this._parseProperFormat(this.params.value))})
-        if (!wasArray) u.data = u.data[0]
+        if (userData[0].data) this.params.multiply = userData[0].data
+        let inputCopy = this.session.graph.deeperCopy(this.props.input)
+        inputCopy.forEach(u => {
+            let wasArray = Array.isArray(u.data)
+            if (!wasArray) u.data = [u.data]
+            u.data = u.data.map(v => v *= this._parseProperFormat(this.params.multiply))
+            if (!wasArray) u.data = u.data[0]
         })
-        return userData
+        return inputCopy
     }
 
     divide = (userData) => {
-        userData.forEach(u => {
+        if (userData[0].data) this.params.divide = userData[0].data
+        let inputCopy = this.session.graph.deeperCopy(this.props.input)
+        inputCopy.forEach(u => {
             let wasArray = Array.isArray(u.data)
             if (!wasArray) u.data = [u.data]
-            userData.forEach(u => {u.data = u.data.map(v => v /= this._parseProperFormat(this.params.value))})
+            u.data = u.data.map(v => v /= this._parseProperFormat(this.params.divide))
             if (!wasArray) u.data = u.data[0]
         })
-        return userData
+        return inputCopy
     }
 
-    mean = (userData) => {
-        userData.forEach(u.data = u.data.reduce((a,b) => a + b)/ u.data.length)
-        return userData
+    mean = () => {
+        let meaned = false
+        let inputCopy = this.session.graph.deeperCopy(this.props.input)
+        inputCopy.forEach(u => {
+            if (Array.isArray(u.data)) {
+                meaned = true
+                u.data = u.data.reduce((a,b) => a + b)/ u.data.length
+            }
+        })
+        if (meaned) return inputCopy
     }
 
-    sum = (userData) => {
-        userData.forEach(u.data = u.data.reduce((a,b) => a + b))
-        return userData
+    sum = () => {
+        let summed = false
+        let inputCopy = this.session.graph.deeperCopy(this.props.input)
+        inputCopy.forEach(u => {
+            summed = true
+            if (Array.isArray(u.data)) u.data = u.data.reduce((a,b) => a + b)
+        })
+        if (summed) return inputCopy
     }
 
     _parseProperFormat = (val) => {

@@ -20,7 +20,6 @@ export class Canvas{
                 input: {type: Function},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    console.log(userData)
                     userData.forEach(u => {
                         this.props.drawFunctions[u.username + u.meta.label] = u.data
                     })

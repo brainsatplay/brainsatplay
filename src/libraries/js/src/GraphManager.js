@@ -110,7 +110,6 @@ export class GraphManager{
     }
 
     addNode(app,nodeInfo){
-
         let appId = app.props.id
 
         // Add Basic Node Information to the Graph
@@ -126,49 +125,16 @@ export class GraphManager{
 
         this.applets[appId].nodes.push(nodeInfo);
         
+        // Create Node
         nodeInfo = this.instantiateNode(nodeInfo,this.session)
-
-        // if (this.applets[appId].nodes[nodeInfo.id].analysis == null) this.applets[appId].nodes[nodeInfo.id].analysis = []
-        // this.applets[appId].nodes[nodeInfo.id].analysis.push(...analysis);
-        if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
 
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
         nodeInfo.instance.app = app
 
-            let node = nodeInfo.instance
-            let ui = node.init(nodeInfo.params)
-            if (ui != null) {
-
-                // Grab Responsive Function
-                ui.responsive = node.responsive
-
-                // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
-                var cachedSetup = ui.setupHTML;
-                ui.setupHTML = (app) => {
-                    cachedSetup(app)
-                    let defaultInput = [{}]
-                    for (let port in node.ports){
-                        let defaults = node.ports[port].defaults
-                        if (defaults){
-                            if (defaults.input){
-                                defaultInput = defaults.input
-                                defaultInput.forEach(o => {
-                                    if (o.data == null)  o.data = null
-                                    if (o.meta == null)  o.meta = {}                           
-                                })
-                                node[port](defaultInput)
-                            }
-                        }
-                    }
-                }
-
-                // Add UI Components to Registries
-                if (ui.HTMLtemplate instanceof Function) ui.HTMLtemplate = ui.HTMLtemplate()
-                nodeInfo.ui = ui
-            }
-        
+        let node = nodeInfo.instance
+                
         // Add Node to Registry
         if (this.registry.local[node.label] == null){
             this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
@@ -177,6 +143,42 @@ export class GraphManager{
             }
         }
         this.registry.local[node.label].count++
+
+        if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
+
+        // Run Init Function and Instantiate Some Additional Nodes
+        let ui = node.init(nodeInfo.params)
+
+        // Grab Created UI Functions
+        if (ui != null) {
+
+            // Grab Responsive Function
+            ui.responsive = node.responsive
+
+            // Pass Empty User Dictionary as Final Setup Call (overrides plugin defaults)
+            var cachedSetup = ui.setupHTML;
+            ui.setupHTML = (app) => {
+                cachedSetup(app)
+                let defaultInput = [{}]
+                for (let port in node.ports){
+                    let defaults = node.ports[port].defaults
+                    if (defaults){
+                        if (defaults.input){
+                            defaultInput = defaults.input
+                            defaultInput.forEach(o => {
+                                if (o.data == null)  o.data = null
+                                if (o.meta == null)  o.meta = {}                           
+                            })
+                            node[port](defaultInput)
+                        }
+                    }
+                }
+            }
+
+            // Add UI Components to Registries
+            if (ui.HTMLtemplate instanceof Function) ui.HTMLtemplate = ui.HTMLtemplate()
+            nodeInfo.ui = ui
+        }
 
 
         // Update Event Registry
@@ -246,19 +248,23 @@ export class GraphManager{
             inputCopy = this.deeperCopy(input)
             
             // Add Metadata
+            let forceRun = false
+            let forceUpdate = false
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries
-                if (Object.keys(inputCopy[i]) == 0 && inputCopy[i].force != true) inputCopy.splice(i,1)
+                if (inputCopy[i].forceRun) forceRun = true
+                if (inputCopy[i].forceUpdate) forceUpdate = true
+
                 // Or Add Username
-                else {
-                    if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
-                    if (!inputCopy[i].meta) inputCopy[i].meta = {}
-                    if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
-                }
+                // else {
+                if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                if (!inputCopy[i].meta) inputCopy[i].meta = {}
+                if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
+                // }
             }            
 
-            // Only Continue the Chain with Updated Data
-            if (inputCopy.length > 0){
+            // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
+            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active.out > 0 || node.ports[port].output.type === null || forceUpdate))){
                 let result
                 if (node[port] instanceof Function) {
                     result = node[port](inputCopy)
@@ -300,7 +306,7 @@ export class GraphManager{
             result.forEach((o,i) => {
 
                 // Check if Forced Update
-                if (o.force) {
+                if (o.forceUpdate) {
                     forced = true
                     node.states[port][i] = o
                 }
@@ -343,9 +349,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports){
-            if (node.ports[port].active.out > 0) {
-                this.runSafe(node,port, [{data:true, force: true}], true)
-            }
+            this.runSafe(node,port, [{forceRun: true}], true)
         }
     }
 
@@ -431,22 +435,26 @@ export class GraphManager{
         try {
             if (Array.isArray(defaults.output)) {
                 node.states[port] = defaults.output
-                node.states[port][0].force = true
+                node.states[port][0].forceRun = true
+                node.states[port][0].forceUpdate = true
             }
             else if (defaults.output.constructor == Object && 'data' in defaults.output) {
                 node.states[port] = [defaults.output]
-                node.states[port][0].force = true
+                node.states[port][0].forceRun = true
+                node.states[port][0].forceUpdate = true
             }
         } catch {
             try {
                 if (node.ports[port].default) {
                     node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
-                    node.states[port][0].force = true
+                    node.states[port][0].forceRun = true
+                    node.states[port][0].forceUpdate = true
                 }
             } catch {
                 if (defaults && defaults.output) {
                     node.states[port] = defaults.output
-                    node.states[port][0].force = true
+                    node.states[port][0].forceRun = true
+                    node.states[port][0].forceUpdate = true
                 }
             }
         }
@@ -525,6 +533,7 @@ export class GraphManager{
     }
 
     addEdge = (appId, newEdge, sendOutput=true) => {
+
         let applet = this.applets[appId]
 
         let existingEdge = this.applets[appId].edges.find(edge => {
@@ -569,16 +578,18 @@ export class GraphManager{
 
             // Pass Data from Source to Target
             let _onTriggered = (trigger) => {
-                if (trigger){
-                    let input = source.states[sourcePort]
-                    input.forEach(u => {
-                        if (!u.meta) u.meta = {}
-                        u.meta.source = label
-                        u.meta.session = applet.sessionId
-                    })
+                if (this.applets[appId]){
+                    if (trigger){
+                        let input = source.states[sourcePort]
+                        input.forEach(u => {
+                            if (!u.meta) u.meta = {}
+                            u.meta.source = label
+                            u.meta.session = applet.sessionId
+                        })
 
-                    if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                    return this.runSafe(target, targetPort, input, true)
+                        if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
+                        return this.runSafe(target, targetPort, input, true)
+                    }
                 }
             }
             
@@ -812,7 +823,7 @@ export class GraphManager{
     }
 
     // Create a Node Editor
-    edit(applet, parentNode = document.body, onsuccess = () => { }){
+    edit(applet, parentNode = document.body, onsuccess = () => {}){
         if (this.applets[applet.props.id]){
             this.applets[applet.props.id].editor = new GraphEditor(this, applet, parentNode, onsuccess)
             return this.applets[applet.props.id].editor
