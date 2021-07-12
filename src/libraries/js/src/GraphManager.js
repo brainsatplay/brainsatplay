@@ -114,7 +114,6 @@ export class GraphManager{
 
         // Add Basic Node Information to the Graph
         if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
-        let instance,controls, analysis;
 
         let found = this.applets[appId].nodes.find(n => {
             if (n.id == nodeInfo.id){
@@ -245,26 +244,31 @@ export class GraphManager{
             // Shallow Copy State before Repackaging
             let inputCopy = []
 
-            inputCopy = this.deeperCopy(input)
-            
-            // Add Metadata
             let forceRun = false
             let forceUpdate = false
+            let stringify = true
+            input.forEach(u => {
+                if (u.forceRun) forceRun = true
+                if (u.forceUpdate) forceUpdate = true
+                if (u.stringify === false) stringify = false
+            })
+
+            if (stringify) inputCopy = this.deeperCopy(input)
+            else inputCopy = input
+            
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries
-                if (inputCopy[i].forceRun) forceRun = true
-                if (inputCopy[i].forceUpdate) forceUpdate = true
-
-                // Or Add Username
-                // else {
-                if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
-                if (!inputCopy[i].meta) inputCopy[i].meta = {}
-                if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
-                // }
+                if (Object.keys(inputCopy[i]).length === 0) inputCopy.splice(i, 1)
+                // Or Add Metadata
+                else {
+                    if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                    if (!inputCopy[i].meta) inputCopy[i].meta = {}
+                    if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
+                }
             }            
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active.out > 0 || node.ports[port].output.type === null || forceUpdate))){
+            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active?.out > 0 || node.ports[port]?.output?.type === null || forceUpdate))){
                 let result
                 if (node[port] instanceof Function) {
                     result = node[port](inputCopy)
@@ -316,8 +320,14 @@ export class GraphManager{
                     if (node.states[port]){
                         if (node.states[port].length > i){
 
-                            let case1 = JSON.stringifyFast(node.states[port][i])
-                            let case2 = JSON.stringifyFast(o)
+                            let case1, case2
+                            if (o.stringify === false){
+                                case1 = node.states[port][i]
+                                case2 = o
+                            } else {
+                                case1 = JSON.stringifyFast(node.states[port][i])
+                                case2 = JSON.stringifyFast(o)
+                            }
 
                             let thisEqual = case1 === case2
  
@@ -379,23 +389,24 @@ export class GraphManager{
 
         // Create Nodes
 
-        let edgeSetupCallbacks = []
+        let setupCallbacks = []
         if (graph){
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
-                    this.addNode(app,nodeInfo)
+                    let o = this.addNode(app,nodeInfo)
+                    // setupCallbacks.push(o.setupFunction)
                 })
             }
 
             // Create Edges
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
-                    edgeSetupCallbacks.push(this.addEdge(id, edge, false))
+                    setupCallbacks.push(this.addEdge(id, edge, false))
                 })
             }
         }
 
-        this.applets[id].setupCallbacks = edgeSetupCallbacks
+        this.applets[id].setupCallbacks = setupCallbacks
 
         return this.applets[id]
     }
@@ -406,10 +417,6 @@ export class GraphManager{
         if (applet){
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
-            // Listen for Updates on Multiplayer Edges
-            applet.edges.forEach((edge,i) => {
-                this._subscribeToBrainstorm(edge, appId)
-            })
         }
 
         return applet
@@ -431,7 +438,7 @@ export class GraphManager{
 
         let defaults = node.ports[port].defaults
 
-        // Send Default Outputs (forced)
+        // Force Default Outputs to Next Node
         try {
             if (Array.isArray(defaults.output)) {
                 node.states[port] = defaults.output
@@ -445,13 +452,13 @@ export class GraphManager{
             }
         } catch {
             try {
-                if (node.ports[port].default) {
+                if (node.ports[port].default != null) {
                     node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
                     node.states[port][0].forceRun = true
                     node.states[port][0].forceUpdate = true
                 }
             } catch {
-                if (defaults && defaults.output) {
+                if (defaults && defaults.output != null) {
                     node.states[port] = defaults.output
                     node.states[port][0].forceRun = true
                     node.states[port][0].forceUpdate = true
@@ -494,6 +501,8 @@ export class GraphManager{
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated
             if (node.ports[port] == null || node.ports[port].onUpdate == null){
+
+                console.log('adding port')
 
                 // Add Port to Node
                 node.ports[port] = info
@@ -598,11 +607,6 @@ export class GraphManager{
             // Register Brainstorm State
             if (target instanceof plugins.utilities.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
-
-                // Update Brainstorm State with Latest Session Data (applied in this._subscribeToBrainstorm)
-                this.registry.local[sourceName].registry[sourcePort].callbacks.push((trigger) => {
-                    _onTriggered(trigger) // Trigger Downstream Changes
-                })
 
                 // Initialize Port
                 if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
@@ -788,38 +792,6 @@ export class GraphManager{
             this.applets[appId].analysis.dynamic.splice(i,1)
         })
         this.updateApp(appId)
-    }
-
-    // Internal Methods
-    _subscribeToBrainstorm(edge, appId){
-
-        let applet = this.applets[appId]
-        let splitSource = edge.source.split(':')
-        let sourceName = splitSource[0]
-        let sourcePort = splitSource[1]
-        if (sourcePort == null) sourcePort = 'default'
-
-        let sourceInfo = applet.nodes.find(n => {
-            if (n.id == sourceName) return true
-        })
-        let source = sourceInfo.instance
-        let splitTarget = edge.target.split(':')
-        let targetName = splitTarget[0]
-        let targetPort = splitTarget[1]
-        if (targetPort == null) targetPort = 'default'
-
-        let targetInfo = applet.nodes.find(n => {
-            if (n.id == targetName) return true
-        })
-
-        let target = targetInfo.instance
-        let label = this.getLabel(source,sourcePort)
-
-        if (target instanceof plugins.utilities.Brainstorm) {
-            source.states[sourcePort][0].meta.source = label
-            source.states[sourcePort][0].meta.session = applet.sessionId
-            this.runSafe(target, 'default', source.states[sourcePort], true) // Activate Port Subscriptions
-        }
     }
 
     // Create a Node Editor

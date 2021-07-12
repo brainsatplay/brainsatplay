@@ -33,22 +33,17 @@ export class Neurofeedback{
         this.ports = {
             default: {
                 analysis: ['eegcoherence'],
-                defaults: {
-                    output: [{data: 0, meta: {label: `neurofeedback`}}]
-                },
-                types: {
-                    in: {type: Object, name: 'DataAtlas'},
-                    out: 'number'
-                }
+                default: 0,
+                meta: {label: `neurofeedback`},
+                input: {type: Object, name: 'DataAtlas'},
+                output: {type: 'number'},
             }, 
         } 
     }
 
     init = () => {}
 
-    deinit = () => {
-        // MUST DISCONNECT STREAM
-    }
+    deinit = () => {}
 
     default = (userData) => {
         
@@ -56,7 +51,6 @@ export class Neurofeedback{
             
             let arr = []
             let data = (u.data != null) ? u.data : this.session.atlas.data
-            // let data = this.session.atlas.data
 
             try {
                 
@@ -159,7 +153,6 @@ export class Neurofeedback{
 
             u.meta.label = this.params.metric
         })
-
         return userData
     }
 }

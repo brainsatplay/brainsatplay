@@ -34,10 +34,8 @@ export class DataQuality{
 
         this.ports = {
             default: {
-                types: {
-                    in: {type: Object, name: 'DataAtlas'},
-                    out: Object                
-                }
+                input: {type: Object, name: 'DataAtlas'},
+                output: {type: Object},
             }
         }
     }

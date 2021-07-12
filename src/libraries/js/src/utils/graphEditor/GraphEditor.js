@@ -11,6 +11,7 @@ import { getApplet, getAppletSettings } from "../../../../../platform/js/general
 
 // Node Interaction
 import * as dragUtils from './dragUtils'
+import { isNullishCoalesce } from 'typescript'
 
 export class GraphEditor{
     constructor(manager, applet, parentId, onsuccess) {
@@ -448,7 +449,6 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
-            console.log(this.app)
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
         }
@@ -773,6 +773,7 @@ export class GraphEditor{
 
                 let input;
 
+
                 // Cannot Handle Objects or Elements
                 if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
 
@@ -789,10 +790,6 @@ export class GraphEditor{
                     input = document.createElement('input')
                     input.type = 'checkbox'
                     input.checked = plugin.params[key]
-                    input.addEventListener('change', (e) => {
-                        plugin.params[key] = event.target.checked
-                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
-                    }, false)
                 } else if (defaultType === 'number'){
                     if ('min' in toParse[key] && 'max' in toParse[key]){
                         input = document.createElement('input')
@@ -804,11 +801,6 @@ export class GraphEditor{
                         let output = document.createElement('output')
                         inputContainer.insertAdjacentElement('afterbegin',output)
                         output.innerHTML = input.value
-                        input.addEventListener('input', (e) => {
-                            output.innerHTML = input.value
-                            plugin.params[key] = Number.parseFloat(input.value)
-                            if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
-                        }, false)
                     } else {
                         input = document.createElement('input')
                         input.type = 'number'
@@ -863,7 +855,29 @@ export class GraphEditor{
                         if (editor == null) editor = new LiveEditor(settings, container)
                         else settings.onOpen()
                     }
-                } else {
+                } else if (defaultType === 'file'){
+                    
+                    let text = 'Choose File'
+                    input = document.createElement('input')
+                    input.type = 'file'
+                    input.accept = toParse[key].input?.accept // Only in new format
+
+                    if (toParse[key].input?.multiple){
+                        input.multiple = true // Only in new format
+                        text = text + 's'
+                    }
+                    input.style.display = 'none'
+
+                    let button = document.createElement('button')
+                    button.classList.add('brainsatplay-default-button')
+                    button.innerHTML = text
+                    button.style.width = 'auto'
+                    button.onclick = () => {
+                        input.click()
+                    }
+                    inputContainer.insertAdjacentElement('beforeend',button)
+                }
+                else {
                         input = document.createElement('input')
                         // Check if Color String
                         if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
@@ -879,12 +893,22 @@ export class GraphEditor{
                     containerDiv.insertAdjacentElement('beforeend',inputContainer)
                     containerDiv.classList.add(`content-div`)
                     selectedParams.insertAdjacentElement('beforeend', containerDiv)
+                    
 
                     // Change Live Params with Input Changes
-                    input.oninput = (e) => {
-                        plugin.params[key] = input.value
+                    let changeFunc = (e) => {
+
+                        console.log(event.target.files)
+                        if (input.type === 'checkbox') plugin.params[key] = event.target.checked
+                        else if (input.type === 'file') plugin.params[key] = event.target.files;
+                        else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
+                        else plugin.params[key] = input.value
                         if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+
+                        input.blur()
                     }
+
+                    input.oninput = changeFunc
                 }
             }
             }
