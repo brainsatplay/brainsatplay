@@ -63,6 +63,7 @@ export class Brainstorm {
                                     // Get Changed Session Data
                                     let subId2 = this.session.state.subscribe(sessionId, (sessionInfo) => {
                                         let returned = this._getBrainstormData(label, sessionId)
+                                        console.log(returned)
                                         let copy = this.session.graph.runSafe(this, label, returned)
                                         _brainstormCallback(copy)
                                     })

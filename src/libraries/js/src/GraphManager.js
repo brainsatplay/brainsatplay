@@ -245,22 +245,27 @@ export class GraphManager{
             // Shallow Copy State before Repackaging
             let inputCopy = []
 
-            inputCopy = this.deeperCopy(input)
-            
-            // Add Metadata
             let forceRun = false
             let forceUpdate = false
+            let stringify = true
+            input.forEach(u => {
+                if (u.forceRun) forceRun = true
+                if (u.forceUpdate) forceUpdate = true
+                if (u.stringify === false) stringify = false
+            })
+
+            if (stringify) inputCopy = this.deeperCopy(input)
+            else inputCopy = input
+            
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries
-                if (inputCopy[i].forceRun) forceRun = true
-                if (inputCopy[i].forceUpdate) forceUpdate = true
-
-                // Or Add Username
-                // else {
-                if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
-                if (!inputCopy[i].meta) inputCopy[i].meta = {}
-                if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
-                // }
+                if (Object.keys(inputCopy[i]).length === 0) inputCopy.splice(i, 1)
+                // Or Add Metadata
+                else {
+                    if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                    if (!inputCopy[i].meta) inputCopy[i].meta = {}
+                    if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
+                }
             }            
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
@@ -316,8 +321,15 @@ export class GraphManager{
                     if (node.states[port]){
                         if (node.states[port].length > i){
 
-                            let case1 = JSON.stringifyFast(node.states[port][i])
-                            let case2 = JSON.stringifyFast(o)
+                            let case1, case2
+                            console.log(o.stringify, o)
+                            if (o.stringify === false){
+                                case1 = node.states[port][i]
+                                case2 = o
+                            } else {
+                                case1 = JSON.stringifyFast(node.states[port][i])
+                                case2 = JSON.stringifyFast(o)
+                            }
 
                             let thisEqual = case1 === case2
  
