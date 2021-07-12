@@ -615,7 +615,7 @@ export class eegmath {
 		return [eigenvalues, eigenvectors];
 	}
 
-	//Input square 2D matrix
+	//Input square 2D matrix, it's better to use z-scores for amplitudes
 	static pca(mat,tolerance = 0.00001) {
 		let dims = mat.length;
 		
