@@ -1,7 +1,7 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-    name: "CineMatic",
+    name: "NeuroCinema",
     devices: ["EEG", "HEG"],
     author: "Brains@Play",
     description: "Cut movies together based on brain data",
