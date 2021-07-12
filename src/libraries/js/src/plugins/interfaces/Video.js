@@ -28,6 +28,7 @@ export class Video{
         this.vidQuery.muted = true
         this.vidQuery.loop = true
         this.vidQuery.autoplay = true
+
         this.container.insertAdjacentElement('beforeend', this.vidQuery)
 
         this.ports = {
@@ -40,11 +41,11 @@ export class Video{
                 }
             },
             file: {
-                input: {type: 'file', accept: "video/*"},
+                input: {type: 'file', accept: "video/*", multiple: true},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.params.file = userData[0].data
-                    this.startFile(this.params.file)
+                    this.params.files = userData[0].data
+                    this.startFiles(this.params.files)
                 }
             },
             element: {
@@ -159,7 +160,7 @@ export class Video{
         this.container.insertAdjacentHTML('beforeend',`
                 <div id="`+this.props.id+`menu" style='position:absolute; z-index:4; top: 0; left: 0'>
                     <button id="`+this.props.id+`showhide" style='' >Hide UI</button>
-                    <input id="`+this.props.id+`fs" type="file" accept="video/*"/>
+                    <input id="`+this.props.id+`fs" type="file" accept="video/*" multiple/>
                     <div id="${this.props.id}message"></div>
                     <div id="`+this.props.id+`timeDiv"><input id="`+this.props.id+`timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+this.props.id+`vidbar"><button id="`+this.props.id+`minus1min">--</button><button id="`+this.props.id+`minus10sec">-</button><button id="`+this.props.id+`play">||</button><button id="`+this.props.id+`plus10sec">+</button><button id="`+this.props.id+`plus1min">++</button></div></div> 
@@ -302,28 +303,31 @@ export class Video{
         this.vidQuery.playbackRate = 0;
     }
 
-    startFile = (file) => {
+    startFiles = (files) => {
         'use strict'
         var URL = window.URL || window.webkitURL;
-        if (file){
-            var type = file.type;
-            var canPlay = this.vidQuery.canPlayType(type);
-            if (canPlay === ''){ canPlay = 'no';}
-            var message = 'Can play type "' + type + '": ' + canPlay;
-            var isError = canPlay === 'no';
-            if (isError) {
-            return;
+        files = Array.from(files)
+        files.forEach(file => {
+            if (file){
+                var type = file.type;
+                var canPlay = this.vidQuery.canPlayType(type);
+                if (canPlay === ''){ canPlay = 'no';}
+                var message = 'Can play type "' + type + '": ' + canPlay;
+                var isError = canPlay === 'no';
+                if (isError) {
+                return;
+                }
+
+                var fileURL = URL.createObjectURL(file);
+                this.vidQuery.src = fileURL;
             }
-        }
-        var fileURL = URL.createObjectURL(file);
-        this.vidQuery.src = fileURL;
+        })
     }
    
     
     localFileVideoPlayer = () => {
         var playSelectedFile = (event) => {
-          var file = event.target.files[0];
-          this.startFile(file)
+          this.startFiles(event.target.files)
         }
         var inputNode = document.getElementById(this.props.id+'fs');
         inputNode.addEventListener('change', playSelectedFile, false);

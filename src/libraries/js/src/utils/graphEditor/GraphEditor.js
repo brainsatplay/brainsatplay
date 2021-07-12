@@ -857,14 +857,20 @@ export class GraphEditor{
                     }
                 } else if (defaultType === 'file'){
                     
+                    let text = 'Choose File'
                     input = document.createElement('input')
                     input.type = 'file'
                     input.accept = toParse[key].input?.accept // Only in new format
+
+                    if (toParse[key].input?.multiple){
+                        input.multiple = true // Only in new format
+                        text = text + 's'
+                    }
                     input.style.display = 'none'
 
                     let button = document.createElement('button')
                     button.classList.add('brainsatplay-default-button')
-                    button.innerHTML = 'Choose File'
+                    button.innerHTML = text
                     button.style.width = 'auto'
                     button.onclick = () => {
                         input.click()
@@ -891,8 +897,10 @@ export class GraphEditor{
 
                     // Change Live Params with Input Changes
                     let changeFunc = (e) => {
+
+                        console.log(event.target.files)
                         if (input.type === 'checkbox') plugin.params[key] = event.target.checked
-                        else if (input.type === 'file') plugin.params[key] = event.target.files[0];
+                        else if (input.type === 'file') plugin.params[key] = event.target.files;
                         else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
                         else plugin.params[key] = input.value
                         if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
