@@ -129,6 +129,10 @@ export class UI{
 
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
+        this.props.container.style= `
+            width: 100%;
+            height: 100%;
+        `
         this.props.content = document.createElement('div')
         this.props.content.id = `${this.props.id}content`
         this.props.content.classList.add('brainsatplay-ui-container')
