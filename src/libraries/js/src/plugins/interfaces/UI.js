@@ -129,14 +129,7 @@ export class UI{
 
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-        // this.props.container.style= `
-        //     width: 100%;
-        //     height: 100%;
-        // `
-        // this.props.content = document.createElement('div')
-        // this.props.content.id = `${this.props.id}content`
         this.props.container.classList.add('brainsatplay-ui-container')
-        // this.props.container.insertAdjacentElement('beforeend', this.props.content)
         this.props.container.style = this.params.containerStyle
         
         // Create Stylesheet
