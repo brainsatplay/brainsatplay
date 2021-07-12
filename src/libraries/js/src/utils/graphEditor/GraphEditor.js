@@ -904,6 +904,8 @@ export class GraphEditor{
                         else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
                         else plugin.params[key] = input.value
                         if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+
+                        input.blur()
                     }
 
                     input.oninput = changeFunc

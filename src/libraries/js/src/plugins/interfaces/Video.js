@@ -8,7 +8,9 @@ export class Video{
         this.params = params
 
         this.props = {
-            id: String(Math.floor(Math.random()*1000000))
+            id: String(Math.floor(Math.random()*1000000)),
+            selectedFile: 0,
+            videos: []
         };
 
         // Create Video Player
@@ -21,31 +23,49 @@ export class Video{
             this.responsive()
         }
 
-        this.vidQuery = document.createElement('video')
-        this.vidQuery.type = 'video/mp4'
-        this.vidQuery.width = '100%'
-        this.vidQuery.height = '100%'
-        this.vidQuery.muted = true
-        this.vidQuery.loop = true
-        this.vidQuery.autoplay = true
-
-        this.container.insertAdjacentElement('beforeend', this.vidQuery)
+        let defaultVideoURLs = ['https://vjs.zencdn.net/v/oceans.mp4']
 
         this.ports = {
             url: {
-                default: 'https://vjs.zencdn.net/v/oceans.mp4',
+                default: defaultVideoURLs[0],
                 input: {type: 'string'},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    this.vidQuery.src = this.params.url = userData[0].data
+                    this.params.url = userData[0].data
+                    this.session.graph.runSafe(this,'files', {data: [this.params.url]})
                 }
             },
-            file: {
+            files: {
                 input: {type: 'file', accept: "video/*", multiple: true},
                 output: {type: null},
+                default: defaultVideoURLs,
                 onUpdate: (userData) => {
-                    this.params.files = userData[0].data
-                    this.startFiles(this.params.files)
+                    this.props.selectedFile = 0
+                    this.params.files = Array.from(userData[0].data)
+
+                    // Create Videos
+                    this.props.videos.forEach(v => v.remove())
+                    this.props.videos = []
+                    this.params.files.forEach((file,i) => {
+                        let video = document.createElement('video')
+                        video.type = 'video/mp4'
+                        video.width = '100%'
+                        video.height = '100%'
+                        video.style = `
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                        `
+                        video.muted = true
+                        video.loop = true
+                        video.autoplay = true
+                        video.style.transition = 'opacity 0.1s'
+                        this.container.insertAdjacentElement('beforeend', video)
+                        this.props.videos.push(video)
+                        this.startVideoFile(video, file)
+                        if (i != this.props.selectedFile) video.style.opacity = 0
+                    })
+                    this.responsive()
                 }
             },
             element: {
@@ -57,6 +77,20 @@ export class Video{
                     return this.container
                 }
             },
+            change: {
+                input: {type: 'boolean'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    if (userData[0].data){
+                        this.props.selectedFile++
+                        this.props.selectedFile = this.props.selectedFile % this.params.files.length
+                        this.props.videos.forEach((element,i) => {
+                            if (i === this.props.selectedFile) element.style.opacity = 1
+                            else element.style.opacity = 0
+                        })
+                    }
+                }
+            }
         }
 
         let portInfo = [
@@ -73,50 +107,48 @@ export class Video{
         {name: 'speed', onUpdate: () => {
             if(this.params.speed == false){
                 this.playRate = 1;
-                this.vidQuery.playbackRate = 1;
                 document.getElementById(this.props.id+"useRate").style.opacity = "0.3";
               }
               else{ 
                 this.params.time = false; 
                 this.playRate = 1; 
-                this.vidQuery.playbackRate = 1;
                 document.getElementById(this.props.id+"useRate").style.opacity = "1.0";
                 document.getElementById(this.props.id+"useTime").style.opacity = "0.3";
               }
+              this.props.videos.forEach(el => el.playbackRate = this.playRate)
         }}, 
 
         // Update Volume Parameters and Button
         {name: 'volume', onUpdate: () => {
             if(this.params.volume == false){
-                this.vidQuery.muted = true;
                 this.params.volume = false;
                 this.volume = 0;
-                this.vidQuery.volume = 0;
                 document.getElementById(this.props.id+"useVol").style.opacity = "0.3";
               }
               else{ 
                 this.params.volume = true; 
-                this.vidQuery.muted = false; 
                 this.volume = 0.5; 
-                this.vidQuery.volume = 0.5;
                 document.getElementById(this.props.id+"useVol").style.opacity = "1.0";
               }
+
+              this.props.videos.forEach(el => el.muted = !this.params.volume)
+              this.props.videos.forEach(el => el.volume = this.volume)
+
         }}, 
         
         // Update Time Parameters and Button
         {name: 'time', onUpdate: () => {
             if(this.params.time == false){
                 this.playRate = 1;
-                this.vidQuery.playbackRate = 1;
                 document.getElementById(this.props.id+"useTime").style.opacity = "0.3";
             }
             else {
                 this.params.speed = false;
                 this.playRate = 0;
-                this.vidQuery.playbackRate = 0;
                 document.getElementById(this.props.id+"useRate").style.opacity = "0.3";
                 document.getElementById(this.props.id+"useTime").style.opacity = "1.0";
             }
+            this.props.videos.forEach(el => el.playbackRate = this.playRate)
         }}]
         portInfo.forEach(o => {
             this.ports[o.name] = {
@@ -143,8 +175,6 @@ export class Video{
 
         this.enableControls = false;
         this.animationId = null;
-
-        this.vidQuery;
         this.c;
         this.gl;
 
@@ -190,7 +220,6 @@ export class Video{
     }
 
     setup = () => {
-        this.vidQuery.src = this.params.url
         this.c = document.getElementById(this.props.id+'canvas');
         this.gl = this.c.getContext("webgl");
         this.timeSlider = document.getElementById(this.props.id+"timeSlider");
@@ -198,20 +227,15 @@ export class Video{
         this.localFileVideoPlayer();
 
         document.getElementById(this.props.id+"play").onclick = () => {
-            if(this.vidQuery.playbackRate == 0){
-                if(this.params.speed == true){
-                  this.vidQuery.playbackRate = this.playRate;
-                }
-                else {
-                  this.playRate = 1;
-                  this.vidQuery.playbackRate = 1;
-                }
+            if(this.playRate == 0){
+                if(this.params.speed != true) this.playRate = 1;
                 document.getElementById(this.props.id+"play").innerHTML = "||";
             }
             else{
-                this.vidQuery.playbackRate = 0;
                 document.getElementById(this.props.id+"play").innerHTML = ">";
             }
+            this.props.videos.forEach(el => el.playbackRate = this.playRate)
+
         }
         
         document.getElementById(this.props.id+"useAlpha").onclick = () => {
@@ -232,11 +256,16 @@ export class Video{
         document.getElementById(this.props.id+"useTime").click() // Auto-off
 
         this.timeSlider.addEventListener("change", () => {
-        // Calculate the new time
-            var time = this.vidQuery.duration * (this.timeSlider.value / 1000);
+            let duration = 0
+            this.props.videos.forEach(el => {
+                duration = Math.max(duration, el.duration)
+            })
+
+            // Calculate the new time
+            var time = duration * (this.timeSlider.value / 1000);
         
-        // Update the video time
-            this.vidQuery.currentTime = time;
+            // Update video times
+            this.props.videos.forEach(el => el.currentTime = time)
         });
 
         this.timeSlider.onmousedown = () => {
@@ -252,16 +281,16 @@ export class Video{
         }
 
         document.getElementById(this.props.id+"minus1min").onclick = () => {
-            this.vidQuery.currentTime -= 60;
+            this.props.videos.forEach(el => el.currentTime -= 60)
         }
         document.getElementById(this.props.id+"plus1min").onclick = () => {
-            this.vidQuery.currentTime += 60;
+            this.props.videos.forEach(el => el.currentTime += 60)
         }
         document.getElementById(this.props.id+"minus10sec").onclick = () => {
-            this.vidQuery.currentTime -= 10;
+            this.props.videos.forEach(el => el.currentTime -= 10)
         }
         document.getElementById(this.props.id+"plus10sec").onclick = () => {
-            this.vidQuery.currentTime += 10;
+            this.props.videos.forEach(el => el.currentTime += 10)
         }
 
         document.getElementById(this.props.id+"showhide").onclick = () => {
@@ -282,35 +311,39 @@ export class Video{
         }
 
         this.looping = true;
-        this.initVideo();
+        this.session.graph.runSafe(this,'files', [{data: this.params.files}]) // Initialize default files
+        this.initVideos();
     }
 
     responsive = () => {
-        // if (this.app.AppletHTML){
-            this.vidQuery.width = this.app.AppletHTML.node.clientWidth;
-            this.vidQuery.height = this.app.AppletHTML.node.clientHeight;
-            this.c.width = this.app.AppletHTML.node.clientWidth;
-            this.c.height = this.app.AppletHTML.node.clientHeight;
-        // }
+        this.props.videos.forEach(el => {
+            el.width = this.app.AppletHTML.node.clientWidth;
+            el.height = this.app.AppletHTML.node.clientHeight;
+        })
+            // this.c.width = this.app.AppletHTML.node.clientWidth;
+            // this.c.height = this.app.AppletHTML.node.clientHeight;
     }
 
     startVideo = () => {
-        if(this.playRate < 0.1){ this.vidQuery.playbackRate = 0; }
-        else{ this.vidQuery.playbackRate = this.playRate; }
+        this.props.videos.forEach(el => {
+            if(this.playRate < 0.1){ el.playbackRate = 0; }
+            else{ el.playbackRate = this.playRate; }
+        })
     }
 
     stopVideo = () => {
-        this.vidQuery.playbackRate = 0;
+        this.props.videos.forEach(el => el.playbackRate = 0)
     }
 
-    startFiles = (files) => {
+    startVideoFile = (element,file) => {
         'use strict'
         var URL = window.URL || window.webkitURL;
-        files = Array.from(files)
-        files.forEach(file => {
-            if (file){
+        if (file){
+            var fileURL
+            if (typeof file === 'string') fileURL = file
+            else {
                 var type = file.type;
-                var canPlay = this.vidQuery.canPlayType(type);
+                var canPlay = element.canPlayType(type);
                 if (canPlay === ''){ canPlay = 'no';}
                 var message = 'Can play type "' + type + '": ' + canPlay;
                 var isError = canPlay === 'no';
@@ -318,16 +351,18 @@ export class Video{
                 return;
                 }
 
-                var fileURL = URL.createObjectURL(file);
-                this.vidQuery.src = fileURL;
+                fileURL = URL.createObjectURL(file);
             }
-        })
+
+            element.src = fileURL;
+        }
     }
    
     
     localFileVideoPlayer = () => {
         var playSelectedFile = (event) => {
-          this.startFiles(event.target.files)
+            this.session.graph.runSafe(this,'files', [{data: event.target.files}])
+            inputNode.blur()
         }
         var inputNode = document.getElementById(this.props.id+'fs');
         inputNode.addEventListener('change', playSelectedFile, false);
@@ -347,48 +382,60 @@ export class Video{
             }
           }
         }
-        if(this.params.speed == true){
-          if(((this.vidQuery.playbackRate < 3) || (score < 0)) && ((this.vidQuery.playbackRate > 0) || (score > 0)))
-          { 
-            this.playRate = this.vidQuery.playbackRate + score*0.5;
-            if((this.playRate < 0.05) && (this.playRate > 0)){
-              this.vidQuery.playbackRate = 0;
+
+        this.props.videos.forEach(el => {
+            if(this.params.speed == true){
+            if(((el.playbackRate < 3) || (score < 0)) && ((el.playbackRate > 0) || (score > 0)))
+            { 
+                this.playRate = el.playbackRate + score*0.5;
+                if((this.playRate < 0.05) && (this.playRate > 0)){
+                el.playbackRate = 0;
+                }
+                else if(this.playRate < 0) {
+                el.currentTime += score;
+                }
+                else if((this.playRate > 0.05) && (this.playRate < 0.1)){
+                el.playbackRate = 0.1;
+                }
+                else{
+                el.playbackRate = this.playRate;
+                }
             }
-            else if(this.playRate < 0) {
-              this.vidQuery.currentTime += score;
             }
-            else if((this.playRate > 0.05) && (this.playRate < 0.1)){
-              this.vidQuery.playbackRate = 0.1;
+            if(this.params.volume == true){
+            if(((el.volume < 1) || (score < 0)) && ((el.volume > 0) || (score > 0)))
+            {
+                this.volume = el.volume + score*0.5;
+                if(this.volume < 0){
+                el.volume = 0;
+                }
+                else if(this.volume > 1){
+                el.volume = 1;
+                }
+                else {
+                el.volume = this.volume;
+                }
             }
-            else{
-              this.vidQuery.playbackRate = this.playRate;
             }
-          }
-        }
-        if(this.params.volume == true){
-          if(((this.vidQuery.volume < 1) || (score < 0)) && ((this.vidQuery.volume > 0) || (score > 0)))
-          {
-            this.volume = this.vidQuery.volume + score*0.5;
-            if(this.volume < 0){
-              this.vidQuery.volume = 0;
+            if(this.params.time == true){
+            el.currentTime += score*10;
             }
-            else if(this.volume > 1){
-              this.vidQuery.volume = 1;
-            }
-            else {
-              this.vidQuery.volume = this.volume;
-            }
-          }
-        }
-        if(this.params.time == true){
-          this.vidQuery.currentTime += score*10;
-        }
+        })
       }
       
       animate = () => {
         if(this.looping === true) {
           if((this.sliderfocus == false)) {
-            this.timeSlider.value = Math.floor(1000 * this.vidQuery.currentTime / this.vidQuery.duration);
+
+            // Get Max of All Videos
+            let currentTime,duration = 0
+            this.props.videos.forEach(el => {
+                currentTime = Math.max(currentTime, el.currentTime)
+                duration = Math.max(currentTime, el.duration)
+            })
+
+            // Move Slider
+            this.timeSlider.value = Math.floor(1000 * currentTime / duration);
           }
 
           if(this.session.atlas.settings.heg) {
@@ -412,19 +459,22 @@ export class Video{
       }
 
   
-      initVideo() {
+      initVideos() {
+        this.props.videos.forEach((el,i) => {
+
             if(this.params.volume == true){
-              this.vidQuery.muted = false;
-              this.vidQuery.volume = 0.5;
-              this.volume = 0.5;
+                el.muted = false;
+                el.volume = 0.5;
+                this.volume = 0.5;
             } 
 
-            this.c.width = this.vidQuery.width;
-            this.c.height = this.vidQuery.height;
-            var rect = this.vidQuery.getBoundingClientRect();
-            this.gl.clearColor(0,0,0.1,0);
-            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            this.animate();
-       }
-
+            // this.c.width = el.width;
+            // this.c.height = el.height;
+            // var rect = el.getBoundingClientRect();
+            // this.gl.clearColor(0,0,0.1,0);
+            // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            this.startVideoFile(el, this.params.files[i])
+        })
+        this.animate();
+    }
 }

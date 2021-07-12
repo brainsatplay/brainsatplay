@@ -15,6 +15,7 @@ export const settings = {
     graph:
     {
       nodes: [
+        {id:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
         {id:'player', class: brainsatplay.plugins.interfaces.Video},
         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="vidContainer" class="video-container"></div>`,
@@ -35,6 +36,9 @@ export const settings = {
       edges: [{
         source: 'player:element',
         target: 'ui:vidContainer'
+      },{
+        source: 'changeView',
+        target: 'player:change'
       }]
     },
 }
