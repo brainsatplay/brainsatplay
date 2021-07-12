@@ -615,7 +615,7 @@ export class eegmath {
 		return [eigenvalues, eigenvectors];
 	}
 
-	//Input square 2D matrix, it's better to use z-scores for amplitudes
+	//Input square 2D matrix. For eeg data you input a square covariance matrix of the signal data (or the z-scores of the signal data)
 	static pca(mat,tolerance = 0.00001) {
 		let dims = mat.length;
 		
