@@ -1,4 +1,4 @@
-export class Transform{
+export class Arithmetic{
     
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -19,10 +19,10 @@ export class Transform{
                 output: {type: null},
                 onUpdate: (userData) => {
                     this.props.input = userData
-                    this.session.graph.runSafe(this,'not',[{forceRun: true}])
-                    this.session.graph.runSafe(this,'toFloat',[{forceRun: true}])
-                    this.session.graph.runSafe(this,'sum',[{forceRun: true}])
-                    this.session.graph.runSafe(this,'mean',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'not',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'toFloat',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'sum',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'mean',[{forceRun: true}])
                     this.session.graph.runSafe(this,'add',[{forceRun: true}])
                     this.session.graph.runSafe(this,'subtract',[{forceRun: true}])
                     this.session.graph.runSafe(this,'multiply',[{forceRun: true}])

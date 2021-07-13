@@ -85,7 +85,7 @@ export class UI{
                                     data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
                                 ) {
                                     node.insertAdjacentElement('beforeend', data)
-                                    setTimeout(() => {data.onload()},100) // Wait a bit for onload functions to ensure element has been added
+                                    setTimeout(() => {data.onload()},250) // Wait a bit for onload functions to ensure element has been added
                                 }
                                 else node.insertAdjacentHTML('beforeend', String(data))
                             }

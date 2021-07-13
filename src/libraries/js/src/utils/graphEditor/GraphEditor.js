@@ -898,14 +898,14 @@ export class GraphEditor{
                     // Change Live Params with Input Changes
                     let changeFunc = (e) => {
 
-                        console.log(event.target.files)
                         if (input.type === 'checkbox') plugin.params[key] = event.target.checked
                         else if (input.type === 'file') plugin.params[key] = event.target.files;
                         else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
                         else plugin.params[key] = input.value
-                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
 
-                        input.blur()
+
+                        if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
+                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
                     }
 
                     input.oninput = changeFunc

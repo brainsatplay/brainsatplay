@@ -328,6 +328,7 @@ export class GraphManager{
                                 case1 = JSON.stringifyFast(node.states[port][i])
                                 case2 = JSON.stringifyFast(o)
                             }
+                            
 
                             let thisEqual = case1 === case2
  
@@ -359,7 +360,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports){
-            this.runSafe(node,port, [{forceRun: true}], true)
+            this.runSafe(node,port, [{forceRun: true, forceUpdate: true}])
         }
     }
 
@@ -394,7 +395,6 @@ export class GraphManager{
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
                     let o = this.addNode(app,nodeInfo)
-                    // setupCallbacks.push(o.setupFunction)
                 })
             }
 
@@ -417,6 +417,9 @@ export class GraphManager{
         if (applet){
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
+
+            applet.setupCallbacks.forEach(f => f())
+            // applet.nodes.forEach(this.triggerAllActivePorts)
         }
 
         return applet
@@ -501,9 +504,6 @@ export class GraphManager{
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated
             if (node.ports[port] == null || node.ports[port].onUpdate == null){
-
-                console.log('adding port')
-
                 // Add Port to Node
                 node.ports[port] = info
                 this.instantiateNodePort(node,port)
@@ -625,6 +625,7 @@ export class GraphManager{
 
             let tP = target.ports[targetPort]
             let sP = source.ports[sourcePort]
+
             if (tP.active == null) tP.active = {in: 0, out: 0}
             if (sP.active == null) sP.active = {in: 0, out: 0}
             if (tP.input == null) tP.input = {type: tP?.types?.in}
@@ -657,7 +658,10 @@ export class GraphManager{
                 })
                 this.runSafe(target, targetPort, source.states[sourcePort], true)
             }
-            if (sendOutput) sendFunction()
+            if (sendOutput) {
+                sendFunction()
+                console.log('sending output now')
+            }
             else return sendFunction
         }
     }

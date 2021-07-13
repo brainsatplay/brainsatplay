@@ -72,11 +72,6 @@ export class DataAtlas {
                 )
             }
 		})
-		
-		this.liveGraph.setupCallbacks.forEach(func => {
-			if (func instanceof Function) func()
-		})
-
 
 		let analysisDict = {
 			eegcoherence: false,

@@ -7,9 +7,9 @@ export class Video {
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            ramchurn: { default: false }
-        }
+        // this.paramOptions = {
+        //     ramchurn: { default: false }
+        // }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
