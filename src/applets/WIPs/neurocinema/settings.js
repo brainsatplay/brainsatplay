@@ -18,6 +18,10 @@ export const settings = {
 
         {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
+
+        {id:'buffer', class: brainsatplay.plugins.transforms.Buffer},
+        {id:'arithmetic', class: brainsatplay.plugins.transforms.Arithmetic},
+
         {id:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
 
         {id:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
@@ -55,6 +59,14 @@ export const settings = {
         },
         {
           source: 'neurofeedback',
+          target: 'buffer'
+        },
+        {
+          source: 'buffer',
+          target: 'arithmetic:input'
+        },
+        {
+          source: 'arithmetic:mean',
           target: 'peakDetector'
         },
         {
