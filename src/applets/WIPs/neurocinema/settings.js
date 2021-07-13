@@ -15,8 +15,16 @@ export const settings = {
     graph:
     {
       nodes: [
+
+        {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
+        {id:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
+
         {id:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        {id:'player', class: brainsatplay.plugins.interfaces.Video, params: {ramchurn: true}},
+        {id:'player', class: brainsatplay.plugins.interfaces.Video, params: {
+          cut: true,
+          ramchurn: true
+        }},
         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="vidContainer" class="video-container"></div>`,
           style: `
@@ -33,10 +41,30 @@ export const settings = {
         }}
 
       ],
-      edges: [{
-        source: 'player:element',
-        target: 'ui:vidContainer'
-      },{
+      edges: [
+        // Insert Video Player to UI
+        {
+          source: 'player:element',
+          target: 'ui:vidContainer'
+        },
+
+        // Neurofeedback Controls
+        {
+          source: 'eeg:atlas',
+          target: 'neurofeedback'
+        },
+        {
+          source: 'neurofeedback',
+          target: 'peakDetector'
+        },
+        {
+          source: 'peakDetector',
+          target: 'changeView'
+        },
+
+
+        // Manual Controls
+        {
         source: 'changeView',
         target: 'player:change'
       }]

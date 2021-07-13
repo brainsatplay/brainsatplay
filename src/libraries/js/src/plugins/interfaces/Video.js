@@ -137,9 +137,9 @@ export class Video {
                 name: 'fade', onUpdate: () => {
                     if (this.params.fade == false) {
                         this.alpha = 0;
-                        document.getElementById(this.props.id + "useAlpha").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usefade").style.opacity = "0.3";
                     }
-                    else { document.getElementById(this.props.id + "useAlpha").style.opacity = "1.0"; }
+                    else { document.getElementById(this.props.id + "usefade").style.opacity = "1.0"; }
                 }
             },
 
@@ -148,13 +148,13 @@ export class Video {
                 name: 'speed', onUpdate: () => {
                     if (this.params.speed == false) {
                         this.playRate = 1;
-                        document.getElementById(this.props.id + "useRate").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usespeed").style.opacity = "0.3";
                     }
                     else {
                         this.params.time = false;
                         this.playRate = 1;
-                        document.getElementById(this.props.id + "useRate").style.opacity = "1.0";
-                        document.getElementById(this.props.id + "useTime").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usespeed").style.opacity = "1.0";
+                        document.getElementById(this.props.id + "usetime").style.opacity = "0.3";
                     }
                     this.props.videos.forEach(el => el.playbackRate = this.playRate)
                 }
@@ -166,12 +166,12 @@ export class Video {
                     if (this.params.volume == false) {
                         this.params.volume = false;
                         this.volume = 0;
-                        document.getElementById(this.props.id + "useVol").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usevolume").style.opacity = "0.3";
                     }
                     else {
                         this.params.volume = true;
                         this.volume = 0.5;
-                        document.getElementById(this.props.id + "useVol").style.opacity = "1.0";
+                        document.getElementById(this.props.id + "usevolume").style.opacity = "1.0";
                     }
 
                     this.props.videos.forEach(el => el.muted = !this.params.volume)
@@ -185,13 +185,13 @@ export class Video {
                 name: 'time', onUpdate: () => {
                     if (this.params.time == false) {
                         this.playRate = 1;
-                        document.getElementById(this.props.id + "useTime").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usetime").style.opacity = "0.3";
                     }
                     else {
                         this.params.speed = false;
                         this.playRate = 0;
-                        document.getElementById(this.props.id + "useRate").style.opacity = "0.3";
-                        document.getElementById(this.props.id + "useTime").style.opacity = "1.0";
+                        document.getElementById(this.props.id + "usespeed").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usetime").style.opacity = "1.0";
                     }
                     this.props.videos.forEach(el => el.playbackRate = this.playRate)
                 }
@@ -200,12 +200,11 @@ export class Video {
             {
                 name: 'cut', onUpdate: () => {
                     if (this.params.cut == false) {
-                        document.getElementById(this.props.id + "useCut").style.opacity = "0.3";
+                        document.getElementById(this.props.id + "usecut").style.opacity = "0.3";
                     }
                     else {
-                        document.getElementById(this.props.id + "useCut").style.opacity = "1.0";
+                        document.getElementById(this.props.id + "usecut").style.opacity = "1.0";
                     }
-                    // this.props.videos.forEach(el => el.playbackRate = this.playRate)
                 }
             },
         
@@ -214,7 +213,7 @@ export class Video {
         portInfo.forEach(o => {
             this.ports[o.name] = {
                 edit: true, // false
-                default: true,
+                default: false,
                 input: { type: 'boolean' },
                 output: { type: null },
                 onUpdate: (userData) => {
@@ -258,11 +257,11 @@ export class Video {
                     <div id="`+ this.props.id + `vidbuttons">
                         <table> 
                           <tr><td>Feedback:</td></tr> 
-                          <tr><td><button id="`+ this.props.id + `useAlpha">Fade</button></td></tr> 
-                          <tr><td><button id="`+ this.props.id + `useRate">Speed</button></td></tr> 
-                          <tr><td><button id="`+ this.props.id + `useVol">Volume</button></td></tr> 
-                          <tr><td><button id="`+ this.props.id + `useTime">Time</button></td></tr> 
-                          <tr><td><button id="`+ this.props.id + `useCut">Cut</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `usefade">Fade</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `usespeed">Speed</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `usevolume">Volume</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `usetime">Time</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `usecut">Cut</button></td></tr> 
                         </table>
                     </div>
                 </div> 
@@ -300,37 +299,15 @@ export class Video {
 
         }
 
-        let fade = document.getElementById(this.props.id + "useAlpha")
-        fade.onclick = () => {
-            this.session.graph.runSafe(this, 'fade', [{ data: !this.params.fade }])
-            fade.blur()
-        }
-
-       let rate =  document.getElementById(this.props.id + "useRate")
-       rate.onclick = () => {
-            this.session.graph.runSafe(this, 'speed', [{ data: !this.params.speed }])
-            rate.blur()
-        }
-
-        let vol = document.getElementById(this.props.id + "useVol")
-        vol.onclick = () => {
-            this.session.graph.runSafe(this, 'volume', [{ data: !this.params.volume }])
-            vol.blur()
-        }
-
-        let time = document.getElementById(this.props.id + "useTime")
-        time.onclick = () => {
-            this.session.graph.runSafe(this, 'time', [{ data: !this.params.time }])
-            time.blur()
-        }
-
-        let cut = document.getElementById(this.props.id + "useCut")
-        cut.onclick = () => {
-            this.session.graph.runSafe(this, 'cut', [{ data: !this.params.cut }])
-            cut.blur()
-        }
-
-        document.getElementById(this.props.id + "useTime").click() // Auto-off
+        let effects = ['fade', 'speed','volume', 'time', 'cut']
+        effects.forEach(str => {
+            let el = document.getElementById(this.props.id + `use${str}`)
+            el.onclick = () => {
+                this.session.graph.runSafe(this, str, [{ data: !this.params[str] }])
+                el.blur()
+            }
+            this.session.graph.runSafe(this, str, [{ data: this.params[str] }]) // Pass default values
+        })
 
         this.timeSlider.addEventListener("change", () => {
             let duration
@@ -375,6 +352,7 @@ export class Video {
             if (this.hidden == false) {
                 this.hidden = true;
                 document.getElementById(this.props.id + "showhide").innerHTML = "Show UI";
+                document.getElementById(this.props.id + "showhide").style.opacity = 0.1
                 document.getElementById(this.props.id + "vidbuttons").style.display = "none";
                 document.getElementById(this.props.id + "timeDiv").style.display = "none";
                 document.getElementById(this.props.id + "fs").style.display = "none";
@@ -382,6 +360,7 @@ export class Video {
             else {
                 this.hidden = false;
                 document.getElementById(this.props.id + "showhide").innerHTML = "Hide UI";
+                document.getElementById(this.props.id + "showhide").style.opacity = 1.0
                 document.getElementById(this.props.id + "vidbuttons").style.display = "";
                 document.getElementById(this.props.id + "timeDiv").style.display = "";
                 document.getElementById(this.props.id + "fs").style.display = "";
