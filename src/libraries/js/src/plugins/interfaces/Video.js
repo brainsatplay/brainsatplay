@@ -15,6 +15,7 @@ export class Video {
             id: String(Math.floor(Math.random() * 1000000)),
             focusVideo: 0,
             videos: [],
+            done: false,
             ramchurn: {
                 cutCount: 0,
                 totalVideoFrames: 0,
@@ -22,7 +23,6 @@ export class Video {
                 durations: [],
                 filePool: [],
                 lastCut: null,
-                triggerChange: false
             }
         };
 
@@ -84,13 +84,11 @@ export class Video {
                             left: 0;
                         `
                         video.muted = true
-                        video.loop = !true //this.params.ramchurn // Do not loop for Ramchurn films
+                        // video.loop = true // Ramchurn method loops
                         video.autoplay = true
                         video.style.transition = 'opacity 0.1s'
                         video.addEventListener('timeupdate', () => {
-                            if (video.currentTime > video.duration - 0.5) {
-                                this.props.ramchurn.triggerChange = true
-                            }
+                            if (video.currentTime > video.duration - 0.1) this.props.done = true // Done 100ms before completion
                         })
                         this.props.videos.push(video)
                         this.props.ramchurn.durations.push(0)
@@ -116,7 +114,7 @@ export class Video {
                 input: { type: 'boolean' },
                 output: { type: null },
                 onUpdate: (userData) => {
-                    if (userData[0].data) {
+                    if (userData[0].data && this.params.cut) {
 
                         // Log Display Duration
                         this.logDisplayDuration()
@@ -197,7 +195,22 @@ export class Video {
                     }
                     this.props.videos.forEach(el => el.playbackRate = this.playRate)
                 }
-            }]
+            },
+
+            {
+                name: 'cut', onUpdate: () => {
+                    if (this.params.cut == false) {
+                        document.getElementById(this.props.id + "useCut").style.opacity = "0.3";
+                    }
+                    else {
+                        document.getElementById(this.props.id + "useCut").style.opacity = "1.0";
+                    }
+                    // this.props.videos.forEach(el => el.playbackRate = this.playRate)
+                }
+            },
+        
+        
+        ]
         portInfo.forEach(o => {
             this.ports[o.name] = {
                 edit: true, // false
@@ -249,6 +262,7 @@ export class Video {
                           <tr><td><button id="`+ this.props.id + `useRate">Speed</button></td></tr> 
                           <tr><td><button id="`+ this.props.id + `useVol">Volume</button></td></tr> 
                           <tr><td><button id="`+ this.props.id + `useTime">Time</button></td></tr> 
+                          <tr><td><button id="`+ this.props.id + `useCut">Cut</button></td></tr> 
                         </table>
                     </div>
                 </div> 
@@ -286,21 +300,36 @@ export class Video {
 
         }
 
-        document.getElementById(this.props.id + "useAlpha").onclick = () => {
+        let fade = document.getElementById(this.props.id + "useAlpha")
+        fade.onclick = () => {
             this.session.graph.runSafe(this, 'fade', [{ data: !this.params.fade }])
+            fade.blur()
         }
 
-        document.getElementById(this.props.id + "useRate").onclick = () => {
+       let rate =  document.getElementById(this.props.id + "useRate")
+       rate.onclick = () => {
             this.session.graph.runSafe(this, 'speed', [{ data: !this.params.speed }])
+            rate.blur()
         }
 
-        document.getElementById(this.props.id + "useVol").onclick = () => {
+        let vol = document.getElementById(this.props.id + "useVol")
+        vol.onclick = () => {
             this.session.graph.runSafe(this, 'volume', [{ data: !this.params.volume }])
+            vol.blur()
         }
 
-        document.getElementById(this.props.id + "useTime").onclick = () => {
+        let time = document.getElementById(this.props.id + "useTime")
+        time.onclick = () => {
             this.session.graph.runSafe(this, 'time', [{ data: !this.params.time }])
+            time.blur()
         }
+
+        let cut = document.getElementById(this.props.id + "useCut")
+        cut.onclick = () => {
+            this.session.graph.runSafe(this, 'cut', [{ data: !this.params.cut }])
+            cut.blur()
+        }
+
         document.getElementById(this.props.id + "useTime").click() // Auto-off
 
         this.timeSlider.addEventListener("change", () => {
@@ -495,9 +524,7 @@ export class Video {
     animate = () => {
         if (this.looping === true) {
 
-            if (this.params.ramchurn && this.props.ramchurn.triggerChange) {
-                this.getNewCombination()
-            }
+            if (this.props.done) this.getNewCombination()
 
             if ((this.sliderfocus == false)) {
 
@@ -578,7 +605,7 @@ export class Video {
 
     getNewCombination = () => {
 
-        this.props.ramchurn.triggerChange = false // Reset
+        this.props.done = false // Reset
         this.logDisplayDuration()
         let cutSlow = this.props.ramchurn.totalVideoFrames / this.props.ramchurn.cutCount > this.props.ramchurn.slowThreshold // 1 for slow; 0 for fast
         let ratio = this.props.ramchurn.durations[0] / this.props.ramchurn.durations[1]
