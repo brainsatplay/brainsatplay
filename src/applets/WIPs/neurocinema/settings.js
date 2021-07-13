@@ -16,7 +16,7 @@ export const settings = {
     {
       nodes: [
         {id:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        {id:'player', class: brainsatplay.plugins.interfaces.Video},
+        {id:'player', class: brainsatplay.plugins.interfaces.Video, params: {ramchurn: true}},
         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="vidContainer" class="video-container"></div>`,
           style: `
