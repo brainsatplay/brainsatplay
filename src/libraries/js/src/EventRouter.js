@@ -88,6 +88,7 @@ export class EventRouter{
 
                         // Declare Callback and Subscribe
                         let deviceCallback = (o) => {
+                            console.log(o)
                             this.update(o, this.routes.registry[state.meta.id])
                         }
 

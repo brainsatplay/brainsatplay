@@ -40,8 +40,6 @@ export class Buffer{
         if (this.props.buffer.length > this.params.size) this.props.buffer.shift()
         userData[0].data = this.props.buffer
         userData[0].meta.label = this.label
-        userData[0].stringify = false
-
         return userData
     }
 }

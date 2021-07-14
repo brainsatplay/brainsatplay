@@ -529,7 +529,7 @@ export class Video {
                     this.onData(score);
                 }
             }
-            else if (this.session.atlas.settings.analysis.eegcoherence) {
+            else if (this.session.atlas.settings.eeg && this.session.atlas.settings.analysis.eegcoherence) {
                 this.cohScore = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(), 'alpha1')
                 this.onData(this.cohScore);
             }

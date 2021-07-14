@@ -26,7 +26,7 @@ export class HEG{
                 output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,
                 onUpdate: () => {
-                    return [{data: this.session.atlas.data, stringify:false}]
+                    return [{data: this.session.atlas.data}]
                 }
             }
         }
@@ -40,7 +40,7 @@ export class HEG{
                 input: {type:null},
                 output: {type:Array},
                 onUpdate: (userData) => {
-                    return [{data: this.session.atlas.data.heg[0][key], stringify:false}]
+                    return [{data: this.session.atlas.data.heg[0][key]}]
                 }
             }
         })
