@@ -724,9 +724,10 @@ class Physics {
                 parent:undefined,
                 children:[],
                 bodies:[],
-                XX:0,
-                YY:0,
-                ZZ:0
+                collisionType:"Box",
+                collisionRadius: 1, 
+                collisionBoundsScale: [1,1,1], //radius of bounding box
+                position:{x:0,y:0,z:0} //center of bounds
             },
             tree:{}
         };
@@ -738,7 +739,7 @@ class Physics {
             collisionEnabled: true,
             collisionType: "Sphere", //Sphere, Box, Point
             collisionRadius: 1, //Radius of sphere or nearest point on side planes in a box
-            collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions (eigenvalues), doesn't affect the sphere yet.
+            collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions, doesn't affect the sphere yet.
 
             dynamic: true, //Does this object move? Changes objects added to the dynamic bounding volume
 
@@ -788,9 +789,9 @@ class Physics {
             let yy = body.position[1]+body.collisionRadius*body.collisionBoundsScale[1];
             let zz = body.position[2]+body.collisionRadius*body.collisionBoundsScale[2];
 
-            boundX = Math.max(boundX,xx);
-            boundY = Math.max(boundY,yy);
-            boundZ = Math.max(boundZ,zz);
+            maxX = Math.max(boundX,xx);
+            maxY = Math.max(boundY,yy);
+            maxZ = Math.max(boundZ,zz);
 
             minX = Math.min(minX,xx);
             minY = Math.min(minY,yy);
@@ -800,9 +801,11 @@ class Physics {
 
         let head = JSON.parse(JSON.stringify(this.dynamicBoundingVolumeTree.proto));
 
-        head.XX = boundX;
-        head.YY = boundY;
-        head.ZZ = boundZ;
+        let boxdims = [maxX-minX,maxY-minY,maxZ-minZ];
+        let boxpos = {x:boxdims[0]*.5,y:boxdims[1]*.5,z:boxdims[2]*.5};
+        
+        head.position = boxpos;
+        head.collisionBoundsScale = [boxdims[0]*.5,boxdims[1]*.5,boxdims[2]*.5];
 
         head.bodies = bodies;
         
@@ -816,6 +819,8 @@ class Physics {
             repeat at a smaller radius till no more objects can be grouped at a minimum group size or radius
             bodies will be referenced in each 
         */
+
+        
 
     }
 

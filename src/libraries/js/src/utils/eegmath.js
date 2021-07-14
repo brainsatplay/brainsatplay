@@ -98,6 +98,17 @@ export class eegmath {
         return Math.sqrt(dsqrd);
     }
 
+	static normalize(vec) { //nDimensional vector normalization
+        var norm = 0;
+        norm = this.magnitude(vec);
+        var vecn = [];
+        vec.forEach((c,i) => {
+            vecn.push(c*norm);
+        })
+        return vecn;
+    }
+
+
     static makeVec(point1,point2) {  //Make vector from two nDimensional points (arrays)
         var vec = [];
         point1.forEach((c,i) => {
