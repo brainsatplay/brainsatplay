@@ -874,6 +874,7 @@ export class GraphEditor{
                     button.style.width = 'auto'
                     button.onclick = () => {
                         input.click()
+                        button.blur()
                     }
                     inputContainer.insertAdjacentElement('beforeend',button)
                 }
@@ -900,7 +901,13 @@ export class GraphEditor{
 
                         if (input.type === 'checkbox') plugin.params[key] = event.target.checked
                         else if (input.type === 'file') plugin.params[key] = event.target.files;
-                        else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
+                        else if (['number','range'].includes(input.type)) {
+                            plugin.params[key] = Number.parseFloat(input.value)
+                            if (input.type === 'range') {
+                                console.log(input.nextSibling, input.parentNode)
+                                input.parentNode.querySelector('output').innerHTML = input.value
+                            }
+                        }
                         else plugin.params[key] = input.value
 
 

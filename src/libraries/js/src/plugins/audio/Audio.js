@@ -6,21 +6,10 @@ export class Audio{
         this.label = label
         this.session = session
         this.params = params
-        this.paramOptions = {
-            file: {default: 'None', options: ['None']}
-        }
 
         this.ports = {
-            default: {
-                defaults: {
-                    output: [{data: {}, meta: {label: `audio`}}]
-                },
-            }, 
-            fft: {
-                defaults: {
-                    output: [{data: {}, meta: {label: `audio_fft`}}]
-                }
-            }
+            files: {}, 
+            fft: {}
         }
 
         this.props = {}
@@ -29,18 +18,4 @@ export class Audio{
     init = () => {}
 
     deinit = () => {}
-
-    default = () => {
-        this.states['default'].data = true // Play Music
-        this.states['default'].meta.label = `audio`
-        return this.states['default']
-    }
-
-    fft = () => {
-        let channel = undefined // Get FFT Data
-        if(channel) this.states['fft'].data = channel.fft;
-        else this.states['fft'].data = new Array(256).fill(0);
-        this.states['fft'].meta.label = `audio_fft`
-        return this.states['fft']
-    }
 }
