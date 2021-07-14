@@ -20,8 +20,7 @@ export class Blink{
                     userData.forEach((u,i) => {
                         u.data = [leftBlinks[i].data, rightBlinks[i].data]
                         u.meta.label = 'blink'
-                    })
-        
+                    })        
                     return userData
                 }
             },
@@ -118,7 +117,7 @@ export class Blink{
 
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 1000;'>
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 1;'>
             </div>`
         }
 

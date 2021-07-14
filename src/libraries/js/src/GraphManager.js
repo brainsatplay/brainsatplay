@@ -326,13 +326,15 @@ export class GraphManager{
                                 case1 = node.states[port][i]
                                 case2 = o
                                 stringify = false
+                                delete o.stringify
                             } else {
                                 case1 = JSON.stringifyFast(node.states[port][i])
                                 case2 = JSON.stringifyFast(o)
-                            }
-                            
+                            }                            
 
                             let thisEqual = case1 === case2
+                            // if (node.constructor.name === 'Peak') console.log(thisEqual, case1, case2)
+
                             if (!thisEqual){
                                 node.states[port][i] = o
                                 allEqual = false

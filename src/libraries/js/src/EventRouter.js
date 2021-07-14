@@ -54,7 +54,10 @@ export class EventRouter{
                             if (blinks[1] != null && blinkRight) this.device.states['blink_right'].data = blinks[1]
                         }
                     } else {
-                        this.device.atlas.getBlink({debug: false})
+
+                        // Turn Debug Off
+                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
+		                this.device.atlas.graph.updateParams(node, {debug: false})
                     }
             });
         }
@@ -112,7 +115,9 @@ export class EventRouter{
                     t.target.state[t.target.port] = []
                     t.target.state[t.target.port] = [{data: newState, meta: {label: t.label}}]
                     let updateObj = {}
-                    updateObj[t.label] = true
+                    updateObj[t.label] = {}
+                    updateObj[t.label].trigger = true
+                    updateObj[t.label].value = t.target.state[t.target.port]
                     t.manager.setSequentialState(updateObj)
                 }
                 else if (Array.isArray(t) && 'data' in t[0]){
