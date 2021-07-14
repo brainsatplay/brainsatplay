@@ -39,9 +39,9 @@ export class Application{
         let setupHTML = () => {
             // Insert Intefaces and Add App Reference
             this.graph.nodes.forEach(node => {this.insertInterface(node)})
-            this.graph.setupCallbacks.forEach(func => {
-                if (func instanceof Function) func()
-            })
+            // this.graph.setupCallbacks.forEach(func => {
+            //     if (func instanceof Function) func()
+            // })
 
             // Create Device Manager (if required)
             if (this.info.connect){

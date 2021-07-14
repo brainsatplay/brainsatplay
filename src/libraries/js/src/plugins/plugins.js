@@ -10,6 +10,7 @@ import * as interfaces from './interfaces/index.js'
 import * as machinelearning from './machinelearning/index.js'
 import * as scene from './scene/index.js'
 import * as utilities from './utilities/index.js'
+import * as transforms from './transforms/index.js'
 
 export {
     algorithms, 
@@ -23,5 +24,6 @@ export {
     interfaces,
     machinelearning,
     scene, 
-    utilities
+    utilities,
+    transforms
 }

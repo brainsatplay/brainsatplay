@@ -87,8 +87,8 @@ export const settings = {
         {id: 'heg', class: brainsatplay.plugins.biosignals.HEG},
 
         // Utilities
-        {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
-        {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
+        {id: 'lastHEG', class: brainsatplay.plugins.transforms.Index},
+        {id: 'lastBreath', class: brainsatplay.plugins.transforms.Index},
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 4, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Thank You for Playing!']}},
 
         // Tree
@@ -123,19 +123,6 @@ export const settings = {
         {id: 'particlesgeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', count: quantityPoints/10}},
         {id: 'particlesmat', class: brainsatplay.plugins.scene.Material, params:{type: 'ShaderMaterial',wireframe: false, transparent:true, depthWrite: false}},
         {id: 'particles', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Points', x: -terrainLength/4, y:0, z:-terrainLength/4,scalex:terrainLength/2, scaley: 5, scalez: terrainLength/2}},
-
-                
-        // Sphere
-        // {id: 'vertex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: vertexShader}},
-        // {id: 'fragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: fragmentShader, uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}}},
-        // {id: 'material', class: brainsatplay.plugins.utilities.Material},
-        // {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
-        // {id: 'sphere', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh',x:0, y:0, z:0,scale:100}},
-        
-        // Plant
-        // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
-        // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
-
         {id: 'sine', class: brainsatplay.plugins.controls.Event},//, params: {center: 0.5, scale: 0.5, frequency: 0.1}},
         {id: 'html', class: brainsatplay.plugins.interfaces.UI, params:{
           html: `
@@ -155,7 +142,6 @@ export const settings = {
           `
         }
         },
-        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.scene.Scene, params: {camerax: 1, cameray: 2.0, cameraz: 9.0}},
       ],
@@ -218,28 +204,6 @@ export const settings = {
           source: 'lastBreath', 
           target: 'particlesfragment:uVerdant'
         },
-        
-        // // Draw Sphere to Scene
-        // {
-        //   source: 'geometry', 
-        //   target: 'sphere:geometry'
-        // },
-        // {
-        //   source: 'vertex', 
-        //   target: 'material:vertex'
-        // },
-        // {
-        //   source: 'fragment', 
-        //   target: 'material:fragment'
-        // },
-        // {
-        //   source: 'material', 
-        //   target: 'sphere:material'
-        // },
-        // {
-        //   source: 'sphere:add', 
-        //   target: 'scene:add'
-        // },
 
         // Add Ground
         {
@@ -334,36 +298,6 @@ export const settings = {
           source: 'tree1:add', 
           target: 'scene:add'
         },
-
-        // Add Plant
-        // {
-        //   source: 'plantmat', 
-        //   target: 'plant:material'
-        // },
-        // {
-        //   source: 'plant:add', 
-        //   target: 'scene:add'
-        // },
-
-        // UI
-        // {
-        //   source: 'sine', 
-        //   target: 'transformer:toFloat'
-        // },
-        // {
-        //   source: 'transformer:toFloat', 
-        //   target: 'html:opacity'
-        // },
-
-        // HUD
-        // {
-        //   source: 'html:element', 
-        //   target: 'hud:element'
-        // },
-        // {
-        //   source: 'hud:add', 
-        //   target: 'scene:add'
-        // },
 
         {
           source: 'scheduler:state', 

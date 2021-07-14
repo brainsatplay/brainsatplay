@@ -449,7 +449,6 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
-            console.log(this.app)
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
         }
@@ -858,14 +857,20 @@ export class GraphEditor{
                     }
                 } else if (defaultType === 'file'){
                     
+                    let text = 'Choose File'
                     input = document.createElement('input')
                     input.type = 'file'
-                    input.accept = "video/*"
+                    input.accept = toParse[key].input?.accept // Only in new format
+
+                    if (toParse[key].input?.multiple){
+                        input.multiple = true // Only in new format
+                        text = text + 's'
+                    }
                     input.style.display = 'none'
 
                     let button = document.createElement('button')
                     button.classList.add('brainsatplay-default-button')
-                    button.innerHTML = 'Choose File'
+                    button.innerHTML = text
                     button.style.width = 'auto'
                     button.onclick = () => {
                         input.click()
@@ -892,11 +897,15 @@ export class GraphEditor{
 
                     // Change Live Params with Input Changes
                     let changeFunc = (e) => {
+
                         if (input.type === 'checkbox') plugin.params[key] = event.target.checked
-                        else if (input.type === 'file') plugin.params[key] = event.target.files[0];
+                        else if (input.type === 'file') plugin.params[key] = event.target.files;
                         else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
                         else plugin.params[key] = input.value
-                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
+
+
+                        if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
+                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
                     }
 
                     input.oninput = changeFunc

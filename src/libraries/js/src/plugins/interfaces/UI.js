@@ -15,7 +15,8 @@ export class UI{
             context: null,
             drawFunctions: {},
             looping: false,
-            fragments: {}
+            fragments: {},
+            onload: [],
         }
 
         this.ports = {
@@ -52,7 +53,7 @@ export class UI{
                         // Insert Fragment
                         this.props.fragments[u.meta.source] = new DOMFragment(
                             dict.HTMLtemplate,
-                            this.props.content,
+                            this.props.container,
                             undefined,
                             dict.setupHTML
                         )
@@ -65,23 +66,34 @@ export class UI{
         // Dynamically Add Ports
         let ports = [
             {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: ``, onUpdate: (userData) => {
-                this.props.content.innerHTML = userData[0].data
+                this.props.container.innerHTML = userData[0].data
 
                 // Create ID Ports
-                var descendants = this.props.content.querySelectorAll("*");
+                var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
                             output: {type: null},
                             onUpdate: (userData) => {
-                                node.innerHTML = String(userData[0].data)
+                                let data = userData[0].data
+                                if (data instanceof Function) data = data()
+
+                                node.innerHTML = ''
+                                if (
+                                    typeof data === "object" ? data instanceof HTMLElement : //DOM2
+                                    data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
+                                ) {
+                                    node.insertAdjacentElement('beforeend', data)
+                                    setTimeout(() => {data.onload()},250) // Wait a bit for onload functions to ensure element has been added
+                                }
+                                else node.insertAdjacentHTML('beforeend', String(data))
                             }
                         })
                     }
                 }
             }}, 
-            {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
+            // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: ``, onUpdate: (userData) => {
                 if (this.props.style == null){
                     this.props.style = document.createElement('style')
@@ -107,7 +119,9 @@ export class UI{
                     o.onUpdate(userData)
                 }
             }
-            })
+            
+            if (o.edit === false) this.ports[o.key].edit = false
+        })
 
     }
 
@@ -115,11 +129,8 @@ export class UI{
 
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-        this.props.content = document.createElement('div')
-        this.props.content.id = `${this.props.id}content`
-        this.props.content.classList.add('brainsatplay-ui-container')
-        this.props.container.insertAdjacentElement('beforeend', this.props.content)
-        this.props.content.style = this.params.containerStyle
+        this.props.container.classList.add('brainsatplay-ui-container')
+        this.props.container.style = this.params.containerStyle
         
         // Create Stylesheet
         let HTMLtemplate = this.props.container

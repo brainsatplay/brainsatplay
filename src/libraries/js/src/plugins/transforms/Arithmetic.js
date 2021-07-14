@@ -1,4 +1,4 @@
-export class Transform{
+export class Arithmetic{
     
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -19,8 +19,8 @@ export class Transform{
                 output: {type: null},
                 onUpdate: (userData) => {
                     this.props.input = userData
-                    this.session.graph.runSafe(this,'not',[{forceRun: true}])
-                    this.session.graph.runSafe(this,'toFloat',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'not',[{forceRun: true}])
+                    // this.session.graph.runSafe(this,'toFloat',[{forceRun: true}])
                     this.session.graph.runSafe(this,'sum',[{forceRun: true}])
                     this.session.graph.runSafe(this,'mean',[{forceRun: true}])
                     this.session.graph.runSafe(this,'add',[{forceRun: true}])
@@ -30,33 +30,33 @@ export class Transform{
                 }
             },
 
-            not: {
-                edit: false,
-                default: 0,
-                input: {type: null},
-                output: {type: 'boolean'},
-                onUpdate: () => {
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
-                    return inputCopy.map(u => {
-                        u.data = !u.data
-                        return u
-                    })
-                },
-            },
+            // not: {
+            //     edit: false,
+            //     default: 0,
+            //     input: {type: null},
+            //     output: {type: 'boolean'},
+            //     onUpdate: () => {
+            //         let inputCopy = this.session.graph.deeperCopy(this.props.input)
+            //         return inputCopy.map(u => {
+            //             u.data = !u.data
+            //             return u
+            //         })
+            //     },
+            // },
 
-            toFloat: {
-                edit: false,
-                default: 0,
-                input: {type: null},
-                output: {type: 'number'},
-                onUpdate: () => {
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
-                    return inputCopy.map(u => {
-                        u.data = this._parseProperFormat(u.data)
-                        return u
-                    })
-                }
-            },
+            // toFloat: {
+            //     edit: false,
+            //     default: 0,
+            //     input: {type: null},
+            //     output: {type: 'number'},
+            //     onUpdate: () => {
+            //         let inputCopy = this.session.graph.deeperCopy(this.props.input)
+            //         return inputCopy.map(u => {
+            //             u.data = this._parseProperFormat(u.data)
+            //             return u
+            //         })
+            //     }
+            // },
 
             add: {
                 default: 0,
