@@ -507,18 +507,24 @@ export class GraphManager{
 
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated
-            if (node.ports[port] == null || node.ports[port].onUpdate == null){
+
+            console.log('adding port', node.ports[port]== null, node.ports[port]?.onUpdate== null)
+            
+            let noPort = node.ports[port] == null
+            if (noPort || node.ports[port].onUpdate == null){
                 // Add Port to Node
                 node.ports[port] = info
                 this.instantiateNodePort(node,port)
                 this.addPortToRegistry(node,port)
 
                 // Add Port to Visual Editor
-                let applet = this.applets[node.app?.props?.id]
-                if (applet){
-                    let editor = applet.editor
+                if (noPort){
+                    let applet = this.applets[node.app?.props?.id]
+                    if (applet){
+                        let editor = applet.editor
 
-                    if (editor) editor.addPort(node,port)
+                        if (editor) editor.addPort(node,port)
+                    }
                 }
             }
         }

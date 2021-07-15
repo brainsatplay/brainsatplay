@@ -46,7 +46,6 @@ export class Video {
                 output: { type: null },
                 default: defaultVideoURLs,
                 onUpdate: (userData) => {
-                    console.log(userData)
                     if (userData[0].data){
                         this.props.focusVideo = 0
                         this.params.files = this.shuffle(Array.from(userData[0].data))
@@ -119,9 +118,10 @@ export class Video {
             {
                 name: 'ui', onUpdate: () => {
 
+                    console.log(this.params.ui)
                     if (this.params.ui == false) {
                         document.getElementById(this.props.id + "useui").innerHTML = "Show UI";
-                        document.getElementById(this.props.id + "useui").style.opacity = 0.1
+                        document.getElementById(this.props.id + "useui").style.opacity = 0.3
                         document.getElementById(this.props.id + "vidbuttons").style.display = "none";
                         document.getElementById(this.props.id + "timeDiv").style.display = "none";
                         document.getElementById(this.props.id + "fs").style.display = "none";
@@ -249,13 +249,13 @@ export class Video {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         this.container.insertAdjacentHTML('beforeend', `
-                <div id="`+ this.props.id + `menu" style='position:absolute; z-index:4; top: 0; left: 0'>
-                    <button id="`+ this.props.id + `useui" style='' >Hide UI</button>
-                    <input id="`+ this.props.id + `fs" type="file" accept="video/*" multiple/>
+                <div id="`+ this.props.id + `menu" style='position:absolute; z-index:4; top: 0; left: 0;'>
+                    <button id="`+ this.props.id + `useui" style="opacity: 0.3;" >Show UI</button>
+                    <input id="`+ this.props.id + `fs" style="display: none;" type="file" accept="video/*" multiple/>
                     <div id="${this.props.id}message"></div>
-                    <div id="`+ this.props.id + `timeDiv"><input id="` + this.props.id + `timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
+                    <div id="`+ this.props.id + `timeDiv" style="display: none;"><input id="` + this.props.id + `timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+ this.props.id + `vidbar"><button id="` + this.props.id + `minus1min">--</button><button id="` + this.props.id + `minus10sec">-</button><button id="` + this.props.id + `play">||</button><button id="` + this.props.id + `plus10sec">+</button><button id="` + this.props.id + `plus1min">++</button></div></div> 
-                    <div id="`+ this.props.id + `vidbuttons">
+                    <div id="`+ this.props.id + `vidbuttons" style="display: none;">
                         <table> 
                           <tr><td>Feedback:</td></tr> 
                           <tr><td><button id="`+ this.props.id + `usefade">Fade</button></td></tr> 

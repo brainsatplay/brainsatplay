@@ -101,6 +101,7 @@ export class Ramchurn{
             video: {
                 input: {type: null},
                 output: {type: 'file'},
+                default: [],
                 onUpdate: (userData) => {
                     // Get Combination
                     let combination = userData[0].data
@@ -110,9 +111,10 @@ export class Ramchurn{
             audio: {
                 input: {type: null},
                 output: {type: 'file'},
+                default: [],
                 onUpdate: (userData) => {
                     let combination = userData[0].data
-                    return [{data: [combination.primary.audio, combination.primary.audio]}]
+                    return [{data: [combination.primary.audio, combination.primary.vox, combination.secondary.audio, combination.secondary.vox]}]
                 }
             },
 

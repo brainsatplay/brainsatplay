@@ -112,7 +112,7 @@ export const settings = {
         },
         {
           source: 'manager:cut',
-          target: 'audio:change'
+          target: 'audio:track1'
         },
       ]
     },
