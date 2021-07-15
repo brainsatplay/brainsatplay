@@ -267,10 +267,16 @@ export class GraphManager{
                     if (!inputCopy[i].meta) inputCopy[i].meta = {}
                     if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
                 }
-            }            
+            }
+            
+            let connected
+            if (node.ports[port].active?.out > 0) connected = true
+            if (node.ports[port].active?.in > 0) connected = true
+            if (node.ports[port]?.output?.type === null) connected = true
+            if (node.ports[port]?.input?.type === null) connected = true
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active?.out > 0 || node.ports[port]?.output?.type === null || forceUpdate))){
+            if ((inputCopy.length > 0 || forceRun) && ((connected || forceUpdate))){
                 let result
                 if (node[port] instanceof Function) {
                     result = node[port](inputCopy)
@@ -334,7 +340,6 @@ export class GraphManager{
                             }                            
 
                             let thisEqual = case1 === case2
-                            // if (node.constructor.name === 'Peak') console.log(thisEqual, case1, case2)
 
                             if (!thisEqual){
                                 node.states[port][i] = o
@@ -506,10 +511,7 @@ export class GraphManager{
     }
 
     addPort = (node, port, info) => {
-        if (node.states && info) { // Only if node is fully instantiated
-
-            console.log('adding port', node.ports[port]== null, node.ports[port]?.onUpdate== null)
-            
+        if (node.states && info) { // Only if node is fully instantiated            
             let noPort = node.ports[port] == null
             if (noPort || node.ports[port].onUpdate == null){
                 // Add Port to Node
@@ -603,7 +605,7 @@ export class GraphManager{
                         let input = o.value ?? source.states[sourcePort]
                         input.forEach(u => {
                             if (!u.meta) u.meta = {}
-                            if (target instanceof plugins.utilities.Brainstorm) u.meta.source = label // Push proper source
+                            if (target instanceof plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                             u.meta.session = applet.sessionId
                         })
 
@@ -616,7 +618,7 @@ export class GraphManager{
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
-            if (target instanceof plugins.utilities.Brainstorm) {
+            if (target instanceof plugins.networking.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
 
                 // Initialize Port

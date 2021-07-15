@@ -27,7 +27,7 @@ class Trees{
         this.ports = {
             add: {
                 input: {type: null},
-                output: {type: 'Mesh'},
+                output: {type: Object, name: 'Mesh'},
                 onUpdate: () => {
                     return [{data: this.props.groups}]
                 }

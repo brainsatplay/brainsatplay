@@ -17,6 +17,7 @@ export class UI{
             looping: false,
             fragments: {},
             onload: [],
+            onresize: {}
         }
 
         this.ports = {
@@ -85,16 +86,30 @@ export class UI{
                                     data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
                                 ) {
                                     node.insertAdjacentElement('beforeend', data)
-                                    setTimeout(() => {data.onload()},250) // Wait a bit for onload functions to ensure element has been added
+                                    setTimeout(() => {
+                                        if (data.onload instanceof Function) data.onload()
+                                        if (data.onresize instanceof Function) {
+                                            this.props.onresize[node.id] = data.onresize
+                                            this.responsive()
+                                        }
+                                    },250) // Wait a bit for onload functions to ensure element has been added
                                 }
                                 else node.insertAdjacentHTML('beforeend', String(data))
+
+
+                                // Fill Width/Height by Default
+                                if (!this.params.style.includes(`#${node.id}`)) this.params.style += `\n\n#${node.id} {\nwidth: 100%;\nheight: 100%;\n}`
                             }
                         })
                     }
                 }
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
-            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: ``, onUpdate: (userData) => {
+            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {
+                width: 100%;
+                height: 100%;
+            }
+            `, onUpdate: (userData) => {
                 if (this.props.style == null){
                     this.props.style = document.createElement('style')
                     this.props.style.id = `${this.props.id}style`
@@ -154,5 +169,11 @@ export class UI{
 
     responsive = () => {
         if (this.params.responsive instanceof Function) this.params.responsive()
+       for (let key in this.props.onresize){
+        //    console.log(key, this.ports[key])
+        //    if (this.ports[key].active.in > 0) 
+           this.props.onresize[key]()
+        //    else delete this.props.onresize[key]
+       }
     }
 }

@@ -31,12 +31,16 @@ export class Light{
 
         this.ports = {
             add: {
-                defaults: {
-                    output: [{data:[this.props.mesh, this.props.mesh.target], meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Mesh',
+                default: this.props.mesh,
+                input: {type: null},
+                output: {type: Object, name: 'Mesh'},
+                onUpdate: () => {
+                    if (this.props.mesh == null){
+                        this.props.mesh = new THREE.AmbientLight( this.params.color );
+                        this.props.mesh.target.position.set( 0, 0, - 2 );
+                    }
+                    this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
+                    return [{data: this.props.mesh, meta: {params: this.params}}]
                 }
             },
             radius: {
@@ -87,15 +91,6 @@ export class Light{
             // }
             // this.props.scene.remove(this.mesh);
         }
-    }
-
-    add = () => {
-        if (this.props.mesh == null){
-            this.props.mesh = new THREE.DirectionalLight( this.params.color );
-            this.props.mesh.target.position.set( 0, 0, - 2 );
-        }
-        this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
-        return [{data: [this.props.mesh, this.props.mesh.target], meta: {label: this.label, params: this.params}}]
     }
     
     radius = (userData) => {

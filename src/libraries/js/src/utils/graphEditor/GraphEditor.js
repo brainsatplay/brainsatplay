@@ -40,6 +40,8 @@ export class GraphEditor{
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
         }
+
+        this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT']
     
         if (this.plugins){
 
@@ -704,6 +706,10 @@ export class GraphEditor{
         this.addPortEvents(this.graph.nodes[node.label])
     }
 
+    removePort(node,port){
+        this.graph.nodes[node.label].removePort(port)
+    }
+
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
@@ -766,6 +772,7 @@ export class GraphEditor{
                 // Cannot Handle Objects or Elements
                 if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
 
+
                 if (optionsType == 'object' && specifiedOptions != null){
                         let options = ``
                         toParse[key].options.forEach(option => {
@@ -785,10 +792,10 @@ export class GraphEditor{
                         input.type = 'range'
                         input.min = toParse[key].min
                         input.max = toParse[key].max
-                        input.value = plugin.params[key]
                         if (toParse[key].step) input.step = toParse[key].step
                         let output = document.createElement('output')
                         inputContainer.insertAdjacentElement('afterbegin',output)
+                        input.value = plugin.params[key]
                         output.innerHTML = input.value
                     } else {
                         input = document.createElement('input')
@@ -887,27 +894,30 @@ export class GraphEditor{
 
                     // Change Live Params with Input Changes
                     let changeFunc = (e) => {
-                        if (input.type === 'checkbox') plugin.params[key] = input.checked
-                        else if (input.type === 'file') plugin.params[key] = input.files;
-                        else if (['number','range'].includes(input.type)) {
-                            plugin.params[key] = Number.parseFloat(input.value)
-                            if (input.type === 'range') {
-                                input.parentNode.querySelector('output').innerHTML = input.value
+                        if (this.elementTypesToUpdate.includes(input.tagName)){
+                            if (input.type === 'checkbox') plugin.params[key] = input.checked
+                            else if (input.type === 'file') plugin.params[key] = input.files;
+                            else if (['number','range'].includes(input.type)) {
+                                plugin.params[key] = Number.parseFloat(input.value)
+                                if (input.type === 'range') {
+                                    input.parentNode.querySelector('output').innerHTML = input.value
+                                }
                             }
+                            else plugin.params[key] = input.value
+                            if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
+                            if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
                         }
-                        else plugin.params[key] = input.value
-                        if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
-                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
                     }
 
                     input.oninput = changeFunc
 
                     // Listen for Non-GUI Changes to Params when Viewing
+                    delete this.state.data[`activeGUINode`]
                     this.state.addToState(`activeGUINode`, plugin.params, () => {
 
                         let oldValue
                         let newValue
-                        if (input.type != 'file'){
+                        if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
                             if (input.type === 'checkbox') {
                                 oldValue = input.checked
                                 input.checked = plugin.params[key]
@@ -919,7 +929,7 @@ export class GraphEditor{
                                 newValue = input.value
                             }
                         }
-
+                        
                         if (oldValue != newValue) changeFunc()
                     })
                 }

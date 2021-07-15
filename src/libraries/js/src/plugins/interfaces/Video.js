@@ -24,10 +24,8 @@ export class Video {
         height: 100%;
         `
 
-        this.container.onload = () => {
-            this.setup()
-            this.responsive()
-        }
+        this.container.onload = this.setup
+        this.container.onresize = this.responsive
 
         let defaultVideoURLs = ['https://vjs.zencdn.net/v/oceans.mp4']
 
@@ -93,7 +91,7 @@ export class Video {
                 default: this.container,
                 onUpdate: () => {
                     this.params.element = this.container
-                    return this.container
+                    return [{data: this.container}]
                 }
             },
             change: {
@@ -271,12 +269,10 @@ export class Video {
           `
         )
 
-        window.addEventListener('resize', this.responsive)
     }
 
     deinit = () => {
         this.looping = false;
-        window.removeEventListener('resize', this.responsive)
         this.stopVideo();
         cancelAnimationFrame(this.animationId);
     }

@@ -123,10 +123,8 @@ export class Blink{
 
         let setupHTML = (app) => {
             this.props.container = document.getElementById(`${this.props.id}`);
-            let ui = this.props.canvas.instance.init()
-            let html = ui.HTMLtemplate()
-            this.props.container.insertAdjacentHTML('beforeend', html)
-            ui.setupHTML()
+            this.props.canvas.instance.init()
+            this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
             this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
                 {  

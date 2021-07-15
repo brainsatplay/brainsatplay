@@ -35,16 +35,42 @@ export class Geometry{
 
         this.ports = {
             default: {
-                defaults: {
-                    output: [{data: this.props.geometry, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Geometry',
+                default: this.props.geometry,
+                input: {type: null},
+                output: {type: Object, name: 'Geometry'},
+                onUpdate: () => {
+
+                    switch(this.params.type){
+                        case 'SphereGeometry':
+                            this.props.geometry = new THREE.SphereGeometry( this.params.radius, this.params.segments, this.params.segments );
+                            break
+                        case 'PlaneGeometry':
+                            this.props.geometry = new THREE.PlaneGeometry(this.params.radius,this.params.radius,this.params.segments,this.params.segments);
+                            break
+                        // case 'TetrahedronGeometry':
+                        //     this.props.geometry = new THREE.TetrahedronGeometry(this.params.radius,this.params.segments);
+                        //     break
+                        case 'TorusGeometry':
+                            this.props.geometry = new THREE.TorusGeometry(this.params.radius);
+                            break
+                        case 'BoxGeometry':
+                            this.props.geometry = new THREE.BoxGeometry(this.params.radius,this.params.radius,this.params.radius);
+                            break
+                        case 'BufferGeometry':
+                            this.props.geometry = new THREE.BufferGeometry();
+                            const position = new Float32Array(this.params.count*3)
+                            position.forEach((e,i) => {position[i] = Math.random()})
+                            const mass = new Float32Array(this.params.count)
+                            mass.forEach((e,i) => {mass[i] = Math.random()})
+                            this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
+                            this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
+                            break
+                    }
+            
+                    return [{data: this.props.geometry}]
                 }
             }
         }
-
     }
 
     init = () => {
@@ -61,37 +87,5 @@ export class Geometry{
         if (this.props.geometry){
             this.props.geometry.dispose()
         }
-    }
-
-    default = () => {
-        // this.props.scene = scene
-        switch(this.params.type){
-            case 'SphereGeometry':
-                this.props.geometry = new THREE.SphereGeometry( this.params.radius, this.params.segments, this.params.segments );
-                break
-            case 'PlaneGeometry':
-                this.props.geometry = new THREE.PlaneGeometry(this.params.radius,this.params.radius,this.params.segments,this.params.segments);
-                break
-            // case 'TetrahedronGeometry':
-            //     this.props.geometry = new THREE.TetrahedronGeometry(this.params.radius,this.params.segments);
-            //     break
-            case 'TorusGeometry':
-                this.props.geometry = new THREE.TorusGeometry(this.params.radius);
-                break
-            case 'BoxGeometry':
-                this.props.geometry = new THREE.BoxGeometry(this.params.radius,this.params.radius,this.params.radius);
-                break
-            case 'BufferGeometry':
-                this.props.geometry = new THREE.BufferGeometry();
-                const position = new Float32Array(this.params.count*3)
-                position.forEach((e,i) => {position[i] = Math.random()})
-                const mass = new Float32Array(this.params.count)
-                mass.forEach((e,i) => {mass[i] = Math.random()})
-                this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
-                this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
-                break
-        }
-
-        return [{data: this.props.geometry, meta: {label: this.label, params: this.params}}]
     }
 }

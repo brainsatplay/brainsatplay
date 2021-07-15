@@ -39,24 +39,37 @@ export class Object3D{
 
         this.ports = {
             add: {
-                defaults: {
-                    output: [{data: this.props.mesh, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Mesh',
+                default: this.props.mesh,
+                input: {type: null},
+                output: {type: Object, name: 'Mesh'},
+                onUpdate: () => {
+                    this._setObject()
+                    this._updateProps()
+                    return [{data: this.props.mesh}]
                 }
             },
             material: {
-                types: {
-                    in: 'Material',
-                    out: null,
+                input: {type: Object, name: 'Material'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let u = userData[0]
+                    this.props.material = u.data
+                    if (this.props.mesh){
+                        this.props.mesh.material.dispose()
+                        this.props.mesh.material = this.props.material
+                    }
                 }
             },
             geometry: {
-                types: {
-                    in: 'Geometry',
-                    out: null,
+                input: {type: Object, name: 'Geometry'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let u = userData[0]
+                    this.props.geometry = u.data
+                    if (this.props.mesh){
+                        this.props.mesh.geometry.dispose()
+                        this.props.mesh.geometry = this.props.geometry
+                    }
                 }
             },
             scale: {
@@ -94,6 +107,7 @@ export class Object3D{
                 this.props.prevType = this.params.type
             }
         })
+
         this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
         this.props.prevType = this.params.type
 
@@ -128,32 +142,6 @@ export class Object3D{
         }
         this.props.looping = false
     }
-
-    material = (userData) => {
-        let u = userData[0]
-        this.props.material = u.data
-        if (this.props.mesh){
-            this.props.mesh.material.dispose()
-            this.props.mesh.material = this.props.material
-        }
-    }
-
-    geometry = (userData) => {
-        let u = userData[0]
-        this.props.geometry = u.data
-        if (this.props.mesh){
-            this.props.mesh.geometry.dispose()
-            this.props.mesh.geometry = this.props.geometry
-        }
-    }
-
-    add = () => {
-        this._setObject()
-        this._updateProps()
-
-        return [{data: this.props.mesh, meta: {label: this.label}}]
-    }
-
 
     _updateProps = () => {
         this.props.mesh.scale.set(this.params.scalex, this.params.scaley,this.params.scalez)

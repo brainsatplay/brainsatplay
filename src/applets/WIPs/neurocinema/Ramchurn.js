@@ -25,6 +25,8 @@ export class Ramchurn{
 
         this.props = {
             currentScene: 0,
+            selectedKey: 0,
+            keys: ['primary','secondary'],
             videos: [],
             audio: {
                 primary: [],
@@ -55,6 +57,7 @@ export class Ramchurn{
             ],
 
             slowThreshold: 105, // frames
+            fps: 60
         }
 
         this.ports = {
@@ -105,7 +108,11 @@ export class Ramchurn{
                 onUpdate: (userData) => {
                     // Get Combination
                     let combination = userData[0].data
-                    return [{data: [combination.primary.video, combination.secondary.video]}]
+                    let arr = []
+                    this.props.keys.forEach(key => {
+                        if (combination[key]?.video) arr.push(combination[key].video)
+                    })
+                    return [{data: arr}]
                 }
             },
             audio: {
@@ -114,7 +121,12 @@ export class Ramchurn{
                 default: [],
                 onUpdate: (userData) => {
                     let combination = userData[0].data
-                    return [{data: [combination.primary.audio, combination.primary.vox, combination.secondary.audio, combination.secondary.vox]}]
+                    let arr = []
+                    this.props.keys.forEach(key => {
+                        if (combination[key]?.audio) arr.push(combination[key].audio)
+                        if (combination[key]?.vox) arr.push(combination[key].vox)
+                    })
+                    return [{data: arr}]
                 }
             },
 
@@ -122,7 +134,8 @@ export class Ramchurn{
                 input: {type: 'boolean'},
                 output: {type: 'boolean'},
                 onUpdate: (userData) => {
-                    console.log('LOG CUT')
+                    this.logCut(this.props.scenes[this.props.currentScene])
+                    this.props.selectedKey = (this.props.selectedKey + 1) % 2
                     return userData
                 }
             }
@@ -155,8 +168,8 @@ export class Ramchurn{
         this.props.scenes[i].data = []
         this.props.scenes[i].sceneNumber = null
         this.props.scenes[i].combination = this.getNewCombination(this.props.scenes[i-1])
-        this.props.scenes[i].cuts = [] // (Yes = 1 No = 0)
-        this.props.scenes[i].averageDuration = 0 
+        this.props.scenes[i].cuts = []
+        this.props.scenes[i].averageDuration = null
         this.props.scenes[i].durationOnPrimary = 0
         this.props.scenes[i].durationOnSecondary = 0
         this.props.scenes[i].ratio = 0
@@ -165,44 +178,52 @@ export class Ramchurn{
         this.props.scenes[i].date = new Date()
 
         // Internal Tracking
-        this.props.scenes[i].cutCount = 0
         this.props.scenes[i].totalVideoFrames = 0
-        this.props.scenes[i].slowThreshold = 105 // frames
-        this.props.scenes[i].durations = []
         this.props.scenes[i].lastCut = null
+        this.props.scenes[i].cutSlow = null
 
         this.session.graph.runSafe(this, 'video', [{data: this.props.scenes[i].combination}])
         this.session.graph.runSafe(this, 'audio', [{data: this.props.scenes[i].combination}])
     }
 
-     // Ramchurn Utilities
+    endScene = (scene) => {
+        this.logCut(scene)
+        scene.totalCuts = scene.cuts.length
+        scene.totalVideoFrames = (scene.duration * this.props.fps*1000)
 
-     logDisplayDuration = () => {
-        let currentTime = Date.now()
-        this.props.ramchurn.durations[this.props.focusVideo] += currentTime - this.props.ramchurn.lastCut
-        this.props.ramchurn.lastCut = currentTime
+        scene.ratio = scene.durationOnPrimary / scene.durationOnSecondary
+        scene.cutSlow = scene.totalVideoFrames / scene.totalCuts > this.props.slowThreshold // 1 for slow; 0 for fast
+        if (isNaN(scene.cutSlow)) scene.cutSlow = true
     }
 
-    changeFocus = (focus = this.props.focusVideo) => {
-        this.props.focusVideo = focus
-        let frameArr = []
-        this.props.videos.forEach((el, i) => {
-            if (i === this.props.focusVideo) el.style.opacity = 1
-            else el.style.opacity = 0
+     // Ramchurn Utilities
 
-            frameArr.push(el.getVideoPlaybackQuality().totalVideoFrames)
-        })
-        this.props.ramchurn.totalVideoFrames = this.session.atlas.mean(frameArr)
+     logCut = (currentScene) => {
+        if (Object.keys(currentScene).length > 1){
+            let currentTime = Date.now()
+            currentScene.cuts.push(Date.now())
+
+            let key = this.props.keys[this.props.selectedKey]
+            let duration = currentTime - currentScene.lastCut
+            currentScene[`durationOn${key[0].toUpperCase + key.slice(1)}`] += duration
+
+            if (currentScene.averageDuration == null) currentScene.averageDuration = duration
+            else currentScene.averageDuration = (currentScene.averageDuration + duration) / 2
+
+            currentScene.lastCut = currentTime
+        }
     }
 
     createFilePackage(videoFile, mode){
-        let name = videoFile.name.replace('.mp4','').toLowerCase()
+        if (videoFile){
+            let name = videoFile.name.replace('.mp4','').toLowerCase()
 
-        let o = {}
-        o.video = videoFile
-        o.audio = this.props.audio[mode].find(f => f.name.toLowerCase().includes(name))
-        o.vox = this.props.audio.vox.find(f => f.name.toLowerCase().includes(name))
-        return o
+            let o = {}
+            o.video = videoFile
+            o.audio = this.props.audio[mode].find(f => f.name.toLowerCase().includes(name))
+            o.vox = this.props.audio.vox.find(f => f.name.toLowerCase().includes(name))
+            return o
+        }
     }
 
     getNewCombination = (prevScene) => {
@@ -211,10 +232,7 @@ export class Ramchurn{
             primary: {},
             secondary: {}
         }
-
-        // this.logDisplayDuration()
-        let cutSlow = true // this.props.ramchurn.totalVideoFrames / this.props.ramchurn.cutCount > this.props.ramchurn.slowThreshold // 1 for slow; 0 for fast
-        let ratio = 0 // this.props.ramchurn.durations[0] / this.props.ramchurn.durations[1]
+        
 
         // Only Choose New Sources
         let choices = this.props.videos
@@ -222,13 +240,16 @@ export class Ramchurn{
             let currentSources = [prevScene.combination.primary.video, prevScene.combination.secondary.video]
             choices = choices.filter(f => !currentSources.includes(f))
             let randomChoice = Math.floor(Math.random() * choices.length)
+
+            this.endScene(prevScene)
+            
             if (choices.length == 0) {
                 console.log('No Choices')
                 combimation = prevScene.combination
             } else {
 
                 // Secondary Dominant
-                if (ratio < .75) {
+                if (prevScene.ratio < .75) {
                     if (cutSlow) {
                         console.log('Swap Primary and Secondary')
                         combination.primary = prevScene.combination.secondary
@@ -242,8 +263,8 @@ export class Ramchurn{
                 }
 
                 // Primary Dominant
-                else if (ratio > 1.5) {
-                    if (cutSlow) {
+                else if (prevScene.ratio > 1.5) {
+                    if (prevScene.cutSlow) {
                         console.log('New Secondary')
                         combination.primary = prevScene.combination.primary 
                         combination.secondary = this.createFilePackage(choices[randomChoice], 'secondary')
@@ -255,7 +276,7 @@ export class Ramchurn{
 
                 // Equal
                 else {
-                    if (cutSlow) { // New Primary
+                    if (prevScene.cutSlow) { // New Primary
                         console.log('New Primary')
                         combination.primary = this.createFilePackage(choices[randomChoice], 'primary')
                         combination.secondary = prevScene.combination.secondary
@@ -272,8 +293,6 @@ export class Ramchurn{
             combination.primary = this.createFilePackage(choices[0], 'primary')
             combination.secondary = this.createFilePackage(choices[1], 'secondary')
         }
-
-        console.log(combination)
         return combination
         // this.changeFocus(0)
     }

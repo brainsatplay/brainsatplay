@@ -23,7 +23,7 @@ export const settings = {
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
-        {id: 'brainstorm', class: brainsatplay.plugins.utilities.Brainstorm, params: {}},
+        {id: 'brainstorm', class: brainsatplay.plugins.networking.Brainstorm, params: {}},
         {id: 'ui', class: UI, params: {}},
       ],
 

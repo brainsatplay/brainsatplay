@@ -62,6 +62,14 @@ export class Node {
         })
     }
 
+    removePort(port) {
+        let node = this.nodeInfo.instance
+        this[`inputPorts`].querySelector(`port-${port}`).remove()
+        this[`outputPorts`].querySelector(`port-${port}`).remove()
+        this.portLabels.querySelector(`[name="${port}"]`).remove()
+        this.resize()
+    }
+
     addPort(port) {
         let node = this.nodeInfo.instance
         let portTypes = ['target', 'source']

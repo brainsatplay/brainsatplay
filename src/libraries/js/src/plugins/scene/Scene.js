@@ -50,27 +50,40 @@ export class Scene{
             // group: new InteractiveGroup( renderer, camera )
         }
 
+        this.props.container = document.createElement(`div`);
+        this.props.container.id = this.props.id
+        this.props.container.style = `width: 100%; height: 100%;`
+        this.props.container.onresize = this.responsive
+
+
         this.ports = {
             add: {
-                types: {
-                    in: 'Mesh',
-                    out: null
+                input: {type: Object},
+                out: null,
+                onUpdate: (userData) => {
+                    userData.forEach(u => {
+                        if (!Array.isArray(u.data)) u.data = [u.data]
+                        u.data.forEach(mesh => {
+                            this.props.scene.add(mesh)
+                            // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
+                        })
+                    })
                 }
             },
+            element: {
+                default: this.props.container,
+                input: {type: null},
+                output: {type: Element},
+                onUpdate: () => {
+                    this.params.element = this.props.container
+                    return [{data: this.params.element}]
+                }
+            }
         }
     }
 
     init = () => {
 
-        let HTMLtemplate = () => {
-            return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-            </div>`
-        }
-
-        let setupHTML = (app) => {
-
-            this.props.container = document.getElementById(`${this.props.id}`);
             this.props.camera.fov = 75
             this.props.camera.aspect = this.props.container.offsetWidth / this.props.container.offsetHeight
             this.props.camera.near = 0.1
@@ -145,9 +158,12 @@ export class Scene{
 
             // Setup XR Viewport
             this.props.controllers[0].addEventListener( 'connected', ( ) => {
-                document.getElementById(`${this.props.id}canvas`).parentNode.appendChild( this.props.VRButton );
-                this.props.controls.enabled = false
-            } );
+                let canvas = document.getElementById(`${this.props.id}canvas`)
+                if (canvas){
+                    canvas.parentNode.appendChild( this.props.VRButton );
+                    this.props.controls.enabled = false
+                }
+            });
             
             this.props.controllers[0].addEventListener( 'disconnected', () => {
                 this.props.container.appendChild( this.props.VRButton );
@@ -185,9 +201,6 @@ export class Scene{
 
             this.props.looping = true
             this._animate()
-        }
-
-        return { HTMLtemplate, setupHTML}
     }
 
     deinit = () => {
@@ -208,6 +221,7 @@ export class Scene{
         }
         this.props.scene = null;
         this.props.renderer = null;
+        this.props.container.remove()
     }
 
     responsive = () => {
@@ -215,17 +229,6 @@ export class Scene{
         this.props.camera.updateProjectionMatrix();
         if (this.props.renderer) this.props.renderer.setSize( this.props.container.offsetWidth, this.props.container.offsetHeight );
     }
-
-    add = (userData) => {
-        userData.forEach(u => {
-            if (!Array.isArray(u.data)) u.data = [u.data]
-            u.data.forEach(mesh => {
-                this.props.scene.add(mesh)
-                if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
-            })
-        })
-    }
-
     // Control Locked Elements
     _moveHUD = (ev) => {
         this.props.scene.traverse((el) => {

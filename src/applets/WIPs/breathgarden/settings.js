@@ -144,8 +144,28 @@ export const settings = {
         },
 
         {id: 'scene', class: brainsatplay.plugins.scene.Scene, params: {camerax: 1, cameray: 2.0, cameraz: 9.0}},
+        {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+          html: `<div id="sceneContainer" class="scene-container"></div>`,
+          style: `
+          .brainsatplay-ui-container {
+            width: 100%;
+            height: 100%;
+          }
+          
+          .scene-container {
+            width: 100%;
+            height: 100%;
+          }
+          `
+        }}
       ],
       edges: [
+
+        // Scene to UI
+        {
+          source: 'scene:element', 
+          target: 'ui:sceneContainer'
+        },
 
         // HEG Input
         {

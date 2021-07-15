@@ -34,12 +34,31 @@ export class Material{
 
         this.ports = {
             default: {
-                defaults: {
-                    output: [{data: this.props.material, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Material',
+                default: this.props.material,
+                input: {type: null},
+                output: {type: Object, name: 'Material'},
+                onUpdate: () => {
+
+                    switch(this.params.type){
+                        case 'MeshStandardMaterial':
+                            this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
+                            break
+                        case 'ShaderMaterial':
+                            this.props.material = new THREE.ShaderMaterial({
+                                vertexShader: this.props.vertexShader,
+                                fragmentShader: this.props.fragmentShader,
+                                uniforms: this.props.uniforms
+                            });
+                            break
+                    }
+            
+                    this.props.material.side = THREE.DoubleSide
+                    this.props.material.transparent = this.params.transparent
+                    this.props.material.wireframe = this.params.wireframe
+                    this.props.material.depthWrite = this.params.depthWrite
+                    this.props.material.alphaTest = this.params.alphaTest
+            
+                    return [{data: this.props.material}]
                 }
             },
             fragment: {
@@ -73,30 +92,6 @@ export class Material{
         if (this.props.material){
             this.props.material.dispose()
         }
-    }
-
-    default = () => {
-
-        switch(this.params.type){
-            case 'MeshStandardMaterial':
-                this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
-                break
-            case 'ShaderMaterial':
-                this.props.material = new THREE.ShaderMaterial({
-                    vertexShader: this.props.vertexShader,
-                    fragmentShader: this.props.fragmentShader,
-                    uniforms: this.props.uniforms
-                });
-                break
-        }
-
-        this.props.material.side = THREE.DoubleSide
-        this.props.material.transparent = this.params.transparent
-        this.props.material.wireframe = this.params.wireframe
-        this.props.material.depthWrite = this.params.depthWrite
-        this.props.material.alphaTest = this.params.alphaTest
-
-        return [{data: this.props.material, meta: {label: this.label, params: this.params}}]
     }
 
     fragment = (userData) => {

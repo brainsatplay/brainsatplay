@@ -9,19 +9,18 @@ export class Circle{
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
+            active: true
         }
+
+        this.props.function = {function: this._circleFunction, active: this.props.active}
 
         this.ports = {
             draw: {
-                defaults: {
-                    output: [{data: this._circleFunction, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: Function,
-                },
+                default: this.props.function,
+                input: {type: null},
+                output: {type: Object},
                 onUpdate: () => {
-                    return [{data: this._circleFunction, meta: {label: this.label, params: this.params}}]
+                    return [{data: this.props.function}]
                 }
             },
             radius: {
@@ -36,7 +35,7 @@ export class Circle{
                 },
             },
             x: {
-                default: 0,
+                default: 0.5,
                 min: 0,
                 max: 1,
                 step: 0.001,
@@ -47,7 +46,7 @@ export class Circle{
                 }
             },
             y: {
-                default: 0,
+                default: 0.5,
                 min: 0,
                 max: 1,
                 step: 0.001,
@@ -106,7 +105,9 @@ export class Circle{
 
     init = (app) => {}
 
-    deinit = () => {}
+    deinit = () => {
+        this.props.function.active = false
+    }
 
     _circleFunction = (ctx) => {
         let width = ctx.canvas.width;
