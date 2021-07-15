@@ -84,6 +84,19 @@ export class SoundJS { //Only one Audio context at a time!
       return newSourceIndices[0];
     }
 
+    //This is the closest thing to seek atm. Just preload a sound then copy and play the copy at set times. 
+    copySoundAndPlayAtTime(soundbuffer, seconds, repeat=false, startTime=this.ctx.currentTime) {
+      let buf = this.ctx.createBuffer(soundbuffer.buffers.length,soundbuffer.duration/soundbuffer.samplerate,soundbuffer.samplerate);
+      soundbuffer.buffers.forEach((b,j) => {
+          if(typeof b === 'string') buf.copyToChannel(Float32Array.from(textdecoder.decode(b)),j+1,0); //parse string
+          else buf.copyToChannel(b,j+1,0); //parse raw Float32Array
+      });
+
+      let newSourceIndices = this.finishedLoading([buf]);
+      this.playSound(newSourceIndices[0],seconds,repeat,startTime);
+      return newSourceIndices[0];
+    }
+
     //Get a file off the user's computer and decode it into the sound system
     decodeLocalAudioFile(onReady=(sourceListIdx)=>{}, onBeginDecoding=()=>{}){
 
