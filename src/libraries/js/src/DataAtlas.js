@@ -55,7 +55,7 @@ export class DataAtlas {
 			}
 		}
 		this.liveGraph = this.graph.init(app)
-		this.graph.start(this.props.id, this._getRandomId())
+		this.graph.start(this.props.id)
 
 		this.liveGraph.nodes.forEach(n => {
 			let ui = n.ui
@@ -837,7 +837,7 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graph.getNode(this.props.id, 'blink')
 		this.graph.updateParams(node, params)
-		let blink = this.graph.runSafe(node,'default', [{data: this.data, meta: {}}])
+		let blink = this.graph.runSafe(node,'default', [{data: this.data, forceUpdate: true}])
 		return blink[0].data
 	}
 

@@ -30,18 +30,7 @@ export class GraphEditor{
 
         this.selectorToggle = null
         this.search = null
-        // this.state = new StateManager()
-
-        // // Check changes to params
-        // this.plugins.nodes.forEach(n => {
-        //     let plugin = n.instance
-        //     for (let key in plugin.ports) {
-        //         console.log(plugin.ports[key])
-        //         this.state.addToState(`${plugin.label}_${key}`, plugin.ports[key], (state) => {
-        //             console.log('changed state', state)
-        //         })
-        //     }
-        // })
+        this.state = new StateManager()
 
         this.lastMouseEvent = {}
         this.editing = false
@@ -874,6 +863,7 @@ export class GraphEditor{
                     button.style.width = 'auto'
                     button.onclick = () => {
                         input.click()
+                        button.blur()
                     }
                     inputContainer.insertAdjacentElement('beforeend',button)
                 }
@@ -897,18 +887,41 @@ export class GraphEditor{
 
                     // Change Live Params with Input Changes
                     let changeFunc = (e) => {
-
-                        if (input.type === 'checkbox') plugin.params[key] = event.target.checked
-                        else if (input.type === 'file') plugin.params[key] = event.target.files;
-                        else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
+                        if (input.type === 'checkbox') plugin.params[key] = input.checked
+                        else if (input.type === 'file') plugin.params[key] = input.files;
+                        else if (['number','range'].includes(input.type)) {
+                            plugin.params[key] = Number.parseFloat(input.value)
+                            if (input.type === 'range') {
+                                input.parentNode.querySelector('output').innerHTML = input.value
+                            }
+                        }
                         else plugin.params[key] = input.value
-
-
                         if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
                         if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
                     }
 
                     input.oninput = changeFunc
+
+                    // Listen for Non-GUI Changes to Params when Viewing
+                    this.state.addToState(`activeGUINode`, plugin.params, () => {
+
+                        let oldValue
+                        let newValue
+                        if (input.type != 'file'){
+                            if (input.type === 'checkbox') {
+                                oldValue = input.checked
+                                input.checked = plugin.params[key]
+                                newValue = input.checked
+                            }
+                            else {
+                                oldValue = input.value
+                                input.value = plugin.params[key]
+                                newValue = input.value
+                            }
+                        }
+
+                        if (oldValue != newValue) changeFunc()
+                    })
                 }
             }
             }

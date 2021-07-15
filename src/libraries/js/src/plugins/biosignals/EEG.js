@@ -27,7 +27,7 @@ export class EEG{
                 output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,
                 onUpdate: () => {
-                    return [{data: this.session.atlas.data, stringify:false}]
+                    return [{data: this.session.atlas.data}]
                 }
             }
         }
@@ -46,7 +46,7 @@ export class EEG{
                         data.push(coord[key])
                     })
 
-                    return [{data, stringify:false}]
+                    return [{data}]
                 }
             }
 

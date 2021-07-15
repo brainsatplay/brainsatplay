@@ -101,8 +101,10 @@ export class GraphManager{
         let funcs = []
         // Gather Resize Functions
         this.applets[appId].nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
+        
         // Repeat to Scale Everything Appropriately
         funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
+        funcs.forEach(f => f()) // Catch outliers
     }
 
     _getRandomId(){
@@ -250,7 +252,7 @@ export class GraphManager{
             input.forEach(u => {
                 if (u.forceRun) forceRun = true
                 if (u.forceUpdate) forceUpdate = true
-                if (u.stringify === false) stringify = false
+                if (typeof u.data === 'object') stringify = false // Auto-set stringify blocking
             })
 
             if (stringify) inputCopy = this.deeperCopy(input)
@@ -322,17 +324,18 @@ export class GraphManager{
                         if (node.states[port].length > i){
 
                             let case1, case2
-                            if (o.stringify === false){
+                            if (typeof o.data === 'object'){
                                 case1 = node.states[port][i]
                                 case2 = o
                                 stringify = false
                             } else {
                                 case1 = JSON.stringifyFast(node.states[port][i])
                                 case2 = JSON.stringifyFast(o)
-                            }
-                            
+                            }                            
 
                             let thisEqual = case1 === case2
+                            // if (node.constructor.name === 'Peak') console.log(thisEqual, case1, case2)
+
                             if (!thisEqual){
                                 node.states[port][i] = o
                                 allEqual = false
@@ -504,18 +507,24 @@ export class GraphManager{
 
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated
-            if (node.ports[port] == null || node.ports[port].onUpdate == null){
+
+            console.log('adding port', node.ports[port]== null, node.ports[port]?.onUpdate== null)
+            
+            let noPort = node.ports[port] == null
+            if (noPort || node.ports[port].onUpdate == null){
                 // Add Port to Node
                 node.ports[port] = info
                 this.instantiateNodePort(node,port)
                 this.addPortToRegistry(node,port)
 
                 // Add Port to Visual Editor
-                let applet = this.applets[node.app?.props?.id]
-                if (applet){
-                    let editor = applet.editor
+                if (noPort){
+                    let applet = this.applets[node.app?.props?.id]
+                    if (applet){
+                        let editor = applet.editor
 
-                    if (editor) editor.addPort(node,port)
+                        if (editor) editor.addPort(node,port)
+                    }
                 }
             }
         }

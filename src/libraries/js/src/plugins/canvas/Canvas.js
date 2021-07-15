@@ -21,7 +21,7 @@ export class Canvas{
                 output: {type: null},
                 onUpdate: (userData) => {
                     userData.forEach(u => {
-                        this.props.drawFunctions[u.username + u.meta.label] = u.data
+                        if (u.data instanceof Function) this.props.drawFunctions[u.username + u.meta.label] = u.data
                     })
                 }
             },
@@ -63,7 +63,6 @@ export class Canvas{
 
                         this._clearCanvas()
 
-                        // console.log(this.props.drawFunctions)
                         for (let key in this.props.drawFunctions) {
                             this.props.drawFunctions[key](this.props.context)
                         }

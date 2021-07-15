@@ -7,23 +7,12 @@ export class Video {
         this.session = session
         this.params = params
 
-        // this.paramOptions = {
-        //     ramchurn: { default: false }
-        // }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             focusVideo: 0,
             videos: [],
-            done: false,
-            ramchurn: {
-                cutCount: 0,
-                totalVideoFrames: 0,
-                slowThreshold: 105, // frames
-                durations: [],
-                filePool: [],
-                lastCut: null,
-            }
+            done: false
         };
 
         // Create Video Player
@@ -57,48 +46,45 @@ export class Video {
                 output: { type: null },
                 default: defaultVideoURLs,
                 onUpdate: (userData) => {
-                    this.props.focusVideo = 0
-                    this.params.files = this.shuffle(Array.from(userData[0].data))
+                    if (userData[0].data){
+                        this.props.focusVideo = 0
+                        this.params.files = this.shuffle(Array.from(userData[0].data))
 
-                    // Create Videos
-                    this.props.videos.forEach(el => el.remove())
-                    this.props.videos = []
-                    this.props.filePool = []
-                    this.props.ramchurn.durations = []
-                    this.props.ramchurn.cutCount = 0
-
-                    this.params.files.forEach((file, i) => {
-                        this.props.filePool.push(file)
-                    })
-
-                    let maxVideos = (this.params.ramchurn) ? Math.min(2, this.props.filePool.length) : this.props.filePool.length
-
-                    for (let i = 0; i < maxVideos; i++) {
-                        let video = document.createElement('video')
-                        video.type = 'video/mp4'
-                        video.width = '100%'
-                        video.height = '100%'
-                        video.style = `
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                        `
-                        video.muted = true
-                        // video.loop = true // Ramchurn method loops
-                        video.autoplay = true
-                        video.style.transition = 'opacity 0.1s'
-                        video.addEventListener('timeupdate', () => {
-                            if (video.currentTime > video.duration - 0.1) this.props.done = true // Done 100ms before completion
+                        // Create Videos
+                        this.props.videos.forEach(el => el.remove())
+                        this.props.videos = []
+                        this.props.filePool = []
+                        this.params.files.forEach((file, i) => {
+                            this.props.filePool.push(file)
                         })
-                        this.props.videos.push(video)
-                        this.props.ramchurn.durations.push(0)
-                        this.container.insertAdjacentElement('beforeend', video)
-                        this.startVideoFile(video, this.props.filePool[i])
-                        if (i != this.props.focusVideo) video.style.opacity = 0
-                    }
 
-                    this.props.ramchurn.lastCut = Date.now()
-                    this.responsive()
+                        let maxVideos = this.props.filePool.length
+
+                        for (let i = 0; i < maxVideos; i++) {
+                            let video = document.createElement('video')
+                            video.type = 'video/mp4'
+                            video.width = '100%'
+                            video.height = '100%'
+                            video.style = `
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                            `
+                            video.muted = true
+                            video.loop = true
+                            video.autoplay = true
+                            video.style.transition = 'opacity 0.1s'
+                            video.addEventListener('timeupdate', () => {
+                                if (video.currentTime > video.duration - 0.1) this.props.done = true // Done 100ms before completion
+                            })
+                            this.props.videos.push(video)
+                            this.container.insertAdjacentElement('beforeend', video)
+                            this.startVideoFile(video, this.props.filePool[i])
+                            if (i != this.props.focusVideo) video.style.opacity = 0
+                        }
+
+                        this.responsive()
+                    }
                 }
             },
             element: {
@@ -116,13 +102,9 @@ export class Video {
                 onUpdate: (userData) => {
                     if (userData[0].data && this.params.cut) {
 
-                        // Log Display Duration
-                        this.logDisplayDuration()
-
                         // Increment Counters
                         this.props.focusVideo++
                         this.props.focusVideo = this.props.focusVideo % this.props.videos.length
-                        this.props.ramchurn.cutCount++
 
                         // Switch Displayed Video
                         this.changeFocus()
@@ -133,6 +115,26 @@ export class Video {
 
         let portInfo = [
             // Update Fade Parameters and Button
+            {
+                name: 'ui', onUpdate: () => {
+
+                    console.log(this.params.ui)
+                    if (this.params.ui == false) {
+                        document.getElementById(this.props.id + "useui").innerHTML = "Show UI";
+                        document.getElementById(this.props.id + "useui").style.opacity = 0.3
+                        document.getElementById(this.props.id + "vidbuttons").style.display = "none";
+                        document.getElementById(this.props.id + "timeDiv").style.display = "none";
+                        document.getElementById(this.props.id + "fs").style.display = "none";
+                    }
+                    else {
+                        document.getElementById(this.props.id + "useui").innerHTML = "Hide UI";
+                        document.getElementById(this.props.id + "useui").style.opacity = 1.0
+                        document.getElementById(this.props.id + "vidbuttons").style.display = "";
+                        document.getElementById(this.props.id + "timeDiv").style.display = "";
+                        document.getElementById(this.props.id + "fs").style.display = "";
+                    }
+                }
+            },
             {
                 name: 'fade', onUpdate: () => {
                     if (this.params.fade == false) {
@@ -239,7 +241,6 @@ export class Video {
         this.gl;
 
         this.sliderfocus = false;
-        this.hidden = false;
 
         this.cohScore = undefined; //for getting coherence
     }
@@ -248,13 +249,13 @@ export class Video {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         this.container.insertAdjacentHTML('beforeend', `
-                <div id="`+ this.props.id + `menu" style='position:absolute; z-index:4; top: 0; left: 0'>
-                    <button id="`+ this.props.id + `showhide" style='' >Hide UI</button>
-                    <input id="`+ this.props.id + `fs" type="file" accept="video/*" multiple/>
+                <div id="`+ this.props.id + `menu" style='position:absolute; z-index:4; top: 0; left: 0;'>
+                    <button id="`+ this.props.id + `useui" style="opacity: 0.3;" >Show UI</button>
+                    <input id="`+ this.props.id + `fs" style="display: none;" type="file" accept="video/*" multiple/>
                     <div id="${this.props.id}message"></div>
-                    <div id="`+ this.props.id + `timeDiv"><input id="` + this.props.id + `timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
+                    <div id="`+ this.props.id + `timeDiv" style="display: none;"><input id="` + this.props.id + `timeSlider" type="range" min="0" max="1000" value="0"><br><br> 
                     <div id="`+ this.props.id + `vidbar"><button id="` + this.props.id + `minus1min">--</button><button id="` + this.props.id + `minus10sec">-</button><button id="` + this.props.id + `play">||</button><button id="` + this.props.id + `plus10sec">+</button><button id="` + this.props.id + `plus1min">++</button></div></div> 
-                    <div id="`+ this.props.id + `vidbuttons">
+                    <div id="`+ this.props.id + `vidbuttons" style="display: none;">
                         <table> 
                           <tr><td>Feedback:</td></tr> 
                           <tr><td><button id="`+ this.props.id + `usefade">Fade</button></td></tr> 
@@ -299,7 +300,7 @@ export class Video {
 
         }
 
-        let effects = ['fade', 'speed','volume', 'time', 'cut']
+        let effects = ['fade', 'speed','volume', 'time', 'cut', 'ui']
         effects.forEach(str => {
             let el = document.getElementById(this.props.id + `use${str}`)
             el.onclick = () => {
@@ -346,25 +347,6 @@ export class Video {
         }
         document.getElementById(this.props.id + "plus10sec").onclick = () => {
             this.props.videos.forEach(el => el.currentTime += 10)
-        }
-
-        document.getElementById(this.props.id + "showhide").onclick = () => {
-            if (this.hidden == false) {
-                this.hidden = true;
-                document.getElementById(this.props.id + "showhide").innerHTML = "Show UI";
-                document.getElementById(this.props.id + "showhide").style.opacity = 0.1
-                document.getElementById(this.props.id + "vidbuttons").style.display = "none";
-                document.getElementById(this.props.id + "timeDiv").style.display = "none";
-                document.getElementById(this.props.id + "fs").style.display = "none";
-            }
-            else {
-                this.hidden = false;
-                document.getElementById(this.props.id + "showhide").innerHTML = "Hide UI";
-                document.getElementById(this.props.id + "showhide").style.opacity = 1.0
-                document.getElementById(this.props.id + "vidbuttons").style.display = "";
-                document.getElementById(this.props.id + "timeDiv").style.display = "";
-                document.getElementById(this.props.id + "fs").style.display = "";
-            }
         }
 
         this.looping = true;
@@ -416,7 +398,6 @@ export class Video {
 
             this.props.videos.find((el, i) => {
                 if (el === element) {
-                    this.props.ramchurn.durations[i] = 0 // Reset duration
                     return true
                 }
             })
@@ -503,8 +484,6 @@ export class Video {
     animate = () => {
         if (this.looping === true) {
 
-            if (this.props.done) this.getNewCombination()
-
             if ((this.sliderfocus == false)) {
 
                 // Get Min of All Videos
@@ -529,7 +508,7 @@ export class Video {
                     this.onData(score);
                 }
             }
-            else if (this.session.atlas.settings.analysis.eegcoherence) {
+            else if (this.session.atlas.settings.eeg && this.session.atlas.settings.analysis.eegcoherence) {
                 this.cohScore = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(), 'alpha1')
                 this.onData(this.cohScore);
             }
@@ -560,16 +539,6 @@ export class Video {
         this.animate();
     }
 
-
-
-    // Ramchurn Utilities
-
-    logDisplayDuration = () => {
-        let currentTime = Date.now()
-        this.props.ramchurn.durations[this.props.focusVideo] += currentTime - this.props.ramchurn.lastCut
-        this.props.ramchurn.lastCut = currentTime
-    }
-
     changeFocus = (focus = this.props.focusVideo) => {
         this.props.focusVideo = focus
         let frameArr = []
@@ -579,77 +548,6 @@ export class Video {
 
             frameArr.push(el.getVideoPlaybackQuality().totalVideoFrames)
         })
-        this.props.ramchurn.totalVideoFrames = this.session.atlas.mean(frameArr)
-    }
-
-    getNewCombination = () => {
-
-        this.props.done = false // Reset
-        this.logDisplayDuration()
-        let cutSlow = this.props.ramchurn.totalVideoFrames / this.props.ramchurn.cutCount > this.props.ramchurn.slowThreshold // 1 for slow; 0 for fast
-        let ratio = this.props.ramchurn.durations[0] / this.props.ramchurn.durations[1]
-
-        // Only Choose New Sources
-        let stringSources = this.props.videos.map(el => el.getAttribute('data-file'))
-        let choices = new Set()
-        let currentSources = new Set()
-        this.props.filePool.forEach(src => {
-            if (stringSources.includes(this.stringifyFile(src))) currentSources.add(src)
-            else choices.add(src)
-        })
-        choices = Array.from(choices)
-        currentSources = Array.from(currentSources)
-        let randomChoice = Math.floor(Math.random() * choices.length)
-
-        if (choices.length == 0) {
-            console.log('No Choices')
-            this.startVideoFile(this.props.videos[0], currentSources[0])
-            this.startVideoFile(this.props.videos[1], currentSources[1])
-        } else {
-
-            // Secondary Dominant
-            if (ratio < .75) {
-                if (cutSlow) {
-                    console.log('Swap Primary and Secondary')
-                    this.startVideoFile(this.props.videos[0], currentSources[1])
-                    this.startVideoFile(this.props.videos[1], currentSources[0])
-                }
-                else {
-                    console.log('New Secondary, previous Secondary to Primary')
-                    this.startVideoFile(this.props.videos[0], currentSources[1])
-                    this.startVideoFile(this.props.videos[1], choices[randomChoice])
-                }
-            }
-
-            // Primary Dominant
-            else if (ratio > 1.5) {
-                if (cutSlow) {
-                    console.log('New Secondary')
-                    this.startVideoFile(this.props.videos[0], currentSources[0])
-                    this.startVideoFile(this.props.videos[1], choices[randomChoice])
-                } else {
-                    console.log('Same')
-                    this.startVideoFile(this.props.videos[0], currentSources[0])
-                    this.startVideoFile(this.props.videos[1], currentSources[1])
-                }
-            }
-
-            // Equal
-            else {
-                if (cutSlow) { // New Primary
-                    console.log('New Primary')
-                    this.startVideoFile(this.props.videos[0], choices[randomChoice])
-                    this.startVideoFile(this.props.videos[1], currentSources[1])
-                }
-                else {
-                    console.log('New Primary, previous Primary to Secondary')
-                    this.startVideoFile(this.props.videos[1], currentSources[0])
-                    this.startVideoFile(this.props.videos[0], choices[randomChoice])
-                }
-            }
-        }
-
-        this.changeFocus(0)
     }
 
     shuffle(array) {

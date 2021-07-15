@@ -28,7 +28,7 @@ export class Buffer{
     }
 
     init = () => {
-        this.props.buffer = Array.from({length: this.params.size}, e => 0)
+        this.props.buffer = []
     }
 
     deinit = () => {
@@ -40,7 +40,6 @@ export class Buffer{
         if (this.props.buffer.length > this.params.size) this.props.buffer.shift()
         userData[0].data = this.props.buffer
         userData[0].meta.label = this.label
-
         return userData
     }
 }
