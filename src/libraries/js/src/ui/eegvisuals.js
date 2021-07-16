@@ -1,6 +1,6 @@
 import uPlot from 'uplot';
 import { SmoothieChart, TimeSeries } from "smoothie";
-import './webgl-heatmap'
+import '../../../../platform/js/frontend/UX/webgl-heatmap'
 //import TimeChart from '../timechart/dist/timechart.module';
 
 //By Joshua Brewster (GPL)
@@ -28,7 +28,6 @@ export class SmoothieChartMaker {
 			var newseries = new TimeSeries();
 			this.series.push(newseries);
 		}
-
 	}
 
 	deInit() {
@@ -754,8 +753,13 @@ export class BrainMap2D {
 //Makes a color coded bar chart to apply frequency bins to for a classic visualization. Should upgrade this with smooth transitions in an animation loop
 export class eegBarChart {
 	constructor(canvasId = null, reversed=false, colors=['purple','violet','blue','green','chartreuse','gold','red']) {
-		this.canvasId = canvasId;
-		this.canvas = document.getElementById(canvasId);
+		this.canvasId; this.canvas;
+		if (typeof canvas == 'string'){
+			this.canvasId = canvas;
+			this.canvas = document.getElementById(canvas);
+		} else {
+			this.canvas = canvas
+		}
 		this.ctx = this.canvas.getContext("2d");
 		this.anim = undefined;
 
@@ -974,9 +978,14 @@ export class thetaGamma2Octave { //Not finished
 
 
 export class Spectrogram {
-	constructor(canvasId, peakAmp = 1){
-		this.canvasId = canvasId;
-		this.canvas = document.getElementById(canvasId);
+	constructor(canvas, peakAmp = 1){
+		if (typeof canvas === 'string') {
+			this.canvasId = canvas;
+			this.canvas = document.getElementById(canvas);
+		} else {
+			this.canvas = canvas
+		}
+
 		this.ctx = this.canvas.getContext("2d");
 		this.offscreen = null;
 		this.offscreenctx = null;
@@ -1088,9 +1097,13 @@ export class Spectrogram {
 
 //Simple dynamic triangle mesh generation of spectrogram data.
 export class Spectrogram3D {
-	constructor(canvasId, peakAmp = 1) {
-
-		this.canvas = document.getElementById(canvasId);
+	constructor(canvas, peakAmp = 1) {
+		if (typeof canvas === 'string') {
+			this.canvasId = canvas;
+			this.canvas = document.getElementById(canvas);
+		} else {
+			this.canvas = canvas
+		}
 		this.ctx = this.canvas.getContext("webgl");
 
 		this.currentAmplitudes = []; //z-axis

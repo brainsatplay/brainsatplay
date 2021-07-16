@@ -1,7 +1,7 @@
 import { Session } from '../Session'
 import { DOMFragment } from './DOMFragment'
 
-import { Train } from '../plugins/utilities/Train'
+import { Train } from '../plugins/machinelearning/Train'
 import { UI } from '../plugins/interfaces/UI'
 import { Application } from '../Application'
 

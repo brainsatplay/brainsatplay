@@ -702,8 +702,11 @@ export class GraphEditor{
     }
 
     addPort(node,port){
-        this.graph.nodes[node.label].addPort(port)
-        this.addPortEvents(this.graph.nodes[node.label])
+        let n = this.graph.nodes[node.label]
+        if (n){
+            node.addPort(port)
+            this.addPortEvents(n)
+        }
     }
 
     removePort(node,port){
@@ -837,12 +840,11 @@ export class GraphEditor{
 
                     if (defaultType === 'Function'){
                         settings.language = 'javascript'
-                        settings.target = plugin.params
-                        settings.function = key
                     } else {
                         settings.language = defaultType.toLowerCase()
-                        settings.target = plugin.params[key]
                     }
+                    settings.target = plugin.params
+                    settings.key = key
 
                     settings.onClose()
 

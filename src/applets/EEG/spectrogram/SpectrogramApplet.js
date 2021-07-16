@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
-import {Spectrogram} from '../../../platform/js/frontend/UX/eegvisuals'
+import {Spectrogram} from '../../../libraries/js/src/ui/eegvisuals'
 import * as settingsFile from './settings'
 
 

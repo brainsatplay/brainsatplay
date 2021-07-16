@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {addChannelOptions,addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
-import { SmoothieChartMaker } from '../../../platform/js/frontend/UX/eegvisuals';
+import { SmoothieChartMaker } from '../../../libraries/js/src/ui/eegvisuals'
 import { TimeSeries } from 'smoothie'
 import * as settingsFile from './settings'
 
