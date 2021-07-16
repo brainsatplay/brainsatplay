@@ -1755,14 +1755,14 @@ else {
 
 		let template = `
 		<div id="${applet.props.id}IntroFragment">
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 100;"><div>
 			<h1>${applet.info.name}</h1>
 			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
 			<div class="brainsatplay-intro-loadingbar" style="z-index: 6;"></div>
 			</div>
 			</div>
 
-			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 5"><div>
+			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 99"><div>
 				<h2>Game Mode</h2>
 				<div style="display: flex; align-items: center;">
 						<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
