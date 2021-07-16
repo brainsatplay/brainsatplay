@@ -72,9 +72,9 @@ class Math3D { //some stuff for doing math in 3D
     static pintegral = (func=(x)=>{ let y=x; return y; }, range=[], stepx=0.01) => {
         let length = 0;
         let y0 = undefined;
-        let y = undefined;
+        let yi = undefined;
         for(let i = range[0]; i<range[1]; i+=stepx) {
-            y0 = y;
+            y0 = yi;
             yi = func(i);
             if(y0)
                 length += this.distance([0,y0],[stepx,yi]);
