@@ -755,7 +755,6 @@ export class eegBarChart {
 	constructor(canvas = null, reversed=false, colors=['purple','violet','blue','green','chartreuse','gold','red']) {
 		this.canvasId; this.canvas;
 
-		console.log(canvas)
 		if (typeof canvas == 'string'){
 			this.canvasId = canvas;
 			this.canvas = document.getElementById(canvas);
