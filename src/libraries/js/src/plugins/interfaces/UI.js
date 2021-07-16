@@ -70,9 +70,7 @@ export class UI{
                 this.props.container.innerHTML = userData[0].data
 
                 // Create ID Ports
-                console.log(this.props.container)
                 var descendants = this.props.container.querySelectorAll("*");
-                console.log(descendants)
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
@@ -87,7 +85,6 @@ export class UI{
                                     typeof data === "object" ? data instanceof HTMLElement : //DOM2
                                     data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
                                 ) {
-                                    console.log('insert', data)
                                     node.insertAdjacentElement('beforeend', data)
                                     setTimeout(() => {
                                         if (data.onload instanceof Function) data.onload()
