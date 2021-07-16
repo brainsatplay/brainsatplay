@@ -109,11 +109,8 @@ export class GraphEditor{
 
                 // Setup Presentation Based On Settings
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
-                
-
-                let toggleClass = '.brainsatplay-default-editor-toggle'
+                let toggleClass = `.option-brainsatplay-visual-editor`
                 let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-
 
                 // Insert Projects
                 this.insertProjects()

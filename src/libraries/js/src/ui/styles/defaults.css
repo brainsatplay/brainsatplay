@@ -1329,6 +1329,44 @@ select {
     margin-bottom: 25px;
 }
 
+/* Applet Menu */
+
+.brainsatplay-default-interaction-menu {
+    opacity: 1;
+    width: 200px;
+    /* padding: 10px 15px; */
+    font-size: 75%;
+    box-sizing: border-box; 
+    cursor: pointer;
+    transition: 0.5s;
+    position: absolute;
+    top: 0px;
+    right:0px;
+    z-index: 1000;
+    transition: opacity 0.5s;
+    overflow: scroll;
+    opacity: 0;
+}
+
+.brainsatplay-default-interaction-menu:hover {
+    opacity: 1;
+    /* background: rgb(10,10,10); */
+}
+
+.brainsatplay-default-interaction-menu .brainsatplay-option-node {
+    padding: 10px;
+}
+
+  .brainsatplay-default-toggle {
+    cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;
+  }
+
+  .brainsatplay-default-toggle > img{
+    box-sizing: border-box; 
+    filter: invert(1);
+    cursor: pointer;
+    padding: 7px;
+  }
 
 
 /* DEFAULT UI ELEMENTS */
