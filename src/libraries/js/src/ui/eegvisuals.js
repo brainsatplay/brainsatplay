@@ -806,7 +806,7 @@ export class eegBarChart {
 
 		var nbins = 0;
 		let keys = Object.keys(this.data);
-		if(!Array.isArray(slice)) {
+		if(!Array.isArray(this.data)) {
 			if(typeof this.data[Object.keys(this.data)[0]] === 'object') {
 				keys.forEach((k) => {
 					nbins += this.data[k].length;
@@ -823,19 +823,18 @@ export class eegBarChart {
 		var wscale = cwidth / this.relativeWidth;
 		var xoffset = (this.meterWidth+this.meterGap)*wscale;
 
-		let slice = this.data;
 		let max = 0;
-		if(!Array.isArray(slice)) {
-			for(const prop in slice) {
-				if ( typeof slice[prop] === 'number') {if (slice[prop] > max) max = slice[prop];}
-				else if ( typeof slice[prop] === 'object') {    
-					let mx = Math.max(...slice[prop]);
+		if(!Array.isArray(this.data)) {
+			for(const prop in this.data) {
+				if ( typeof this.data[prop] === 'number') {if (this.data[prop] > max) max = this.data[prop];}
+				else if ( typeof this.data[prop] === 'object') {    
+					let mx = Math.max(...this.data[prop]);
 					if (mx > max) max = mx;
 				}
 			} 
 		}
 		else { 
-			max = Math.max(...slice);
+			max = Math.max(...this.data);
 		}
 
 		let normalizer = 1/max;
@@ -860,12 +859,20 @@ export class eegBarChart {
 			else i++;
 		}
 
-		keys.forEach((key,i)=>{
-			if(this.colors[i]) this.ctx.fillStyle = this.colors[i]; else this.ctx.fillStyle = 'white';
-			slice[key].forEach((v) => {
-				drawbar(v);
+		if(Array.isArray(this.data)) {
+			this.ctx.fillStyle = this.colors[0];
+			for(let i = 0; i < this.data.length; i++) {
+				drawbar(this.data[v]);
+			}
+		}
+		else {
+			keys.forEach((key,i)=>{
+				if(this.colors[i]) this.ctx.fillStyle = this.colors[i]; else this.ctx.fillStyle = 'white';
+				this.data[key].forEach((v) => {
+					drawbar(v);
+				});
 			});
-		});
+		}
 	}
 
 	animate = () => {
