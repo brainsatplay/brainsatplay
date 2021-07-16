@@ -72,7 +72,6 @@ export class UI{
                 // Create ID Ports
                 var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
-                    console.log( this.session.graph)
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
@@ -101,7 +100,6 @@ export class UI{
 
                         // Fill Width/Height by Default
                         if (!this.params.style.includes(`#${node.id}`)) {
-                            console.log('adding to stylesheet')
                             this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
                         }
                     }

@@ -1,4 +1,6 @@
 import {SmoothieChartMaker} from '../../ui/eegvisuals'
+import {uPlotMaker} from '../../ui/eegvisuals'
+import uPlot from 'uplot'
 
 export class TimeSeries{
 
@@ -24,12 +26,32 @@ export class TimeSeries{
 
         this.ports = {
             style: {
-                default: 'smoothie',
-                options: ['smoothie', 'uPlot'],
+                default: 'Smoothie',
+                options: [
+                    'Smoothie',
+                    // 'uPlot'
+                ],
                 input: {type: null},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    console.log('rerender')
+                onUpdate: () => {
+                    switch (this.params.style){
+                        case 'Smoothie':
+                            this.props.helper = new SmoothieChartMaker(1, this.props.canvas);
+                            break
+                        case 'uPlot':
+                            this.props.helper = new uPlotMaker(this.props.canvas);
+                            this.props.helper.uPlotData = [[],[]]
+
+                            this.props.helper.makeuPlot(
+                                [{label: 'time'}, {label: 'label'}], 
+                                this.props.helper.uPlotData, 
+                                this.props.canvas?.parentNode?.width, 
+                                this.props.canvas?.parentNode?.height
+                            );
+                            break
+                    }
+                    this.props.helper.init();
+
                 }
             },
             data: {
@@ -38,8 +60,18 @@ export class TimeSeries{
                 output: {type: null},
                 onUpdate: (userData) => {
                     let u = userData[0]
-                    console.log(u.data)
-                    this.props.helper.bulkAppend([u.data])
+                    let data = []
+                    switch (this.params.style){
+                        case 'Smoothie':
+                            data = [u.data]
+                            this.props.helper.bulkAppend(data)
+                            break
+                        case 'uPlot':
+                            data = [Date.now(), u.data]
+                            data.forEach((val,i) => {this.props.helper.uPlotData.push(val)})
+                            if (this.props.helper.plot) this.props.helper.plot.setData(this.props.helper.uPlotData);
+                            break
+                    }
                 }
             },
             element: {
@@ -54,14 +86,15 @@ export class TimeSeries{
     }
 
     init = () => {
-        this.props.helper = new SmoothieChartMaker(1, this.props.canvas);
-        this.props.helper.init();
+        this.session.graph.runSafe(this,'style', [{forceRun: true}])
     }
 
     deinit = () => {
         this.props.canvas.remove()
-        this.props.helper.deInit();
-        this.props.helper = null;
+        if (this.props.helper == null){
+            this.props.helper.deInit();
+            this.props.helper = null;
+        }
     }
 
     responsive = () => {

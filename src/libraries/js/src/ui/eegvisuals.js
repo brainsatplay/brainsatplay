@@ -28,9 +28,6 @@ export class SmoothieChartMaker {
 			var newseries = new TimeSeries();
 			this.series.push(newseries);
 		}
-
-		console.log('init', this.canvas)
-
 	}
 
 	deInit() {
