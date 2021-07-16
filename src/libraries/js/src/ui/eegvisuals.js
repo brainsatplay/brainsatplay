@@ -806,7 +806,7 @@ export class eegBarChart {
 
 		var nbins = 0;
 		let keys = Object.keys(this.slices);
-		if(typeof Object.keys(this.slices)[0] === 'object') {
+		if(typeof this.slices[Object.keys(this.slices)[0]] === 'object') {
 			keys.forEach((k) => {
 				nbins += this.slices[k].length;
 			})
