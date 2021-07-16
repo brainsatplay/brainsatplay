@@ -1,6 +1,6 @@
-import {Spectrogram as SpectrogramHelper} from '../../ui/eegvisuals'
+import {eegBarChart} from '../../ui/eegvisuals'
 
-export class Spectrogram{
+export class BarChart{
 
     static id = String(Math.floor(Math.random()*1000000))
     
@@ -24,7 +24,7 @@ export class Spectrogram{
                 output: {type: null},
                 onUpdate: (userData) => {
                     let u = userData[0]
-                    this.props.helper.latestData = u.data
+                    this.props.helper.slices = u.data
                     this.props.helper.draw();
                 }
             },
@@ -40,7 +40,7 @@ export class Spectrogram{
     }
 
     init = () => {
-        this.props.helper = new SpectrogramHelper(this.props.canvas);
+        this.props.helper = new eegBarChart(this.props.canvas);
         this.props.helper.init();
     }
 
@@ -52,12 +52,13 @@ export class Spectrogram{
     responsive = () => {
 
         // Resize to parent
-        this.props.helper.canvas.width = this.props.helper.canvas.parentNode.clientWidth;
-        this.props.helper.canvas.height = this.props.helper.canvas.parentNode.clientHeight;
-        this.props.helper.canvas.style.width = this.props.helper.canvas.parentNode.clientWidth;
-        this.props.helper.canvas.style.height = this.props.helper.canvas.parentNode.clientHeight;
-        this.props.helper.init();
-        // this.props.helper.draw();
-
+        if (this.props.helper){
+            this.props.helper.canvas.width = this.props.helper.canvas.parentNode.clientWidth;
+            this.props.helper.canvas.height = this.props.helper.canvas.parentNode.clientHeight;
+            this.props.helper.canvas.style.width = this.props.helper.canvas.parentNode.clientWidth;
+            this.props.helper.canvas.style.height = this.props.helper.canvas.parentNode.clientHeight;
+            // this.props.helper.init();
+            this.props.helper.draw();
+        }
     }
 }
