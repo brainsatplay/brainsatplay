@@ -528,7 +528,6 @@ export class AppletManager {
                                     document.webkitExitFullscreen()
                                 }
                             }
-                            appnode.classinstance.responsive()
                         }},
                         {header: 'options-menu', content: `Show Tutorial`, onload: (el) => {
                             
