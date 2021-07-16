@@ -42,7 +42,6 @@ export class BarChart{
     }
 
     init = () => {
-        console.log(this.props.canvas)
         this.props.helper = new eegBarChart(this.props.canvas);
         this.props.helper.init();
     }

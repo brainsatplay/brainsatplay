@@ -18,6 +18,14 @@ export class Train{
             interTrialIntervalMin: {default: 500, min: 0, max: 60*60*1000, step: 1},
             interTrialIntervalMax: {default: 500, min: 0, max: 60*60*1000, step: 1},
         }
+        
+        this.props = {
+            id: String(Math.floor(Math.random() * 1000000)),            
+            ui: {}
+        }
+        
+        this.props.container = document.createElement('div')
+        this.props.container.classList.add('training-prompt-container')
 
         this.ports = {
             mode: {
@@ -29,64 +37,54 @@ export class Train{
                     this.params.mode = userData[0].data
                 }
             },
-            ui: {
+            element: {
+                default: this.props.container,
                 input: {type: null},
-                output: {type: Object},
+                output: {type: Element},
                 onUpdate: () => {
-                    return [{data: this.props.ui}]
+                    return [{data: this.props.container}]
                 }
             }
-        }
-
-        this.props = {
-            id: String(Math.floor(Math.random() * 1000000)),            
-            ui: {}
         }
     }
 
     init = () => {
 
-        this.props.ui.HTMLtemplate = () => {
-            return `
-            <div class="training-prompt-container">
-                <div id='${this.props.id}prompt' class="training-prompt">
-                    <div>
-                        <h2>${this.params.mode}</h2>
-                        <p>Latest Performance: <span id="${this.props.id}performance"></spam></p>
-                    </div>
-                    <div>
-                        <button id='${this.props.id}start' class="brainsatplay-default-button disabled">Train Now</button>
-                    </div>
-                </div>
+        this.props.container.insertAdjacentHTML('beforeend', `
+        <div id='${this.props.id}prompt' class="training-prompt">
+            <div>
+                <h2>${this.params.mode}</h2>
+                <p>Latest Performance: <span id="${this.props.id}performance"></spam></p>
             </div>
-            `
+            <div>
+                <button id='${this.props.id}start' class="brainsatplay-default-button disabled">Train Now</button>
+            </div>
+        </div>
+        `)
+
+        this.props.performance = this.props.container.querySelector(`[id='${this.props.id}performance']`)
+        this.props.performance.innerHTML = '-'
+
+        this.props.start = this.props.container.querySelector(`[id='${this.props.id}start']`)
+        this.props.start.classList.toggle('disabled')
+
+        // Create Training Overlay
+        let trainingInfo = {id: this.props.id, class: null}
+        if (this.params.mode === 'Motor Imagery'){
+            trainingInfo.class = LDA
+        } else {
+            trainingInfo.class = Blink
+        }
+        trainingInfo = this.session.graph.instantiateNode(trainingInfo,this.session)
+
+        this.props.trainingOverlay = this._createTrainingIntro(trainingInfo)
+
+        // Reveal Training Intro
+        this.props.start.onclick = () => {
+            this.props.trainingOverlay.classList.toggle('shown')
         }
 
-        this.props.ui.setupHTML = (app) => {
-            this.props.performance = document.getElementById(`${this.props.id}performance`);
-            this.props.performance.innerHTML = '-'
-
-            this.props.start = document.getElementById(`${this.props.id}start`);
-            this.props.start.classList.toggle('disabled')
-
-            // Create Training Overlay
-            let trainingInfo = {id: this.props.id, class: null}
-            if (this.params.mode === 'Motor Imagery'){
-                trainingInfo.class = LDA
-            } else {
-                trainingInfo.class = Blink
-            }
-            trainingInfo = this.session.graph.instantiateNode(trainingInfo,this.session)
-
-            this.props.trainingOverlay = this._createTrainingIntro(trainingInfo)
-
-            // Reveal Training Intro
-            this.props.start.onclick = () => {
-                this.props.trainingOverlay.classList.toggle('shown')
-            }
-        }
-
-        this.session.graph.runSafe(this,'ui',[{forceRun: true, forceUpdate: true}])
+        // this.session.graph.runSafe(this,'ui',[{forceRun: true, forceUpdate: true}])
     }
 
     deinit = () => {

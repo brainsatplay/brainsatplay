@@ -177,7 +177,7 @@ export class AppletBrowser {
         trainingModes.forEach((mode, i) => {
             settings.graph.nodes.push({ id: mode, class: Train, params: { mode , applets: this.props.applets} })
             settings.graph.nodes.push({ id: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
-            settings.graph.edges.push({ source: `${mode}:ui`, target: `${mode}ui:add` })
+            settings.graph.edges.push({ source: `${mode}:element`, target: `${mode}ui:content` })
         })
 
         this.props.trainingModule = new Application(settings, trainingContainer, this.session)
