@@ -1,6 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
-import { SmoothieChartMaker } from '../../../platform/js/frontend/UX/eegvisuals';
+import { SmoothieChartMaker } from'../../../libraries/js/src/ui/eegvisuals'
 import * as settingsFile from './settings'
 
 

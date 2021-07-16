@@ -66,12 +66,13 @@ export class UI{
 
         // Dynamically Add Ports
         let ports = [
-            {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: ``, onUpdate: (userData) => {
+            {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: `<div id='content'></div>`, onUpdate: (userData) => {
                 this.props.container.innerHTML = userData[0].data
 
                 // Create ID Ports
                 var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
+                    console.log( this.session.graph)
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
@@ -99,20 +100,38 @@ export class UI{
                         })
 
                         // Fill Width/Height by Default
-                        if (!this.params.style.includes(`#${node.id}`)) this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
+                        if (!this.params.style.includes(`#${node.id}`)) {
+                            console.log('adding to stylesheet')
+                            this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
+                        }
                     }
                 }
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (userData) => {
-                if (this.props.style == null){
-                    this.props.style = document.createElement('style')
-                    this.props.style.id = `${this.props.id}style`
-                    this.props.style.type = 'text/css';
-                    this.app.AppletHTML.appendStylesheet(() => {return this.props.style});
-                }
+                
+                if (this.app.AppletHTML){ // Wait for HTML to Exist
+                    if (this.props.style == null){
+                        this.props.style = document.createElement('style')
+                        this.props.style.id = `${this.props.id}style`
+                        this.props.style.type = 'text/css';
+                        this.app.AppletHTML.appendStylesheet(() => {return this.props.style});
+                    }
 
-                this.props.style.innerHTML = userData[0].data
+                    // Scope the CSS (add ID scope)
+                    let styleArray = userData[0].data.split(/[{}]/).filter(String).map(function(str){
+                        return str.trim(); 
+                    });
+
+                    let newStyle = ``
+                    for (let i = 0; i < styleArray.length - 1; i+=2){
+                        if (styleArray[i].includes('.brainsatplay-ui-container')) newStyle += `[id='${this.props.id}']` // styleArray[i+1]
+                        else newStyle += `[id='${this.props.id}'] ${styleArray[i]} `
+                        newStyle +=`{\n\t${styleArray[i+1]}\n}\n\n`
+                    }
+
+                    this.props.style.innerHTML = newStyle
+                }
             }}, 
             {key: 'deinit', input: {type: Function}, output: {type: null}, default: ()=>{}}, 
             {key: 'responsive',input: {type: Function}, output: {type: null}, default: ()=>{}}
@@ -141,7 +160,8 @@ export class UI{
         this.props.container.id = this.props.id
         this.props.container.classList.add('brainsatplay-ui-container')
         this.props.container.style = this.params.containerStyle
-        
+        this.session.graph.runSafe(this,'html', [{data: this.params.html}])
+
         // Create Stylesheet
         let HTMLtemplate = this.props.container
 
@@ -149,10 +169,9 @@ export class UI{
                 if (this.params.setupHTML instanceof Function) this.params.setupHTML()
 
                 // Wait to Reference AppletHTML
-                this.session.graph.runSafe(this,'html', [{data: this.params.html}])
                 setTimeout(() => {
                     this.session.graph.runSafe(this,'style', [{data: this.params.style}])
-                }, 100)
+                }, 250)
         }
 
         return { HTMLtemplate, setupHTML}
@@ -160,6 +179,7 @@ export class UI{
 
     deinit = () => { 
         if (this.params.deinit instanceof Function) this.params.deinit()
+        this.props.style.remove()
     }
 
     responsive = () => {

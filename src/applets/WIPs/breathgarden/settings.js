@@ -132,27 +132,32 @@ export const settings = {
             </div>
           </div>
           `,
-          containerStyle: `
-          position: absolute;
-          pointer-events: none;
-          user-select: none;
-          width: 100%; 
-          height: 100%;
-          transition: 0.5s;
+          style: `
+          .brainsatplay-ui-container{
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            width: 100%; 
+            height: 100%;
+            transition: 0.5s;
+          }
           `
+          // containerStyle: `
+          // position: absolute;
+          // pointer-events: none;
+          // user-select: none;
+          // width: 100%; 
+          // height: 100%;
+          // transition: 0.5s;
+          // `
         }
         },
 
         {id: 'scene', class: brainsatplay.plugins.scene.Scene, params: {camerax: 1, cameray: 2.0, cameraz: 9.0}},
         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
-          html: `<div id="sceneContainer" class="scene-container"></div>`,
+          html: `<div id="sceneContainer" id="scene-container"></div>`,
           style: `
           .brainsatplay-ui-container {
-            width: 100%;
-            height: 100%;
-          }
-          
-          .scene-container {
             width: 100%;
             height: 100%;
           }

@@ -1,6 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
-import {eegBarChart, mirrorBarChart} from '../../../platform/js/frontend/UX/eegvisuals'
+import {eegBarChart, mirrorBarChart} from '../../../libraries/js/src/ui/eegvisuals'
 import {addChannelOptions, addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
 import * as settingsFile from './settings'
 

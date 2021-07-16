@@ -1,6 +1,6 @@
 import uPlot from 'uplot';
 import { SmoothieChart, TimeSeries } from "smoothie";
-import './webgl-heatmap'
+import '../../../../platform/js/frontend/UX/webgl-heatmap'
 //import TimeChart from '../timechart/dist/timechart.module';
 
 //By Joshua Brewster (GPL)
@@ -1025,9 +1025,15 @@ export class thetaGamma2Octave { //Not finished
 
 
 export class Spectrogram {
-	constructor(canvasId, peakAmp = 1){
-		this.canvasId = canvasId;
-		this.canvas = document.getElementById(canvasId);
+	constructor(canvas, peakAmp = 1){
+
+		if (canvas === 'string') {
+			this.canvasId = canvas;
+			this.canvas = document.getElementById(canvas);
+		} else {
+			this.canvas = canvas
+		}
+
 		this.ctx = this.canvas.getContext("2d");
 		this.offscreen = null;
 		this.offscreenctx = null;

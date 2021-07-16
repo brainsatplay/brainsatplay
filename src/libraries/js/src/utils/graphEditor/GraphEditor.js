@@ -702,8 +702,11 @@ export class GraphEditor{
     }
 
     addPort(node,port){
-        this.graph.nodes[node.label].addPort(port)
-        this.addPortEvents(this.graph.nodes[node.label])
+        let n = this.graph.nodes[node.label]
+        if (n){
+            node.addPort(port)
+            this.addPortEvents(n)
+        }
     }
 
     removePort(node,port){
