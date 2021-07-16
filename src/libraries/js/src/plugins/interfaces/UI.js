@@ -70,7 +70,9 @@ export class UI{
                 this.props.container.innerHTML = userData[0].data
 
                 // Create ID Ports
+                console.log(this.props.container)
                 var descendants = this.props.container.querySelectorAll("*");
+                console.log(descendants)
                 for (let node of descendants){
                     if (node.id){
                         this.session.graph.addPort(this,node.id, {
@@ -85,6 +87,7 @@ export class UI{
                                     typeof data === "object" ? data instanceof HTMLElement : //DOM2
                                     data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
                                 ) {
+                                    console.log('insert', data)
                                     node.insertAdjacentElement('beforeend', data)
                                     setTimeout(() => {
                                         if (data.onload instanceof Function) data.onload()
@@ -95,21 +98,16 @@ export class UI{
                                     },250) // Wait a bit for onload functions to ensure element has been added
                                 }
                                 else node.insertAdjacentHTML('beforeend', String(data))
-
-
-                                // Fill Width/Height by Default
-                                if (!this.params.style.includes(`#${node.id}`)) this.params.style += `\n\n#${node.id} {\nwidth: 100%;\nheight: 100%;\n}`
                             }
                         })
+
+                        // Fill Width/Height by Default
+                        if (!this.params.style.includes(`#${node.id}`)) this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
                     }
                 }
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
-            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {
-                width: 100%;
-                height: 100%;
-            }
-            `, onUpdate: (userData) => {
+            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (userData) => {
                 if (this.props.style == null){
                     this.props.style = document.createElement('style')
                     this.props.style.id = `${this.props.id}style`

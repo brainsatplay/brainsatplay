@@ -448,34 +448,11 @@ export class GraphManager{
         // Set Port State
         node.states[port] = [{}]
 
-        let defaults = node.ports[port].defaults
-
         // Force Default Outputs to Next Node
-        try {
-            if (Array.isArray(defaults.output)) {
-                node.states[port] = defaults.output
-                node.states[port][0].forceRun = true
-                node.states[port][0].forceUpdate = true
-            }
-            else if (defaults.output.constructor == Object && 'data' in defaults.output) {
-                node.states[port] = [defaults.output]
-                node.states[port][0].forceRun = true
-                node.states[port][0].forceUpdate = true
-            }
-        } catch {
-            try {
-                if (node.ports[port].default != null) {
-                    node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
-                    node.states[port][0].forceRun = true
-                    node.states[port][0].forceUpdate = true
-                }
-            } catch {
-                if (defaults && defaults.output != null) {
-                    node.states[port] = defaults.output
-                    node.states[port][0].forceRun = true
-                    node.states[port][0].forceUpdate = true
-                }
-            }
+        if (node.ports[port].default !== undefined) {
+            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
+            node.states[port][0].forceRun = true
+            node.states[port][0].forceUpdate = true
         }
 
         // Derive Control Structure
@@ -664,13 +641,15 @@ export class GraphManager{
             let sendFunction = () => {
 
                 // Add Default Metadata
+                let pass
                 source.states[sourcePort].forEach(o => {
                     if (o.meta == null) o.meta = {}
                     o.meta.source = label
                     o.meta.session = applet.sessionId
+                    if (o.forceUpdate || o.data) pass = true
                 })
 
-                this.runSafe(target, targetPort, source.states[sourcePort], true)
+                if (pass) this.runSafe(target, targetPort, source.states[sourcePort], true)
             }
             if (sendOutput) {
                 sendFunction()

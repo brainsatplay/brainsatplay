@@ -35,8 +35,38 @@ class UI {
 
         // Port Definition
         this.ports = {
-            paddle: {
-                output: {type: null}
+            dy: {
+                default: 0,
+                input: {type: undefined},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    console.error(userData[0])
+                    let choices = userData.map(u => Number(u.data))
+                    console.log(choices,userData[0])
+                    let mean = this.session.atlas.mean(choices)
+            
+                    let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})
+            
+                    // Update Paddle Position
+                    this._movePaddle(paddle,mean*this.params.paddlespeed)
+                    this.session.graph.runSafe(this,'error', [{forceRun: true, forceUpdate: true}])
+            
+                    // Replace User Data with Mean
+                    userData = [{data: mean}]
+            
+                    return userData
+                }
+            },
+            error: {
+                input: {type: null},
+                output: {type: 'boolean'},
+                onUpdate: () => {
+                    let change = this.props.currentDistanceFromDestination - this.props.previousDistanceFromDestination
+                    let error = change > 0
+
+                    // nullify if not in your direction
+                    if (this.props.ball.direction === -1) return [{data: error, forceUpdate: true}]
+                }
             }
         }
     }
@@ -69,7 +99,6 @@ class UI {
             this.props.canvas.width = container.offsetWidth
             this.props.canvas.height = container.offsetHeight
 
-            let margin = 25
             this.props.paddles.forEach((o) => {
                 if (o.username === 'me') o.x = this.props.gameOptions.margin
                 else o.x = this.props.canvas.width - this.props.gameOptions.margin
@@ -113,7 +142,9 @@ class UI {
 
                 this.props.ball.y = this.props.canvas.height/2
                 this.props.ball.x = this.props.canvas.width/2
-                this.props.ball.angle = 2*Math.PI*(Math.random() - 0.5)
+                let aspect = this.props.canvas.width / this.props.canvas.height
+                let random = Math.random() - 0.5
+                this.props.ball.angle = (Math.PI/(2*aspect))*random
             }
 
             const clearCanvas = () => {
@@ -129,8 +160,10 @@ class UI {
                     clearCanvas()
 
                     // Move Ball
-                    this.props.ball.x += this.params.ballspeed * this.props.ball.direction
-                    this.props.ball.y += this.props.ball.angle
+                    let dx = this.params.ballspeed * this.props.ball.direction
+                    this.props.ball.x += dx
+
+                    this.props.ball.y += Math.tan(this.props.ball.angle)*dx
 
                     // Check Bounce Off Walls
                     if (this.props.ball.y <= this.props.ball.radius || this.props.ball.y >= (this.props.canvas.height - this.props.ball.radius)) this.props.ball.angle *= -1
@@ -149,14 +182,18 @@ class UI {
 
                         // Check X
                         let extra = 0
-                        if (o.username === 'me') extra = this.props.paddleOptions.width
+                        if (o.username === 'me') {
+                            extra = this.props.paddleOptions.width
+                            let targetY = this.props.ball.y + (Math.tan(this.props.ball.angle) * Math.abs(this.props.ball.x - o.x))
+                            // console.log(this.props.ball.y, targetY, this.props.ball.direction)
+                        }
                         if (Math.abs(this.props.ball.x - o.x) <= this.props.paddleOptions.width + extra){
 
                             let yDist = this.props.ball.y-o.y
                             // Check Y
                             if (Math.abs(yDist) <= this.props.paddleOptions.height/2 ) {
                                 this.props.ball.direction *= -1
-                                this.props.ball.angle = 2*Math.PI*yDist/(this.props.paddleOptions.height/2)
+                                this.props.ball.angle = this.props.ball.direction*yDist/(this.props.paddleOptions.height/2)
                                 o.color = `rgb(129, 218, 250)`
                             }
                         }
@@ -190,9 +227,15 @@ class UI {
     }
 
     _movePaddle = (paddle, dy) => {
+
         let upper = paddle.y + this.props.paddleOptions.height/2 + dy
         let lower = paddle.y - this.props.paddleOptions.height/2 + dy
+
+        let targetY = this.props.ball.y + (Math.tan(this.props.ball.angle) * Math.abs(paddle.x - this.props.ball.x))
+
+        if (paddle.username === 'me') this.props.previousDistanceFromDestination = Math.abs(Math.min(0, (upper - dy) - targetY, targetY - (lower - dy)))
         if (upper < this.props.canvas.height &&  lower > 0) paddle.y += dy
+        if (paddle.username === 'me') this.props.currentDistanceFromDestination =  Math.abs(Math.min(0, upper - targetY, targetY - lower))
     }
 
     responsive = () => {
@@ -209,21 +252,6 @@ class UI {
             this.props.canvas.height = container.offsetHeight
 
         }
-    }
-
-    paddle = (userData) => {
-        let choices = userData.map(u => Number(u.data))
-        let mean = this.session.atlas.mean(choices)
-
-        let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})
-
-        // Update Paddle Position
-        this._movePaddle(paddle,mean*this.params.paddlespeed)
-
-        // Replace User Data with Mean
-        userData = [{data: mean, meta: {label: `${this.label}_paddle]`}}]
-
-        return userData
     }
 
     deinit = () => {

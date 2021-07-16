@@ -837,12 +837,11 @@ export class GraphEditor{
 
                     if (defaultType === 'Function'){
                         settings.language = 'javascript'
-                        settings.target = plugin.params
-                        settings.function = key
                     } else {
                         settings.language = defaultType.toLowerCase()
-                        settings.target = plugin.params[key]
                     }
+                    settings.target = plugin.params
+                    settings.key = key
 
                     settings.onClose()
 

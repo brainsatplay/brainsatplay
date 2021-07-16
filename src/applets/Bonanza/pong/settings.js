@@ -26,6 +26,10 @@ export const settings = {
         {id: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
         {id: 'move', class: brainsatplay.plugins.utilities.Move},
         {id: 'ui', class: UI, params: {}},
+
+        {id: 'performance', class: brainsatplay.plugins.machinelearning.Performance, params: {method: 'accuracy'}},
+        {id: 'debug', class: brainsatplay.plugins.debug.Debug},
+
       ],
       edges: [
 
@@ -42,7 +46,17 @@ export const settings = {
         // Y Movement
         {
           source: 'move:dy', 
-          target: 'ui:paddle'
+          target: 'ui:dy'
+        },
+
+        {
+          source: 'ui:error', 
+          target: 'performance:error'
+        },
+
+        {
+          source: 'performance', 
+          target: 'debug'
         },
       ]
     },

@@ -1,4 +1,4 @@
-import {DataQuality} from './DataQuality'
+import {DataQuality} from '../algorithms/DataQuality'
 import {Canvas} from '../canvas/Canvas'
 
 export class Blink{
@@ -50,11 +50,18 @@ export class Blink{
 
         // Operator Configuration 
         this.paramOptions = {
-            // method: {
-            //     default: 'Threshold', 
-            //     options: ['Threshold']
-            // }, 
+
+            model: {
+                default: 'Threshold', 
+                options: [
+                    'Threshold', 
+                    // 'LDA', 
+                    // 'CNN'
+                ]
+            }, 
+
             debug: {default: false},
+
             blinkWindow: {
                 default: 25,
                 options: null,
@@ -62,19 +69,23 @@ export class Blink{
                 max: 2000,
                 step: 1
             },
+
             blinkDuration: {
                 default: 250,
                 options: null,
                 min: 0,
                 max: 2000,
                 step: 1
-            }, blinkThreshold: {
+            }, 
+            
+            blinkThreshold: {
                 default: 150,
                 options: null,
                 min: 0,
                 max: 1000,
                 step: 1
             }, 
+
             qualityThreshold: {
                 default: 75,
                 options: null,
@@ -87,9 +98,6 @@ export class Blink{
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             canvas: null,
-            // container: null,
-            // context: null,
-            // drawFunctions: {},
             looping: false,
             dataquality: null,
             blinkData: {},
@@ -109,7 +117,6 @@ export class Blink{
         this.lastBlink = {}
         this.lastBlink.left = Date.now()
         this.lastBlink.right = Date.now()
-
     }
 
     init = () => {

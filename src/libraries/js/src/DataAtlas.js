@@ -6,7 +6,7 @@ import { StateManager } from "./ui/StateManager";
 import { WorkerManager } from "./Workers"
 import { GraphManager } from "./GraphManager"
 
-import { Blink } from "./plugins/algorithms/Blink"
+import { Blink } from "./plugins/models/Blink"
 import {DOMFragment} from './ui/DOMFragment'
 
 //-------------------------------------------------------------------------------------------------------
