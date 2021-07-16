@@ -45,6 +45,7 @@ export class BarChart{
     }
 
     deinit = () => {
+        this.props.canvas.remove()
         this.props.helper.deInit();
         this.props.helper = null;
     }

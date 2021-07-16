@@ -29,6 +29,8 @@ export class SmoothieChartMaker {
 			this.series.push(newseries);
 		}
 
+		console.log('init', this.canvas)
+
 	}
 
 	deInit() {
