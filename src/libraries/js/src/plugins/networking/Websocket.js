@@ -47,7 +47,24 @@ export class Websocket{
                         }
                     })
                 }
-            }
+            }, 
+            message: {
+                input: {type: null},
+                output: {type: undefined},
+                onUpdate: (userData) => {
+                    return userData
+                }
+            },
+            send: {
+                input: {type: undefined},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    if (this.props.socket != null){
+                        this.props.socket.send(JSON.stringify(userData[0].data))
+
+                    }
+                }
+            },
         }
     }
 
@@ -86,6 +103,7 @@ export class Websocket{
 
         socket.onmessage = (msg) => {
             console.log('Message recieved', msg.data)
+            this.session.graph.runSafe(this,'message', [{data: msg.data, forceUpdate: true}])
         }
 
         socket.onclose = (msg) => {
