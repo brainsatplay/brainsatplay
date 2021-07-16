@@ -313,10 +313,10 @@ export class DataManager {
 
                         if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
                             this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "eeg_" + deviceName+deviceIdx;
-                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                                if (e) throw e;
-                                this.listFiles();
-                            }); //+"_c"+State.data.sessionChunks
+                            // fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                            //     if (e) throw e;
+                            //     this.listFiles();
+                            // }); //+"_c"+State.data.sessionChunks
                         } 
                         console.log(deviceName)
                         this.session.subscribe(deviceIdx, thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
@@ -354,10 +354,10 @@ export class DataManager {
                         
                         if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
                             this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "heg_" + deviceName+deviceIdx;
-                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                                if (e) throw e;
-                                this.listFiles();
-                            }); //+"_c"+State.data.sessionChunks
+                            // fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                            //     if (e) throw e;
+                            //     this.listFiles();
+                            // }); //+"_c"+State.data.sessionChunks
                             
                         }   
                         this.session.subscribe(deviceIdx, hegindex, undefined, (row) => {
