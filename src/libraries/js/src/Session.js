@@ -1762,7 +1762,7 @@ else {
 			</div>
 			</div>
 
-			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 99"><div>
+			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 99;"><div>
 				<h2>Game Mode</h2>
 				<div style="display: flex; align-items: center;">
 						<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
@@ -1770,7 +1770,7 @@ else {
 				</div>
 			</div></div>
 
-			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 98"><div>
+			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 98;"><div>
 				<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
 				display: flex;
