@@ -54,11 +54,13 @@ export class Spectrogram{
     responsive = () => {
 
         // Resize to parent
-        this.props.helper.canvas.width = this.props.helper.canvas.parentNode.clientWidth;
-        this.props.helper.canvas.height = this.props.helper.canvas.parentNode.clientHeight;
-        this.props.helper.canvas.style.width = this.props.helper.canvas.parentNode.clientWidth;
-        this.props.helper.canvas.style.height = this.props.helper.canvas.parentNode.clientHeight;
-        this.props.helper.init();
+        if (this.props.helper){
+            this.props.helper.canvas.width = this.props.helper.canvas.parentNode.clientWidth;
+            this.props.helper.canvas.height = this.props.helper.canvas.parentNode.clientHeight;
+            this.props.helper.canvas.style.width = this.props.helper.canvas.parentNode.clientWidth;
+            this.props.helper.canvas.style.height = this.props.helper.canvas.parentNode.clientHeight;
+            this.props.helper.init();
+        }
         // this.props.helper.draw();
 
     }
