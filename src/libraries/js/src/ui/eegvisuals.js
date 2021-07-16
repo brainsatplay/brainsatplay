@@ -601,21 +601,21 @@ export class BrainMap2D {
 			  if(o.tag === row.tag){
 				    newpoints.push({x:o.position.x*this.scale+halfwidth, y:halfheight-o.position.y*this.scale, size:10, intensity:0.7});
 				if(viewing === "scp"){
-					newpoints[i].size = Math.max(...o.slices.scp[o.slices.scp.length-1])}//o.means.scp[o.means.scp.length - 1];}
+					newpoints[i].size = Math.max(...o.data.scp[o.data.scp.length-1])}//o.means.scp[o.means.scp.length - 1];}
 				else if(viewing === "delta"){
-					newpoints[i].size = Math.max(...o.slices.delta[o.slices.delta.length-1])}//o.means.delta[o.means.delta.length - 1];}
+					newpoints[i].size = Math.max(...o.data.delta[o.data.delta.length-1])}//o.means.delta[o.means.delta.length - 1];}
 				else if(viewing === "theta"){
-					newpoints[i].size = Math.max(...o.slices.theta[o.slices.theta.length-1])}//o.means.theta[o.means.theta.length - 1];}
+					newpoints[i].size = Math.max(...o.data.theta[o.data.theta.length-1])}//o.means.theta[o.means.theta.length - 1];}
 				else if(viewing === "alpha1"){
-					newpoints[i].size = Math.max(...o.slices.alpha1[o.slices.alpha1.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
+					newpoints[i].size = Math.max(...o.data.alpha1[o.data.alpha1.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
 				else if(viewing === "alpha2"){
-					newpoints[i].size = Math.max(...o.slices.alpha2[o.slices.alpha2.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
+					newpoints[i].size = Math.max(...o.data.alpha2[o.data.alpha2.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
 				else if(viewing === "beta"){
-					newpoints[i].size = Math.max(...o.slices.beta[o.slices.beta.length-1])}//o.means.beta[o.means.beta.length - 1];}
+					newpoints[i].size = Math.max(...o.data.beta[o.data.beta.length-1])}//o.means.beta[o.means.beta.length - 1];}
 				else if(viewing === "lowgamma"){
-					newpoints[i].size = Math.max(...o.slices.lowgamma[o.slices.lowgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
+					newpoints[i].size = Math.max(...o.data.lowgamma[o.data.lowgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
 				else if(viewing === "highgamma"){
-					newpoints[i].size = Math.max(...o.slices.highgamma[o.slices.highgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
+					newpoints[i].size = Math.max(...o.data.highgamma[o.data.highgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
 
 					newpoints[i].size *= sizeMul; //Need a better method
 
@@ -700,21 +700,21 @@ export class BrainMap2D {
 			//console.log(strokeStyle);
 		coherenceMap.forEach((row,i) => {
 			if(viewing === "scp") {	 //TODO:: figure out a good transparency (or could do line thickness) upper bound based on actual results
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.scp[row.slices.scp.length-1])*alphaScalar + ")";}//(row.means.scp[row.means.scp.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.scp[row.data.scp.length-1])*alphaScalar + ")";}//(row.means.scp[row.means.scp.length-1]*alphaMul) + ")";}
 			else if(viewing === "delta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.delta[row.slices.delta.length-1])*alphaScalar + ")";}//(row.means.delta[row.means.delta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.delta[row.data.delta.length-1])*alphaScalar + ")";}//(row.means.delta[row.means.delta.length-1]*alphaMul) + ")";}
 			else if(viewing === "theta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.theta[row.slices.theta.length-1])*alphaScalar + ")";}//(row.means.theta[row.means.theta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.theta[row.data.theta.length-1])*alphaScalar + ")";}//(row.means.theta[row.means.theta.length-1]*alphaMul) + ")";}
 			else if(viewing === "alpha1") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.alpha1[row.slices.alpha1.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.alpha1[row.data.alpha1.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
 			else if(viewing === "alpha2") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.alpha2[row.slices.alpha2.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.alpha2[row.data.alpha2.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
 			else if(viewing === "beta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.beta[row.slices.beta.length-1])*alphaScalar + ")";}//(row.means.beta[row.means.beta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.beta[row.data.beta.length-1])*alphaScalar + ")";}//(row.means.beta[row.means.beta.length-1]*alphaMul) + ")";}
 			else if(viewing === "lowgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.lowgamma[row.slices.lowgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.lowgamma[row.data.lowgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
 			else if(viewing === "highgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.slices.highgamma[row.slices.highgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + Math.max(...row.data.highgamma[row.data.highgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
 			//console.log(ctx.strokeStyle)
 			//console.log(ctx.strokeStyle);
 			ctx.beginPath();
@@ -763,8 +763,8 @@ export class eegBarChart {
 		this.ctx = this.canvas.getContext("2d");
 		this.anim = undefined;
 
-		//combine and push the latest slices to this then call eegbarchart.draw() from the class instance
-		this.slices = {scp: [0], delta: [0], theta: [0], alpha1: [0], alpha2:[0], beta: [0], lowgamma: [0], highgamma: [0]};
+		//combine and push the latest data to this then call eegbarchart.draw() from the class instance
+		this.data = {scp: [0], delta: [0], theta: [0], alpha1: [0], alpha2:[0], beta: [0], lowgamma: [0], highgamma: [0]};
 		this.reversed = reversed;
 		this.colors = colors;
 		this.allCapsReachBottom = false;
@@ -795,8 +795,8 @@ export class eegBarChart {
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
-	setData(slices,fft) {
-		this.slices = slices;
+	setData(data,fft) {
+		this.data = data;
 		this.fftArr = fft;
 	}
 
@@ -805,29 +805,38 @@ export class eegBarChart {
 		var cheight = this.canvas.height;
 
 		var nbins = 0;
-		let keys = Object.keys(this.slices);
-		if(typeof this.slices[Object.keys(this.slices)[0]] === 'object') {
-			keys.forEach((k) => {
-				nbins += this.slices[k].length;
-			})
+		let keys = Object.keys(this.data);
+		if(!Array.isArray(slice)) {
+			if(typeof this.data[Object.keys(this.data)[0]] === 'object') {
+				keys.forEach((k) => {
+					nbins += this.data[k].length;
+				})
+			}
+			else nbins = Object.keys(this.data).length; if (this.data.highgamma) nbins-=1; //this option is if each key is a value instead of an array //-1 because we don't like you, high gamma
 		}
-		else nbins = Object.keys(this.slices).length; if (this.slices.highgamma) nbins-=1; //this option is if each key is a value instead of an array //-1 because we don't like you, high gamma
-
+		else {
+			nbins = this.data.length;
+		}
 		this.meterNum = nbins;
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
 
 		var wscale = cwidth / this.relativeWidth;
 		var xoffset = (this.meterWidth+this.meterGap)*wscale;
 
-		let slice = this.slices;
+		let slice = this.data;
 		let max = 0;
-		for(const prop in slice) {
-			if ( typeof slice[prop] === 'number') {if (slice[prop] > max) max = slice[prop];}
-			else if ( typeof slice[prop] === 'object') {    
-				let mx = Math.max(...slice[prop]);
-				if (mx > max) max = mx;
-			}
-		} 
+		if(!Array.isArray(slice)) {
+			for(const prop in slice) {
+				if ( typeof slice[prop] === 'number') {if (slice[prop] > max) max = slice[prop];}
+				else if ( typeof slice[prop] === 'object') {    
+					let mx = Math.max(...slice[prop]);
+					if (mx > max) max = mx;
+				}
+			} 
+		}
+		else { 
+			max = Math.max(...slice);
+		}
 
 		let normalizer = 1/max;
 
@@ -940,9 +949,9 @@ export class thetaGamma2Octave { //Not finished
 		channelTags.forEach((row,i) => {
 			atlas.map.forEach((o,j) => {
 				if(o.tag === row.tag) {
-					var thetaMax = Math.max(...o.slices.theta[o.slices.theta.length-1])*this.adcScalingFactor;
-					var gammaMax = Math.max(...o.slices.lowgamma[o.slices.lowgamma.length-1])*this.adcScalingFactor;
-					gammaMaxidx = o.slices.lowgamma.indexOf(gammaMax);
+					var thetaMax = Math.max(...o.data.theta[o.data.theta.length-1])*this.adcScalingFactor;
+					var gammaMax = Math.max(...o.data.lowgamma[o.data.lowgamma.length-1])*this.adcScalingFactor;
+					gammaMaxidx = o.data.lowgamma.indexOf(gammaMax);
 					gammaFreq = atlas.shared.bandFreqs.lowgamma[1][gammaMaxidx];
 					if(thetaMax > 0.00005) { //Threshold in Volts
 						this.audioctx.playFreq(450,0.1,'sine');
