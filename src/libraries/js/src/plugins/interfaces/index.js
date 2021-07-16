@@ -6,4 +6,4 @@ import {Spectrogram} from './Spectrogram'
 import {TimeSeries} from './TimeSeries'
 import {BarChart} from './BarChart'
 
-export {Cursor,UI,Plot, Video, Spectrogram, TimeSeries}
+export {Cursor,UI,Plot, Video, Spectrogram, TimeSeries, BarChart}
