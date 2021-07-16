@@ -20,6 +20,7 @@ export class Spectrogram{
 
         this.ports = {
             data: {
+                edit: false,
                 input: {type: Array},
                 output: {type: null},
                 onUpdate: (userData) => {

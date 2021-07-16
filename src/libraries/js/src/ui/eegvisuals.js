@@ -752,8 +752,10 @@ export class BrainMap2D {
 
 //Makes a color coded bar chart to apply frequency bins to for a classic visualization. Should upgrade this with smooth transitions in an animation loop
 export class eegBarChart {
-	constructor(canvasId = null, reversed=false, colors=['purple','violet','blue','green','chartreuse','gold','red']) {
+	constructor(canvas = null, reversed=false, colors=['purple','violet','blue','green','chartreuse','gold','red']) {
 		this.canvasId; this.canvas;
+
+		console.log(canvas)
 		if (typeof canvas == 'string'){
 			this.canvasId = canvas;
 			this.canvas = document.getElementById(canvas);
@@ -860,9 +862,9 @@ export class eegBarChart {
 		}
 
 		if(Array.isArray(this.data)) {
-			this.ctx.fillStyle = this.colors[0];
+			this.ctx.fillStyle =  'white';
 			for(let i = 0; i < this.data.length; i++) {
-				drawbar(this.data[v]);
+				drawbar(this.data[i]);
 			}
 		}
 		else {

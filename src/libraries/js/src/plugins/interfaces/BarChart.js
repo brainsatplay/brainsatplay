@@ -20,11 +20,13 @@ export class BarChart{
 
         this.ports = {
             data: {
-                input: {type: Array},
+                edit: false,
+                input: {type: Object},
                 output: {type: null},
                 onUpdate: (userData) => {
                     let u = userData[0]
-                    this.props.helper.slices = u.data
+                    if (Array.isArray(u.data)) if (u.data.length > 15) this.props.helper.showvalues = false
+                    this.props.helper.setData(u.data)
                     this.props.helper.draw();
                 }
             },
@@ -40,6 +42,7 @@ export class BarChart{
     }
 
     init = () => {
+        console.log(this.props.canvas)
         this.props.helper = new eegBarChart(this.props.canvas);
         this.props.helper.init();
     }
