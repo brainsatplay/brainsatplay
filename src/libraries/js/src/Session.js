@@ -1770,7 +1770,7 @@ else {
 				</div>
 			</div></div>
 
-			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 3"><div>
+			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 98"><div>
 				<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
 				display: flex;
@@ -1784,7 +1784,7 @@ else {
 				</div>
 				</div>
 			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:97;">Exit Session</div>
 			</div>
 			`
 
