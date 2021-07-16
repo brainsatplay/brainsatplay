@@ -753,7 +753,7 @@ export class BrainMap2D {
 
 //Makes a color coded bar chart to apply frequency bins to for a classic visualization. Should upgrade this with smooth transitions in an animation loop
 export class eegBarChart {
-	constructor(canvasId = null) {
+	constructor(canvasId = null, reversed=false, colors=['purple','violet','blue','green','chartreuse','gold','red']) {
 		this.canvasId = canvasId;
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext("2d");
@@ -761,7 +761,8 @@ export class eegBarChart {
 
 		//combine and push the latest slices to this then call eegbarchart.draw() from the class instance
 		this.slices = {scp: [0], delta: [0], theta: [0], alpha1: [0], alpha2:[0], beta: [0], lowgamma: [0], highgamma: [0]};
-
+		this.reversed = reversed;
+		this.colors = colors;
 		this.allCapsReachBottom = false;
 		this.meterWidth = 14; //relative width of the meters in the spectrum
 		this.meterGap = 2; //relative gap between meters
@@ -799,11 +800,14 @@ export class eegBarChart {
 		var cwidth = this.canvas.width;
 		var cheight = this.canvas.height;
 
-		var nbins;
-		
-		if(typeof this.slices.scp === 'object')
-			nbins = this.slices.scp.length+this.slices.delta.length+this.slices.theta.length+this.slices.alpha1.length+this.slices.alpha2.length+this.slices.beta.length+this.slices.lowgamma.length;
-		else nbins = Object.keys(this.slices).length; if (this.slices.highgamma) nbins-=1; //-1 because we don't like you, high gamma
+		var nbins = 0;
+		let keys = Object.keys(this.slices);
+		if(typeof Object.keys(this.slices)[0] === 'object') {
+			keys.forEach((k) => {
+				nbins += this.slices[k].length;
+			})
+		}
+		else nbins = Object.keys(this.slices).length; if (this.slices.highgamma) nbins-=1; //this option is if each key is a value instead of an array //-1 because we don't like you, high gamma
 
 		this.meterNum = nbins;
 		this.relativeWidth = this.meterNum*(this.meterWidth+this.meterGap); //Width of the meter (px)
@@ -825,7 +829,7 @@ export class eegBarChart {
 
 		this.ctx.clearRect(0, 0, cwidth, cheight);
 		
-		let i = 0;
+		let i = 0; if(this.reversed) i = nbins;
 		let drawbar = (value) => {
 			let v = value*normalizer*cheight;
 			if(v > cheight) v = cheight;
@@ -839,71 +843,16 @@ export class eegBarChart {
 				this.ctx.fillStyle = oldfill;
 			}
 
-			i++;
+			if(this.reversed) i--;
+			else i++;
 		}
 
-		if(typeof slice.scp === 'object') {
-			
-			slice.scp?.forEach((v) => {
-				this.ctx.fillStyle = "purple";
+		keys.forEach((key,i)=>{
+			if(this.colors[i]) this.ctx.fillStyle = this.colors[i]; else this.ctx.fillStyle = 'white';
+			slice[key].forEach((v) => {
 				drawbar(v);
 			});
-			slice.delta?.forEach((v) => {
-				this.ctx.fillStyle = "violet";
-				drawbar(v);
-			});
-			slice.theta?.forEach((v) => {
-				this.ctx.fillStyle = "blue";
-				drawbar(v);
-			});
-			slice.alpha1?.forEach((v) => {
-				this.ctx.fillStyle = "green";
-				drawbar(v);
-			});
-			slice.alpha2?.forEach((v) => {
-				this.ctx.fillStyle = "chartreuse";
-				drawbar(v);
-			});
-			slice.beta?.forEach((v) => {
-				this.ctx.fillStyle = "gold";
-				drawbar(v);
-			});
-			slice.lowgamma?.forEach((v) => {
-				this.ctx.fillStyle = "red";
-				drawbar(v);
-			});
-		} else {
-			console.log(slice);
-			if(slice.scp) {
-				this.ctx.fillStyle = "purple";
-				drawbar(slice.scp);
-			}
-			if(slice.delta) { 
-				this.ctx.fillStyle = "violet";
-				drawbar(slice.delta);
-			}
-			if(slice.theta) {
-				this.ctx.fillStyle = "blue";
-				drawbar(slice.theta);
-			}
-			if(slice.alpha1) {
-				this.ctx.fillStyle = "green";
-				drawbar(slice.alpha1);
-			}
-			if(slice.alpha2) {
-				this.ctx.fillStyle = "chartreuse";
-				drawbar(slice.alpha2);
-			}
-			if(slice.beta) {
-				this.ctx.fillStyle = "gold";
-				drawbar(slice.beta);
-			}
-			if(slice.lowgamma) {
-				this.ctx.fillStyle = "red";
-				drawbar(slice.lowgamma);
-			}
-		}
-		
+		});
 	}
 
 	animate = () => {
@@ -917,7 +866,7 @@ export class mirrorBarChart {
 		this.leftcanvasId - leftcanvasId;
 		this.rightcanvasId = rightcanvasId;
 		this.leftbars = new eegBarChart(leftcanvasId);
-		this.rightbars = new eegBarChart(rightcanvasId);
+		this.rightbars = new eegBarChart(rightcanvasId,true);
 	}
 
 	deInit() {

@@ -8,7 +8,31 @@ export class eegmath {
 	//-------------------- Static Variables---------------------------
 	//----------------------------------------------------------------
 
-	static TWO_PI = Math.PI*2;
+	//Throwing a bunch in here for the hell of it
+	static TWO_PI = Math.PI*2; //2PI
+	static C = 299792458; //speed of light m/s
+	static G = 6.67430e-11; //Newton's gravitation constant N*m^2 / kg^2
+	static h = 6.62607015e-34; //Planck constant J*s
+	static R = 8.31432e3; //Universal gas constant J / kg*mol*K
+	static Ra = 287; //Air gas constant J / kg*K
+	static H = 69.3; //Hubble constant km/s/Mpc 
+	static kbar = 1.054571817e-34; //Dirac constant J*s
+	static kB = 1.380649e-23; //Boltzmann constant J/K
+	static ke = 8.9875517923e9; //Coulomb constant kg * m^3 * s^-2 * C^-2
+	static me = 9.1093837015e-31; //electron mass kg
+	static mp = 1.67262192369e-27; //proton mass kg
+	static mn =	1.67492749804e-27; //neutron mass kg
+	static P0 = 1.01325e5; //Sea level pressure N/m^2
+	static T0 = 288.15; //Sea level room temperature K
+	static p0 = 1.225; //Sea level air density kg/m^3
+	static Na = 6.0220978e23; //Avogadro's number 1 / kg*mol
+	static y = 1.405; //Adiabatic constant
+	static M0 = 28.96643; //Sea level molecular weight
+	static g0 = 9.80665; //Sea level gravity m/s^2
+	static Re = 6.3781e6; //Earth radius m
+	static B = 1.458e-6; //Thermal constant Kg / m*s*sqrt(kg)
+	static S = 110.4; //Sutherland's constant K
+	static Sigma = 3.65e-10; //Collision diameter of air m
 
 	//----------------------------------------------------------------
 	//-------------------- Static Functions --------------------------
@@ -28,11 +52,18 @@ export class eegmath {
 		return [t,sineWave]; // [[times],[amplitudes]]
 	}
 
+	//get the sine amplitude at a particular time (seconds)
+	static getSineAmplitude(frequency=20,peakAmplitude=1,ti=0, tOffset=0) {
+		return Math.sin(this.TWO_PI*frequency*ti+tOffset)*peakAmplitude;
+	}
+
+	//average value of array
 	static mean(arr){
 		var sum = arr.reduce((prev,curr)=> curr += prev);
 		return sum / arr.length;
 	}
 
+	//array mode (most commonly occurring number)
 	static mode(arr){
 		return arr.sort((a,b) =>
 			  arr.filter(v => v===a).length
@@ -40,6 +71,7 @@ export class eegmath {
 		).pop();
 	}
 
+	//standard deviation
 	static std(arr,mean=undefined){
 		let avg = mean; 
 		if(!mean) avg = this.mean(arr);
@@ -52,6 +84,7 @@ export class eegmath {
 		return Math.sqrt(summed/arr.length);
 	}
 
+	//array zscore (probabilities)
 	static zscore(arr){
 		let mean = this.mean(arr);
 		let std = this.std(arr,mean);
@@ -63,23 +96,25 @@ export class eegmath {
 		return z;
 	}
 
-	static variance(arr) { //1D input arrays of length n
+	static variance(arr) { //Variance of 1D input arrays of length n
 		var mean = this.mean(arr);
 		return arr.reduce((a,b) => a + ((b - mean)**2), 0)/arr.length;
 	}
 
 	static dot(vec1,vec2) { //nDimensional vector dot product
         var dot=0;
-        for(var i=0; i<vec.length; i++) {
-            dot+= vec1[i]*vec2[i];
+        for(var i=0; i<vec1.length; i++) {
+            dot += vec1[i]*vec2[i];
         }
+		return dot;
     }
 
     static cross3D(vec1,vec2) { //3D vector cross product
         return [
-            vec1[1]*vec2[2]-vec1[2]*vec2[1],
-            vec1[2]*vec2[0]-vec1[0]*vec2[2],
-            vec1[0]*vec2[1]-vec1[1]*vec2[0]]
+            vec1[1]*vec2[2]-vec1[2]*vec2[1], //x
+            vec1[2]*vec2[0]-vec1[0]*vec2[2], //y
+            vec1[0]*vec2[1]-vec1[1]*vec2[0]  //z
+		];
     }
 
     static magnitude(vec) { //nDimensional magnitude
@@ -108,6 +143,55 @@ export class eegmath {
         return vecn;
     }
 
+	//2D integral approximation using rectangular area under the curve. If you need absolute values be sure to return that.
+    static integral = (func=(x)=>{ let y=x; return y;}, range=[], stepx=0.01) => {
+        let area = 0;
+        for(let i = range[0]; i<range[1]; i+=stepx) {
+            let y=func(i);
+            area += y*stepx;
+        }
+        return area;
+    }
+
+    //3D double integral approximation
+    static dintegral = (func=(x,y)=>{ let z = x+y; return z;}, range=[[],[]], stepx=0.01,stepy=stepx) => {
+        let volume = 0;
+        for(let i = range[0][0]+stepx; i<range[0][1]; i+=stepx) {
+            for(let j = range[1][0]+stepy; j<range[1][1]; j+=stepy) {
+                let z=func(i,j);
+                volume += z*stepx*stepy;
+            }
+        }
+        return volume;
+    }
+
+    //4D triple integral approximation
+    static tintegral = (func=(x,y,z)=>{ let w=x+y+z; return w;}, range=[[],[],[]], stepx=0.01, stepy=stepx, stepz=stepx) => {
+        let volume = 0;
+        for(let i = range[0][0]+stepx; i<range[0][1]; i+=stepx) {
+            for(let j = range[1][0]+stepy; j<range[1][1]; j+=stepy) {
+                for(let k = range[2][0]+stepz; k<range[2][1]; k+=stepz) {
+                    let w=func(i,j,k);
+                    volume += w*stepx*stepy*stepz;
+                }
+            }
+        }
+        return volume;
+    }
+
+    //2D path integral approximation (the length of a curve)
+    static pintegral = (func=(x)=>{ let y=x; return y; }, range=[], stepx=0.01) => {
+        let length = 0;
+        let y0 = undefined;
+        let y = undefined;
+        for(let i = range[0]; i<range[1]; i+=stepx) {
+            y0 = y;
+            yi = func(i);
+            if(y0)
+                length += this.distance([0,y0],[stepx,yi]);
+        }
+        return length;
+    }
 
     static makeVec(point1,point2) {  //Make vector from two nDimensional points (arrays)
         var vec = [];
