@@ -1,8 +1,11 @@
 export class Dropdown {
     constructor(parentNode, headers = [], options=[], settings={}){
         this.parentNode = parentNode
+        this.outerContainer = document.createElement('div')
+        // this.outerContainer.style = `overflow: hidden;`
         this.container = document.createElement('div')
-        this.parentNode.insertAdjacentElement('beforeend',this.container)
+        this.outerContainer.insertAdjacentElement('beforeend',this.container)
+        this.parentNode.insertAdjacentElement('beforeend',this.outerContainer)
         this.settings = settings
 
         headers.forEach(o => {
@@ -18,45 +21,62 @@ export class Dropdown {
             this.container.style.transform = `translateY(-100%)`
 
             this.hideToggle  = document.createElement('div')
-            let arrow  = document.createElement('div')
+            this.arrow = document.createElement('div')
             this.hideToggle.style = `
                 position: absolute;
                 bottom: 0;
                 right: 0;
                 transform: translateY(100%);
-                padding: 6px 10px;
+                padding: 10px 10px;
                 text-align: right;
                 border-bottom: 1px solid white;
                 border-left: 1px solid white;
                 border-right: 1px solid white;
                 border-radius: 4px;
                 cursor:pointer;
+                background: rgba(0,0,0,0.6);
+                margin-right: 10px;
             `
-            this.hideToggle.insertAdjacentElement('afterbegin', arrow)
+            this.hideToggle.insertAdjacentElement('afterbegin', this.arrow)
             this.container.insertAdjacentElement('afterbegin', this.hideToggle)
-            arrow.classList.add('arrow-down')
+            this.arrow.classList.add('arrow-down')
 
             this.hideToggle.onclick = () => {
                 if (this.container.style.transform != '') {
                     this.container.style.transform = ``
-                    arrow.classList.remove('arrow-down')
-                    arrow.classList.add('arrow-up')
+                    this.arrow.classList.remove('arrow-down')
+                    this.arrow.classList.add('arrow-up')
                     this.container.style.transition = ''
                 } else {
-                    this.container.style.transform = `translateY(-100%)`
-                    arrow.classList.remove('arrow-up')
-                    arrow.classList.add('arrow-down')
-                    this.container.style.transition = '0.5s'
+                    this.shutDropdown()
                 }
-                
-                let collapsibles = this.container.querySelectorAll(`.option-type-collapsible`)
-
-                for (let el of collapsibles){
-                    el.style.display = 'none'
-                    el.click()
-                }
+                this.allCollapsibles((el) => {el.click()})
             }
+            this.allCollapsibles((el) => {el.style.display = 'none'})
         }
+        this.container.addEventListener('mouseleave', this.shutDropdown)
+    }
+
+
+
+    allCollapsibles(callback){
+        let collapsibles = this.container.querySelectorAll(`.option-type-collapsible`)
+        for (let el of collapsibles){
+            callback(el)
+        }
+    }
+
+    shutDropdown = () => {
+        if (this.settings.hidden){
+            this.container.style.transform = `translateY(-100%)`
+            this.arrow.classList.remove('arrow-up')
+            this.arrow.classList.add('arrow-down')
+            this.container.style.transition = '0.5s'
+        }
+
+        this.allCollapsibles((el) => {
+            this.toggleCollapsible(el, false)
+        })
     }
 
     addSection = (o) => {
@@ -108,8 +128,7 @@ export class Dropdown {
         if (o.onclick instanceof Function){
             option.onclick = () => {
                 o.onclick()
-                if (this.settings.hidden) this.hideToggle.click()
-                else header.click()
+                this.shutDropdown()
             }
         }
 
@@ -119,10 +138,17 @@ export class Dropdown {
 
     addDropdownFunctionality = (el) => {
         el.onclick = () => {
-            el.classList.toggle("active");
-            var content = el.nextElementSibling;
-            if (el.classList.contains('active')) content.style.maxHeight = content.scrollHeight + "px"
-            else content.style.maxHeight = null
+            this.toggleCollapsible(el)
         }
+    }
+
+    toggleCollapsible = (el, forceValue) => {
+        if (forceValue == null) el.classList.toggle("active")
+        else if (forceValue) el.classList.add("active")
+        else el.classList.remove("active")
+
+        var content = el.nextElementSibling;
+        if (el.classList.contains('active')) content.style.maxHeight = content.scrollHeight + "px"
+        else content.style.maxHeight = null
     }
 }
