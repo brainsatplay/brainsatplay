@@ -330,12 +330,12 @@ export class eegmath {
 	}
 
 	//Covariance between two 1D arrays
-	static cov1d(arr1,arr2) {
+	static cov1d(arr1=[],arr2=[]) {
 		return this.cov2d([arr1,arr2]);
 	}
 
 	//3d covariance
-	static cov3d(x,y,z) {
+	static cov3d(x=[],y=[],z=[]) {
 		return [
 			[this.cov1d(x,x),this.cov1d(x,y),this.cov1d(x,z)],
 			[this.cov1d(y,x),this.cov1d(y,y),this.cov1d(y,z)],
