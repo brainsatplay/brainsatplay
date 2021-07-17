@@ -540,7 +540,7 @@ export class AppletManager {
                         }},
                     ]
 
-                    let dropdown = new Dropdown(container, headers, options)
+                    let dropdown = new Dropdown(container, headers, options, {hidden: true})
 
                     let htmlString = `
             <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">

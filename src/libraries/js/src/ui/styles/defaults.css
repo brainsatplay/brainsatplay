@@ -1337,14 +1337,13 @@ select {
     /* padding: 10px 15px; */
     font-size: 75%;
     box-sizing: border-box; 
-    cursor: pointer;
     transition: 0.5s;
     position: absolute;
     top: 0px;
     right:0px;
     z-index: 1000;
     transition: opacity 0.5s;
-    overflow: scroll;
+    /* overflow: scroll; */
     opacity: 0;
 }
 
@@ -1367,6 +1366,23 @@ select {
     cursor: pointer;
     padding: 7px;
   }
+
+  .arrow-up {
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid white;
+  }
+  
+  .arrow-down {
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid white;
+  }
+  
 
 
 /* DEFAULT UI ELEMENTS */
