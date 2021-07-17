@@ -609,6 +609,19 @@ export class eegmath {
     }
 
 	//-------------------------------------------------------------
+
+	//fast 2x2 eigenvalue calculator: https://www.youtube.com/watch?v=e50Bj7jn9IQ
+	static eigens2x2(mat=[[1,2],[3,4]]) {
+		let det = mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
+		let mean = (mat[0][0]+mat[1][1])*.5;
+
+		let sqrt = Math.sqrt(mean*mean - det);
+		let eig1 = mean + sqrt;
+		let eig2 = mean - sqrt;
+
+		return eig1, eig2;
+	}
+
 	//The following Eigenvalue/PCA Math was adapted from: https://github.com/johnmihalik/eigenvector/blob/master/pca.js
 	static column(mat, x) {
 		let col = new Array(mat.length).fill(0).map(() => new Array(1).fill(0));
