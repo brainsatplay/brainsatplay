@@ -395,7 +395,7 @@ export class AppletManager {
                     let instance
                     let headers = [{label: 'Applet Menu', id:'options-menu'}]
                     let options = [
-                        {header: 'options-menu', content: 'Learn More', onclick: (el) => {
+                        {header: 'options-menu', content: '<div class="toggle">i</div><p>Info</p>', onclick: (el) => {
                             if (infoMask.style.opacity != 0) {
                                 infoMask.style.opacity = 0
                                 infoMask.style.pointerEvents = 'none'
@@ -406,12 +406,12 @@ export class AppletManager {
                                 appletMask.style.pointerEvents = 'none';
                             }
                         }},
-                        {header: 'options-menu', content: `Edit`, id:"brainsatplay-visual-editor", onload: (el)=> {                    
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${nodeSVG}"></div><p>Edit</p>`, id:"brainsatplay-visual-editor", onload: (el)=> {                    
                             if (!(appnode.classinstance instanceof Application)) el.style.display = 'none'
                         }, onclick: (el) => {
                             console.log('toggling')
                         }},
-                        {header: 'options-menu', content: `Enter Browser`, onclick: async (el) => {
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, onclick: async (el) => {
                                 if (appletMask.style.opacity != 0) {
                                     appletMask.style.opacity = 0
                                     appletMask.style.pointerEvents = 'none'
@@ -513,7 +513,7 @@ export class AppletManager {
                                 
                         //     }, false);
                         // }},
-                        {header: 'options-menu', content: `Toggle Fullscreen`, onclick: (el) => {
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${expandSVG}"></div><p>Toggle Fullscreen</p>`, onclick: (el) => {
                             const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
                             if (!fullscreenElement) {
                                 if (appletDiv.requestFullscreen) {
@@ -529,7 +529,7 @@ export class AppletManager {
                                 }
                             }
                         }},
-                        {header: 'options-menu', content: `Show Tutorial`, onload: (el) => {
+                        {header: 'options-menu', content: `<div class="toggle">?</div><p>Show Tutorial</p>`, onload: (el) => {
                             
                             if (thisApplet.tutorialManager != null) {
                                 thisApplet.tutorialManager.clickToOpen(el)

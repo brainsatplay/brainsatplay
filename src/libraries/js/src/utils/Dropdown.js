@@ -4,7 +4,7 @@ export class Dropdown {
         this.container = document.createElement('div')
         this.parentNode.insertAdjacentElement('beforeend',this.container)
         this.settings = settings
-        
+
         headers.forEach(o => {
             this.addSection(o)
         })
@@ -13,7 +13,7 @@ export class Dropdown {
             this.addOption(o)
         })
 
-        if (settings.hidden) { 
+        if (this.settings.hidden) { 
             this.container.style.position = 'relative'
             this.container.style.transform = `translateY(-100%)`
 
