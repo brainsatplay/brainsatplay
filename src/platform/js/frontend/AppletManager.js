@@ -411,7 +411,7 @@ export class AppletManager {
                         }, onclick: (el) => {
                             console.log('toggling')
                         }},
-                        {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, onclick: async (el) => {
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, id:"brainsatplay-browser", onclick: async (el) => {
                                 if (appletMask.style.opacity != 0) {
                                     appletMask.style.opacity = 0
                                     appletMask.style.pointerEvents = 'none'
@@ -448,7 +448,7 @@ export class AppletManager {
                                                 
                                                     return function() {    
                                                         instance.deinit()
-                                                        appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
+                                                        appletDiv.querySelector(`.option-brainsatplay-browser`).click()                              
                                                         let result = defaultDeinit.apply(this, arguments);                              
                                                         return result;
                                                     };
