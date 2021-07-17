@@ -619,10 +619,34 @@ export class eegmath {
 		let eig1 = mean + sqrt;
 		let eig2 = mean - sqrt;
 
-		return eig1, eig2;
+		return [eig1, eig2];
 	}
 
-	//The following Eigenvalue/PCA Math was adapted from: https://github.com/johnmihalik/eigenvector/blob/master/pca.js
+	//http://math.colgate.edu/~wweckesser/math312Spring06/handouts/IMM_2x2linalg.pdf
+	static eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2]) {
+		let v1 = [-mat[0][1], mat[0][0]-eigens[0]];
+		if(v1[0] === 0 && v1[1] === 0) {
+			v1[0] = mat[1][1]-eigens[0];
+			v1[1] = -mat[1][0];
+		}
+		let v2 = [-mat[0][1], mat[0][0]-eigens[1]];
+		if(v2[0] === 0 && v2[1] === 0) {
+			v2[0] = mat[1][1]-eigens[1];
+			v2[1] = -mat[1][0];
+		}
+		return [v1, v2];
+	}
+
+	//Fast PCA for 2D datasets
+	static fastpca2d(arr1x,arr1y){
+		let cov1d = this.cov1d(arr1x,arr1y); //yields a 2x2 matrix
+		let eigs = this.eigens2x2(cov1d);
+		if(eigs[1] > eigs[0]) eigs.reverse();
+		let evs = this.eigenvectors2x2(cov1d,eigs);
+		return [eigs,evs];
+	}
+
+	//The following n-dimensional Eigenvalue/PCA Math was adapted from: https://github.com/johnmihalik/eigenvector/blob/master/pca.js
 	static column(mat, x) {
 		let col = new Array(mat.length).fill(0).map(() => new Array(1).fill(0));
 		for (let i = 0; i < mat.length; i ++) {
