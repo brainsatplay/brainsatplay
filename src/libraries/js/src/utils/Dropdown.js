@@ -17,8 +17,9 @@ export class Dropdown {
         })
 
         if (this.settings.hidden) { 
-            this.container.style.position = 'relative'
-            this.container.style.transform = `translateY(-100%)`
+            this.container.style.position = 'absolute';
+            this.container.style.right = '0px';
+            this.container.style.transform = `translateY(-100%)`;
 
             this.hideToggle  = document.createElement('div')
             this.arrow = document.createElement('div')
