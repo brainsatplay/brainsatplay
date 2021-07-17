@@ -637,9 +637,9 @@ export class eegmath {
 		return [v1, v2];
 	}
 
-	//Fast PCA for 2D datasets
-	static fastpca2d(arr1x,arr1y){
-		let cov1d = this.cov1d(arr1x,arr1y); //yields a 2x2 matrix
+	//Fast PCA for 2D datasets https://towardsdatascience.com/a-one-stop-shop-for-principal-component-analysis-5582fb7e0a9c
+	static fastpca2d(xarr,yarr){
+		let cov1d = this.cov1d(xarr,yarr); //yields a 2x2 matrix
 		let eigs = this.eigens2x2(cov1d);
 		if(eigs[1] > eigs[0]) eigs.reverse();
 		let evs = this.eigenvectors2x2(cov1d,eigs);
