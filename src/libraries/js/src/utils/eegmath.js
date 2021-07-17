@@ -354,6 +354,42 @@ export class eegmath {
 		});
 	}
 
+	//fast 2x2 eigenvalue calculator: https://www.youtube.com/watch?v=e50Bj7jn9IQ
+	static eigens2x2(mat=[[1,2],[3,4]]) {
+		let det = mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
+		let mean = (mat[0][0]+mat[1][1])*.5;
+
+		let sqrt = Math.sqrt(mean*mean - det);
+		let eig1 = mean + sqrt;
+		let eig2 = mean - sqrt;
+
+		return [eig1, eig2];
+	}
+
+	//http://math.colgate.edu/~wweckesser/math312Spring06/handouts/IMM_2x2linalg.pdf
+	static eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2]) {
+		let v1 = [-mat[0][1], mat[0][0]-eigens[0]];
+		if(v1[0] === 0 && v1[1] === 0) {
+			v1[0] = mat[1][1]-eigens[0];
+			v1[1] = -mat[1][0];
+		}
+		let v2 = [-mat[0][1], mat[0][0]-eigens[1]];
+		if(v2[0] === 0 && v2[1] === 0) {
+			v2[0] = mat[1][1]-eigens[1];
+			v2[1] = -mat[1][0];
+		}
+		return [v1, v2];
+	}
+
+	//Fast PCA for 2D datasets https://towardsdatascience.com/a-one-stop-shop-for-principal-component-analysis-5582fb7e0a9c
+	static fastpca2d(xarr,yarr){
+		let cov1d = this.cov1d(xarr,yarr); //yields a 2x2 matrix
+		let eigs = this.eigens2x2(cov1d);
+		if(eigs[1] > eigs[0]) eigs.reverse();
+		let evs = this.eigenvectors2x2(cov1d,eigs);
+		return [eigs,evs];
+	}
+
 	//Simple cross correlation.
 	static crosscorrelation(arr1,arr2) {
 
@@ -610,41 +646,7 @@ export class eegmath {
 
 	//-------------------------------------------------------------
 
-	//fast 2x2 eigenvalue calculator: https://www.youtube.com/watch?v=e50Bj7jn9IQ
-	static eigens2x2(mat=[[1,2],[3,4]]) {
-		let det = mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
-		let mean = (mat[0][0]+mat[1][1])*.5;
 
-		let sqrt = Math.sqrt(mean*mean - det);
-		let eig1 = mean + sqrt;
-		let eig2 = mean - sqrt;
-
-		return [eig1, eig2];
-	}
-
-	//http://math.colgate.edu/~wweckesser/math312Spring06/handouts/IMM_2x2linalg.pdf
-	static eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2]) {
-		let v1 = [-mat[0][1], mat[0][0]-eigens[0]];
-		if(v1[0] === 0 && v1[1] === 0) {
-			v1[0] = mat[1][1]-eigens[0];
-			v1[1] = -mat[1][0];
-		}
-		let v2 = [-mat[0][1], mat[0][0]-eigens[1]];
-		if(v2[0] === 0 && v2[1] === 0) {
-			v2[0] = mat[1][1]-eigens[1];
-			v2[1] = -mat[1][0];
-		}
-		return [v1, v2];
-	}
-
-	//Fast PCA for 2D datasets https://towardsdatascience.com/a-one-stop-shop-for-principal-component-analysis-5582fb7e0a9c
-	static fastpca2d(xarr,yarr){
-		let cov1d = this.cov1d(xarr,yarr); //yields a 2x2 matrix
-		let eigs = this.eigens2x2(cov1d);
-		if(eigs[1] > eigs[0]) eigs.reverse();
-		let evs = this.eigenvectors2x2(cov1d,eigs);
-		return [eigs,evs];
-	}
 
 	//The following n-dimensional Eigenvalue/PCA Math was adapted from: https://github.com/johnmihalik/eigenvector/blob/master/pca.js
 	static column(mat, x) {
