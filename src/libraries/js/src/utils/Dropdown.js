@@ -24,8 +24,13 @@ export class Dropdown {
                 bottom: 0;
                 right: 0;
                 transform: translateY(100%);
-                padding: 20px 20px 20px 50px;
+                padding: 6px 10px;
                 text-align: right;
+                border-bottom: 1px solid white;
+                border-left: 1px solid white;
+                border-right: 1px solid white;
+                border-radius: 4px;
+                cursor:pointer;
             `
             this.hideToggle.insertAdjacentElement('afterbegin', arrow)
             this.container.insertAdjacentElement('afterbegin', this.hideToggle)
