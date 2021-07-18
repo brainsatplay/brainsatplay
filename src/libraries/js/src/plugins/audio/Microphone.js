@@ -25,7 +25,7 @@ export class Microphone{
                         window.audio.analyserNode.getByteFrequencyData(array);
                         audioDat = this._reduceArrByFactor(Array.from(array),4);
                     } else {
-                        audioDat = new Array(512).fill(0);
+                        audioDat = new Array(256).fill(0);
                     }
                     return [{data: audioDat, meta: {}}]
                 }

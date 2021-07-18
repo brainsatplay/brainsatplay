@@ -248,15 +248,16 @@ export class GraphManager{
 
             let forceRun = false
             let forceUpdate = false
-            let stringify = true
+            // let stringify = true
             input.forEach(u => {
                 if (u.forceRun) forceRun = true
                 if (u.forceUpdate) forceUpdate = true
-                if (typeof u.data === 'object') stringify = false // Auto-set stringify blocking
+                // if (typeof u.data === 'object') stringify = false // Auto-set stringify blocking
             })
 
-            if (stringify) inputCopy = this.deeperCopy(input)
-            else inputCopy = input
+            // if (stringify) 
+            inputCopy = this.deeperCopy(input)
+            // else inputCopy = input
             
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries

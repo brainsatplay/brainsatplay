@@ -21,7 +21,7 @@ export class DataManager{
 
     init = () => {
         if (this.ports.latest.active){
-            this.session.graph.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
+            this.session.graph.runSafe(this,'latest',[{data: true}])
         }
     }
 
@@ -50,8 +50,7 @@ export class DataManager{
     csv = (userData) => {
         let trigger = userData[0].data
         if (trigger) {
-            // this.session.dataManager.writeToCSV()
-            this.session.dataManager.saveEEGdata()
+            this.session.dataManager.save()
         }
     }
 

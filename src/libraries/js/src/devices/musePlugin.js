@@ -56,7 +56,7 @@ export class musePlugin {
         }
 
         if(pipeToAtlas === true) { //New Atlas
-			let config = 'muse';
+			let config = this.mode;
             this.atlas = new DataAtlas(
 				location+":"+this.mode,
 				{eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},

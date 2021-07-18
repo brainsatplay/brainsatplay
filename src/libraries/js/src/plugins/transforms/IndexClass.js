@@ -10,21 +10,22 @@ export class Index{
         this.ports = {
             default: {
                 input: {type: Array},
-                output: {type: 'number'},
+                output: {type: undefined},
                 onUpdate: (userData) => {
                     let u = userData[0]
                     let idx;
                     if (u.data){
+                        if (this.params.method == 'first') idx = 0
                         if (this.params.method == 'last') idx = u.data.length - 1
                         return [{data: u.data[idx]}]
                     }
                 }
             },
             method: {
-                default: 'last',
+                default: 'first',
                 input: {type: 'string'},
                 output: {type: null},
-                options: ['last'],
+                options: ['first','last'],
                 onUpdate: (userData) => {
                     let u = userData[0]
                     if (this.ports.method.options.includes(u.data)) this.params.method = u.data

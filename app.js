@@ -19,7 +19,7 @@ const brainstorm = require('./src/libraries/js/src/brainstorm/Brainstorm.js')
 let appletDict = {}
 let appletDir = path.join(__dirname,'src','applets')
 let categories = fs.readdirSync(appletDir)
-categories = categories.filter(c => (!c.match(/Templates/) && (fs.existsSync(path.join(appletDir,c)) && fs.lstatSync(path.join(appletDir,c)).isDirectory())))
+categories = categories.filter(c => ((fs.existsSync(path.join(appletDir,c)) && fs.lstatSync(path.join(appletDir,c)).isDirectory())))
 
 categories.forEach((category,indOut) => {
   let categoryDir = path.join(appletDir,category)
