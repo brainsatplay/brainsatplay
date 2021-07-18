@@ -28,7 +28,6 @@ const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 export class DataManager {
     constructor(session=new Session(), onload = this.onload) {
         this.session = session;
-        this.atlas = this.session.atlas;
         this.state = new StateManager({
             autosaving: true,
             saveChunkSize: 2000,
@@ -55,21 +54,27 @@ export class DataManager {
     }
 
     readyHEGDataForWriting = (from=0,to='end') => {
-        let data = this.atlas.readyHEGDataForWriting(from,to);
+        let data = this.session.atlas.readyHEGDataForWriting(from,to);
         return data;
     }
 
     readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
-        let data = this.atlas.readyEEGDataForWriting(from,to,getFFTs);
+        let data = this.session.atlas.readyEEGDataForWriting(from,to,getFFTs);
+        // console.log(data)
         return data;
     }
 
     saveHEGdata = (from=0,to='end') => {
-        CSV.saveCSV(this.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
+        CSV.saveCSV(this.session.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
     }
 
     saveEEGdata = (from=0,to='end',getFFTs=true) => {
-        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
+        CSV.saveCSV(this.sesion.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
+    }
+
+    save = (from=0,to='end',getFFTs=true) => { 
+        // console.log('save')
+        CSV.saveCSV(this.session.atlas.readyDataForWriting(from,to,getFFTs),this.toISOLocal(new Date()));
     }
 
     mean(arr){

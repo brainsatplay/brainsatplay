@@ -387,6 +387,8 @@ export class eegmath {
 		let eigs = this.eigens2x2(cov1d);
 		if(eigs[1] > eigs[0]) eigs.reverse();
 		let evs = this.eigenvectors2x2(cov1d,eigs);
+
+		console.log(eigs,evs)
 		return [eigs,evs];
 	}
 

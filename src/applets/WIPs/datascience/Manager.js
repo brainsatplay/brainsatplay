@@ -42,10 +42,11 @@ class Manager{
     }
 
     init = () => {
-        let data = [[0,0,0], [1,1,1], [2,2,2]]
-        console.log(data)
+        let data1 = Array.from({length: 100}, e => Math.random())
+        let data2 = Array.from({length: 100}, e => Math.random())
+        let components = eegmath.fastpca2d(data1,data2)
         // let components = eegmath.pca(data)
-        // console.log(components)
+        console.log(components)
     }
 
     deinit = () => {}

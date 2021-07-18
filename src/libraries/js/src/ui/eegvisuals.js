@@ -598,24 +598,24 @@ export class BrainMap2D {
 		var sizeMul = 1/normalize;
 		channelTags.forEach((row,i) => {
 			let atlasCoord = eegMap.find((o, j) => {
-			  if(o.tag === row.tag){
+			  if(o.means && o.tag === row.tag){
 				    newpoints.push({x:o.position.x*this.scale+halfwidth, y:halfheight-o.position.y*this.scale, size:10, intensity:0.7});
 				if(viewing === "scp"){
-					newpoints[i].size = Math.max(...o.data.scp[o.data.scp.length-1])}//o.means.scp[o.means.scp.length - 1];}
+					newpoints[i].size = o.means.scp[o.means.scp.length - 1];}
 				else if(viewing === "delta"){
-					newpoints[i].size = Math.max(...o.data.delta[o.data.delta.length-1])}//o.means.delta[o.means.delta.length - 1];}
+					newpoints[i].size = o.means.delta[o.means.delta.length - 1];}
 				else if(viewing === "theta"){
-					newpoints[i].size = Math.max(...o.data.theta[o.data.theta.length-1])}//o.means.theta[o.means.theta.length - 1];}
+					newpoints[i].size = o.means.theta[o.means.theta.length - 1];}
 				else if(viewing === "alpha1"){
-					newpoints[i].size = Math.max(...o.data.alpha1[o.data.alpha1.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
+					newpoints[i].size = o.means.alpha1[o.means.alpha1.length - 1];}
 				else if(viewing === "alpha2"){
-					newpoints[i].size = Math.max(...o.data.alpha2[o.data.alpha2.length-1])}//o.means.alpha[o.means.alpha.length - 1];}
+					newpoints[i].size = o.means.alpha2[o.means.alpha2.length - 1];}
 				else if(viewing === "beta"){
-					newpoints[i].size = Math.max(...o.data.beta[o.data.beta.length-1])}//o.means.beta[o.means.beta.length - 1];}
+					newpoints[i].size = o.means.beta[o.means.beta.length - 1];}
 				else if(viewing === "lowgamma"){
-					newpoints[i].size = Math.max(...o.data.lowgamma[o.data.lowgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
+					newpoints[i].size = o.means.lowgamma[o.means.lowgamma.length - 1];}
 				else if(viewing === "highgamma"){
-					newpoints[i].size = Math.max(...o.data.highgamma[o.data.highgamma.length-1])}//o.means.gamma[o.means.gamma.length - 1];}
+					newpoints[i].size = o.means.highgamma[o.means.highgamma.length - 1];}
 
 					newpoints[i].size *= sizeMul; //Need a better method
 
@@ -699,28 +699,30 @@ export class BrainMap2D {
 			strokeStyle = "rgba(255,255,0,";}
 			//console.log(strokeStyle);
 		coherenceMap.forEach((row,i) => {
+			if (row.means){
 			if(viewing === "scp") {	 //TODO:: figure out a good transparency (or could do line thickness) upper bound based on actual results
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.scp[row.data.scp.length-1])*alphaScalar + ")";}//(row.means.scp[row.means.scp.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.scp[row.means.scp.length-1]*alphaScalar) + ")";}
 			else if(viewing === "delta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.delta[row.data.delta.length-1])*alphaScalar + ")";}//(row.means.delta[row.means.delta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.delta[row.means.delta.length-1]*alphaScalar) + ")";}
 			else if(viewing === "theta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.theta[row.data.theta.length-1])*alphaScalar + ")";}//(row.means.theta[row.means.theta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.theta[row.means.theta.length-1]*alphaScalar) + ")";}
 			else if(viewing === "alpha1") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.alpha1[row.data.alpha1.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.alpha1[row.means.alpha1.length-1]*alphaScalar) + ")";}
 			else if(viewing === "alpha2") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.alpha2[row.data.alpha2.length-1])*alphaScalar + ")";}//(row.means.alpha[row.means.alpha.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.alpha2[row.means.alpha2.length-1]*alphaScalar) + ")";}
 			else if(viewing === "beta") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.beta[row.data.beta.length-1])*alphaScalar + ")";}//(row.means.beta[row.means.beta.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.beta[row.means.beta.length-1]*alphaScalar) + ")";}
 			else if(viewing === "lowgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.lowgamma[row.data.lowgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.lowgamma[row.means.lowgamma.length-1]*alphaScalar) + ")";}
 			else if(viewing === "highgamma") {
-				ctx.strokeStyle = strokeStyle + Math.max(...row.data.highgamma[row.data.highgamma.length-1])*alphaScalar + ")";}//(row.means.gamma[row.means.gamma.length-1]*alphaMul) + ")";}
+				ctx.strokeStyle = strokeStyle + (row.means.highgamma[row.means.highgamma.length-1]*alphaScalar) + ")";}
 			//console.log(ctx.strokeStyle)
 			//console.log(ctx.strokeStyle);
 			ctx.beginPath();
 			ctx.moveTo(halfwidth+row.x0*this.scale,halfheight-row.y0*this.scale);
 			ctx.lineTo(halfwidth+row.x1*this.scale,halfheight-row.y1*this.scale);
 			ctx.stroke();
+		}
 		});
 
 		//Now redraw points on top of connectome

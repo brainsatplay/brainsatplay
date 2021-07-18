@@ -139,9 +139,10 @@ export class DataAtlas {
 			this.settings.eeg = true;
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
         }
-		else if (config === 'muse') {
+		else if (config.includes('muse')) {
 			this.settings.eeg = true;
-			this.data.eeg = this.genMuseAtlas();
+			let aux = config.includes('_Aux')
+			this.data.eeg = this.genMuseAtlas(aux);
 		}
 		else if (config === 'big') {
 			this.settings.eeg = true;
@@ -222,7 +223,7 @@ export class DataAtlas {
 		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
 	}
 
-	genMuseAtlas() { //Muse coordinates (estimated)
+	genMuseAtlas(aux=false) { //Muse coordinates (estimated)
 
 		let eegmap = [];
 
@@ -237,7 +238,8 @@ export class DataAtlas {
 			return midpoint;
 		}
 
-		let tags = ['AF7','AF8','TP9','TP10','AUX'];
+		let tags = ['AF7','AF8','TP9','TP10'];
+		if (aux) tags.push('AUX')
 		let coords = [
 			mid(c[0],c[2]), //estimated
 			mid(c[1],c[3]), //estimated
@@ -1243,6 +1245,14 @@ export class DataAtlas {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
+	readyDataForWriting = (from=0,to='end',getFFTs=true) => {
+		console.log(this.data.other)
+		let eeg = this.readyEEGDataForWriting(from,to,getFFTs)
+		let heg = this.readyHEGDataForWriting(from,to)
+		console.log(eeg,heg)
+		return eeg
+	}
+
 	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
 		 
 		let header = ["TimeStamps","UnixTime","Notes"];
@@ -1331,8 +1341,6 @@ export class DataAtlas {
 
 				data.push(line.join(","));
 			}
-		
-			//console.log(data)
 			return [header.join(",")+"\n",data.join("\n")];	
 		}
 		else return undefined;
@@ -1345,7 +1353,10 @@ export class DataAtlas {
 		let noteidx = 0;
 		let beatidx = 0;
 		let breathidx = 0;
-		if(to === 'end') to = row.times.length;
+		if(to === 'end') {
+			if (row) to = row.times.length;
+			else to = 0
+		}
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			let amb = row.ambient[i]; if(!amb) amb = 0;
