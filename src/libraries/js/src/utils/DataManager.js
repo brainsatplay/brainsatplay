@@ -65,16 +65,21 @@ export class DataManager {
     }
 
     saveHEGdata = (from=0,to='end') => {
-        CSV.saveCSV(this.session.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
+        let data = this.session.atlas.readyHEGDataForWriting(from,to)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date())+"_heg");
     }
 
     saveEEGdata = (from=0,to='end',getFFTs=true) => {
-        CSV.saveCSV(this.sesion.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
+        let data = this.session.atlas.readyEEGDataForWriting(from,to,getFFTs)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date())+"_eeg");
     }
 
     save = (from=0,to='end',getFFTs=true) => { 
-        // console.log('save')
-        CSV.saveCSV(this.session.atlas.readyDataForWriting(from,to,getFFTs),this.toISOLocal(new Date()));
+        let data = this.session.atlas.readyDataForWriting(from,to,getFFTs)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date()));
     }
 
     mean(arr){

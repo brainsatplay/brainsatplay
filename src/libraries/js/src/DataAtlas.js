@@ -1246,11 +1246,30 @@ export class DataAtlas {
 	}
 
 	readyDataForWriting = (from=0,to='end',getFFTs=true) => {
-		console.log(this.data.other)
 		let eeg = this.readyEEGDataForWriting(from,to,getFFTs)
 		let heg = this.readyHEGDataForWriting(from,to)
-		console.log(eeg,heg)
-		return eeg
+		let datasets = [eeg,heg]
+		let toSend
+		datasets.forEach(arr => {
+			if (arr[1] != '') toSend = arr
+		})
+
+		// If No Data, Return Notes Only
+		if (toSend) return toSend
+		else return this.readyNotesForWriting()
+	}
+
+	readyNotesForWriting = () => {
+		let header = ["TimeStamps","UnixTime","Notes"];
+		let data = []
+		this.data.other.notes.forEach((n,i) => {
+			let line = []
+			if (n.time != null){
+				line.push(this.toISOLocal(new Date(n.time)),n.time, n.note)
+				data.push(line.join(","))
+			}
+		})
+		return [header.join(",")+"\n",data.join("\n")];
 	}
 
 	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
