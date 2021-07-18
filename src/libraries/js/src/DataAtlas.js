@@ -434,27 +434,30 @@ export class DataAtlas {
 	//Makes a note to be saved. Will automatically get the latest timestamp for attached devices if there is one, or just Date.now();
 	makeNote(text='event',timestamp=undefined) {
 		if(Array.isArray('text')) text = [...text.join('|')];
+		let prevNoteIdx = this.data.other.notes.length-1
 		if(timestamp === undefined) {
-			if(this.settings.eeg) {
-				let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
-				timestamp = row.times[row.times.length-1]
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
-				else this.data.other.notes.push({time:timestamp, note:text});
-			}
-			if(this.settings.heg) {
-				timestamp = this.data.heg[0].times[this.data.heg[0].times.length-1];
-				this.data.other.notes.push({time:timestamp, note:text});
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
-				else this.data.other.notes.push({time:timestamp, note:text});
+			if (this.settings.deviceConnected){
+				if(this.settings.eeg) {
+					let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
+					timestamp = row.times[row.times.length-1]
+					if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
+					else this.data.other.notes.push({time:timestamp, note:text});
+				}
+				else if(this.settings.heg) {
+					timestamp = this.data.heg[0].times[prevNoteIdx];
+					this.data.other.notes.push({time:timestamp, note:text});
+					if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
+					else this.data.other.notes.push({time:timestamp, note:text});
+				}
 			}
 			else {
 				let timestamp = Date.now();
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
 				else this.data.other.notes.push({time:Date.now(), note:text});
 			}
 		}
 		else {
-			if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+			if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
 			else this.data.other.notes.push({time:timestamp, note:text});
 		}
 	}
@@ -1410,7 +1413,7 @@ export class DataAtlas {
 	}
 
 	regenAtlasses(freqStart,freqEnd,sps=512) {
-		this.data.eeg = this.makeAtlas10_20(); //reset atlas
+		this.data.eeg = this.noteAtlas10_20(); //reset atlas
 
 		let bandPassWindow = this.bandPassWindow(freqStart,freqEnd,sps);
 
