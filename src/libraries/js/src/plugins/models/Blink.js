@@ -137,7 +137,7 @@ export class Blink{
                 {  
                     forceRun: true,
                     forceUpdate: true,
-                    data: (ctx) => {
+                    data: {active: true, function: (ctx) => {
                         if (this.props.looping){
                             if (this.params.debug){
                                 this._drawSignal(ctx)
@@ -146,7 +146,7 @@ export class Blink{
                                 this.props.container.style.pointerEvents = 'none'
                             }
                         }
-                    }
+                    }}
                 }
             ])
         }
