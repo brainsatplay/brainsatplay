@@ -1,6 +1,6 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
-import {UI} from './UI.js'
+import {UI} from './UI.js.js'
 export const settings = {
     name: "Neurofeedback Template",
     devices: ["EEG"],

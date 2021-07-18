@@ -760,7 +760,7 @@ export class eegmath {
 		t[0] = this.column(mat,0);
 		let epsilon = 1.0;
 		let iter = 0;
-		while(espilon > tolerance) {
+		while(epsilon > tolerance) {
 			iter++;
 			p[0] = this.matmul(mat_t,t[0]);
 			let tp = this.matmul(this.transpose(t[0]),t[0]);
