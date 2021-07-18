@@ -234,6 +234,18 @@ export class eegmath {
 		return m;
 	}
 
+	//2d matrix addition
+	static matadd(a,b) {
+		let m = [];
+		for (let i = 0; i < a.length; i++) {
+			m[i] = [];
+			for (var j = 0; j < a[0].length; j++) {
+				m[i][j] = a[i][j] + b[i][j];
+			}
+		}
+		return m;
+	}
+
 	//2d matrix subtraction
 	static matsub(a,b) {
 		let m = [];
@@ -760,6 +772,7 @@ export class eegmath {
 		t[0] = this.column(mat,0);
 		let epsilon = 1.0;
 		let iter = 0;
+
 		while(espilon > tolerance) {
 			iter++;
 			p[0] = this.matmul(mat_t,t[0]);
@@ -770,7 +783,7 @@ export class eegmath {
 			let p_length = Math.sqrt(this.matmul(this.transpose(p[0]), p[0]));
 			p[0] = this.matscale(p[0], 1.0 / p_length);
 	
-			let t_new = this.matmul(X, p[0]);
+			let t_new = this.matmul(mat, p[0]);
 			let pp = this.matmul(this.transpose(p[0]), p[0]);
 			t_new = this.matscale(t_new, 1.0 / pp);
 	
