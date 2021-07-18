@@ -124,7 +124,7 @@ export class Blink{
 
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 1;'>
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 2;'>
             </div>`
         }
 
@@ -139,6 +139,8 @@ export class Blink{
                     forceUpdate: true,
                     data: {active: true, function: (ctx) => {
                         if (this.props.looping){
+
+                            console.log(this.params.debug)
                             if (this.params.debug){
                                 this._drawSignal(ctx)
                             } else {
