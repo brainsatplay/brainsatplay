@@ -58,11 +58,11 @@ export const settings = {
         // Log App Events
         {
           source: 'spacebar', 
-          target: 'data'
+          target: 'data:log'
         },
         {
           source: 'Test UI:performance', 
-          target: 'data'
+          target: 'data:log'
         },{
           source: 'scheduler:state', 
           target: 'data:log'

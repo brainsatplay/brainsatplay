@@ -77,6 +77,7 @@ app.init()`)
         app.graph.nodes.forEach(n => {
             combined+=n.class.prototype.constructor.toString();
         })
+
         combined+=o.combined;
         this.folders.app.file(o.filename, o.data)
         this.helper.file("compact.html",`

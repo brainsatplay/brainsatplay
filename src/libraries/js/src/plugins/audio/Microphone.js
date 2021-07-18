@@ -12,7 +12,7 @@ export class Microphone{
         this.params = params
 
         this.ports = {
-            default: {
+            fft: {
                 default: [],
                 input: {type: null},
                 output: {type: Array},

@@ -28,6 +28,7 @@ export class GraphManager{
     }
 
     instantiateNode(nodeInfo,session=this.session){
+
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
         let toAnalyze = new Set()
@@ -38,8 +39,8 @@ export class GraphManager{
                 node.params[param] = node.paramOptions[param].default
             }
         }
-
         for (let port in node.ports){
+            if (typeof node.params[port] === 'object') delete node.params[port] // Cannot params manually set with objects
             if (node.params[port] == null) node.params[port] = node.ports[port].default
         }
 
@@ -51,7 +52,7 @@ export class GraphManager{
 
         if (node.ports != null){
             for (let port in node.ports){
-                controlsToBind.push(...this.instantiateNodePort(node, port))
+                controlsToBind.push(...this.instantiateNodePort(node, port, node.params[port]))
             }
         } else {
             node.ports = {
@@ -441,7 +442,7 @@ export class GraphManager{
         this.registry.local[node.label].registry[port].callbacks = []
     }
 
-    instantiateNodePort = (node, port) => {
+    instantiateNodePort = (node, port, params) => {
 
         // Grab Controls
         let controls = []
@@ -450,8 +451,11 @@ export class GraphManager{
         node.states[port] = [{}]
 
         // Force Default Outputs to Next Node
-        if (node.ports[port].default !== undefined) {
-            node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
+        let defaultVal = params ?? node.ports[port].default
+        if (defaultVal !== undefined) {
+            let user = {data: defaultVal}
+            if (node.ports[port].meta != null) user.meta = node.ports[port].meta
+            node.states[port] = [user]
             node.states[port][0].forceRun = true
             node.states[port][0].forceUpdate = true
         }

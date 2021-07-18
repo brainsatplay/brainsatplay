@@ -9,7 +9,6 @@ export class DataManager{
         this.paramOptions = {}
 
         this.ports = {
-            default:{},
             log:{},
             get:{},
             csv:{},
@@ -26,10 +25,6 @@ export class DataManager{
     }
 
     deinit = () => {}
-
-    default = (userData) => {
-        this.session.atlas.graph.runSafe(this,'log', userData)
-    }
 
     log = (userData) => {
         let u = userData[0]
