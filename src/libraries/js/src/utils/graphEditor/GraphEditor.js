@@ -11,7 +11,6 @@ import { getApplet, getAppletSettings } from "../../../../../platform/js/general
 
 // Node Interaction
 import * as dragUtils from './dragUtils'
-import { isNullishCoalesce } from 'typescript'
 
 export class GraphEditor{
     constructor(manager, applet, parentId, onsuccess) {
@@ -312,23 +311,14 @@ export class GraphEditor{
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
 
-        let galleries = {
-            personal: {
-                header: '',
-                projects: []
-            }, 
-            templates: {
-                header: 'Examples',
-                projects: []
-            }
-        }
+        let galleries = {}
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
         projectSet = Array.from(projectSet).map(async str => {
             let files = await this.app.session.projects.getFilesFromDB(str)
             let settings =  await this.app.session.projects.load(files)
-            return {destination: 'personal', settings}
+            return {destination: 'My Projects', settings}
         })
 
         // Get Template Files
@@ -336,27 +326,34 @@ export class GraphEditor{
         for (let key in appletManifest){
             let o = appletManifest[key]
             let settings = await getAppletSettings(o.folderUrl)
-            if (settings.graph) templateSet.push({destination: 'templates', settings})
-        }
+            if (settings.graph) {
+                if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
+                else templateSet.push({destination: 'Examples', settings})
+            }
+            }
 
         Promise.allSettled([...projectSet,...templateSet]).then(set => {
 
             let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
             set.forEach(o => {
                 if (o.status === 'fulfilled' && o.value.settings){
-                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
+                    if (!restrictedTemplates.includes(o.value.settings.name)) {
+                        if (galleries[o.value.destination] == null) galleries[o.value.destination] = {header: o.value.destination, projects: []}
+                        
+                        galleries[o.value.destination].projects.push(o.value.settings)
+                    }
                 }
             })
 
             // Add Load from File Button
-            galleries.personal.projects.unshift({name: 'Load from File'})
+            galleries['My Projects'].projects.unshift({name: 'Load from File'})
 
             Object.keys(galleries).forEach(k => {
 
                 let o = galleries[k]
 
                 // Create Top Header
-                if (k !== 'personal'){
+                if (k !== 'My Projects'){
                     let div = document.createElement('div')
                     div.classList.add(`brainsatplay-option-type`) 
                     div.classList.add(`option-type-collapsible`)
@@ -383,7 +380,7 @@ export class GraphEditor{
 
                         // if (this.props.projects.style.pointerEvents != 'none'){
                         // Rename Template Projects
-                        if (k === 'templates'){
+                        if (k === 'Templates'){
                             settings = Object.assign({}, settings)
                             if (settings.name === 'Blank Project') settings.name = 'My Project'
                         }
@@ -395,14 +392,14 @@ export class GraphEditor{
                         } else this._createApp(settings)
                     // }
                     }
-                    if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
+                    if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
                         // div.style.flex = '43%'
                         projects.insertAdjacentElement('afterbegin',item)
                     } else {projects.insertAdjacentElement('beforeend',item)}
 
                 })
 
-                if (k === 'personal') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+                if (k === 'My Projects') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
             })
         })
     }
@@ -1064,8 +1061,8 @@ export class GraphEditor{
         selector.style.pointerEvents = 'none'
         selector.classList.add(`brainsatplay-node-selector`)
 
-        let selectorMenu = document.createElement('div')
-        selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
+        this.selectorMenu = document.createElement('div')
+        this.selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
         this.selectorToggle = document.getElementById(`${this.props.id}add`)
 
@@ -1086,13 +1083,13 @@ export class GraphEditor{
                 document.addEventListener('click', toggleVisibleSelector)
             }
         })
-        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Search"></input><div class="node-options"></div>`)
-        selector.insertAdjacentElement('beforeend',selectorMenu)
+        this.selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Search"></input><div class="node-options"></div>`)
+        selector.insertAdjacentElement('beforeend',this.selectorMenu)
         container.insertAdjacentElement('afterbegin',selector)
 
         // Populate Available Nodes
         let nodeDiv = document.createElement('div')
-        this.search = selectorMenu.getElementsByTagName(`input`)[0]
+        this.search = this.selectorMenu.getElementsByTagName(`input`)[0]
 
 
         // Allow Search of Plugins
@@ -1140,28 +1137,49 @@ export class GraphEditor{
             }
         })
 
-        selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
+        this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
         this.responsive()
     }
 
     matchOptions = () => {
-        let regex = new RegExp(this.search.value, 'i')
+        let regex = new RegExp(`^${this.search.value}`, 'i')
+
+        let matchedHeaderTypes = []
+
+        // Show Matching Headers
+        let headers = this.selectorMenu.querySelectorAll('.brainsatplay-option-type')
+        for (let header of headers){
+            for (let cls of header.classList){
+                if (cls.includes('nodetype-')){
+                    let type = cls.replace('nodetype-','')
+                    let labelMatch = regex.test(type)
+                    if (labelMatch) matchedHeaderTypes.push(type)
+                }
+            }
+        }
+
         this.searchOptions.forEach(o => {
 
             let change = 0
             let show = false
             let parent = o.element.parentNode
+            let nodetype = Array.from(o.element.parentNode.classList).find(cls => cls.includes('nodetype-'))
+            nodetype = nodetype.replace('nodetype-','')
 
             if (this.search.value !== ''){
-                // Check Label
-                let labelMatch = regex.test(o.label)
-                if (labelMatch || o.label == 'Add New Plugin') show = true
-                
-                // Check Types
-                o.types.forEach(type => {
-                    let typeMatch = regex.test(type)
-                    if (typeMatch) show = true
-                })
+
+                if (matchedHeaderTypes.includes(nodetype)) show = true // Show header if matched
+                else {
+                    // Check Label
+                    let labelMatch = regex.test(o.label)
+                    if (labelMatch || o.label == 'Add New Plugin') show = true
+                    
+                    // Check Types
+                    o.types.forEach(type => {
+                        let typeMatch = regex.test(type)
+                        if (typeMatch) show = true
+                    })
+                }
 
                 if (show && o.element.style.display === 'none') {
                     o.element.style.display = ''
@@ -1203,8 +1221,8 @@ export class GraphEditor{
         let label = classInfo.label
         if (('class' in classInfo)) classInfo = classInfo.class
 
-        let options = document.querySelector('.brainsatplay-node-selector-menu').querySelector(`.node-options`)
-        let contentOfType = options.querySelector(`.nodetype-${type}`)
+        let options = this.selectorMenu.querySelector(`.node-options`)
+        let contentOfType = options.querySelector(`.option-type-content.nodetype-${type}`)
         if (contentOfType == null) {
 
             contentOfType = document.createElement('div')
@@ -1216,6 +1234,7 @@ export class GraphEditor{
                 selectedType.innerHTML = type[0].toUpperCase() + type.slice(1)
                 selectedType.classList.add(`brainsatplay-option-type`)
                 selectedType.classList.add(`option-type-collapsible`)
+                selectedType.classList.add(`nodetype-${type}`)
 
                 let count = document.createElement('div')
                 count.classList.add('count')

@@ -11,7 +11,7 @@ export class Canvas{
             canvas: null,
             container: null,
             context: null,
-            drawObjects: {},
+            drawObjects: [],
             looping: false
         }
 
@@ -29,7 +29,7 @@ export class Canvas{
                 output: {type: null},
                 onUpdate: (userData) => {
                     userData.forEach(u => {
-                        if (u.data.function instanceof Function) this.props.drawObjects[u.username + u.meta.label] = u.data
+                        if (u.data.function instanceof Function) this.props.drawObjects.push(u.data)
                     })
                 }
             },
@@ -61,9 +61,10 @@ export class Canvas{
                 this._clearCanvas()
 
                 // Manage Draw Objects
-                for (let key in this.props.drawObjects) {
-                    if (this.props.drawObjects[key].active) this.props.drawObjects[key].function(this.props.context)
-                    else delete this.props.drawObjects[key]
+                for (let i = this.props.drawObjects.length - 1; i >= 0; i--){
+                    let o = this.props.drawObjects[i]
+                    if (o.active) o.function(this.props.context)
+                    else this.props.drawObjects.splice(i,1)
                 }
                 setTimeout(animate, 1000/60)
             }
