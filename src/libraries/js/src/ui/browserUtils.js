@@ -1,6 +1,7 @@
 import placeholderImage from './assets/placeholder.png'
 
 export const createCards = (appletSettings=[], filter = (settings) => { return settings }, onclick=()=>{}) => {
+        
         let appletCards = []
         appletSettings = appletSettings.filter(filter)
 
@@ -65,5 +66,6 @@ export const createCards = (appletSettings=[], filter = (settings) => { return s
                 appletCards.push({settings: settings, element: browserCard})
             }
     })
+
     return appletCards
 }

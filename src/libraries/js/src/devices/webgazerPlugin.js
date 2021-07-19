@@ -4,9 +4,6 @@ import { DOMFragment } from '../ui/DOMFragment';
 import {DataAtlas} from '../DataAtlas'
 import {BiquadChannelFilterer} from '../utils/BiquadFilters'
 import { TorusGeometry } from 'three';
-// import webgazer from 'webgazer'
-// import './webgazer'
-// console.log(webgazer)
 
 export class webgazerPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {

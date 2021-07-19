@@ -1,14 +1,27 @@
 import JSZip from 'jszip'
 import fileSaver from 'file-saver';
-import * as brainsatplay from '../../brainsatplay'
-import * as blobUtils from './blobUtils'
+import * as brainsatplayES6 from '../../brainsatplay'
+
+// const script = document.createElement("script");
+// script.src = './_dist_/libraries/js/dist/brainsatplay.js'
+// script.async = true;
+// // script.type = 'module'
 
 let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.22";
+// script.onload = () => {
+//     console.log('script loaded')
+//     console.log('loaded', brainsatplay)
+//     if (brainsatplay) latest = brainsatplay
+// }
+// document.body.appendChild(script);
+
+import * as blobUtils from './blobUtils'
+
 
 let defaultPlugins = []
-for (let type in brainsatplay.plugins) {
-    for (let name in brainsatplay.plugins[type]) {
-        defaultPlugins.push({ name: name, id: brainsatplay.plugins[type][name].id, label: `brainsatplay.plugins.${type}.${name}` })
+for (let type in brainsatplayES6.plugins) {
+    for (let name in brainsatplayES6.plugins[type]) {
+        defaultPlugins.push({ name: name, id: brainsatplayES6.plugins[type][name].id, label: `brainsatplay.plugins.${type}.${name}` })
     }
 }
 
@@ -282,11 +295,11 @@ app.init()`)
     }
 
     async getPublishedApps() {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
+            let apps = []
             fetch(this.publishURL, {
                 method: 'GET',
             }).then(res => res.json()).then(data => {
-                let apps = []
                 data.forEach(async(url) => {
                     let files = await this.getFilesFromDataURL(url)
                     let project = await this.load(files)
@@ -295,6 +308,7 @@ app.init()`)
                 })
             }).catch(function (error) {
                 console.warn('Something went wrong.', error);
+                resolve(apps)
             });
         })
     }
@@ -384,7 +398,7 @@ app.init()`)
                         m2 = re.exec(info.settings);
                         if (m2 == null) m2 = re.exec(info.settings) // be extra sure (weird bug)
                         if (m2) {
-                            let defaultClass = brainsatplay[m2[1]]
+                            let defaultClass = brainsatplayES6[m2[1]]
                             for (let i = 2; i < m2.length; i++) {
                                 defaultClass = defaultClass[m2[i]]
                             }

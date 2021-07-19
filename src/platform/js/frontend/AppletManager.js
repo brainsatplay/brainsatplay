@@ -166,7 +166,6 @@ export class AppletManager {
         applets.style.display = 'grid'
         applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
         applets.style.width = 'calc(100vw - 75px)'
-
     }
 
     initUI = () => { }
@@ -366,14 +365,6 @@ export class AppletManager {
         let appletIdx = appnode.appletIdx - 1
 
         // Brains@Play Default Overlays
-
-        // let thisApplet = this.applets.find(o => {
-        //     if (o.appletIdx === appletIdx){
-        //         return o.classinstance
-        //     }
-        // })
-        // console.log(thisApplet)
-
         if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
         {
 
@@ -438,12 +429,11 @@ export class AppletManager {
         
                                             Promise.all(config.applets).then((resolved) => {
                                                 config.applets=resolved
-                                                console.log(browser)
                                                 let instance  = new Application(browser, appletMask, this.session, [config])
 
                                               // FIX
                                                 instance.init()
-        
+                                                
                                                 thisApplet.deinit = (() => {
                                                     var defaultDeinit = thisApplet.deinit;
                                                 
@@ -655,6 +645,7 @@ export class AppletManager {
                 }
             })
             this.appletsSpawned++;
+
             this.enforceLayout();
             this.responsive();
         }
@@ -706,6 +697,8 @@ export class AppletManager {
             this.generateAppletOptions(id, i);
             this.updateOptionVisibility()
         })
+        console.log('options shown')
+
     }
 
     generateAppletOptions = (selectId, appletIdx) => {

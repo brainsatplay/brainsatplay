@@ -323,7 +323,6 @@ export class GraphEditor{
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
-        console.log(projectSet)
         projectSet = Array.from(projectSet.local).map(async str => {
             let files = await this.app.session.projects.getFilesFromDB(str)
             let settings =  await this.app.session.projects.load(files)

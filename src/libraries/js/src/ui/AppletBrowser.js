@@ -1,8 +1,7 @@
 import { Train } from '../plugins/machinelearning/Train'
 import { UI } from '../plugins/interfaces/UI'
 import { Application } from '../Application'
-
-import {createCards} from './browserUtils.js'
+import {createCards} from './browserUtils'
 
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
@@ -86,13 +85,14 @@ export class AppletBrowser {
                 }
                 
                 this._createSection('App Library', this.props.applets, onclickInternal)
-        
+                console.log('App Library')
+
                 // Create Community Section
                let createCommunitySection = async () => {
                     let publishedApps
                     publishedApps = await this.session.projects.getPublishedApps()
-                    if (publishedApps){
-                    let onclickCommunity = (element,settings) => {
+                    if (publishedApps.length > 0){
+                        let onclickCommunity = (element,settings) => {
                             window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
                             this.app.replace(settings)
                         }
