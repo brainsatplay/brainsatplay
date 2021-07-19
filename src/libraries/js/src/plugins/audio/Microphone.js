@@ -63,7 +63,7 @@ export class Microphone{
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{data: true}])
+                this.session.graph.runSafe(this,'fft',[{data: true}])
                 setTimeout(() => {animate()}, 1000/60)
             }
         }

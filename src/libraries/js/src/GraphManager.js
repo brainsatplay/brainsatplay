@@ -99,13 +99,16 @@ export class GraphManager{
     }
 
     _resizeAllNodeFragments = (appId) => {
-        let funcs = []
-        // Gather Resize Functions
-        this.applets[appId].nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
-        
-        // Repeat to Scale Everything Appropriately
-        funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
-        funcs.forEach(f => f()) // Catch outliers
+        let app =  this.applets[appId]
+        if (app){
+            let funcs = []
+            // Gather Resize Functions
+            app.nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
+            
+            // Repeat to Scale Everything Appropriately
+            funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
+            funcs.forEach(f => f()) // Catch outliers
+        }
     }
 
     _getRandomId(){
@@ -494,6 +497,7 @@ export class GraphManager{
     }
 
     addPort = (node, port, info) => {
+        console.log(node, port)
         if (node.states && info) { // Only if node is fully instantiated            
             let noPort = node.ports[port] == null
             if (noPort || node.ports[port].onUpdate == null){

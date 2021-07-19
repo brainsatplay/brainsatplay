@@ -323,11 +323,18 @@ export class GraphEditor{
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
-        projectSet = Array.from(projectSet.local).map(async str => {
+        for (let key in projectSet) {
+            projectSet[key] = Array.from(projectSet[key])
+        }
+
+        let length = projectSet.local.length
+        let projects = Array.from({length}, e => new Promise(()=> {})) 
+        for(let i=0;i<projectSet.local.length;i++) {
+            let str = projectSet.local[i]
             let files = await this.app.session.projects.getFilesFromDB(str)
             let settings =  await this.app.session.projects.load(files)
-            return {destination: 'My Projects', settings}
-        })
+            projects[i] = {destination: 'My Projects', settings}
+        }
 
         // Get Template Files
         let templateSet = []
@@ -338,9 +345,9 @@ export class GraphEditor{
                 if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
                 else templateSet.push({destination: 'Examples', settings})
             }
-            }
+        }
 
-        Promise.allSettled([...projectSet,...templateSet]).then(set => {
+        Promise.allSettled([...projects,...templateSet]).then(set => {
 
             let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza', 'Applet Browser']
             set.forEach(o => {
@@ -356,7 +363,8 @@ export class GraphEditor{
             // Add Load from File Button
             galleries['My Projects'].unshift({name: 'Load from File'})
 
-            Object.keys(galleries).forEach(k => {
+            let galleryKeys = ['My Projects', 'Templates', 'Examples'] // Specify ordering
+            galleryKeys.forEach(k => {
 
                 let projectArr = galleries[k]
 
@@ -709,7 +717,8 @@ export class GraphEditor{
     addPort(node,port){
         let n = this.graph.nodes[node.label]
         if (n){
-            node.addPort(port)
+            // console.log(n,node)
+            n.addPort(port)
             this.addPortEvents(n)
         }
     }
@@ -765,15 +774,18 @@ export class GraphEditor{
 
 
             // Edit and Delete Buttons
-            document.getElementById(`${this.props.id}edit`).style.display = ''
             document.getElementById(`${this.props.id}delete`).style.display = ''
             document.getElementById(`${this.props.id}delete`).onclick = () => {
                 this.removeNode(node.nodeInfo)
             }
+            let edit = document.getElementById(`${this.props.id}edit`)
+            let editable = this.app.session.projects.checkIfSaveable(node.nodeInfo.class)
 
-            document.getElementById(`${this.props.id}edit`).onclick = (e) => {
+            if (editable){
+                edit.style.display = ''
+                edit.onclick = (e) => {
                 this.createFile(node.nodeInfo.class)
-            }
+            }} else edit.style.display = 'none'
         }
     }
 
@@ -854,6 +866,7 @@ export class GraphEditor{
     
                 settings.onSave = (res) => {
                    if (plugin) this.manager.runSafe(plugin, key, [{data: res}])
+                   this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 }
     
                 settings.onClose = (res) => {
@@ -992,6 +1005,7 @@ export class GraphEditor{
             if (n.class.id == target.id) node = n
         })
 
+        if (editable){
         if (this.files[filename] == null){
             this.files[filename] = {}
 
@@ -1063,6 +1077,7 @@ export class GraphEditor{
         } else {
             this.clickTab(this.files[filename].tab)
         }
+    }
     }
 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){

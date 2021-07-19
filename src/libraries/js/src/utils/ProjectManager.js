@@ -209,6 +209,7 @@ app.init()`)
             }
         })
 
+
         info.graph.nodes.forEach((n, i) => {
             delete n['instance']
             delete n['ui']
@@ -337,13 +338,29 @@ app.init()`)
         })
     }
 
+
+    // Only save if a class instance can be created from the constructor string
+    checkIfSaveable(node){
+        let editable = false
+        let constructor = node.prototype.constructor.toString()
+        try {
+            let cls = eval(`(${constructor})`)
+            let instance = new cls()
+            editable = true
+        }
+        catch (e) {console.log('variable does not exist')}
+
+        return editable
+    }
+
     async getFilesFromDB(name) {
         return new Promise(async (resolve, reject) => {
             let projects = await this.session.dataManager.readFiles(`/projects/`)
             let file = projects.filter(s => s.includes(name))
             file = file[0]
             let url = await this.session.dataManager.readFile(`/projects/${file}`)
-            resolve(await this.getFilesFromDataURL(url))
+            let blob = await this.getFilesFromDataURL(url)
+            resolve(blob)
         })
     }
 

@@ -67,12 +67,70 @@ export class UI{
         // Dynamically Add Ports
         let ports = [
             {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: `<div id='content'></div>`, onUpdate: (userData) => {
-                this.props.container.innerHTML = userData[0].data
+                
+                let newContainer = document.createElement('div')
+
+                newContainer.insertAdjacentHTML('beforeend', userData[0].data)
+                console.log(newContainer)
+
+                let newEls = Array.from(newContainer.querySelectorAll("*"))
+                let oldEls = Array.from(this.props.container.querySelectorAll("*"))
+                let toRemove = [...oldEls]
+                newEls.reverse().forEach((n1, i) => {
+                    oldEls.reverse().forEach((n2, j) => {
+                        if (n1.id === n2.id) {
+
+                                let moreHTML = n1.innerHTML.trim().length > n2.innerHTML.trim().length
+                                let equalHTML = n1.innerHTML.trim() === n2.innerHTML.trim()
+                                let lessHTML = n1.innerHTML.trim().length < n2.innerHTML.trim().length
+                                console.log('replace', n2, n1,moreHTML, lessHTML)
+
+                                let active = n2.getAttribute('data-active')
+
+                                let keepUnchanged = (active && n1.innerHTML.trim() === '')
+
+                                let keep = []
+                                if (!moreHTML){
+                                    n1.parentNode.replaceChild(n2, n1) // Move matching elements to new container)
+                                    keep.push(n2)
+                                }
+
+                                if (keepUnchanged || equalHTML){
+                                    let descendants = Array.from(n2.querySelectorAll("*"))
+                                    keep.push(...descendants)
+                                }
+
+                                if (moreHTML && n2.parentNode != this.props.container) keep.push(n2.parentNode)
+            
+                                keep.forEach(target => {
+                                    toRemove.find((el,i) => {
+                                        if (target === el) {
+                                            toRemove.splice(i,1)
+                                            return true
+                                        }
+                                    })
+                                })
+                        }
+                    })
+                })
+
+
+                toRemove.forEach(el => el.remove())
+
+                // Add children to proper container
+                for (let child of Array.from(newContainer.children).reverse()){
+                    console.log(child)
+                    this.props.container.appendChild(child)
+                }
 
                 // Create ID Ports
                 var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
-                    if (node.id){
+
+                    console.log(node, node.id && node.innerHTML)
+                    if (node.id && node.innerHTML.trim() === ''){ // Create ports for blank elements with IDs
+
+                        console.log('adding port')
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
                             output: {type: null},
@@ -86,6 +144,7 @@ export class UI{
                                     data && typeof data === "object" && data !== null && data.nodeType === 1 && typeof data.nodeName==="string"
                                 ) {
                                     node.insertAdjacentElement('beforeend', data)
+                                    node.setAttribute('data-active', true)
                                     setTimeout(() => {
                                         if (data.onload instanceof Function) data.onload()
                                         if (data.onresize instanceof Function) {
@@ -102,6 +161,7 @@ export class UI{
                         if (!this.params.style.includes(`#${node.id}`)) {
                             this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
                         }
+
                     }
                 }
             }}, 
