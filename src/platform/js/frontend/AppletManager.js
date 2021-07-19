@@ -697,8 +697,6 @@ export class AppletManager {
             this.generateAppletOptions(id, i);
             this.updateOptionVisibility()
         })
-        console.log('options shown')
-
     }
 
     generateAppletOptions = (selectId, appletIdx) => {

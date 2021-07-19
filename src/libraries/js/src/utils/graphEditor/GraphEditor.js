@@ -893,7 +893,7 @@ export class GraphEditor{
                 let button
                 if (input.accept.includes('image')){
                     button = document.createElement('img')
-                    button.src = toEdit[key]
+                    if (toEdit[key]) button.src = toEdit[key]
                     button.style = `
                         max-width: 50%;
                         cursor: pointer;
@@ -905,7 +905,7 @@ export class GraphEditor{
                             var reader = new FileReader();
                             reader.onloadend = () => {
                                 toEdit[key] = reader.result
-                                button.src = toEdit[key]
+                                if (toEdit[key]) button.src = toEdit[key]
                             }
                             reader.readAsDataURL(file);
                         }

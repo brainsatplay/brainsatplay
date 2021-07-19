@@ -85,7 +85,6 @@ export class AppletBrowser {
                 }
                 
                 this._createSection('App Library', this.props.applets, onclickInternal)
-                console.log('App Library')
 
                 // Create Community Section
                let createCommunitySection = async () => {
