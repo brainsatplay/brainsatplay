@@ -539,19 +539,19 @@ select {
     position: relative;
   }
 
-  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close {
+  .closeIcon {
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
     opacity: 0.3;
     cursor: pointer;
-    padding: 15px;
+    padding-right: 15px;
     transition: 0.3s;
     font-size: 130%;
   }
 
-  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close:hover {
+  .closeIcon:hover {
     opacity: 0.5;
     /* transition: 0.1s; */
   }
@@ -779,9 +779,9 @@ select {
     grid-template-columns: 1fr 30px;
 }
 
-.node-sidebar-section button{
+.brainsatplay-node-sidebar .addbutton{
     min-width: 0px;
-    font-size: 200%;
+    font-size: 14px;
     height: 20px;
     width: 20px;
     min-height: 0;
@@ -823,7 +823,7 @@ select {
 }
 
 
-.node-sidebar-content > div > div > input{
+.node-sidebar-content > div > div input{
     background: black;
     color: white;
     padding: 5px;

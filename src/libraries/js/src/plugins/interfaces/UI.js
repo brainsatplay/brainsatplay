@@ -71,7 +71,6 @@ export class UI{
                 let newContainer = document.createElement('div')
 
                 newContainer.insertAdjacentHTML('beforeend', userData[0].data)
-                console.log(newContainer)
 
                 let newEls = Array.from(newContainer.querySelectorAll("*"))
                 let oldEls = Array.from(this.props.container.querySelectorAll("*"))
@@ -82,9 +81,6 @@ export class UI{
 
                                 let moreHTML = n1.innerHTML.trim().length > n2.innerHTML.trim().length
                                 let equalHTML = n1.innerHTML.trim() === n2.innerHTML.trim()
-                                let lessHTML = n1.innerHTML.trim().length < n2.innerHTML.trim().length
-                                console.log('replace', n2, n1,moreHTML, lessHTML)
-
                                 let active = n2.getAttribute('data-active')
 
                                 let keepUnchanged = (active && n1.innerHTML.trim() === '')
@@ -119,7 +115,6 @@ export class UI{
 
                 // Add children to proper container
                 for (let child of Array.from(newContainer.children).reverse()){
-                    console.log(child)
                     this.props.container.appendChild(child)
                 }
 
@@ -127,10 +122,7 @@ export class UI{
                 var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
 
-                    console.log(node, node.id && node.innerHTML)
                     if (node.id && node.innerHTML.trim() === ''){ // Create ports for blank elements with IDs
-
-                        console.log('adding port')
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
                             output: {type: null},

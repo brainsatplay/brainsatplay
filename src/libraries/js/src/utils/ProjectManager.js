@@ -33,6 +33,8 @@ export class ProjectManager {
             app: this.helper.folder("app")
         }
 
+        this.serverResolved = true
+
         this.publishURL = (window.location.origin.includes('localhost')) ? 'http://localhost/apps' : 'https://brainsatplay.com/apps'
 
         this.createDefaultHTML = (script) => {
@@ -298,19 +300,22 @@ app.init()`)
     async getPublishedApps() {
         return new Promise((resolve, reject) => {
             let apps = []
-            fetch(this.publishURL, {
-                method: 'GET',
-            }).then(res => res.json()).then(data => {
-                data.forEach(async(url) => {
-                    let files = await this.getFilesFromDataURL(url)
-                    let project = await this.load(files)
-                    apps.push(project)
-                    if (apps.length === data.length) resolve(apps)
-                })
-            }).catch(function (error) {
-                console.warn('Something went wrong.', error);
-                resolve(apps)
-            });
+            if (this.serverResolved){
+                fetch(this.publishURL, {
+                    method: 'GET',
+                }).then(res => res.json()).then(data => {
+                    data.forEach(async(url) => {
+                        let files = await this.getFilesFromDataURL(url)
+                        let project = await this.load(files)
+                        apps.push(project)
+                        if (apps.length === data.length) resolve(apps)
+                    })
+                }).catch((error) => {
+                    console.warn('Server down.');
+                    this.serverResolved = false
+                    resolve(apps)
+                });
+            } else resolve(apps)
         })
     }
 

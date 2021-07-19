@@ -85,7 +85,7 @@ export class GraphEditor{
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>Node Editor</h3>
-                                <button id="${this.props.id}add" class="brainsatplay-default-button">+</button>
+                                <button id="${this.props.id}add" class="brainsatplay-default-button addbutton">+</button>
                             </div>
                             <div id="${this.props.id}params" class='node-sidebar-content'>
                             <p></p>
@@ -140,7 +140,8 @@ export class GraphEditor{
                         } else {
                             tries = 11
                         }
-                    } else console.warn('toggle not available')
+                    } 
+                    // else console.warn('toggle not available')
                 }
 
                 checkToggle()
@@ -469,6 +470,19 @@ export class GraphEditor{
         window.addEventListener('keydown', this.files[filename].saveEvent)
     }
 
+    addCloseIcon(parent, callback){
+        let closeIcon = document.createElement('div')
+        closeIcon.innerHTML = 'x'
+        closeIcon.classList.add('closeIcon')
+
+        closeIcon.onclick = () => {
+            callback()
+        }
+
+        if (parent.style.position != 'absolute') parent.style.position = 'relative'
+        parent.insertAdjacentElement('beforeend', closeIcon)
+    }
+
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
         let tab = document.querySelector(`[data-target="${id}"]`);
         if (tab == null){
@@ -478,16 +492,12 @@ export class GraphEditor{
             tab.innerHTML = label
 
             if (label != 'Graph Editor'){
-                let closeIcon = document.createElement('div')
-                closeIcon.innerHTML = 'x'
-                closeIcon.classList.add('close')
-
-                closeIcon.onclick = () => {
+                let onClose = () => {
                     tab.style.display = 'none'
                     let editorTab = document.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
                     editorTab.click()
                 }
-                tab.insertAdjacentElement('beforeend', closeIcon)
+                this.addCloseIcon(tab,onClose)
             }
 
             tab.onclick = () => {
@@ -577,8 +587,13 @@ export class GraphEditor{
                     case 'image':
                         toParse[key].input =  {type: 'file', accept: 'image/*'}
                         break
+                    case 'instructions':
+                        toParse[key].input =  {type: 'HTML'}
+                        break    
                     default:
-                        toParse[key].input =  {type: typeof settings[key]}
+                        let type = typeof settings[key]
+                        if (type === 'object') if (Array.isArray(settings[key])) type = Array
+                        toParse[key].input =  {type}
                 }
                                 
                 let inputContainer = this.createInput(toParse, key, settings)
@@ -801,14 +816,15 @@ export class GraphEditor{
         if (toParse[key].edit != false){
 
             let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
-            if (typeof defaultType !== 'string') defaultType = defaultType.name
+            if (typeof defaultType !== 'string' && defaultType.name) defaultType = defaultType.name
 
             let specifiedOptions = toParse[key].options
             let optionsType = typeof specifiedOptions
 
             let input
+            
         // Cannot Handle Objects or Elements
-        if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
+        if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Element'){
 
 
             if (optionsType == 'object' && specifiedOptions != null){
@@ -820,6 +836,65 @@ export class GraphEditor{
                     })
                     input = document.createElement('select')
                     input.innerHTML = options
+            } else if (defaultType === 'Array'){
+
+                let container = document.createElement('div')
+                container.style.width = '100%'
+                container.style.fontSize = `75%`
+
+                let insertOption = (v) => {
+                    let option = document.createElement('div')
+                    option.style.padding = '6px 0px'
+                    option.innerHTML = v
+                    this.addCloseIcon(option, () => {
+                        option.remove()
+                        toEdit[key].find((val,i) => {
+                            if (val === v){
+                                toEdit[key].splice(i,1)
+                            }
+                        })
+                    })
+                    container.insertAdjacentElement('beforeend',option)
+                }
+
+                input = document.createElement('div')
+                input.style.width = '100%'
+
+                toEdit[key].forEach(v => {
+                    insertOption(v)
+                })
+
+                let div = document.createElement('div')
+                div.style= `
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                    flex-grow: 0;
+                `
+
+                let textInput = document.createElement('input')
+                textInput.type = 'text'
+                textInput.placeholder = 'Add tag'
+
+                let button = document.createElement('button')
+                button.classList.add('brainsatplay-default-button')
+                button.classList.add('addbutton')
+                button.innerHTML = `+`
+                button.onclick = () => {
+                    let set = new Set(toEdit[key])
+                    if (!set.has(textInput.value)){
+                        insertOption(textInput.value)
+                        toEdit[key].push(textInput.value)
+                    }
+                    textInput.value = ''
+                }
+
+                div.insertAdjacentElement('beforeend',textInput)
+                div.insertAdjacentElement('beforeend',button)
+                input.insertAdjacentElement('beforeend',container)
+                input.insertAdjacentElement('beforeend',div)
+
+
             } else if (defaultType === 'boolean'){
                 input = document.createElement('input')
                 input.type = 'checkbox'
@@ -903,11 +978,14 @@ export class GraphEditor{
                 input.style.display = 'none'
 
                 // Add image display
-                let button
+                let button = document.createElement('button')
+                let img = document.createElement('img')
+                button.classList.add('brainsatplay-default-button')
+                button.innerHTML = text
+                button.style.width = 'auto'
+
                 if (input.accept.includes('image')){
-                    button = document.createElement('img')
-                    if (toEdit[key]) button.src = toEdit[key]
-                    button.style = `
+                    img.style = `
                         max-width: 50%;
                         cursor: pointer;
                     `
@@ -918,22 +996,36 @@ export class GraphEditor{
                             var reader = new FileReader();
                             reader.onloadend = () => {
                                 toEdit[key] = reader.result
-                                if (toEdit[key]) button.src = toEdit[key]
+                                if (toEdit[key]) {
+                                    img.src = toEdit[key]
+                                    img.style.display = ''
+                                    button.style.display = 'none'
+                                } else {
+                                    img.style.display = 'none'
+                                    button.style.display = ''
+                                }
                             }
                             reader.readAsDataURL(file);
                         }
                     })
+                } 
+                
+                if (toEdit[key] != null){
+                    img.src = toEdit[key]
+                    img.style.display = ''
+                    button.style.display = 'none'
                 } else {
-                    button = document.createElement('button')
-                    button.classList.add('brainsatplay-default-button')
-                    button.innerHTML = text
-                    button.style.width = 'auto'
+                    img.style.display = 'none'
+                    button.style.display = ''
                 }
-                button.onclick = () => {
+
+                inputContainer.insertAdjacentElement('beforeend',img)
+                inputContainer.insertAdjacentElement('beforeend',button)
+
+                img.onclick = button.onclick = () => {
                     input.click()
                     button.blur()
                 }
-                inputContainer.insertAdjacentElement('beforeend',button)
             }
             else {
                     input = document.createElement('input')

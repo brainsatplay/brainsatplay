@@ -497,7 +497,6 @@ export class GraphManager{
     }
 
     addPort = (node, port, info) => {
-        console.log(node, port)
         if (node.states && info) { // Only if node is fully instantiated            
             let noPort = node.ports[port] == null
             if (noPort || node.ports[port].onUpdate == null){
