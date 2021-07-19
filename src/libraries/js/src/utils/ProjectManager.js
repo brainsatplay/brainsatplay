@@ -256,7 +256,7 @@ app.init()`)
                 dataurl
             })
         }).then(res => res.json()).then(async data => {
-            console.log(data)
+            console.log('App Published!')
         }).catch(function (error) {
             console.warn('Something went wrong.', error);
         });
@@ -276,7 +276,9 @@ app.init()`)
 
     async save(app) {
         let dataurl = await this.appToDataURL(app)
-        await this.session.dataManager.saveFile(dataurl, `/projects/${app.info.name}`)        
+        await this.session.dataManager.saveFile(dataurl, `/projects/${app.info.name}`)  
+        console.log('App Saved!')
+      
     }
 
     async getPublishedApps() {
@@ -298,11 +300,12 @@ app.init()`)
     }
 
     async list() {
-        let projects = await this.session.dataManager.readFiles(`/projects/`)
-        return new Set(projects.map(str => {
-            let split = str.split('_')
-            return split.slice(0, split.length - 1).join('_')
-        }))
+        let projects = {
+            local: [],
+            published: []
+        }
+        projects.local = new Set(await this.session.dataManager.readFiles(`/projects/`))
+        return projects
     }
 
     async getFilesFromDataURL(url){

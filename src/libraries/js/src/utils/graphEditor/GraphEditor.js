@@ -323,7 +323,8 @@ export class GraphEditor{
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
-        projectSet = Array.from(projectSet).map(async str => {
+        console.log(projectSet)
+        projectSet = Array.from(projectSet.local).map(async str => {
             let files = await this.app.session.projects.getFilesFromDB(str)
             let settings =  await this.app.session.projects.load(files)
             return {destination: 'My Projects', settings}
@@ -531,50 +532,53 @@ export class GraphEditor{
 
     createSettingsEditor(settings){
             let settingsContainer = document.getElementById(`${this.props.id}settings`)
-            // settingsContainer.innerHTML = ''
-            Object.keys(settings).forEach(key => {
-                let restrictedKeys = ['image', 'editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
-                if (restrictedKeys.includes(key)){
 
-                    switch(key){
-                        case 'intro':
-                            settings.intro = {
-                                title: false
-                            }
-                            return
-                        case 'display':
-                            settings.display = {
-                                production: false
-                            }
-                            return
-                        case 'devices':
-                            // Handle internally
-                            return
-                    }
-                    
-                } else {
-                    let containerDiv = document.createElement('div')
-                    containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
-                    containerDiv.classList.add(`content-div`)
+            let toParse ={}
 
-                    let inputContainer = document.createElement('div')
-                    inputContainer.style.position = 'relative'    
-                    let input = document.createElement('input')
-                    input.type = 'text'
-                    input.value = settings[key]
+            let dummySettings = {
+                name: "",
+                devices: [""],
+                author: "",
+                description: "",
+                categories: [],
+                instructions: "",
+                image: '',
+            
+                display: {
+                  production: false,
+                  development: false
+                },
+            
+                editor: {
+                  create: false
+                },
+            
+                // App Logic
+                graph:
+                {
+                  nodes: [],
+                  edges: []
+                },
+            }
 
-                    // Change Live Params with Input Changes
-                    input.oninput = (e) => {
-                        settings[key] = input.value
-                    }
+            Object.keys(dummySettings).forEach(key => {
 
-                    // Add to Document
-                    inputContainer.insertAdjacentElement('beforeend',input)
-                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
-                    settingsContainer.insertAdjacentElement('beforeend', containerDiv)
+                toParse[key] = {default: settings[key]}
+                toParse[key].input =  {type: typeof settings[key]}
+
+                switch(key){
+                    case 'image':
+                        toParse[key].input =  {type: 'file', accept: 'image/*'}
+                        break
+                    default:
+                        toParse[key].input =  {type: typeof settings[key]}
                 }
+                                
+                let inputContainer = this.createInput(toParse, key, settings)
+                if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
+
             })
-    }
+        }
 
 
     toggleDisplay(){
@@ -756,188 +760,8 @@ export class GraphEditor{
             if (toParse == null) toParse = plugin.ports
 
             for (let key in toParse){
-                // Properly Nest Divs
-                let containerDiv = document.createElement('div')
-                containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
-                let inputContainer = document.createElement('div')
-                inputContainer.style.position = 'relative'
-
-                // Sort through Params
-                if (toParse[key].edit != false){
-
-                let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
-                if (typeof defaultType !== 'string') defaultType = defaultType.name
-
-                let specifiedOptions = toParse[key].options
-                let optionsType = typeof specifiedOptions
-
-                let input;
-
-
-                // Cannot Handle Objects or Elements
-                if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
-
-
-                if (optionsType == 'object' && specifiedOptions != null){
-                        let options = ``
-                        toParse[key].options.forEach(option => {
-                            let attr = ''
-                            if (option === plugin.params[key]) attr = 'selected'
-                            options += `<option value="${option}" ${attr}>${option}</option>`
-                        })
-                        input = document.createElement('select')
-                        input.innerHTML = options
-                } else if (defaultType === 'boolean'){
-                    input = document.createElement('input')
-                    input.type = 'checkbox'
-                    input.checked = plugin.params[key]
-                } else if (defaultType === 'number'){
-                    if ('min' in toParse[key] && 'max' in toParse[key]){
-                        input = document.createElement('input')
-                        input.type = 'range'
-                        input.min = toParse[key].min
-                        input.max = toParse[key].max
-                        if (toParse[key].step) input.step = toParse[key].step
-                        let output = document.createElement('output')
-                        inputContainer.insertAdjacentElement('afterbegin',output)
-                        input.value = plugin.params[key]
-                        output.innerHTML = input.value
-                    } else {
-                        input = document.createElement('input')
-                        input.type = 'number'
-                        input.value = plugin.params[key]
-                    }
-                } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
-                    input = document.createElement('button')
-                    input.classList.add('brainsatplay-default-button')
-                    input.style.width = 'auto'
-                    input.innerHTML = `Edit ${defaultType}`
-                    
-                    let container = document.createElement('div')
-                    container.style = `
-                        width: 75vw;
-                        height: 75vh;
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        z-index: 1000;
-                        transform: translate(-50%, -50%)
-                    `
-                    
-                    document.body.insertAdjacentElement('beforeend', container)
-                    let settings = {}
-                    settings.onOpen = (res) => {
-                        container.style.pointerEvents = 'all'
-                        container.style.opacity = '1'
-                    }
-        
-                    settings.onSave = (res) => {
-                        this.manager.runSafe(plugin, key, [{data: res}])
-                    }
-        
-                    settings.onClose = (res) => {
-                        container.style.pointerEvents = 'none'
-                        container.style.opacity = '0'
-                    }
-
-                    if (defaultType === 'Function'){
-                        settings.language = 'javascript'
-                    } else {
-                        settings.language = defaultType.toLowerCase()
-                    }
-                    settings.target = plugin.params
-                    settings.key = key
-
-                    settings.onClose()
-
-                    let editor
-                    input.onclick = () => {
-                        if (editor == null) editor = new LiveEditor(settings, container)
-                        else settings.onOpen()
-                    }
-                } else if (defaultType === 'file'){
-                    
-                    let text = 'Choose File'
-                    input = document.createElement('input')
-                    input.type = 'file'
-                    input.accept = toParse[key].input?.accept // Only in new format
-
-                    if (toParse[key].input?.multiple){
-                        input.multiple = true // Only in new format
-                        text = text + 's'
-                    }
-                    input.style.display = 'none'
-
-                    let button = document.createElement('button')
-                    button.classList.add('brainsatplay-default-button')
-                    button.innerHTML = text
-                    button.style.width = 'auto'
-                    button.onclick = () => {
-                        input.click()
-                        button.blur()
-                    }
-                    inputContainer.insertAdjacentElement('beforeend',button)
-                }
-                else {
-                        input = document.createElement('input')
-                        // Check if Color String
-                        if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
-                            input.type = 'color'
-                        } else {
-                            input.type = 'text'
-                        }
-                        input.value = plugin.params[key]
-                }
-
-                // Add to Document
-                    inputContainer.insertAdjacentElement('beforeend',input)
-                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
-                    containerDiv.classList.add(`content-div`)
-                    selectedParams.insertAdjacentElement('beforeend', containerDiv)
-                    
-
-                    // Change Live Params with Input Changes
-                    let changeFunc = (e) => {
-                        if (this.elementTypesToUpdate.includes(input.tagName)){
-                            if (input.type === 'checkbox') plugin.params[key] = input.checked
-                            else if (input.type === 'file') plugin.params[key] = input.files;
-                            else if (['number','range'].includes(input.type)) {
-                                plugin.params[key] = Number.parseFloat(input.value)
-                                if (input.type === 'range') {
-                                    input.parentNode.querySelector('output').innerHTML = input.value
-                                }
-                            }
-                            else plugin.params[key] = input.value
-                            if (toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: plugin.params[key], forceUpdate: true}])
-                            if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
-                        }
-                    }
-
-                    input.oninput = changeFunc
-
-                    // Listen for Non-GUI Changes to Params when Viewing
-                    delete this.state.data[`activeGUINode`]
-                    this.state.addToState(`activeGUINode`, plugin.params, () => {
-
-                        let oldValue
-                        let newValue
-                        if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
-                            if (input.type === 'checkbox') {
-                                oldValue = input.checked
-                                input.checked = plugin.params[key]
-                                newValue = input.checked
-                            }
-                            else {
-                                oldValue = input.value
-                                input.value = plugin.params[key]
-                                newValue = input.value
-                            }
-                        }
-                        
-                        if (oldValue != newValue) changeFunc()
-                    })
-                }
-            }
+                let inputContainer = this.createInput(toParse, key, plugin.params, plugin)
+                if (inputContainer) selectedParams.insertAdjacentElement('beforeend', inputContainer)
             }
 
 
@@ -950,6 +774,212 @@ export class GraphEditor{
 
             document.getElementById(`${this.props.id}edit`).onclick = (e) => {
                 this.createFile(node.nodeInfo.class)
+            }
+        }
+    }
+
+    createInput(toParse, key, toEdit, plugin){
+
+        // Properly Nest Divs
+        let containerDiv = document.createElement('div')
+        containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+        let inputContainer = document.createElement('div')
+        inputContainer.style.position = 'relative'
+
+        // Sort through Params
+        if (toParse[key].edit != false){
+
+            let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
+            if (typeof defaultType !== 'string') defaultType = defaultType.name
+
+            let specifiedOptions = toParse[key].options
+            let optionsType = typeof specifiedOptions
+
+            let input
+        // Cannot Handle Objects or Elements
+        if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
+
+
+            if (optionsType == 'object' && specifiedOptions != null){
+                    let options = ``
+                    toParse[key].options.forEach(option => {
+                        let attr = ''
+                        if (option === toEdit[key]) attr = 'selected'
+                        options += `<option value="${option}" ${attr}>${option}</option>`
+                    })
+                    input = document.createElement('select')
+                    input.innerHTML = options
+            } else if (defaultType === 'boolean'){
+                input = document.createElement('input')
+                input.type = 'checkbox'
+                input.checked = toEdit[key]
+            } else if (defaultType === 'number'){
+                if ('min' in toParse[key] && 'max' in toParse[key]){
+                    input = document.createElement('input')
+                    input.type = 'range'
+                    input.min = toParse[key].min
+                    input.max = toParse[key].max
+                    if (toParse[key].step) input.step = toParse[key].step
+                    let output = document.createElement('output')
+                    inputContainer.insertAdjacentElement('afterbegin',output)
+                    input.value = toEdit[key]
+                    output.innerHTML = input.value
+                } else {
+                    input = document.createElement('input')
+                    input.type = 'number'
+                    input.value = toEdit[key]
+                }
+            } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
+                input = document.createElement('button')
+                input.classList.add('brainsatplay-default-button')
+                input.style.width = 'auto'
+                input.innerHTML = `Edit ${defaultType}`
+                
+                let container = document.createElement('div')
+                container.style = `
+                    width: 75vw;
+                    height: 75vh;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    z-index: 1000;
+                    transform: translate(-50%, -50%)
+                `
+                
+                document.body.insertAdjacentElement('beforeend', container)
+                let settings = {}
+                settings.onOpen = (res) => {
+                    container.style.pointerEvents = 'all'
+                    container.style.opacity = '1'
+                }
+    
+                settings.onSave = (res) => {
+                   if (plugin) this.manager.runSafe(plugin, key, [{data: res}])
+                }
+    
+                settings.onClose = (res) => {
+                    container.style.pointerEvents = 'none'
+                    container.style.opacity = '0'
+                }
+
+                if (defaultType === 'Function'){
+                    settings.language = 'javascript'
+                } else {
+                    settings.language = defaultType.toLowerCase()
+                }
+                settings.target = toEdit
+                settings.key = key
+
+                settings.onClose()
+
+                let editor
+                input.onclick = () => {
+                    if (editor == null) editor = new LiveEditor(settings, container)
+                    else settings.onOpen()
+                }
+            } else if (defaultType === 'file'){
+                
+                let text = 'Choose File'
+                input = document.createElement('input')
+                input.type = 'file'
+                input.accept = toParse[key].input?.accept // Only in new format
+
+                if (toParse[key].input?.multiple){
+                    input.multiple = true // Only in new format
+                    text = text + 's'
+                }
+                input.style.display = 'none'
+
+                // Add image display
+                let button
+                if (input.accept.includes('image')){
+                    button = document.createElement('img')
+                    button.src = toEdit[key]
+                    button.style = `
+                        max-width: 50%;
+                        cursor: pointer;
+                    `
+
+                    input.addEventListener('input', () => {
+                        let file = input.files[0]
+                        if (file){
+                            var reader = new FileReader();
+                            reader.onloadend = () => {
+                                toEdit[key] = reader.result
+                                button.src = toEdit[key]
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    })
+                } else {
+                    button = document.createElement('button')
+                    button.classList.add('brainsatplay-default-button')
+                    button.innerHTML = text
+                    button.style.width = 'auto'
+                }
+                button.onclick = () => {
+                    input.click()
+                    button.blur()
+                }
+                inputContainer.insertAdjacentElement('beforeend',button)
+            }
+            else {
+                    input = document.createElement('input')
+                    // Check if Color String
+                    if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
+                        input.type = 'color'
+                    } else {
+                        input.type = 'text'
+                    }
+                    input.value = toEdit[key]
+            }
+
+            // Add to Document
+                inputContainer.insertAdjacentElement('beforeend',input)
+                containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                containerDiv.classList.add(`content-div`)                
+
+                // Change Live Params with Input Changes
+                let changeFunc = (e) => {
+                    if (this.elementTypesToUpdate.includes(input.tagName)){
+                        if (input.type === 'checkbox') toEdit[key] = input.checked
+                        else if (input.type === 'file') toEdit[key] = input.files;
+                        else if (['number','range'].includes(input.type)) {
+                            toEdit[key] = Number.parseFloat(input.value)
+                            if (input.type === 'range') {
+                                input.parentNode.querySelector('output').innerHTML = input.value
+                            }
+                        }
+                        else toEdit[key] = input.value
+                        if (plugin && toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: toEdit[key], forceUpdate: true}])
+                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
+                    }
+                }
+
+                input.oninput = changeFunc
+
+                // Listen for Non-GUI Changes to Params when Viewing
+                delete this.state.data[`activeGUINode`]
+                this.state.addToState(`activeGUINode`, toEdit, () => {
+
+                    let oldValue
+                    let newValue
+                    if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
+                        if (input.type === 'checkbox') {
+                            oldValue = input.checked
+                            input.checked = toEdit[key]
+                            newValue = input.checked
+                        }
+                        else {
+                            oldValue = input.value
+                            input.value = toEdit[key]
+                            newValue = input.value
+                        }
+                    }
+                    
+                    if (oldValue != newValue) changeFunc()
+                })
+                return containerDiv
             }
         }
     }
