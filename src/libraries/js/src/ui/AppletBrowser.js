@@ -91,12 +91,13 @@ export class AppletBrowser {
                let createCommunitySection = async () => {
                     let publishedApps
                     publishedApps = await this.session.projects.getPublishedApps()
-        
+                    if (publishedApps){
                     let onclickCommunity = (element,settings) => {
-                        window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
-                        this.app.replace(settings)
+                            window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
+                            this.app.replace(settings)
+                        }
+                        this._createSection('Community Contributions', publishedApps, onclickCommunity) 
                     }
-                    this._createSection('Community Contributions', publishedApps, onclickCommunity) 
                }
         
                createCommunitySection()
