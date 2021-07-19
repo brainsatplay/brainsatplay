@@ -139,8 +139,6 @@ export class Blink{
                     forceUpdate: true,
                     data: {active: true, function: (ctx) => {
                         if (this.props.looping){
-
-                            console.log(this.params.debug)
                             if (this.params.debug){
                                 this._drawSignal(ctx)
                             } else {

@@ -80,6 +80,7 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
+                                <button id="${this.props.id}publish" class="brainsatplay-default-button">Publish Project</button>
                                 <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit the Studio</button>
                             </div>
                             <div class='node-sidebar-section'>
@@ -113,6 +114,12 @@ export class GraphEditor{
 
                 // Insert Projects
                 this.insertProjects()
+
+                // Publish Button
+                document.getElementById(`${this.props.id}publish`).onclick = () => {
+                    this.app.updateGraph()
+                    this.app.session.projects.publish(this.app)
+                }
 
                 // Search for Toggle
                 let tries = 0
@@ -312,6 +319,7 @@ export class GraphEditor{
         this.props.projectContainer.style.display = 'block'
 
         let galleries = {}
+        galleries['My Projects'] = []
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
@@ -334,30 +342,30 @@ export class GraphEditor{
 
         Promise.allSettled([...projectSet,...templateSet]).then(set => {
 
-            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza', 'Applet Browser']
             set.forEach(o => {
                 if (o.status === 'fulfilled' && o.value.settings){
                     if (!restrictedTemplates.includes(o.value.settings.name)) {
-                        if (galleries[o.value.destination] == null) galleries[o.value.destination] = {header: o.value.destination, projects: []}
+                        if (galleries[o.value.destination] == null) galleries[o.value.destination] = []
                         
-                        galleries[o.value.destination].projects.push(o.value.settings)
+                        galleries[o.value.destination].push(o.value.settings)
                     }
                 }
             })
 
             // Add Load from File Button
-            galleries['My Projects'].projects.unshift({name: 'Load from File'})
+            galleries['My Projects'].unshift({name: 'Load from File'})
 
             Object.keys(galleries).forEach(k => {
 
-                let o = galleries[k]
+                let projectArr = galleries[k]
 
                 // Create Top Header
                 if (k !== 'My Projects'){
                     let div = document.createElement('div')
                     div.classList.add(`brainsatplay-option-type`) 
                     div.classList.add(`option-type-collapsible`)
-                    div.innerHTML = o.header
+                    div.innerHTML = k
                     this.addDropdownFunctionality(div)
                     this.props.projectContainer.insertAdjacentElement('beforeend', div)
                 }
@@ -369,7 +377,7 @@ export class GraphEditor{
                 this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
 
 
-                o.projects.forEach(settings => {
+                projectArr.forEach(settings => {
                     let item = document.createElement('div')
                     item.innerHTML = settings.name
                     item.classList.add('brainsatplay-option-node')

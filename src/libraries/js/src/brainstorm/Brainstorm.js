@@ -50,6 +50,7 @@ let mongoClient;
 if (mongouri) {
    mongodb.MongoClient.connect(mongouri, {useUnifiedTopology: true}).then(mongoClient => {
     dataServer.mongoClient =  mongoClient
+        app.set('mongodb', mongoClient)
     console.log('Connected to MongoDB Database')
    }).catch(err => {
         console.log('Error: ' + err)

@@ -138,11 +138,9 @@ export class GraphManager{
         let node = nodeInfo.instance
                 
         // Add Node to Registry
-        if (this.registry.local[node.label] == null){
-            this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
-            for (let port in node.states){
-                this.addPortToRegistry(node,port)
-            }
+        if (this.registry.local[node.label] == null) this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
+        for (let port in node.ports){
+            this.addPortToRegistry(node,port)
         }
         this.registry.local[node.label].count++
 
@@ -150,6 +148,9 @@ export class GraphManager{
 
         // Run Init Function and Instantiate Some Additional Nodes
         let ui = node.init(nodeInfo.params)
+
+        // Grab Configure Function
+        nodeInfo.configure = node.configure
 
         // Grab Created UI Functions
         if (ui != null) {

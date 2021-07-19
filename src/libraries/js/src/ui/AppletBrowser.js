@@ -1,6 +1,3 @@
-import { Session } from '../Session'
-import { DOMFragment } from './DOMFragment'
-
 import { Train } from '../plugins/machinelearning/Train'
 import { UI } from '../plugins/interfaces/UI'
 import { Application } from '../Application'
@@ -10,24 +7,12 @@ import {createCards} from './browserUtils.js'
 //Example Applet for integrating with the UI Manager
 export class AppletBrowser {
 
-    constructor(
-        parent = document.body,
-        bci = new Session(),
-        settings = [{
-            hide: [],
-            applets: [],
-            presets: []
-        }],
-        info = {}
-    ) {
-
-        //-------Keep these------- 
-        this.session = bci; //Reference to the Session to access data and subscribe
-        this.parentNode = parent;
-        this.info = info
-        this.settings = settings;
-        this.AppletHTML = null;
-        //------------------------
+    static id = String(Math.floor(Math.random()*1000000))
+    
+    constructor(label, session, params={}) {
+        this.label = label
+        this.session = session
+        this.params = params
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random() * 1000000)), //Keep random ID,
@@ -35,6 +20,21 @@ export class AppletBrowser {
             applets: [],
             presets: []
         };
+
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+        this.props.container.classList.add('brainsatplay-browser')
+
+        this.ports = {
+            element: {
+                default: this.props.container,
+                input: {type: null},
+                output: {type: Element},
+                onUpdate: () => {
+                    return [{data: this.props.container}]
+                }
+            }
+        }
 
 
         // Default Configuration Settings 
@@ -49,59 +49,14 @@ export class AppletBrowser {
     //---------------------------------
 
     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
-    init() {
-
-        //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
-        let HTMLtemplate = (props = this.props) => {
-            return `
-            <div id='${this.props.id}' class="brainsatplay-browser" >
-            </div>
-            `;
-        }
-
-        //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
-        let setupHTML = (props = this.props) => {
-
-            if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
-
-            this.props.container = document.getElementById(this.props.id)
-
-            if (this.showPresets) {
-                this._createFeature()
-            }
-
-            this._createTraining()
-
-            this._createLibrary()
-        }
-
-        this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-            HTMLtemplate,       //Define the html template string or function with properties
-            this.parentNode,    //Define where to append to (use the parentNode)
-            this.props,         //Reference to the HTML render properties (optional)
-            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-            undefined,          //Can have an onchange function fire when properties change
-            "NEVER"             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
-        );
-    }
+    init = () => {}
 
     //Delete all event listeners and loops here and delete the HTML block
-    deinit() {
-        this.AppletHTML.deleteNode();
+    deinit = () => {
         this.props.trainingModule.deinit()
-        //Be sure to unsubscribe from state if using it and remove any extra event listeners
     }
 
-    //Responsive UI update, for resizing and responding to new connections detected by the UI manager
-    responsive() {
-        let container = document.getElementById(this.props.id)
-        //let canvas = document.getElementById(this.props.id+"canvas");
-        //canvas.width = this.AppletHTML.node.clientWidth;
-        //canvas.height = this.AppletHTML.node.clientHeight;
-    }
-
-    configure(settings = []) { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
-            
+    configure = (settings = []) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
         settings.forEach((cmd, i) => {
             if (cmd.appletIdx != null) this.appletToReplace = cmd.appletIdx
             if (cmd.showPresets != null) this.showPresets = cmd.showPresets
@@ -111,6 +66,40 @@ export class AppletBrowser {
             if (cmd.applets != null) this.props.applets = cmd.applets
             if (cmd.presets != null) this.props.presets = cmd.presets
         });
+
+        this._createBrowser()
+    }
+
+    _createBrowser = () => {
+                // if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
+
+                if (this.showPresets) {this._createFeature()}
+
+                this._createTraining()
+        
+                // Create App Library Section (dependent on platform)
+                let onclickInternal = (element, settings) => {
+                    let selector = document.getElementById(`applet${0}`) // this.appletToReplace
+                    selector.value = settings.name
+                    window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
+                    selector.onchange()
+                }
+                
+                this._createSection('App Library', this.props.applets, onclickInternal)
+        
+                // Create Community Section
+               let createCommunitySection = async () => {
+                    let publishedApps
+                    publishedApps = await this.session.projects.getPublishedApps()
+        
+                    let onclickCommunity = (element,settings) => {
+                        window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
+                        this.app.replace(settings)
+                    }
+                    this._createSection('Community Contributions', publishedApps, onclickCommunity) 
+               }
+        
+               createCommunitySection()
     }
 
     _createFeature = () => {
@@ -185,34 +174,36 @@ export class AppletBrowser {
         trainingContainer.style.padding = 0
     }
 
-    _createLibrary = async () => {
+    _createSection = async (header, apps, onclick=()=>{}) => {
         let filter
-        let appletInfo = await createCards(this.props.applets, filter)
+        let appletInfo = await createCards(apps, filter, onclick)
+
+        let randomId = this.session.atlas._getRandomId()
 
         this.props.container.insertAdjacentHTML('beforeend',
             `
         <div id="${this.props.id}-appletheader" class="browser-header">
-            <h1>App Library</h1>
+            <h1>${header}</h1>
             <div style="padding: 0px 25px;  width: 100%; display: flex; margin: auto;">
                 
             <div style="margin: 5px; flex-grow: 1;">
             <p style="font-size: 80%; margin-bottom: 5px;">Device</p>
-                <select id="${this.props.id}-devices" style="max-height: 30px; width: 100%;">
+                <select id="${this.props.id}-${randomId}-devices" style="max-height: 30px; width: 100%;">
                     <option value="all" selected>All</option>
                 </select>
             </div>
             <div style="margin: 5px; flex-grow: 1;"">
                 <p style="font-size: 80%; margin-bottom: 5px;">Category</p>
-                <select id="${this.props.id}-categories" style="max-height: 30px; width: 100%;">
+                <select id="${this.props.id}-${randomId}-categories" style="max-height: 30px; width: 100%;">
                     <option value="all" selected>All</option>
                 </select>
                 </div>
             </div>
         </div>
-        <div id="${this.props.id}-appletsection" class="applet-container"></div>
+        <div id="${this.props.id}-${randomId}-appletsection" class="applet-container"></div>
         `)
 
-        let appletSection = document.getElementById(`${this.props.id}-appletsection`)
+        let appletSection = this.props.container.querySelector(`[id="${this.props.id}-${randomId}-appletsection"]`)
 
         let categoryArray = []
         let deviceArray = []
@@ -231,17 +222,18 @@ export class AppletBrowser {
 
         categoryArray = categoryArray.map(c => c.charAt(0).toUpperCase() + c.slice(1))
         let uniqueCategories = categoryArray.filter(onlyUnique);
-        let categorySelector = document.getElementById(`${this.props.id}-categories`)
+        let categorySelector = this.props.container.querySelector(`[id="${this.props.id}-${randomId}-categories"`)
         uniqueCategories.forEach(category => {
             categorySelector.innerHTML += `<option value="${category}">${category}</option>`
         })
+
         categorySelector.onchange = (e) => {
             this.filterApplets()
         }
 
         // Device Filter
         let uniqueDevices = deviceArray.filter(onlyUnique);
-        let deviceSelector = document.getElementById(`${this.props.id}-devices`)
+        let deviceSelector = this.props.container.querySelector(`[id="${this.props.id}-${randomId}-devices"]`)
         uniqueDevices.forEach(device => {
             deviceSelector.innerHTML += `<option value="${device}">${device.charAt(0).toUpperCase() + device.slice(1)}</option>`
         })
@@ -249,15 +241,12 @@ export class AppletBrowser {
         deviceSelector.onchange = (e) => {
             this.filterApplets()
         }
-
-        //Add whatever else you need to initialize
-        this.responsive()
     }
 
 
     filterApplets() {
-        let divs = document.getElementById(`${this.props.id}-appletsection`).querySelectorAll('.browser-card')
-        let selectors = document.getElementById(`${this.props.id}-appletheader`).querySelectorAll('select')
+        let divs = this.props.container.querySelector(`[id="${this.props.id}-appletsection"]`).querySelectorAll('.browser-card')
+        let selectors = this.props.container.querySelector(`[id="${this.props.id}-appletheader"]`).querySelectorAll('select')
 
         let attributes = []
         let values = []

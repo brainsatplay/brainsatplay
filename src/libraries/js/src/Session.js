@@ -130,7 +130,7 @@ export class Session {
 
 		if(initFS) this.initFS();
 		
-		this.projects = new ProjectManager(this.dataManager)
+		this.projects = new ProjectManager(this)
 	}
 
 	/**
@@ -1369,7 +1369,7 @@ else {
 
 	// App Management
 	initApp(settings, parentNode=document.body, session=this, config=[]){
-		return new Application(settings,parentNode,session,config)
+		return new Application(settings, parentNode, session, config)
 	}
 
 

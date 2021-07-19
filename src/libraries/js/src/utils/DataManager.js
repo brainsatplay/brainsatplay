@@ -492,11 +492,12 @@ export class DataManager {
         }
     }
 
-    saveFileText(text, path){
+    // Assumes content is text
+    saveFile(content, path){
         return new Promise(resolve => {
-            fs.writeFile(path,text,(e)=>{
+            fs.writeFile(path,content,(e)=>{
                 if(e) throw e;
-                resolve(text)
+                resolve(content)
             });
         })
     }

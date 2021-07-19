@@ -448,14 +448,16 @@ if(JSON.stringifyFast === undefined) {
                 } else {
                     while (idx-- >= 0) {
                     prev = parents[idx];
-                    if (prev[key] === value) {
-                        idx += 2;
-                        parents.length = idx;
-                        path.length = idx;
-                        --idx;
-                        parents[idx] = value;
-                        path[idx] = key;
-                        break;
+                    if (prev){
+                        if (prev[key] === value) {
+                            idx += 2;
+                            parents.length = idx;
+                            path.length = idx;
+                            --idx;
+                            parents[idx] = value;
+                            path[idx] = key;
+                            break;
+                        }
                     }
                     }
                 }
@@ -586,14 +588,16 @@ if(JSON.stringifyWithCircularRefs === undefined) {
         } else {
             while (idx-- >= 0) {
             prev = parents[idx];
-            if (prev[key] === value) {
-                idx += 2;
-                parents.length = idx;
-                path.length = idx;
-                --idx;
-                parents[idx] = value;
-                path[idx] = key;
-                break;
+            if (prev){
+                if (prev[key] === value) {
+                    idx += 2;
+                    parents.length = idx;
+                    path.length = idx;
+                    --idx;
+                    parents[idx] = value;
+                    path[idx] = key;
+                    break;
+                }
             }
             }
         }

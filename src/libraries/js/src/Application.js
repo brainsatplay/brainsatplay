@@ -17,6 +17,7 @@ export class Application{
         this.graph = null
         //------------------------
 
+        this.container = document.createElement('div')
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: null, //Keep random ID
             sessionId: null,
@@ -26,22 +27,22 @@ export class Application{
     init() {
 
         // Grab Style of Previous Top-Level Wrapper
-        let defaultStyle = ``
-        if (this.props.id) defaultStyle = document.getElementById(this.props.id).style.cssText 
-        else defaultStyle = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
+        if (this.props.id == null) this.container.style = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
 
         // Get New ID
         this.props.id = String(Math.floor(Math.random()*1000000))
+        this.container.id = this.props.id
 
         // Register App in Session
         this.graph = this.session.registerApp(this)
         // this.info.graph = this.graph
         let setupHTML = () => {
+
             // Insert Intefaces and Add App Reference
-            this.graph.nodes.forEach(node => {this.insertInterface(node)})
-            // this.graph.setupCallbacks.forEach(func => {
-            //     if (func instanceof Function) func()
-            // })
+            this.graph.nodes.forEach(node => {
+                this.insertInterface(node)
+                if (node.configure instanceof Function ) node.configure(this.settings)
+            })
 
             // Create Device Manager (if required)
             if (this.info.connect){
@@ -53,7 +54,7 @@ export class Application{
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object
-            `<div id="${this.props.id}" style="${defaultStyle}"></div>`,       //Define the html template string or function with properties
+            this.container,       //Define the html template string or function with properties
             this.parentNode,    //Define where to append to (use the parentNode)
             this.props,         //Reference to the HTML render properties (optional)
             setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
@@ -63,7 +64,31 @@ export class Application{
             this.responsive
         )
 
-        this.configure(this.settings); //You can give the app initialization settings if you want via an array.
+        // Create App Intro Sequence
+        this.session.createIntro(this, (sessionInfo) => {
+            // this.tutorialManager.init();
+
+            // Multiplayer Configuration
+            if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
+                this.sessionId = sessionInfo.id;
+            }
+
+            this.session.startApp(this.props.id, this.sessionId)
+
+            if (!('editor' in this.info)){
+                this.info.editor = {}
+                this.info.editor.parentId = this.parentNode.id
+                this.info.editor.show = false
+                this.info.editor.create = true
+            }
+
+            if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
+
+
+            if (this.info.editor.create != false) this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
+                if (this.info.editor.show !== false) editor.toggleDisplay()
+            })
+        })
     }
 
         //Delete all event listeners and loops here and delete the HTML block
@@ -88,6 +113,9 @@ export class Application{
             }
         }
 
+        responsive = () => {}
+        configure = () => {}
+
         updateGraph(){
             let copiedSettings = this._copySettingsFile({graph: this.graph})
             this.info.graph = copiedSettings.graph // Replace settings
@@ -109,39 +137,6 @@ export class Application{
             this.init()
         }
     
-        //Responsive UI update, for resizing and responding to new connections detected by the UI manager
-        responsive() {}
-    
-        configure = (settings=[{}]) => { //For configuring from the address bar or saved settings. Expects an array of arguments [a,b,c] to do whatever with
-            
-            settings.forEach((cmd,i) => {});
-
-            this.session.createIntro(this, (sessionInfo) => {
-                // this.tutorialManager.init();
-
-                // Multiplayer Configuration
-                if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
-                    this.sessionId = sessionInfo.id;
-                }
-
-                this.session.startApp(this.props.id, this.sessionId)
-
-                if (!('editor' in this.info)){
-                    this.info.editor = {}
-                    this.info.editor.parentId = this.parentNode.id
-                    this.info.editor.show = false
-                    this.info.editor.create = true
-                }
-
-                if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
-
-
-                if (this.info.editor.create != false) this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
-                    if (this.info.editor.show !== false) editor.toggleDisplay()
-                })
-            })
-        }
-
         _runInternalFunctions(arr){
             arr.forEach(f => {
                 if (f instanceof Function) f(this)
@@ -154,7 +149,7 @@ export class Application{
             if (ui){
                 n.fragment = new DOMFragment( // Fast HTML rendering container object
                     ui.HTMLtemplate, //Define the html template string or function with properties
-                    document.getElementById(`${this.props.id}`),    //Define where to append to (use the parentNode)
+                    this.container,    //Define where to append to (use the parentNode)
                     this.props,         //Reference to the HTML render properties (optional)
                     ui.setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
                     undefined,          //Can have an onchange function fire when properties change
@@ -183,13 +178,15 @@ export class Application{
             let keys = ['nodes','edges']
             info.graph = Object.assign({}, info.graph)
             keys.forEach(k => {
-                info.graph[k] = [...info.graph[k]]
-                info.graph[k].forEach(o => {
-                    o = Object.assign({}, o)
-                    for (let key in o){
-                        if (o[key] === Object) o[key] = Object.assign({}, o[key])
-                    }
-                })
+                if (info.graph[k]){
+                    info.graph[k] = [...info.graph[k]]
+                    info.graph[k].forEach(o => {
+                        o = Object.assign({}, o)
+                        for (let key in o){
+                            if (o[key] === Object) o[key] = Object.assign({}, o[key])
+                        }
+                    })
+                }
             })
             return info
         }

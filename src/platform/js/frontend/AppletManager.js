@@ -421,7 +421,7 @@ export class AppletManager {
                                     infoMask.style.opacity = 0;
                                     infoMask.style.pointerEvents = 'none';
                                     if (instance == null) {
-                                        await getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)).then((browser) => {
+                                        getAppletSettings(appletManifest['Applet Browser'].folderUrl).then((browser) => {
                                            
                                             let config = {
                                                 hide: [],
@@ -438,8 +438,9 @@ export class AppletManager {
         
                                             Promise.all(config.applets).then((resolved) => {
                                                 config.applets=resolved
-                                                let instance = new browser(appletMask, this.session, [config])
-        
+                                                console.log(browser)
+                                                let instance  = new Application(browser, appletMask, this.session, [config])
+
                                               // FIX
                                                 instance.init()
         
@@ -603,8 +604,6 @@ export class AppletManager {
         return new Promise(resolve => {
             let parentNode = document.getElementById("applets")
             if (appletCls === Application){
-                resolve(new Application(info, parentNode, this.session, config))
-            } else {
                 if (info.name === 'Applet Browser'){
                     config = {
                         hide: [],
@@ -615,11 +614,13 @@ export class AppletManager {
                     }
                     Promise.all(config.applets).then((resolved) => {
                         config.applets=resolved
-                        resolve(new appletCls(parentNode, this.session, [config], info))
+                        resolve(new Application(info, parentNode, this.session, [config]))
                     })
                 } else {
-                    resolve(new appletCls(parentNode, this.session, config))
+                    resolve(new Application(info, parentNode, this.session, config))
                 }
+            } else {
+                resolve(new appletCls(parentNode, this.session, config))
             }
         })
     }

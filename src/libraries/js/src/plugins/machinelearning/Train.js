@@ -149,19 +149,20 @@ export class Train{
             if (foundBinding && settings.canTrain) return settings
         }
 
-        let applets = createCards(this.params.applets, appletFilter)
-
         let selectedSettings
-        applets.forEach((o,i) => {
-            o.element.onclick = () => {
-                for (let child of gameContainer.children){
-                    if (child === o.element) {
-                        o.element.classList.add('selected')
-                        selectedSettings = o.settings
-                    }
-                    else child.classList.remove('selected')
+        let clickCallback = (element, settings) => {
+            for (let child of gameContainer.children){
+                if (child === element) {
+                    element.classList.add('selected')
+                    selectedSettings = settings
                 }
+                else child.classList.remove('selected')
             }
+        }
+
+        let applets = createCards(this.params.applets, appletFilter, clickCallback)
+
+        applets.forEach((o,i) => {
             gameContainer.insertAdjacentElement('beforeend', o.element)
             if (i === 0) o.element.click()
         })
