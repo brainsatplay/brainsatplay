@@ -1,11 +1,19 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './utils/graphEditor/GraphEditor'
-import  {plugins} from '../brainsatplay'
+import {plugins} from '../brainsatplay'
 
 export class GraphManager{
     constructor(session, settings = {}){
         this.session = session
+
+        // Centrally Manage Plugins through the Project Manager
+        if (this.session.projects) {
+            (async() => {
+                let library = await this.session.projects.getLibraryVersion(this.session.projects.version)
+                this.plugins = library.plugins
+            })()
+        } else this.plugins = plugins
 
         // Two Modes
         this.applets = {}
@@ -472,7 +480,7 @@ export class GraphManager{
         // Derive Control Structure
         let firstUserDefault= node.states[port][0]
         if (
-            node instanceof plugins.controls.Event
+            node instanceof this.plugins.controls.Event
             // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
             ){
             let controlDict = {}
@@ -596,7 +604,7 @@ export class GraphManager{
                         let input = o.value ?? source.states[sourcePort]
                         input.forEach(u => {
                             if (!u.meta) u.meta = {}
-                            if (target instanceof plugins.networking.Brainstorm) u.meta.source = label // Push proper source
+                            if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                             u.meta.session = applet.sessionId
                         })
 
@@ -609,7 +617,7 @@ export class GraphManager{
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
-            if (target instanceof plugins.networking.Brainstorm) {
+            if (target instanceof this.plugins.networking.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
 
                 // Initialize Port
@@ -625,7 +633,7 @@ export class GraphManager{
             applet.subscriptions.local[label].push({id: subId, target: newEdge.target})
 
             if (target.ports[targetPort] == null) target.ports[targetPort] = {}
-            if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
+            if (source.ports[sourcePort] == null) source.ports[sourcePort] = {}
 
             let tP = target.ports[targetPort]
             let sP = source.ports[sourcePort]

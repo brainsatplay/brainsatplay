@@ -2,8 +2,6 @@ import {Graph} from './Graph'
 import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
-import  {plugins} from '../../../brainsatplay'
-import  {Plugin} from '../../plugins/Plugin'
 
 // Project Selection
 import {appletManifest} from '../../../../../platform/appletManifest'
@@ -387,6 +385,10 @@ export class GraphEditor{
 
 
                 projectArr.forEach(settings => {
+
+                    // Set Experimental Version on Example Projects
+                    if (k != 'My Projects') settings.version = 'experimental'
+
                     let item = document.createElement('div')
                     item.innerHTML = settings.name
                     item.classList.add('brainsatplay-option-node')
@@ -560,7 +562,8 @@ export class GraphEditor{
                 categories: [],
                 instructions: "",
                 image: '',
-            
+                version: '',
+
                 display: {
                   production: false,
                   development: false
@@ -732,7 +735,6 @@ export class GraphEditor{
     addPort(node,port){
         let n = this.graph.nodes[node.label]
         if (n){
-            // console.log(n,node)
             n.addPort(port)
             this.addPortEvents(n)
         }
@@ -1197,7 +1199,7 @@ export class GraphEditor{
     }
  
 
-    createPluginSearch = (container) => {
+    createPluginSearch = async (container) => {
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
         selector.style.opacity = '0'
@@ -1240,12 +1242,13 @@ export class GraphEditor{
             this.matchOptions()
         }
 
-        this.classRegistry = Object.assign({}, plugins)
+        this.library = await this.app.session.projects.getLibraryVersion(this.app.info.version)
+        this.classRegistry = Object.assign({}, this.library.plugins)
         this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, undefined, () => {
-            this.createFile(Plugin, this.search.value)
+        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Plugin}, undefined, () => {
+            this.createFile(defaultPlugin, this.search.value)
             this.selectorToggle.click()
         })
 
@@ -1253,16 +1256,18 @@ export class GraphEditor{
         for (let type in this.classRegistry){
             let nodeType = this.classRegistry[type]
 
-            for (let key in nodeType){
-                let cls = this.classRegistry[type][key]
-                if (cls.hidden != true){
-                    if (!usedClasses.includes(cls.id)){
-                        // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                        this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
-                            this.addNode({class:cls})
-                            this.selectorToggle.click()
-                        })
-                        usedClasses.push(cls)
+            if (typeof nodeType === 'object'){ // Skip classes
+                for (let key in nodeType){
+                    let cls = this.classRegistry[type][key]
+                    if (cls.hidden != true){
+                        if (!usedClasses.includes(cls.id)){
+                            // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
+                            this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
+                                this.addNode({class:cls})
+                                this.selectorToggle.click()
+                            })
+                            usedClasses.push(cls)
+                        }
                     }
                 }
             }
@@ -1360,6 +1365,7 @@ export class GraphEditor{
     }
 
     addNodeOption(classInfo, type, onClick){
+
         let id = classInfo.id
         let label = classInfo.label
         if (('class' in classInfo)) classInfo = classInfo.class
