@@ -40,7 +40,12 @@ export class GraphManager{
             }
         }
         for (let port in node.ports){
-            if (typeof node.params[port] === 'object') delete node.params[port] // Cannot params manually set with objects
+            if (typeof node.params[port] === 'object') {
+                if (node.params[port].constructor){
+                    let name = node.params[port].constructor.name
+                    if (name === 'Element') delete node.params[port] // Cannot params manually set with Element
+                }
+            }
             if (node.params[port] == null) node.params[port] = node.ports[port].default
         }
 
