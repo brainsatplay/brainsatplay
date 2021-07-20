@@ -23,6 +23,10 @@ export class GraphManager{
         this.settings = settings
         this.registry = {local: {}, brainstorm: {}}
 
+        this.info = {
+            latencies: {}
+        }
+
         this.props = {
             toUnsubscribe: {
                 stateAdded: [],
@@ -62,6 +66,10 @@ export class GraphManager{
 
         // Add Default States
         node.states = {}
+        node.uuid = this._getRandomId()
+
+        // Setup Info Object
+        if (!(node.uuid in this.info.latencies)) this.info.latencies[node.uuid] = {label: node.label}
 
         if (node.ports != null){
             for (let port in node.ports){
@@ -260,6 +268,8 @@ export class GraphManager{
     // Input Must Be An Array
     runSafe(node, port='default',input=[{}], internal=false){
 
+        let tick = performance.now()
+ 
         try {
             // Shallow Copy State before Repackaging
             let inputCopy = []
@@ -323,6 +333,11 @@ export class GraphManager{
             }
         } catch (e) { console.log(e)}
 
+        // Calculate Latency
+        let tock = performance.now()
+        let latency = tock - tick
+        if (this.info.latencies[node.uuid].average == null) this.info.latencies[node.uuid].average = latency
+        else this.info.latencies[node.uuid].average = (this.info.latencies[node.uuid].average + latency)/2
 
         return node.states[port]
     }
@@ -608,8 +623,16 @@ export class GraphManager{
                             u.meta.session = applet.sessionId
                         })
 
-                        if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                        return this.runSafe(target, targetPort, input, true)
+                        let returned = this.runSafe(target, targetPort, input, true)
+                        if (this.applets[appId].editor) this.applets[appId].editor.animate(
+                            {label:source.label, port: sourcePort},
+                            {label:target.label, port: targetPort}, 
+                            [
+                                {node: source, latency: this.info.latencies[source.uuid].average},
+                                {node: target, latency: this.info.latencies[target.uuid].average},
+                            ])
+
+                        return returned
                     }
                 }
             }

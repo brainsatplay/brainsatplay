@@ -135,12 +135,18 @@ export class Node {
             this.addPort(port)
         }
 
-        element.insertAdjacentHTML('beforeend', `
-        <div class="node-text">
+        let nodeText = document.createElement('div')
+        nodeText.classList.add('node-text')
+        nodeText.innerHTML = `
             <h3>${node.constructor.name}</h3>
             <p>${node.label}<p>
-        </div>
-        `)
+        `
+
+        this.latencyDisplay = document.createElement('div')
+        this.latencyDisplay.classList.add('latency-display')
+        nodeText.insertAdjacentElement('beforeend', this.latencyDisplay)
+
+        element.insertAdjacentElement('beforeend', nodeText)
 
         element.insertAdjacentElement('beforeend', this.portManager)
         this.nodeDiv.insertAdjacentElement('beforeend', element)

@@ -926,6 +926,15 @@ select {
     pointer-events: none;
 }
 
+.node-text > .latency-display {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    background: #ff1439;
+    height: 2px;
+}
+
 .brainsatplay-display-node > .node-text h3{
     margin: 0px;
 }
