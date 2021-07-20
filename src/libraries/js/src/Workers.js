@@ -246,7 +246,7 @@ class dummyWorker {
     }
     terminate(){}
 
-    onmessage = (event) => {
+    onMessage = (event) => {
       // define gpu instance
       //console.log("worker executing...")
       console.time("worker");
