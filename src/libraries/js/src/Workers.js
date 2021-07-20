@@ -70,6 +70,14 @@ export class WorkerManager {
     createDummyWorker = () => {
         let id = "worker_"+Math.floor(Math.random()*10000000000);
         this.workers.push({worker:new dummyWorker(this.workerResponses), id:id});
+        this.workers[this.workers.length-1].onmessage = (ev) => {
+          var msg = ev.data;
+          //console.log(msg)
+          //window.receivedMsg(msg);
+          this.workerResponses.forEach((foo,i) => {
+              foo(msg);
+          });
+      };
         return id;
     }
 
@@ -244,9 +252,11 @@ class dummyWorker {
         let result = this.onMessage({data:input}); 
         this.onmessage(result);
     }
+
+    onmessage(event){}
     terminate(){}
 
-    onmessage = (event) => {
+    onMessage = (event) => {
       // define gpu instance
       //console.log("worker executing...")
       console.time("worker");
