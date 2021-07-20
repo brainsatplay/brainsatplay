@@ -60,6 +60,29 @@ export class Ramchurn{
             fps: 60
         }
 
+        this.props.container = document.createElement('div')
+        this.props.container.style = `width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: .5s;`
+        
+        this.props.input = document.createElement('input')
+        this.props.input.type = 'file'
+        this.props.input.style.display = 'none'
+        this.props.input.accept = 'video/*, audio/*'
+        this.props.input.multiple = true
+
+        this.props.input.oninput = () => {
+            this.session.graph.runSafe(this,'load', [{data: this.props.input.files}])
+        }
+
+        this.props.button = document.createElement('button')
+        this.props.button.classList.add('brainsatplay-default-button')
+        this.props.button.style.maxWidth = '50%'
+        this.props.button.innerHTML = 'Load Film Files'
+        this.props.button.onclick = () => {
+            this.props.input.click()
+        }
+
+        this.props.container.insertAdjacentElement('beforeend', this.props.button)
+
         this.ports = {
 
             // Start Film
@@ -93,6 +116,8 @@ export class Ramchurn{
                             this.props.videos.push(f)
                         }
                     })
+
+                    this.props.container.style.opacity = '0'
 
                     this.props.videos = this.shuffle(this.props.videos) // Shuffle videos
                     this.setScene(this.props.currentScene)
@@ -138,6 +163,12 @@ export class Ramchurn{
                     this.props.selectedKey = (this.props.selectedKey + 1) % 2
                     return userData
                 }
+            },
+
+            element: {
+                default: this.props.container,
+                input: {type: null},
+                output: {type: Element}
             }
         }
     }

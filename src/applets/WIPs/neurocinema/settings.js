@@ -41,11 +41,20 @@ export const settings = {
 
         // UI
         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
-          html: `<div id="vidContainer" class="video-container"></div>`,
+          html: `<div id="vidContainer" class="video-container"></div><div id="filmSelection"></div>`,
           style: `
           .brainsatplay-ui-container {
             width: 100%;
             height: 100%;
+          }
+
+          #filmSelection {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
           }
           
           .video-container {
@@ -62,6 +71,11 @@ export const settings = {
         {
           source: 'video:element',
           target: 'ui:vidContainer'
+        },
+
+        {
+          source: 'manager:element',
+          target: 'ui:filmSelection'
         },
 
         // Pass Videos

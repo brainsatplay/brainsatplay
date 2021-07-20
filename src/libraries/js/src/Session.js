@@ -1667,7 +1667,7 @@ else {
 					let keys = Object.keys(o)
 					let appMessage = ((o[keys[0]] == '') ? 'Idle' : `Currently in ${o[keys[0]]}`)
 					if (o[keys[1]] !== this.info.auth.username) {
-						userDiv.innerHTML.insertAdjacentHTML('beforeend', `
+						userDiv.insertAdjacentHTML('beforeend', `
 						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
 						<p style="font-size: 60%;">${o[keys[2]]}</p>
 						<p>${o[keys[1]]}</p>
