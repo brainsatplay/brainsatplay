@@ -8,7 +8,7 @@ let eegWorkers = [];
 import { gpuUtils } from './utils/gpuUtils.js';
 import { eegmath } from './utils/eegmath';
 
-const gpu = new gpuUtils();
+window.gpu = new gpuUtils();
 
 import worker from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
@@ -141,13 +141,13 @@ class dummyWorker {
     
         }},
         {case:'addgpufunc',callback:(args)=>{ //arg0 = gpu in-thread function string
-          gpu.addFunction(parseFunctionFromText(args[0]));
+          window.gpu.addFunction(parseFunctionFromText(args[0]));
         }},
         {case:'addkernel',callback:(args)=>{ //arg0 = kernel name, arg1 = kernel function string
-          gpu.addKernel(args[0],parseFunctionFromText(args[1]));
+          window.gpu.addKernel(args[0],parseFunctionFromText(args[1]));
         }},
         {case:'callkernel',callback:(args)=>{ //arg0 = kernel name, args.slice(1) = kernel input arguments
-          gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
+          window.gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
         }},
         {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
         {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},
@@ -156,27 +156,27 @@ class dummyWorker {
         {case:'sma', callback:(args)=>{return eegmath.sma(...args);}},
         {case:'dft', callback:(args)=>{
           if(args[2] == undefined) args[2] = 1;
-          return gpu.gpuDFT(...args);
+          return window.gpu.gpuDFT(...args);
         }},
         {case:'multidft', callback:(args)=>{
           if(args[2] == undefined) args[2] = 1;
-          return gpu.MultiChannelDFT(...args);
+          return window.gpu.MultiChannelDFT(...args);
         }},
         {case:'multidftbandpass', callback:(args)=>{
           if(args[4] == undefined) args[4] = 1;
-          return gpu.MultiChannelDFT_Bandpass(...args);
+          return window.gpu.MultiChannelDFT_Bandpass(...args);
         }},
         {case:'fft', callback:(args)=>{ 
           if(args[2] == undefined) args[2] = 1;
-          return gpu.gpuFFT(...args);
+          return window.gpu.gpuFFT(...args);
         }},
         {case:'multifft', callback:(args)=>{
           if(args[2] == undefined) args[2] = 1;
-          return gpu.MultiChannelFFT(...args);
+          return window.gpu.MultiChannelFFT(...args);
         }},
         {case:'multifftbandpass', callback:(args)=>{
           if(args[4] == undefined) args[4] = 1;
-          return gpu.MultiChannelFFT_Bandpass(...args);
+          return window.gpu.MultiChannelFFT_Bandpass(...args);
         }},
         {case:'gpucoh', callback:(args)=>{return gpu.gpuCoherence(...args);}},
         {case:'coherence', callback:(args)=>{
@@ -187,7 +187,7 @@ class dummyWorker {
           var scalar = 1;
           //console.log(mins)
           //console.log(buffer);
-          dfts = gpu.MultiChannelDFT_Bandpass(buffer, args[1], args[2], args[3], scalar);
+          dfts = window.gpu.MultiChannelDFT_Bandpass(buffer, args[1], args[2], args[3], scalar);
           //console.log(dfts)
           const cordfts = dfts[1].splice(args[0].length, buffer.length-args[0].length);
           //console.log(cordfts)
