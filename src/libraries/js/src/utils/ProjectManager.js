@@ -1,41 +1,41 @@
 import JSZip from 'jszip'
 import fileSaver from 'file-saver';
-import * as brainsatplayES6 from '../../brainsatplay'
+import * as brainsatplayLocal from '../../brainsatplay'
 
-// const script = document.createElement("script");
-// script.src = './_dist_/libraries/js/dist/brainsatplay.js'
-// script.async = true;
-// // script.type = 'module'
-
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.25";
-// script.onload = () => {
-//     console.log('script loaded')
-//     console.log('loaded', brainsatplay)
-//     if (brainsatplay) latest = brainsatplay
-// }
-// document.body.appendChild(script);
+let latest = '0.0.26'
+let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './blobUtils'
 
-
-let defaultPlugins = []
-for (let type in brainsatplayES6.plugins) {
-    for (let name in brainsatplayES6.plugins[type]) {
-        defaultPlugins.push({ name: name, id: brainsatplayES6.plugins[type][name].id, label: `brainsatplay.plugins.${type}.${name}` })
-    }
-}
-
 export class ProjectManager {
-    constructor(session, database) {
+    constructor(
+        session
+        ) {
         this.helper = new JSZip();
         this.session = session
         this.folders = {
             app: null
         }
 
-        this.serverResolved = true
+        this.latest = latest
+        this.script = document.createElement("script");
 
-        this.publishURL = (window.location.origin.includes('localhost')) ? 'http://localhost/apps' : 'https://brainsatplay.com/apps'
+        this.local = window.location.origin.includes('localhost')
+        if (!this.local) this.version = this.latest
+        else this.version = 'experimental'
+
+        // Load Latest B@P Library
+        this.libraries = {
+            experimental: brainsatplayLocal
+        }
+
+        if (this.version != 'experimental'){
+            this.getLibraryVersion(latest)
+        }
+
+        // Set Server Connection Variables
+        this.serverResolved = true
+        this.publishURL = (this.local) ? 'http://localhost/apps' : 'https://brainsatplay.com/apps'
 
         this.createDefaultHTML = (script) => {
             return `
@@ -44,12 +44,43 @@ export class ProjectManager {
             <head>
                 <title>Brains@Play Starter Project</title>
                 <link rel='stylesheet' href='./style.css'>
-                <script src="${latest}"></script>
+                <script src="${cdnLink}"></script>
                 ${script}
             </head>
             <body></body>
         </html>
         `}
+    }
+
+    getLibraryVersion = async (version='experimental') => {
+
+        return new Promise(resolve => {
+            if (this.libraries[version] == null){
+                this.script.src = `https://cdn.jsdelivr.net/npm/brainsatplay@${version}`
+                this.script.async = true;
+                this.script.onload = () => {
+                    console.log('loading version')
+                    if (brainsatplay) {
+                        this.libraries[version] = brainsatplay
+                        resolve(this.libraries[version])
+                    }
+                }
+                document.body.appendChild(this.script);
+            } else {
+                resolve(this.libraries[version])
+            }
+        })
+    }
+
+    getPlugins = (version) =>{
+        let module = this.libraries[version]
+        let plugins = []
+        for (let type in module.plugins) {
+            for (let name in module.plugins[type]) {
+                plugins.push({ name: name, id:module.plugins[type][name].id, label: `brainsatplay.plugins.${type}.${name}` })
+            }
+        }
+        return plugins
     }
 
     addDefaultFiles() {
@@ -122,7 +153,7 @@ app.init()`)
                             justify-content: center; 
                         }
                     </style>
-                    <script src="${latest}"></script>
+                    <script src="${cdnLink}"></script>
                     <script type="module">
                         ${combined}
                         let app =  new brainsatplay.Application(settings);
@@ -203,12 +234,23 @@ app.init()`)
         info.graph = Object.assign({}, info.graph)
         info.graph.nodes = info.graph.nodes.map(n => Object.assign({}, n))
 
+        // Default Settings
+        info.connect = true
+
+        if (info.version == null) info.version = this.version
+        delete info.editor
+
+        let plugins = this.getPlugins(info.version)
+
         let imports = ``
         // Add imports
         let classNames = []
         let classes = []
         app.info.graph.nodes.forEach(n => {
-            let found = defaultPlugins.find(o => { if (o.id === n.class.id) return o })
+            let found = plugins.find(o => { 
+                if (o.id === n.class.id) return o 
+            })
+            // let saveable = this.checkIfSaveable(n.class)
             if (!found && !classNames.includes(n.class.name)) {
                 imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
                 classNames.push(n.class.name)
@@ -235,11 +277,6 @@ app.init()`)
                 delete info.graph[key]
             }
         }
-
-        // Default Settings
-        info.connect = true
-        delete info.editor
-
 
         info = JSON.stringifyWithCircularRefs(info)
 
@@ -362,11 +399,12 @@ app.init()`)
 
     // Only save if a class instance can be created from the constructor string
     checkIfSaveable(node){
+        console.log(node)
         let editable = false
-        let constructor = node.prototype.constructor.toString()
         try {
+            let constructor = node.prototype.constructor.toString()
             let cls = eval(`(${constructor})`)
-            let instance = new cls()
+            let instance = new cls() // This triggers the catch
             editable = true
         }
         catch (e) {console.log('variable does not exist')}
@@ -432,11 +470,15 @@ app.init()`)
 
                     var re = /brainsatplay\.([^\.\,}]+)\.([^\.\,}]+)\.([^\.\,}]+)/g;
                     let m2;
+
+                    let version = info.settings.match(/"version":"([^"]+)/)[1]
+                    let library = await this.getLibraryVersion(version)
+
                     do {
                         m2 = re.exec(info.settings);
                         if (m2 == null) m2 = re.exec(info.settings) // be extra sure (weird bug)
                         if (m2) {
-                            let defaultClass = brainsatplayES6[m2[1]]
+                            let defaultClass = library[m2[1]]
                             for (let i = 2; i < m2.length; i++) {
                                 defaultClass = defaultClass[m2[i]]
                             }
@@ -455,11 +497,11 @@ app.init()`)
                         let moduleText = "data:text/javascript;base64," + btoa(info.settings);
                         let module = await import(moduleText);
                         settings = module.settings
-
                         // Replace Random IDs with Classes
                         settings.graph.nodes.forEach(n => {
                             n.class = classMap[n.class].class
                         })
+
                         resolve(settings)
                     } catch (e) {
                         console.error(e);
