@@ -252,6 +252,8 @@ class dummyWorker {
         let result = this.onMessage({data:input}); 
         this.onmessage(result);
     }
+
+    onmessage(event){}
     terminate(){}
 
     onMessage = (event) => {
