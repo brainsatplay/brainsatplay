@@ -8,7 +8,7 @@ let eegWorkers = [];
 import { gpuUtils } from './utils/gpuUtils.js';
 import { eegmath } from './utils/eegmath';
 
-const gpu = new gpuUtils();
+window.gpu = new gpuUtils();
 
 import worker from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
@@ -238,18 +238,6 @@ let callbacks = [
 class dummyWorker {
     constructor(workerResponses) {
         this.workerResponses = workerResponses;
-    }
-    onmessage(msg){
-        this.workerResponses.forEach((foo,i) => {
-            foo(msg);
-        });
-    }
-
-    postMessage=(input)=>{
-        let result = this.onMessage({data:input}); 
-        this.onmessage(result);
-    }
-    terminate(){}
 
     onMessage=(event) => {
         // define gpu instance
@@ -263,11 +251,29 @@ class dummyWorker {
             return true;
           }
         });
-      
-        // output some results!
-        console.timeEnd("worker");
-      
-          return {output: output, foo: event.data.foo, origin: event.data.origin};
-
     }
-}
+
+    postMessage=(input)=>{
+        let result = this.onMessage({data:input}); 
+        this.onmessage(result);
+    }
+    terminate(){}
+
+    onMessage = (event) => {
+      // define gpu instance
+      //console.log("worker executing...")
+      console.time("worker");
+      let output = "function not defined";
+    
+      this.callbacks.find((o,i)=>{
+        if(o.case === event.data.foo) {
+          output = o.callback(event.data.input);
+          return true;
+        }
+      });
+    
+      // output some results!
+      console.timeEnd("worker");
+    
+    }
+  }
