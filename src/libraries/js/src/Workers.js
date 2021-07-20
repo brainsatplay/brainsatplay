@@ -238,6 +238,7 @@ let callbacks = [
 class dummyWorker {
     constructor(workerResponses) {
         this.workerResponses = workerResponses;
+    }
 
     onMessage=(event) => {
         // define gpu instance
