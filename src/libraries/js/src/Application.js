@@ -25,7 +25,7 @@ export class Application{
     }
 
     init() {
-
+        delete this.intro
         // Grab Style of Previous Top-Level Wrapper
         if (this.props.id == null) this.container.style = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
 

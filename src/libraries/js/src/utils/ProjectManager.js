@@ -30,7 +30,7 @@ export class ProjectManager {
         this.helper = new JSZip();
         this.session = session
         this.folders = {
-            app: this.helper.folder("app")
+            app: null
         }
 
         this.serverResolved = true
@@ -80,24 +80,25 @@ app.init()`)
 
     }
 
+    initializeZip = () => {
+        this.helper.remove("app")
+        this.folders.app = this.helper.folder("app")
+        this.addDefaultFiles()
+    }
 
     generateZip(app, callback) {
-        this.addDefaultFiles()
+        
+        this.initializeZip()
         let o = this.appToFile(app)
-        let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
-
-            // // NOTE: Does not appropriately pull in the included classes
-            // if(c.combined !== 'undefined' && c.combined !== undefined)
-            //     combined+=c.combined;
         })
 
-        app.graph.nodes.forEach(n => {
-            combined += n.class.prototype.constructor.toString();
-        })
-
+        // Combine Custom Plugins into the Compact File
+        let combined = ``;
+        o.classes.forEach(c => combined += c.prototype.constructor.toString())
         combined += o.combined;
+
         this.folders.app.file(o.filename, o.data)
         this.helper.file("compact.html", `
             <!DOCTYPE html> 
