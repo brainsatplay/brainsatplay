@@ -18,6 +18,8 @@ export const settings = {
     graph:
     {
       nodes: [
+        {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
         {
           id:'unity', 
           class: brainsatplay.plugins.interfaces.Unity, 
@@ -30,6 +32,14 @@ export const settings = {
     ],
 
       edges: [
+        {
+          source: 'eeg:atlas',
+          target: 'neurofeedback',
+        },
+        {
+          source: 'neurofeedback',
+          target: 'unity',
+        },
         {
           source: 'unity:element',
           target: 'ui:content',

@@ -26,10 +26,11 @@ export class Unity{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    userData.forEach((u,i) => {
+                    // userData.forEach((u,i) => {
                         let data = userData[0].data
+                        console.log(data)
                         if (this.props.instance) this.props.instance.SendMessage('System', 'UpdateData', data);
-                    })
+                    // })
                 }
             },
             element: {
@@ -56,14 +57,14 @@ export class Unity{
             {
                 this.props.instance = unityInstance;
 
-                let animate = () => {
-                    // Get Frontal Alpha Coherence
-                    let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(), 'alpha1');
-                    this.props.instance.SendMessage('System', 'UpdateData', coherence);
+                // let animate = () => {
+                //     // Get Frontal Alpha Coherence
+                //     let coherence = this.session.atlas.getCoherenceScore(this.session.atlas.getFrontalCoherenceData(), 'alpha1');
+                //     this.props.instance.SendMessage('System', 'UpdateData', coherence);
         
-                    // Continue update
-                    setTimeout(this.animation = window.requestAnimationFrame(animate), 1000 / 60); // Limit framerate to 60fps
-                }
+                //     // Continue update
+                //     setTimeout(this.animation = window.requestAnimationFrame(animate), 1000 / 60); // Limit framerate to 60fps
+                // }
             }).catch(onError);
         }
         
