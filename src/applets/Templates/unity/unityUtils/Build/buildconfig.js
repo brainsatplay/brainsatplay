@@ -1,4 +1,4 @@
-var buildUrl = "./_dist_/libraries/js/src/plugins/interfaces/unity/Build";
+var buildUrl = "./_dist_/applets/Templates/unity/unityUtils/Build";
 export var config = {
   dataUrl: buildUrl + "/webbuild.data",
   frameworkUrl: buildUrl + "/webbuild.framework.js",

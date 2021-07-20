@@ -7,7 +7,7 @@ import * as brainsatplayES6 from '../../brainsatplay'
 // script.async = true;
 // // script.type = 'module'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.22";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.24";
 // script.onload = () => {
 //     console.log('script loaded')
 //     console.log('loaded', brainsatplay)
@@ -189,6 +189,14 @@ app.init()`)
         })
     }
 
+    _prettyPrint(string, indent='\t'){
+        // string = string.replaceAll('{', '{\n')
+        // string = string.replaceAll('}', '\n}')
+        // string = string.replaceAll(',', ',\n')
+
+        return string
+    }
+
     appToFile(app) {
 
         let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
@@ -245,7 +253,7 @@ app.init()`)
         return {
             name: app.info.name, filename: 'settings.js', data: `${imports}
         
-        export const settings = ${info};`, combined: `const settings = ${info};\n`, classes
+        export const settings = ${info};`, combined: `const settings = ${this._prettyPrint(info)};\n`, classes
         }
     }
 
