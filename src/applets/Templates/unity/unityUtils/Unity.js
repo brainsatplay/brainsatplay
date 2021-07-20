@@ -65,10 +65,13 @@ export class Unity{
                 //     // Continue update
                 //     setTimeout(this.animation = window.requestAnimationFrame(animate), 1000 / 60); // Limit framerate to 60fps
                 // }
+
             }).catch(onError);
         }
         
     }
 
-    deinit = () => {}
+    deinit = () => {
+        this.props.instance.Quit()
+    }
 }

@@ -1,4 +1,5 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
+import {Unity} from './unityUtils/Unity'
 
 // import * as webbuild from './webbuild.loader'
 
@@ -22,7 +23,7 @@ export const settings = {
         {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
         {
           id:'unity', 
-          class: brainsatplay.plugins.interfaces.Unity, 
+          class: Unity, 
           // params:{webbuild}
         },
         {

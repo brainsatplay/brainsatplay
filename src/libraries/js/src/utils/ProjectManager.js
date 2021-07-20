@@ -7,7 +7,7 @@ import * as brainsatplayES6 from '../../brainsatplay'
 // script.async = true;
 // // script.type = 'module'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.22";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.25";
 // script.onload = () => {
 //     console.log('script loaded')
 //     console.log('loaded', brainsatplay)
@@ -30,7 +30,7 @@ export class ProjectManager {
         this.helper = new JSZip();
         this.session = session
         this.folders = {
-            app: this.helper.folder("app")
+            app: null
         }
 
         this.serverResolved = true
@@ -80,24 +80,25 @@ app.init()`)
 
     }
 
+    initializeZip = () => {
+        this.helper.remove("app")
+        this.folders.app = this.helper.folder("app")
+        this.addDefaultFiles()
+    }
 
     generateZip(app, callback) {
-        this.addDefaultFiles()
+        
+        this.initializeZip()
         let o = this.appToFile(app)
-        let combined = ``;
         o.classes.forEach(c => {
             this.addClass(c)
-
-            // // NOTE: Does not appropriately pull in the included classes
-            // if(c.combined !== 'undefined' && c.combined !== undefined)
-            //     combined+=c.combined;
         })
 
-        app.graph.nodes.forEach(n => {
-            combined += n.class.prototype.constructor.toString();
-        })
-
+        // Combine Custom Plugins into the Compact File
+        let combined = ``;
+        o.classes.forEach(c => combined += c.prototype.constructor.toString())
         combined += o.combined;
+
         this.folders.app.file(o.filename, o.data)
         this.helper.file("compact.html", `
             <!DOCTYPE html> 
@@ -188,6 +189,14 @@ app.init()`)
         })
     }
 
+    _prettyPrint(string, indent='\t'){
+        // string = string.replaceAll('{', '{\n')
+        // string = string.replaceAll('}', '\n}')
+        // string = string.replaceAll(',', ',\n')
+
+        return string
+    }
+
     appToFile(app) {
 
         let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
@@ -218,7 +227,6 @@ app.init()`)
             delete n['fragment']
             delete n['controls']
             delete n['analysis']
-            delete n['editor']
             n.class = `${classNames[i]}`
         })
 
@@ -227,6 +235,11 @@ app.init()`)
                 delete info.graph[key]
             }
         }
+
+        // Default Settings
+        info.connect = true
+        delete info.editor
+
 
         info = JSON.stringifyWithCircularRefs(info)
 
@@ -244,7 +257,7 @@ app.init()`)
         return {
             name: app.info.name, filename: 'settings.js', data: `${imports}
         
-        export const settings = ${info};`, combined: `const settings = ${info};\n`, classes
+        export const settings = ${info};`, combined: `const settings = ${this._prettyPrint(info)};\n`, classes
         }
     }
 
@@ -252,7 +265,7 @@ app.init()`)
         return { filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`, combined: cls.toString() + `\n` }
     }
 
-    download(app, filename = 'brainsatplay') {
+    download(app, filename = app.info.name ?? 'brainsatplay') {
         this.generateZip(app, (zip) => {
             fileSaver.saveAs(zip, `${filename}.zip`);
         })
