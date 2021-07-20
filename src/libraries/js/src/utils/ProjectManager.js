@@ -332,14 +332,17 @@ app.init()`)
         let fileArray = []
         return new Promise(async (resolve, reject) => {
             let blob = blobUtils.dataURLtoBlob(url.toString('utf-8'))
-            this.helper.loadAsync(blob)
-            .then(async (zip) => {
-                let arr = await this.getFilesFromZip(zip)
-                arr.forEach((o,i) => {
-                    fileArray.push(o)
-                    if (i == arr.length - 1) resolve(fileArray)
+
+            if (blob){
+                this.helper.loadAsync(blob)
+                .then(async (zip) => {
+                    let arr = await this.getFilesFromZip(zip)
+                    arr.forEach((o,i) => {
+                        fileArray.push(o)
+                        if (i == arr.length - 1) resolve(fileArray)
+                    })
                 })
-            })
+            } else console.error('Not a data url')
         })
     }
 
