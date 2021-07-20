@@ -341,7 +341,7 @@ export class GraphManager{
                         if (node.states[port].length > i){
 
                             let case1, case2
-                            if (typeof o.data === 'object'){
+                            if (typeof o.data === 'object' || typeof o.data === 'function'){
                                 case1 = node.states[port][i]
                                 case2 = o
                                 stringify = false

@@ -940,6 +940,7 @@ export class GraphEditor{
                 }
     
                 settings.onSave = (res) => {
+                    if (defaultType === 'Function') res = res[key]
                    if (plugin) this.manager.runSafe(plugin, key, [{data: res}])
                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 }
@@ -1097,7 +1098,6 @@ export class GraphEditor{
             if (n.class.id == target.id) node = n
         })
 
-        if (editable){
         if (this.files[filename] == null){
             this.files[filename] = {}
 
@@ -1169,7 +1169,6 @@ export class GraphEditor{
         } else {
             this.clickTab(this.files[filename].tab)
         }
-    }
     }
 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
