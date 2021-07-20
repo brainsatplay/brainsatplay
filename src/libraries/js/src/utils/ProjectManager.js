@@ -7,7 +7,7 @@ import * as brainsatplayES6 from '../../brainsatplay'
 // script.async = true;
 // // script.type = 'module'
 
-let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.24";
+let latest = "https://cdn.jsdelivr.net/npm/brainsatplay@0.0.25";
 // script.onload = () => {
 //     console.log('script loaded')
 //     console.log('loaded', brainsatplay)
@@ -227,7 +227,6 @@ app.init()`)
             delete n['fragment']
             delete n['controls']
             delete n['analysis']
-            delete n['editor']
             n.class = `${classNames[i]}`
         })
 
@@ -236,6 +235,11 @@ app.init()`)
                 delete info.graph[key]
             }
         }
+
+        // Default Settings
+        info.connect = true
+        delete info.editor
+
 
         info = JSON.stringifyWithCircularRefs(info)
 
@@ -261,7 +265,7 @@ app.init()`)
         return { filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`, combined: cls.toString() + `\n` }
     }
 
-    download(app, filename = 'brainsatplay') {
+    download(app, filename = app.info.name ?? 'brainsatplay') {
         this.generateZip(app, (zip) => {
             fileSaver.saveAs(zip, `${filename}.zip`);
         })

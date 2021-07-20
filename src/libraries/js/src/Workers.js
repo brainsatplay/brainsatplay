@@ -77,7 +77,7 @@ export class WorkerManager {
 
         if (Array.isArray(input.input)){
         input.input = input.input.map(v => {
-          if (typeof v === 'object' || typeof v === 'function') return v.toString()
+          if (typeof v === 'function') return v.toString()
           else return v
         })} 
 
