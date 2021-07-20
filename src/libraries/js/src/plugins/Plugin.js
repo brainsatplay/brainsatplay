@@ -28,9 +28,9 @@ export class Plugin{
                 output: {type: null},
                 default: 10,
                 meta: {label: `${this.label}_number`},
-                min: 0,
-                max: 100,
-                step: 0.01,
+                // min: 0,
+                // max: 100,
+                // step: 0.01,
                 onUpdate: (userData) => {
                     let u = userData[0]
                     this.params.number = u.data // Auto-assigned parameter

@@ -1,6 +1,7 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
-import {UI} from './UI.js'
+import {Parser} from './Parser'
+
 export const settings = {
     name: "Neurofeedback Template",
     devices: ["EEG"],
@@ -10,7 +11,7 @@ export const settings = {
     instructions:"Coming soon...",
     display: {
       production: false,
-      development: false
+      development: true
     },
 
     intro: {
@@ -24,7 +25,23 @@ export const settings = {
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {id: 'brainstorm', class: brainsatplay.plugins.networking.Brainstorm, params: {}},
-        {id: 'ui', class: UI, params: {}},
+        {id: 'parser', class: Parser, params: {}},
+        {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+          style: `
+          .brainsatplay-ui-container {
+            width: 100%;
+            height: 100%;
+          }
+
+          #content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          `
+        }},
       ],
 
       edges: [
@@ -38,7 +55,11 @@ export const settings = {
         },
         {
           source: 'brainstorm:neurofeedback', 
-          target: 'ui:readout'
+          target: 'parser'
+        },
+        {
+          source: 'parser:element', 
+          target: 'ui:content'
         },
       ]
     },
