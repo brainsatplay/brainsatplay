@@ -33,9 +33,7 @@ module.exports = {
       {
         test: /\.worker\.js$/,
         loader: "worker-loader",
-        options: {
-          inline: "no-fallback",
-        },
+        options: { inline: "fallback" },
       },
       {
         test: /\.m?js$/,
