@@ -3,7 +3,7 @@ import { eegmath } from './eegmath';
 
 const gpu = new gpuUtils();
 
-let callbacks = [
+const callbacks = [
   {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
 
     let newFunc = parseFunctionFromText(args[1]);
@@ -151,25 +151,12 @@ const onMessage = (event) => {
   // output some results!
   console.timeEnd("worker");
 
-  try {
-    if(window.document === undefined)
-    {
-      postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
-      return 0;
-    } else return {output: output, foo: event.data.foo, origin: event.data.origin};
-  } catch (err) {
-    postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
-    return 0;
-  }
+  postMessage({output: output, foo: event.data.foo, origin: event.data.origin});
+
 }
 
-try {
-  if(window.document === undefined)
-  {
-    addEventListener('message', onMessage);
-  } 
-} catch (err) {
-  addEventListener('message', onMessage);
-}
+ 
+addEventListener('message', onMessage);
+
 
 export default onMessage
