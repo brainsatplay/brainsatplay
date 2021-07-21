@@ -12,7 +12,8 @@ window.gpu = new gpuUtils();
 
 import worker from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
-    eegWorkers.push(new worker())
+    eegWorkers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
+    {name:'eegworker_'+this.workers.length, type: 'module',}))
 }
 
 export class WorkerManager {
@@ -268,9 +269,11 @@ class dummyWorker {
           return true;
         }
       });
-    
+
       // output some results!
       console.timeEnd("worker");
+    
+      return output;
     
     }
   }
