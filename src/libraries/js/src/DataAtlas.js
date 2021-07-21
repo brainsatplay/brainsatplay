@@ -1483,9 +1483,9 @@ export class DataAtlas {
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
 						if (this.settings.analysis.eegcoherence){
+							this.workerWaiting = true;
 							window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
 							//window.workers.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerId);
-							this.workerWaiting = true;
 						}
                     }
                 }

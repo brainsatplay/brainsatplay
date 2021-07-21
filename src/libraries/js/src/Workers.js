@@ -12,9 +12,9 @@ window.gpu = new gpuUtils();
 
 import worker from './utils/eeg.worker.js'
 for(var i = 0; i < defaultWorkerThreads; i++){
-    eegWorkers.push(new Worker(workerurl,//new URL(workerurl, import.meta.url),
-    {name:'eegworker_'+this.workers.length, type: 'module',}))
+    eegWorkers.push(new worker())
 }
+
 
 export class WorkerManager {
     constructor(){
@@ -31,6 +31,7 @@ export class WorkerManager {
                     var msg = e.data;
                     //console.log(msg)
                     //window.receivedMsg(msg);
+                    console.log(msg, this.workerResponses)
                     this.workerResponses.forEach((foo,i) => {
                         foo(msg);
                     });
@@ -43,6 +44,8 @@ export class WorkerManager {
         catch (err) {
             console.error(err);
         }
+
+        console.log(this.workerResponses)
     }
 
     addWorker = (workerurl='./_dist_/libraries/js/src/utils/eeg.worker.js') => {
@@ -56,10 +59,12 @@ export class WorkerManager {
                 var msg = ev.data;
                 //console.log(msg)
                 //window.receivedMsg(msg);
+                console.log(msg, this.workerResponses)
                 this.workerResponses.forEach((foo,i) => {
                     foo(msg);
                 });
             };
+            console.log(this.workerResponses)
             console.log("worker threads: ", this.workers.length)
             return id; //worker id
         } catch (err) {
@@ -76,11 +81,15 @@ export class WorkerManager {
 
     postToWorker = (input, id = null) => {
 
+      console.log(input.input)
         if (Array.isArray(input.input)){
         input.input = input.input.map(v => {
           if (typeof v === 'function') return v.toString()
           else return v
         })} 
+        console.log(input.input)
+
+        console.log(id, input)
 
         if(id === null) {
             this.workers[this.workerThreadrot].worker.postMessage(input);
@@ -92,8 +101,11 @@ export class WorkerManager {
             }
         }
         else{
+
             this.workers.find((o)=>{
+              console.log(o, id)
                 if(o.id === id) {
+                  console.log('posting message to worker', o.worker.onmessage)
                     o.worker.postMessage(input); 
                     return true;}
             })
@@ -242,9 +254,13 @@ class dummyWorker {
     }
 
     postMessage=(input)=>{
+
+        console.log('input',input)
         let result = this.onMessage({data:input}); 
+        console.log('output',result)
         //console.log(msg)
         //window.receivedMsg(msg);
+        console.log('this.workerResponses', this.workerResponses)
         this.workerResponses.forEach((foo,i) => {
             foo(result);
         });

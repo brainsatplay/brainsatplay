@@ -336,6 +336,7 @@ export class GraphManager{
         // Calculate Latency
         let tock = performance.now()
         let latency = tock - tick
+        if (this.info.latencies[node.uuid] == null) this.info.latencies[node.uuid] = {}
         if (this.info.latencies[node.uuid].average == null) this.info.latencies[node.uuid].average = latency
         else this.info.latencies[node.uuid].average = (this.info.latencies[node.uuid].average + latency)/2
 

@@ -137,7 +137,7 @@ function parseFunctionFromText(method){
 
 const onMessage = (event) => {
   // define gpu instance
-  //console.log("worker executing...")
+  console.log("worker executing...", event)
   console.time("worker");
   let output = "function not defined";
 

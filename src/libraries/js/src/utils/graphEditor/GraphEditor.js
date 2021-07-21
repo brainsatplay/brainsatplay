@@ -24,6 +24,7 @@ export class GraphEditor{
         }
         this.searchOptions = []
         this.classRegistry = {}
+        this.local = window.location.origin.includes('localhost')
 
         this.selectorToggle = null
         this.search = null
@@ -337,12 +338,15 @@ export class GraphEditor{
 
         // Get Template Files
         let templateSet = []
-        for (let key in appletManifest){
-            let o = appletManifest[key]
-            let settings = await getAppletSettings(o.folderUrl)
-            if (settings.graph) {
-                if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
-                else templateSet.push({destination: 'Examples', settings})
+
+        if (this.local){
+            for (let key in appletManifest){
+                let o = appletManifest[key]
+                let settings = await getAppletSettings(o.folderUrl)
+                if (settings.graph) {
+                    if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
+                    else templateSet.push({destination: 'Examples', settings})
+                }
             }
         }
 
@@ -367,58 +371,61 @@ export class GraphEditor{
 
                 let projectArr = galleries[k]
 
-                // Create Top Header
-                if (k !== 'My Projects'){
-                    let div = document.createElement('div')
-                    div.classList.add(`brainsatplay-option-type`) 
-                    div.classList.add(`option-type-collapsible`)
-                    div.innerHTML = k
-                    this.addDropdownFunctionality(div)
-                    this.props.projectContainer.insertAdjacentElement('beforeend', div)
-                }
+                if (projectArr){
 
-                // Create Project List
-                let projects = document.createElement('div')
-                projects.id = `${this.props.id}-projectlist-${k}`
-                projects.classList.add("option-type-content")
-                this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
-
-
-                projectArr.forEach(settings => {
-
-                    // Set Experimental Version on Example Projects
-                    if (k != 'My Projects') settings.version = 'experimental'
-
-                    let item = document.createElement('div')
-                    item.innerHTML = settings.name
-                    item.classList.add('brainsatplay-option-node')
-                    item.style.padding = '10px 20px'
-                    item.style.display = 'block'
-
-                    item.onclick = async () => {
-
-                        // if (this.props.projects.style.pointerEvents != 'none'){
-                        // Rename Template Projects
-                        if (k === 'Templates'){
-                            settings = Object.assign({}, settings)
-                            if (settings.name === 'Blank Project') settings.name = 'My Project'
-                        }
-
-                        // Create Application
-                        if (settings.name === 'Load from File') {
-                            settings = await this.app.session.projects.loadFromFile()
-                            this._createApp(settings)
-                        } else this._createApp(settings)
-                    // }
+                    // Create Top Header
+                    if (k !== 'My Projects'){
+                        let div = document.createElement('div')
+                        div.classList.add(`brainsatplay-option-type`) 
+                        div.classList.add(`option-type-collapsible`)
+                        div.innerHTML = k
+                        this.addDropdownFunctionality(div)
+                        this.props.projectContainer.insertAdjacentElement('beforeend', div)
                     }
-                    if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
-                        // div.style.flex = '43%'
-                        projects.insertAdjacentElement('afterbegin',item)
-                    } else {projects.insertAdjacentElement('beforeend',item)}
 
-                })
+                    // Create Project List
+                    let projects = document.createElement('div')
+                    projects.id = `${this.props.id}-projectlist-${k}`
+                    projects.classList.add("option-type-content")
+                    this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
 
-                if (k === 'My Projects') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+
+                    projectArr.forEach(settings => {
+
+                        // Set Experimental Version on Example Projects
+                        if (k != 'My Projects') settings.version = 'experimental'
+
+                        let item = document.createElement('div')
+                        item.innerHTML = settings.name
+                        item.classList.add('brainsatplay-option-node')
+                        item.style.padding = '10px 20px'
+                        item.style.display = 'block'
+
+                        item.onclick = async () => {
+
+                            // if (this.props.projects.style.pointerEvents != 'none'){
+                            // Rename Template Projects
+                            if (k === 'Templates'){
+                                settings = Object.assign({}, settings)
+                                if (settings.name === 'Blank Project') settings.name = 'My Project'
+                            }
+
+                            // Create Application
+                            if (settings.name === 'Load from File') {
+                                settings = await this.app.session.projects.loadFromFile()
+                                this._createApp(settings)
+                            } else this._createApp(settings)
+                        // }
+                        }
+                        if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
+                            // div.style.flex = '43%'
+                            projects.insertAdjacentElement('afterbegin',item)
+                        } else {projects.insertAdjacentElement('beforeend',item)}
+
+                    })
+
+                    if (k === 'My Projects') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+                }
             })
         })
     }
