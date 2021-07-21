@@ -18,10 +18,10 @@ for(var i = 0; i < defaultWorkerThreads; i++){
 
 export class WorkerManager {
     constructor(){
-        this.workerResponses = []
-        this.workers = []
-        this.workerThreads = defaultWorkerThreads
-        this.workerThreadrot = 0
+        this.workerResponses = [];
+        this.workers = [];
+        this.workerThreads = defaultWorkerThreads;
+        this.workerThreadrot = 0;
 
         // Setup EEG Workers
         try {
@@ -266,7 +266,6 @@ class dummyWorker {
         });
     }
 
-    onmessage(event){}
     terminate(){}
 
     onMessage = (event) => {
