@@ -5,6 +5,13 @@ export class Node {
         this.nodeInfo = nodeInfo
         this.parentNode = this.graph.parentNode ?? document.body
         this.element = this.createElement(this.nodeInfo)
+
+        // Set Transform based on Settings
+        if (this.nodeInfo.style) {
+            let transform = this.nodeInfo.style.split('transform: ')[1].split(';')[0]
+            this.element.style.transform = transform
+        }
+
         this.edges = []
     }
 
@@ -100,7 +107,6 @@ export class Node {
             portWrapper.insertAdjacentElement('beforeend', portElement)
             this[`${inorout}Ports`].insertAdjacentElement('beforeend', portWrapper)
         })
-
         this.resize()
     }
 
@@ -163,7 +169,7 @@ export class Node {
         let minWidth = 100
         let minHeight = 0
         for (let container of portContainers) {
-            minHeight = Math.max(minHeight, container.offsetHeight)
+            minHeight = Math.max(minHeight, container.clientHeight)
         }
         minWidth = Math.max(minWidth, this.portLabels.offsetWidth)
 

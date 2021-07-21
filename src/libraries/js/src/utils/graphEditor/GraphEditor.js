@@ -187,7 +187,7 @@ export class GraphEditor{
                 // Scale View of Graph
 
                 let relXParent, relYParent
-                // let relX, relY
+                let relX, relY
                 let translation = {x: 0, y:0}
                 let mouseDown
                 this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
@@ -212,8 +212,11 @@ export class GraphEditor{
                         // else {
                         //     // Grab Target Coords for Scaling
                         //     let rect = e.target.getBoundingClientRect();
-                        //     relX = (e.clientX - rect.left)/rect.width; //x position within the element.
-                        //     relY = (e.clientY - rect.top)/rect.height;  //y position within the element.
+                        //     // let rect = this.viewer.getBoundingClientRect()
+                        //     let p1 = {x: e.clientX, y: e.clientY}
+                        //     let position = this.mapPositionFromScale(p1, rect)
+                        //     console.log({x: e.clientX, y: e.clientY}, position)
+                        //     this.viewer.style['transformOrigin'] = `${position.x}px ${position.y}px`;
                         // }
                         relXParent = curXParent
                         relYParent = curYParent
@@ -222,7 +225,6 @@ export class GraphEditor{
 
                 let updateUI = () => {
                     this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
-                    // this.viewer.style['transformOrigin'] = `${relX*100}% ${relY*100}%`;
                 }
 
                 // Change scale
@@ -266,9 +268,11 @@ export class GraphEditor{
                     let leftShift = 0.5 * availableSpace/(iterator+1)
                     let downShift = 0.5 * availableSpace/(iterator+2)
         
-                    node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-                    node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
-                    i++
+                    if (n.style == null) {
+                        node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                        node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                        i++
+                    }
                 })
 
                 // Setup Edges
@@ -510,6 +514,7 @@ export class GraphEditor{
             }
 
             tab.onclick = () => {
+
                 if (tab.style.display !== 'none'){
                     // Close Other Tabs
                     let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
@@ -796,7 +801,10 @@ export class GraphEditor{
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
         let node = this.graph.addNode(nodeInfo)
-        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
+        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
+            this.editing = false
+            node.nodeInfo.style = node.element.style.cssText
+        })
 
         if (skipManager == false) this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
@@ -807,12 +815,27 @@ export class GraphEditor{
         // Place Node if Location is Provided
         if (this.nextNode) {
             let rect = this.viewer.getBoundingClientRect()
-            node.element.style.top = `${this.nextNode.position.y - rect.top}px`
-            node.element.style.left = `${this.nextNode.position.x  - rect.left}px`
+            let position = this.mapPositionFromScale(this.nextNode.position, rect)
+            node.element.style.top = `${position.x}px`
+            node.element.style.left = `${position.y}px`
             this.nextNode = null
         }
 
         return node
+    }
+
+    mapPositionFromScale = (position, rect) => {
+        let relYPx = (position.y - rect.top)
+        let relXPx = (position.x - rect.left)
+        let relYPctMapped = (relYPx / rect.height) * (1/this.context.scale)
+        let relXPctMapped = (relXPx / rect.width) * (1/this.context.scale)
+        position.x = relYPctMapped * rect.height
+        position.y = relXPctMapped * rect.width
+        for (let key in position){
+            if (isNaN(position[key])) position[key] = 0
+        }
+        
+        return position
     }
 
     addNodeEvents(node){
@@ -1142,9 +1165,14 @@ export class GraphEditor{
         if (name == null || name === '') name = `${target.name}`
         let filename = `${name}.js`
 
-         let node = this.plugins.nodes.find(n => {
-            if (n.class.id == target.id) return n
-        })
+        let getNode = (target) => {
+            return this.plugins.nodes.find(n => {
+                if (n.class.id == target.id) return n
+            })
+        }
+
+         let activeNode = getNode(target)
+        
 
         if (this.files[filename] == null){
             this.files[filename] = {}
@@ -1160,26 +1188,29 @@ export class GraphEditor{
             settings.onSave = (cls) => {
                 let instanceInfo = this.manager.instantiateNode({id:cls.name,class: cls})
                 let instance = instanceInfo.instance
-                        Object.getOwnPropertyNames( instance ).forEach(k => {
-                            if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
-                                node.instance[k] = instance[k]
-                            }
 
-                            if (k === 'ports'){
-                                for (let port in instance.ports){
-                                    if (node.instance.ports[port] == null) node.instance.ports[port] = instance.ports[port]
-                                    else {
-                                        let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
-                                        keys.forEach(str => {
-                                            node.instance.ports[port][str] = instance.ports[port][str]
-                                        })
-                                    }
+                if (activeNode){
+                    Object.getOwnPropertyNames( instance ).forEach(k => {
+                        if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
+                            activeNode.instance[k] = instance[k]
+                        }
+
+                        if (k === 'ports'){
+                            for (let port in instance.ports){
+                                if (activeNode.instance.ports[port] == null) activeNode.instance.ports[port] = instance.ports[port]
+                                else {
+                                    let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
+                                    keys.forEach(str => {
+                                        activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                    })
                                 }
                             }
-                        })
+                        }
+                    })
 
-                // Set New Class
-                node.class = cls
+                    // Set New Class
+                    activeNode.class = cls
+                }
                 cls.id = container.id // Assign a reliable id to the class
                 target = cls // Update target replacing all matching nodes
             }
@@ -1208,8 +1239,15 @@ export class GraphEditor{
 
             this.saveFileEvent(filename, onsave)
 
+            if (activeNode == null){
+                onsave()
+                this.clickTab(this.files['Graph Editor'].tab)
+                this.addNode({class:target})
+                activeNode = getNode(target)
+            }
+
             // Add Option to Selector
-            this.addNodeOption({id:target.id, label: target.name, class:target}, 'custom', () => {
+            this.addNodeOption({id:target.id, label: target.name, class:target}, null, () => {
                 this.addNode({class:target})
                 this.selectorToggle.click()
             })
@@ -1293,8 +1331,9 @@ export class GraphEditor{
         this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Plugin}, undefined, () => {
-            this.createFile(defaultPlugin, this.search.value)
+        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Plugin}, null, () => {
+            this.createFile(this.library.plugins.Plugin, this.search.value)
+            // this.addNode({class:this.library.plugins.Plugin})
             this.selectorToggle.click()
         })
 
@@ -1323,7 +1362,7 @@ export class GraphEditor{
             let cls = n.class
             if (!usedClasses.includes(cls)){
                 this.classRegistry['custom'][cls.name] = cls
-                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, 'custom', () => {
+                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, null, () => {
                     this.addNode({class:cls})
                     this.selectorToggle.click()
                 })
@@ -1347,7 +1386,9 @@ export class GraphEditor{
                 if (cls.includes('nodetype-')){
                     let type = cls.replace('nodetype-','')
                     let labelMatch = regex.test(type)
-                    if (labelMatch) matchedHeaderTypes.push(type)
+                    if (labelMatch) {
+                        matchedHeaderTypes.push(type)
+                    }
                 }
             }
         }
@@ -1394,17 +1435,17 @@ export class GraphEditor{
 
                 // Open/Close Dropdown
                 if (parent.previousElementSibling){
-                    if (numMatching === 0 || this.search.value === '') {
-                        parent.previousElementSibling.classList.remove('active') // Close dropdown
-                        parent.style.maxHeight = null
-
-                        // Also Show/Hide Toggle
-                        if (numMatching === 0) parent.previousElementSibling.style.display = 'none'
-                        else parent.previousElementSibling.style.display = ''
-                    } else if (show) {
+                    if (show) {
                         parent.previousElementSibling.classList.add("active");
                         parent.style.maxHeight = parent.scrollHeight + "px";
+                    } else if (numMatching === 0 || this.search.value === '') {
+                        parent.previousElementSibling.classList.remove('active') // Close dropdown
+                        parent.style.maxHeight = null
                     }
+
+                    // Also Show/Hide Toggle
+                    if (!show && numMatching === 0) parent.previousElementSibling.style.display = 'none'
+                    else parent.previousElementSibling.style.display = ''
                 }
             }
         })

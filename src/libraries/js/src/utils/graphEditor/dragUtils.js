@@ -16,8 +16,12 @@ export const dragElement = (container, dragItem, context, onMove, onDown,onUp) =
     container.addEventListener("mouseup", dragEnd, false);
     container.addEventListener("mousemove", drag, false);
     
-    dragItem.style.transform = `scale(${defaultScale})`;
-
+    if (dragItem.style.transform == '') dragItem.style.transform = `scale(${defaultScale})`;
+   else {
+      let arr = dragItem.style.transform.split('translate3d')[1].split('(')[1].split(')')[0].split(',')
+      xOffset = arr[0].split('px')[0]
+      yOffset = arr[1].split('px')[0]
+    }
 
     function dragStart(e) {
 
