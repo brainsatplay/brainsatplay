@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplayLocal from '../../brainsatplay'
 
-let latest = '0.0.26'
+let latest = '0.0.29'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './blobUtils'
@@ -337,7 +337,6 @@ app.init()`)
             })
         })
     }
-    
 
 
     async save(app) {
@@ -399,7 +398,6 @@ app.init()`)
 
     // Only save if a class instance can be created from the constructor string
     checkIfSaveable(node){
-        console.log(node)
         let editable = false
         try {
             let constructor = node.prototype.constructor.toString()
