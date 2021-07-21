@@ -273,7 +273,7 @@ class dummyWorker {
       // output some results!
       console.timeEnd("worker");
     
-      return output;
+      return {output: output, foo: event.data.foo, origin: event.data.origin};
     
     }
   }
