@@ -641,12 +641,52 @@ export class GraphEditor{
     }
 
 
-    animate(source,target){
+    animate(source,target,latencyArr){
         if (this.shown){
+            if (latencyArr) {
+                latencyArr.forEach(o => {
+                    this.animateLatency(o.node,o.latency)
+                })
+            }
             this.animateNode(source,'source')
             this.animateNode(target,'target')
             this.animateEdge(source,target)
         }
+    }
+    
+    getColorfromMap = (pct, map) => {
+        for (var i = 1; i < map.length - 1; i++) {
+            if (pct < map[i].pct) {
+                break;
+            }
+        }
+        var lower = map[i - 1];
+        var upper = map[i];
+        var range = upper.pct - lower.pct;
+        var rangePct = (pct - lower.pct) / range;
+        var pctLower = 1 - rangePct;
+        var pctUpper = rangePct;
+        var color = {
+            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+        };
+        return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+        // or output as hex if preferred
+    };
+
+    animateLatency(node,latency){
+        let instance = this.graph.nodes[node.label]
+        let pct = Math.min(1,latency/1)
+
+        let map = [
+            { pct: 0.0, color: { r: 0x39, g: 0xff, b: 0x14 } },
+            { pct: 0.5, color: { r: 0xfa, g: 0xed, b: 0x27 } },
+            { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
+        ];
+        
+        instance.latencyDisplay.style.width = `${pct*100}%`
+        instance.latencyDisplay.style.background = this.getColorfromMap(pct, map)
     }
 
     animateNode(node,type){
@@ -1095,9 +1135,8 @@ export class GraphEditor{
         if (name == null || name === '') name = `${target.name}`
         let filename = `${name}.js`
 
-        let node 
-        this.plugins.nodes.forEach(n => {
-            if (n.class.id == target.id) node = n
+         let node = this.plugins.nodes.find(n => {
+            if (n.class.id == target.id) return n
         })
 
         if (this.files[filename] == null){
