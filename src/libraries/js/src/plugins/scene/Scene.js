@@ -59,12 +59,12 @@ export class Scene{
         this.ports = {
             add: {
                 input: {type: Object},
-                out: null,
+                output: {type: null},
                 onUpdate: (userData) => {
                     userData.forEach(u => {
                         if (!Array.isArray(u.data)) u.data = [u.data]
                         u.data.forEach(mesh => {
-                            this.props.scene.add(mesh)
+                            if (mesh instanceof THREE.Object3D) this.props.scene.add(mesh)
                             // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
                         })
                     })
@@ -425,7 +425,7 @@ export class Scene{
 
 
 // Adapted from https://github.com/mrdoob/three.js/blob/d4aa9e00ea29808534a3e082f602c544e5f2419c/examples/js/interactive/InteractiveGroup.js
-const _pointer = new THREE.Vector2();
+const _pointer = {x:0, y:0}
 
 const _event = {
     type: '',

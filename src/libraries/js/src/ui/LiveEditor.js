@@ -191,6 +191,7 @@ export class LiveEditor {
                 }
 
                 else if (this.props.language === 'glsl'){
+                    this.target = this.input.value;
                     this.onSave(this.target)
                 }
             }
@@ -296,8 +297,8 @@ export class LiveEditor {
             }
         } else if (this.props.language === 'glsl'){
             if (this.target){
-                this.head = 'Fragment Shader';
-                this.body = this.target.replace(new RegExp(";", "g"), ";\n")
+                this.head = 'WebGL Shader';
+                this.body = this.target[this.key].replace(new RegExp(";", "g"), ";\n")
                 .replace(new RegExp("{", "g"), "{\n")
                 .replace(new RegExp("}", "g"), "}\n");
                 this.copy = this.body

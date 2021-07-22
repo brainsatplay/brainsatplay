@@ -8,12 +8,13 @@ export class GraphManager{
         this.session = session
 
         // Centrally Manage Plugins through the Project Manager
+        this.plugins = plugins
         if (this.session.projects) {
             (async() => {
                 let library = await this.session.projects.getLibraryVersion(this.session.projects.version)
                 this.plugins = library.plugins
             })()
-        } else this.plugins = plugins
+        }
 
         // Two Modes
         this.applets = {}
@@ -39,6 +40,28 @@ export class GraphManager{
         this.state = new StateManager()
     }
 
+    convertNodeParamsToSaveableTypes = (node) => {
+        for (let port in node.ports){
+            // if (typeof node.params[port] === 'object') {
+            //     if (node.params[port] instanceof Element)
+            //     // if (node.params[port].constructor){
+            //     //     let name = node.params[port].constructor.name
+            //         if (name === 'Element') delete node.params[port] // Cannot params manually set with Element
+            //     // }
+            // }
+            if (node.params[port] == null) {
+                node.params[port] = node.ports[port].default
+            }
+        }
+        return node.params
+    }
+
+    getPortsFromClass(nodeInfo,session=this.session) {
+        let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+        node.states = {}
+        return node.ports
+    }
+
     instantiateNode(nodeInfo,session=this.session){
 
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
@@ -51,15 +74,8 @@ export class GraphManager{
                 node.params[param] = node.paramOptions[param].default
             }
         }
-        for (let port in node.ports){
-            if (typeof node.params[port] === 'object') {
-                if (node.params[port].constructor){
-                    let name = node.params[port].constructor.name
-                    if (name === 'Element') delete node.params[port] // Cannot params manually set with Element
-                }
-            }
-            if (node.params[port] == null) node.params[port] = node.ports[port].default
-        }
+
+        node.params = this.convertNodeParamsToSaveableTypes(node)
 
         // Set Params to Info Object
         nodeInfo.params = node.params
@@ -75,15 +91,6 @@ export class GraphManager{
             for (let port in node.ports){
                 controlsToBind.push(...this.instantiateNodePort(node, port, node.params[port]))
             }
-        } else {
-            node.ports = {
-                default:{
-                    active:{in:0,out:0}, 
-                    input: {type:node.ports[port]?.types.in}, 
-                    output: {type:node.ports[port]?.types?.out}
-                }
-            }
-            node.states['default'] = [{}]
         }
         
         nodeInfo.controls = controlsToBind
@@ -249,6 +256,9 @@ export class GraphManager{
 
     deeperCopy(input){
         let inputCopy = []
+        
+        let isArray = Array.isArray(input)
+        if (!isArray) input = [input]
 
         input.forEach(u => {
             inputCopy.push(Object.assign({}, u))
@@ -258,6 +268,8 @@ export class GraphManager{
                 }
             }
         })
+
+        if (!isArray) inputCopy = inputCopy[0]
         return inputCopy
     }
 
@@ -299,10 +311,10 @@ export class GraphManager{
             }
             
             let connected
-            if (node.ports[port].active?.out > 0) connected = true
-            if (node.ports[port].active?.in > 0) connected = true
-            if (node.ports[port]?.output?.type === null) connected = true
-            if (node.ports[port]?.input?.type === null) connected = true
+            if (node.ports[port].output.active > 0) connected = true
+            if (node.ports[port].input.active > 0) connected = true
+            if (node.ports[port].output.type === null) connected = true
+            if (node.ports[port].input.type === null) connected = true
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
             if ((inputCopy.length > 0 || forceRun) && ((connected || forceUpdate))){
@@ -445,7 +457,9 @@ export class GraphManager{
             // Create Edges
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
+                    try {
                     setupCallbacks.push(this.addEdge(id, edge, false))
+                    } catch (e) {console.log('Failed to Create Edge', e)}
                 })
             }
         }
@@ -508,27 +522,55 @@ export class GraphManager{
             }
             controls.push(controlDict)
         }
+
+
         if (node.ports[port].analysis == null) node.ports[port].analysis = []
-        if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
-        
-        if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
-        if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
+
+        let types = ['input', 'output']
+        types.forEach(type => {
+            if (node.ports[port][type] == null) node.ports[port][type] = {type: undefined, active: 0}
+            if (!('active' in node.ports[port][type])) node.ports[port][type].active = 0
+        })
 
         let coerceType = (t) => {
             if (t === 'float') return 'number'
             else if (t === 'int') return'number'
             else return t
         }
-        node.ports[port].input.type = coerceType(node.ports[port].input?.type)
-        node.ports[port].output.type = coerceType(node.ports[port].output?.type)
+
+        node.ports[port].input.type = coerceType(node.ports[port].input.type)
+        node.ports[port].output.type = coerceType(node.ports[port].output.type)
 
         return controls
+    }
+
+    updatePorts = (node) => {
+        for (let port in this.registry.local[node.label].registry){
+            if (!(port in node.ports)){
+                console.log('need to remove a port')
+            }
+        }
+    }
+
+    removePort = (node, port) => {
+
+        // Remove Record of Port
+        delete node.ports[port]
+        delete this.registry.local[node.label].registry[port]
+
+        // Remove Port on Visual Editor
+        let applet = this.applets[node.app?.props?.id]
+        if (applet){
+            let editor = applet.editor
+            if (editor) editor.removePort(node,port)
+        }
     }
 
     addPort = (node, port, info) => {
         if (node.states && info) { // Only if node is fully instantiated            
             let noPort = node.ports[port] == null
             if (noPort || node.ports[port].onUpdate == null){
+                
                 // Add Port to Node
                 node.ports[port] = info
                 this.instantiateNodePort(node,port)
@@ -662,20 +704,10 @@ export class GraphManager{
             let tP = target.ports[targetPort]
             let sP = source.ports[sourcePort]
 
-            if (tP.active == null) tP.active = {in: 0, out: 0}
-            if (sP.active == null) sP.active = {in: 0, out: 0}
-            if (tP.input == null) tP.input = {type: tP?.types?.in}
-            if (tP.output == null) tP.output = {type: tP?.types?.out}
-            if (sP.input == null) sP.input = {type: sP?.types?.in}
-            if (sP.output == null) sP.output = {type: sP?.types?.out}
-
-            tP.active.in++
-            sP.active.out++
-            if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
-            if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
-
-
-
+            tP.input.active++
+            sP.output.active++
+            if (tP.input.active && tP.output.active && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+            if (sP.input.active && sP.output.active && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
             // Push Edge into Registry
             this.applets[appId].edges.push(newEdge)
@@ -729,7 +761,7 @@ export class GraphManager{
                 if ((label === null || n.instance.label === label) && this.registry.local[n.instance.label] != null){
                     this.registry.local[n.instance.label].count--
 
-                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in > 0 || n.instance.ports[port].active.out > 0)){
+                if (n.instance.ports[port].active != null && (n.instance.ports[port].input.active > 0 || n.instance.ports[port].output.active > 0)){
 
                     // Catch Edge Removal Case
                     if (this.registry.local[n.instance.label].count == 0) {
@@ -820,8 +852,8 @@ export class GraphManager{
         let target = targetInfo.instance
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
-        tP.active.in--
-        sP.active.out--
+        tP.input.active--
+        sP.output.active--
 
         let toRemove = []
         let toCheck = []

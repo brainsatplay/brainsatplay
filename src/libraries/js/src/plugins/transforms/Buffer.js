@@ -14,10 +14,8 @@ export class Buffer{
 
         this.ports = {
             default: {
-                types: {
-                    in: undefined,
-                    out: Array,
-                }
+                input: {type: undefined},
+                output: {type: Array},
             }
         }
 

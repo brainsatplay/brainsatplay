@@ -29,22 +29,16 @@ export class Cursor{
 
         this.ports = {
             click: {
-                types: {
-                    in: 'boolean',
-                    out: null
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             dx: {
-                types: {
-                    in: 'number',
-                    out: null
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             dy: {
-                types: {
-                    in: 'number',
-                    out: null
-                }
+                input: {type: 'number'},
+                output: {type: null},
             }
         }
     }

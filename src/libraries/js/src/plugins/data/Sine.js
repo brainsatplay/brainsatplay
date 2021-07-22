@@ -19,10 +19,8 @@ export class Sine{
 
         this.ports = {
             default: {
-                types: {
-                    in: null,
-                    out: 'number'
-                }
+                input: {type: null},
+                output: {type: 'number'},
             }
         }
 

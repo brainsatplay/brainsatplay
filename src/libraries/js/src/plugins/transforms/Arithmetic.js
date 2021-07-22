@@ -77,38 +77,28 @@ export class Arithmetic{
             },
             subtract: {
                 default: 0,
-                types: {
-                    in: 'number',
-                    out: 'number',
-                }
+                input: {type: 'number'},
+                output: {type: 'number'},
             },
             multiply: {
                 default: 0,
-                types: {
-                    in: 'number',
-                    out: 'number',
-                }
+                input: {type: 'number'},
+                output: {type: 'number'},
             },
             divide: {
                 default: 0,
-                types: {
-                    in: 'number',
-                    out: 'number',
-                }
+                input: {type: 'number'},
+                output: {type: 'number'},
             },
             mean: {
                 edit: false,
-                types: {
-                    in: null,
-                    out: 'number',
-                }
+                input: {type: null},
+                output: {type: 'number'},
             },
             sum: {
                 edit: false,
-                types: {
-                    in: null,
-                    out: 'number',
-                }
+                input: {type: null},
+                output: {type: 'number'},
             }
         }
     }

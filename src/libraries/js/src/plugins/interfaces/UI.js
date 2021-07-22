@@ -41,27 +41,6 @@ export class UI{
                     this.props.container.style.opacity = val
                 }
              },
-             add: {
-                input: {type:Object},
-                output: {type: null},
-                default: {},
-                onUpdate:(userData) => {
-                    let u = userData[0]
-                    let dict = u.data
-
-                    if (dict.HTMLtemplate && u.meta.source && this.props.fragments[u.meta.source] == null){
-
-                        // Insert Fragment
-                        this.props.fragments[u.meta.source] = new DOMFragment(
-                            dict.HTMLtemplate,
-                            this.props.container,
-                            undefined,
-                            dict.setupHTML
-                        )
-                        this.session.graph._resizeAllNodeFragments(this.app.props.id)
-                    }
-                }
-             }
         }
 
         // Dynamically Add Ports
@@ -79,6 +58,7 @@ export class UI{
                     oldEls.reverse().forEach((n2, j) => {
                         if (n1.id === n2.id) {
 
+
                                 let moreHTML = n1.innerHTML.trim().length > n2.innerHTML.trim().length
                                 let equalHTML = n1.innerHTML.trim() === n2.innerHTML.trim()
                                 let active = n2.getAttribute('data-active')
@@ -86,18 +66,25 @@ export class UI{
                                 let keepUnchanged = (active && n1.innerHTML.trim() === '')
 
                                 let keep = []
+                                
+                                // Keep If Child are the Same
                                 if (!moreHTML){
                                     n1.parentNode.replaceChild(n2, n1) // Move matching elements to new container)
                                     keep.push(n2)
                                 }
 
+                                // Keep All Descendents if Element is Active OR Children are the Same
                                 if (keepUnchanged || equalHTML){
                                     let descendants = Array.from(n2.querySelectorAll("*"))
                                     keep.push(...descendants)
                                 }
 
-                                if (moreHTML && n2.parentNode != this.props.container) keep.push(n2.parentNode)
+                                // Keep ParentNode if Children Different AND Parent Node is not the Container
+                                if (moreHTML && n2.parentNode != this.props.container) {
+                                    keep.push(n2.parentNode)
+                                }
             
+                                // Remove Specified Elements
                                 keep.forEach(target => {
                                     toRemove.find((el,i) => {
                                         if (target === el) {
@@ -110,8 +97,11 @@ export class UI{
                     })
                 })
 
-
-                toRemove.forEach(el => el.remove())
+                let removedIds = new Set()
+                toRemove.forEach(el => {
+                    removedIds.add(el.id)
+                    el.remove()
+                })
 
                 // Add children to proper container
                 for (let child of Array.from(newContainer.children).reverse()){
@@ -122,7 +112,14 @@ export class UI{
                 var descendants = this.props.container.querySelectorAll("*");
                 for (let node of descendants){
 
-                    if (node.id && node.innerHTML.trim() === ''){ // Create ports for blank elements with IDs
+                    // Find Descendents with ID
+                    let noDescendentWithID = true
+                    Array.from(node.querySelectorAll("*")).forEach(el => {
+                        if (el.id !=- null) noDescendentWithID = false
+                    })
+                    // node.innerHTML.trim() === ''
+                    if (node.id && noDescendentWithID){ // Create ports for blank elements with IDs
+                        removedIds.delete(node.id) // Actually still there
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
                             output: {type: null},
@@ -156,6 +153,11 @@ export class UI{
 
                     }
                 }
+
+                // // Remove Unused IDs as Ports
+                Array.from(removedIds).forEach(id => {
+                    this.session.graph.removePort(this, id) // Remove Port of Non-Empty Ids                                     
+                })
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (userData) => {
@@ -235,10 +237,7 @@ export class UI{
     responsive = () => {
         if (this.params.responsive instanceof Function) this.params.responsive()
        for (let key in this.props.onresize){
-        //    console.log(key, this.ports[key])
-        //    if (this.ports[key].active.in > 0) 
            this.props.onresize[key]()
-        //    else delete this.props.onresize[key]
        }
     }
 }

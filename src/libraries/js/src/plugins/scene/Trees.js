@@ -26,6 +26,7 @@ class Trees{
         // Port Definition
         this.ports = {
             add: {
+                edit: false,
                 input: {type: null},
                 output: {type: Object, name: 'Mesh'},
                 onUpdate: () => {

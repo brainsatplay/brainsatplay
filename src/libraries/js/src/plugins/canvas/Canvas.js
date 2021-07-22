@@ -78,7 +78,6 @@ export class Canvas{
     }
 
     responsive = () => {
-        console.log('resize canvas')
         this.props.canvas.width = this.props.container.offsetWidth
         this.props.canvas.height = this.props.container.offsetHeight
     }

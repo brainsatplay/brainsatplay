@@ -40,9 +40,9 @@ class UI {
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (userData) => {
-                    console.error(userData[0])
+                    // console.error(userData[0])
                     let choices = userData.map(u => Number(u.data))
-                    console.log(choices,userData[0])
+                    // console.log(choices,userData[0])
                     let mean = this.session.atlas.mean(choices)
             
                     let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})

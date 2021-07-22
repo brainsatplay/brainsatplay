@@ -31,6 +31,7 @@ export class Light{
 
         this.ports = {
             add: {
+                edit: false,
                 default: this.props.mesh,
                 input: {type: null},
                 output: {type: Object, name: 'Mesh'},
@@ -44,28 +45,20 @@ export class Light{
                 }
             },
             radius: {
-                types: {
-                    in: 'number',
-                    out: null,
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             dx: {
-                types: {
-                    in: 'number',
-                    out: null,
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             dy: {
-                types: {
-                    in: 'number',
-                    out: null,
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             color: {
-                types: {
-                    in: 'color',
-                    out: null,
-                }
+                input: {type: 'color'},
+                output: {type: null},
             },
         }
 

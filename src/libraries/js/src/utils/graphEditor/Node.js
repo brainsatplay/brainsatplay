@@ -70,10 +70,13 @@ export class Node {
     }
 
     removePort(port) {
-        let node = this.nodeInfo.instance
-        this[`inputPorts`].querySelector(`port-${port}`).remove()
-        this[`outputPorts`].querySelector(`port-${port}`).remove()
-        this.portLabels.querySelector(`[name="${port}"]`).remove()
+        // let node = this.nodeInfo.instance
+        let input = this[`inputPorts`].querySelector(`.port-${port}`)
+        input.parentNode.remove()
+        let output = this[`outputPorts`].querySelector(`.port-${port}`)
+        output.parentNode.remove()
+        let label = this.portLabels.querySelector(`[name="${port}"]`)
+        label.remove()
         this.resize()
     }
 
@@ -85,8 +88,9 @@ export class Node {
             let inorout = (s == 'target') ? 'input' : 'output'
             let nodeType
 
-            nodeType = node.ports[port][inorout].type
-            if (nodeType instanceof Object) nodeType = node.ports[port][inorout].name ?? nodeType.name
+            let portInfo = node.ports[port][inorout]
+            nodeType = portInfo?.type
+            if (nodeType instanceof Object) nodeType = portInfo.name ?? nodeType?.name
             let portWrapper = document.createElement('div')
             portWrapper.classList.add(`node-port-wrapper`)
             let portElement = document.createElement('div')

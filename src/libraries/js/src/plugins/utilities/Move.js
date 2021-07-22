@@ -12,42 +12,30 @@ export class Move{
 
         this.ports = {
             up: {
-                types: {
-                    in: 'boolean',
-                    out: null,
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             down: {
-                types: {
-                    in: 'boolean',
-                    out: null,
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             left: {
-                types: {
-                    in: 'boolean',
-                    out: null,
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             right: {
-                types: {
-                    in: 'boolean',
-                    out: null,
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             // x: {},
             // y: {},
             dx: {
-                types: {
-                    in: 'number',
-                    out: 'number',
-                }
+                input: {type: 'number'},
+                output: {type: 'number'},
             },
             dy: {
-                types: {
-                    in: 'number',
-                    out: 'number',
-                }
+                input: {type: 'number'},
+                output: {type: 'number'},
             },
         }
 

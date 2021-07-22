@@ -267,8 +267,8 @@ export class GraphEditor{
                     let availableSpace = 100 - 2*padding
                     let leftShift = 0.5 * availableSpace/(iterator+1)
                     let downShift = 0.5 * availableSpace/(iterator+2)
-        
-                    if (n.style == null) {
+                    
+                    if (!n.style.includes('top') && !n.style.includes('left')) {
                         node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
                         node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
                         i++
@@ -371,6 +371,8 @@ export class GraphEditor{
             galleries['My Projects'].unshift({name: 'Load from File'})
 
             let galleryKeys = ['My Projects', 'Templates', 'Examples'] // Specify ordering
+
+            let lastClickedProjectCategory = ''
             galleryKeys.forEach(k => {
 
                 let projectArr = galleries[k]
@@ -393,7 +395,6 @@ export class GraphEditor{
                     projects.classList.add("option-type-content")
                     this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
 
-
                     projectArr.forEach(settings => {
 
                         // Set Experimental Version on Example Projects
@@ -406,10 +407,9 @@ export class GraphEditor{
                         item.style.display = 'block'
 
                         item.onclick = async () => {
-
-                            // if (this.props.projects.style.pointerEvents != 'none'){
+                            
                             // Rename Template Projects
-                            if (k === 'Templates'){
+                            if (k !== 'My Projects'){
                                 settings = Object.assign({}, settings)
                                 if (settings.name === 'Blank Project') settings.name = 'My Project'
                             }
@@ -418,8 +418,17 @@ export class GraphEditor{
                             if (settings.name === 'Load from File') {
                                 settings = await this.app.session.projects.loadFromFile()
                                 this._createApp(settings)
-                            } else this._createApp(settings)
+                            } else {
+                                if (((this.lastSavedProject === this.app.info.name) || lastClickedProjectCategory == 'My Projects') && k === 'My Projects' && this.app.info.name === settings.name) {
+                                    this._createApp(this.app.info)
+                                } else {
+                                    console.log(settings)
+                                    this._createApp(settings)
+                                }
+                            }
                         // }
+                        lastClickedProjectCategory = k
+
                         }
                         if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
                             // div.style.flex = '43%'
@@ -466,6 +475,7 @@ export class GraphEditor{
         let onsave = () => {
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
+            this.lastSavedProject = this.app.info.name
         }
         save.onclick = onsave
         this.saveFileEvent('Graph Editor', onsave)
@@ -784,6 +794,19 @@ export class GraphEditor{
 
     }
 
+    // updatePorts(node){
+    //     let n = this.graph.nodes[node.label]
+    //     if (n) {
+    //         n.updatePorts(node)
+    //         this.addPortEvents(n)
+    //     }
+    // }
+    
+    removePort(node,port){
+        let n = this.graph.nodes[node.label]
+        if (n) n.removePort(port)
+    }
+
     addPort(node,port){
         let n = this.graph.nodes[node.label]
         if (n){
@@ -801,6 +824,14 @@ export class GraphEditor{
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
         let node = this.graph.addNode(nodeInfo)
+
+        let top
+        let left
+        if (nodeInfo.style){
+            top = nodeInfo.style.match(/top: ([^;].+); /)
+            left = nodeInfo.style.match(/left: ([^;].+);\s?/)
+        }
+
         dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
             this.editing = false
             node.nodeInfo.style = node.element.style.cssText
@@ -813,13 +844,18 @@ export class GraphEditor{
         if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
 
         // Place Node if Location is Provided
-        if (this.nextNode) {
+        if (top || left){
+            if (top) node.element.style.top = top[1]
+            if (left) node.element.style.left = left[1]
+        } else if (this.nextNode) {
             let rect = this.viewer.getBoundingClientRect()
             let position = this.mapPositionFromScale(this.nextNode.position, rect)
             node.element.style.top = `${position.x}px`
             node.element.style.left = `${position.y}px`
             this.nextNode = null
         }
+
+        node.nodeInfo.style = node.element.style.cssText // Set initial translation
 
         return node
     }
@@ -895,6 +931,8 @@ export class GraphEditor{
 
             let input
             
+
+            // console.log(defaultType)
         // Cannot Handle Objects or Elements
         if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Element'){
 
@@ -987,7 +1025,7 @@ export class GraphEditor{
                     input.type = 'number'
                     input.value = toEdit[key]
                 }
-            } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
+            } else if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)){
                 input = document.createElement('button')
                 input.classList.add('brainsatplay-default-button')
                 input.style.width = 'auto'
@@ -1344,7 +1382,6 @@ export class GraphEditor{
             if (typeof nodeType === 'object'){ // Skip classes
                 for (let key in nodeType){
                     let cls = this.classRegistry[type][key]
-                    if (cls.hidden != true){
                         if (!usedClasses.includes(cls.id)){
                             // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
                             this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
@@ -1353,7 +1390,6 @@ export class GraphEditor{
                             })
                             usedClasses.push(cls)
                         }
-                    }
                 }
             }
         }
@@ -1491,6 +1527,7 @@ export class GraphEditor{
             element.classList.add("brainsatplay-option-node")
             element.classList.add(`${id}`)
             element.innerHTML = `<p>${label}</p>`
+            
             element.onclick = () => {
                 onClick()
                 document.getElementById(`${this.props.id}add`).click() // Close menu
@@ -1499,21 +1536,26 @@ export class GraphEditor{
             // element.insertAdjacentElement('beforeend',labelDiv)
             contentOfType.insertAdjacentElement('beforeend',element)
 
-            // Add Instance Details to Plugin Registry
-            let types = new Set()
-            let o = this.app.session.graph.instantiateNode({class:classInfo})
-            let instance = o.instance
-            for(let port in instance.ports){
-                let type = instance.ports[port].input.type
-                if (type instanceof Object) types.add(type.name)
-                else types.add(type)
+            if (classInfo.hidden && !this.local) element.remove()
+            else {
+                if (classInfo.hidden) element.classList.add("experimental")
+           
+
+                // Add Instance Details to Plugin Registry
+                let types = new Set()
+                let ports = this.app.session.graph.getPortsFromClass({class:classInfo})
+                for(let port in ports){
+                    let type = ports[port].input.type
+                    if (type instanceof Object) types.add(type.name)
+                    else types.add(type)
+                }
+
+                this.searchOptions.push({label, element, types, category: type})
+                if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
+
+                let count = options.querySelector(`.${type}-count`)
+                if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
             }
-
-            this.searchOptions.push({label, element, types, category: type})
-            if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
-
-            let count = options.querySelector(`.${type}-count`)
-            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
         }
     }
 

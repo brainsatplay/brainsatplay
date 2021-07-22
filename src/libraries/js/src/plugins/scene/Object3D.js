@@ -32,13 +32,15 @@ export class Object3D{
             state: new StateManager(),
             lastRendered: Date.now(),
             tStart: Date.now(),
-            looping: false
+            looping: false,
+            scaleOffset: 0
         }
 
         this._setObject()
 
         this.ports = {
             add: {
+                edit: false,
                 default: this.props.mesh,
                 input: {type: null},
                 output: {type: Object, name: 'Mesh'},
@@ -49,6 +51,7 @@ export class Object3D{
                 }
             },
             material: {
+                edit: false,
                 input: {type: Object, name: 'Material'},
                 output: {type: null},
                 onUpdate: (userData) => {
@@ -61,6 +64,7 @@ export class Object3D{
                 }
             },
             geometry: {
+                edit: false,
                 input: {type: Object, name: 'Geometry'},
                 output: {type: null},
                 onUpdate: (userData) => {
@@ -73,21 +77,38 @@ export class Object3D{
                 }
             },
             scale: {
-                types: {
-                    in: 'number',
-                    out: null,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.scalex = this.params.scaley = this.params.scalez = Math.abs(Number.parseFloat(userData[0].data))
+                }
+            },
+            scaleOffset: {
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.props.scaleOffset = Number.parseFloat(userData[0].data)
+                    this._updateProps()
                 }
             },
             dx: {
-                types: {
-                    in: 'number',
-                    out: null,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
+                    if (desiredX > 0){
+                        this.params.x = desiredX
+                    }
                 }
             },
             dy: {
-                types: {
-                    in: 'number',
-                    out: null,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
+                    if (desiredY > 0){
+                        this.params.y = desiredY
+                    }
                 }
             },
         }
@@ -118,7 +139,7 @@ export class Object3D{
                 // Set Defaults
                 if (this.props.mesh.material.uniforms){
                     if (this.props.mesh.material.uniforms.iTime == null) this.props.mesh.material.uniforms.iTime = {value: tElapsed}
-                    if (this.props.mesh.material.uniforms.iResolution == null) this.props.mesh.material.uniforms.iResolution = {value: new THREE.Vector2(1, 1)}
+                    if (this.props.mesh.material.uniforms.iResolution == null) this.props.mesh.material.uniforms.iResolution = {value: new THREE.Vector2(1,1)}
 
                     // Update Defaults
                     this.props.mesh.material.uniforms.iTime.value = tElapsed
@@ -144,33 +165,14 @@ export class Object3D{
     }
 
     _updateProps = () => {
-        this.props.mesh.scale.set(this.params.scalex, this.params.scaley,this.params.scalez)
+        this.props.mesh.scale.set(this.params.scalex + this.props.scaleOffset, this.params.scaley + this.props.scaleOffset, this.params.scalez + this.props.scaleOffset)
         this.props.mesh.position.set(this.params.x, this.params.y, this.params.z)
-        if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1, 1);
+        if (this.props.mesh.material?.uniforms?.iResolution != null) this.props.mesh.material.uniforms.iResolution.value = new THREE.Vector2(1,1);
         this.props.mesh.rotateX(this.params.rotatex)
         this.props.mesh.rotateY(this.params.rotatey)
         this.props.mesh.rotateZ(this.params.rotatez)
         this.props.mesh.name = `${this.label}`
     }
-
-    scale = (userData) => {
-        this.params.scalex = this.params.scaley = this.params.scalez = Math.abs(Number.parseFloat(userData[0].data))
-    }
-
-    dx = (userData) => {
-        let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
-        if (desiredX > 0){
-            this.params.x = desiredX
-        }
-    }
-
-    dy = (userData) => {
-        let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
-        if (desiredY > 0){
-            this.params.y = desiredY
-        }
-    }
-
 
     // Macros
     _setObject = () => {

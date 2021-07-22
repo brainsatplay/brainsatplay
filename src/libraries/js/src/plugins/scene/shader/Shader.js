@@ -1,3 +1,5 @@
+import fragmentShader from './fragment.glsl'
+
 export class Shader{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -14,23 +16,16 @@ export class Shader{
 
         this.ports = {
             default: {
-                default: '', 
+                default: fragmentShader, 
                 meta: {label: this.label, uniforms: this.props.uniforms},
-                input: {type: null},
-                output: {type: 'glsl'},
-                onUpdate: () => {
-                    return [{data: this.params.glsl, meta: {label: this.label, uniforms: this.props.uniforms}}]
-                }
-            },
-            set: {
-                input: {type: 'glsl'},
-                output: {type: null},
+                input: {type: 'GLSL'},
+                output: {type: 'GLSL'},
                 onUpdate: (userData) => {
                     let u = userData[0]
                     if (typeof u.data === 'string'){
-                        this.params.glsl = u.data
-                        this._setDynamicPorts(this.params.glsl)
-                        this.session.graph.runSafe(this,'default',[{forceRun: true, forceUpdate: true}])
+                        this.params.default = u.data
+                        this._setDynamicPorts(this.params.default)
+                        return [{data: this.params.default, meta: {label: this.label, uniforms: this.props.uniforms}}]
                     }
                 }
             }
@@ -38,8 +33,10 @@ export class Shader{
     }
 
     init = () => {
-        if (this.params.uniforms) this.props.uniforms = this.params.uniforms
-        this.session.graph.runSafe(this,'set',[{data:this.params.glsl, forceUpdate: true}])
+        if (this.params.uniforms && typeof this.params.uniforms === 'object') {
+            this.props.uniforms = this.params.uniforms // JSON.parse(JSON.stringify(this.params.uniforms))
+        }
+        this.session.graph.runSafe(this,'default',[{data:this.params.default, forceUpdate: true}])
     }
 
     deinit = () => {}
@@ -58,17 +55,22 @@ export class Shader{
         let name = match[2]
         let type = match[1]
         
+        // Set Uniform
+        if (this.props.uniforms[name] == null) this.props.uniforms[name] = {value: 0}
+        // Set Param
+        this.params[name] = this.props.uniforms[name].value
+
         // Set Port
         this.session.graph.addPort(this,name, {
             input: {type},
-            default: this.props.uniforms[name]?.value,
+            default: this.props.uniforms[name].value,
             output: {type: null},
             onUpdate: (userData) => {
-                this.props.uniforms[name].value = userData[0].data // Passed by reference at the beginning
+                let u = userData[0]
+                if (!isNaN(u.data)) {
+                    this.props.uniforms[name].value = u.data // Passed by reference at the beginning
+                }
             }
         })
-
-        // Set Param
-        this.params[name] = this.props.uniforms[name]?.value
     }
 }

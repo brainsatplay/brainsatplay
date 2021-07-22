@@ -264,6 +264,24 @@ app.init()`)
 
 
         info.graph.nodes.forEach((n, i) => {
+
+            for (let k in n.params){ 
+                // Delete non-editable elements
+                if (n.instance.ports[k]?.edit === false) {
+                    delete n.params[k] 
+                }
+
+                // Delete if non-stringifiable object
+                if (typeof n.params[k] === 'object' ){
+                    let result = JSON.parse(JSON.stringify(n.params[k]))
+                    if (typeof result !== 'object' || Object.keys(result).length == 0){ // Removes Elements
+                        delete n.params[k]
+                    } else {
+                        n.params[k] = result
+                    }
+                }
+            } 
+
             delete n['instance']
             delete n['ui']
             delete n['fragment']
@@ -405,7 +423,7 @@ app.init()`)
             let instance = new cls() // This triggers the catch
             editable = true
         }
-        catch (e) {console.log('variable does not exist')}
+        catch (e) {console.log('Cannot Save Node', e)}
 
         return editable
     }

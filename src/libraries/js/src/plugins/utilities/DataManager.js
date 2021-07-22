@@ -9,17 +9,29 @@ export class DataManager{
         this.paramOptions = {}
 
         this.ports = {
-            log:{},
-            get:{},
-            csv:{},
-            latest:{},
+            log:{
+                input: {type: undefined},
+                output: {type: null},
+            },
+            get:{
+                input: {type: 'boolean'},
+                output: {type: Object},
+            },
+            csv:{
+                input: {type: 'boolean'},
+                output: {type: null},
+            },
+            latest:{
+                input: {type: 'boolean'},
+                output: {type: Object},
+            },
         }
 
         this.props = {}
     }
 
     init = () => {
-        if (this.ports.latest.active){
+        if (this.ports.latest.output.active){
             this.session.graph.runSafe(this,'latest',[{data: true}])
         }
     }

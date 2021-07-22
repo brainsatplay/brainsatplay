@@ -3,7 +3,7 @@ import {Light} from './Light'
 import {Object3D} from './Object3D'
 import {Geometry} from './Geometry'
 import {Material} from './Material'
-import {Shader} from './Shader'
+import {Shader} from './shader/Shader'
 import {Trees} from './Trees'
 
 export {

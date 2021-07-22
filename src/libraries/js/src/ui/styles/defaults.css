@@ -693,6 +693,10 @@ select {
     display: flex;
 }
 
+.brainsatplay-option-node.experimental {
+    background: rgb(61, 39, 39);
+}
+
 .brainsatplay-option-node:hover{
     background: rgb(35,35,35);
 }

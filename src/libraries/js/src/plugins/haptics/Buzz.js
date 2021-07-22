@@ -35,40 +35,28 @@ export class Buzz{
 
         this.ports = {
             motors: {
-                types: {
-                    in: 'boolean',
-                    out: null
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             leds: {
-                types: {
-                    in: 'boolean',
-                    out: null
-                }
+                input: {type: 'boolean'},
+                output: {type: null},
             },
             audioToMotors: {
-                types: {
-                    in: Array,
-                    out: null
-                }
+                input: {type: Array},
+                output: {type: null},
             },
             mapOnBand: {
-                types: {
-                    in: 'number',
-                    out: null
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             fillLEDs: {
-                types: {
-                    in: 'number',
-                    out: null
-                }
+                input: {type: 'number'},
+                output: {type: null},
             },
             status: {
-                types: {
-                    in: null,
-                    out: 'boolean'
-                }
+                input: {type: null},
+                output: {type: 'boolean'},
             }
         }
 
